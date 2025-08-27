@@ -79,6 +79,7 @@ export interface AIRequest {
   tools_needed: string[];
   budget_cents: number;
   org_id: string;
+  content?: string; // Optional content field for AI processing
 }
 
 export interface AIResponse {

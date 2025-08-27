@@ -8,12 +8,27 @@ export interface LogContext {
   actor?: string;
   route?: string;
   provider?: string;
+  model?: string;
   latency_ms?: number;
   tokens_in?: number;
   tokens_out?: number;
   cost_cents?: number;
+  cost_eur?: number;
   fallback_used?: boolean;
   outcome?: 'success' | 'error' | 'warning';
+  // FinOps event fields
+  event_type?: string;
+  current_cost_eur?: number;
+  budget_cap_eur?: number;
+  tokens_input?: number;
+  tokens_output?: number;
+  success?: boolean;
+  error_type?: string;
+  daily_total_eur?: number;
+  monthly_total_eur?: number;
+  // Error handling fields
+  error_message?: string;
+  webhook_url?: string;
 }
 
 export interface AILogData extends LogContext {
@@ -63,19 +78,19 @@ class EcoNeuraLogger {
     });
   }
 
-  info(msg: string, context?: LogContext): void {
+  info(msg: string, context?: LogContext | any): void {
     this.logger.info(context, msg);
   }
 
-  warn(msg: string, context?: LogContext): void {
+  warn(msg: string, context?: LogContext | any): void {
     this.logger.warn(context, msg);
   }
 
-  error(msg: string, error?: Error, context?: LogContext): void {
+  error(msg: string, error?: Error, context?: LogContext | any): void {
     this.logger.error({ err: error, ...context }, msg);
   }
 
-  debug(msg: string, context?: LogContext): void {
+  debug(msg: string, context?: LogContext | any): void {
     this.logger.debug(context, msg);
   }
 
@@ -139,6 +154,15 @@ class EcoNeuraLogger {
     current_cost_eur: number;
     budget_cap_eur: number;
     provider?: string;
+    model?: string;
+    cost_eur?: number;
+    tokens_input?: number;
+    tokens_output?: number;
+    latency_ms?: number;
+    success?: boolean;
+    error_type?: string;
+    daily_total_eur?: number;
+    monthly_total_eur?: number;
     x_request_id?: string;
   }): void {
     this.logger.info({

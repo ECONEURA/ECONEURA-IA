@@ -11,10 +11,16 @@ import {
   UserCircleIcon,
   BellIcon,
   ChevronDownIcon,
+  CpuChipIcon,
+  CurrencyEuroIcon,
+  BeakerIcon,
 } from '@heroicons/react/24/outline'
 import {
   ChartBarIcon as ChartBarIconSolid,
   DocumentTextIcon as DocumentTextIconSolid,
+  CpuChipIcon as CpuChipIconSolid,
+  CurrencyEuroIcon as CurrencyEuroIconSolid,
+  BeakerIcon as BeakerIconSolid,
 } from '@heroicons/react/24/solid'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -26,6 +32,27 @@ const navigation = [
     icon: ChartBarIcon,
     iconSolid: ChartBarIconSolid,
     permission: 'dashboard:view'
+  },
+  {
+    name: 'CFO Dashboard',
+    href: '/cfo',
+    icon: CurrencyEuroIcon,
+    iconSolid: CurrencyEuroIconSolid,
+    permission: 'cfo:view'
+  },
+  {
+    name: 'AI Router',
+    href: '/ai-router',
+    icon: CpuChipIcon,
+    iconSolid: CpuChipIconSolid,
+    permission: 'ai:view'
+  },
+  {
+    name: 'AI Playground',
+    href: '/ai-playground',
+    icon: BeakerIcon,
+    iconSolid: BeakerIconSolid,
+    permission: 'ai:test'
   },
   {
     name: 'Facturas',

@@ -189,6 +189,9 @@ app.use(idempotency({
   skipRoutes: ['/health', '/metrics', '/api/webhooks'],
 }));
 
+// Import AI routes
+import aiRoutes from './routes/ai.js';
+
 // Routes
 app.use('/', healthRoutes);
 app.use('/api/flows', requireAuth, flowRoutes);
@@ -196,6 +199,7 @@ app.use('/api/webhooks', webhookRoutes); // No auth required, uses HMAC
 app.use('/api/providers', requireAuth, providerRoutes);
 app.use('/api/channels', requireAuth, channelRoutes);
 app.use('/api/admin', requireAuth, adminRoutes);
+app.use('/api/ai', requireAuth, aiRoutes); // AI Router endpoints
 
 // Metrics endpoint (Prometheus)
 app.get('/metrics', asyncHandler(async (req, res) => {

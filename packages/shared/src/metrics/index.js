@@ -4,36 +4,91 @@ collectDefaultMetrics({
     register,
     prefix: 'econeura_',
 });
-// AI Metrics
+// Enhanced AI Router Metrics
 export const aiRequestsTotal = new Counter({
     name: 'econeura_ai_requests_total',
     help: 'Total number of AI requests',
-    labelNames: ['org', 'provider', 'flow', 'outcome'],
+    labelNames: ['org_id', 'provider', 'model', 'status'],
     registers: [register],
 });
-export const aiLatencyHistogram = new Histogram({
-    name: 'econeura_ai_latency_ms',
-    help: 'AI request latency in milliseconds',
-    labelNames: ['org', 'provider', 'flow'],
-    buckets: [50, 100, 200, 500, 1000, 2000, 5000, 10000],
+export const aiLatency = new Histogram({
+    name: 'econeura_ai_latency_seconds',
+    help: 'AI request latency in seconds',
+    labelNames: ['org_id', 'provider', 'model'],
+    buckets: [0.1, 0.5, 1, 2, 5, 10, 30, 60],
     registers: [register],
 });
-export const aiCostTotal = new Counter({
-    name: 'econeura_ai_cost_eur_total',
-    help: 'Total AI cost in EUR',
-    labelNames: ['org', 'flow', 'provider'],
+export const aiCostEUR = new Gauge({
+    name: 'econeura_ai_cost_eur_current',
+    help: 'Current AI cost in EUR',
+    labelNames: ['org_id', 'provider'],
     registers: [register],
 });
 export const aiTokensTotal = new Counter({
     name: 'econeura_ai_tokens_total',
     help: 'Total AI tokens consumed',
-    labelNames: ['org', 'provider', 'direction'], // direction: input/output
+    labelNames: ['org_id', 'provider', 'type'], // type: input/output
     registers: [register],
 });
-export const aiFallbackTotal = new Counter({
-    name: 'econeura_ai_fallback_total',
-    help: 'Total AI fallback requests',
-    labelNames: ['org', 'provider', 'reason'],
+export const aiErrorsTotal = new Counter({
+    name: 'econeura_ai_errors_total',
+    help: 'Total AI request errors',
+    labelNames: ['org_id', 'provider', 'error_type'],
+    registers: [register],
+});
+export const aiRoutingDecisions = new Counter({
+    name: 'econeura_ai_routing_decisions_total',
+    help: 'Total AI routing decisions',
+    labelNames: ['org_id', 'provider', 'model', 'routing_reason'],
+    registers: [register],
+});
+export const aiRoutingErrors = new Counter({
+    name: 'econeura_ai_routing_errors_total',
+    help: 'Total AI routing errors',
+    labelNames: ['org_id', 'error_type'],
+    registers: [register],
+});
+export const aiRequestDuration = new Histogram({
+    name: 'econeura_ai_request_duration_seconds',
+    help: 'AI request processing duration in seconds',
+    labelNames: ['provider', 'status'],
+    buckets: [0.1, 0.5, 1, 2, 5, 10, 30, 60],
+    registers: [register],
+});
+export const aiCostAlerts = new Counter({
+    name: 'econeura_ai_cost_alerts_total',
+    help: 'Total AI cost alerts triggered',
+    labelNames: ['org_id', 'type', 'period'],
+    registers: [register],
+});
+export const aiProviderHealth = new Gauge({
+    name: 'econeura_ai_provider_health',
+    help: 'AI provider health status (1=healthy, 0.5=degraded, 0=down)',
+    labelNames: ['provider_id', 'provider_name'],
+    registers: [register],
+});
+export const aiProviderLatency = new Gauge({
+    name: 'econeura_ai_provider_latency_seconds',
+    help: 'AI provider health check latency in seconds',
+    labelNames: ['provider_id'],
+    registers: [register],
+});
+export const aiActiveRequests = new Gauge({
+    name: 'econeura_ai_active_requests',
+    help: 'Currently active AI requests',
+    labelNames: ['org_id', 'provider'],
+    registers: [register],
+});
+export const aiCostBudgetUtilization = new Gauge({
+    name: 'econeura_ai_budget_utilization_percent',
+    help: 'AI cost budget utilization percentage',
+    labelNames: ['org_id', 'period'], // period: daily/monthly
+    registers: [register],
+});
+export const aiAlertsTotal = new Counter({
+    name: 'econeura_ai_alerts_total',
+    help: 'Total AI cost alerts triggered',
+    labelNames: ['org_id', 'type', 'period'],
     registers: [register],
 });
 // HTTP Metrics
@@ -186,13 +241,13 @@ export const tenantViolations = new Counter({
 // Helper functions for recording metrics
 export function recordAIRequest(org, provider, flow, latencyMs, tokensIn, tokensOut, costCents, success, fallback = false) {
     const outcome = success ? 'success' : 'error';
-    aiRequestsTotal.labels(org, provider, flow, outcome).inc();
-    aiLatencyHistogram.labels(org, provider, flow).observe(latencyMs);
-    aiCostTotal.labels(org, flow, provider).inc(costCents / 100); // Convert to EUR
+    aiRequestsTotal.labels(org, provider, 'default', outcome).inc();
+    aiLatency.labels(org, provider, 'default').observe(latencyMs / 1000);
+    aiCostEUR.labels(org, provider).set(costCents / 100); // Convert to EUR
     aiTokensTotal.labels(org, provider, 'input').inc(tokensIn);
     aiTokensTotal.labels(org, provider, 'output').inc(tokensOut);
     if (fallback) {
-        aiFallbackTotal.labels(org, provider, 'service_unavailable').inc();
+        aiErrorsTotal.labels(org, provider, 'service_unavailable').inc();
     }
 }
 export function recordHTTPRequest(route, method, statusCode, durationMs, org) {
@@ -213,5 +268,48 @@ export function recordWebhook(source, eventType, processingMs, hmacValid = true)
         webhookHmacFailures.labels(source).inc();
     }
 }
+// Prometheus metrics object for easy access
+export const prometheus = {
+    // AI Router metrics
+    aiRequestsTotal,
+    aiLatency,
+    aiCostEUR,
+    aiTokensTotal,
+    aiErrorsTotal,
+    aiRoutingDecisions,
+    aiRoutingErrors,
+    aiRequestDuration,
+    aiCostAlerts,
+    aiProviderHealth,
+    aiProviderLatency,
+    aiActiveRequests,
+    aiCostBudgetUtilization,
+    aiAlertsTotal,
+    // HTTP metrics
+    httpRequestsTotal,
+    httpRequestDuration,
+    // Flow metrics
+    flowExecutionsTotal,
+    flowDuration,
+    // Other metrics
+    idempotencyReplaysTotal,
+    idempotencyConflictsTotal,
+    webhookReceived,
+    webhookHmacFailures,
+    webhookProcessingDuration,
+    rateLimitExceeded,
+    dbConnectionsActive,
+    dbQueryDuration,
+    integrationRequestsTotal,
+    integrationLatency,
+    jobsEnqueued,
+    jobsProcessed,
+    jobProcessingDuration,
+    activeJobs,
+    orgMonthlyCost,
+    orgCostBudget,
+    authFailures,
+    tenantViolations,
+};
 // Export the register for /metrics endpoint
 export { register as metricsRegister };
