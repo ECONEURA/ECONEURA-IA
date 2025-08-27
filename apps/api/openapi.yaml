@@ -1,0 +1,717 @@
+openapi: 3.1.0
+info:
+  title: EcoNeura API
+  version: 1.0.0
+  description: |
+    Production-ready ERP+CRM cockpit with AI Router for intelligent business automation.
+    
+    ## Authentication
+    All protected endpoints require:
+    - `Authorization: Bearer <ORG_API_KEY>` header
+    - `x-org-id` header with organization ID
+    
+    ## Headers
+    - `x-request-id`: Request correlation ID (auto-generated if missing)
+    - `traceparent`: W3C trace context (auto-generated if missing)
+    - `x-idempotency-key`: Optional idempotency key for mutation operations
+    
+    ## Error Format
+    All errors follow RFC 7807 Problem Details format.
+
+  contact:
+    name: EcoNeura API Support
+    email: api-support@econeura.dev
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.econeura.dev
+    description: Production server
+  - url: https://staging-api.econeura.dev
+    description: Staging server
+  - url: http://localhost:5001
+    description: Local development server
+
+security:
+  - OrgApiKey: []
+
+components:
+  securitySchemes:
+    OrgApiKey:
+      type: http
+      scheme: bearer
+      bearerFormat: API Key
+      description: Organization API key in Bearer format
+
+  parameters:
+    OrgId:
+      name: x-org-id
+      in: header
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-zA-Z0-9\-_]+$'
+      description: Organization identifier
+      example: org-demo
+
+    RequestId:
+      name: x-request-id
+      in: header
+      required: false
+      schema:
+        type: string
+        format: uuid
+      description: Request correlation ID (auto-generated if missing)
+
+    TraceParent:
+      name: traceparent
+      in: header
+      required: false
+      schema:
+        type: string
+        pattern: '^00-[a-f0-9]{32}-[a-f0-9]{16}-[0-9]{2}$'
+      description: W3C trace context header (auto-generated if missing)
+
+    IdempotencyKey:
+      name: x-idempotency-key
+      in: header
+      required: false
+      schema:
+        type: string
+        maxLength: 255
+      description: Idempotency key for mutation operations
+
+  responses:
+    Unauthorized:
+      description: Authentication required or invalid
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: https://econeura.dev/errors/unauthorized
+            title: Unauthorized
+            status: 401
+            detail: Authentication required
+            instance: corr:123e4567-e89b-12d3-a456-426614174000
+
+    Forbidden:
+      description: Access forbidden
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+
+    Conflict:
+      description: Conflict (idempotency key in progress)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: https://econeura.dev/errors/request_in_progress
+            title: Request In Progress
+            status: 409
+            detail: A request with this idempotency key is currently being processed
+            instance: corr:123e4567-e89b-12d3-a456-426614174000
+
+    UnprocessableEntity:
+      description: Validation error
+      content:
+        application/problem+json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ProblemDetails'
+              - type: object
+                properties:
+                  validation_errors:
+                    type: array
+                    items:
+                      type: object
+
+    TooManyRequests:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Rate limit per second
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests in current window
+        X-RateLimit-Reset:
+          schema:
+            type: string
+            format: date-time
+          description: When the rate limit resets
+        Retry-After:
+          schema:
+            type: integer
+          description: Seconds to wait before retrying
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+
+  schemas:
+    ProblemDetails:
+      type: object
+      required: [type, title, status, instance]
+      properties:
+        type:
+          type: string
+          format: uri
+          description: URI identifying the problem type
+        title:
+          type: string
+          description: Short, human-readable summary
+        status:
+          type: integer
+          minimum: 400
+          maximum: 599
+          description: HTTP status code
+        detail:
+          type: string
+          description: Human-readable explanation
+        instance:
+          type: string
+          description: URI reference identifying specific occurrence
+        org_id:
+          type: string
+          description: Organization ID associated with the request
+
+    HealthCheck:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded, error]
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+        uptime_seconds:
+          type: number
+        database:
+          type: object
+          properties:
+            status:
+              type: string
+              enum: [ok, error]
+            latency_ms:
+              type: number
+        dependencies:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [ok, error, unavailable]
+              latency_ms:
+                type: number
+
+    FlowExecution:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        flow_type:
+          type: string
+          enum: [cobro_proactivo, follow_up, reminder]
+        status:
+          type: string
+          enum: [pending, running, completed, failed, cancelled]
+        input_data:
+          type: object
+        steps_completed:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        corr_id:
+          type: string
+          format: uuid
+
+    StartFlowRequest:
+      type: object
+      required: [flow_type, input_data]
+      properties:
+        flow_type:
+          type: string
+          enum: [cobro_proactivo, follow_up, reminder]
+        input_data:
+          type: object
+          description: Flow-specific input parameters
+
+    StartFlowResponse:
+      type: object
+      properties:
+        corr_id:
+          type: string
+          format: uuid
+          description: Correlation ID for tracking flow execution
+        flow_id:
+          type: string
+          format: uuid
+          description: Unique identifier for this flow execution
+        status:
+          type: string
+          enum: [accepted, queued]
+          description: Initial status of the flow
+
+    WebhookEvent:
+      type: object
+      required: [source, event_type, data]
+      properties:
+        source:
+          type: string
+          enum: [make, zapier, outlook, teams]
+        event_type:
+          type: string
+        timestamp:
+          type: integer
+          description: Unix timestamp
+        data:
+          type: object
+          description: Event-specific payload
+
+    ProviderStatus:
+      type: object
+      properties:
+        provider:
+          type: string
+        status:
+          type: string
+          enum: [available, unavailable, degraded]
+        latency_ms:
+          type: number
+        last_check:
+          type: string
+          format: date-time
+        error_message:
+          type: string
+
+    SendMessageRequest:
+      type: object
+      required: [channel, recipient, message]
+      properties:
+        channel:
+          type: string
+          enum: [email, whatsapp, teams]
+        recipient:
+          type: string
+          description: Email address, phone number, or Teams user ID
+        message:
+          type: string
+          description: Message content
+        template_id:
+          type: string
+          description: Optional template identifier
+        metadata:
+          type: object
+          description: Channel-specific metadata
+
+    OrgLimits:
+      type: object
+      properties:
+        org_id:
+          type: string
+        rps_limit:
+          type: integer
+          minimum: 1
+        burst:
+          type: integer
+          minimum: 1
+        monthly_cost_cap_eur:
+          type: number
+          minimum: 0
+        max_parallel_jobs:
+          type: integer
+          minimum: 1
+        storage_quota_gb:
+          type: integer
+          minimum: 1
+
+    UpdateOrgLimitsRequest:
+      type: object
+      properties:
+        rps_limit:
+          type: integer
+          minimum: 1
+        burst:
+          type: integer
+          minimum: 1
+        monthly_cost_cap_eur:
+          type: number
+          minimum: 0
+        max_parallel_jobs:
+          type: integer
+          minimum: 1
+        storage_quota_gb:
+          type: integer
+          minimum: 1
+
+    FeatureFlag:
+      type: object
+      properties:
+        org_id:
+          type: string
+        flag:
+          type: string
+        enabled:
+          type: boolean
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check endpoint
+      operationId: getHealth
+      security: []
+      responses:
+        '200':
+          description: Service health status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheck'
+
+  /api/flows/cobro:
+    post:
+      tags: [Flows]
+      summary: Start cobro proactivo flow
+      operationId: startCobroFlow
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartFlowRequest'
+            example:
+              flow_type: cobro_proactivo
+              input_data:
+                customer_ids: ["uuid1", "uuid2"]
+                escalation_level: 1
+      responses:
+        '202':
+          description: Flow started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StartFlowResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/webhooks/make:
+    post:
+      tags: [Webhooks]
+      summary: Receive Make.com webhook
+      operationId: receiveMakeWebhook
+      security: []
+      parameters:
+        - name: X-Timestamp
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Unix timestamp for HMAC verification
+        - name: X-Signature
+          in: header
+          required: true
+          schema:
+            type: string
+          description: HMAC-SHA256 signature
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookEvent'
+      responses:
+        '202':
+          description: Webhook received and queued for processing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: accepted
+                  corr_id:
+                    type: string
+                    format: uuid
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/providers/status:
+    get:
+      tags: [Providers]
+      summary: Get status of all integrated providers
+      operationId: getProvidersStatus
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+      responses:
+        '200':
+          description: Provider status information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  providers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProviderStatus'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/channels/email:
+    post:
+      tags: [Channels]
+      summary: Send email message
+      operationId: sendEmail
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMessageRequest'
+      responses:
+        '202':
+          description: Message queued for sending
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message_id:
+                    type: string
+                  status:
+                    type: string
+                    enum: [queued, sent]
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /api/channels/whatsapp:
+    post:
+      tags: [Channels]
+      summary: Send WhatsApp message
+      operationId: sendWhatsApp
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMessageRequest'
+      responses:
+        '202':
+          description: Message queued for sending
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message_id:
+                    type: string
+                  status:
+                    type: string
+                    enum: [queued, sent]
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/channels/teams:
+    post:
+      tags: [Channels]
+      summary: Send Teams message
+      operationId: sendTeams
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMessageRequest'
+      responses:
+        '202':
+          description: Message queued for sending
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /metrics:
+    get:
+      tags: [Monitoring]
+      summary: Prometheus metrics endpoint
+      operationId: getMetrics
+      security: []
+      responses:
+        '200':
+          description: Prometheus metrics in text format
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/admin/tenants/{orgId}/status:
+    get:
+      tags: [Admin]
+      summary: Get organization status
+      operationId: getOrgStatus
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Organization status
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/admin/tenants/{orgId}/limits:
+    put:
+      tags: [Admin]
+      summary: Update organization limits
+      operationId: updateOrgLimits
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOrgLimitsRequest'
+      responses:
+        '200':
+          description: Limits updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrgLimits'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/admin/flags/{flag}:
+    patch:
+      tags: [Admin]
+      summary: Update feature flag for organization
+      operationId: updateFeatureFlag
+      parameters:
+        - name: flag
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/OrgId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        '200':
+          description: Feature flag updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureFlag'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags: [Admin]
+      summary: Emergency kill switch for feature flag
+      operationId: killFeatureFlag
+      parameters:
+        - name: flag
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Feature flag disabled globally
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: disabled
+                  affected_orgs:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+tags:
+  - name: Health
+    description: Service health and monitoring
+  - name: Flows
+    description: Business process flows
+  - name: Webhooks
+    description: Webhook endpoints
+  - name: Providers
+    description: External provider status
+  - name: Channels
+    description: Communication channels
+  - name: Monitoring
+    description: Metrics and monitoring
+  - name: Admin
+    description: Administrative operations
