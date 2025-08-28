@@ -1,0 +1,10 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/crm/companies/new/page": "app/crm/companies/new/page.js",
+  "/crm/meetings/new/page": "app/crm/meetings/new/page.js",
+  "/crm/contacts/new/page": "app/crm/contacts/new/page.js",
+  "/crm/page": "app/crm/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/page": "app/page.js",
+  "/crm/deals/new/page": "app/crm/deals/new/page.js"
+}

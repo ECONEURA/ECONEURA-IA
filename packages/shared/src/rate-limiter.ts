@@ -71,8 +71,8 @@ export class TokenBucketRateLimiter {
 
   async wait(): Promise<void> {
     const result = await this.acquire();
-    if (!result.allowed && result.retryAfter) {
-      await new Promise(resolve => setTimeout(resolve, result.retryAfter * 1000));
+    if (!result.allowed && result.retryAfter !== undefined) {
+      await new Promise(resolve => setTimeout(resolve, result.retryAfter! * 1000));
     }
   }
 }

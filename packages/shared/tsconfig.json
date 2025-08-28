@@ -1,7 +1,9 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
+    "composite": true,
     "lib": ["ES2020", "DOM"],
     "moduleResolution": "bundler",
     "strict": true,

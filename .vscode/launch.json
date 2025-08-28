@@ -1,0 +1,40 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Next.js (apps/web)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev"],
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"],
+      "env": { "PORT": "3000", "API_URL": "http://localhost:4000" }
+    },
+    {
+      "name": "API (apps/api)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/api",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev"],
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"],
+      "env": {
+        "PORT": "4000",
+        "DATABASE_URL": "postgresql://postgres:postgres@localhost:5432/econeura_dev?schema=public",
+        "REDIS_URL": "redis://localhost:6379"
+      }
+    },
+    {
+      "name": "Playwright (E2E)",
+      "type": "pwa-node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "program": "${workspaceFolder}/node_modules/.bin/playwright",
+      "args": ["test", "--config=playwright.config.ts"],
+      "console": "integratedTerminal"
+    }
+    ]
+}

@@ -1,0 +1,22 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    { "label": "Install", "type": "shell", "command": "pnpm install", "problemMatcher": [] },
+    { "label": "Typecheck", "type": "shell", "command": "pnpm -w typecheck", "problemMatcher": "$tsc" },
+    { "label": "Lint", "type": "shell", "command": "pnpm -w lint", "problemMatcher": [] },
+    { "label": "Build (all)", "type": "shell", "command": "pnpm -w -r build", "problemMatcher": [] },
+    {
+      "label": "Dev (web+api)",
+      "type": "shell",
+      "command": "pnpm -w dev",
+      "problemMatcher": []
+    },
+    { "label": "DB: generate", "type": "shell", "command": "pnpm db:generate", "problemMatcher": [] },
+    { "label": "DB: migrate", "type": "shell", "command": "pnpm db:migrate", "problemMatcher": [] },
+    { "label": "DB: reset", "type": "shell", "command": "pnpm db:reset", "problemMatcher": [] },
+    { "label": "DB: seed", "type": "shell", "command": "pnpm db:seed", "problemMatcher": [] },
+    { "label": "API: openapi", "type": "shell", "command": "pnpm api:openapi", "problemMatcher": [] },
+    { "label": "Test (unit)", "type": "shell", "command": "pnpm test -- --run", "problemMatcher": [] },
+    { "label": "Test (e2e)", "type": "shell", "command": "pnpm test:e2e", "problemMatcher": [] }
+  ]
+}

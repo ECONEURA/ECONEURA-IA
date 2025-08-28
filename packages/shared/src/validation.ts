@@ -42,7 +42,7 @@ export function validateResponse<T>(
   if (!result.success) {
     throw new ValidationError(
       'Invalid API response format',
-      { errors: result.error.errors }
+      { errors: result.error.format() }
     );
   }
   

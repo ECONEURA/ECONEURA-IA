@@ -64,16 +64,23 @@ export class SDKLogger implements Logger {
   ];
 
   constructor(config: LoggerConfig = {}) {
+    const defaultLogger: Logger = {
+      debug: console.debug.bind(console),
+      info: console.info.bind(console),
+      warn: console.warn.bind(console),
+      error: console.error.bind(console)
+    };
+
     this.config = {
       level: config.level || LogLevel.INFO,
       format: config.format || 'json',
       redactKeys: [...this.sensitiveKeys, ...(config.redactKeys || [])],
       destination: config.destination || 'console',
-      customLogger: config.customLogger
+      customLogger: config.customLogger || defaultLogger
     };
   }
 
-  private shouldLog(level: LogLevel): boolean {
+  private isLevelEnabled(level: LogLevel): boolean {
     const levels = Object.values(LogLevel);
     const configIndex = levels.indexOf(this.config.level);
     const messageIndex = levels.indexOf(level);
@@ -86,14 +93,14 @@ export class SDKLogger implements Logger {
     }
 
     const context = entry.context 
-      ? \` | \${JSON.stringify(entry.context)}\`
+      ? ` | ${JSON.stringify(entry.context)}`
       : '';
       
-    return \`[\${entry.timestamp}] \${entry.level.toUpperCase()}: \${entry.message}\${context}\`;
+    return `[${entry.timestamp}] ${entry.level.toUpperCase()}: ${entry.message}${context}`;
   }
 
   private log(level: LogLevel, message: string, context?: Record<string, unknown>): void {
-    if (!this.shouldLog(level)) return;
+    if (!this.isLevelEnabled(level)) return;
 
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
@@ -107,7 +114,13 @@ export class SDKLogger implements Logger {
     const formattedMessage = this.formatMessage(entry);
 
     if (this.config.destination === 'custom' && this.config.customLogger) {
-      this.config.customLogger[level](message, context);
+      switch (level) {
+        case LogLevel.ERROR:
+          this.config.customLogger.error(message, undefined, context);
+          break;
+        default:
+          this.config.customLogger[level](message, context);
+      }
       return;
     }
 

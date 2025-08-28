@@ -1,0 +1,66 @@
+{
+  "name": "ECONEURA Dev",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:0-${containerWorkspaceFolderBasename}",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/devcontainers/features/node:1": { "version": "20" }
+  },
+  "postCreateCommand": "corepack enable && pnpm install && pnpm db:generate || true",
+  "postStartCommand": "pnpm -w -r build || true",
+  "runArgs": ["--init", "--network=host"],
+  "containerEnv": {
+    "NODE_ENV": "development",
+    "API_URL": "http://localhost:4000",
+    "WEB_URL": "http://localhost:3000",
+    "DATABASE_URL": "postgresql://postgres:postgres@localhost:5432/econeura_dev?schema=public",
+    "REDIS_URL": "redis://localhost:6379"
+  },
+  "forwardPorts": [3000, 4000, 5432, 6379],
+  "portsAttributes": {
+    "3000": { "label": "Next.js" },
+    "4000": { "label": "API" },
+    "5432": { "label": "Postgres" },
+    "6379": { "label": "Redis" }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "prisma.prisma",
+        "ms-azuretools.vscode-docker",
+        "ms-vscode.vscode-typescript-next",
+        "github.vscode-github-actions",
+        "ms-playwright.playwright"
+      ],
+      "settings": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit",
+          "source.organizeImports": "explicit"
+        },
+        "files.eol": "\n",
+        "typescript.tsdk": "node_modules/typescript/lib",
+        "eslint.workingDirectories": [
+          { "mode": "auto" }
+        ],
+        "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact", "json"],
+        "prettier.useTabs": false,
+        "prettier.singleQuote": true,
+        "prettier.trailingComma": "all",
+        "prettier.printWidth": 100
+      }
+    }
+  },
+  "remoteUser": "node",
+  "mounts": [
+    "source=${localEnv:HOME}/.ssh,target=/home/node/.ssh,type=bind,consistency=cached,optional"
+  ],
+  "dockerComposeFile": "../docker-compose.dev.yml",
+  "service": "workspace",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}"
+}

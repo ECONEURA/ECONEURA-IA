@@ -45,7 +45,7 @@ export class MiddlewareChain {
         const data = await response.json();
         return {
           status: response.status,
-          headers: Object.fromEntries(response.headers.entries()),
+          headers: Object.fromEntries([...response.headers].map(([key, value]) => [key, value])),
           data
         };
       }

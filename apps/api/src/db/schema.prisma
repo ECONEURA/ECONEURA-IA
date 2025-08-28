@@ -1,0 +1,165 @@
+// Modelos base para CRM/ERP (ejemplo con Prisma, ajustable a Drizzle)
+// Incluye multitenancy, timestamps y soft delete
+
+// organizations
+model Organization {
+  id           String   @id @default(uuid())
+  name         String
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  deleted_at   DateTime?
+  users        User[]
+  contacts     Contact[]
+  companies    Company[]
+  deals        Deal[]
+  activities   Activity[]
+  products     Product[]
+  customers    Customer[]
+  invoices     Invoice[]
+  inventory    Inventory[]
+  purchases    Purchase[]
+}
+
+// users
+model User {
+  id           String   @id @default(uuid())
+  org_id       String
+  organization Organization @relation(fields: [org_id], references: [id])
+  email        String
+  role         String
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  deleted_at   DateTime?
+}
+
+// contacts
+model Contact {
+  id           String   @id @default(uuid())
+  org_id       String
+  organization Organization @relation(fields: [org_id], references: [id])
+  name         String
+  email        String
+  phone        String?
+  company_id   String?
+  company      Company? @relation(fields: [company_id], references: [id])
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  deleted_at   DateTime?
+}
+
+// companies
+model Company {
+  id           String   @id @default(uuid())
+  org_id       String
+  organization Organization @relation(fields: [org_id], references: [id])
+  name         String
+  cif          String?
+  contacts     Contact[]
+  deals        Deal[]
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  deleted_at   DateTime?
+}
+
+// deals
+model Deal {
+  id           String   @id @default(uuid())
+  org_id       String
+  organization Organization @relation(fields: [org_id], references: [id])
+  name         String
+  value        Float
+  stage        String
+  close_date   DateTime?
+  company_id   String?
+  company      Company? @relation(fields: [company_id], references: [id])
+  activities   Activity[]
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  deleted_at   DateTime?
+}
+
+// activities
+model Activity {
+  id           String   @id @default(uuid())
+  org_id       String
+  organization Organization @relation(fields: [org_id], references: [id])
+  type         String
+  subject      String
+  due_date     DateTime?
+  deal_id      String?
+  deal         Deal? @relation(fields: [deal_id], references: [id])
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  deleted_at   DateTime?
+}
+
+// products
+model Product {
+  id           String   @id @default(uuid())
+  org_id       String
+  organization Organization @relation(fields: [org_id], references: [id])
+  name         String
+  sku          String
+  price        Float
+  stock        Int
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  deleted_at   DateTime?
+}
+
+// customers
+model Customer {
+  id           String   @id @default(uuid())
+  org_id       String
+  organization Organization @relation(fields: [org_id], references: [id])
+  name         String
+  email        String
+  phone        String?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  deleted_at   DateTime?
+}
+
+// invoices
+model Invoice {
+  id           String   @id @default(uuid())
+  org_id       String
+  organization Organization @relation(fields: [org_id], references: [id])
+  customer_id  String
+  customer     Customer @relation(fields: [customer_id], references: [id])
+  status       String
+  total        Float
+  issued_date  DateTime
+  due_date     DateTime
+  lines        Json
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  deleted_at   DateTime?
+}
+
+// inventory
+model Inventory {
+  id           String   @id @default(uuid())
+  org_id       String
+  organization Organization @relation(fields: [org_id], references: [id])
+  product_id   String
+  product      Product @relation(fields: [product_id], references: [id])
+  stock        Int
+  movements    Json
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  deleted_at   DateTime?
+}
+
+// purchases
+model Purchase {
+  id           String   @id @default(uuid())
+  org_id       String
+  organization Organization @relation(fields: [org_id], references: [id])
+  supplier     String
+  total        Float
+  date         DateTime
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  deleted_at   DateTime?
+}

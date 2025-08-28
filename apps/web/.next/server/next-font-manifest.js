@@ -1,0 +1,1 @@
+self.__NEXT_FONT_MANIFEST='{"pages":{},"app":{"/workspaces/ECONEURA-IA/apps/web/src/app/layout":["static/media/e4af272ccee01ff0-s.p.woff2","static/media/4f05ba3a6752a328-s.p.woff2","static/media/6af6b543dd3be231-s.p.woff2"]},"appUsingSizeAdjust":true,"pagesUsingSizeAdjust":false}';

@@ -1,0 +1,2 @@
+# fuerza quedarte con la versión local del lock en merges
+package-lock.json merge=ours

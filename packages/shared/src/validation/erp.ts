@@ -4,18 +4,20 @@ import { z } from 'zod';
 const NIF_REGEX = /^[0-9]{8}[A-Z]$/;
 const CURRENCY_CODES = ['EUR', 'USD', 'GBP', 'CHF', 'JPY', 'MXN', 'BRL'] as const;
 
+export const ProductSchema = z.object({
   name: z.string().min(2),
   sku: z.string().min(1),
   price: z.number().nonnegative(),
   stock: z.number().int().nonnegative(),
-  custom: z.record(z.string(), z.any()).optional(),
+  custom: z.record(z.string(), z.any()).optional()
 });
 
+export const CustomerSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
   phone: z.string().optional(),
   nif: z.string().regex(NIF_REGEX, 'NIF inválido').optional(),
-  custom: z.record(z.string(), z.any()).optional(),
+  custom: z.record(z.string(), z.any()).optional()
 });
 
 export const invoiceSchema = z.object({

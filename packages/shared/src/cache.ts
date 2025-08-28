@@ -33,7 +33,9 @@ export class MemoryCacheStore implements CacheStore {
     return this.store.get(key);
   }
 
-  set<T>(key: string, entry: CacheEntry<T>): void {
+  set<T>(key: string | undefined, entry: CacheEntry<T>): void {
+    if (!key) return;
+    
     // Evict oldest entry if cache is full
     if (this.store.size >= this.maxSize) {
       const oldestKey = this.store.keys().next().value;
@@ -43,7 +45,9 @@ export class MemoryCacheStore implements CacheStore {
   }
 
   delete(key: string): void {
-    this.store.delete(key);
+    if (typeof key === 'string') {
+      this.store.delete(key);
+    }
   }
 
   clear(): void {
