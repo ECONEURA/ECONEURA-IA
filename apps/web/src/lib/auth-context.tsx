@@ -1,127 +1,302 @@
-'use client'
+'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-
-export interface User {
-  id: string
-  email: string
-  name: string
-  role: 'cfo' | 'admin' | 'user'
-  organizationId: string
-  organizationName: string
-  permissions: string[]
-}
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { EconeuraSDK } from '@econeura/sdk';
+import type { 
+  User, 
+  Organization, 
+  Role,
+  LoginRequest,
+  LoginResponse,
+  MeResponse 
+} from '@econeura/shared';
 
 interface AuthContextType {
-  user: User | null
-  isLoading: boolean
-  login: (email: string, password: string) => Promise<void>
-  logout: () => void
-  hasPermission: (permission: string) => boolean
+  user: User | null;
+  organization: Organization | null;
+  role: Role | null;
+  permissions: string[];
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  sdk: EconeuraSDK | null;
+  login: (credentials: LoginRequest) => Promise<void>;
+  logout: (allDevices?: boolean) => Promise<void>;
+  refreshSession: () => Promise<void>;
+  hasPermission: (permission: string, scope?: 'organization' | 'own') => boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  organization: null,
+  role: null,
+  permissions: [],
+  isLoading: true,
+  isAuthenticated: false,
+  sdk: null,
+  login: async () => {},
+  logout: async () => {},
+  refreshSession: async () => {},
+  hasPermission: () => false,
+});
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+const TOKEN_KEY = 'econeura_access_token';
+const REFRESH_TOKEN_KEY = 'econeura_refresh_token';
+const USER_KEY = 'econeura_user';
+const ORG_KEY = 'econeura_org';
+const ROLE_KEY = 'econeura_role';
+const PERMISSIONS_KEY = 'econeura_permissions';
 
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [organization, setOrganization] = useState<Organization | null>(null);
+  const [role, setRole] = useState<Role | null>(null);
+  const [permissions, setPermissions] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [sdk, setSdk] = useState<EconeuraSDK | null>(null);
+  const router = useRouter();
+
+  // Initialize SDK
+  const initializeSdk = useCallback((accessToken?: string, refreshToken?: string) => {
+    const newSdk = new EconeuraSDK({
+      baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000',
+      accessToken,
+      refreshToken,
+      onTokenRefresh: (tokens) => {
+        // Save new tokens
+        localStorage.setItem(TOKEN_KEY, tokens.accessToken);
+        localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
+      },
+      timeout: 30000,
+      retries: 3,
+    });
+    setSdk(newSdk);
+    return newSdk;
+  }, []);
+
+  // Load stored session on mount
   useEffect(() => {
-    // Check for existing session on mount
-    const checkAuth = async () => {
+    const loadStoredSession = async () => {
       try {
-        const token = localStorage.getItem('auth_token')
-        if (token) {
-          // For demo purposes, set a mock CFO user
-          // In production, validate token with backend
-          setUser({
-            id: 'cfo-001',
-            email: 'cfo@empresa.com',
-            name: 'María González',
-            role: 'cfo',
-            organizationId: 'org-001',
-            organizationName: 'Empresa Demo S.L.',
-            permissions: [
-              'dashboard:view',
-              'invoices:view',
-              'invoices:manage',
-              'flows:view',
-              'flows:cancel',
-              'ai:use',
-              'reports:view'
-            ]
-          })
+        const storedToken = localStorage.getItem(TOKEN_KEY);
+        const storedRefreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+        
+        if (storedToken && storedRefreshToken) {
+          // Initialize SDK with stored tokens
+          const sdkInstance = initializeSdk(storedToken, storedRefreshToken);
+          
+          // Try to get current user info
+          try {
+            const meData = await sdkInstance.auth.me();
+            
+            // Update state with user info
+            setUser(meData.user as User);
+            setOrganization(meData.organization as Organization);
+            setRole(meData.role as Role);
+            setPermissions(meData.permissions);
+            
+            // Store in localStorage for faster next load
+            localStorage.setItem(USER_KEY, JSON.stringify(meData.user));
+            localStorage.setItem(ORG_KEY, JSON.stringify(meData.organization));
+            localStorage.setItem(ROLE_KEY, JSON.stringify(meData.role));
+            localStorage.setItem(PERMISSIONS_KEY, JSON.stringify(meData.permissions));
+          } catch (error) {
+            console.error('Failed to load user session:', error);
+            // Token might be expired, try to refresh
+            try {
+              const refreshResult = await sdkInstance.auth.refresh({ 
+                refreshToken: storedRefreshToken 
+              });
+              
+              // Update tokens
+              localStorage.setItem(TOKEN_KEY, refreshResult.tokens.accessToken);
+              localStorage.setItem(REFRESH_TOKEN_KEY, refreshResult.tokens.refreshToken);
+              
+              // Retry getting user info
+              const meData = await sdkInstance.auth.me();
+              setUser(meData.user as User);
+              setOrganization(meData.organization as Organization);
+              setRole(meData.role as Role);
+              setPermissions(meData.permissions);
+            } catch (refreshError) {
+              console.error('Failed to refresh session:', refreshError);
+              // Clear invalid session
+              clearSession();
+            }
+          }
+        } else {
+          // Try to load cached user data for faster UI
+          const cachedUser = localStorage.getItem(USER_KEY);
+          const cachedOrg = localStorage.getItem(ORG_KEY);
+          const cachedRole = localStorage.getItem(ROLE_KEY);
+          const cachedPermissions = localStorage.getItem(PERMISSIONS_KEY);
+          
+          if (cachedUser && cachedOrg && cachedRole && cachedPermissions) {
+            setUser(JSON.parse(cachedUser));
+            setOrganization(JSON.parse(cachedOrg));
+            setRole(JSON.parse(cachedRole));
+            setPermissions(JSON.parse(cachedPermissions));
+          }
+          
+          // Initialize SDK without tokens (for public endpoints)
+          initializeSdk();
         }
       } catch (error) {
-        console.error('Auth check failed:', error)
-        localStorage.removeItem('auth_token')
+        console.error('Error loading session:', error);
+        clearSession();
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
+      }
+    };
+
+    loadStoredSession();
+  }, [initializeSdk]);
+
+  // Clear session data
+  const clearSession = () => {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(ORG_KEY);
+    localStorage.removeItem(ROLE_KEY);
+    localStorage.removeItem(PERMISSIONS_KEY);
+    setUser(null);
+    setOrganization(null);
+    setRole(null);
+    setPermissions([]);
+  };
+
+  // Login function
+  const login = async (credentials: LoginRequest) => {
+    try {
+      const sdkInstance = sdk || initializeSdk();
+      const response = await sdkInstance.auth.login(credentials);
+      
+      // Store tokens
+      localStorage.setItem(TOKEN_KEY, response.tokens.accessToken);
+      localStorage.setItem(REFRESH_TOKEN_KEY, response.tokens.refreshToken);
+      
+      // Update SDK with new tokens
+      sdkInstance.client.setAccessToken(response.tokens.accessToken);
+      sdkInstance.client.setRefreshToken(response.tokens.refreshToken);
+      
+      // Update state
+      setUser(response.user as User);
+      setOrganization(response.organization as Organization);
+      setRole(response.role as Role);
+      setPermissions(response.permissions);
+      
+      // Store in localStorage for faster next load
+      localStorage.setItem(USER_KEY, JSON.stringify(response.user));
+      localStorage.setItem(ORG_KEY, JSON.stringify(response.organization));
+      localStorage.setItem(ROLE_KEY, JSON.stringify(response.role));
+      localStorage.setItem(PERMISSIONS_KEY, JSON.stringify(response.permissions));
+      
+      // Redirect to dashboard
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    }
+  };
+
+  // Logout function
+  const logout = async (allDevices = false) => {
+    try {
+      if (sdk) {
+        await sdk.auth.logout({ allDevices });
+      }
+    } catch (error) {
+      console.error('Logout API call failed:', error);
+    } finally {
+      // Clear session regardless of API call result
+      clearSession();
+      router.push('/login');
+    }
+  };
+
+  // Refresh session
+  const refreshSession = async () => {
+    try {
+      if (!sdk) return;
+      
+      const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+      if (!refreshToken) throw new Error('No refresh token');
+      
+      const response = await sdk.auth.refresh({ refreshToken });
+      
+      // Update tokens
+      localStorage.setItem(TOKEN_KEY, response.tokens.accessToken);
+      localStorage.setItem(REFRESH_TOKEN_KEY, response.tokens.refreshToken);
+      
+      // Update SDK
+      sdk.client.setAccessToken(response.tokens.accessToken);
+      sdk.client.setRefreshToken(response.tokens.refreshToken);
+      
+      // Get updated user info
+      const meData = await sdk.auth.me();
+      setUser(meData.user as User);
+      setOrganization(meData.organization as Organization);
+      setRole(meData.role as Role);
+      setPermissions(meData.permissions);
+    } catch (error) {
+      console.error('Failed to refresh session:', error);
+      clearSession();
+      router.push('/login');
+    }
+  };
+
+  // Check permission
+  const hasPermission = (permission: string, scope: 'organization' | 'own' = 'organization') => {
+    if (!permissions.length) return false;
+    
+    // Check for admin wildcard
+    if (permissions.includes('*') || 
+        permissions.includes('*:*') || 
+        permissions.includes('*:*:*')) {
+      return true;
+    }
+    
+    // Check exact permission
+    if (permissions.includes(permission)) {
+      return true;
+    }
+    
+    // Check wildcard permission (e.g., crm:contacts:* matches crm:contacts:view)
+    const permissionParts = permission.split(':');
+    for (const userPerm of permissions) {
+      if (userPerm.endsWith(':*')) {
+        const permBase = userPerm.slice(0, -2);
+        if (permission.startsWith(permBase + ':')) {
+          return true;
+        }
       }
     }
+    
+    return false;
+  };
 
-    checkAuth()
-  }, [])
+  const value = {
+    user,
+    organization,
+    role,
+    permissions,
+    isLoading,
+    isAuthenticated: !!user,
+    sdk,
+    login,
+    logout,
+    refreshSession,
+    hasPermission,
+  };
 
-  const login = async (email: string, password: string) => {
-    setIsLoading(true)
-    try {
-      // For demo purposes, accept any email/password
-      // In production, authenticate with backend
-      const mockToken = 'demo-jwt-token-' + Date.now()
-      localStorage.setItem('auth_token', mockToken)
-      
-      setUser({
-        id: 'cfo-001',
-        email,
-        name: email.split('@')[0],
-        role: 'cfo',
-        organizationId: 'org-001',
-        organizationName: 'Empresa Demo S.L.',
-        permissions: [
-          'dashboard:view',
-          'invoices:view',
-          'invoices:manage',
-          'flows:view',
-          'flows:cancel',
-          'ai:use',
-          'reports:view'
-        ]
-      })
-    } catch (error) {
-      console.error('Login failed:', error)
-      throw new Error('Credenciales inválidas')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const logout = () => {
-    localStorage.removeItem('auth_token')
-    setUser(null)
-  }
-
-  const hasPermission = (permission: string): boolean => {
-    return user?.permissions.includes(permission) ?? false
-  }
-
-  return (
-    <AuthContext.Provider value={{
-      user,
-      isLoading,
-      login,
-      logout,
-      hasPermission
-    }}>
-      {children}
-    </AuthContext.Provider>
-  )
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
   }
-  return context
+  return context;
 }

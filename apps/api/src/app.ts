@@ -191,9 +191,11 @@ app.use(idempotency({
 
 // Import AI routes
 import aiRoutes from './routes/ai.js';
+import authRoutes from './routes/auth.js';
 
 // Routes
 app.use('/', healthRoutes);
+app.use('/api/v1/auth', authRoutes); // Auth routes (no auth middleware needed here)
 app.use('/api/flows', requireAuth, flowRoutes);
 app.use('/api/webhooks', webhookRoutes); // No auth required, uses HMAC
 app.use('/api/providers', requireAuth, providerRoutes);
@@ -206,6 +208,18 @@ app.get('/metrics', asyncHandler(async (req, res) => {
   res.set('Content-Type', metricsRegister.contentType);
   const metrics = await metricsRegister.metrics();
   res.send(metrics);
+}));
+
+// OpenAPI endpoint
+app.get('/api/openapi.json', asyncHandler(async (req, res) => {
+  try {
+    const openApiPath = new URL('../openapi.json', import.meta.url).pathname;
+    const openApiDoc = JSON.parse(await import('fs').then(fs => fs.promises.readFile(openApiPath, 'utf-8')));
+    res.json(openApiDoc);
+  } catch (error) {
+    logger.error('Failed to serve OpenAPI spec', error, { corr_id: res.locals.corr_id });
+    throw new ApiError(500, 'openapi_error', 'OpenAPI Error', 'Failed to load OpenAPI specification');
+  }
 }));
 
 // 404 handler
