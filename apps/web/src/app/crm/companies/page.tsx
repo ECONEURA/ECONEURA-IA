@@ -1,584 +1,321 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { 
-  BuildingOfficeIcon, 
-  PlusIcon,
-  MagnifyingGlassIcon,
-  EnvelopeIcon,
-  PhoneIcon,
-  MapPinIcon,
-  EllipsisVerticalIcon,
-  PencilIcon,
-  TrashIcon,
-  StarIcon,
-  UsersIcon,
-  BanknotesIcon,
-  ChartBarIcon,
-  GlobeAltIcon,
-  FunnelIcon
-} from '@heroicons/react/24/outline';
-import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid';
-import { ProtectedRoute } from '../../../components/auth/ProtectedRoute';
+import { useState } from 'react'
+import { useCompanies, useDeleteCompany } from '@/hooks/use-companies'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
-interface Company {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  website: string;
-  industry: string;
-  size: 'startup' | 'small' | 'medium' | 'large' | 'enterprise';
-  location: string;
-  status: 'active' | 'inactive' | 'prospect';
-  favorite: boolean;
-  logo?: string;
-  founded: number;
-  employees: number;
-  revenue: number;
-  lastContact: string;
-  dealsCount: number;
-  totalValue: number;
+export default function CompaniesPage() {
+  return (
+    <ProtectedRoute requiredPermission="crm:companies:read">
+      <CompaniesContent />
+    </ProtectedRoute>
+  )
 }
 
-function MediterraneanCompanies() {
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedIndustry, setSelectedIndustry] = useState<string>('all');
-  const [selectedSize, setSelectedSize] = useState<string>('all');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+function CompaniesContent() {
+  const router = useRouter()
+  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
 
-  // Mock companies data
-  useEffect(() => {
-    const loadCompanies = async () => {
-      setLoading(true);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1200));
-      
-      const mockCompanies: Company[] = [
-        {
-          id: '1',
-          name: 'Mediterráneo Tech Solutions',
-          email: 'info@mediterranetech.com',
-          phone: '+34 965 123 456',
-          website: 'www.mediterranetech.com',
-          industry: 'Tecnología',
-          size: 'medium',
-          location: 'Valencia, España',
-          status: 'active',
-          favorite: true,
-          founded: 2018,
-          employees: 125,
-          revenue: 8500000,
-          lastContact: '2024-08-25',
-          dealsCount: 3,
-          totalValue: 285000
-        },
-        {
-          id: '2',
-          name: 'Costa del Sol Business Group',
-          email: 'contacto@costadelsolbiz.es',
-          phone: '+34 952 789 123',
-          website: 'www.costadelsolbiz.es',
-          industry: 'Consultoría',
-          size: 'large',
-          location: 'Málaga, España',
-          status: 'prospect',
-          favorite: false,
-          founded: 2015,
-          employees: 280,
-          revenue: 15200000,
-          lastContact: '2024-08-20',
-          dealsCount: 2,
-          totalValue: 450000
-        },
-        {
-          id: '3',
-          name: 'Barcelona Innovation Hub',
-          email: 'hello@barcelonainnova.com',
-          phone: '+34 933 456 789',
-          website: 'www.barcelonainnova.com',
-          industry: 'I+D+i',
-          size: 'startup',
-          location: 'Barcelona, España',
-          status: 'active',
-          favorite: true,
-          founded: 2022,
-          employees: 35,
-          revenue: 1200000,
-          lastContact: '2024-08-28',
-          dealsCount: 1,
-          totalValue: 85000
-        },
-        {
-          id: '4',
-          name: 'Sevilla Sistemas Integrados S.L.',
-          email: 'comercial@sevillasistemas.es',
-          phone: '+34 954 321 654',
-          website: 'www.sevillasistemas.es',
-          industry: 'Software',
-          size: 'small',
-          location: 'Sevilla, España',
-          status: 'inactive',
-          favorite: false,
-          founded: 2010,
-          employees: 85,
-          revenue: 3500000,
-          lastContact: '2024-07-15',
-          dealsCount: 1,
-          totalValue: 65000
-        },
-        {
-          id: '5',
-          name: 'Bilbao Digital Solutions',
-          email: 'info@bilbaodigital.com',
-          phone: '+34 944 567 890',
-          website: 'www.bilbaodigital.com',
-          industry: 'Marketing Digital',
-          size: 'medium',
-          location: 'Bilbao, España',
-          status: 'prospect',
-          favorite: false,
-          founded: 2019,
-          employees: 95,
-          revenue: 4800000,
-          lastContact: '2024-08-22',
-          dealsCount: 2,
-          totalValue: 175000
-        },
-        {
-          id: '6',
-          name: 'Madrid Corporate Systems',
-          email: 'ventas@madridcorp.es',
-          phone: '+34 914 789 012',
-          website: 'www.madridcorp.es',
-          industry: 'Fintech',
-          size: 'enterprise',
-          location: 'Madrid, España',
-          status: 'active',
-          favorite: true,
-          founded: 2012,
-          employees: 450,
-          revenue: 28000000,
-          lastContact: '2024-08-27',
-          dealsCount: 4,
-          totalValue: 750000
-        }
-      ];
-      
-      setCompanies(mockCompanies);
-      setLoading(false);
-    };
-    
-    loadCompanies();
-  }, []);
+  const { data, isLoading, error } = useCompanies({
+    page,
+    limit: 20,
+    search,
+    status: statusFilter || undefined
+  })
 
-  // Get unique industries for filter
-  const industries = Array.from(new Set(companies.map(c => c.industry)));
+  const deleteCompany = useDeleteCompany()
 
-  // Filter companies based on search and filters
-  const filteredCompanies = companies.filter(company => {
-    const matchesSearch = company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         company.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         company.industry.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesIndustry = selectedIndustry === 'all' || company.industry === selectedIndustry;
-    const matchesSize = selectedSize === 'all' || company.size === selectedSize;
-    
-    return matchesSearch && matchesIndustry && matchesSize;
-  });
-
-  const toggleFavorite = (companyId: string) => {
-    setCompanies(prev => prev.map(company =>
-      company.id === companyId 
-        ? { ...company, favorite: !company.favorite }
-        : company
-    ));
-  };
-
-  const getStatusColor = (status: Company['status']) => {
-    switch (status) {
-      case 'active': return 'text-green-600 bg-green-50 border-green-200';
-      case 'inactive': return 'text-red-600 bg-red-50 border-red-200';
-      case 'prospect': return 'text-blue-600 bg-blue-50 border-blue-200';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`¿Estás seguro de eliminar la empresa "${name}"?`)) {
+      return
     }
-  };
 
-  const getStatusLabel = (status: Company['status']) => {
-    switch (status) {
-      case 'active': return 'Cliente Activo';
-      case 'inactive': return 'Inactivo';
-      case 'prospect': return 'Prospecto';
-      default: return 'Desconocido';
+    try {
+      await deleteCompany.mutateAsync(id)
+    } catch (error) {
+      console.error('Error deleting company:', error)
     }
-  };
+  }
 
-  const getSizeColor = (size: Company['size']) => {
-    switch (size) {
-      case 'startup': return 'text-purple-600 bg-purple-50';
-      case 'small': return 'text-blue-600 bg-blue-50';
-      case 'medium': return 'text-green-600 bg-green-50';
-      case 'large': return 'text-orange-600 bg-orange-50';
-      case 'enterprise': return 'text-red-600 bg-red-50';
-      default: return 'text-gray-600 bg-gray-50';
-    }
-  };
-
-  const getSizeLabel = (size: Company['size']) => {
-    switch (size) {
-      case 'startup': return 'Startup';
-      case 'small': return 'Pequeña';
-      case 'medium': return 'Mediana';
-      case 'large': return 'Grande';
-      case 'enterprise': return 'Corporativa';
-      default: return 'No definido';
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-mediterranean-50 via-white to-coral-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-mediterranean-200 border-t-mediterranean-500 rounded-full animate-spin mx-auto"></div>
-            <BuildingOfficeIcon className="w-6 h-6 text-coral-500 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
-          </div>
-          <p className="mt-4 text-mediterranean-700 font-medium">Cargando empresas...</p>
-        </div>
-      </div>
-    );
+  const statusColors = {
+    PROSPECT: 'bg-gray-100 text-gray-800',
+    LEAD: 'bg-blue-100 text-blue-800',
+    CUSTOMER: 'bg-green-100 text-green-800',
+    PARTNER: 'bg-purple-100 text-purple-800',
+    COMPETITOR: 'bg-yellow-100 text-yellow-800',
+    CHURNED: 'bg-red-100 text-red-800'
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-mediterranean-50 via-white to-coral-50">
-      {/* Mediterranean Header */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-olive-600 via-olive-500 to-mediterranean-500 opacity-90"></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.1\"%3E%3Ccircle cx=\"30\" cy=\"30\" r=\"4\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-3xl font-bold text-white font-playfair mb-2">
-                Gestión de Empresas
-              </h1>
-              <p className="text-olive-100 text-lg">
-                {filteredCompanies.length} empresas en tu cartera comercial
+              <h1 className="text-2xl font-bold text-gray-900">Empresas</h1>
+              <p className="mt-1 text-sm text-gray-500">
+                Gestiona las empresas de tu CRM
               </p>
             </div>
-            
-            <div className="flex items-center gap-4">
-              <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
-                <PlusIcon className="w-4 h-4" />
-                Nueva Empresa
+            <Link
+              href="/crm/companies/new"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              Nueva Empresa
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        <div className="bg-white p-4 rounded-lg shadow">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Buscar
+              </label>
+              <input
+                type="text"
+                placeholder="Nombre, email, teléfono..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Estado
+              </label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Todos</option>
+                <option value="PROSPECT">Prospecto</option>
+                <option value="LEAD">Lead</option>
+                <option value="CUSTOMER">Cliente</option>
+                <option value="PARTNER">Partner</option>
+                <option value="COMPETITOR">Competidor</option>
+                <option value="CHURNED">Perdido</option>
+              </select>
+            </div>
+            <div className="flex items-end">
+              <button
+                onClick={() => setPage(1)}
+                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+              >
+                Aplicar Filtros
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Filters and Search */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-4">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6">
-          <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
-            {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-mediterranean-400" />
-              <input
-                type="text"
-                placeholder="Buscar empresas..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-mediterranean-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-olive-500 focus:border-olive-500"
-              />
-            </div>
-            
-            {/* Filters */}
-            <div className="flex flex-wrap items-center gap-4">
-              {/* Industry Filter */}
-              <div className="flex items-center gap-2">
-                <FunnelIcon className="w-5 h-5 text-mediterranean-600" />
-                <select
-                  value={selectedIndustry}
-                  onChange={(e) => setSelectedIndustry(e.target.value)}
-                  className="border border-mediterranean-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-olive-500 focus:border-olive-500"
-                >
-                  <option value="all">Todas las industrias</option>
-                  {industries.map(industry => (
-                    <option key={industry} value={industry}>{industry}</option>
-                  ))}
-                </select>
-              </div>
-              
-              {/* Size Filter */}
-              <select
-                value={selectedSize}
-                onChange={(e) => setSelectedSize(e.target.value)}
-                className="border border-mediterranean-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-olive-500 focus:border-olive-500"
-              >
-                <option value="all">Todos los tamaños</option>
-                <option value="startup">Startup</option>
-                <option value="small">Pequeña</option>
-                <option value="medium">Mediana</option>
-                <option value="large">Grande</option>
-                <option value="enterprise">Corporativa</option>
-              </select>
-              
-              {/* View Mode */}
-              <div className="flex bg-mediterranean-100 rounded-xl p-1">
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    viewMode === 'grid' 
-                      ? 'bg-white text-mediterranean-600 shadow-sm' 
-                      : 'text-mediterranean-600 hover:bg-mediterranean-50'
-                  }`}
-                >
-                  Cuadrícula
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    viewMode === 'list' 
-                      ? 'bg-white text-mediterranean-600 shadow-sm' 
-                      : 'text-mediterranean-600 hover:bg-mediterranean-50'
-                  }`}
-                >
-                  Lista
-                </button>
-              </div>
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        {isLoading ? (
+          <div className="bg-white rounded-lg shadow p-8 text-center">
+            <div className="inline-flex items-center">
+              <svg className="animate-spin h-5 w-5 mr-3 text-blue-600" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Cargando empresas...
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Companies Grid/List */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCompanies.map((company) => (
-              <div
-                key={company.id}
-                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 hover:scale-105"
+        ) : error ? (
+          <div className="bg-white rounded-lg shadow p-8">
+            <div className="text-red-600 text-center">
+              Error al cargar las empresas: {(error as Error).message}
+            </div>
+          </div>
+        ) : !data?.data || data.data.length === 0 ? (
+          <div className="bg-white rounded-lg shadow p-8 text-center">
+            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M12 7h.01M8 7h.01M16 7h.01M12 11h.01M8 11h.01M16 11h.01M12 15h.01M8 15h.01M16 15h.01" />
+            </svg>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">No hay empresas</h3>
+            <p className="mt-1 text-sm text-gray-500">Comienza creando una nueva empresa.</p>
+            <div className="mt-6">
+              <Link
+                href="/crm/companies/new"
+                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
               >
-                {/* Company Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="w-12 h-12 bg-gradient-to-br from-olive-400 to-mediterranean-500 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                      {company.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-bold text-mediterranean-800 font-playfair truncate">
-                        {company.name}
-                      </h3>
-                      <p className="text-mediterranean-600 text-sm truncate">
-                        {company.industry}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <button
-                      onClick={() => toggleFavorite(company.id)}
-                      className="p-1 hover:bg-mediterranean-50 rounded-full transition-colors"
-                    >
-                      {company.favorite ? (
-                        <StarSolidIcon className="w-5 h-5 text-yellow-500" />
-                      ) : (
-                        <StarIcon className="w-5 h-5 text-mediterranean-400" />
-                      )}
-                    </button>
-                    
-                    <button className="p-1 hover:bg-mediterranean-50 rounded-full transition-colors">
-                      <EllipsisVerticalIcon className="w-5 h-5 text-mediterranean-400" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Company Details */}
-                <div className="space-y-3 mb-4">
-                  <div className="flex items-center gap-2 text-mediterranean-600">
-                    <GlobeAltIcon className="w-4 h-4 flex-shrink-0" />
-                    <span className="text-sm truncate">{company.website}</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 text-mediterranean-600">
-                    <MapPinIcon className="w-4 h-4 flex-shrink-0" />
-                    <span className="text-sm">{company.location}</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 text-mediterranean-600">
-                    <UsersIcon className="w-4 h-4 flex-shrink-0" />
-                    <span className="text-sm">{company.employees} empleados</span>
-                  </div>
-                </div>
-
-                {/* Status and Size Badges */}
-                <div className="flex items-center gap-2 mb-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(company.status)}`}>
-                    {getStatusLabel(company.status)}
-                  </span>
-                  
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getSizeColor(company.size)}`}>
-                    {getSizeLabel(company.size)}
-                  </span>
-                </div>
-
-                {/* Metrics */}
-                <div className="grid grid-cols-2 gap-4 mb-4 p-3 bg-mediterranean-50 rounded-xl">
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-mediterranean-800">
-                      {company.dealsCount}
-                    </div>
-                    <div className="text-xs text-mediterranean-600">
-                      Oportunidades
-                    </div>
-                  </div>
-                  
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-mediterranean-800">
-                      €{(company.totalValue / 1000).toFixed(0)}K
-                    </div>
-                    <div className="text-xs text-mediterranean-600">
-                      Valor Total
-                    </div>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-2 pt-4 border-t border-mediterranean-100">
-                  <button className="flex-1 bg-gradient-to-r from-olive-500 to-olive-600 text-white py-2 rounded-xl text-sm font-medium hover:shadow-md transition-all duration-200">
-                    <EnvelopeIcon className="w-4 h-4 inline mr-1" />
-                    Contactar
-                  </button>
-                  <button className="px-3 py-2 border border-mediterranean-200 text-mediterranean-600 rounded-xl hover:bg-mediterranean-50 transition-colors">
-                    <PencilIcon className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
+                Nueva Empresa
+              </Link>
+            </div>
           </div>
         ) : (
-          /* List View */
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-olive-50">
+          <>
+            {/* Companies Table */}
+            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-mediterranean-600 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Empresa
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-mediterranean-600 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Industria
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-mediterranean-600 uppercase tracking-wider">
-                      Tamaño
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-mediterranean-600 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Estado
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-mediterranean-600 uppercase tracking-wider">
-                      Oportunidades
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Contactos
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-mediterranean-600 uppercase tracking-wider">
-                      Valor Total
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Ciudad
                     </th>
-                    <th className="px-6 py-4 text-right text-xs font-medium text-mediterranean-600 uppercase tracking-wider">
-                      Acciones
+                    <th className="relative px-6 py-3">
+                      <span className="sr-only">Acciones</span>
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-mediterranean-100">
-                  {filteredCompanies.map((company) => (
-                    <tr key={company.id} className="hover:bg-mediterranean-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-olive-400 to-mediterranean-500 rounded-xl flex items-center justify-center text-white font-bold text-sm">
-                            {company.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {data.data.map((company: any) => (
+                    <tr key={company.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {company.name}
                           </div>
-                          <div className="min-w-0">
-                            <div className="font-medium text-mediterranean-800 flex items-center gap-2">
-                              {company.name}
-                              {company.favorite && <StarSolidIcon className="w-4 h-4 text-yellow-500" />}
-                            </div>
-                            <div className="text-sm text-mediterranean-600 truncate">{company.website}</div>
+                          <div className="text-sm text-gray-500">
+                            {company.email}
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="text-mediterranean-800">{company.industry}</span>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {company.industry || '-'}
                       </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getSizeColor(company.size)}`}>
-                          {getSizeLabel(company.size)}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[company.status as keyof typeof statusColors]}`}>
+                          {company.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(company.status)}`}>
-                          {getStatusLabel(company.status)}
-                        </span>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {company._count?.contacts || 0}
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="font-medium text-mediterranean-800">
-                          {company.dealsCount}
-                        </span>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {company.city || '-'}
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="font-bold text-mediterranean-800">
-                          €{company.totalValue.toLocaleString()}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center gap-2 justify-end">
-                          <button className="p-2 text-olive-600 hover:bg-olive-50 rounded-lg transition-colors">
-                            <EnvelopeIcon className="w-4 h-4" />
-                          </button>
-                          <button className="p-2 text-mediterranean-600 hover:bg-mediterranean-50 rounded-lg transition-colors">
-                            <PencilIcon className="w-4 h-4" />
-                          </button>
-                          <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                            <TrashIcon className="w-4 h-4" />
-                          </button>
-                        </div>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <Link
+                          href={`/crm/companies/${company.id}`}
+                          className="text-blue-600 hover:text-blue-900 mr-4"
+                        >
+                          Ver
+                        </Link>
+                        <Link
+                          href={`/crm/companies/${company.id}/edit`}
+                          className="text-indigo-600 hover:text-indigo-900 mr-4"
+                        >
+                          Editar
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(company.id, company.name)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Eliminar
+                        </button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          </div>
-        )}
 
-        {/* Empty State */}
-        {filteredCompanies.length === 0 && (
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-12 text-center">
-            <BuildingOfficeIcon className="w-16 h-16 text-mediterranean-400 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-mediterranean-800 font-playfair mb-2">
-              No se encontraron empresas
-            </h3>
-            <p className="text-mediterranean-600 mb-6">
-              {searchQuery || selectedIndustry !== 'all' || selectedSize !== 'all'
-                ? 'Intenta ajustar los filtros de búsqueda'
-                : 'Comienza agregando tu primera empresa'
-              }
-            </p>
-            <button className="bg-gradient-to-r from-olive-500 to-mediterranean-500 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-200">
-              <PlusIcon className="w-4 h-4 inline mr-2" />
-              Agregar Empresa
-            </button>
-          </div>
+            {/* Pagination */}
+            {data.pagination && (
+              <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-4 rounded-lg">
+                <div className="flex-1 flex justify-between sm:hidden">
+                  <button
+                    onClick={() => setPage(page - 1)}
+                    disabled={!data.pagination.hasPrev}
+                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    Anterior
+                  </button>
+                  <button
+                    onClick={() => setPage(page + 1)}
+                    disabled={!data.pagination.hasNext}
+                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    Siguiente
+                  </button>
+                </div>
+                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm text-gray-700">
+                      Mostrando{' '}
+                      <span className="font-medium">
+                        {(data.pagination.page - 1) * data.pagination.limit + 1}
+                      </span>{' '}
+                      a{' '}
+                      <span className="font-medium">
+                        {Math.min(data.pagination.page * data.pagination.limit, data.pagination.total)}
+                      </span>{' '}
+                      de{' '}
+                      <span className="font-medium">{data.pagination.total}</span>{' '}
+                      resultados
+                    </p>
+                  </div>
+                  <div>
+                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                      <button
+                        onClick={() => setPage(page - 1)}
+                        disabled={!data.pagination.hasPrev}
+                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                      >
+                        <span className="sr-only">Anterior</span>
+                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                      
+                      {/* Page numbers */}
+                      {[...Array(Math.min(5, data.pagination.totalPages))].map((_, i) => {
+                        const pageNum = i + 1
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => setPage(pageNum)}
+                            className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                              pageNum === page
+                                ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        )
+                      })}
+                      
+                      <button
+                        onClick={() => setPage(page + 1)}
+                        disabled={!data.pagination.hasNext}
+                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                      >
+                        <span className="sr-only">Siguiente</span>
+                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    </nav>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
-  );
-}
-
-export default function CompaniesPage() {
-  return (
-    <ProtectedRoute requiredPermission="crm:companies:view">
-      <MediterraneanCompanies />
-    </ProtectedRoute>
-  );
+  )
 }
