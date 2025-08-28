@@ -8,82 +8,71 @@ import { ContactSchema } from '@econeura/shared/schemas/crm'
 const router = Router()
 const prisma = new PrismaClient()
 
-// GET /api/v1/crm/contacts - List contacts
+// GET /api/v1/crm/contacts
 router.get(
   '/',
   authenticateJWT,
   requirePermission('crm:contacts:read'),
   validateRequest({
     query: z.object({
-      page: z.string().optional().transform(v => parseInt(v || '1')),
-      limit: z.string().optional().transform(v => parseInt(v || '20')),
+      page: z.string().regex(/^\d+$/).transform(Number).default('1'),
+      limit: z.string().regex(/^\d+$/).transform(Number).default('20'),
       search: z.string().optional(),
-      companyId: z.string().optional(),
+      companyId: z.string().uuid().optional(),
       status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
-      sortBy: z.enum(['firstName', 'lastName', 'createdAt', 'email']).optional(),
-      sortOrder: z.enum(['asc', 'desc']).optional()
+      sortBy: z.enum(['firstName', 'lastName', 'createdAt', 'updatedAt']).default('createdAt'),
+      sortOrder: z.enum(['asc', 'desc']).default('desc')
     })
   }),
   async (req, res) => {
-    const { page = 1, limit = 20, search, companyId, status, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
-    const offset = (page - 1) * limit
+    try {
+      const { page, limit, search, companyId, status, sortBy, sortOrder } = req.query as any
+      const offset = (page - 1) * limit
 
-    const where = {
-      orgId: req.user.organizationId,
-      ...(companyId && { companyId }),
-      ...(status && { status }),
-      ...(search && {
-        OR: [
+      const where: any = {
+        orgId: req.user!.organizationId,
+        deletedAt: null
+      }
+
+      if (search) {
+        where.OR = [
           { firstName: { contains: search, mode: 'insensitive' } },
           { lastName: { contains: search, mode: 'insensitive' } },
           { email: { contains: search, mode: 'insensitive' } },
           { phone: { contains: search, mode: 'insensitive' } }
         ]
-      })
-    }
-
-    const [contacts, total] = await Promise.all([
-      prisma.contact.findMany({
-        where,
-        skip: offset,
-        take: limit,
-        orderBy: { [sortBy]: sortOrder },
-        include: {
-          company: {
-            select: {
-              id: true,
-              name: true
-            }
-          },
-          deals: {
-            where: { status: 'OPEN' },
-            select: {
-              id: true,
-              title: true,
-              value: true,
-              stage: true
-            }
-          },
-          _count: {
-            select: {
-              deals: true,
-              activities: true
-            }
-          }
-        }
-      }),
-      prisma.contact.count({ where })
-    ])
-
-    res.json({
-      data: contacts,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit)
       }
-    })
+
+      if (companyId) where.companyId = companyId
+      if (status) where.status = status
+
+      const [contacts, total] = await Promise.all([
+        prisma.contact.findMany({
+          where,
+          skip: offset,
+          take: limit,
+          orderBy: { [sortBy]: sortOrder },
+          include: {
+            company: true,
+            deals: { where: { deletedAt: null } }
+          }
+        }),
+        prisma.contact.count({ where })
+      ])
+
+      res.json({
+        data: contacts,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit)
+        }
+      })
+    } catch (error) {
+      console.error('Error fetching contacts:', error)
+      res.status(500).json({ error: 'Internal server error' })
+    }
   }
 )
 
@@ -93,47 +82,33 @@ router.get(
   authenticateJWT,
   requirePermission('crm:contacts:read'),
   async (req, res) => {
-    const contact = await prisma.contact.findFirst({
-      where: {
-        id: req.params.id,
-        orgId: req.user.organizationId
-      },
-      include: {
-        company: true,
-        deals: {
-          include: {
-            assignedUser: {
-              select: {
-                id: true,
-                name: true,
-                email: true
-              }
-            }
-          }
+    try {
+      const contact = await prisma.contact.findFirst({
+        where: {
+          id: req.params.id,
+          orgId: req.user!.organizationId,
+          deletedAt: null
         },
-        activities: {
-          orderBy: { createdAt: 'desc' },
-          take: 10,
-          include: {
-            assignedUser: {
-              select: {
-                id: true,
-                name: true,
-                email: true
-              }
-            }
+        include: {
+          company: true,
+          deals: { where: { deletedAt: null } },
+          activities: {
+            where: { deletedAt: null },
+            orderBy: { createdAt: 'desc' },
+            take: 10
           }
         }
-      }
-    })
-
-    if (!contact) {
-      return res.status(404).json({
-        error: 'Contact not found'
       })
-    }
 
-    res.json(contact)
+      if (!contact) {
+        return res.status(404).json({ error: 'Contact not found' })
+      }
+
+      res.json(contact)
+    } catch (error) {
+      console.error('Error fetching contact:', error)
+      res.status(500).json({ error: 'Internal server error' })
+    }
   }
 )
 
@@ -147,58 +122,29 @@ router.post(
   }),
   async (req, res) => {
     try {
-      // Check if company exists if companyId provided
-      if (req.body.companyId) {
-        const company = await prisma.company.findFirst({
-          where: {
-            id: req.body.companyId,
-            orgId: req.user.organizationId
-          }
-        })
-
-        if (!company) {
-          return res.status(400).json({
-            error: 'Company not found'
-          })
-        }
-      }
-
       const contact = await prisma.contact.create({
         data: {
           ...req.body,
-          orgId: req.user.organizationId
-        },
-        include: {
-          company: {
-            select: {
-              id: true,
-              name: true
-            }
-          }
+          orgId: req.user!.organizationId
         }
       })
 
-      // Log audit event
+      // Audit log
       await prisma.auditLog.create({
         data: {
-          orgId: req.user.organizationId,
-          userId: req.user.id,
+          orgId: req.user!.organizationId,
+          userId: req.user!.id,
           action: 'CREATE',
           resource: 'contact',
           resourceId: contact.id,
-          metadata: { 
-            name: `${contact.firstName} ${contact.lastName}`,
-            email: contact.email
-          }
+          metadata: { contact: `${contact.firstName} ${contact.lastName}` }
         }
       })
 
       res.status(201).json(contact)
     } catch (error) {
       console.error('Error creating contact:', error)
-      res.status(400).json({
-        error: 'Failed to create contact'
-      })
+      res.status(500).json({ error: 'Internal server error' })
     }
   }
 )
@@ -216,34 +162,25 @@ router.put(
       const existing = await prisma.contact.findFirst({
         where: {
           id: req.params.id,
-          orgId: req.user.organizationId
+          orgId: req.user!.organizationId,
+          deletedAt: null
         }
       })
 
       if (!existing) {
-        return res.status(404).json({
-          error: 'Contact not found'
-        })
+        return res.status(404).json({ error: 'Contact not found' })
       }
 
       const contact = await prisma.contact.update({
         where: { id: req.params.id },
-        data: req.body,
-        include: {
-          company: {
-            select: {
-              id: true,
-              name: true
-            }
-          }
-        }
+        data: req.body
       })
 
-      // Log audit event
+      // Audit log
       await prisma.auditLog.create({
         data: {
-          orgId: req.user.organizationId,
-          userId: req.user.id,
+          orgId: req.user!.organizationId,
+          userId: req.user!.id,
           action: 'UPDATE',
           resource: 'contact',
           resourceId: contact.id,
@@ -254,9 +191,7 @@ router.put(
       res.json(contact)
     } catch (error) {
       console.error('Error updating contact:', error)
-      res.status(400).json({
-        error: 'Failed to update contact'
-      })
+      res.status(500).json({ error: 'Internal server error' })
     }
   }
 )
@@ -268,63 +203,40 @@ router.delete(
   requirePermission('crm:contacts:delete'),
   async (req, res) => {
     try {
-      const contact = await prisma.contact.findFirst({
+      const existing = await prisma.contact.findFirst({
         where: {
           id: req.params.id,
-          orgId: req.user.organizationId
-        },
-        include: {
-          _count: {
-            select: {
-              deals: true,
-              activities: true
-            }
-          }
+          orgId: req.user!.organizationId,
+          deletedAt: null
         }
       })
 
-      if (!contact) {
-        return res.status(404).json({
-          error: 'Contact not found'
-        })
+      if (!existing) {
+        return res.status(404).json({ error: 'Contact not found' })
       }
 
-      // Check for dependencies
-      if (contact._count.deals > 0 || contact._count.activities > 0) {
-        return res.status(400).json({
-          error: 'Cannot delete contact with existing relationships',
-          dependencies: {
-            deals: contact._count.deals,
-            activities: contact._count.activities
-          }
-        })
-      }
-
-      await prisma.contact.delete({
-        where: { id: req.params.id }
+      // Soft delete
+      await prisma.contact.update({
+        where: { id: req.params.id },
+        data: { deletedAt: new Date() }
       })
 
-      // Log audit event
+      // Audit log
       await prisma.auditLog.create({
         data: {
-          orgId: req.user.organizationId,
-          userId: req.user.id,
+          orgId: req.user!.organizationId,
+          userId: req.user!.id,
           action: 'DELETE',
           resource: 'contact',
-          resourceId: contact.id,
-          metadata: { 
-            name: `${contact.firstName} ${contact.lastName}`,
-            email: contact.email
-          }
+          resourceId: req.params.id,
+          metadata: { contact: `${existing.firstName} ${existing.lastName}` }
         }
       })
 
       res.status(204).send()
     } catch (error) {
       console.error('Error deleting contact:', error)
-      res.status(400).json({
-        error: 'Failed to delete contact'
-      })
+      res.status(500).json({ error: 'Internal server error' })
     }
   }
 )

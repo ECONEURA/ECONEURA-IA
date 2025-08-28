@@ -1,49 +1,70 @@
 import { Router } from 'express'
-
-// Auth routes
 import { authRouter } from './auth'
-
-// CRM routes
 import { companiesRouter } from './crm/companies'
 import { contactsRouter } from './crm/contacts'
 import { dealsRouter } from './crm/deals'
-
-// ERP routes
 import { productsRouter } from './erp/products'
-
-// Finance routes
 import { invoicesRouter } from './finance/invoices'
 
-const apiRouter = Router()
+const router = Router()
 
 // Health check
-apiRouter.get('/health', (req, res) => {
+router.get('/health', (req, res) => {
   res.json({
-    status: 'ok',
+    status: 'healthy',
     timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version || '1.0.0',
-    environment: process.env.NODE_ENV || 'development'
+    uptime: process.uptime()
   })
 })
 
-// Auth routes
-apiRouter.use('/auth', authRouter)
+// API Info
+router.get('/', (req, res) => {
+  res.json({
+    name: 'ECONEURA API',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/auth',
+      crm: {
+        companies: '/api/v1/crm/companies',
+        contacts: '/api/v1/crm/contacts',
+        deals: '/api/v1/crm/deals',
+        activities: '/api/v1/crm/activities'
+      },
+      erp: {
+        products: '/api/v1/erp/products',
+        inventory: '/api/v1/erp/inventory',
+        suppliers: '/api/v1/erp/suppliers',
+        warehouses: '/api/v1/erp/warehouses',
+        purchaseOrders: '/api/v1/erp/purchase-orders'
+      },
+      finance: {
+        invoices: '/api/v1/finance/invoices',
+        payments: '/api/v1/finance/payments',
+        expenses: '/api/v1/finance/expenses',
+        reports: '/api/v1/finance/reports'
+      }
+    }
+  })
+})
 
-// API v1 routes
+// Auth routes (no version prefix)
+router.use('/auth', authRouter)
+
+// v1 API routes
 const v1Router = Router()
 
-// CRM module
+// CRM routes
 v1Router.use('/crm/companies', companiesRouter)
 v1Router.use('/crm/contacts', contactsRouter)
 v1Router.use('/crm/deals', dealsRouter)
 
-// ERP module
+// ERP routes
 v1Router.use('/erp/products', productsRouter)
 
-// Finance module
+// Finance routes
 v1Router.use('/finance/invoices', invoicesRouter)
 
-// Mount v1 routes
-apiRouter.use('/v1', v1Router)
+// Mount v1 router
+router.use('/v1', v1Router)
 
-export { apiRouter }
+export { router as apiRouter }

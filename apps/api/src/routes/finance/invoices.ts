@@ -8,161 +8,203 @@ import { InvoiceSchema } from '@econeura/shared/schemas/finance'
 const router = Router()
 const prisma = new PrismaClient()
 
-// GET /api/v1/finance/invoices - List invoices
+// GET /api/v1/finance/invoices
 router.get(
   '/',
   authenticateJWT,
   requirePermission('finance:invoices:read'),
   validateRequest({
     query: z.object({
-      page: z.string().optional().transform(v => parseInt(v || '1')),
-      limit: z.string().optional().transform(v => parseInt(v || '20')),
+      page: z.string().regex(/^\d+$/).transform(Number).default('1'),
+      limit: z.string().regex(/^\d+$/).transform(Number).default('20'),
       search: z.string().optional(),
       status: z.enum(['DRAFT', 'SENT', 'PAID', 'PARTIALLY_PAID', 'OVERDUE', 'CANCELLED']).optional(),
       entityType: z.enum(['COMPANY', 'CONTACT', 'SUPPLIER']).optional(),
-      entityId: z.string().optional(),
+      entityId: z.string().uuid().optional(),
       fromDate: z.string().optional(),
       toDate: z.string().optional(),
-      minAmount: z.string().optional().transform(v => v ? parseFloat(v) : undefined),
-      maxAmount: z.string().optional().transform(v => v ? parseFloat(v) : undefined),
-      sortBy: z.enum(['invoiceNumber', 'issueDate', 'dueDate', 'totalAmount', 'status']).optional(),
-      sortOrder: z.enum(['asc', 'desc']).optional()
+      overdue: z.string().transform(val => val === 'true').optional(),
+      sortBy: z.enum(['invoiceNumber', 'issueDate', 'dueDate', 'totalAmount', 'status']).default('issueDate'),
+      sortOrder: z.enum(['asc', 'desc']).default('desc')
     })
   }),
   async (req, res) => {
-    const { 
-      page = 1, 
-      limit = 20,
-      search,
-      status,
-      entityType,
-      entityId,
-      fromDate,
-      toDate,
-      minAmount,
-      maxAmount,
-      sortBy = 'issueDate',
-      sortOrder = 'desc'
-    } = req.query
-    
-    const offset = (page - 1) * limit
+    try {
+      const { 
+        page, limit, search, status, entityType, entityId, 
+        fromDate, toDate, overdue, sortBy, sortOrder 
+      } = req.query as any
+      const offset = (page - 1) * limit
 
-    const where = {
-      orgId: req.user.organizationId,
-      ...(search && {
-        OR: [
+      const where: any = {
+        orgId: req.user!.organizationId,
+        deletedAt: null
+      }
+
+      if (search) {
+        where.OR = [
           { invoiceNumber: { contains: search, mode: 'insensitive' } },
           { notes: { contains: search, mode: 'insensitive' } }
         ]
-      }),
-      ...(status && { status }),
-      ...(entityType && { entityType }),
-      ...(entityId && { entityId }),
-      ...(fromDate && { issueDate: { gte: new Date(fromDate) } }),
-      ...(toDate && { issueDate: { lte: new Date(toDate) } }),
-      ...(minAmount !== undefined && { totalAmount: { gte: minAmount } }),
-      ...(maxAmount !== undefined && { totalAmount: { lte: maxAmount } })
-    }
+      }
 
-    const [invoices, total] = await Promise.all([
-      prisma.invoice.findMany({
-        where,
-        skip: offset,
-        take: limit,
-        orderBy: { [sortBy]: sortOrder },
-        include: {
-          company: {
-            select: {
-              id: true,
-              name: true
-            }
-          },
-          contact: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true
-            }
-          },
-          supplier: {
-            select: {
-              id: true,
-              name: true,
-              code: true
-            }
-          },
-          items: true,
-          payments: {
-            where: { status: 'COMPLETED' }
-          },
-          _count: {
-            select: {
-              items: true,
-              payments: true
+      if (status) where.status = status
+      if (entityType) where.entityType = entityType
+      if (entityId) where.entityId = entityId
+
+      if (fromDate || toDate) {
+        where.issueDate = {}
+        if (fromDate) where.issueDate.gte = new Date(fromDate)
+        if (toDate) where.issueDate.lte = new Date(toDate)
+      }
+
+      if (overdue === true) {
+        where.status = { in: ['SENT', 'PARTIALLY_PAID'] }
+        where.dueDate = { lt: new Date() }
+      }
+
+      const [invoices, total] = await Promise.all([
+        prisma.invoice.findMany({
+          where,
+          skip: offset,
+          take: limit,
+          orderBy: { [sortBy]: sortOrder },
+          include: {
+            company: entityType === 'COMPANY' ? true : undefined,
+            contact: entityType === 'CONTACT' ? true : undefined,
+            supplier: entityType === 'SUPPLIER' ? true : undefined,
+            items: true,
+            payments: {
+              where: { status: 'COMPLETED' }
             }
           }
+        }),
+        prisma.invoice.count({ where })
+      ])
+
+      // Calculate paid amounts
+      const enrichedInvoices = invoices.map(invoice => {
+        const paidAmount = invoice.payments.reduce((sum, p) => sum + p.amount, 0)
+        const remainingAmount = invoice.totalAmount - paidAmount
+        const isOverdue = invoice.status !== 'PAID' && invoice.dueDate < new Date()
+        
+        return {
+          ...invoice,
+          paidAmount,
+          remainingAmount,
+          isOverdue
         }
-      }),
-      prisma.invoice.count({ where })
-    ])
+      })
 
-    // Calculate metrics
-    const metrics = await prisma.invoice.groupBy({
-      by: ['status'],
-      where: {
-        orgId: req.user.organizationId
-      },
-      _sum: {
-        totalAmount: true
-      },
-      _count: {
-        id: true
-      }
-    })
+      res.json({
+        data: enrichedInvoices,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit)
+        }
+      })
+    } catch (error) {
+      console.error('Error fetching invoices:', error)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  }
+)
 
-    // Calculate overdue invoices
-    const now = new Date()
-    const overdueInvoices = await prisma.invoice.count({
-      where: {
-        orgId: req.user.organizationId,
-        status: { in: ['SENT', 'PARTIALLY_PAID'] },
-        dueDate: { lt: now }
-      }
-    })
+// GET /api/v1/finance/invoices/summary
+router.get(
+  '/summary',
+  authenticateJWT,
+  requirePermission('finance:invoices:read'),
+  async (req, res) => {
+    try {
+      const now = new Date()
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+      const startOfYear = new Date(now.getFullYear(), 0, 1)
 
-    const overdueAmount = await prisma.invoice.aggregate({
-      where: {
-        orgId: req.user.organizationId,
-        status: { in: ['SENT', 'PARTIALLY_PAID'] },
-        dueDate: { lt: now }
-      },
-      _sum: {
-        totalAmount: true
-      }
-    })
+      const [total, paid, overdue, thisMonth, thisYear] = await Promise.all([
+        // Total invoices
+        prisma.invoice.aggregate({
+          where: {
+            orgId: req.user!.organizationId,
+            deletedAt: null,
+            status: { not: 'CANCELLED' }
+          },
+          _sum: { totalAmount: true },
+          _count: true
+        }),
+        // Paid invoices
+        prisma.invoice.aggregate({
+          where: {
+            orgId: req.user!.organizationId,
+            deletedAt: null,
+            status: 'PAID'
+          },
+          _sum: { totalAmount: true },
+          _count: true
+        }),
+        // Overdue invoices
+        prisma.invoice.aggregate({
+          where: {
+            orgId: req.user!.organizationId,
+            deletedAt: null,
+            status: { in: ['SENT', 'PARTIALLY_PAID'] },
+            dueDate: { lt: now }
+          },
+          _sum: { totalAmount: true },
+          _count: true
+        }),
+        // This month
+        prisma.invoice.aggregate({
+          where: {
+            orgId: req.user!.organizationId,
+            deletedAt: null,
+            issueDate: { gte: startOfMonth },
+            status: { not: 'CANCELLED' }
+          },
+          _sum: { totalAmount: true },
+          _count: true
+        }),
+        // This year
+        prisma.invoice.aggregate({
+          where: {
+            orgId: req.user!.organizationId,
+            deletedAt: null,
+            issueDate: { gte: startOfYear },
+            status: { not: 'CANCELLED' }
+          },
+          _sum: { totalAmount: true },
+          _count: true
+        })
+      ])
 
-    res.json({
-      data: invoices.map(invoice => ({
-        ...invoice,
-        paidAmount: invoice.payments.reduce((sum, p) => sum + p.amount, 0),
-        remainingAmount: invoice.totalAmount - invoice.payments.reduce((sum, p) => sum + p.amount, 0),
-        isOverdue: invoice.status !== 'PAID' && invoice.status !== 'CANCELLED' && new Date(invoice.dueDate) < now
-      })),
-      metrics: {
-        byStatus: metrics,
+      res.json({
+        total: {
+          count: total._count,
+          amount: total._sum.totalAmount || 0
+        },
+        paid: {
+          count: paid._count,
+          amount: paid._sum.totalAmount || 0
+        },
         overdue: {
-          count: overdueInvoices,
-          amount: overdueAmount._sum.totalAmount || 0
+          count: overdue._count,
+          amount: overdue._sum.totalAmount || 0
+        },
+        thisMonth: {
+          count: thisMonth._count,
+          amount: thisMonth._sum.totalAmount || 0
+        },
+        thisYear: {
+          count: thisYear._count,
+          amount: thisYear._sum.totalAmount || 0
         }
-      },
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit)
-      }
-    })
+      })
+    } catch (error) {
+      console.error('Error fetching invoice summary:', error)
+      res.status(500).json({ error: 'Internal server error' })
+    }
   }
 )
 
@@ -172,62 +214,63 @@ router.get(
   authenticateJWT,
   requirePermission('finance:invoices:read'),
   async (req, res) => {
-    const invoice = await prisma.invoice.findFirst({
-      where: {
-        id: req.params.id,
-        orgId: req.user.organizationId
-      },
-      include: {
-        company: true,
-        contact: true,
-        supplier: true,
-        items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                sku: true,
-                name: true
-              }
+    try {
+      const invoice = await prisma.invoice.findFirst({
+        where: {
+          id: req.params.id,
+          orgId: req.user!.organizationId,
+          deletedAt: null
+        },
+        include: {
+          company: true,
+          contact: true,
+          supplier: true,
+          items: {
+            include: {
+              product: true
+            }
+          },
+          payments: {
+            orderBy: { createdAt: 'desc' }
+          },
+          submittedBy: {
+            select: {
+              id: true,
+              name: true,
+              email: true
+            }
+          },
+          approvedBy: {
+            select: {
+              id: true,
+              name: true,
+              email: true
             }
           }
-        },
-        payments: {
-          orderBy: { paymentDate: 'desc' }
-        },
-        submittedBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        },
-        approvedBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
         }
-      }
-    })
-
-    if (!invoice) {
-      return res.status(404).json({
-        error: 'Invoice not found'
       })
+
+      if (!invoice) {
+        return res.status(404).json({ error: 'Invoice not found' })
+      }
+
+      // Calculate payment status
+      const paidAmount = invoice.payments
+        .filter(p => p.status === 'COMPLETED')
+        .reduce((sum, p) => sum + p.amount, 0)
+      const remainingAmount = invoice.totalAmount - paidAmount
+      const isOverdue = invoice.status !== 'PAID' && invoice.dueDate < new Date()
+
+      res.json({
+        ...invoice,
+        paidAmount,
+        remainingAmount,
+        isOverdue
+      })
+    } catch (error) {
+      console.error('Error fetching invoice:', error)
+      res.status(500).json({ error: 'Internal server error' })
     }
-
-    const paidAmount = invoice.payments
-      .filter(p => p.status === 'COMPLETED')
-      .reduce((sum, p) => sum + p.amount, 0)
-
-    res.json({
-      ...invoice,
-      paidAmount,
-      remainingAmount: invoice.totalAmount - paidAmount,
-      isOverdue: invoice.status !== 'PAID' && invoice.status !== 'CANCELLED' && new Date(invoice.dueDate) < new Date()
-    })
   }
 )
 
@@ -238,125 +281,68 @@ router.post(
   requirePermission('finance:invoices:write'),
   validateRequest({
     body: InvoiceSchema.omit({ id: true, orgId: true, createdAt: true, updatedAt: true })
-      .extend({
-        items: z.array(z.object({
-          productId: z.string().optional(),
-          description: z.string(),
-          quantity: z.number().positive(),
-          unitPrice: z.number().positive(),
-          taxRate: z.number().min(0).max(100).optional()
-        }))
-      })
   }),
   async (req, res) => {
     try {
-      // Generate invoice number if not provided
-      let invoiceNumber = req.body.invoiceNumber
-      if (!invoiceNumber) {
-        const year = new Date().getFullYear()
-        const count = await prisma.invoice.count({
-          where: {
-            orgId: req.user.organizationId,
-            invoiceNumber: { startsWith: `INV-${year}-` }
-          }
-        })
-        invoiceNumber = `INV-${year}-${String(count + 1).padStart(4, '0')}`
-      }
-
-      // Check for duplicate invoice number
-      const existing = await prisma.invoice.findFirst({
+      // Generate invoice number
+      const year = new Date().getFullYear()
+      const lastInvoice = await prisma.invoice.findFirst({
         where: {
-          orgId: req.user.organizationId,
-          invoiceNumber
-        }
+          orgId: req.user!.organizationId,
+          invoiceNumber: { startsWith: `INV-${year}-` }
+        },
+        orderBy: { invoiceNumber: 'desc' }
       })
 
-      if (existing) {
-        return res.status(400).json({
-          error: 'Invoice number already exists'
-        })
+      let nextNumber = 1
+      if (lastInvoice) {
+        const lastNumber = parseInt(lastInvoice.invoiceNumber.split('-')[2])
+        nextNumber = lastNumber + 1
       }
 
-      // Calculate totals
-      let subtotal = 0
-      let taxAmount = 0
-      const items = req.body.items || []
-
-      for (const item of items) {
-        const lineTotal = item.quantity * item.unitPrice
-        const itemTax = lineTotal * ((item.taxRate || req.body.taxRate || 0) / 100)
-        subtotal += lineTotal
-        taxAmount += itemTax
-      }
-
-      const totalAmount = subtotal + taxAmount
+      const invoiceNumber = `INV-${year}-${String(nextNumber).padStart(4, '0')}`
 
       // Create invoice with items
+      const { items, ...invoiceData } = req.body
+      
       const invoice = await prisma.invoice.create({
         data: {
-          orgId: req.user.organizationId,
+          ...invoiceData,
           invoiceNumber,
-          entityType: req.body.entityType,
-          entityId: req.body.entityId,
-          status: req.body.status || 'DRAFT',
-          issueDate: req.body.issueDate ? new Date(req.body.issueDate) : new Date(),
-          dueDate: req.body.dueDate ? new Date(req.body.dueDate) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-          subtotal,
-          taxAmount,
-          totalAmount,
-          currency: req.body.currency || 'EUR',
-          taxRate: req.body.taxRate || 21,
-          paymentTerms: req.body.paymentTerms || 30,
-          notes: req.body.notes,
-          metadata: req.body.metadata,
-          submittedByUserId: req.user.id,
-          items: {
-            create: items.map(item => ({
-              productId: item.productId,
-              description: item.description,
-              quantity: item.quantity,
-              unitPrice: item.unitPrice,
-              totalPrice: item.quantity * item.unitPrice,
-              currency: req.body.currency || 'EUR'
-            }))
-          }
+          orgId: req.user!.organizationId,
+          submittedByUserId: req.user!.id,
+          items: items ? {
+            create: items
+          } : undefined
         },
         include: {
-          items: true,
-          company: {
-            select: {
-              id: true,
-              name: true
-            }
-          },
-          contact: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true
-            }
-          },
-          supplier: {
-            select: {
-              id: true,
-              name: true
-            }
-          }
+          items: true
         }
       })
 
-      // Log audit event
+      // Calculate totals if items were provided
+      if (items && items.length > 0) {
+        const subtotal = items.reduce((sum: number, item: any) => sum + item.totalPrice, 0)
+        const taxAmount = subtotal * (invoice.taxRate / 100)
+        const totalAmount = subtotal + taxAmount
+
+        await prisma.invoice.update({
+          where: { id: invoice.id },
+          data: { subtotal, taxAmount, totalAmount }
+        })
+      }
+
+      // Audit log
       await prisma.auditLog.create({
         data: {
-          orgId: req.user.organizationId,
-          userId: req.user.id,
+          orgId: req.user!.organizationId,
+          userId: req.user!.id,
           action: 'CREATE',
           resource: 'invoice',
           resourceId: invoice.id,
-          metadata: {
-            invoiceNumber,
-            totalAmount,
-            status: invoice.status
+          metadata: { 
+            invoiceNumber: invoice.invoiceNumber,
+            totalAmount: invoice.totalAmount
           }
         }
       })
@@ -364,219 +350,63 @@ router.post(
       res.status(201).json(invoice)
     } catch (error) {
       console.error('Error creating invoice:', error)
-      res.status(400).json({
-        error: 'Failed to create invoice'
-      })
+      res.status(500).json({ error: 'Internal server error' })
     }
   }
 )
 
-// PUT /api/v1/finance/invoices/:id
+// PUT /api/v1/finance/invoices/:id/status
 router.put(
-  '/:id',
+  '/:id/status',
   authenticateJWT,
   requirePermission('finance:invoices:write'),
   validateRequest({
-    body: InvoiceSchema.omit({ id: true, orgId: true, createdAt: true, updatedAt: true }).partial()
+    body: z.object({
+      status: z.enum(['DRAFT', 'SENT', 'PAID', 'PARTIALLY_PAID', 'OVERDUE', 'CANCELLED']),
+      notes: z.string().optional()
+    })
   }),
   async (req, res) => {
     try {
       const existing = await prisma.invoice.findFirst({
         where: {
           id: req.params.id,
-          orgId: req.user.organizationId
+          orgId: req.user!.organizationId,
+          deletedAt: null
         }
       })
 
       if (!existing) {
-        return res.status(404).json({
-          error: 'Invoice not found'
-        })
-      }
-
-      // Don't allow editing paid or cancelled invoices
-      if (existing.status === 'PAID' || existing.status === 'CANCELLED') {
-        return res.status(400).json({
-          error: `Cannot edit ${existing.status.toLowerCase()} invoice`
-        })
+        return res.status(404).json({ error: 'Invoice not found' })
       }
 
       const invoice = await prisma.invoice.update({
         where: { id: req.params.id },
         data: {
-          ...req.body,
-          ...(req.body.issueDate && { issueDate: new Date(req.body.issueDate) }),
-          ...(req.body.dueDate && { dueDate: new Date(req.body.dueDate) })
-        },
-        include: {
-          items: true,
-          payments: true
+          status: req.body.status,
+          notes: req.body.notes
         }
       })
 
-      // Log audit event
+      // Audit log
       await prisma.auditLog.create({
         data: {
-          orgId: req.user.organizationId,
-          userId: req.user.id,
+          orgId: req.user!.organizationId,
+          userId: req.user!.id,
           action: 'UPDATE',
           resource: 'invoice',
           resourceId: invoice.id,
-          metadata: { changes: req.body }
+          metadata: { 
+            statusChange: `${existing.status} -> ${req.body.status}`,
+            notes: req.body.notes
+          }
         }
       })
 
       res.json(invoice)
     } catch (error) {
-      console.error('Error updating invoice:', error)
-      res.status(400).json({
-        error: 'Failed to update invoice'
-      })
-    }
-  }
-)
-
-// POST /api/v1/finance/invoices/:id/send
-router.post(
-  '/:id/send',
-  authenticateJWT,
-  requirePermission('finance:invoices:write'),
-  async (req, res) => {
-    try {
-      const invoice = await prisma.invoice.findFirst({
-        where: {
-          id: req.params.id,
-          orgId: req.user.organizationId
-        }
-      })
-
-      if (!invoice) {
-        return res.status(404).json({
-          error: 'Invoice not found'
-        })
-      }
-
-      if (invoice.status !== 'DRAFT') {
-        return res.status(400).json({
-          error: 'Only draft invoices can be sent'
-        })
-      }
-
-      const updated = await prisma.invoice.update({
-        where: { id: req.params.id },
-        data: {
-          status: 'SENT',
-          sentAt: new Date()
-        }
-      })
-
-      // TODO: Send email notification
-
-      // Log audit event
-      await prisma.auditLog.create({
-        data: {
-          orgId: req.user.organizationId,
-          userId: req.user.id,
-          action: 'UPDATE',
-          resource: 'invoice',
-          resourceId: invoice.id,
-          metadata: { 
-            action: 'sent',
-            previousStatus: invoice.status,
-            newStatus: 'SENT'
-          }
-        }
-      })
-
-      res.json(updated)
-    } catch (error) {
-      console.error('Error sending invoice:', error)
-      res.status(400).json({
-        error: 'Failed to send invoice'
-      })
-    }
-  }
-)
-
-// POST /api/v1/finance/invoices/:id/cancel
-router.post(
-  '/:id/cancel',
-  authenticateJWT,
-  requirePermission('finance:invoices:delete'),
-  validateRequest({
-    body: z.object({
-      reason: z.string()
-    })
-  }),
-  async (req, res) => {
-    try {
-      const invoice = await prisma.invoice.findFirst({
-        where: {
-          id: req.params.id,
-          orgId: req.user.organizationId
-        },
-        include: {
-          payments: {
-            where: { status: 'COMPLETED' }
-          }
-        }
-      })
-
-      if (!invoice) {
-        return res.status(404).json({
-          error: 'Invoice not found'
-        })
-      }
-
-      if (invoice.status === 'PAID') {
-        return res.status(400).json({
-          error: 'Cannot cancel paid invoice'
-        })
-      }
-
-      if (invoice.payments.length > 0) {
-        return res.status(400).json({
-          error: 'Cannot cancel invoice with payments. Please refund payments first.'
-        })
-      }
-
-      const updated = await prisma.invoice.update({
-        where: { id: req.params.id },
-        data: {
-          status: 'CANCELLED',
-          metadata: {
-            ...invoice.metadata,
-            cancellation: {
-              reason: req.body.reason,
-              cancelledBy: req.user.id,
-              cancelledAt: new Date()
-            }
-          }
-        }
-      })
-
-      // Log audit event
-      await prisma.auditLog.create({
-        data: {
-          orgId: req.user.organizationId,
-          userId: req.user.id,
-          action: 'UPDATE',
-          resource: 'invoice',
-          resourceId: invoice.id,
-          metadata: {
-            action: 'cancelled',
-            reason: req.body.reason,
-            previousStatus: invoice.status
-          }
-        }
-      })
-
-      res.json(updated)
-    } catch (error) {
-      console.error('Error cancelling invoice:', error)
-      res.status(400).json({
-        error: 'Failed to cancel invoice'
-      })
+      console.error('Error updating invoice status:', error)
+      res.status(500).json({ error: 'Internal server error' })
     }
   }
 )
