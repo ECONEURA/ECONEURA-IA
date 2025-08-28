@@ -8,122 +8,125 @@ import { DealSchema } from '@econeura/shared/schemas/crm'
 const router = Router()
 const prisma = new PrismaClient()
 
-// GET /api/v1/crm/deals - List deals
+// GET /api/v1/crm/deals
 router.get(
   '/',
   authenticateJWT,
   requirePermission('crm:deals:read'),
   validateRequest({
     query: z.object({
-      page: z.string().optional().transform(v => parseInt(v || '1')),
-      limit: z.string().optional().transform(v => parseInt(v || '20')),
+      page: z.string().regex(/^\d+$/).transform(Number).default('1'),
+      limit: z.string().regex(/^\d+$/).transform(Number).default('20'),
       search: z.string().optional(),
       stage: z.enum(['LEAD', 'QUALIFICATION', 'PROPOSAL', 'NEGOTIATION', 'CLOSED_WON', 'CLOSED_LOST']).optional(),
       status: z.enum(['OPEN', 'CLOSED']).optional(),
-      assignedUserId: z.string().optional(),
-      companyId: z.string().optional(),
-      minValue: z.string().optional().transform(v => v ? parseFloat(v) : undefined),
-      maxValue: z.string().optional().transform(v => v ? parseFloat(v) : undefined),
-      sortBy: z.enum(['title', 'value', 'createdAt', 'expectedCloseDate', 'stage']).optional(),
-      sortOrder: z.enum(['asc', 'desc']).optional()
+      assignedUserId: z.string().uuid().optional(),
+      companyId: z.string().uuid().optional(),
+      minValue: z.string().regex(/^\d+$/).transform(Number).optional(),
+      maxValue: z.string().regex(/^\d+$/).transform(Number).optional(),
+      sortBy: z.enum(['title', 'value', 'stage', 'expectedCloseDate', 'createdAt']).default('createdAt'),
+      sortOrder: z.enum(['asc', 'desc']).default('desc')
     })
   }),
   async (req, res) => {
-    const { 
-      page = 1, 
-      limit = 20, 
-      search, 
-      stage, 
-      status, 
-      assignedUserId,
-      companyId,
-      minValue,
-      maxValue,
-      sortBy = 'createdAt', 
-      sortOrder = 'desc' 
-    } = req.query
-    
-    const offset = (page - 1) * limit
+    try {
+      const { page, limit, search, stage, status, assignedUserId, companyId, minValue, maxValue, sortBy, sortOrder } = req.query as any
+      const offset = (page - 1) * limit
 
-    const where = {
-      orgId: req.user.organizationId,
-      ...(search && {
-        OR: [
-          { title: { contains: search, mode: 'insensitive' } },
-          { description: { contains: search, mode: 'insensitive' } }
-        ]
-      }),
-      ...(stage && { stage }),
-      ...(status && { status }),
-      ...(assignedUserId && { assignedUserId }),
-      ...(companyId && { companyId }),
-      ...(minValue !== undefined && { value: { gte: minValue } }),
-      ...(maxValue !== undefined && { value: { lte: maxValue } })
-    }
+      const where: any = {
+        orgId: req.user!.organizationId,
+        deletedAt: null
+      }
 
-    const [deals, total] = await Promise.all([
-      prisma.deal.findMany({
-        where,
-        skip: offset,
-        take: limit,
-        orderBy: { [sortBy]: sortOrder },
-        include: {
-          company: {
-            select: {
-              id: true,
-              name: true
-            }
-          },
-          primaryContact: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true
-            }
-          },
-          assignedUser: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-            }
-          },
-          _count: {
-            select: {
-              activities: true
+      if (search) {
+        where.title = { contains: search, mode: 'insensitive' }
+      }
+
+      if (stage) where.stage = stage
+      if (status) where.status = status
+      if (assignedUserId) where.assignedUserId = assignedUserId
+      if (companyId) where.companyId = companyId
+      
+      if (minValue || maxValue) {
+        where.value = {}
+        if (minValue) where.value.gte = minValue
+        if (maxValue) where.value.lte = maxValue
+      }
+
+      const [deals, total] = await Promise.all([
+        prisma.deal.findMany({
+          where,
+          skip: offset,
+          take: limit,
+          orderBy: { [sortBy]: sortOrder },
+          include: {
+            company: true,
+            primaryContact: true,
+            assignedUser: {
+              select: {
+                id: true,
+                name: true,
+                email: true
+              }
             }
           }
+        }),
+        prisma.deal.count({ where })
+      ])
+
+      res.json({
+        data: deals,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit)
         }
-      }),
-      prisma.deal.count({ where })
-    ])
+      })
+    } catch (error) {
+      console.error('Error fetching deals:', error)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  }
+)
 
-    // Calculate pipeline metrics
-    const metrics = await prisma.deal.groupBy({
-      by: ['stage'],
-      where: {
-        orgId: req.user.organizationId,
-        status: 'OPEN'
-      },
-      _sum: {
-        value: true
-      },
-      _count: {
-        id: true
-      }
-    })
+// GET /api/v1/crm/deals/pipeline
+router.get(
+  '/pipeline',
+  authenticateJWT,
+  requirePermission('crm:deals:read'),
+  async (req, res) => {
+    try {
+      const pipeline = await prisma.deal.groupBy({
+        by: ['stage'],
+        where: {
+          orgId: req.user!.organizationId,
+          status: 'OPEN',
+          deletedAt: null
+        },
+        _count: {
+          id: true
+        },
+        _sum: {
+          value: true
+        }
+      })
 
-    res.json({
-      data: deals,
-      metrics,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit)
-      }
-    })
+      const stages = ['LEAD', 'QUALIFICATION', 'PROPOSAL', 'NEGOTIATION', 'CLOSED_WON', 'CLOSED_LOST']
+      const result = stages.map(stage => {
+        const data = pipeline.find(p => p.stage === stage)
+        return {
+          stage,
+          count: data?._count?.id || 0,
+          value: data?._sum?.value || 0
+        }
+      })
+
+      res.json(result)
+    } catch (error) {
+      console.error('Error fetching pipeline:', error)
+      res.status(500).json({ error: 'Internal server error' })
+    }
   }
 )
 
@@ -133,43 +136,48 @@ router.get(
   authenticateJWT,
   requirePermission('crm:deals:read'),
   async (req, res) => {
-    const deal = await prisma.deal.findFirst({
-      where: {
-        id: req.params.id,
-        orgId: req.user.organizationId
-      },
-      include: {
-        company: true,
-        primaryContact: true,
-        assignedUser: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
+    try {
+      const deal = await prisma.deal.findFirst({
+        where: {
+          id: req.params.id,
+          orgId: req.user!.organizationId,
+          deletedAt: null
         },
-        activities: {
-          orderBy: { createdAt: 'desc' },
-          include: {
-            assignedUser: {
-              select: {
-                id: true,
-                name: true,
-                email: true
+        include: {
+          company: true,
+          primaryContact: true,
+          assignedUser: {
+            select: {
+              id: true,
+              name: true,
+              email: true
+            }
+          },
+          activities: {
+            where: { deletedAt: null },
+            orderBy: { createdAt: 'desc' },
+            take: 10,
+            include: {
+              assignedUser: {
+                select: {
+                  id: true,
+                  name: true
+                }
               }
             }
           }
         }
-      }
-    })
-
-    if (!deal) {
-      return res.status(404).json({
-        error: 'Deal not found'
       })
-    }
 
-    res.json(deal)
+      if (!deal) {
+        return res.status(404).json({ error: 'Deal not found' })
+      }
+
+      res.json(deal)
+    } catch (error) {
+      console.error('Error fetching deal:', error)
+      res.status(500).json({ error: 'Internal server error' })
+    }
   }
 )
 
@@ -183,105 +191,44 @@ router.post(
   }),
   async (req, res) => {
     try {
-      // Validate company exists
-      if (req.body.companyId) {
-        const company = await prisma.company.findFirst({
-          where: {
-            id: req.body.companyId,
-            orgId: req.user.organizationId
-          }
-        })
-
-        if (!company) {
-          return res.status(400).json({
-            error: 'Company not found'
-          })
-        }
-      }
-
-      // Validate contact exists
-      if (req.body.primaryContactId) {
-        const contact = await prisma.contact.findFirst({
-          where: {
-            id: req.body.primaryContactId,
-            orgId: req.user.organizationId
-          }
-        })
-
-        if (!contact) {
-          return res.status(400).json({
-            error: 'Contact not found'
-          })
-        }
-      }
-
       const deal = await prisma.deal.create({
         data: {
           ...req.body,
-          orgId: req.user.organizationId,
-          assignedUserId: req.body.assignedUserId || req.user.id
-        },
-        include: {
-          company: {
-            select: {
-              id: true,
-              name: true
-            }
-          },
-          primaryContact: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true
-            }
-          },
-          assignedUser: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-            }
-          }
+          orgId: req.user!.organizationId,
+          assignedUserId: req.body.assignedUserId || req.user!.id
         }
       })
 
       // Create activity for deal creation
       await prisma.activity.create({
         data: {
-          orgId: req.user.organizationId,
+          orgId: req.user!.organizationId,
           type: 'NOTE',
           subject: 'Deal created',
           description: `Deal "${deal.title}" was created`,
           entityType: 'DEAL',
           entityId: deal.id,
           status: 'COMPLETED',
-          assignedUserId: req.user.id
+          assignedUserId: req.user!.id
         }
       })
 
-      // Log audit event
+      // Audit log
       await prisma.auditLog.create({
         data: {
-          orgId: req.user.organizationId,
-          userId: req.user.id,
+          orgId: req.user!.organizationId,
+          userId: req.user!.id,
           action: 'CREATE',
           resource: 'deal',
           resourceId: deal.id,
-          metadata: { 
-            title: deal.title,
-            value: deal.value,
-            stage: deal.stage
-          }
+          metadata: { deal: deal.title, value: deal.value }
         }
       })
 
       res.status(201).json(deal)
     } catch (error) {
       console.error('Error creating deal:', error)
-      res.status(400).json({
-        error: 'Failed to create deal'
-      })
+      res.status(500).json({ error: 'Internal server error' })
     }
   }
 )
@@ -299,84 +246,52 @@ router.put(
       const existing = await prisma.deal.findFirst({
         where: {
           id: req.params.id,
-          orgId: req.user.organizationId
+          orgId: req.user!.organizationId,
+          deletedAt: null
         }
       })
 
       if (!existing) {
-        return res.status(404).json({
-          error: 'Deal not found'
-        })
+        return res.status(404).json({ error: 'Deal not found' })
       }
-
-      // Track stage changes
-      const stageChanged = req.body.stage && req.body.stage !== existing.stage
 
       const deal = await prisma.deal.update({
         where: { id: req.params.id },
-        data: req.body,
-        include: {
-          company: {
-            select: {
-              id: true,
-              name: true
-            }
-          },
-          primaryContact: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true
-            }
-          },
-          assignedUser: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-            }
-          }
-        }
+        data: req.body
       })
 
-      // Create activity for stage change
-      if (stageChanged) {
+      // Track stage changes
+      if (req.body.stage && req.body.stage !== existing.stage) {
         await prisma.activity.create({
           data: {
-            orgId: req.user.organizationId,
+            orgId: req.user!.organizationId,
             type: 'NOTE',
-            subject: 'Deal stage changed',
+            subject: 'Deal stage updated',
             description: `Deal stage changed from ${existing.stage} to ${req.body.stage}`,
             entityType: 'DEAL',
             entityId: deal.id,
             status: 'COMPLETED',
-            assignedUserId: req.user.id
+            assignedUserId: req.user!.id
           }
         })
       }
 
-      // Log audit event
+      // Audit log
       await prisma.auditLog.create({
         data: {
-          orgId: req.user.organizationId,
-          userId: req.user.id,
+          orgId: req.user!.organizationId,
+          userId: req.user!.id,
           action: 'UPDATE',
           resource: 'deal',
           resourceId: deal.id,
-          metadata: { 
-            changes: req.body,
-            stageChanged
-          }
+          metadata: { changes: req.body }
         }
       })
 
       res.json(deal)
     } catch (error) {
       console.error('Error updating deal:', error)
-      res.status(400).json({
-        error: 'Failed to update deal'
-      })
+      res.status(500).json({ error: 'Internal server error' })
     }
   }
 )
@@ -388,102 +303,40 @@ router.delete(
   requirePermission('crm:deals:delete'),
   async (req, res) => {
     try {
-      const deal = await prisma.deal.findFirst({
+      const existing = await prisma.deal.findFirst({
         where: {
           id: req.params.id,
-          orgId: req.user.organizationId
+          orgId: req.user!.organizationId,
+          deletedAt: null
         }
       })
 
-      if (!deal) {
-        return res.status(404).json({
-          error: 'Deal not found'
-        })
+      if (!existing) {
+        return res.status(404).json({ error: 'Deal not found' })
       }
 
-      // Delete related activities
-      await prisma.activity.deleteMany({
-        where: {
-          entityType: 'DEAL',
-          entityId: deal.id
-        }
+      // Soft delete
+      await prisma.deal.update({
+        where: { id: req.params.id },
+        data: { deletedAt: new Date() }
       })
 
-      await prisma.deal.delete({
-        where: { id: req.params.id }
-      })
-
-      // Log audit event
+      // Audit log
       await prisma.auditLog.create({
         data: {
-          orgId: req.user.organizationId,
-          userId: req.user.id,
+          orgId: req.user!.organizationId,
+          userId: req.user!.id,
           action: 'DELETE',
           resource: 'deal',
-          resourceId: deal.id,
-          metadata: { 
-            title: deal.title,
-            value: deal.value
-          }
+          resourceId: req.params.id,
+          metadata: { deal: existing.title, value: existing.value }
         }
       })
 
       res.status(204).send()
     } catch (error) {
       console.error('Error deleting deal:', error)
-      res.status(400).json({
-        error: 'Failed to delete deal'
-      })
-    }
-  }
-)
-
-// POST /api/v1/crm/deals/:id/activities
-router.post(
-  '/:id/activities',
-  authenticateJWT,
-  requirePermission('crm:activities:write'),
-  validateRequest({
-    body: z.object({
-      type: z.enum(['CALL', 'EMAIL', 'MEETING', 'TASK', 'NOTE']),
-      subject: z.string(),
-      description: z.string().optional(),
-      dueDate: z.string().optional(),
-      priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional()
-    })
-  }),
-  async (req, res) => {
-    try {
-      const deal = await prisma.deal.findFirst({
-        where: {
-          id: req.params.id,
-          orgId: req.user.organizationId
-        }
-      })
-
-      if (!deal) {
-        return res.status(404).json({
-          error: 'Deal not found'
-        })
-      }
-
-      const activity = await prisma.activity.create({
-        data: {
-          ...req.body,
-          orgId: req.user.organizationId,
-          entityType: 'DEAL',
-          entityId: deal.id,
-          status: 'PENDING',
-          assignedUserId: req.user.id
-        }
-      })
-
-      res.status(201).json(activity)
-    } catch (error) {
-      console.error('Error creating activity:', error)
-      res.status(400).json({
-        error: 'Failed to create activity'
-      })
+      res.status(500).json({ error: 'Internal server error' })
     }
   }
 )

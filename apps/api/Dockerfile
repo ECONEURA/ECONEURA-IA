@@ -1,37 +1,44 @@
-# Multi-stage build for production API
-FROM node:20-alpine AS base
-RUN apk add --no-cache libc6-compat
+FROM node:20-alpine AS builder
+
 WORKDIR /app
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
 
-# Dependencies stage
-FROM base AS deps
-COPY package.json pnpm-lock.yaml* ./
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --prod=false
+# Copy package files
+COPY package*.json ./
+COPY apps/api/package*.json ./apps/api/
+COPY packages/shared/package*.json ./packages/shared/
+COPY packages/sdk/package*.json ./packages/sdk/
 
-# Build stage
-FROM base AS builder
-COPY --from=deps /app/node_modules ./node_modules
+# Install dependencies
+RUN npm ci
+
+# Copy source code
 COPY . .
-RUN pnpm run build
 
-# Production stage
-FROM base AS runner
-ENV NODE_ENV production
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Generate Prisma client
+RUN cd apps/api && npx prisma generate
 
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+# Build all packages
+RUN npm run build
 
-USER nextjs
+FROM node:20-alpine AS runner
 
-EXPOSE 5001
+WORKDIR /app
 
-ENV PORT 5001
-ENV HOSTNAME "0.0.0.0"
+# Install production dependencies only
+COPY package*.json ./
+COPY apps/api/package*.json ./apps/api/
+COPY packages/shared/package*.json ./packages/shared/
+
+RUN npm ci --production
+
+# Copy built application
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
+COPY --from=builder /app/apps/api/node_modules/.prisma ./apps/api/node_modules/.prisma
+
+WORKDIR /app/apps/api
+
+EXPOSE 3001
 
 CMD ["node", "dist/index.js"]

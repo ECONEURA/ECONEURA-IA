@@ -1,21 +1,23 @@
-import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 'axios'
+import axios, { AxiosError, AxiosInstance } from 'axios'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
 
 class ApiClient {
   private client: AxiosInstance
-  private refreshPromise: Promise<string> | null = null
+  private refreshPromise: Promise<void> | null = null
 
   constructor() {
     this.client = axios.create({
-      baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
+      baseURL: API_URL,
       headers: {
         'Content-Type': 'application/json'
       }
     })
 
-    // Request interceptor to add token
+    // Request interceptor to add auth token
     this.client.interceptors.request.use(
-      (config: InternalAxiosRequestConfig) => {
-        const token = this.getAccessToken()
+      (config) => {
+        const token = localStorage.getItem('accessToken')
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
         }
@@ -24,21 +26,35 @@ class ApiClient {
       (error) => Promise.reject(error)
     )
 
-    // Response interceptor to handle token refresh
+    // Response interceptor for token refresh
     this.client.interceptors.response.use(
-      (response: AxiosResponse) => response,
-      async (error) => {
-        const originalRequest = error.config
+      (response) => response,
+      async (error: AxiosError) => {
+        const originalRequest = error.config as any
 
         if (error.response?.status === 401 && !originalRequest._retry) {
           originalRequest._retry = true
 
+          // Prevent multiple refresh calls
+          if (!this.refreshPromise) {
+            this.refreshPromise = this.refreshAccessToken()
+          }
+
           try {
-            const newToken = await this.refreshAccessToken()
-            originalRequest.headers.Authorization = `Bearer ${newToken}`
+            await this.refreshPromise
+            this.refreshPromise = null
+            
+            // Retry original request with new token
+            const token = localStorage.getItem('accessToken')
+            if (token) {
+              originalRequest.headers.Authorization = `Bearer ${token}`
+            }
             return this.client(originalRequest)
           } catch (refreshError) {
-            this.clearTokens()
+            this.refreshPromise = null
+            // Redirect to login
+            localStorage.removeItem('accessToken')
+            localStorage.removeItem('refreshToken')
             window.location.href = '/login'
             return Promise.reject(refreshError)
           }
@@ -49,81 +65,168 @@ class ApiClient {
     )
   }
 
-  private getAccessToken(): string | null {
-    if (typeof window === 'undefined') return null
-    return localStorage.getItem('accessToken')
-  }
-
-  private getRefreshToken(): string | null {
-    if (typeof window === 'undefined') return null
-    return localStorage.getItem('refreshToken')
-  }
-
-  private setTokens(accessToken: string, refreshToken: string) {
-    if (typeof window === 'undefined') return
-    localStorage.setItem('accessToken', accessToken)
-    localStorage.setItem('refreshToken', refreshToken)
-  }
-
-  private clearTokens() {
-    if (typeof window === 'undefined') return
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
-  }
-
-  private async refreshAccessToken(): Promise<string> {
-    // Prevent multiple simultaneous refresh requests
-    if (this.refreshPromise) {
-      return this.refreshPromise
+  private async refreshAccessToken(): Promise<void> {
+    const refreshToken = localStorage.getItem('refreshToken')
+    if (!refreshToken) {
+      throw new Error('No refresh token')
     }
 
-    this.refreshPromise = (async () => {
-      const refreshToken = this.getRefreshToken()
-      if (!refreshToken) {
-        throw new Error('No refresh token available')
-      }
+    const response = await axios.post(`${API_URL}/auth/refresh`, {
+      refreshToken
+    })
 
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/auth/refresh`,
-        { refreshToken }
-      )
+    localStorage.setItem('accessToken', response.data.accessToken)
+    localStorage.setItem('refreshToken', response.data.refreshToken)
+  }
 
-      const { accessToken, refreshToken: newRefreshToken } = response.data
-      this.setTokens(accessToken, newRefreshToken)
-      return accessToken
-    })()
+  // Auth methods
+  async login(email: string, password: string) {
+    const response = await this.client.post('/auth/login', { email, password })
+    localStorage.setItem('accessToken', response.data.accessToken)
+    localStorage.setItem('refreshToken', response.data.refreshToken)
+    return response.data
+  }
 
+  async logout() {
     try {
-      const token = await this.refreshPromise
-      return token
+      await this.client.post('/auth/logout')
     } finally {
-      this.refreshPromise = null
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
     }
   }
 
-  // HTTP methods
-  async get<T>(url: string, params?: any): Promise<T> {
-    const response = await this.client.get<T>(url, { params })
+  // CRM methods
+  async getCompanies(params?: any) {
+    const response = await this.client.get('/v1/crm/companies', { params })
     return response.data
   }
 
-  async post<T>(url: string, data?: any): Promise<T> {
-    const response = await this.client.post<T>(url, data)
+  async getCompany(id: string) {
+    const response = await this.client.get(`/v1/crm/companies/${id}`)
     return response.data
   }
 
-  async put<T>(url: string, data?: any): Promise<T> {
-    const response = await this.client.put<T>(url, data)
+  async createCompany(data: any) {
+    const response = await this.client.post('/v1/crm/companies', data)
     return response.data
   }
 
-  async patch<T>(url: string, data?: any): Promise<T> {
-    const response = await this.client.patch<T>(url, data)
+  async updateCompany(id: string, data: any) {
+    const response = await this.client.put(`/v1/crm/companies/${id}`, data)
     return response.data
   }
 
-  async delete<T>(url: string): Promise<T> {
-    const response = await this.client.delete<T>(url)
+  async deleteCompany(id: string) {
+    await this.client.delete(`/v1/crm/companies/${id}`)
+  }
+
+  async getContacts(params?: any) {
+    const response = await this.client.get('/v1/crm/contacts', { params })
+    return response.data
+  }
+
+  async getContact(id: string) {
+    const response = await this.client.get(`/v1/crm/contacts/${id}`)
+    return response.data
+  }
+
+  async createContact(data: any) {
+    const response = await this.client.post('/v1/crm/contacts', data)
+    return response.data
+  }
+
+  async updateContact(id: string, data: any) {
+    const response = await this.client.put(`/v1/crm/contacts/${id}`, data)
+    return response.data
+  }
+
+  async deleteContact(id: string) {
+    await this.client.delete(`/v1/crm/contacts/${id}`)
+  }
+
+  async getDeals(params?: any) {
+    const response = await this.client.get('/v1/crm/deals', { params })
+    return response.data
+  }
+
+  async getDeal(id: string) {
+    const response = await this.client.get(`/v1/crm/deals/${id}`)
+    return response.data
+  }
+
+  async getDealsPipeline() {
+    const response = await this.client.get('/v1/crm/deals/pipeline')
+    return response.data
+  }
+
+  async createDeal(data: any) {
+    const response = await this.client.post('/v1/crm/deals', data)
+    return response.data
+  }
+
+  async updateDeal(id: string, data: any) {
+    const response = await this.client.put(`/v1/crm/deals/${id}`, data)
+    return response.data
+  }
+
+  async deleteDeal(id: string) {
+    await this.client.delete(`/v1/crm/deals/${id}`)
+  }
+
+  // ERP methods
+  async getProducts(params?: any) {
+    const response = await this.client.get('/v1/erp/products', { params })
+    return response.data
+  }
+
+  async getProduct(id: string) {
+    const response = await this.client.get(`/v1/erp/products/${id}`)
+    return response.data
+  }
+
+  async getLowStockProducts() {
+    const response = await this.client.get('/v1/erp/products/low-stock')
+    return response.data
+  }
+
+  async createProduct(data: any) {
+    const response = await this.client.post('/v1/erp/products', data)
+    return response.data
+  }
+
+  async updateProduct(id: string, data: any) {
+    const response = await this.client.put(`/v1/erp/products/${id}`, data)
+    return response.data
+  }
+
+  async deleteProduct(id: string) {
+    await this.client.delete(`/v1/erp/products/${id}`)
+  }
+
+  // Finance methods
+  async getInvoices(params?: any) {
+    const response = await this.client.get('/v1/finance/invoices', { params })
+    return response.data
+  }
+
+  async getInvoice(id: string) {
+    const response = await this.client.get(`/v1/finance/invoices/${id}`)
+    return response.data
+  }
+
+  async getInvoicesSummary() {
+    const response = await this.client.get('/v1/finance/invoices/summary')
+    return response.data
+  }
+
+  async createInvoice(data: any) {
+    const response = await this.client.post('/v1/finance/invoices', data)
+    return response.data
+  }
+
+  async updateInvoiceStatus(id: string, status: string, notes?: string) {
+    const response = await this.client.put(`/v1/finance/invoices/${id}/status`, { status, notes })
     return response.data
   }
 }
