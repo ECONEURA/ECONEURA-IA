@@ -50,7 +50,8 @@ app.use((req, res, next) => {
   const startTime = Date.now();
   res.on('finish', () => {
     const duration = Date.now() - startTime;
-    recordHttpRequest(req.method, req.route?.path || req.path, res.statusCode.toString(), duration);
+    const routeLabel = req.route?.path || req.baseUrl || 'unknown';
+    recordHttpRequest(req.method, routeLabel, res.statusCode.toString(), duration);
     logApiRequest(req.method, req.url, res.statusCode, duration, {
       userAgent: req.get('User-Agent'),
       contentLength: res.get('Content-Length')

@@ -209,7 +209,7 @@ router.post('/chat/completions', async (req: AuthenticatedRequest, res) => {
 
 /**
  * POST /ai/generate
- * Simple text generation endpoint
+ * Simple text generation endpoint (mock o real según USE_MOCK_AI)
  */
 router.post('/generate', async (req: AuthenticatedRequest, res) => {
   const startTime = Date.now();
@@ -217,7 +217,8 @@ router.post('/generate', async (req: AuthenticatedRequest, res) => {
 
   try {
     const validatedRequest = AIRequestSchema.parse(req.body);
-    
+    const USE_MOCK = (process.env.USE_MOCK_AI ?? 'true').toLowerCase() === 'true';
+
     const aiRequest: EnhancedAIRequest = {
       org_id: orgId,
       taskType: validatedRequest.task_type || 'summarize',
@@ -246,16 +247,47 @@ router.post('/generate', async (req: AuthenticatedRequest, res) => {
       aiRequest
     );
 
-    // Mock response
-    const mockResponse = {
+    if (USE_MOCK) {
+      const mockResponse = {
+        id: `gen-${Date.now()}`,
+        created: Math.floor(Date.now() / 1000),
+        provider: decision.provider.id,
+        model: decision.model,
+        content: `[DEMO] Generated response from ${decision.provider.name}. Routing: ${decision.routingReason}`,
+        usage: {
+          input_tokens: Math.ceil(validatedRequest.content.length / 4),
+          output_tokens: 30,
+          total_cost_eur: decision.estimatedCost,
+        },
+        routing: {
+          provider: decision.provider.name,
+          model: decision.model,
+          reason: decision.routingReason,
+          fallbacks: decision.fallbackProviders,
+        },
+      };
+
+      await aiRouter.recordRequestCompletion(
+        mockResponse.id,
+        true,
+        decision.estimatedCost,
+        mockResponse.usage.input_tokens,
+        mockResponse.usage.output_tokens
+      );
+
+      return res.json(mockResponse);
+    }
+
+    // TODO: integración real con provider seleccionado (cuando esté disponible)
+    const realResponse = {
       id: `gen-${Date.now()}`,
       created: Math.floor(Date.now() / 1000),
       provider: decision.provider.id,
       model: decision.model,
-      content: `[DEMO] Generated response from ${decision.provider.name}. Routing: ${decision.routingReason}`,
+      content: `[PLACEHOLDER] Real provider call pending. Routed to ${decision.provider.name} (${decision.model}).`,
       usage: {
-        input_tokens: Math.ceil(validatedRequest.content.length / 4),
-        output_tokens: 30,
+        input_tokens: Math.ceil(processedContent.length / 4),
+        output_tokens: 0,
         total_cost_eur: decision.estimatedCost,
       },
       routing: {
@@ -267,14 +299,13 @@ router.post('/generate', async (req: AuthenticatedRequest, res) => {
     };
 
     await aiRouter.recordRequestCompletion(
-      mockResponse.id,
+      realResponse.id,
       true,
       decision.estimatedCost,
-      mockResponse.usage.input_tokens,
-      mockResponse.usage.output_tokens
+      realResponse.usage.input_tokens,
+      realResponse.usage.output_tokens
     );
-
-    res.json(mockResponse);
+    res.json(realResponse);
 
   } catch (error) {
     logger.error('AI generation failed', error instanceof Error ? error : new Error(String(error)), {
