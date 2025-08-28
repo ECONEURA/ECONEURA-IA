@@ -1,0 +1,354 @@
+// ECONEURA CRM API - Prisma Schema
+// Business entities for comprehensive CRM functionality
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===== CORE ENTITIES =====
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  domain      String?
+  industry    String?
+  size        String?  // startup, small, medium, enterprise
+  status      String   @default("active") // active, suspended, trial
+  
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  users       User[]
+  contacts    Contact[]
+  companies   Company[]
+  deals       Deal[]
+  activities  Activity[]
+  attachments Attachment[]
+  labels      Label[]
+  
+  @@map("organizations")
+}
+
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  name           String
+  avatar         String?
+  role           String   @default("user") // admin, manager, user, viewer
+  permissions    Json     @default("{}")
+  
+  // Auth
+  passwordHash   String?
+  emailVerified  DateTime?
+  lastLoginAt    DateTime?
+  
+  // Organization
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  // Metadata
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  // Relations
+  createdContacts Contact[] @relation("CreatedBy")
+  assignedDeals   Deal[]    @relation("AssignedTo")
+  activities      Activity[]
+  
+  @@map("users")
+}
+
+// ===== CRM ENTITIES =====
+
+model Contact {
+  id             String   @id @default(cuid())
+  
+  // Basic Info
+  firstName      String
+  lastName       String
+  email          String?
+  phone          String?
+  title          String?
+  department     String?
+  
+  // Address
+  address        String?
+  city           String?
+  state          String?
+  postalCode     String?
+  country        String?
+  
+  // Social & Web
+  website        String?
+  linkedin       String?
+  twitter        String?
+  
+  // CRM Fields
+  source         String?  // website, referral, event, cold_outreach
+  status         String   @default("active") // active, inactive, bounced, unsubscribed
+  rating         Int      @default(0) // 1-5 stars
+  
+  // Company relation
+  companyId      String?
+  company        Company? @relation(fields: [companyId], references: [id])
+  
+  // Organization
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  // Ownership
+  createdById    String
+  createdBy      User     @relation("CreatedBy", fields: [createdById], references: [id])
+  
+  // Metadata
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  lastContactedAt DateTime?
+  
+  // Relations
+  deals          Deal[]
+  activities     Activity[]
+  attachments    Attachment[]
+  labels         ContactLabel[]
+  
+  @@map("contacts")
+}
+
+model Company {
+  id             String   @id @default(cuid())
+  
+  // Basic Info
+  name           String
+  domain         String?  @unique
+  industry       String?
+  size           String?  // startup, small, medium, large, enterprise
+  revenue        Decimal? @db.Decimal(15, 2)
+  employees      Int?
+  
+  // Address
+  address        String?
+  city           String?
+  state          String?
+  postalCode     String?
+  country        String?
+  
+  // Social & Web
+  website        String?
+  linkedin       String?
+  twitter        String?
+  
+  // CRM Fields
+  type           String   @default("prospect") // prospect, customer, partner, competitor
+  status         String   @default("active")   // active, inactive, closed
+  rating         Int      @default(0) // 1-5 stars
+  
+  // Organization
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  // Metadata
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  // Relations
+  contacts       Contact[]
+  deals          Deal[]
+  activities     Activity[]
+  attachments    Attachment[]
+  labels         CompanyLabel[]
+  
+  @@map("companies")
+}
+
+model Deal {
+  id             String   @id @default(cuid())
+  
+  // Basic Info
+  title          String
+  description    String?
+  value          Decimal? @db.Decimal(15, 2)
+  currency       String   @default("EUR")
+  
+  // Pipeline
+  stage          String   @default("prospecting") // prospecting, qualification, proposal, negotiation, closed_won, closed_lost
+  probability    Int      @default(0) // 0-100%
+  priority       String   @default("medium") // low, medium, high, urgent
+  
+  // Dates
+  expectedCloseDate DateTime?
+  actualCloseDate   DateTime?
+  
+  // Relations
+  contactId      String?
+  contact        Contact? @relation(fields: [contactId], references: [id])
+  
+  companyId      String?
+  company        Company? @relation(fields: [companyId], references: [id])
+  
+  assignedToId   String?
+  assignedTo     User?    @relation("AssignedTo", fields: [assignedToId], references: [id])
+  
+  // Organization
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  // Metadata
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  // Relations
+  activities     Activity[]
+  attachments    Attachment[]
+  labels         DealLabel[]
+  
+  @@map("deals")
+}
+
+model Activity {
+  id             String   @id @default(cuid())
+  
+  // Basic Info
+  type           String   // call, email, meeting, note, task, event
+  subject        String
+  description    String?
+  
+  // Status
+  status         String   @default("pending") // pending, completed, cancelled
+  priority       String   @default("medium") // low, medium, high, urgent
+  
+  // Dates
+  dueDate        DateTime?
+  completedAt    DateTime?
+  reminderAt     DateTime?
+  
+  // Relations
+  contactId      String?
+  contact        Contact? @relation(fields: [contactId], references: [id])
+  
+  companyId      String?
+  company        Company? @relation(fields: [companyId], references: [id])
+  
+  dealId         String?
+  deal           Deal?    @relation(fields: [dealId], references: [id])
+  
+  assignedToId   String
+  assignedTo     User     @relation(fields: [assignedToId], references: [id])
+  
+  // Organization
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  // Metadata
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  // Relations
+  attachments    Attachment[]
+  
+  @@map("activities")
+}
+
+// ===== SUPPORTING ENTITIES =====
+
+model Attachment {
+  id             String   @id @default(cuid())
+  
+  // File Info
+  filename       String
+  originalName   String
+  mimeType       String
+  size           Int
+  url            String?  // External URL or file path
+  
+  // Relations
+  contactId      String?
+  contact        Contact? @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  
+  companyId      String?
+  company        Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  dealId         String?
+  deal           Deal?    @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  
+  activityId     String?
+  activity       Activity? @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  
+  // Organization
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  // Metadata
+  createdAt      DateTime @default(now())
+  
+  @@map("attachments")
+}
+
+model Label {
+  id             String   @id @default(cuid())
+  name           String
+  color          String   @default("#3B82F6") // Hex color
+  description    String?
+  
+  // Organization
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  // Metadata
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  // Relations
+  contacts       ContactLabel[]
+  companies      CompanyLabel[]
+  deals          DealLabel[]
+  
+  @@unique([organizationId, name])
+  @@map("labels")
+}
+
+// ===== JUNCTION TABLES =====
+
+model ContactLabel {
+  id        String @id @default(cuid())
+  contactId String
+  labelId   String
+  
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  label     Label   @relation(fields: [labelId], references: [id], onDelete: Cascade)
+  
+  @@unique([contactId, labelId])
+  @@map("contact_labels")
+}
+
+model CompanyLabel {
+  id        String @id @default(cuid())
+  companyId String
+  labelId   String
+  
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  label     Label   @relation(fields: [labelId], references: [id], onDelete: Cascade)
+  
+  @@unique([companyId, labelId])
+  @@map("company_labels")
+}
+
+model DealLabel {
+  id      String @id @default(cuid())
+  dealId  String
+  labelId String
+  
+  deal    Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  label   Label  @relation(fields: [labelId], references: [id], onDelete: Cascade)
+  
+  @@unique([dealId, labelId])
+  @@map("deal_labels")
+}

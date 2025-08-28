@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop, feat/**, fix/**, chore/** ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.0
+          run_install: true
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Typecheck
+        run: pnpm -w typecheck
+
+      - name: Lint
+        run: pnpm -w lint || true
+
+      - name: Test
+        run: pnpm -w test
+
+      - name: Build
+        run: pnpm -w build
