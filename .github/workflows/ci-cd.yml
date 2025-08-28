@@ -1,0 +1,370 @@
+# ECONEURA CI/CD Pipeline
+# Mediterranean CRM+ERP+AI System - Azure Deployment
+
+name: 'ECONEURA CI/CD Pipeline'
+
+on:
+  push:
+    branches: [ main, develop, 'feat/*', 'hotfix/*' ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging  
+          - prod
+
+env:
+  NODE_VERSION: '18'
+  AZURE_WEBAPP_NAME_WEB: 'econeura-${{ github.event.inputs.environment || 'dev' }}-web'
+  AZURE_WEBAPP_NAME_API: 'econeura-${{ github.event.inputs.environment || 'dev' }}-api'
+  AZURE_RESOURCE_GROUP: 'econeura-${{ github.event.inputs.environment || 'dev' }}-rg'
+
+jobs:
+  # Lint and Test
+  quality-checks:
+    name: 'Quality Checks'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: 'Checkout Code'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 'Setup Node.js'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 'Install Dependencies'
+        run: |
+          npm ci --frozen-lockfile
+          echo "✅ Dependencies installed successfully"
+
+      - name: 'Lint Code'
+        run: |
+          npm run lint
+          echo "✅ Code linting completed"
+
+      - name: 'Type Check'
+        run: |
+          npm run type-check
+          echo "✅ TypeScript type checking completed"
+
+      - name: 'Run Tests'
+        run: |
+          npm test -- --coverage --watchAll=false
+          echo "✅ Tests completed successfully"
+
+      - name: 'Upload Coverage Reports'
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: econeura-coverage
+
+      - name: 'Security Audit'
+        run: |
+          npm audit --audit-level=high
+          echo "✅ Security audit completed"
+
+  # Build Applications
+  build:
+    name: 'Build Applications'
+    runs-on: ubuntu-latest
+    needs: quality-checks
+    timeout-minutes: 20
+    
+    strategy:
+      matrix:
+        app: [web, api]
+    
+    steps:
+      - name: 'Checkout Code'
+        uses: actions/checkout@v4
+
+      - name: 'Setup Node.js'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 'Install Dependencies'
+        run: npm ci --frozen-lockfile
+
+      - name: 'Generate Prisma Client'
+        run: npx prisma generate
+
+      - name: 'Build ${{ matrix.app }}'
+        run: |
+          npm run build:${{ matrix.app }}
+          echo "✅ ${{ matrix.app }} build completed"
+
+      - name: 'Upload Build Artifacts'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.app }}-build
+          path: |
+            apps/${{ matrix.app }}/dist/
+            apps/${{ matrix.app }}/.next/
+          retention-days: 7
+
+  # Deploy to Development
+  deploy-dev:
+    name: 'Deploy to Development'
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/develop' || github.event.inputs.environment == 'dev'
+    environment: development
+    timeout-minutes: 30
+    
+    steps:
+      - name: 'Checkout Code'
+        uses: actions/checkout@v4
+
+      - name: 'Azure Login'
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_DEV }}
+
+      - name: 'Deploy Infrastructure'
+        uses: azure/arm-deploy@v1
+        with:
+          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          resourceGroupName: ${{ env.AZURE_RESOURCE_GROUP }}
+          template: ./infrastructure/azure/bicep/main.bicep
+          parameters: ./infrastructure/azure/bicep/parameters.dev.json
+          failOnStdErr: false
+
+      - name: 'Download Build Artifacts'
+        uses: actions/download-artifact@v4
+        with:
+          path: ./builds
+
+      - name: 'Deploy Web App'
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME_WEB }}
+          slot-name: 'production'
+          package: ./builds/web-build
+
+      - name: 'Deploy API App'
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME_API }}
+          slot-name: 'production'  
+          package: ./builds/api-build
+
+      - name: 'Run Database Migrations'
+        run: |
+          npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_DEV }}
+
+      - name: 'Health Check'
+        run: |
+          sleep 60
+          curl -f https://${{ env.AZURE_WEBAPP_NAME_WEB }}.azurewebsites.net/api/health
+          curl -f https://${{ env.AZURE_WEBAPP_NAME_API }}.azurewebsites.net/api/health
+          echo "✅ Health checks passed"
+
+  # Deploy to Staging
+  deploy-staging:
+    name: 'Deploy to Staging'
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'staging'
+    environment: staging
+    timeout-minutes: 45
+    
+    steps:
+      - name: 'Checkout Code'
+        uses: actions/checkout@v4
+
+      - name: 'Azure Login'
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_STAGING }}
+
+      - name: 'Deploy Infrastructure'
+        uses: azure/arm-deploy@v1
+        with:
+          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          resourceGroupName: 'econeura-staging-rg'
+          template: ./infrastructure/azure/bicep/main.bicep
+          parameters: ./infrastructure/azure/bicep/parameters.staging.json
+          failOnStdErr: false
+
+      - name: 'Download Build Artifacts'
+        uses: actions/download-artifact@v4
+        with:
+          path: ./builds
+
+      - name: 'Deploy to Staging Slot'
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'econeura-staging-web'
+          slot-name: 'staging'
+          package: ./builds/web-build
+
+      - name: 'Deploy API to Staging Slot'
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'econeura-staging-api'
+          slot-name: 'staging'
+          package: ./builds/api-build
+
+      - name: 'Run Integration Tests'
+        run: |
+          npm run test:integration
+          echo "✅ Integration tests passed"
+
+      - name: 'Swap Staging to Production'
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az webapp deployment slot swap \
+              --resource-group econeura-staging-rg \
+              --name econeura-staging-web \
+              --slot staging \
+              --target-slot production
+            
+            az webapp deployment slot swap \
+              --resource-group econeura-staging-rg \
+              --name econeura-staging-api \
+              --slot staging \
+              --target-slot production
+
+  # Deploy to Production
+  deploy-prod:
+    name: 'Deploy to Production'
+    runs-on: ubuntu-latest
+    needs: [build, deploy-staging]
+    if: github.ref == 'refs/heads/main' && github.event.inputs.environment == 'prod'
+    environment: production
+    timeout-minutes: 60
+    
+    steps:
+      - name: 'Checkout Code'
+        uses: actions/checkout@v4
+
+      - name: 'Azure Login'
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_PROD }}
+
+      - name: 'Deploy Infrastructure'
+        uses: azure/arm-deploy@v1
+        with:
+          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          resourceGroupName: 'econeura-prod-rg'
+          template: ./infrastructure/azure/bicep/main.bicep
+          parameters: ./infrastructure/azure/bicep/parameters.prod.json
+          failOnStdErr: false
+
+      - name: 'Download Build Artifacts'
+        uses: actions/download-artifact@v4
+        with:
+          path: ./builds
+
+      - name: 'Deploy to Production Slot'
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'econeura-prod-web'
+          slot-name: 'staging'
+          package: ./builds/web-build
+
+      - name: 'Deploy API to Production Slot'
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'econeura-prod-api'
+          slot-name: 'staging'
+          package: ./builds/api-build
+
+      - name: 'Run Production Tests'
+        run: |
+          npm run test:e2e:prod
+          echo "✅ Production tests passed"
+
+      - name: 'Backup Database'
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az postgres flexible-server backup create \
+              --resource-group econeura-prod-rg \
+              --server-name econeura-prod-postgres \
+              --backup-name "pre-deployment-$(date +%Y%m%d%H%M%S)"
+
+      - name: 'Blue-Green Deployment'
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            # Swap to production after validation
+            az webapp deployment slot swap \
+              --resource-group econeura-prod-rg \
+              --name econeura-prod-web \
+              --slot staging \
+              --target-slot production
+            
+            az webapp deployment slot swap \
+              --resource-group econeura-prod-rg \
+              --name econeura-prod-api \
+              --slot staging \
+              --target-slot production
+
+      - name: 'Production Health Check'
+        run: |
+          sleep 120
+          curl -f https://econeura-prod-web.azurewebsites.net/api/health
+          curl -f https://econeura-prod-api.azurewebsites.net/api/health
+          echo "✅ Production deployment successful"
+
+      - name: 'Notify Deployment Success'
+        if: success()
+        run: |
+          echo "🚀 ECONEURA Production deployment completed successfully!"
+
+  # Rollback (Manual trigger only)
+  rollback:
+    name: 'Rollback Deployment'
+    runs-on: ubuntu-latest
+    if: github.event.inputs.environment && failure()
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+      - name: 'Azure Login'
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets[format('AZURE_CREDENTIALS_{0}', upper(github.event.inputs.environment))] }}
+
+      - name: 'Rollback Deployment'
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            # Rollback to previous slot
+            az webapp deployment slot swap \
+              --resource-group econeura-${{ github.event.inputs.environment }}-rg \
+              --name econeura-${{ github.event.inputs.environment }}-web \
+              --slot production \
+              --target-slot staging
+            
+            az webapp deployment slot swap \
+              --resource-group econeura-${{ github.event.inputs.environment }}-rg \
+              --name econeura-${{ github.event.inputs.environment }}-api \
+              --slot production \
+              --target-slot staging
+
+      - name: 'Verify Rollback'
+        run: |
+          sleep 60
+          curl -f https://econeura-${{ github.event.inputs.environment }}-web.azurewebsites.net/api/health
+          echo "🔄 Rollback completed successfully"

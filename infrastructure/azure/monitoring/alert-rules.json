@@ -1,0 +1,311 @@
+{
+  "alertRules": [
+    {
+      "name": "ECONEURA High Error Rate",
+      "description": "Alert when error rate exceeds 5% in 5 minutes",
+      "severity": 2,
+      "enabled": true,
+      "condition": {
+        "allOf": [
+          {
+            "field": "requests/failed",
+            "operator": "GreaterThan",
+            "threshold": 5,
+            "timeAggregation": "Percentage",
+            "windowSize": "PT5M"
+          }
+        ]
+      },
+      "actions": [
+        {
+          "actionType": "email",
+          "recipients": ["admin@econeura.com", "devops@econeura.com"]
+        },
+        {
+          "actionType": "webhook",
+          "url": "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+        }
+      ]
+    },
+    {
+      "name": "ECONEURA Database Connection Issues",
+      "description": "Alert on database connectivity problems",
+      "severity": 1,
+      "enabled": true,
+      "condition": {
+        "allOf": [
+          {
+            "field": "dependencies/failed",
+            "operator": "GreaterThan", 
+            "threshold": 3,
+            "timeAggregation": "Count",
+            "windowSize": "PT5M"
+          },
+          {
+            "field": "dependencies/target",
+            "operator": "Contains",
+            "threshold": "postgres"
+          }
+        ]
+      },
+      "actions": [
+        {
+          "actionType": "email", 
+          "recipients": ["admin@econeura.com", "dba@econeura.com"]
+        }
+      ]
+    },
+    {
+      "name": "ECONEURA High Response Time",
+      "description": "Alert when average response time exceeds 2 seconds",
+      "severity": 3,
+      "enabled": true,
+      "condition": {
+        "allOf": [
+          {
+            "field": "requests/duration",
+            "operator": "GreaterThan",
+            "threshold": 2000,
+            "timeAggregation": "Average", 
+            "windowSize": "PT10M"
+          }
+        ]
+      },
+      "actions": [
+        {
+          "actionType": "email",
+          "recipients": ["performance@econeura.com"]
+        }
+      ]
+    },
+    {
+      "name": "ECONEURA Memory Usage Critical",
+      "description": "Alert when memory usage exceeds 90%",
+      "severity": 1,
+      "enabled": true,
+      "condition": {
+        "allOf": [
+          {
+            "field": "performanceCounters/memoryAvailableBytes",
+            "operator": "LessThan",
+            "threshold": 104857600,
+            "timeAggregation": "Average",
+            "windowSize": "PT5M"
+          }
+        ]
+      },
+      "actions": [
+        {
+          "actionType": "email",
+          "recipients": ["admin@econeura.com", "devops@econeura.com"]
+        }
+      ]
+    },
+    {
+      "name": "ECONEURA CPU Usage High", 
+      "description": "Alert when CPU usage exceeds 80% for 10 minutes",
+      "severity": 2,
+      "enabled": true,
+      "condition": {
+        "allOf": [
+          {
+            "field": "performanceCounters/processCpuPercentage",
+            "operator": "GreaterThan",
+            "threshold": 80,
+            "timeAggregation": "Average",
+            "windowSize": "PT10M"
+          }
+        ]
+      },
+      "actions": [
+        {
+          "actionType": "email",
+          "recipients": ["devops@econeura.com"]
+        }
+      ]
+    },
+    {
+      "name": "ECONEURA AI Router Failures",
+      "description": "Alert on AI Router request failures",
+      "severity": 2,
+      "enabled": true,
+      "condition": {
+        "allOf": [
+          {
+            "field": "customEvents/count",
+            "operator": "GreaterThan",
+            "threshold": 5,
+            "timeAggregation": "Count",
+            "windowSize": "PT5M"
+          },
+          {
+            "field": "customEvents/name",
+            "operator": "Contains",
+            "threshold": "AI_ROUTER_ERROR"
+          }
+        ]
+      },
+      "actions": [
+        {
+          "actionType": "email",
+          "recipients": ["ai-team@econeura.com"]
+        }
+      ]
+    },
+    {
+      "name": "ECONEURA Security Events",
+      "description": "Alert on critical security events",
+      "severity": 1,
+      "enabled": true,
+      "condition": {
+        "allOf": [
+          {
+            "field": "customEvents/count",
+            "operator": "GreaterThan",
+            "threshold": 1,
+            "timeAggregation": "Count", 
+            "windowSize": "PT1M"
+          },
+          {
+            "field": "customEvents/name",
+            "operator": "Contains",
+            "threshold": "SECURITY_"
+          }
+        ]
+      },
+      "actions": [
+        {
+          "actionType": "email",
+          "recipients": ["security@econeura.com", "admin@econeura.com"]
+        },
+        {
+          "actionType": "sms",
+          "recipients": ["+1234567890"]
+        }
+      ]
+    },
+    {
+      "name": "ECONEURA Webhook Processing Delays",
+      "description": "Alert when webhook processing takes longer than expected",
+      "severity": 3,
+      "enabled": true,
+      "condition": {
+        "allOf": [
+          {
+            "field": "customMetrics/webhook_processing_time",
+            "operator": "GreaterThan",
+            "threshold": 30000,
+            "timeAggregation": "Average",
+            "windowSize": "PT5M"
+          }
+        ]
+      },
+      "actions": [
+        {
+          "actionType": "email",
+          "recipients": ["integration@econeura.com"]
+        }
+      ]
+    }
+  ],
+  "dashboards": [
+    {
+      "name": "ECONEURA Operations Dashboard",
+      "description": "Main operational monitoring dashboard",
+      "tiles": [
+        {
+          "title": "Request Rate",
+          "type": "chart",
+          "query": "requests | summarize RequestRate = count() by bin(timestamp, 1m)",
+          "visualization": "timechart"
+        },
+        {
+          "title": "Error Rate",
+          "type": "chart", 
+          "query": "requests | summarize ErrorRate = countif(success == false) * 100.0 / count() by bin(timestamp, 5m)",
+          "visualization": "timechart"
+        },
+        {
+          "title": "Response Time P95",
+          "type": "chart",
+          "query": "requests | summarize ResponseTime95 = percentile(duration, 95) by bin(timestamp, 5m)",
+          "visualization": "timechart"
+        },
+        {
+          "title": "Top Errors",
+          "type": "table",
+          "query": "exceptions | summarize Count = count() by type, outerMessage | order by Count desc | take 10"
+        },
+        {
+          "title": "Database Performance",
+          "type": "chart",
+          "query": "dependencies | where type == 'SQL' | summarize AvgDuration = avg(duration) by bin(timestamp, 5m)",
+          "visualization": "timechart"
+        },
+        {
+          "title": "AI Router Metrics",
+          "type": "chart",
+          "query": "customEvents | where name startswith 'AI_' | summarize Count = count() by name, bin(timestamp, 5m)",
+          "visualization": "timechart"
+        }
+      ]
+    },
+    {
+      "name": "ECONEURA Business Metrics",
+      "description": "Business and user activity monitoring",
+      "tiles": [
+        {
+          "title": "Active Users",
+          "type": "metric",
+          "query": "customEvents | where name == 'USER_ACTIVITY' | summarize UniqueUsers = dcount(tostring(customDimensions.userId)) by bin(timestamp, 1h)"
+        },
+        {
+          "title": "CRM Activities",
+          "type": "chart", 
+          "query": "customEvents | where name startswith 'CRM_' | summarize Count = count() by name, bin(timestamp, 1h)",
+          "visualization": "columnchart"
+        },
+        {
+          "title": "ERP Transactions",
+          "type": "chart",
+          "query": "customEvents | where name startswith 'ERP_' | summarize Count = count() by name, bin(timestamp, 1h)",
+          "visualization": "columnchart"
+        },
+        {
+          "title": "Revenue Tracking",
+          "type": "metric",
+          "query": "customMetrics | where name == 'econeura_revenue_processed' | summarize TotalRevenue = sum(value) by bin(timestamp, 1d)"
+        }
+      ]
+    }
+  ],
+  "workbooks": [
+    {
+      "name": "ECONEURA Incident Response",
+      "description": "Comprehensive incident analysis workbook",
+      "sections": [
+        {
+          "title": "System Health Overview",
+          "queries": [
+            "requests | summarize SuccessRate = avg(toint(success)) * 100, AvgDuration = avg(duration), RequestCount = count() by bin(timestamp, 5m) | render timechart",
+            "exceptions | summarize ErrorCount = count() by type, bin(timestamp, 1h) | render columnchart"
+          ]
+        },
+        {
+          "title": "Performance Analysis", 
+          "queries": [
+            "requests | summarize P50 = percentile(duration, 50), P90 = percentile(duration, 90), P95 = percentile(duration, 95), P99 = percentile(duration, 99) by bin(timestamp, 5m) | render timechart",
+            "dependencies | summarize AvgDuration = avg(duration), Count = count() by target, type | order by AvgDuration desc"
+          ]
+        },
+        {
+          "title": "Security Events",
+          "queries": [
+            "customEvents | where name startswith 'SECURITY_' | summarize Count = count() by name, tostring(customDimensions.ip) | order by Count desc",
+            "traces | where message contains 'FAILED_LOGIN' | summarize FailedLogins = count() by tostring(customDimensions.userId), bin(timestamp, 1h)"
+          ]
+        }
+      ]
+    }
+  ]
+}
