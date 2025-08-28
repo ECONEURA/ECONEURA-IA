@@ -1,3 +1,11 @@
+// Export all new domain schemas
+export * from './common';
+export * from './auth';
+export * from './crm';
+export * from './erp';
+export * from './finance';
+
+// Legacy schemas kept for backward compatibility
 import { z } from 'zod';
 
 export const OrgIdSchema = z.string().regex(/^[a-zA-Z0-9\-_]+$/, 'Invalid org_id format');
@@ -13,8 +21,8 @@ export const BaseHeadersSchema = z.object({
   'x-idempotency-key': z.string().optional(),
 });
 
-// Organization schemas
-export const OrganizationSchema = z.object({
+// Legacy organization schema (kept for compatibility)
+export const LegacyOrganizationSchema = z.object({
   org_id: OrgIdSchema,
   name: z.string().min(1).max(255),
   api_key_hash: z.string(),
@@ -43,20 +51,20 @@ export const CreateCustomerSchema = z.object({
   phone: z.string().optional(),
 });
 
-// Invoice schemas
-export const InvoiceStatusSchema = z.enum(['draft', 'sent', 'paid', 'overdue', 'cancelled']);
+// Legacy Invoice schemas (kept for compatibility - new ones in finance.ts)
+export const LegacyInvoiceStatusSchema = z.enum(['draft', 'sent', 'paid', 'overdue', 'cancelled']);
 
-export const InvoiceSchema = z.object({
+export const LegacyInvoiceSchema = z.object({
   id: z.string().uuid(),
   org_id: OrgIdSchema,
   customer_id: z.string().uuid(),
   amount: z.number().positive(),
   due_date: z.date(),
-  status: InvoiceStatusSchema,
+  status: LegacyInvoiceStatusSchema,
   created_at: z.date(),
 });
 
-export const CreateInvoiceSchema = z.object({
+export const LegacyCreateInvoiceSchema = z.object({
   customer_id: z.string().uuid(),
   amount: z.number().positive(),
   due_date: z.string().pipe(z.coerce.date()),
@@ -143,16 +151,6 @@ export const FeatureFlagSchema = z.object({
   enabled: z.boolean(),
 });
 
-// Error schemas
-export const ProblemJsonSchema = z.object({
-  type: z.string().url(),
-  title: z.string(),
-  status: z.number().int().min(400).max(599),
-  detail: z.string(),
-  instance: z.string(),
-  org_id: OrgIdSchema.optional(),
-});
-
 // Metrics schemas
 export const MetricsQuerySchema = z.object({
   org_id: OrgIdSchema.optional(),
@@ -161,10 +159,10 @@ export const MetricsQuerySchema = z.object({
   granularity: z.enum(['hour', 'day', 'week']).default('day'),
 });
 
+// Legacy types
 export type BaseHeaders = z.infer<typeof BaseHeadersSchema>;
 export type CreateOrg = z.infer<typeof CreateOrgSchema>;
 export type CreateCustomer = z.infer<typeof CreateCustomerSchema>;
-export type CreateInvoice = z.infer<typeof CreateInvoiceSchema>;
 export type AIRequestInput = z.infer<typeof AIRequestSchema>;
 export type StartFlow = z.infer<typeof StartFlowSchema>;
 export type SendMessage = z.infer<typeof SendMessageSchema>;

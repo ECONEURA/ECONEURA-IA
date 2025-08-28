@@ -1,0 +1,55 @@
+name: OpenAPI Validation
+
+on:
+  pull_request:
+    paths:
+      - 'apps/api/**'
+      - 'packages/shared/src/schemas/**'
+      - '.github/workflows/openapi-check.yml'
+
+jobs:
+  validate-openapi:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      
+      - name: Build shared package
+        run: npm --workspace=packages/shared run build
+      
+      - name: Generate OpenAPI spec
+        run: |
+          cd apps/api
+          npx tsx scripts/generate-openapi.ts
+      
+      - name: Check for OpenAPI changes
+        run: |
+          if [ -f "apps/api/openapi.json" ]; then
+            git diff --exit-code apps/api/openapi.json || (echo "OpenAPI spec has uncommitted changes. Please run 'npm run api:openapi' and commit the changes." && exit 1)
+          else
+            echo "OpenAPI spec not found. Please generate it with 'npm run api:openapi'"
+            exit 1
+          fi
+      
+      - name: Validate OpenAPI spec
+        run: |
+          npx @redocly/cli lint apps/api/openapi.yaml --skip-rule operation-4xx-response || true
+      
+      - name: Upload OpenAPI artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: openapi-spec
+          path: |
+            apps/api/openapi.json
+            apps/api/openapi.yaml
