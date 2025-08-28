@@ -2,212 +2,177 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import MetricsCard from '../../components/dashboard/MetricsCard';
-import InvoicesTable from '../../components/dashboard/InvoicesTable';
-import ActiveFlows from '../../components/dashboard/ActiveFlows';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import { 
+  ChartBarIcon, 
+  CurrencyEuroIcon, 
+  EnvelopeIcon, 
+  ClockIcon,
+  UsersIcon,
+  ShoppingBagIcon,
+  BanknotesIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
+  SparklesIcon,
+  PaperAirplaneIcon,
+  CheckCircleIcon,
+  ExclamationTriangleIcon
+} from '@heroicons/react/24/outline';
 import { ProtectedRoute } from '../../components/auth/ProtectedRoute';
-import { cfoApi, mockData, EcoNeuraApiError, type Invoice, type FlowExecution } from '../../lib/api-client';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
 interface DashboardMetrics {
-  dso_days: number;
-  emails_drafted: number;
-  emails_sent: number;
-  ai_cost_month: number;
-  success_rate: number;
+  totalRevenue: number;
+  monthlyGrowth: number;
+  activeCustomers: number;
+  pendingInvoices: number;
+  completedOrders: number;
+  aiCostMonth: number;
+  collectionRate: number;
+  averageOrderValue: number;
 }
 
-function CFODashboard() {
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-  const [overdueInvoices, setOverdueInvoices] = useState<Invoice[]>([]);
-  const [activeFlows, setActiveFlows] = useState<FlowExecution[]>([]);
-  const [selectedInvoices, setSelectedInvoices] = useState<string[]>([]);
-  const [loading, setLoading] = useState({
-    initial: true,
-    startFlow: false,
-    cancelFlow: false,
-  });
+interface QuickStat {
+  label: string;
+  value: string;
+  change: number;
+  icon: React.ComponentType<{ className?: string }>;
+  color: 'coral' | 'mediterranean' | 'olive' | 'terracotta';
+}
 
-  // Load initial dashboard data
+function MediterraneanDashboard() {
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedPeriod, setSelectedPeriod] = useState<'7d' | '30d' | '90d'>('30d');
+
+  // Load dashboard data
   useEffect(() => {
     loadDashboardData();
-  }, []);
+  }, [selectedPeriod]);
 
   const loadDashboardData = async () => {
     try {
-      setLoading(prev => ({ ...prev, initial: true }));
+      setLoading(true);
       
-      // In a real implementation, these would be separate API calls
-      // For now, using mock data with some API calls where possible
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Try to load active flows from API
-      try {
-        const flowsData = await cfoApi.listFlows({
-          status: 'running',
-          limit: 10,
-        });
-        setActiveFlows(flowsData.flows);
-      } catch (error) {
-        console.warn('Failed to load flows from API, using mock data:', error);
-        setActiveFlows(mockData.activeFlows);
-      }
-
-      // Use mock data for invoices and metrics
-      setOverdueInvoices(mockData.overdueInvoices);
-      setMetrics(mockData.metrics);
+      // Mock data for Mediterranean dashboard
+      const mockMetrics: DashboardMetrics = {
+        totalRevenue: 847650,
+        monthlyGrowth: 12.4,
+        activeCustomers: 1247,
+        pendingInvoices: 28,
+        completedOrders: 342,
+        aiCostMonth: 1250.75,
+        collectionRate: 94.2,
+        averageOrderValue: 2480.50
+      };
+      
+      setMetrics(mockMetrics);
       
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
-      toast.error('Failed to load dashboard data');
-      
-      // Fallback to mock data
-      setOverdueInvoices(mockData.overdueInvoices);
-      setActiveFlows(mockData.activeFlows);
-      setMetrics(mockData.metrics);
-      
+      toast.error('Error al cargar los datos del dashboard');
     } finally {
-      setLoading(prev => ({ ...prev, initial: false }));
+      setLoading(false);
     }
   };
 
-  const handleStartCobroFlow = async (invoiceIds: string[]) => {
-    try {
-      setLoading(prev => ({ ...prev, startFlow: true }));
-      
-      // Map invoice IDs to customer IDs (in real app, this would come from invoice data)
-      const customerIds = invoiceIds.map(id => `customer-${id}`);
-      
-      const result = await cfoApi.startCobroFlow(customerIds);
-      
-      toast.success(
-        `Cobro proactivo flow started successfully!`,
-        {
-          duration: 5000,
-          position: 'top-right',
-        }
-      );
-
-      // Add the new flow to active flows (mock the flow object)
-      const newFlow: FlowExecution = {
-        id: result.flow_id,
-        flow_type: 'cobro_proactivo',
-        status: 'running',
-        input_data: {
-          customer_ids: customerIds,
-          escalation_level: 1,
-          invoice_ids: invoiceIds,
-        },
-        output_data: {},
-        steps_completed: ['initiated'],
-        error_message: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        corr_id: result.corr_id,
-      };
-
-      setActiveFlows(prev => [newFlow, ...prev]);
-      setSelectedInvoices([]);
-      
-      // Refresh flows after a delay to get updated status
-      setTimeout(() => {
-        loadActiveFlows();
-      }, 2000);
-      
-    } catch (error) {
-      console.error('Failed to start cobro flow:', error);
-      
-      if (error instanceof EcoNeuraApiError) {
-        if (error.isValidationError) {
-          toast.error('Invalid request data');
-        } else if (error.isRateLimited) {
-          toast.error('Rate limit exceeded. Please try again later.');
-        } else {
-          toast.error(`Failed to start flow: ${error.message}`);
-        }
-      } else {
-        toast.error('Failed to start cobro proactivo flow');
-      }
-    } finally {
-      setLoading(prev => ({ ...prev, startFlow: false }));
+  // Quick stats configuration
+  const quickStats: QuickStat[] = [
+    {
+      label: 'Ingresos Totales',
+      value: `€${metrics?.totalRevenue.toLocaleString() || '0'}`,
+      change: metrics?.monthlyGrowth || 0,
+      icon: CurrencyEuroIcon,
+      color: 'mediterranean'
+    },
+    {
+      label: 'Clientes Activos',
+      value: metrics?.activeCustomers.toLocaleString() || '0',
+      change: 8.2,
+      icon: UsersIcon,
+      color: 'coral'
+    },
+    {
+      label: 'Pedidos Completados',
+      value: metrics?.completedOrders.toLocaleString() || '0',
+      change: 15.7,
+      icon: ShoppingBagIcon,
+      color: 'olive'
+    },
+    {
+      label: 'Facturas Pendientes',
+      value: metrics?.pendingInvoices.toLocaleString() || '0',
+      change: -12.3,
+      icon: ExclamationTriangleIcon,
+      color: 'terracotta'
     }
-  };
+  ];
 
-  const handleCancelFlow = async (flowId: string) => {
-    try {
-      setLoading(prev => ({ ...prev, cancelFlow: true }));
-      
-      await cfoApi.cancelFlow(flowId);
-      
-      toast.success('Flow cancelled successfully');
-      
-      // Update flow status locally
-      setActiveFlows(prev =>
-        prev.map(flow =>
-          flow.id === flowId
-            ? { ...flow, status: 'cancelled' as const }
-            : flow
-        )
-      );
-      
-    } catch (error) {
-      console.error('Failed to cancel flow:', error);
-      toast.error('Failed to cancel flow');
-    } finally {
-      setLoading(prev => ({ ...prev, cancelFlow: false }));
-    }
-  };
-
-  const loadActiveFlows = async () => {
-    try {
-      const flowsData = await cfoApi.listFlows({
-        status: 'running',
-        limit: 10,
-      });
-      setActiveFlows(flowsData.flows);
-    } catch (error) {
-      console.warn('Failed to refresh flows:', error);
-    }
-  };
-
-  if (loading.initial) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-mediterranean-50 via-white to-coral-50 flex items-center justify-center">
         <div className="text-center">
-          <LoadingSpinner size="lg" />
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-mediterranean-200 border-t-mediterranean-500 rounded-full animate-spin mx-auto"></div>
+            <SparklesIcon className="w-6 h-6 text-coral-500 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+          </div>
+          <p className="mt-4 text-mediterranean-700 font-medium">Cargando dashboard mediterráneo...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="min-h-screen bg-gradient-to-br from-mediterranean-50 via-white to-coral-50">
+      {/* Mediterranean Header */}
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-mediterranean-600 via-mediterranean-500 to-coral-500 opacity-90"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="4"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">CFO Dashboard</h1>
-              <p className="text-gray-600">Monitor collections and AI-driven cobro proactivo</p>
+              <h1 className="text-3xl font-bold text-white font-playfair mb-2">
+                Dashboard Mediterráneo
+              </h1>
+              <p className="text-mediterranean-100 text-lg">
+                Centro de control empresarial con inteligencia artificial
+              </p>
             </div>
             
-            <div className="flex items-center gap-2">
-              <div className="text-sm text-gray-500">
-                Last updated: {new Date().toLocaleTimeString()}
+            <div className="flex items-center gap-4">
+              {/* Period Selector */}
+              <div className="flex bg-white/20 backdrop-blur-sm rounded-xl p-1">
+                {(['7d', '30d', '90d'] as const).map((period) => (
+                  <button
+                    key={period}
+                    onClick={() => setSelectedPeriod(period)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      selectedPeriod === period
+                        ? 'bg-white text-mediterranean-600 shadow-sm'
+                        : 'text-white hover:bg-white/20'
+                    }`}
+                  >
+                    {period === '7d' && '7 días'}
+                    {period === '30d' && '30 días'}
+                    {period === '90d' && '90 días'}
+                  </button>
+                ))}
               </div>
+              
               <button
                 onClick={loadDashboardData}
-                className="btn-outline"
-                disabled={loading.initial}
+                disabled={loading}
+                className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
               >
-                {loading.initial ? (
-                  <LoadingSpinner size="sm" />
+                {loading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 ) : (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
+                  <ArrowTrendingUpIcon className="w-4 h-4" />
                 )}
-                Refresh
+                Actualizar
               </button>
             </div>
           </div>
@@ -215,110 +180,186 @@ function CFODashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <MetricsCard
-            title="DSO (Days Sales Outstanding)"
-            value={metrics?.dso_days || 0}
-            subtitle="Target: <30 days"
-            trend={{
-              value: -8.2,
-              label: 'vs last month',
-              direction: 'down',
-            }}
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-              </svg>
-            }
-          />
-          
-          <MetricsCard
-            title="Emails Drafted"
-            value={metrics?.emails_drafted || 0}
-            subtitle="This month"
-            trend={{
-              value: 12.5,
-              label: 'vs last month',
-              direction: 'up',
-            }}
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            }
-          />
-          
-          <MetricsCard
-            title="Emails Sent"
-            value={metrics?.emails_sent || 0}
-            subtitle="This month"
-            trend={{
-              value: 8.7,
-              label: 'vs last month',
-              direction: 'up',
-            }}
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-            }
-          />
-          
-          <MetricsCard
-            title="AI Cost"
-            value={`€${metrics?.ai_cost_month?.toFixed(2) || '0.00'}`}
-            subtitle="This month"
-            trend={{
-              value: 15.3,
-              label: 'vs last month',
-              direction: 'up',
-            }}
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-              </svg>
-            }
-          />
-          
-          <MetricsCard
-            title="Success Rate"
-            value={`${metrics?.success_rate?.toFixed(1) || '0.0'}%`}
-            subtitle="Collection rate"
-            trend={{
-              value: 3.2,
-              label: 'vs last month',
-              direction: 'up',
-            }}
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            }
-          />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 -mt-4">
+        {/* Quick Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {quickStats.map((stat, index) => {
+            const IconComponent = stat.icon;
+            const isPositive = stat.change > 0;
+            
+            return (
+              <div
+                key={stat.label}
+                className={`relative overflow-hidden rounded-2xl p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl ${
+                  stat.color === 'mediterranean' ? 'bg-gradient-to-br from-mediterranean-500 to-mediterranean-600' :
+                  stat.color === 'coral' ? 'bg-gradient-to-br from-coral-500 to-coral-600' :
+                  stat.color === 'olive' ? 'bg-gradient-to-br from-olive-500 to-olive-600' :
+                  'bg-gradient-to-br from-terracotta-500 to-terracotta-600'
+                }`}
+                style={{
+                  animationDelay: `${index * 100}ms`
+                }}
+              >
+                <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full"></div>
+                <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-16 h-16 bg-white/5 rounded-full"></div>
+                
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-4">
+                    <IconComponent className="w-8 h-8 text-white" />
+                    <div className={`flex items-center text-sm font-medium ${
+                      isPositive ? 'text-green-200' : 'text-red-200'
+                    }`}>
+                      {isPositive ? (
+                        <ArrowTrendingUpIcon className="w-4 h-4 mr-1" />
+                      ) : (
+                        <ArrowTrendingDownIcon className="w-4 h-4 mr-1" />
+                      )}
+                      {Math.abs(stat.change)}%
+                    </div>
+                  </div>
+                  
+                  <div className="text-3xl font-bold text-white mb-1 font-playfair">
+                    {stat.value}
+                  </div>
+                  
+                  <div className="text-white/80 text-sm font-medium">
+                    {stat.label}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Overdue Invoices */}
-          <div className="lg:col-span-1">
-            <InvoicesTable
-              invoices={overdueInvoices}
-              onStartCobro={handleStartCobroFlow}
-              loading={loading.startFlow}
-              selectedIds={selectedInvoices}
-              onSelectionChange={setSelectedInvoices}
-            />
+        {/* Analytics Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Revenue Chart */}
+          <div className="lg:col-span-2 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-mediterranean-800 font-playfair">
+                Evolución de Ingresos
+              </h3>
+              <ChartBarIcon className="w-6 h-6 text-mediterranean-500" />
+            </div>
+            
+            <div className="relative h-64 flex items-end justify-between gap-2">
+              {[45, 52, 48, 61, 55, 67, 59, 73, 69, 78, 84, 88].map((height, index) => (
+                <div
+                  key={index}
+                  className="relative flex-1 bg-gradient-to-t from-mediterranean-500 to-coral-400 rounded-t-lg opacity-80 hover:opacity-100 transition-opacity duration-200"
+                  style={{ height: `${height}%` }}
+                >
+                  <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-xs font-medium text-mediterranean-700 opacity-0 hover:opacity-100 transition-opacity">
+                    €{(45000 + height * 1000).toLocaleString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="flex justify-between mt-4 text-sm text-mediterranean-600">
+              {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].map((month) => (
+                <span key={month}>{month}</span>
+              ))}
+            </div>
           </div>
-
-          {/* Active Flows */}
-          <div className="lg:col-span-1">
-            <ActiveFlows
-              flows={activeFlows}
-              onCancelFlow={handleCancelFlow}
-              loading={loading.cancelFlow}
-            />
+          
+          {/* AI Performance */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-mediterranean-800 font-playfair">
+                Rendimiento IA
+              </h3>
+              <SparklesIcon className="w-6 h-6 text-coral-500" />
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-mediterranean-700">Tasa de Éxito</span>
+                <span className="font-bold text-mediterranean-800">{metrics?.collectionRate}%</span>
+              </div>
+              
+              <div className="w-full bg-mediterranean-100 rounded-full h-2">
+                <div 
+                  className="bg-gradient-to-r from-coral-500 to-mediterranean-500 h-2 rounded-full transition-all duration-1000"
+                  style={{ width: `${metrics?.collectionRate || 0}%` }}
+                ></div>
+              </div>
+              
+              <div className="pt-4 border-t border-mediterranean-100">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-mediterranean-700">Costo Mensual IA</span>
+                  <span className="font-bold text-terracotta-600">€{metrics?.aiCostMonth.toLocaleString()}</span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-mediterranean-700">Valor Pedido Promedio</span>
+                  <span className="font-bold text-olive-600">€{metrics?.averageOrderValue.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* CRM Actions */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6">
+            <div className="flex items-center mb-4">
+              <UsersIcon className="w-6 h-6 text-coral-500 mr-3" />
+              <h3 className="text-lg font-bold text-mediterranean-800 font-playfair">CRM</h3>
+            </div>
+            
+            <div className="space-y-3">
+              <button className="w-full text-left p-3 rounded-xl bg-coral-50 hover:bg-coral-100 transition-colors duration-200 group">
+                <div className="font-medium text-coral-800 group-hover:text-coral-900">Nuevos Contactos</div>
+                <div className="text-sm text-coral-600">Gestionar leads recientes</div>
+              </button>
+              
+              <button className="w-full text-left p-3 rounded-xl bg-mediterranean-50 hover:bg-mediterranean-100 transition-colors duration-200 group">
+                <div className="font-medium text-mediterranean-800 group-hover:text-mediterranean-900">Seguimiento</div>
+                <div className="text-sm text-mediterranean-600">Revisar actividades pendientes</div>
+              </button>
+            </div>
+          </div>
+          
+          {/* ERP Actions */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6">
+            <div className="flex items-center mb-4">
+              <ShoppingBagIcon className="w-6 h-6 text-olive-500 mr-3" />
+              <h3 className="text-lg font-bold text-mediterranean-800 font-playfair">ERP</h3>
+            </div>
+            
+            <div className="space-y-3">
+              <button className="w-full text-left p-3 rounded-xl bg-olive-50 hover:bg-olive-100 transition-colors duration-200 group">
+                <div className="font-medium text-olive-800 group-hover:text-olive-900">Inventario</div>
+                <div className="text-sm text-olive-600">Revisar stock disponible</div>
+              </button>
+              
+              <button className="w-full text-left p-3 rounded-xl bg-terracotta-50 hover:bg-terracotta-100 transition-colors duration-200 group">
+                <div className="font-medium text-terracotta-800 group-hover:text-terracotta-900">Proveedores</div>
+                <div className="text-sm text-terracotta-600">Gestionar relaciones</div>
+              </button>
+            </div>
+          </div>
+          
+          {/* Finance Actions */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6">
+            <div className="flex items-center mb-4">
+              <BanknotesIcon className="w-6 h-6 text-mediterranean-500 mr-3" />
+              <h3 className="text-lg font-bold text-mediterranean-800 font-playfair">Finanzas</h3>
+            </div>
+            
+            <div className="space-y-3">
+              <button className="w-full text-left p-3 rounded-xl bg-mediterranean-50 hover:bg-mediterranean-100 transition-colors duration-200 group">
+                <div className="font-medium text-mediterranean-800 group-hover:text-mediterranean-900">Facturas</div>
+                <div className="text-sm text-mediterranean-600">Revisar pagos pendientes</div>
+              </button>
+              
+              <button className="w-full text-left p-3 rounded-xl bg-coral-50 hover:bg-coral-100 transition-colors duration-200 group">
+                <div className="font-medium text-coral-800 group-hover:text-coral-900">Reportes</div>
+                <div className="text-sm text-coral-600">Análisis financiero</div>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -329,7 +370,7 @@ function CFODashboard() {
 export default function DashboardPage() {
   return (
     <ProtectedRoute requiredPermission="dashboard:view">
-      <CFODashboard />
+      <MediterraneanDashboard />
     </ProtectedRoute>
   );
 }

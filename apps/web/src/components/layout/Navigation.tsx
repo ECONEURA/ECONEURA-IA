@@ -14,6 +14,12 @@ import {
   CpuChipIcon,
   CurrencyEuroIcon,
   BeakerIcon,
+  UserGroupIcon,
+  BuildingOfficeIcon,
+  ShoppingCartIcon,
+  ClipboardDocumentListIcon,
+  CalculatorIcon,
+  ChartPieIcon,
 } from '@heroicons/react/24/outline'
 import {
   ChartBarIcon as ChartBarIconSolid,
@@ -21,6 +27,12 @@ import {
   CpuChipIcon as CpuChipIconSolid,
   CurrencyEuroIcon as CurrencyEuroIconSolid,
   BeakerIcon as BeakerIconSolid,
+  UserGroupIcon as UserGroupIconSolid,
+  BuildingOfficeIcon as BuildingOfficeIconSolid,
+  ShoppingCartIcon as ShoppingCartIconSolid,
+  ClipboardDocumentListIcon as ClipboardDocumentListIconSolid,
+  CalculatorIcon as CalculatorIconSolid,
+  ChartPieIcon as ChartPieIconSolid,
 } from '@heroicons/react/24/solid'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -31,49 +43,70 @@ const navigation = [
     href: '/dashboard',
     icon: ChartBarIcon,
     iconSolid: ChartBarIconSolid,
-    permission: 'dashboard:view'
+    permission: 'dashboard:view',
+    category: 'main'
   },
   {
-    name: 'CFO Dashboard',
-    href: '/cfo',
-    icon: CurrencyEuroIcon,
-    iconSolid: CurrencyEuroIconSolid,
-    permission: 'cfo:view'
+    name: 'CRM',
+    href: '/crm',
+    icon: UserGroupIcon,
+    iconSolid: UserGroupIconSolid,
+    permission: 'crm:view',
+    category: 'crm',
+    children: [
+      { name: 'Contactos', href: '/crm/contacts', permission: 'crm:contacts:view' },
+      { name: 'Empresas', href: '/crm/companies', permission: 'crm:companies:view' },
+      { name: 'Oportunidades', href: '/crm/deals', permission: 'crm:deals:view' },
+      { name: 'Actividades', href: '/crm/activities', permission: 'crm:activities:view' },
+    ]
   },
   {
-    name: 'AI Router',
-    href: '/ai-router',
+    name: 'ERP',
+    href: '/erp',
+    icon: BuildingOfficeIcon,
+    iconSolid: BuildingOfficeIconSolid,
+    permission: 'erp:view',
+    category: 'erp',
+    children: [
+      { name: 'Clientes', href: '/erp/customers', permission: 'erp:customers:view' },
+      { name: 'Proveedores', href: '/erp/suppliers', permission: 'erp:suppliers:view' },
+      { name: 'Productos', href: '/erp/products', permission: 'erp:products:view' },
+      { name: 'Facturas', href: '/erp/invoices', permission: 'erp:invoices:view' },
+    ]
+  },
+  {
+    name: 'Finanzas',
+    href: '/finance',
+    icon: CalculatorIcon,
+    iconSolid: CalculatorIconSolid,
+    permission: 'finance:view',
+    category: 'finance',
+    children: [
+      { name: 'Panel CFO', href: '/finance/cfo', permission: 'finance:cfo:view' },
+      { name: 'Contabilidad', href: '/finance/accounting', permission: 'finance:accounting:view' },
+      { name: 'Reportes', href: '/finance/reports', permission: 'finance:reports:view' },
+    ]
+  },
+  {
+    name: 'AI Suite',
+    href: '/ai',
     icon: CpuChipIcon,
     iconSolid: CpuChipIconSolid,
-    permission: 'ai:view'
+    permission: 'ai:view',
+    category: 'ai',
+    children: [
+      { name: 'AI Router', href: '/ai/router', permission: 'ai:router:view' },
+      { name: 'Playground', href: '/ai/playground', permission: 'ai:playground:view' },
+      { name: 'Flujos', href: '/ai/flows', permission: 'ai:flows:view' },
+    ]
   },
   {
-    name: 'AI Playground',
-    href: '/ai-playground',
-    icon: BeakerIcon,
-    iconSolid: BeakerIconSolid,
-    permission: 'ai:test'
-  },
-  {
-    name: 'Facturas',
-    href: '/invoices',
-    icon: DocumentTextIcon,
-    iconSolid: DocumentTextIconSolid,
-    permission: 'invoices:view'
-  },
-  {
-    name: 'Flujos Activos',
-    href: '/flows',
-    icon: ChartBarIcon,
-    iconSolid: ChartBarIconSolid,
-    permission: 'flows:view'
-  },
-  {
-    name: 'Reportes',
-    href: '/reports',
-    icon: DocumentTextIcon,
-    iconSolid: DocumentTextIconSolid,
-    permission: 'reports:view'
+    name: 'Analytics',
+    href: '/analytics',
+    icon: ChartPieIcon,
+    iconSolid: ChartPieIconSolid,
+    permission: 'analytics:view',
+    category: 'analytics'
   },
 ]
 
@@ -91,74 +124,105 @@ export function Navigation() {
   )
 
   return (
-    <nav className="fixed inset-y-0 left-0 w-64 bg-slate-900 border-r border-slate-800">
+    <nav className="fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-mediterranean-900 via-mediterranean-800 to-mediterranean-900 border-r border-mediterranean-700/50 backdrop-blur-xl shadow-2xl">
       <div className="flex flex-col h-full">
-        <div className="flex items-center px-6 py-4 border-b border-slate-800">
+        <div className="flex items-center px-6 py-6 border-b border-mediterranean-700/30">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">EN</span>
+            <div className="w-10 h-10 bg-gradient-to-br from-coral-400 to-coral-600 rounded-xl flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-200">
+              <span className="text-white font-bold text-lg font-display">EN</span>
             </div>
             <div>
-              <h1 className="text-white font-semibold text-lg">EcoNeura</h1>
-              <p className="text-slate-400 text-xs">CFO Cockpit</p>
+              <h1 className="text-white font-bold text-xl font-display tracking-wide">EcoNeura</h1>
+              <p className="text-mediterranean-300 text-sm font-medium">Mediterranean Suite</p>
             </div>
           </div>
         </div>
 
-        <div className="flex-1 px-4 py-6 space-y-2">
+        <div className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           {filteredNavigation.map((item) => {
-            const isActive = pathname === item.href
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
             const Icon = isActive ? item.iconSolid : item.icon
             
             return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  'group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200',
-                  isActive
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                )}
-              >
-                <Icon
+              <div key={item.name}>
+                <Link
+                  href={item.href}
                   className={cn(
-                    'mr-3 h-5 w-5 flex-shrink-0',
-                    isActive ? 'text-white' : 'text-slate-400 group-hover:text-white'
+                    'group flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-300 transform hover:scale-[1.02]',
+                    isActive
+                      ? 'bg-gradient-to-r from-coral-500/20 to-terracotta-500/20 text-white border-l-4 border-coral-400 shadow-mediterranean backdrop-blur-sm'
+                      : 'text-mediterranean-200 hover:bg-mediterranean-700/30 hover:text-white hover:shadow-soft'
                   )}
-                />
-                {item.name}
-              </Link>
+                >
+                  <Icon
+                    className={cn(
+                      'mr-3 h-5 w-5 flex-shrink-0 transition-colors duration-200',
+                      isActive ? 'text-coral-300' : 'text-mediterranean-400 group-hover:text-coral-300'
+                    )}
+                  />
+                  <span className="truncate">{item.name}</span>
+                  {isActive && (
+                    <div className="ml-auto w-2 h-2 bg-coral-400 rounded-full animate-pulse" />
+                  )}
+                </Link>
+                
+                {/* Sub-navigation for items with children */}
+                {item.children && (isActive || pathname.startsWith(item.href + '/')) && (
+                  <div className="ml-4 mt-2 space-y-1 animate-slide-down">
+                    {item.children.map((child) => {
+                      const isChildActive = pathname === child.href
+                      return (
+                        <Link
+                          key={child.name}
+                          href={child.href}
+                          className={cn(
+                            'flex items-center px-3 py-2 text-xs font-medium rounded-lg transition-all duration-200',
+                            isChildActive
+                              ? 'bg-coral-500/10 text-coral-200 border-l-2 border-coral-400'
+                              : 'text-mediterranean-300 hover:bg-mediterranean-700/20 hover:text-coral-200'
+                          )}
+                        >
+                          <div className="w-1.5 h-1.5 rounded-full bg-current mr-2 opacity-60" />
+                          {child.name}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
             )
           })}
         </div>
 
-        <div className="border-t border-slate-800 p-4">
+        <div className="border-t border-mediterranean-700/30 p-4 bg-gradient-to-r from-mediterranean-800/50 to-mediterranean-700/30 backdrop-blur-sm">
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="w-full flex items-center px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors duration-200"
+              className="w-full flex items-center px-4 py-3 text-sm text-mediterranean-200 hover:bg-mediterranean-700/40 hover:text-white rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-soft group"
             >
-              <UserCircleIcon className="mr-3 h-8 w-8" />
+              <div className="relative mr-3">
+                <UserCircleIcon className="h-10 w-10 text-mediterranean-300 group-hover:text-coral-300 transition-colors duration-200" />
+                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-olive-400 border-2 border-mediterranean-800 rounded-full animate-pulse" />
+              </div>
               <div className="flex-1 text-left">
-                <p className="font-medium">{user.name}</p>
-                <p className="text-xs text-slate-400">{user.organizationName}</p>
+                <p className="font-semibold text-white">{user.name}</p>
+                <p className="text-xs text-mediterranean-300">{user.organizationName}</p>
               </div>
               <ChevronDownIcon
                 className={cn(
-                  'ml-2 h-4 w-4 transition-transform duration-200',
+                  'ml-2 h-4 w-4 transition-all duration-300 text-mediterranean-400 group-hover:text-coral-300',
                   showUserMenu && 'rotate-180'
                 )}
               />
             </button>
 
             {showUserMenu && (
-              <div className="absolute bottom-full mb-2 left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-50">
-                <div className="px-4 py-2 border-b border-slate-100">
-                  <p className="text-sm font-medium text-slate-900">{user.name}</p>
-                  <p className="text-xs text-slate-500">{user.email}</p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+              <div className="absolute bottom-full mb-2 left-0 right-0 bg-white/95 backdrop-blur-xl border border-sand-200 rounded-2xl shadow-2xl py-2 z-50 animate-slide-up">
+                <div className="px-4 py-3 border-b border-sand-200/50">
+                  <p className="text-sm font-semibold text-mediterranean-900">{user.name}</p>
+                  <p className="text-xs text-mediterranean-600">{user.email}</p>
+                  <p className="text-xs mt-1.5">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-coral-100 to-terracotta-100 text-coral-700 border border-coral-200">
                       {user.role.toUpperCase()}
                     </span>
                   </p>
@@ -166,32 +230,32 @@ export function Navigation() {
                 
                 <Link
                   href="/settings"
-                  className="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                  className="flex items-center px-4 py-3 text-sm text-mediterranean-700 hover:bg-sand-50/50 transition-colors duration-200 group"
                   onClick={() => setShowUserMenu(false)}
                 >
-                  <CogIcon className="mr-3 h-4 w-4" />
+                  <CogIcon className="mr-3 h-4 w-4 text-mediterranean-500 group-hover:text-coral-500 transition-colors duration-200" />
                   Configuración
                 </Link>
                 
                 <Link
                   href="/notifications"
-                  className="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                  className="flex items-center px-4 py-3 text-sm text-mediterranean-700 hover:bg-sand-50/50 transition-colors duration-200 group"
                   onClick={() => setShowUserMenu(false)}
                 >
-                  <BellIcon className="mr-3 h-4 w-4" />
+                  <BellIcon className="mr-3 h-4 w-4 text-mediterranean-500 group-hover:text-coral-500 transition-colors duration-200" />
                   Notificaciones
                 </Link>
                 
-                <hr className="my-1" />
+                <hr className="my-1 border-sand-200/50" />
                 
                 <button
                   onClick={() => {
                     setShowUserMenu(false)
                     logout()
                   }}
-                  className="w-full flex items-center px-4 py-2 text-sm text-red-700 hover:bg-red-50"
+                  className="w-full flex items-center px-4 py-3 text-sm text-danger-700 hover:bg-danger-50/50 transition-colors duration-200 group"
                 >
-                  <ArrowRightOnRectangleIcon className="mr-3 h-4 w-4" />
+                  <ArrowRightOnRectangleIcon className="mr-3 h-4 w-4 text-danger-500 group-hover:text-danger-600 transition-colors duration-200" />
                   Cerrar Sesión
                 </button>
               </div>
