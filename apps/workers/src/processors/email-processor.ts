@@ -25,7 +25,7 @@ export class EmailProcessor {
   private maxRetries: number = 3;
   private baseDelay: number = 1000;
 
-  constructor(aiRouterUrl = process.env.AI_ROUTER_URL || 'http://localhost:3000') {
+  constructor(aiRouterUrl = process.env.AI_ROUTER_URL || 'http://localhost:5001') {
     this.aiRouterUrl = aiRouterUrl;
   }
 
@@ -237,7 +237,20 @@ export class EmailProcessor {
 
     for (let attempt = 0; attempt < this.maxRetries; attempt++) {
       try {
-        const response = await axios.post(`${this.aiRouterUrl}/api/v1/chat`, request, {
+        // Enviamos al endpoint OpenAI-like de nuestra API (mockeado por ahora)
+        const body = {
+          content: request.prompt,
+          task_type: (request.metadata?.operation === 'email:draft') ? 'draft_email'
+                     : (request.metadata?.operation === 'email:extract') ? 'classify'
+                     : 'classify',
+          max_tokens: request.maxTokens ?? 800,
+          temperature: request.temperature ?? 0.3,
+          sensitivity: 'pii',
+          model: request.model,
+          metadata: request.metadata
+        };
+
+        const response = await axios.post(`${this.aiRouterUrl}/api/ai/generate`, body, {
           timeout: 60000,
           headers: {
             'Content-Type': 'application/json',
@@ -249,7 +262,19 @@ export class EmailProcessor {
           throw new Error(`AI Router returned status ${response.status}`);
         }
 
-        return response.data;
+        // Adaptamos a la forma interna esperada por los métodos parser
+        const d = response.data;
+        return {
+          response: d.content,
+          provider: d.provider,
+          model: d.model,
+          usage: {
+            prompt_tokens: d.usage?.input_tokens ?? 0,
+            completion_tokens: d.usage?.output_tokens ?? 0,
+            total_tokens: (d.usage?.input_tokens ?? 0) + (d.usage?.output_tokens ?? 0),
+          },
+          cost: d.usage?.total_cost_eur ?? 0
+        };
 
       } catch (error) {
         lastError = error instanceof Error ? error : new Error('Unknown error');
