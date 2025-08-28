@@ -46,7 +46,12 @@ export class EnhancedAIRouter {
   private costGuardrails: CostGuardrails;
   private providerManager: LLMProviderManager;
   private config: AIRouterConfig;
-  private activeRequests: Map<string, { providerId: string; startTime: number }> = new Map();
+  private activeRequests: Map<string, { 
+    providerId: string; 
+    model: string;
+    orgId: string;
+    startTime: number; 
+  }> = new Map();
 
   constructor(config: Partial<AIRouterConfig> = {}) {
     this.config = {
@@ -90,6 +95,8 @@ export class EnhancedAIRouter {
       priority: request.priority || 'medium',
     });
 
+    // métrica: peticiones activas
+    prometheus.aiActiveRequests?.labels?.({ org_id: request.org_id, provider: 'router' }).inc();
     try {
       // Step 1: Find suitable providers
       const suitableProviders = this.findSuitableProviders(request);
@@ -179,7 +186,9 @@ export class EnhancedAIRouter {
       // Step 4: Track active request
       this.activeRequests.set(requestId, {
         providerId: selectedProvider.id,
-        startTime,
+        model: this.selectBestModel(selectedProvider, request)!.id,
+        orgId: request.org_id,
+        startTime
       });
 
       // Step 5: Update metrics
@@ -216,6 +225,10 @@ export class EnhancedAIRouter {
 
       throw error;
     }
+    finally {
+      // decrementa activas (etiquetas neutras al finalizar decisión)
+      prometheus.aiActiveRequests?.labels?.({ org_id: request.org_id, provider: 'router' }).dec();
+    }
   }
 
   /**
@@ -249,9 +262,9 @@ export class EnhancedAIRouter {
     // Record usage in cost guardrails
     if (this.config.costGuardrailsEnabled) {
       const usage: UsageMetrics = {
-        orgId: requestId.split('-')[0], // Extract org ID from request ID
-        provider: provider.id,
-        model: 'unknown', // TODO: Extract from request context
+        orgId: activeRequest.orgId,
+        provider: activeRequest.providerId,
+        model: activeRequest.model,
         tokensInput,
         tokensOutput,
         costEUR: actualCost,
@@ -378,6 +391,29 @@ export class EnhancedAIRouter {
   }
 
   // Private methods
+  
+  private async scoreProviders(
+    providerCosts: Array<{ provider: LLMProvider; cost: number }>,
+    request: EnhancedAIRequest
+  ): Promise<Array<{ provider: LLMProvider; cost: number; score: number }>> {
+    // Nueva regla: score ALTO es mejor.
+    return providerCosts
+      .map(({ provider, cost }) => {
+        // Obtener health status desde provider manager
+        const healthStatus = this.providerManager.getProviderHealth(provider.id);
+        const perf = Math.max(healthStatus?.latency || 100, 1);
+        const health = healthStatus?.status === 'healthy' ? 1 : 0.5;
+        const activeReqs = healthStatus?.details?.concurrentRequests || 0;
+        
+        const costScore = 1 / (cost + 0.001);
+        const perfScore = health * (1 / perf);
+        const loadScore = 1 / (activeReqs + 1);
+        const totalScore = 0.45 * costScore + 0.35 * perfScore + 0.20 * loadScore;
+        
+        return { provider, cost, score: totalScore };
+      })
+      .sort((a, b) => b.score - a.score); // Mayor primero
+  }
 
   private findSuitableProviders(request: EnhancedAIRequest): LLMProvider[] {
     const requirements = {
