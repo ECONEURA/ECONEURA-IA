@@ -191,6 +191,12 @@ app.use(idempotency({
 
 // Import AI routes
 import aiRoutes from './routes/ai.js';
+// Import CRM routes
+import crmRoutes from './routes/crm.routes.js';
+// Import Auth routes
+import authRoutes from './routes/auth.routes.js';
+// Import ERP routes
+import erpRoutes from './routes/erp.routes.js';
 
 // Routes
 app.use('/', healthRoutes);
@@ -200,6 +206,9 @@ app.use('/api/providers', requireAuth, providerRoutes);
 app.use('/api/channels', requireAuth, channelRoutes);
 app.use('/api/admin', requireAuth, adminRoutes);
 app.use('/api/ai', requireAuth, aiRoutes); // AI Router endpoints
+app.use('/api', crmRoutes); // CRM endpoints (auth handled in routes)
+app.use('/api/auth', authRoutes); // Authentication endpoints
+app.use('/api', erpRoutes); // ERP endpoints (auth handled in routes)
 
 // Metrics endpoint (Prometheus)
 app.get('/metrics', asyncHandler(async (req, res) => {
