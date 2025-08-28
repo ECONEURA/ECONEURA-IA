@@ -1,8 +1,47 @@
-// Types
-export type * from './types/index.js';
+// Types (legacy)
+export * as LegacyTypes from './types/index.js';
 
-// Schemas  
-export * from './schemas/index.js';
+// Schemas - Export all new schemas
+export * from './schemas/common.js';
+export * from './schemas/auth.js';
+export * from './schemas/crm.js';
+export * from './schemas/erp.js';
+export * from './schemas/finance.js';
+
+// Re-export legacy schemas from index for backward compatibility
+export {
+  OrgIdSchema,
+  RequestIdSchema,
+  TraceParentSchema,
+  BaseHeadersSchema,
+  CreateOrgSchema,
+  CustomerSchema,
+  CreateCustomerSchema,
+  AITaskTypeSchema,
+  AISensitivitySchema,
+  AIRequestSchema,
+  FlowTypeSchema,
+  FlowStatusSchema,
+  FlowExecutionSchema,
+  StartFlowSchema,
+  WebhookSourceSchema,
+  WebhookPayloadSchema,
+  ChannelTypeSchema,
+  SendMessageSchema,
+  OrgLimitsSchema,
+  UpdateOrgLimitsSchema,
+  FeatureFlagSchema,
+  MetricsQuerySchema,
+  // Legacy type exports
+  type BaseHeaders,
+  type CreateOrg,
+  type CreateCustomer,
+  type AIRequestInput,
+  type StartFlow,
+  type SendMessage,
+  type UpdateOrgLimits,
+  type MetricsQuery,
+} from './schemas/index.js';
 
 // Security utilities
 export * from './security/index.js';

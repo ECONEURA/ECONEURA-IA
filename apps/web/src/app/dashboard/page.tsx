@@ -1,376 +1,304 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
-import { 
-  ChartBarIcon, 
-  CurrencyEuroIcon, 
-  EnvelopeIcon, 
-  ClockIcon,
-  UsersIcon,
-  ShoppingBagIcon,
-  BanknotesIcon,
-  ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon,
-  SparklesIcon,
-  PaperAirplaneIcon,
-  CheckCircleIcon,
-  ExclamationTriangleIcon
-} from '@heroicons/react/24/outline';
-import { ProtectedRoute } from '../../components/auth/ProtectedRoute';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import { useAuth } from '@/lib/auth-context'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
-interface DashboardMetrics {
-  totalRevenue: number;
-  monthlyGrowth: number;
-  activeCustomers: number;
-  pendingInvoices: number;
-  completedOrders: number;
-  aiCostMonth: number;
-  collectionRate: number;
-  averageOrderValue: number;
-}
-
-interface QuickStat {
-  label: string;
-  value: string;
-  change: number;
-  icon: React.ComponentType<{ className?: string }>;
-  color: 'coral' | 'mediterranean' | 'olive' | 'terracotta';
-}
-
-function MediterraneanDashboard() {
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [selectedPeriod, setSelectedPeriod] = useState<'7d' | '30d' | '90d'>('30d');
-
-  // Load dashboard data
-  useEffect(() => {
-    loadDashboardData();
-  }, [selectedPeriod]);
-
-  const loadDashboardData = async () => {
-    try {
-      setLoading(true);
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock data for Mediterranean dashboard
-      const mockMetrics: DashboardMetrics = {
-        totalRevenue: 847650,
-        monthlyGrowth: 12.4,
-        activeCustomers: 1247,
-        pendingInvoices: 28,
-        completedOrders: 342,
-        aiCostMonth: 1250.75,
-        collectionRate: 94.2,
-        averageOrderValue: 2480.50
-      };
-      
-      setMetrics(mockMetrics);
-      
-    } catch (error) {
-      console.error('Failed to load dashboard data:', error);
-      toast.error('Error al cargar los datos del dashboard');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Quick stats configuration
-  const quickStats: QuickStat[] = [
-    {
-      label: 'Ingresos Totales',
-      value: `€${metrics?.totalRevenue.toLocaleString() || '0'}`,
-      change: metrics?.monthlyGrowth || 0,
-      icon: CurrencyEuroIcon,
-      color: 'mediterranean'
-    },
-    {
-      label: 'Clientes Activos',
-      value: metrics?.activeCustomers.toLocaleString() || '0',
-      change: 8.2,
-      icon: UsersIcon,
-      color: 'coral'
-    },
-    {
-      label: 'Pedidos Completados',
-      value: metrics?.completedOrders.toLocaleString() || '0',
-      change: 15.7,
-      icon: ShoppingBagIcon,
-      color: 'olive'
-    },
-    {
-      label: 'Facturas Pendientes',
-      value: metrics?.pendingInvoices.toLocaleString() || '0',
-      change: -12.3,
-      icon: ExclamationTriangleIcon,
-      color: 'terracotta'
-    }
-  ];
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-mediterranean-50 via-white to-coral-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-mediterranean-200 border-t-mediterranean-500 rounded-full animate-spin mx-auto"></div>
-            <SparklesIcon className="w-6 h-6 text-coral-500 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
-          </div>
-          <p className="mt-4 text-mediterranean-700 font-medium">Cargando dashboard mediterráneo...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-mediterranean-50 via-white to-coral-50">
-      {/* Mediterranean Header */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-mediterranean-600 via-mediterranean-500 to-coral-500 opacity-90"></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="4"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-white font-playfair mb-2">
-                Dashboard Mediterráneo
-              </h1>
-              <p className="text-mediterranean-100 text-lg">
-                Centro de control empresarial con inteligencia artificial
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              {/* Period Selector */}
-              <div className="flex bg-white/20 backdrop-blur-sm rounded-xl p-1">
-                {(['7d', '30d', '90d'] as const).map((period) => (
-                  <button
-                    key={period}
-                    onClick={() => setSelectedPeriod(period)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                      selectedPeriod === period
-                        ? 'bg-white text-mediterranean-600 shadow-sm'
-                        : 'text-white hover:bg-white/20'
-                    }`}
-                  >
-                    {period === '7d' && '7 días'}
-                    {period === '30d' && '30 días'}
-                    {period === '90d' && '90 días'}
-                  </button>
-                ))}
-              </div>
-              
-              <button
-                onClick={loadDashboardData}
-                disabled={loading}
-                className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
-              >
-                {loading ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <ArrowTrendingUpIcon className="w-4 h-4" />
-                )}
-                Actualizar
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 -mt-4">
-        {/* Quick Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {quickStats.map((stat, index) => {
-            const IconComponent = stat.icon;
-            const isPositive = stat.change > 0;
-            
-            return (
-              <div
-                key={stat.label}
-                className={`relative overflow-hidden rounded-2xl p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl ${
-                  stat.color === 'mediterranean' ? 'bg-gradient-to-br from-mediterranean-500 to-mediterranean-600' :
-                  stat.color === 'coral' ? 'bg-gradient-to-br from-coral-500 to-coral-600' :
-                  stat.color === 'olive' ? 'bg-gradient-to-br from-olive-500 to-olive-600' :
-                  'bg-gradient-to-br from-terracotta-500 to-terracotta-600'
-                }`}
-                style={{
-                  animationDelay: `${index * 100}ms`
-                }}
-              >
-                <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full"></div>
-                <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-16 h-16 bg-white/5 rounded-full"></div>
-                
-                <div className="relative">
-                  <div className="flex items-center justify-between mb-4">
-                    <IconComponent className="w-8 h-8 text-white" />
-                    <div className={`flex items-center text-sm font-medium ${
-                      isPositive ? 'text-green-200' : 'text-red-200'
-                    }`}>
-                      {isPositive ? (
-                        <ArrowTrendingUpIcon className="w-4 h-4 mr-1" />
-                      ) : (
-                        <ArrowTrendingDownIcon className="w-4 h-4 mr-1" />
-                      )}
-                      {Math.abs(stat.change)}%
-                    </div>
-                  </div>
-                  
-                  <div className="text-3xl font-bold text-white mb-1 font-playfair">
-                    {stat.value}
-                  </div>
-                  
-                  <div className="text-white/80 text-sm font-medium">
-                    {stat.label}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Analytics Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          {/* Revenue Chart */}
-          <div className="lg:col-span-2 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-mediterranean-800 font-playfair">
-                Evolución de Ingresos
-              </h3>
-              <ChartBarIcon className="w-6 h-6 text-mediterranean-500" />
-            </div>
-            
-            <div className="relative h-64 flex items-end justify-between gap-2">
-              {[45, 52, 48, 61, 55, 67, 59, 73, 69, 78, 84, 88].map((height, index) => (
-                <div
-                  key={index}
-                  className="relative flex-1 bg-gradient-to-t from-mediterranean-500 to-coral-400 rounded-t-lg opacity-80 hover:opacity-100 transition-opacity duration-200"
-                  style={{ height: `${height}%` }}
-                >
-                  <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-xs font-medium text-mediterranean-700 opacity-0 hover:opacity-100 transition-opacity">
-                    €{(45000 + height * 1000).toLocaleString()}
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="flex justify-between mt-4 text-sm text-mediterranean-600">
-              {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].map((month) => (
-                <span key={month}>{month}</span>
-              ))}
-            </div>
-          </div>
-          
-          {/* AI Performance */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-mediterranean-800 font-playfair">
-                Rendimiento IA
-              </h3>
-              <SparklesIcon className="w-6 h-6 text-coral-500" />
-            </div>
-            
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-mediterranean-700">Tasa de Éxito</span>
-                <span className="font-bold text-mediterranean-800">{metrics?.collectionRate}%</span>
-              </div>
-              
-              <div className="w-full bg-mediterranean-100 rounded-full h-2">
-                <div 
-                  className="bg-gradient-to-r from-coral-500 to-mediterranean-500 h-2 rounded-full transition-all duration-1000"
-                  style={{ width: `${metrics?.collectionRate || 0}%` }}
-                ></div>
-              </div>
-              
-              <div className="pt-4 border-t border-mediterranean-100">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-mediterranean-700">Costo Mensual IA</span>
-                  <span className="font-bold text-terracotta-600">€{metrics?.aiCostMonth.toLocaleString()}</span>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-mediterranean-700">Valor Pedido Promedio</span>
-                  <span className="font-bold text-olive-600">€{metrics?.averageOrderValue.toLocaleString()}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* CRM Actions */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6">
-            <div className="flex items-center mb-4">
-              <UsersIcon className="w-6 h-6 text-coral-500 mr-3" />
-              <h3 className="text-lg font-bold text-mediterranean-800 font-playfair">CRM</h3>
-            </div>
-            
-            <div className="space-y-3">
-              <button className="w-full text-left p-3 rounded-xl bg-coral-50 hover:bg-coral-100 transition-colors duration-200 group">
-                <div className="font-medium text-coral-800 group-hover:text-coral-900">Nuevos Contactos</div>
-                <div className="text-sm text-coral-600">Gestionar leads recientes</div>
-              </button>
-              
-              <button className="w-full text-left p-3 rounded-xl bg-mediterranean-50 hover:bg-mediterranean-100 transition-colors duration-200 group">
-                <div className="font-medium text-mediterranean-800 group-hover:text-mediterranean-900">Seguimiento</div>
-                <div className="text-sm text-mediterranean-600">Revisar actividades pendientes</div>
-              </button>
-            </div>
-          </div>
-          
-          {/* ERP Actions */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6">
-            <div className="flex items-center mb-4">
-              <ShoppingBagIcon className="w-6 h-6 text-olive-500 mr-3" />
-              <h3 className="text-lg font-bold text-mediterranean-800 font-playfair">ERP</h3>
-            </div>
-            
-            <div className="space-y-3">
-              <button className="w-full text-left p-3 rounded-xl bg-olive-50 hover:bg-olive-100 transition-colors duration-200 group">
-                <div className="font-medium text-olive-800 group-hover:text-olive-900">Inventario</div>
-                <div className="text-sm text-olive-600">Revisar stock disponible</div>
-              </button>
-              
-              <button className="w-full text-left p-3 rounded-xl bg-terracotta-50 hover:bg-terracotta-100 transition-colors duration-200 group">
-                <div className="font-medium text-terracotta-800 group-hover:text-terracotta-900">Proveedores</div>
-                <div className="text-sm text-terracotta-600">Gestionar relaciones</div>
-              </button>
-            </div>
-          </div>
-          
-          {/* Finance Actions */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6">
-            <div className="flex items-center mb-4">
-              <BanknotesIcon className="w-6 h-6 text-mediterranean-500 mr-3" />
-              <h3 className="text-lg font-bold text-mediterranean-800 font-playfair">Finanzas</h3>
-            </div>
-            
-            <div className="space-y-3">
-              <button className="w-full text-left p-3 rounded-xl bg-mediterranean-50 hover:bg-mediterranean-100 transition-colors duration-200 group">
-                <div className="font-medium text-mediterranean-800 group-hover:text-mediterranean-900">Facturas</div>
-                <div className="text-sm text-mediterranean-600">Revisar pagos pendientes</div>
-              </button>
-              
-              <button className="w-full text-left p-3 rounded-xl bg-coral-50 hover:bg-coral-100 transition-colors duration-200 group">
-                <div className="font-medium text-coral-800 group-hover:text-coral-900">Reportes</div>
-                <div className="text-sm text-coral-600">Análisis financiero</div>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+interface Session {
+  id: string
+  deviceName: string
+  ipAddress: string
+  userAgent: string
+  createdAt: string
+  lastUsedAt: string
+  isCurrentSession: boolean
 }
 
 export default function DashboardPage() {
   return (
-    <ProtectedRoute requiredPermission="dashboard:view">
-      <MediterraneanDashboard />
+    <ProtectedRoute>
+      <DashboardContent />
     </ProtectedRoute>
-  );
+  )
+}
+
+function DashboardContent() {
+  const { user, logout, hasPermission } = useAuth()
+  const router = useRouter()
+  const [sessions, setSessions] = useState<Session[]>([])
+  const [isLoadingSessions, setIsLoadingSessions] = useState(false)
+
+  useEffect(() => {
+    fetchSessions()
+  }, [])
+
+  const fetchSessions = async () => {
+    try {
+      setIsLoadingSessions(true)
+      const token = localStorage.getItem('accessToken')
+      const response = await fetch('http://localhost:3001/api/auth/sessions', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setSessions(data)
+      }
+    } catch (error) {
+      console.error('Error fetching sessions:', error)
+    } finally {
+      setIsLoadingSessions(false)
+    }
+  }
+
+  const handleRevokeSession = async (sessionId: string) => {
+    if (!confirm('¿Estás seguro de que deseas revocar esta sesión?')) {
+      return
+    }
+
+    try {
+      const token = localStorage.getItem('accessToken')
+      const response = await fetch(`http://localhost:3001/api/auth/sessions/${sessionId}/revoke`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      
+      if (response.ok) {
+        await fetchSessions()
+      }
+    } catch (error) {
+      console.error('Error revoking session:', error)
+    }
+  }
+
+  const handleLogout = async () => {
+    await logout()
+    router.push('/login')
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <nav className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex items-center">
+              <h1 className="text-xl font-semibold">ECONEURA Dashboard</h1>
+            </div>
+            <div className="flex items-center space-x-4">
+              <span className="text-gray-700">{user?.name || user?.email}</span>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+              >
+                Cerrar sesión
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        {/* User Information Card */}
+        <div className="bg-white shadow rounded-lg mb-6">
+          <div className="px-4 py-5 sm:p-6">
+            <h2 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+              Información del Usuario
+            </h2>
+            <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+              <div className="sm:col-span-1">
+                <dt className="text-sm font-medium text-gray-500">Nombre</dt>
+                <dd className="mt-1 text-sm text-gray-900">{user?.name || 'No especificado'}</dd>
+              </div>
+              <div className="sm:col-span-1">
+                <dt className="text-sm font-medium text-gray-500">Email</dt>
+                <dd className="mt-1 text-sm text-gray-900">{user?.email}</dd>
+              </div>
+              <div className="sm:col-span-1">
+                <dt className="text-sm font-medium text-gray-500">Rol</dt>
+                <dd className="mt-1 text-sm text-gray-900">{user?.role}</dd>
+              </div>
+              <div className="sm:col-span-1">
+                <dt className="text-sm font-medium text-gray-500">Organización</dt>
+                <dd className="mt-1 text-sm text-gray-900">{user?.organizationName}</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        {/* Quick Access Cards */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-6">
+          {hasPermission('crm:companies:read') && (
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M12 7h.01M8 7h.01M16 7h.01M12 11h.01M8 11h.01M16 11h.01M12 15h.01M8 15h.01M16 15h.01" />
+                    </svg>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt className="text-sm font-medium text-gray-500 truncate">
+                        Empresas
+                      </dt>
+                      <dd className="flex items-baseline">
+                        <div className="text-2xl font-semibold text-gray-900">CRM</div>
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-50 px-5 py-3">
+                <div className="text-sm">
+                  <a href="/crm/companies" className="font-medium text-blue-600 hover:text-blue-500">
+                    Ver todas
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {hasPermission('erp:products:read') && (
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt className="text-sm font-medium text-gray-500 truncate">
+                        Productos
+                      </dt>
+                      <dd className="flex items-baseline">
+                        <div className="text-2xl font-semibold text-gray-900">ERP</div>
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-50 px-5 py-3">
+                <div className="text-sm">
+                  <a href="/erp/products" className="font-medium text-blue-600 hover:text-blue-500">
+                    Ver inventario
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {hasPermission('finance:invoices:read') && (
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt className="text-sm font-medium text-gray-500 truncate">
+                        Finanzas
+                      </dt>
+                      <dd className="flex items-baseline">
+                        <div className="text-2xl font-semibold text-gray-900">Facturas</div>
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-50 px-5 py-3">
+                <div className="text-sm">
+                  <a href="/finance/invoices" className="font-medium text-blue-600 hover:text-blue-500">
+                    Ver facturas
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Active Sessions */}
+        <div className="bg-white shadow rounded-lg">
+          <div className="px-4 py-5 sm:p-6">
+            <h2 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+              Sesiones Activas
+            </h2>
+            {isLoadingSessions ? (
+              <div className="text-center py-4">
+                <div className="inline-flex items-center">
+                  <svg className="animate-spin h-5 w-5 mr-3 text-blue-600" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Cargando sesiones...
+                </div>
+              </div>
+            ) : sessions.length === 0 ? (
+              <p className="text-gray-500">No hay sesiones activas</p>
+            ) : (
+              <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+                <table className="min-w-full divide-y divide-gray-300">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Dispositivo
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        IP
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Última actividad
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Acciones
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {sessions.map((session) => (
+                      <tr key={session.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {session.deviceName}
+                          {session.isCurrentSession && (
+                            <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              Sesión actual
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {session.ipAddress}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {new Date(session.lastUsedAt).toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          {!session.isCurrentSession && (
+                            <button
+                              onClick={() => handleRevokeSession(session.id)}
+                              className="text-red-600 hover:text-red-900"
+                            >
+                              Revocar
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+    </div>
+  )
 }

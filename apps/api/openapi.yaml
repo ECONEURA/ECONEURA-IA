@@ -1,717 +1,692 @@
 openapi: 3.1.0
 info:
-  title: EcoNeura API
+  title: ECONEURA API
   version: 1.0.0
-  description: |
-    Production-ready ERP+CRM cockpit with AI Router for intelligent business automation.
-    
-    ## Authentication
-    All protected endpoints require:
-    - `Authorization: Bearer <ORG_API_KEY>` header
-    - `x-org-id` header with organization ID
-    
-    ## Headers
-    - `x-request-id`: Request correlation ID (auto-generated if missing)
-    - `traceparent`: W3C trace context (auto-generated if missing)
-    - `x-idempotency-key`: Optional idempotency key for mutation operations
-    
-    ## Error Format
-    All errors follow RFC 7807 Problem Details format.
-
+  description: Production-ready ERP+CRM API with AI capabilities
   contact:
-    name: EcoNeura API Support
-    email: api-support@econeura.dev
+    name: ECONEURA Team
+    email: api@econeura.dev
+    url: https://econeura.dev
   license:
-    name: MIT
-    url: https://opensource.org/licenses/MIT
-
+    name: Proprietary
+    url: https://econeura.dev/license
 servers:
+  - url: http://localhost:4000
+    description: Development server
   - url: https://api.econeura.dev
     description: Production server
-  - url: https://staging-api.econeura.dev
-    description: Staging server
-  - url: http://localhost:5001
-    description: Local development server
-
-security:
-  - OrgApiKey: []
-
+tags:
+  - name: Authentication
+    description: User authentication and session management
+  - name: CRM - Companies
+    description: Company management
+  - name: CRM - Contacts
+    description: Contact management
+  - name: CRM - Deals
+    description: Deal pipeline management
+  - name: ERP - Products
+    description: Product catalog management
+  - name: ERP - Inventory
+    description: Inventory tracking and adjustments
+  - name: Finance - Invoices
+    description: Invoice management
+  - name: Finance - Reports
+    description: Financial reporting
+  - name: System
+    description: System health and metadata
 components:
   securitySchemes:
-    OrgApiKey:
+    bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: API Key
-      description: Organization API key in Bearer format
-
-  parameters:
-    OrgId:
-      name: x-org-id
-      in: header
-      required: true
-      schema:
-        type: string
-        pattern: '^[a-zA-Z0-9\-_]+$'
-      description: Organization identifier
-      example: org-demo
-
-    RequestId:
-      name: x-request-id
-      in: header
-      required: false
-      schema:
-        type: string
-        format: uuid
-      description: Request correlation ID (auto-generated if missing)
-
-    TraceParent:
-      name: traceparent
-      in: header
-      required: false
-      schema:
-        type: string
-        pattern: '^00-[a-f0-9]{32}-[a-f0-9]{16}-[0-9]{2}$'
-      description: W3C trace context header (auto-generated if missing)
-
-    IdempotencyKey:
-      name: x-idempotency-key
-      in: header
-      required: false
-      schema:
-        type: string
-        maxLength: 255
-      description: Idempotency key for mutation operations
-
-  responses:
-    Unauthorized:
-      description: Authentication required or invalid
-      content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/ProblemDetails'
-          example:
-            type: https://econeura.dev/errors/unauthorized
-            title: Unauthorized
-            status: 401
-            detail: Authentication required
-            instance: corr:123e4567-e89b-12d3-a456-426614174000
-
-    Forbidden:
-      description: Access forbidden
-      content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/ProblemDetails'
-
-    Conflict:
-      description: Conflict (idempotency key in progress)
-      content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/ProblemDetails'
-          example:
-            type: https://econeura.dev/errors/request_in_progress
-            title: Request In Progress
-            status: 409
-            detail: A request with this idempotency key is currently being processed
-            instance: corr:123e4567-e89b-12d3-a456-426614174000
-
-    UnprocessableEntity:
-      description: Validation error
-      content:
-        application/problem+json:
-          schema:
-            allOf:
-              - $ref: '#/components/schemas/ProblemDetails'
-              - type: object
-                properties:
-                  validation_errors:
-                    type: array
-                    items:
-                      type: object
-
-    TooManyRequests:
-      description: Rate limit exceeded
-      headers:
-        X-RateLimit-Limit:
-          schema:
-            type: integer
-          description: Rate limit per second
-        X-RateLimit-Remaining:
-          schema:
-            type: integer
-          description: Remaining requests in current window
-        X-RateLimit-Reset:
-          schema:
-            type: string
-            format: date-time
-          description: When the rate limit resets
-        Retry-After:
-          schema:
-            type: integer
-          description: Seconds to wait before retrying
-      content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/ProblemDetails'
-
-    InternalServerError:
-      description: Internal server error
-      content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/ProblemDetails'
-
+      bearerFormat: JWT
+      description: JWT authentication token
   schemas:
     ProblemDetails:
       type: object
-      required: [type, title, status, instance]
       properties:
         type:
           type: string
           format: uri
-          description: URI identifying the problem type
+          default: about:blank
         title:
           type: string
-          description: Short, human-readable summary
         status:
           type: integer
           minimum: 400
           maximum: 599
-          description: HTTP status code
         detail:
           type: string
-          description: Human-readable explanation
         instance:
           type: string
-          description: URI reference identifying specific occurrence
-        org_id:
+        traceId:
           type: string
-          description: Organization ID associated with the request
-
-    HealthCheck:
-      type: object
-      properties:
-        status:
-          type: string
-          enum: [ok, degraded, error]
         timestamp:
           type: string
           format: date-time
-        version:
-          type: string
-        uptime_seconds:
-          type: number
-        database:
+      required:
+        - type
+        - title
+        - status
+    ValidationError:
+      allOf:
+        - $ref: '#/components/schemas/ProblemDetails'
+        - type: object
+          properties:
+            errors:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+          required:
+            - errors
+    PaginationResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: {}
+        pagination:
           type: object
           properties:
-            status:
+            cursor:
               type: string
-              enum: [ok, error]
-            latency_ms:
-              type: number
-        dependencies:
-          type: object
-          additionalProperties:
-            type: object
-            properties:
-              status:
-                type: string
-                enum: [ok, error, unavailable]
-              latency_ms:
-                type: number
-
-    FlowExecution:
+              nullable: true
+            hasMore:
+              type: boolean
+            total:
+              type: integer
+              nullable: true
+            limit:
+              type: integer
+          required:
+            - hasMore
+            - limit
+      required:
+        - data
+        - pagination
+    Company:
       type: object
       properties:
         id:
           type: string
           format: uuid
-        flow_type:
+        orgId:
           type: string
-          enum: [cobro_proactivo, follow_up, reminder]
+          format: uuid
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        industry:
+          type: string
+          maxLength: 80
+        website:
+          type: string
+          format: uri
+        employees:
+          type: integer
+          minimum: 0
+          default: 0
         status:
           type: string
-          enum: [pending, running, completed, failed, cancelled]
-        input_data:
-          type: object
-        steps_completed:
+          enum:
+            - active
+            - inactive
+            - prospect
+          default: prospect
+        taxId:
+          type: string
+          maxLength: 50
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          maxLength: 50
+        address:
+          type: string
+          maxLength: 500
+        city:
+          type: string
+          maxLength: 100
+        country:
+          type: string
+          maxLength: 100
+        tags:
           type: array
           items:
             type: string
-        created_at:
+          default: []
+        createdAt:
           type: string
           format: date-time
-        updated_at:
+        updatedAt:
           type: string
           format: date-time
-        corr_id:
+        deletedAt:
           type: string
-          format: uuid
-
-    StartFlowRequest:
-      type: object
-      required: [flow_type, input_data]
-      properties:
-        flow_type:
-          type: string
-          enum: [cobro_proactivo, follow_up, reminder]
-        input_data:
-          type: object
-          description: Flow-specific input parameters
-
-    StartFlowResponse:
+          format: date-time
+          nullable: true
+      required:
+        - id
+        - orgId
+        - name
+        - status
+        - createdAt
+        - updatedAt
+    CreateCompany:
       type: object
       properties:
-        corr_id:
+        name:
           type: string
-          format: uuid
-          description: Correlation ID for tracking flow execution
-        flow_id:
+          minLength: 2
+          maxLength: 120
+        industry:
           type: string
-          format: uuid
-          description: Unique identifier for this flow execution
+          maxLength: 80
+        website:
+          type: string
+          format: uri
+        employees:
+          type: integer
+          minimum: 0
+          default: 0
         status:
           type: string
-          enum: [accepted, queued]
-          description: Initial status of the flow
-
-    WebhookEvent:
-      type: object
-      required: [source, event_type, data]
-      properties:
-        source:
+          enum:
+            - active
+            - inactive
+            - prospect
+          default: prospect
+        taxId:
           type: string
-          enum: [make, zapier, outlook, teams]
-        event_type:
+          maxLength: 50
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          maxLength: 50
+        address:
+          type: string
+          maxLength: 500
+        city:
+          type: string
+          maxLength: 100
+        country:
+          type: string
+          maxLength: 100
+        tags:
+          type: array
+          items:
+            type: string
+          default: []
+      required:
+        - name
+    UpdateCompany:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        industry:
+          type: string
+          maxLength: 80
+        website:
+          type: string
+          format: uri
+        employees:
+          type: integer
+          minimum: 0
+        status:
+          type: string
+          enum:
+            - active
+            - inactive
+            - prospect
+        taxId:
+          type: string
+          maxLength: 50
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          maxLength: 50
+        address:
+          type: string
+          maxLength: 500
+        city:
+          type: string
+          maxLength: 100
+        country:
+          type: string
+          maxLength: 100
+        tags:
+          type: array
+          items:
+            type: string
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          maxLength: 100
+        organizationSlug:
+          type: string
+          minLength: 3
+          maxLength: 50
+        deviceId:
+          type: string
+          minLength: 1
+          maxLength: 255
+        deviceName:
+          type: string
+          maxLength: 255
+        rememberMe:
+          type: boolean
+          default: false
+      required:
+        - email
+        - password
+    LoginResponse:
+      type: object
+      properties:
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            email:
+              type: string
+              format: email
+            firstName:
+              type: string
+            lastName:
+              type: string
+            displayName:
+              type: string
+        organization:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            slug:
+              type: string
+        permissions:
+          type: array
+          items:
+            type: string
+        tokens:
+          type: object
+          properties:
+            accessToken:
+              type: string
+            refreshToken:
+              type: string
+            expiresIn:
+              type: integer
+            tokenType:
+              type: string
+              enum:
+                - Bearer
+      required:
+        - user
+        - organization
+        - permissions
+        - tokens
+    HealthCheck:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - healthy
+            - degraded
+            - unhealthy
+        version:
           type: string
         timestamp:
-          type: integer
-          description: Unix timestamp
-        data:
-          type: object
-          description: Event-specific payload
-
-    ProviderStatus:
-      type: object
-      properties:
-        provider:
-          type: string
-        status:
-          type: string
-          enum: [available, unavailable, degraded]
-        latency_ms:
-          type: number
-        last_check:
           type: string
           format: date-time
-        error_message:
-          type: string
-
-    SendMessageRequest:
-      type: object
-      required: [channel, recipient, message]
-      properties:
-        channel:
-          type: string
-          enum: [email, whatsapp, teams]
-        recipient:
-          type: string
-          description: Email address, phone number, or Teams user ID
-        message:
-          type: string
-          description: Message content
-        template_id:
-          type: string
-          description: Optional template identifier
-        metadata:
-          type: object
-          description: Channel-specific metadata
-
-    OrgLimits:
-      type: object
-      properties:
-        org_id:
-          type: string
-        rps_limit:
-          type: integer
-          minimum: 1
-        burst:
-          type: integer
-          minimum: 1
-        monthly_cost_cap_eur:
-          type: number
-          minimum: 0
-        max_parallel_jobs:
-          type: integer
-          minimum: 1
-        storage_quota_gb:
-          type: integer
-          minimum: 1
-
-    UpdateOrgLimitsRequest:
-      type: object
-      properties:
-        rps_limit:
-          type: integer
-          minimum: 1
-        burst:
-          type: integer
-          minimum: 1
-        monthly_cost_cap_eur:
-          type: number
-          minimum: 0
-        max_parallel_jobs:
-          type: integer
-          minimum: 1
-        storage_quota_gb:
-          type: integer
-          minimum: 1
-
-    FeatureFlag:
-      type: object
-      properties:
-        org_id:
-          type: string
-        flag:
-          type: string
-        enabled:
-          type: boolean
-
-paths:
-  /health:
-    get:
-      tags: [Health]
-      summary: Health check endpoint
-      operationId: getHealth
-      security: []
-      responses:
-        '200':
-          description: Service health status
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HealthCheck'
-
-  /api/flows/cobro:
-    post:
-      tags: [Flows]
-      summary: Start cobro proactivo flow
-      operationId: startCobroFlow
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/IdempotencyKey'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/StartFlowRequest'
-            example:
-              flow_type: cobro_proactivo
-              input_data:
-                customer_ids: ["uuid1", "uuid2"]
-                escalation_level: 1
-      responses:
-        '202':
-          description: Flow started successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StartFlowResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-
-  /api/webhooks/make:
-    post:
-      tags: [Webhooks]
-      summary: Receive Make.com webhook
-      operationId: receiveMakeWebhook
-      security: []
-      parameters:
-        - name: X-Timestamp
-          in: header
-          required: true
-          schema:
-            type: string
-          description: Unix timestamp for HMAC verification
-        - name: X-Signature
-          in: header
-          required: true
-          schema:
-            type: string
-          description: HMAC-SHA256 signature
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/WebhookEvent'
-      responses:
-        '202':
-          description: Webhook received and queued for processing
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: accepted
-                  corr_id:
-                    type: string
-                    format: uuid
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '409':
-          $ref: '#/components/responses/Conflict'
-
-  /api/providers/status:
-    get:
-      tags: [Providers]
-      summary: Get status of all integrated providers
-      operationId: getProvidersStatus
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-      responses:
-        '200':
-          description: Provider status information
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  providers:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ProviderStatus'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-  /api/channels/email:
-    post:
-      tags: [Channels]
-      summary: Send email message
-      operationId: sendEmail
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/IdempotencyKey'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SendMessageRequest'
-      responses:
-        '202':
-          description: Message queued for sending
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message_id:
-                    type: string
-                  status:
-                    type: string
-                    enum: [queued, sent]
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-
-  /api/channels/whatsapp:
-    post:
-      tags: [Channels]
-      summary: Send WhatsApp message
-      operationId: sendWhatsApp
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/IdempotencyKey'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SendMessageRequest'
-      responses:
-        '202':
-          description: Message queued for sending
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message_id:
-                    type: string
-                  status:
-                    type: string
-                    enum: [queued, sent]
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-  /api/channels/teams:
-    post:
-      tags: [Channels]
-      summary: Send Teams message
-      operationId: sendTeams
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/IdempotencyKey'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SendMessageRequest'
-      responses:
-        '202':
-          description: Message queued for sending
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-  /metrics:
-    get:
-      tags: [Monitoring]
-      summary: Prometheus metrics endpoint
-      operationId: getMetrics
-      security: []
-      responses:
-        '200':
-          description: Prometheus metrics in text format
-          content:
-            text/plain:
-              schema:
+        checks:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
                 type: string
-
-  /api/admin/tenants/{orgId}/status:
-    get:
-      tags: [Admin]
-      summary: Get organization status
-      operationId: getOrgStatus
-      parameters:
-        - name: orgId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Organization status
-          content:
-            application/json:
-              schema:
-                type: object
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-
-  /api/admin/tenants/{orgId}/limits:
-    put:
-      tags: [Admin]
-      summary: Update organization limits
-      operationId: updateOrgLimits
-      parameters:
-        - name: orgId
-          in: path
-          required: true
-          schema:
-            type: string
+              status:
+                type: string
+                enum:
+                  - healthy
+                  - degraded
+                  - unhealthy
+              message:
+                type: string
+              duration:
+                type: integer
+            required:
+              - name
+              - status
+      required:
+        - status
+        - version
+        - timestamp
+        - checks
+paths:
+  /api/v1/auth/login:
+    post:
+      summary: User login
+      tags:
+        - Authentication
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateOrgLimitsRequest'
+              $ref: '#/components/schemas/LoginRequest'
       responses:
         '200':
-          description: Limits updated successfully
+          description: Successful login
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrgLimits'
+                $ref: '#/components/schemas/LoginResponse'
         '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-
-  /api/admin/flags/{flag}:
-    patch:
-      tags: [Admin]
-      summary: Update feature flag for organization
-      operationId: updateFeatureFlag
-      parameters:
-        - name: flag
-          in: path
-          required: true
-          schema:
-            type: string
-        - $ref: '#/components/parameters/OrgId'
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/v1/auth/refresh:
+    post:
+      summary: Refresh access token
+      tags:
+        - Authentication
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [enabled]
               properties:
-                enabled:
-                  type: boolean
+                refreshToken:
+                  type: string
+                deviceId:
+                  type: string
+              required:
+                - refreshToken
       responses:
         '200':
-          description: Feature flag updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FeatureFlag'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-    post:
-      tags: [Admin]
-      summary: Emergency kill switch for feature flag
-      operationId: killFeatureFlag
-      parameters:
-        - name: flag
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Feature flag disabled globally
+          description: Token refreshed
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  status:
-                    type: string
-                    example: disabled
-                  affected_orgs:
+                  tokens:
+                    type: object
+                    properties:
+                      accessToken:
+                        type: string
+                      refreshToken:
+                        type: string
+                      expiresIn:
+                        type: integer
+                      tokenType:
+                        type: string
+  /api/v1/auth/logout:
+    post:
+      summary: User logout
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Logged out successfully
+  /api/v1/auth/me:
+    get:
+      summary: Get current user info
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                  organization:
+                    type: object
+                  role:
+                    type: object
+                  permissions:
+                    type: array
+                    items:
+                      type: string
+  /api/v1/auth/sessions:
+    get:
+      summary: Get user sessions
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User sessions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessions:
+                    type: array
+                    items:
+                      type: object
+                  total:
                     type: integer
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-tags:
-  - name: Health
-    description: Service health and monitoring
-  - name: Flows
-    description: Business process flows
-  - name: Webhooks
-    description: Webhook endpoints
-  - name: Providers
-    description: External provider status
-  - name: Channels
-    description: Communication channels
-  - name: Monitoring
-    description: Metrics and monitoring
-  - name: Admin
-    description: Administrative operations
+    delete:
+      summary: Revoke session
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Session revoked
+  /api/v1/crm/companies:
+    get:
+      summary: List companies
+      tags:
+        - CRM - Companies
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: sort
+          in: query
+          schema:
+            type: string
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum:
+              - active
+              - inactive
+              - prospect
+        - name: industry
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Companies list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginationResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Company'
+    post:
+      summary: Create company
+      tags:
+        - CRM - Companies
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCompany'
+      responses:
+        '201':
+          description: Company created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+  /api/v1/crm/companies/{id}:
+    get:
+      summary: Get company by ID
+      tags:
+        - CRM - Companies
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Company details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+        '404':
+          description: Company not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+    put:
+      summary: Update company
+      tags:
+        - CRM - Companies
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCompany'
+      responses:
+        '200':
+          description: Company updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+    delete:
+      summary: Delete company
+      tags:
+        - CRM - Companies
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Company deleted
+  /api/health:
+    get:
+      summary: Health check
+      tags:
+        - System
+      responses:
+        '200':
+          description: System health status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheck'
+  /api/openapi.json:
+    get:
+      summary: Get OpenAPI specification
+      tags:
+        - System
+      responses:
+        '200':
+          description: OpenAPI specification
+          content:
+            application/json:
+              schema:
+                type: object

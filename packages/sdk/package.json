@@ -1,0 +1,31 @@
+{
+  "name": "@econeura/sdk",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "generate": "npm run generate:types && npm run generate:client",
+    "generate:types": "npx openapi-typescript ../../apps/api/openapi.json -o src/types.ts",
+    "generate:client": "node scripts/generate-client.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src/**/*.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@econeura/shared": "file:../shared"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "eslint": "^8.56.0",
+    "openapi-typescript": "^6.7.3",
+    "typescript": "^5.3.0",
+    "vitest": "^1.2.0"
+  }
+}
