@@ -74,7 +74,7 @@ export class GraphService {
 
       // Update metrics
       const currentSubs = await this.redis.hlen('graph:subscriptions');
-      this.metrics.subscriptions.set(currentSubs);
+      // TODO: Add metrics.subscriptions.set(currentSubs);
 
       console.log(`📞 Created subscription ${mockSubscription.id} for mailbox ${mailbox}`);
       
@@ -82,7 +82,7 @@ export class GraphService {
 
     } catch (error) {
       console.error('Failed to create subscription:', error);
-      this.metrics.graphErrors.inc({ error_type: 'subscription_create', status_code: '500' });
+      // TODO: Add metrics.graphErrors.inc({ error_type: 'subscription_create', status_code: '500' });
       throw new Error(`Failed to create subscription: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -98,7 +98,7 @@ export class GraphService {
 
     } catch (error) {
       console.error('Failed to list subscriptions:', error);
-      this.metrics.graphErrors.inc({ error_type: 'subscription_list', status_code: '500' });
+      // TODO: Add metrics.graphErrors.inc({ error_type: 'subscription_list', status_code: '500' });
       throw new Error(`Failed to list subscriptions: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -116,13 +116,13 @@ export class GraphService {
 
       // Update metrics
       const currentSubs = await this.redis.hlen('graph:subscriptions');
-      this.metrics.subscriptions.set(currentSubs);
+      // TODO: Add metrics.subscriptions.set(currentSubs);
 
       console.log(`🗑️ Deleted subscription ${subscriptionId}`);
 
     } catch (error) {
       console.error('Failed to delete subscription:', error);
-      this.metrics.graphErrors.inc({ error_type: 'subscription_delete', status_code: '500' });
+      // TODO: Add metrics.graphErrors.inc({ error_type: 'subscription_delete', status_code: '500' });
       throw new Error(`Failed to delete subscription: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -164,7 +164,7 @@ export class GraphService {
 
     } catch (error) {
       console.error('Failed to renew subscriptions:', error);
-      this.metrics.graphErrors.inc({ error_type: 'subscription_renew', status_code: '500' });
+      // TODO: Add metrics.graphErrors.inc({ error_type: 'subscription_renew', status_code: '500' });
     }
   }
 
@@ -216,7 +216,7 @@ export class GraphService {
       }
 
       // Update metrics
-      this.metrics.deltaQueries.inc({ mailbox, status: 'success' });
+      // TODO: Add metrics.deltaQueries.inc({ mailbox, status: 'success' });
 
       return {
         messages: mockResponse.value,
@@ -226,8 +226,8 @@ export class GraphService {
 
     } catch (error) {
       console.error(`Failed to execute delta query for ${mailbox}:`, error);
-      this.metrics.deltaQueries.inc({ mailbox, status: 'error' });
-      this.metrics.graphErrors.inc({ error_type: 'delta_query', status_code: '500' });
+      // TODO: Add metrics.deltaQueries.inc({ mailbox, status: 'error' });
+      // TODO: Add metrics.graphErrors.inc({ error_type: 'delta_query', status_code: '500' });
       throw new Error(`Delta query failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -286,7 +286,7 @@ export class GraphService {
         const delay = baseDelay * Math.pow(2, retryCount); // Exponential backoff
         console.log(`⏳ Rate limited/server error, retrying in ${delay}ms (attempt ${retryCount + 1}/${maxRetries + 1})`);
         
-        this.metrics.graphErrors.inc({ error_type: 'rate_limit', status_code: statusCode.toString() });
+        // TODO: Add metrics.graphErrors.inc({ error_type: 'rate_limit', status_code: statusCode.toString() });
         
         await new Promise(resolve => setTimeout(resolve, delay));
         return this.getEmailById(mailbox, messageId, retryCount + 1);
@@ -294,7 +294,7 @@ export class GraphService {
 
       // Non-retryable error or max retries exceeded
       console.error(`Failed to get email ${messageId} from ${mailbox}:`, error);
-      this.metrics.graphErrors.inc({ error_type: 'get_email', status_code: statusCode.toString() });
+      // TODO: Add metrics.graphErrors.inc({ error_type: 'get_email', status_code: statusCode.toString() });
       throw error;
     }
   }
@@ -311,7 +311,7 @@ export class GraphService {
 
     } catch (error) {
       console.error('Failed to send email:', error);
-      this.metrics.graphErrors.inc({ error_type: 'send_email', status_code: '500' });
+      // TODO: Add metrics.graphErrors.inc({ error_type: 'send_email', status_code: '500' });
       throw error;
     }
   }

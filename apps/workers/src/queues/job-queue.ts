@@ -408,7 +408,7 @@ export class JobQueue {
         logger.error('Email classification failed', { 
           jobId, 
           messageId, 
-          error: error.message 
+          error: error instanceof Error ? error.message : 'Unknown error' 
         });
         throw error;
       }
@@ -431,7 +431,7 @@ export class JobQueue {
       } catch (error) {
         logger.error('Email draft generation failed', { 
           jobId, 
-          error: error.message 
+          error: error instanceof Error ? error.message : 'Unknown error' 
         });
         throw error;
       }
@@ -456,7 +456,7 @@ export class JobQueue {
         logger.error('Email data extraction failed', { 
           jobId, 
           messageId, 
-          error: error.message 
+          error: error instanceof Error ? error.message : 'Unknown error' 
         });
         throw error;
       }
@@ -474,7 +474,7 @@ export class JobQueue {
         logger.info('Inbox monitoring completed', { 
           jobId, 
           userId,
-          messagesProcessed: result.messagesProcessed
+          messagesFound: result.messages?.length || 0
         });
         
         return result;
@@ -482,7 +482,7 @@ export class JobQueue {
         logger.error('Inbox monitoring failed', { 
           jobId, 
           userId, 
-          error: error.message 
+          error: error instanceof Error ? error.message : 'Unknown error' 
         });
         throw error;
       }
@@ -508,7 +508,7 @@ export class JobQueue {
       logger.error('Email job failed', { 
         jobId: job.id, 
         type: job.data.type,
-        error: err.message,
+        error: err instanceof Error ? err.message : 'Unknown error',
         attempts: job.attemptsMade
       });
       
@@ -531,7 +531,7 @@ export class JobQueue {
         jobId: job.id, 
         type: job.data.type,
         userId: job.data.userId,
-        error: err.message
+        error: err instanceof Error ? err.message : 'Unknown error'
       });
       
       prometheusMetrics.jobsFailed.inc({ type: job.data.type });

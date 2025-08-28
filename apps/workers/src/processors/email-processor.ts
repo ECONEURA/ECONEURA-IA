@@ -89,7 +89,7 @@ export class EmailProcessor {
       logger.error('Email classification failed', {
         jobId,
         messageId: message.id,
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         duration: Date.now() - startTime
       });
 
@@ -154,7 +154,7 @@ export class EmailProcessor {
       
       logger.error('Email draft generation failed', {
         jobId,
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         duration: Date.now() - startTime
       });
 
@@ -221,7 +221,7 @@ export class EmailProcessor {
       logger.error('Email data extraction failed', {
         jobId,
         messageId: message.id,
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         duration: Date.now() - startTime
       });
 
@@ -233,7 +233,7 @@ export class EmailProcessor {
    * Call AI Router with retry logic
    */
   private async callAIRouter(request: any): Promise<AIRouterResponse> {
-    let lastError: Error;
+    let lastError: Error | null = null;
 
     for (let attempt = 0; attempt < this.maxRetries; attempt++) {
       try {
@@ -255,8 +255,9 @@ export class EmailProcessor {
         lastError = error instanceof Error ? error : new Error('Unknown error');
         
         // Don't retry on 4xx errors (except 429)
-        if (error.response?.status >= 400 && error.response?.status < 500 && error.response?.status !== 429) {
-          throw error;
+        const errorObj = error instanceof Error ? error : new Error('Unknown error');
+        if ((errorObj as any).response?.status >= 400 && (errorObj as any).response?.status < 500 && (errorObj as any).response?.status !== 429) {
+          throw errorObj;
         }
 
         if (attempt < this.maxRetries - 1) {
@@ -264,7 +265,7 @@ export class EmailProcessor {
           logger.warn(`AI Router call failed, retrying in ${delay}ms`, {
             attempt: attempt + 1,
             maxRetries: this.maxRetries,
-            error: error.message
+            error: error instanceof Error ? error.message : 'Unknown error'
           });
           
           await new Promise(resolve => setTimeout(resolve, delay));
@@ -272,7 +273,8 @@ export class EmailProcessor {
       }
     }
 
-    throw new Error(`AI Router call failed after ${this.maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
+    const finalError = lastError || new Error('Unknown error');
+    throw new Error(`AI Router call failed after ${this.maxRetries} attempts: ${finalError.message}`);
   }
 
   /**
