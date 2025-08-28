@@ -63,49 +63,35 @@ app.use((req, res, next) => {
   next();
 });
 
-// CORS configuration
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'];
+// CORS configuration (lista blanca estricta)
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
+  .split(',')
+  .map(s => s.trim());
+
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, etc.)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      logger.logSecurityEvent('CORS violation', {
-        event_type: 'auth_failure',
-        details: { origin, allowed_origins: allowedOrigins },
-      });
-      callback(new ApiError(403, 'cors_violation', 'CORS Violation', `Origin ${origin} not allowed`));
-    }
+    if (!origin) return callback(null, true); // clientes nativos
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    logger.logSecurityEvent('CORS violation', {
+      event_type: 'auth_failure',
+      details: { origin, allowed_origins: allowedOrigins },
+    });
+    callback(new ApiError(403, 'cors_violation', 'CORS Violation', `Origin ${origin} not allowed`));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'x-org-id',
-    'x-request-id',
-    'traceparent',
-    'x-idempotency-key',
-    'x-timestamp',
-    'x-signature',
+    'Content-Type','Authorization','x-org-id','x-request-id','traceparent',
+    'x-idempotency-key','x-timestamp','x-signature'
   ],
-  exposedHeaders: [
-    'x-request-id',
-    'traceparent',
-    'x-idempotent-replay',
-    'x-ratelimit-limit',
-    'x-ratelimit-remaining',
-    'x-ratelimit-reset',
-  ],
+  exposedHeaders: ['x-request-id','traceparent','x-idempotent-replay',
+    'x-ratelimit-limit','x-ratelimit-remaining','x-ratelimit-reset'],
 }));
 
 // Request ID and tracing
 app.use(requestId);
 
-// Raw body parser for webhook signature verification
+// Raw body parser (solo para /api/webhooks/*)
 app.use('/api/webhooks', (req, res, next) => {
   rawBody(req, {
     length: req.get('Content-Length'),
@@ -115,7 +101,7 @@ app.use('/api/webhooks', (req, res, next) => {
     if (err) {
       logger.error('Raw body parsing failed', err, {
         corr_id: res.locals.corr_id,
-        path: req.path,
+        path: (req as any).path,
       });
       return next(new ApiError(400, 'invalid_body', 'Invalid Request Body', 'Failed to parse request body'));
     }
@@ -195,7 +181,13 @@ import aiRoutes from './routes/ai.js';
 // Routes
 app.use('/', healthRoutes);
 app.use('/api/flows', requireAuth, flowRoutes);
-app.use('/api/webhooks', webhookRoutes); // No auth required, uses HMAC
+
+// Webhooks por fuente + verificación HMAC antes del router
+// Stripe: el verifyHmac internamente usa stripe.webhooks.constructEvent(req.rawBody, sig, secret)
+app.post('/api/webhooks/stripe', verifyHmac('stripe'), webhookRoutes);
+app.post('/api/webhooks/github', verifyHmac('github'), webhookRoutes);
+app.post('/api/webhooks/slack', verifyHmac('slack'), webhookRoutes);
+
 app.use('/api/providers', requireAuth, providerRoutes);
 app.use('/api/channels', requireAuth, channelRoutes);
 app.use('/api/admin', requireAuth, adminRoutes);

@@ -22,6 +22,9 @@ const WEBHOOK_SECRETS = {
   zapier: process.env.ZAPIER_WEBHOOK_SECRET || 'dev-secret',
   outlook: process.env.OUTLOOK_WEBHOOK_SECRET || 'dev-secret',
   teams: process.env.TEAMS_WEBHOOK_SECRET || 'dev-secret',
+  stripe: process.env.STRIPE_WEBHOOK_SECRET || 'dev-secret',
+  github: process.env.GITHUB_WEBHOOK_SECRET || 'dev-secret',
+  slack: process.env.SLACK_SIGNING_SECRET || 'dev-secret',
 };
 
 const WEBHOOK_MAX_SKEW = parseInt(process.env.WEBHOOK_MAX_SKEW_SEC || '300');
@@ -268,6 +271,121 @@ webhookRoutes.post('/teams',
   })
 );
 
+// POST /api/webhooks/stripe - Receive Stripe webhooks
+webhookRoutes.post('/stripe', asyncHandler(async (req, res) => {
+  const startTime = Date.now();
+  const corrId = res.locals.corr_id;
+  
+  logger.logWebhookReceived('Stripe webhook received', {
+    source: 'stripe',
+    event_type: req.body.type || 'unknown',
+    signature_valid: res.locals.hmac_verified,
+    idempotent: true, // Stripe provides idempotency
+    corr_id: corrId,
+  });
+  
+  // Queue for processing
+  await db.query(
+    `INSERT INTO job_queue (job_type, payload, priority, idempotency_key) 
+     VALUES ($1, $2, $3, $4)`,
+    [
+      'stripe_event',
+      JSON.stringify({
+        source: 'stripe',
+        event_id: req.body.id,
+        event_type: req.body.type,
+        data: req.body.data,
+        corr_id: corrId,
+      }),
+      1, // High priority for payment events
+      req.body.id // Stripe event ID as idempotency key
+    ]
+  );
+  
+  recordWebhook('stripe', req.body.type || 'unknown', Date.now() - startTime, true);
+  
+  res.status(200).json({ received: true });
+}));
+
+// POST /api/webhooks/github - Receive GitHub webhooks
+webhookRoutes.post('/github', asyncHandler(async (req, res) => {
+  const startTime = Date.now();
+  const corrId = res.locals.corr_id;
+  const eventType = req.headers['x-github-event'] as string || 'unknown';
+  
+  logger.logWebhookReceived('GitHub webhook received', {
+    source: 'github',
+    event_type: eventType,
+    signature_valid: res.locals.hmac_verified,
+    idempotent: true,
+    corr_id: corrId,
+  });
+  
+  // Queue for processing
+  await db.query(
+    `INSERT INTO job_queue (job_type, payload, priority, idempotency_key) 
+     VALUES ($1, $2, $3, $4)`,
+    [
+      'github_event',
+      JSON.stringify({
+        source: 'github',
+        event_type: eventType,
+        delivery_id: req.headers['x-github-delivery'],
+        data: req.body,
+        corr_id: corrId,
+      }),
+      2,
+      req.headers['x-github-delivery'] as string
+    ]
+  );
+  
+  recordWebhook('github', eventType, Date.now() - startTime, true);
+  
+  res.status(200).json({ status: 'ok' });
+}));
+
+// POST /api/webhooks/slack - Receive Slack webhooks
+webhookRoutes.post('/slack', asyncHandler(async (req, res) => {
+  const startTime = Date.now();
+  const corrId = res.locals.corr_id;
+  const eventType = req.body.type || 'unknown';
+  
+  // Handle Slack URL verification
+  if (eventType === 'url_verification') {
+    return res.json({ challenge: req.body.challenge });
+  }
+  
+  logger.logWebhookReceived('Slack webhook received', {
+    source: 'slack',
+    event_type: eventType,
+    signature_valid: res.locals.hmac_verified,
+    idempotent: true,
+    corr_id: corrId,
+  });
+  
+  // Queue for processing
+  await db.query(
+    `INSERT INTO job_queue (job_type, payload, priority, idempotency_key) 
+     VALUES ($1, $2, $3, $4)`,
+    [
+      'slack_event',
+      JSON.stringify({
+        source: 'slack',
+        event_type: eventType,
+        team_id: req.body.team_id,
+        data: req.body,
+        corr_id: corrId,
+      }),
+      2,
+      req.body.event_id || `${req.body.team_id}-${Date.now()}`
+    ]
+  );
+  
+  recordWebhook('slack', eventType, Date.now() - startTime, true);
+  
+  res.status(200).json({ status: 'ok' });
+}));
+
 // GET /api/webhooks/health - Webhook health check (no auth required)
 webhookRoutes.get('/health', asyncHandler(async (req, res) => {
   // Simple health check for webhook endpoints
@@ -279,6 +397,9 @@ webhookRoutes.get('/health', asyncHandler(async (req, res) => {
       zapier: { configured: !!WEBHOOK_SECRETS.zapier },
       outlook: { configured: !!WEBHOOK_SECRETS.outlook },
       teams: { configured: !!WEBHOOK_SECRETS.teams },
+      stripe: { configured: !!WEBHOOK_SECRETS.stripe },
+      github: { configured: !!WEBHOOK_SECRETS.github },
+      slack: { configured: !!WEBHOOK_SECRETS.slack },
     },
     max_skew_seconds: WEBHOOK_MAX_SKEW,
   };
