@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit",
     "db:migrate": "tsx src/db/migrate.ts",
     "db:seed": "tsx src/db/seed.ts",
-    "db:reset": "tsx src/db/reset.ts"
+    "db:reset": "tsx src/db/reset.ts",
+    "db:setup": "tsx scripts/setup-db.ts"
   },
   "dependencies": {
     "@econeura/shared": "file:../../packages/shared",
