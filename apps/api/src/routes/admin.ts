@@ -204,7 +204,7 @@ adminRoutes.put('/tenants/:orgId/limits', asyncHandler(async (req: Authenticated
   
   try {
     // Check if organization exists
-    const orgExists = await db.query(
+    const orgExists = await db.query.
       'SELECT 1 FROM organizations WHERE org_id = $1',
       [orgId]
     );
@@ -237,7 +237,7 @@ adminRoutes.put('/tenants/:orgId/limits', asyncHandler(async (req: Authenticated
       RETURNING rps_limit, burst, monthly_cost_cap_eur, max_parallel_jobs, storage_quota_gb
     `;
     
-    const result = await db.query(updateQuery, values);
+    const result = await db.query.updateQuery, values);
     
     if (result.rows.length === 0) {
       throw ApiError.notFound(`Limits for organization '${orgId}'`);
@@ -311,7 +311,7 @@ adminRoutes.patch('/flags/:flag', asyncHandler(async (req: AuthenticatedRequest,
   });
   
   try {
-    const result = await db.query(
+    const result = await db.query.
       `INSERT INTO org_feature_flags (org_id, flag, enabled) 
        VALUES ($1, $2, $3)
        ON CONFLICT (org_id, flag) 
@@ -356,7 +356,7 @@ adminRoutes.post('/flags/:flag/kill', asyncHandler(async (req: AuthenticatedRequ
   });
   
   try {
-    const result = await db.query(
+    const result = await db.query.
       'UPDATE org_feature_flags SET enabled = false WHERE flag = $1 RETURNING org_id',
       [flag]
     );

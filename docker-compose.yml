@@ -1,96 +1,105 @@
-version: "3.9"
+version: '3.8'
+
 services:
-  db:
-    image: postgres:15
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: econeura-postgres
     environment:
-      POSTGRES_DB: econeura
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: econeura_dev
+      POSTGRES_USER: econeura_user
+      POSTGRES_PASSWORD: econeura_password
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./packages/db/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD-SHELL", "pg_isready -U econeura_user -d econeura_dev"]
+      interval: 10s
+      timeout: 5s
       retries: 5
 
+  # Redis for caching and sessions
   redis:
     image: redis:7-alpine
+    container_name: econeura-redis
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
+      interval: 10s
+      timeout: 5s
       retries: 5
 
-  api:
-    build:
-      context: .
-      dockerfile: apps/api/Dockerfile
-    environment:
-      NODE_ENV: development
-      DATABASE_URL: postgres://postgres:postgres@db:5432/econeura
-      REDIS_URL: redis://redis:6379
-      PORT: 5001
-      ALLOWED_ORIGINS: http://localhost:3000
+  # Mistral AI (Local)
+  mistral:
+    image: ghcr.io/mistralai/mistral-7b-instruct:latest
+    container_name: econeura-mistral
     ports:
-      - "5001:5001"
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    volumes:
-      - ./apps/api:/app
-      - /app/node_modules
-
-  web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
+      - "8080:8080"
     environment:
-      NODE_ENV: development
-      NEXT_PUBLIC_API_URL: http://localhost:5001
-      BACKEND_BASE_URL: http://api:5001
-    ports:
-      - "3000:3000"
-    depends_on:
-      - api
+      - MISTRAL_MODEL=mistral-7b-instruct
     volumes:
-      - ./apps/web:/app
-      - /app/node_modules
+      - mistral_data:/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
+  # Prometheus for metrics
   prometheus:
     image: prom/prometheus:latest
+    container_name: econeura-prometheus
     ports:
       - "9090:9090"
     volumes:
-      - ./infra/prometheus:/etc/prometheus
+      - ./infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
       - '--web.enable-lifecycle'
 
+  # Grafana for dashboards
   grafana:
     image: grafana/grafana:latest
+    container_name: econeura-grafana
     ports:
       - "3001:3000"
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
-      - ./infra/grafana:/etc/grafana/provisioning
       - grafana_data:/var/lib/grafana
+      - ./infra/monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./infra/monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+
+  # Jaeger for tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: econeura-jaeger
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
 
 volumes:
   postgres_data:
   redis_data:
+  mistral_data:
   prometheus_data:
   grafana_data:
+
+networks:
+  default:
+    name: econeura-network

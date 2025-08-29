@@ -1,5 +1,5 @@
-import { pgTable, text, timestamp, uuid, integer, decimal, boolean, jsonb, index } from 'drizzle-orm/pg-core'
-import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
+// import { Pool, PoolClient, QueryResult } from 'pg'
+// import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
 import { z } from 'zod'
 
 // Organizations table

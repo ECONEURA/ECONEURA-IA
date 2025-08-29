@@ -8,18 +8,18 @@ interface ApiOptions extends RequestInit {
 }
 
 export function useApiClient() {
-  const { token } = useAuth()
+  const { user } = useAuth()
 
   const apiCall = async (endpoint: string, options: ApiOptions = {}) => {
     const { skipAuth = false, ...fetchOptions } = options
     
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(options.headers as Record<string, string>),
     }
 
-    if (!skipAuth && token) {
-      headers['Authorization'] = `Bearer ${token}`
+    if (!skipAuth && user) {
+      headers['Authorization'] = `Bearer ${user.id}`
     }
 
     const response = await fetch(`${API_BASE}${endpoint}`, {

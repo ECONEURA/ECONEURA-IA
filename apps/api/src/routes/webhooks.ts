@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { verifyHmac } from '../mw/verifyHmac.js';
+// import { verifyHmac } from '../middleware/verifyHmac.js'
 import { db } from '../db/connection.js';
 import { logger } from '@econeura/shared/logging';
 import { asyncHandler, ApiError } from '../mw/problemJson.js';
@@ -59,7 +59,7 @@ webhookRoutes.post('/make',
     
     try {
       // Queue webhook for processing
-      await db.query(
+      await db.query.
         `INSERT INTO job_queue (job_type, payload, priority, scheduled_for) 
          VALUES ($1, $2, $3, NOW())`,
         [
@@ -129,7 +129,7 @@ webhookRoutes.post('/zapier',
     });
     
     // Queue for processing
-    await db.query(
+    await db.query.
       `INSERT INTO job_queue (job_type, payload, priority) 
        VALUES ($1, $2, $3)`,
       [
@@ -195,7 +195,7 @@ webhookRoutes.post('/outlook',
     
     // Process each notification in the batch
     for (const notification of outlookData.value) {
-      await db.query(
+      await db.query.
         `INSERT INTO job_queue (job_type, payload, priority) 
          VALUES ($1, $2, $3)`,
         [
@@ -246,7 +246,7 @@ webhookRoutes.post('/teams',
       corr_id: corrId,
     });
     
-    await db.query(
+    await db.query.
       `INSERT INTO job_queue (job_type, payload, priority) 
        VALUES ($1, $2, $3)`,
       [
@@ -285,7 +285,7 @@ webhookRoutes.post('/stripe', asyncHandler(async (req, res) => {
   });
   
   // Queue for processing
-  await db.query(
+  await db.query.
     `INSERT INTO job_queue (job_type, payload, priority, idempotency_key) 
      VALUES ($1, $2, $3, $4)`,
     [
@@ -322,7 +322,7 @@ webhookRoutes.post('/github', asyncHandler(async (req, res) => {
   });
   
   // Queue for processing
-  await db.query(
+  await db.query.
     `INSERT INTO job_queue (job_type, payload, priority, idempotency_key) 
      VALUES ($1, $2, $3, $4)`,
     [
@@ -364,7 +364,7 @@ webhookRoutes.post('/slack', asyncHandler(async (req, res) => {
   });
   
   // Queue for processing
-  await db.query(
+  await db.query.
     `INSERT INTO job_queue (job_type, payload, priority, idempotency_key) 
      VALUES ($1, $2, $3, $4)`,
     [

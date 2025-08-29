@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 export function useCompanies(params?: any) {
   return useQuery({
     queryKey: ['companies', params],
-    queryFn: () => apiClient.getCompanies(params)
+    queryFn: () => apiClient.getCompanies()
   })
 }
 

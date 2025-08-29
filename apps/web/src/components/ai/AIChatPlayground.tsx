@@ -2,12 +2,12 @@
 
 import React, { useState } from 'react';
 import { 
-  PaperAirplaneIcon,
-  CpuChipIcon,
-  ClockIcon,
-  CurrencyEuroIcon,
-  ExclamationTriangleIcon
-} from '@heroicons/react/24/outline';
+  Send,
+  Cpu,
+  Clock,
+  BarChart3,
+  AlertTriangle
+} from 'lucide-react';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import toast from 'react-hot-toast';
 
@@ -278,19 +278,19 @@ export function AIChatPlayground() {
                   <div className="flex items-center space-x-4">
                     {message.metadata.provider && (
                       <div className="flex items-center">
-                        <CpuChipIcon className="h-3 w-3 mr-1" />
+                        <Cpu className="h-3 w-3 mr-1" />
                         {message.metadata.provider}
                       </div>
                     )}
                     {message.metadata.latency && (
                       <div className="flex items-center">
-                        <ClockIcon className="h-3 w-3 mr-1" />
+                        <Clock className="h-3 w-3 mr-1" />
                         {message.metadata.latency}ms
                       </div>
                     )}
                     {message.metadata.costEur && (
                       <div className="flex items-center">
-                        <CurrencyEuroIcon className="h-3 w-3 mr-1" />
+                        <BarChart3 className="h-3 w-3 mr-1" />
                         €{message.metadata.costEur.toFixed(4)}
                       </div>
                     )}
@@ -337,7 +337,7 @@ export function AIChatPlayground() {
             disabled={!input.trim() || loading}
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
-            <PaperAirplaneIcon className="h-4 w-4" />
+            <Send className="h-4 w-4" />
           </button>
         </div>
       </div>

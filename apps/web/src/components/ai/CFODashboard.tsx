@@ -2,14 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Euro,
+  BarChart3,
   AlertTriangle,
   TrendingUp,
   TrendingDown,
   RotateCcw,
   Settings,
   Shield,
-  Zap
+  Zap,
+  RefreshCw
 } from 'lucide-react';
 import MetricsCard from '../dashboard/MetricsCard';
 import LoadingSpinner from '../ui/LoadingSpinner';
@@ -237,7 +238,7 @@ export function CFODashboard() {
             onClick={() => setShowSettings(!showSettings)}
             className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            <CogIcon className="h-4 w-4 mr-2" />
+            <Settings className="h-4 w-4 mr-2" />
             Settings
           </button>
           <button
@@ -245,7 +246,7 @@ export function CFODashboard() {
             disabled={refreshing}
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
-            <ArrowPathIcon className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
             Refresh
           </button>
         </div>
@@ -256,7 +257,7 @@ export function CFODashboard() {
         <div className="bg-red-50 border-l-4 border-red-400 p-4">
           <div className="flex">
             <div className="flex-shrink-0">
-              <ExclamationTriangleIcon className="h-5 w-5 text-red-400" aria-hidden="true" />
+              <AlertTriangle className="h-5 w-5 text-red-400" aria-hidden="true" />
             </div>
             <div className="ml-3">
               <h3 className="text-sm font-medium text-red-800">Critical Cost Alerts</h3>
@@ -277,28 +278,28 @@ export function CFODashboard() {
         <MetricsCard
           title="Daily AI Spend"
           value={`€${metrics.currentPeriod.dailyCostEur.toFixed(2)}`}
-          icon={<CurrencyEuroIcon className="h-5 w-5" />}
+          icon={<BarChart3 className="h-5 w-5" />}
           subtitle={`${metrics.utilization.dailyPercent.toFixed(1)}% of €${metrics.budgetLimits.dailyLimitEur} limit`}
         />
         
         <MetricsCard
           title="Monthly AI Spend"
           value={`€${metrics.currentPeriod.monthlyCostEur.toFixed(2)}`}
-          icon={<ArrowTrendingUpIcon className="h-5 w-5" />}
+          icon={<TrendingUp className="h-5 w-5" />}
           subtitle={`${metrics.utilization.monthlyPercent.toFixed(1)}% of €${metrics.budgetLimits.monthlyLimitEur} limit`}
         />
         
         <MetricsCard
           title="Cost Per Request"
           value={`€${metrics.currentPeriod.avgCostPerRequest.toFixed(4)}`}
-          icon={<BoltIcon className="h-5 w-5" />}
+          icon={<Zap className="h-5 w-5" />}
           subtitle={`${metrics.currentPeriod.totalRequests} requests today`}
         />
         
         <MetricsCard
           title="Yearly Projection"
           value={`€${metrics.currentPeriod.yearlyProjectionEur.toFixed(0)}`}
-          icon={<ArrowTrendingDownIcon className="h-5 w-5" />}
+          icon={<TrendingDown className="h-5 w-5" />}
           subtitle={`${metrics.utilization.growthRatePercent > 0 ? '+' : ''}${metrics.utilization.growthRatePercent.toFixed(1)}% growth rate`}
         />
       </div>
@@ -366,7 +367,7 @@ export function CFODashboard() {
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-gray-700">Emergency Stop</span>
                 <div className="flex items-center">
-                  <ShieldCheckIcon className={`h-4 w-4 mr-1 ${
+                  <Shield className={`h-4 w-4 mr-1 ${
                     metrics.budgetLimits.emergencyStopEnabled ? 'text-green-600' : 'text-gray-400'
                   }`} />
                   <StatusBadge

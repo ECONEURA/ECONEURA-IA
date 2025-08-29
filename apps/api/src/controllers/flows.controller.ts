@@ -39,11 +39,11 @@ export class FlowsController {
       const userId = req.user?.id
       
       if (!orgId) {
-        throw Problems.UNAUTHORIZED('Organization context required')
+        throw Problems.unauthorized('Organization context required')
       }
       
       if (!userId) {
-        throw Problems.UNAUTHORIZED('User context required')
+        throw Problems.unauthorized('User context required')
       }
 
       // Generate request ID
@@ -76,7 +76,7 @@ export class FlowsController {
 
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw Problems.BAD_REQUEST('Invalid request data', {
+        throw Problems.badRequest('Invalid request data', {
           details: error.errors,
         })
       }
@@ -96,7 +96,7 @@ export class FlowsController {
       // Get organization from auth context
       const orgId = req.orgId
       if (!orgId) {
-        throw Problems.UNAUTHORIZED('Organization context required')
+        throw Problems.unauthorized('Organization context required')
       }
 
       // Get playbook status
@@ -114,7 +114,7 @@ export class FlowsController {
 
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw Problems.BAD_REQUEST('Invalid request data', {
+        throw Problems.badRequest('Invalid request data', {
           details: error.errors,
         })
       }
@@ -134,7 +134,7 @@ export class FlowsController {
       // Get user from auth context
       const userId = req.user?.id
       if (!userId) {
-        throw Problems.UNAUTHORIZED('User context required')
+        throw Problems.unauthorized('User context required')
       }
 
       // Execute approval/rejection
@@ -165,7 +165,7 @@ export class FlowsController {
 
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw Problems.BAD_REQUEST('Invalid request data', {
+        throw Problems.badRequest('Invalid request data', {
           details: error.errors,
         })
       }
@@ -182,7 +182,7 @@ export class FlowsController {
       // Get organization from auth context
       const orgId = req.orgId
       if (!orgId) {
-        throw Problems.UNAUTHORIZED('Organization context required')
+        throw Problems.unauthorized('Organization context required')
       }
 
       const playbooks = [
@@ -221,7 +221,7 @@ export class FlowsController {
       // Get organization from auth context
       const orgId = req.orgId
       if (!orgId) {
-        throw Problems.UNAUTHORIZED('Organization context required')
+        throw Problems.unauthorized('Organization context required')
       }
 
       // TODO: Query database for execution history

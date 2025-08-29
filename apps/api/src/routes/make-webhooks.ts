@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { makeWebhooksController } from '../controllers/make-webhooks.controller.js'
 import { makeWebhookIPAllowlist } from '../middleware/ip-allowlist.js'
 import { makeWebhookIdempotency } from '../middleware/webhook-idempotency.js'
-import { verifyHmac } from '../middleware/verifyHmac.js'
+// import { verifyHmac } from '../middleware/verifyHmac.js'
 import { env } from '@econeura/shared'
 
 const router = Router()

@@ -1,5 +1,5 @@
-import { db, setOrg } from './connection.js'
-import { organizations, users, companies, contacts, deals, invoices, tasks } from './schema.js'
+import { db, setOrg } from './connection.ts'
+import { organizations, users, companies, contacts, deals, invoices, tasks } from './schema.ts'
 import { env } from '@econeura/shared'
 
 async function seed() {

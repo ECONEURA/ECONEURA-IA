@@ -213,13 +213,13 @@ export async function createOrganization(
 ): Promise<void> {
   const keyHash = hashApiKey(apiKey);
   
-  await db.query(
+  await db.query.
     'INSERT INTO organizations (org_id, name, api_key_hash) VALUES ($1, $2, $3)',
     [orgId, name, keyHash]
   );
   
   // Create default limits
-  await db.query(
+  await db.query.
     'INSERT INTO org_limits (org_id) VALUES ($1)',
     [orgId]
   );
@@ -230,7 +230,7 @@ export async function createOrganization(
 export async function rotateApiKey(orgId: string, newApiKey: string): Promise<void> {
   const keyHash = hashApiKey(newApiKey);
   
-  await db.query(
+  await db.query.
     'UPDATE organizations SET api_key_hash = $1 WHERE org_id = $2',
     [keyHash, orgId]
   );
@@ -239,7 +239,7 @@ export async function rotateApiKey(orgId: string, newApiKey: string): Promise<vo
 }
 
 export async function disableOrganization(orgId: string): Promise<void> {
-  await db.query(
+  await db.query.
     'UPDATE organizations SET enabled = false WHERE org_id = $1',
     [orgId]
   );

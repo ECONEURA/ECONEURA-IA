@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { 
   Users, 
   Building2, 
-  Handshake,
   Plus,
   Search,
   BarChart3,
@@ -40,7 +39,7 @@ function MediterraneanCRM() {
       title: 'Nuevo contacto agregado',
       description: 'María García - Directora de Compras en Mediterráneo Tech',
       time: 'Hace 15 minutos',
-      icon: UsersIcon,
+      icon: Users,
       color: 'coral'
     },
     {
@@ -49,7 +48,7 @@ function MediterraneanCRM() {
       title: 'Oportunidad actualizada',
       description: 'Proyecto ERP - Fase de negociación (€85,000)',
       time: 'Hace 1 hora',
-      icon: HandshakeIcon,
+      icon: Users,
       color: 'mediterranean'
     },
     {
@@ -58,7 +57,7 @@ function MediterraneanCRM() {
       title: 'Empresa actualizada',
       description: 'Costa del Sol Solutions - Información de contacto',
       time: 'Hace 2 horas',
-      icon: BuildingOfficeIcon,
+      icon: Building2,
       color: 'olive'
     }
   ];
@@ -67,28 +66,28 @@ function MediterraneanCRM() {
     {
       title: 'Añadir Contacto',
       description: 'Crear un nuevo contacto en el CRM',
-      icon: UsersIcon,
+      icon: Users,
       color: 'coral',
       href: '/crm/contacts/new'
     },
     {
       title: 'Nueva Empresa',
       description: 'Registrar una nueva empresa',
-      icon: BuildingOfficeIcon,
+      icon: Building2,
       color: 'olive', 
       href: '/crm/companies/new'
     },
     {
       title: 'Crear Oportunidad',
       description: 'Iniciar una nueva oportunidad de venta',
-      icon: HandshakeIcon,
+      icon: Users,
       color: 'mediterranean',
       href: '/crm/deals/new'
     },
     {
       title: 'Programar Reunión',
       description: 'Agendar cita con cliente',
-      icon: CalendarIcon,
+      icon: Calendar,
       color: 'terracotta',
       href: '/crm/meetings/new'
     }
@@ -99,7 +98,7 @@ function MediterraneanCRM() {
       {/* Mediterranean Header */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-coral-600 via-coral-500 to-mediterranean-500 opacity-90"></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.1\"%3E%3Ccircle cx=\"30\" cy=\"30\" r=\"4\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-20"></div>
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
@@ -115,7 +114,7 @@ function MediterraneanCRM() {
             <div className="flex items-center gap-4">
               {/* Search Bar */}
               <div className="relative">
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60" />
                 <input
                   type="text"
                   placeholder="Buscar contactos, empresas..."
@@ -126,7 +125,7 @@ function MediterraneanCRM() {
               </div>
               
               <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
-                <PlusIcon className="w-4 h-4" />
+                <Plus className="w-4 h-4" />
                 Nuevo
               </button>
             </div>
@@ -139,10 +138,10 @@ function MediterraneanCRM() {
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-2">
           <div className="flex space-x-1">
             {[
-              { id: 'overview', label: 'Resumen', icon: ChartBarIcon },
-              { id: 'contacts', label: 'Contactos', icon: UsersIcon },
-              { id: 'companies', label: 'Empresas', icon: BuildingOfficeIcon },
-              { id: 'deals', label: 'Oportunidades', icon: HandshakeIcon }
+              { id: 'overview', label: 'Resumen', icon: BarChart3 },
+              { id: 'contacts', label: 'Contactos', icon: Users },
+              { id: 'companies', label: 'Empresas', icon: Building2 },
+              { id: 'deals', label: 'Oportunidades', icon: Users }
             ].map((tab) => {
               const IconComponent = tab.icon;
               return (
@@ -174,28 +173,28 @@ function MediterraneanCRM() {
                 {
                   label: 'Total Contactos',
                   value: crmStats.totalContacts.toLocaleString(),
-                  icon: UsersIcon,
+                  icon: Users,
                   color: 'coral',
                   change: '+12%'
                 },
                 {
                   label: 'Empresas Activas',
                   value: crmStats.totalCompanies.toLocaleString(),
-                  icon: BuildingOfficeIcon,
+                  icon: Building2,
                   color: 'olive',
                   change: '+8%'
                 },
                 {
                   label: 'Oportunidades',
                   value: crmStats.activeDeals.toLocaleString(),
-                  icon: HandshakeIcon,
+                  icon: Users,
                   color: 'mediterranean',
                   change: '+15%'
                 },
                 {
                   label: 'Ingresos Proyectados',
                   value: `€${(crmStats.monthlyRevenue / 1000).toFixed(0)}K`,
-                  icon: ChartBarIcon,
+                  icon: BarChart3,
                   color: 'terracotta',
                   change: '+24%'
                 }
@@ -330,7 +329,7 @@ function MediterraneanCRM() {
         {selectedTab !== 'overview' && (
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-8 text-center">
             <div className="text-mediterranean-600 mb-4">
-              <ChartBarIcon className="w-16 h-16 mx-auto mb-4 opacity-50" />
+              <BarChart3 className="w-16 h-16 mx-auto mb-4 opacity-50" />
               <h3 className="text-xl font-bold text-mediterranean-800 font-playfair mb-2">
                 {selectedTab === 'contacts' && 'Gestión de Contactos'}
                 {selectedTab === 'companies' && 'Gestión de Empresas'}  

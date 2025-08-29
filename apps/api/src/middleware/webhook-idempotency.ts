@@ -70,7 +70,7 @@ export function webhookIdempotency(options: WebhookIdempotencyOptions = {}) {
             corr_id: res.locals.corr_id,
           })
           
-          throw Problems.CONFLICT('Request already in progress', {
+          throw Problems.conflict('Request already in progress', {
             detail: 'This request is already being processed',
             idempotency_key: idempotencyKey,
           })
@@ -95,7 +95,7 @@ export function webhookIdempotency(options: WebhookIdempotencyOptions = {}) {
       ttlUntil.setHours(ttlUntil.getHours() + ttlHours)
 
       // Insert or update idempotency key
-      await db.query(
+      await db.query.
         `INSERT INTO idempotency_keys (key, org_id, first_seen_at, in_progress, ttl_until, result_hash) 
          VALUES ($1, $2, NOW(), true, $3, $4)
          ON CONFLICT (key, org_id) DO UPDATE SET 
@@ -132,7 +132,7 @@ export function webhookIdempotency(options: WebhookIdempotencyOptions = {}) {
                 responseData = chunk
               }
 
-              await db.query(
+              await db.query.
                 `UPDATE idempotency_keys 
                  SET in_progress = false, 
                      last_status = $1, 

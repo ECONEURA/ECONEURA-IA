@@ -244,7 +244,7 @@ export class OrgRateLimiter {
   // Method to manually adjust limits (for admin endpoints)
   public async updateOrgLimits(orgId: string, rpsLimit: number, burst: number): Promise<void> {
     // Update database
-    await db.query(
+    await db.query.
       'UPDATE org_limits SET rps_limit = $1, burst = $2 WHERE org_id = $3',
       [rpsLimit, burst, orgId]
     );

@@ -41,7 +41,8 @@ export default function LoginPage() {
       
       await login({
         email: data.email,
-        password: data.password
+        password: data.password,
+        rememberMe: false
       })
       
       // Redirigir al dashboard después del login exitoso

@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { PrismaClient } from '@prisma/client'
+// import { PrismaClient } from '@prisma/client'
 import { confirm } from '@inquirer/prompts'
 
 const prisma = new PrismaClient()

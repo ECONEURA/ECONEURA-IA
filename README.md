@@ -1,320 +1,219 @@
-# ECONEURA - Mediterranean Business Suite
+# 🚀 ECONEURA - ERP/CRM + IA
 
-Monorepo (ERP/CRM + IA) MVP con Mistral local + Azure OpenAI UE, Graph, webhooks Make, RLS, observabilidad y CI/CD Azure UE.
+**Sistema ERP/CRM moderno con inteligencia artificial, integraciones Microsoft Graph y observabilidad completa.**
 
-## 🚀 Quick Start
+[![Build Status](https://github.com/tu-usuario/econeura/workflows/CI/badge.svg)](https://github.com/tu-usuario/econeura/actions)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue.svg)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)](https://nextjs.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+## 🎯 Características Principales
+
+### 💼 **ERP Completo**
+- 📦 Gestión de inventario y productos
+- 💰 Facturación y contabilidad
+- 👥 Recursos humanos
+- 📊 Reportes financieros
+
+### 🤝 **CRM Avanzado**
+- 👤 Gestión de contactos y empresas
+- 💼 Pipeline de ventas
+- 📈 Análisis de oportunidades
+- 📞 Historial de interacciones
+
+### 🤖 **IA Integrada**
+- 🧠 Router de IA (Mistral local + Azure OpenAI)
+- 💰 Control de costes (50€/org/mes)
+- 📊 Métricas de uso y rendimiento
+- 🔄 Fallback automático
+
+### 🔗 **Integraciones**
+- 📧 Microsoft Outlook
+- 💬 Microsoft Teams
+- 📋 Microsoft Planner
+- 📁 Microsoft SharePoint
+- 🔗 Webhooks Make.com
+
+### 🔒 **Seguridad & Cumplimiento**
+- 🏢 Multi-tenant con RLS
+- 🇪🇺 Residencia de datos UE
+- 🔐 Autenticación JWT
+- 📝 Auditoría completa
+
+## 🛠️ Stack Tecnológico
+
+| Capa | Tecnologías |
+|------|-------------|
+| **Frontend** | Next.js 14, React 18, TypeScript, Tailwind CSS |
+| **Backend** | Express.js, TypeScript, OpenAPI 3.0 |
+| **Base de Datos** | PostgreSQL 15, Drizzle ORM, RLS |
+| **IA** | Mistral 7B, Azure OpenAI, Cost Meter |
+| **Observabilidad** | OpenTelemetry, Prometheus, Grafana |
+| **Infraestructura** | Azure, Docker, GitHub Actions |
+
+## 🚀 Instalación Rápida
 
 ```bash
-# Install dependencies
+# 1. Clonar repositorio
+git clone https://github.com/tu-usuario/econeura.git
+cd econeura
+
+# 2. Instalar dependencias
 pnpm install
 
-# Start development servers
+# 3. Configurar entorno
+cp env.example .env
+# Editar .env con tus configuraciones
+
+# 4. Iniciar infraestructura
+pnpm docker:up
+
+# 5. Configurar base de datos
+pnpm setup
+
+# 6. Iniciar desarrollo
 pnpm dev
-
-# Run tests
-pnpm test
-
-# Build all packages
-pnpm build
 ```
 
-## 📁 Project Structure
+## 📁 Estructura del Proyecto
 
 ```
-apps/
-├── web/          # Next.js 14 App Router + BFF
-├── api/          # Express/TS + OpenAPI
-└── workers/      # Azure Functions
-
-packages/
-├── shared/       # Zod DTOs, env(), OTel, cost-meter
-├── db/           # Database schema & migrations
-└── playbooks/    # DSL & executors
-
-infra/            # IaC (Bicep/Terraform)
-docs/             # Architecture & decisions
+econeura/
+├── 📱 apps/
+│   ├── web/          # Next.js 14 Frontend
+│   ├── api/          # Express.js Backend
+│   └── workers/      # Azure Functions
+├── 📦 packages/
+│   ├── shared/       # Utilidades compartidas
+│   ├── db/           # Base de datos y migraciones
+│   └── sdk/          # SDK TypeScript
+├── 🏗️ infra/         # Infraestructura como código
+└── 📚 docs/          # Documentación
 ```
 
-## 🛠 Tech Stack
-
-- **Language**: TypeScript everywhere
-- **Monorepo**: pnpm workspaces
-- **Node**: 20.x LTS
-- **Frontend**: Next.js 14 (App Router)
-- **Backend**: Express + OpenAPI
-- **Database**: PostgreSQL with RLS
-- **AI**: Mistral local + Azure OpenAI
-- **Observability**: OpenTelemetry + Prometheus
-- **Deployment**: Azure (West Europe)
-
-## 🔧 Development
-
-### Prerequisites
-
-- Node.js 20.x
-- pnpm 8.x
-- PostgreSQL
-- Docker (for local Mistral)
-
-### Environment Variables
-
-Create `.env` files in each app directory:
+## 🛠️ Comandos de Desarrollo
 
 ```bash
-# Database
-PGHOST=localhost
-PGUSER=your_user
-PGPASSWORD=your_password
-PGDATABASE=econeura
+# Desarrollo completo
+pnpm dev                    # Web + API + DB Studio
 
-# AI
-MISTRAL_BASE_URL=http://mistral:8080
-AZURE_OPENAI_ENDPOINT=https://your-endpoint.openai.azure.com
+# Desarrollo específico
+pnpm dev:web               # Solo frontend
+pnpm dev:api               # Solo backend
+pnpm dev:db                # Solo base de datos
+
+# Build
+pnpm build                 # Build completo
+pnpm build:web             # Solo frontend
+pnpm build:api             # Solo backend
+
+# Testing
+pnpm test                  # Tests unitarios
+pnpm test:watch            # Tests en modo watch
+pnpm test:coverage         # Tests con cobertura
+pnpm test:integration      # Tests de integración
+
+# Base de datos
+pnpm db:generate           # Generar migraciones
+pnpm db:migrate            # Ejecutar migraciones
+pnpm db:seed               # Poblar datos
+pnpm db:studio             # Abrir Drizzle Studio
+
+# Calidad de código
+pnpm lint                  # Linting
+pnpm lint:fix              # Linting con auto-fix
+pnpm typecheck             # Verificación de tipos
+pnpm format                # Formateo con Prettier
+```
+
+## 🔧 Configuración de Entorno
+
+### Variables Requeridas
+
+```bash
+# Base de datos
+PGHOST=localhost
+PGUSER=econeura_user
+PGPASSWORD=econeura_password
+PGDATABASE=econeura_dev
+
+# IA
+MISTRAL_BASE_URL=http://localhost:8080
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com
 AZURE_OPENAI_API_KEY=your_key
 
 # Microsoft Graph
-AZURE_TENANT_ID=your_tenant
+AZURE_TENANT_ID=your_tenant_id
 AZURE_CLIENT_ID=your_client_id
 AZURE_CLIENT_SECRET=your_secret
+
+# Seguridad
+JWT_SECRET=your_jwt_secret
+MAKE_WEBHOOK_HMAC_SECRET=your_hmac_secret
 ```
 
-### Database Setup
+## 🧪 Testing
 
 ```bash
-# Generate migrations
-pnpm db:generate
+# Ejecutar todos los tests
+pnpm test
 
-# Run migrations
-pnpm db:migrate
+# Tests específicos
+pnpm test:unit            # Tests unitarios
+pnpm test:integration     # Tests de integración
+pnpm test:performance     # Tests de rendimiento
 
-# Seed database with test data
-pnpm db:seed
-
-# Run database tests
-pnpm --workspace=packages/db test
+# Cobertura
+pnpm test:coverage        # Generar reporte de cobertura
 ```
 
-### AI Router Features
+## 🚀 Deploy
 
+### Desarrollo Local
 ```bash
-# Test AI routing
-curl -X POST http://localhost:3001/api/v1/ai/route \
-  -H "Content-Type: application/json" \
-  -H "x-org-id: org1" \
-  -d '{"prompt": "Hello, how are you?", "maxTokens": 100}'
-
-# Check provider health
-curl http://localhost:3001/api/v1/ai/providers/health
-
-# Get cost usage
-curl http://localhost:3001/api/v1/ai/cost/usage \
-  -H "x-org-id: org1"
+pnpm docker:up            # Iniciar servicios
+pnpm setup                # Configurar BD
+pnpm dev                  # Desarrollo
 ```
 
-### CFO Playbook Features
-
+### Producción (Azure)
 ```bash
-# Execute CFO collection playbook
-curl -X POST http://localhost:3001/api/v1/flows/collection \
-  -H "Content-Type: application/json" \
-  -H "x-org-id: org1" \
-  -d '{
-    "cfoUserId": "cfo@company.com",
-    "financeTeamId": "team-123",
-    "financeChannelId": "channel-456",
-    "financePlanId": "plan-789",
-    "financeManagerId": "manager-123"
-  }'
-
-# Get playbook status
-curl http://localhost:3001/api/v1/flows/playbook-id/status \
-  -H "x-org-id: org1"
-
-# Approve playbook
-curl -X POST http://localhost:3001/api/v1/flows/playbook-id/approve \
-  -H "Content-Type: application/json" \
-  -H "x-org-id: org1" \
-  -d '{"action": "approve"}'
+# Configurar secrets en GitHub
+# Push a main branch
+# GitHub Actions se encarga del deploy
 ```
 
-### Make Webhook Features
+## 📊 Monitoreo
 
-```bash
-# Send Make webhook event
-curl -X POST http://localhost:3001/api/webhooks/make \
-  -H "Content-Type: application/json" \
-  -H "x-forwarded-for: 127.0.0.1" \
-  -H "x-make-signature: valid-hmac-signature" \
-  -H "x-make-timestamp: $(date +%s)" \
-  -d '{
-    "event_type": "invoice_overdue",
-    "data": {
-      "invoice_id": "inv-123",
-      "amount": 1500.00,
-      "due_date": "2024-01-15",
-      "customer_email": "customer@example.com",
-      "org_id": "org1"
-    },
-    "timestamp": "2024-01-15T10:00:00Z"
-  }'
+- **Métricas**: http://localhost:9090 (Prometheus)
+- **Dashboards**: http://localhost:3001 (Grafana)
+- **Trazas**: http://localhost:16686 (Jaeger)
+- **Base de datos**: http://localhost:4983 (Drizzle Studio)
 
-# Check webhook health
-curl http://localhost:3001/api/webhooks/make/health
+## 🤝 Contribución
 
-# Get webhook statistics
-curl http://localhost:3001/api/webhooks/make/stats \
-  -H "x-org-id: org1"
-```
+1. 🍴 Fork el proyecto
+2. 🌿 Crea una rama (`git checkout -b feature/AmazingFeature`)
+3. 💾 Commit tus cambios (`git commit -m 'Add AmazingFeature'`)
+4. 📤 Push a la rama (`git push origin feature/AmazingFeature`)
+5. 🔄 Abre un Pull Request
 
-### BFF Proxy Features
+### Convenciones
 
-```bash
-# Frontend requests are automatically proxied through BFF
-# GET /api/econeura/v1/crm/companies
-# POST /api/econeura/v1/ai/route
-# GET /api/econeura/v1/flows/collection
+- **Commits**: [Conventional Commits](https://www.conventionalcommits.org/)
+- **Branches**: `feature/`, `fix/`, `docs/`, `chore/`
+- **PRs**: Incluir tests y documentación
 
-# BFF automatically adds:
-# - x-request-id (correlation ID)
-# - traceparent (OpenTelemetry)
-# - x-org-id (organization context)
-# - authorization (Bearer token)
-# - CORS headers
-```
+## 📄 Licencia
 
-### Observability Features
+Este proyecto está bajo la Licencia MIT. Ver [LICENSE](LICENSE) para más detalles.
 
-```bash
-# OpenTelemetry tracing and metrics
-# GET /metrics - Prometheus + OpenTelemetry metrics
-# GET /metrics/health - Metrics health check
-# GET /metrics/summary - Metrics summary
-# GET /metrics/org/:orgId - Organization-specific metrics
+## 🆘 Soporte
 
-# Custom metrics available:
-# - ai_requests_total{provider,model,status,org_id}
-# - ai_cost_eur{provider,org_id}
-# - ai_latency_ms{provider,model,org_id}
-# - http_requests_total{method,route,status_code,org_id}
-# - webhook_received_total{source,event_type}
-# - flow_executions_total{flow_type,status,org_id}
-# - db_query_latency_ms{operation,table,org_id}
-# - idempotency_replays_total{key,org_id}
-# - rate_limit_exceeded_total{route,org_id}
-# - org_monthly_cost_eur{org_id}
-```
+- 📧 Email: soporte@econeura.com
+- 💬 Discord: [Canal de soporte](https://discord.gg/econeura)
+- 📖 Docs: [Documentación completa](https://docs.econeura.com)
 
-### CI/CD Features
+---
 
-```bash
-# Strong CI with quality gates
-# Quality Gates: lint, typecheck, conventional commits
-# Test Coverage: ≥80% threshold, Codecov integration
-# OpenAPI Validation: schema validation, breaking changes check
-# Security Scanning: CodeQL, Trivy, Snyk, npm audit
-# Secret Scanning: TruffleHog, detect-secrets
-# Integration Tests: PostgreSQL, full API testing
-# Performance Tests: load testing, memory usage, latency thresholds
-# Build & Package: deployment artifacts
-
-# CI Jobs:
-# - quality-gates: Lint, typecheck, conventional commits
-# - test-coverage: Unit tests with ≥80% coverage
-# - openapi-validation: OpenAPI schema validation
-# - security-scanning: CodeQL, Trivy, Snyk
-# - secret-scanning: TruffleHog, detect-secrets
-# - build-package: Build and package applications
-# - integration-tests: Full integration testing
-# - performance-tests: Performance and load testing
-# - status-check: Final status verification
-
-### Azure Infrastructure Features
-
-```bash
-# Infrastructure as Code (Bicep)
-# Azure Container Registry (ACR): Private container registry
-# Azure Container Apps: Serverless containers for API/Web
-# Azure PostgreSQL Flexible Server: Managed database with RLS
-# Azure Key Vault: Secure secret management
-# Azure Application Insights: Monitoring and telemetry
-# Azure Front Door: Global load balancer with WAF
-# Azure Functions: Serverless compute for background jobs
-# Virtual Network: Private networking for security
-
-# Deployment Pipeline:
-# 1. Infrastructure Deployment (Bicep)
-# 2. Build and Push Images (Docker)
-# 3. Application Deployment (Container Apps)
-# 4. Database Migration (PostgreSQL)
-# 5. Smoke Tests (Health checks)
-# 6. Performance Tests (Production only)
-# 7. Notifications (Teams webhook)
-
-# Environment Support:
-# - dev: Minimal resources, cost-optimized
-# - staging: Medium resources, testing
-# - prod: High availability, performance-optimized
-```
-
-### API Development
-
-```bash
-# Start API server
-pnpm --workspace=apps/api dev
-
-# Run API tests
-pnpm --workspace=apps/api test
-
-# Generate OpenAPI spec
-pnpm api:openapi
-```
-
-### API Endpoints
-
-The API provides CRUD operations for all entities with Problem+JSON error handling:
-
-- **Companies**: `/api/v1/crm/companies`
-- **Contacts**: `/api/v1/crm/contacts`
-- **Deals**: `/api/v1/crm/deals`
-- **Invoices**: `/api/v1/finance/invoices`
-- **AI Router**: `/api/v1/ai/route`
-- **AI Health**: `/api/v1/ai/providers/health`
-- **AI Cost Usage**: `/api/v1/ai/cost/usage`
-- **CFO Collection**: `/api/v1/flows/collection`
-- **Playbook Status**: `/api/v1/flows/:playbookId/status`
-- **Playbook Approval**: `/api/v1/flows/:playbookId/approve`
-- **Make Webhooks**: `/api/webhooks/make`
-- **Webhook Health**: `/api/webhooks/make/health`
-- **Webhook Stats**: `/api/webhooks/make/stats`
-
-All endpoints support:
-- Pagination (`?page=1&limit=20`)
-- Sorting (`?sortBy=name&sortOrder=desc`)
-- Filtering (`?status=active`)
-- RLS isolation between organizations
-- AI cost cap enforcement (50€/org/month)
-
-## 📊 Status
-
-- ✅ PR-01: Bootstrap monorepo
-- ✅ PR-02: Database + RLS + Seeds
-- ✅ PR-03: API CRUD + Problem+JSON
-- ✅ PR-04: AI Router + Cost Cap
-- ✅ PR-05: Microsoft Graph + Playbook CFO
-- ✅ PR-06: Webhooks Make
-- ✅ PR-07: Web BFF + Panel
-- ✅ PR-08: Observability & Metrics
-- ✅ PR-09: Strong CI
-- ✅ PR-10: Azure Infrastructure + CD
-
-## 🎯 MVP Features
-
-- **CRM**: Companies, Contacts, Deals, Interactions
-- **ERP**: Invoices, Inventory, Products
-- **AI Router**: Mistral → Azure OpenAI with cost cap
-- **CFO Playbook**: Automated debt collection
-- **Microsoft Graph**: Outlook + Teams integration
-- **Webhooks**: Make integration with HMAC
-- **Multi-tenant**: RLS on all tables
-- **Observability**: Full tracing + metrics
-- **GDPR**: EU data residency + audit trails
+**Desarrollado con ❤️ en España 🇪🇸**

@@ -32,7 +32,7 @@ export function ipAllowlist(options: IPAllowlistOptions = {}) {
         headers: req.headers,
         corr_id: res.locals.corr_id,
       })
-      throw Problems.FORBIDDEN('Client IP not detected')
+      throw Problems.forbidden('Client IP not detected')
     }
 
     // Check if IP is allowed
@@ -48,7 +48,7 @@ export function ipAllowlist(options: IPAllowlistOptions = {}) {
         allowed_ips: allowedIPs,
         corr_id: res.locals.corr_id,
       })
-      throw Problems.FORBIDDEN(`IP ${actualIP} not in allowlist`)
+      throw Problems.forbidden(`IP ${actualIP} not in allowlist`)
     }
 
     // Store IP info for logging

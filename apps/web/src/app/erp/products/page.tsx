@@ -2,23 +2,25 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  CubeIcon, 
-  PlusIcon,
-  MagnifyingGlassIcon,
-  PhotoIcon,
-  TagIcon,
-  CurrencyEuroIcon,
-  BuildingStorefrontIcon,
-  EllipsisVerticalIcon,
-  PencilIcon,
-  TrashIcon,
-  StarIcon,
-  EyeIcon,
-  FunnelIcon,
-  QrCodeIcon,
-  ArrowPathIcon
-} from '@heroicons/react/24/outline';
-import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid';
+  Box, 
+  Plus,
+  Search,
+  Image,
+  Tag,
+  BarChart3,
+  Store,
+  MoreVertical,
+  Pencil,
+  Trash2,
+  Star,
+  Eye,
+  Filter,
+  QrCode,
+  RefreshCw,
+  CheckCircle,
+  AlertTriangle
+} from 'lucide-react';
+import { Star as StarSolid } from 'lucide-react';
 import { ProtectedRoute } from '../../../components/auth/ProtectedRoute';
 
 interface Product {
@@ -338,7 +340,7 @@ function MediterraneanProducts() {
         <div className="text-center">
           <div className="relative">
             <div className="w-16 h-16 border-4 border-mediterranean-200 border-t-mediterranean-500 rounded-full animate-spin mx-auto"></div>
-            <CubeIcon className="w-6 h-6 text-coral-500 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+            <Box className="w-6 h-6 text-coral-500 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
           </div>
           <p className="mt-4 text-mediterranean-700 font-medium">Cargando catálogo de productos...</p>
         </div>
@@ -351,7 +353,7 @@ function MediterraneanProducts() {
       {/* Mediterranean Header */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-coral-600 via-coral-500 to-terracotta-500 opacity-90"></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csv width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.1\"%3E%3Ccircle cx=\"30\" cy=\"30\" r=\"4\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-20"></div>
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
@@ -366,12 +368,12 @@ function MediterraneanProducts() {
             
             <div className="flex items-center gap-4">
               <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
-                <ArrowPathIcon className="w-4 h-4" />
+                <RefreshCw className="w-4 h-4" />
                 Sincronizar
               </button>
               
               <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
-                <PlusIcon className="w-4 h-4" />
+                <Plus className="w-4 h-4" />
                 Nuevo Producto
               </button>
             </div>
@@ -386,25 +388,25 @@ function MediterraneanProducts() {
             {
               label: 'Total Productos',
               value: totalProducts.toString(),
-              icon: CubeIcon,
+              icon: Box,
               color: 'coral'
             },
             {
               label: 'Productos Activos',
               value: activeProducts.toString(),
-              icon: CheckCircleIcon,
+              icon: CheckCircle,
               color: 'green'
             },
             {
               label: 'Valor Inventario',
               value: `€${(totalValue / 1000).toFixed(0)}K`,
-              icon: CurrencyEuroIcon,
+              icon: BarChart3,
               color: 'mediterranean'
             },
             {
               label: 'Alertas Stock',
               value: lowStockProducts.toString(),
-              icon: ExclamationTriangleIcon,
+              icon: AlertTriangle,
               color: 'red'
             }
           ].map((stat, index) => {
@@ -441,7 +443,7 @@ function MediterraneanProducts() {
           <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
             {/* Search */}
             <div className="relative flex-1 max-w-md">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-mediterranean-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-mediterranean-400" />
               <input
                 type="text"
                 placeholder="Buscar productos..."
@@ -455,7 +457,7 @@ function MediterraneanProducts() {
             <div className="flex flex-wrap items-center gap-4">
               {/* Category Filter */}
               <div className="flex items-center gap-2">
-                <FunnelIcon className="w-5 h-5 text-mediterranean-600" />
+                <Filter className="w-5 h-5 text-mediterranean-600" />
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
@@ -553,7 +555,7 @@ function MediterraneanProducts() {
                   <div className="flex-1 min-w-0">
                     {/* Product Image Placeholder */}
                     <div className="w-full h-32 bg-mediterranean-100 rounded-xl mb-3 flex items-center justify-center">
-                      <PhotoIcon className="w-8 h-8 text-mediterranean-400" />
+                      <Image className="w-8 h-8 text-mediterranean-400" />
                     </div>
                     
                     <h3 className="font-bold text-mediterranean-800 text-sm font-playfair line-clamp-2">
@@ -573,14 +575,14 @@ function MediterraneanProducts() {
                       className="p-1 hover:bg-mediterranean-50 rounded-full transition-colors"
                     >
                       {product.featured ? (
-                        <StarSolidIcon className="w-4 h-4 text-yellow-500" />
+                        <Star className="w-4 h-4 text-yellow-500" />
                       ) : (
-                        <StarIcon className="w-4 h-4 text-mediterranean-400" />
+                        <Star className="w-4 h-4 text-mediterranean-400" />
                       )}
                     </button>
                     
                     <button className="p-1 hover:bg-mediterranean-50 rounded-full transition-colors">
-                      <EllipsisVerticalIcon className="w-4 h-4 text-mediterranean-400" />
+                      <MoreVertical className="w-4 h-4 text-mediterranean-400" />
                     </button>
                   </div>
                 </div>
@@ -626,11 +628,11 @@ function MediterraneanProducts() {
                 {/* Action Buttons */}
                 <div className="flex gap-2 pt-4 border-t border-mediterranean-100">
                   <button className="flex-1 bg-gradient-to-r from-coral-500 to-coral-600 text-white py-2 rounded-xl text-sm font-medium hover:shadow-md transition-all duration-200">
-                    <EyeIcon className="w-4 h-4 inline mr-1" />
+                    <Eye className="w-4 h-4 inline mr-1" />
                     Ver
                   </button>
                   <button className="px-3 py-2 border border-mediterranean-200 text-mediterranean-600 rounded-xl hover:bg-mediterranean-50 transition-colors">
-                    <PencilIcon className="w-4 h-4" />
+                    <Pencil className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -675,12 +677,12 @@ function MediterraneanProducts() {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-mediterranean-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <PhotoIcon className="w-5 h-5 text-mediterranean-400" />
+                            <Image className="w-5 h-5 text-mediterranean-400" />
                           </div>
                           <div className="min-w-0">
                             <div className="font-medium text-mediterranean-800 flex items-center gap-2">
                               {product.name}
-                              {product.featured && <StarSolidIcon className="w-4 h-4 text-yellow-500" />}
+                              {product.featured && <Star className="w-4 h-4 text-yellow-500" />}
                             </div>
                             <div className="text-sm text-mediterranean-600">{product.brand}</div>
                           </div>
@@ -733,13 +735,13 @@ function MediterraneanProducts() {
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center gap-2 justify-end">
                           <button className="p-2 text-coral-600 hover:bg-coral-50 rounded-lg transition-colors">
-                            <EyeIcon className="w-4 h-4" />
+                            <Eye className="w-4 h-4" />
                           </button>
                           <button className="p-2 text-mediterranean-600 hover:bg-mediterranean-50 rounded-lg transition-colors">
-                            <PencilIcon className="w-4 h-4" />
+                            <Pencil className="w-4 h-4" />
                           </button>
                           <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                            <TrashIcon className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </td>
@@ -754,7 +756,7 @@ function MediterraneanProducts() {
         {/* Empty State */}
         {filteredAndSortedProducts.length === 0 && (
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-12 text-center">
-            <CubeIcon className="w-16 h-16 text-mediterranean-400 mx-auto mb-4" />
+            <Box className="w-16 h-16 text-mediterranean-400 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-mediterranean-800 font-playfair mb-2">
               No se encontraron productos
             </h3>
@@ -765,7 +767,7 @@ function MediterraneanProducts() {
               }
             </p>
             <button className="bg-gradient-to-r from-coral-500 to-terracotta-500 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-200">
-              <PlusIcon className="w-4 h-4 inline mr-2" />
+              <Plus className="w-4 h-4 inline mr-2" />
               Agregar Producto
             </button>
           </div>

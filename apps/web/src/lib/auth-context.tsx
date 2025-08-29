@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { EconeuraSDK } from '@econeura/sdk';
+// import { EconeuraSDK } from '@econeura/sdk';
 import type { 
   User, 
   Organization, 
@@ -19,7 +19,7 @@ interface AuthContextType {
   permissions: string[];
   isLoading: boolean;
   isAuthenticated: boolean;
-  sdk: EconeuraSDK | null;
+  sdk: any | null;
   login: (credentials: LoginRequest) => Promise<void>;
   logout: (allDevices?: boolean) => Promise<void>;
   refreshSession: () => Promise<void>;
@@ -53,25 +53,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [role, setRole] = useState<Role | null>(null);
   const [permissions, setPermissions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [sdk, setSdk] = useState<EconeuraSDK | null>(null);
+  const [sdk, setSdk] = useState<any | null>(null);
   const router = useRouter();
 
   // Initialize SDK
   const initializeSdk = useCallback((accessToken?: string, refreshToken?: string) => {
-    const newSdk = new EconeuraSDK({
-      baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000',
-      accessToken,
-      refreshToken,
-      onTokenRefresh: (tokens) => {
-        // Save new tokens
-        localStorage.setItem(TOKEN_KEY, tokens.accessToken);
-        localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
-      },
-      timeout: 30000,
-      retries: 3,
-    });
-    setSdk(newSdk);
-    return newSdk;
+    // const newSdk = new EconeuraSDK({
+    //   baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000',
+    //   accessToken,
+    //   refreshToken,
+    //   onTokenRefresh: (tokens) => {
+    //     // Save new tokens
+    //     localStorage.setItem(TOKEN_KEY, tokens.accessToken);
+    //     localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
+    //   },
+    //   timeout: 30000,
+    //   retries: 3,
+    // });
+    // setSdk(newSdk);
+    // return newSdk;
+    return null;
   }, []);
 
   // Load stored session on mount

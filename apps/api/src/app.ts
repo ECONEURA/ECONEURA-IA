@@ -9,7 +9,7 @@ import '@econeura/shared/otel'; // Initialize OpenTelemetry
 
 // Middlewares
 import { requestId } from './mw/requestId.js';
-import { verifyHmac } from './mw/verifyHmac.js';
+// import { verifyHmac } from '../middleware/verifyHmac.js'
 import { idempotency } from './mw/idempotency.js';
 import { rateLimitOrg } from './mw/rateLimitOrg.js';
 import { requireAuth, optionalAuth } from './mw/auth.js';

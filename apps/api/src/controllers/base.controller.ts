@@ -115,7 +115,7 @@ export abstract class BaseController<T, CreateInput, UpdateInput> {
 
       res.json(response)
     } catch (error) {
-      throw new ProblemError(Problems.internalError('Failed to fetch data'))
+      throw new Error(Problems.internalError('Failed to fetch data'))
     }
   }
 
@@ -133,7 +133,7 @@ export abstract class BaseController<T, CreateInput, UpdateInput> {
         ))
 
       if (!item) {
-        throw new ProblemError(Problems.notFound(this.getResourceName(), orgId))
+        throw new Error(Problems.notFound(this.getResourceName(), orgId))
       }
 
       res.json(item)
@@ -141,7 +141,7 @@ export abstract class BaseController<T, CreateInput, UpdateInput> {
       if (error instanceof ProblemError) {
         throw error
       }
-      throw new ProblemError(Problems.internalError('Failed to fetch item'))
+      throw new Error(Problems.internalError('Failed to fetch item'))
     }
   }
 
@@ -161,9 +161,9 @@ export abstract class BaseController<T, CreateInput, UpdateInput> {
       res.status(201).json(item)
     } catch (error) {
       if (error instanceof Error && error.message.includes('duplicate')) {
-        throw new ProblemError(Problems.conflict('Item already exists'))
+        throw new Error(Problems.conflict('Item already exists'))
       }
-      throw new ProblemError(Problems.internalError('Failed to create item'))
+      throw new Error(Problems.internalError('Failed to create item'))
     }
   }
 
@@ -186,7 +186,7 @@ export abstract class BaseController<T, CreateInput, UpdateInput> {
         .returning()
 
       if (!item) {
-        throw new ProblemError(Problems.notFound(this.getResourceName(), orgId))
+        throw new Error(Problems.notFound(this.getResourceName(), orgId))
       }
 
       res.json(item)
@@ -194,7 +194,7 @@ export abstract class BaseController<T, CreateInput, UpdateInput> {
       if (error instanceof ProblemError) {
         throw error
       }
-      throw new ProblemError(Problems.internalError('Failed to update item'))
+      throw new Error(Problems.internalError('Failed to update item'))
     }
   }
 
@@ -212,7 +212,7 @@ export abstract class BaseController<T, CreateInput, UpdateInput> {
         .returning()
 
       if (!item) {
-        throw new ProblemError(Problems.notFound(this.getResourceName(), orgId))
+        throw new Error(Problems.notFound(this.getResourceName(), orgId))
       }
 
       res.status(204).send()
@@ -220,7 +220,7 @@ export abstract class BaseController<T, CreateInput, UpdateInput> {
       if (error instanceof ProblemError) {
         throw error
       }
-      throw new ProblemError(Problems.internalError('Failed to delete item'))
+      throw new Error(Problems.internalError('Failed to delete item'))
     }
   }
 

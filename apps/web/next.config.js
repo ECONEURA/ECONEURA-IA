@@ -3,6 +3,7 @@ const nextConfig = {
   output: 'standalone',
   poweredByHeader: false,
   compress: true,
+  transpilePackages: ['@econeura/shared', '@econeura/sdk', '@econeura/db'],
   
   // Security headers
   async headers() {

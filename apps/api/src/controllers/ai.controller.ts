@@ -26,7 +26,7 @@ export class AIController {
       // Get organization from auth context
       const orgId = req.orgId
       if (!orgId) {
-        throw Problems.UNAUTHORIZED('Organization context required')
+        throw Problems.unauthorized('Organization context required')
       }
 
       // Prepare AI request
@@ -45,7 +45,7 @@ export class AIController {
 
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw Problems.BAD_REQUEST('Invalid request data', {
+        throw Problems.badRequest('Invalid request data', {
           details: error.errors,
         })
       }
@@ -85,7 +85,7 @@ export class AIController {
     try {
       const orgId = req.orgId
       if (!orgId) {
-        throw Problems.UNAUTHORIZED('Organization context required')
+        throw Problems.unauthorized('Organization context required')
       }
 
       const usage = await this.router.getCostUsage(orgId)

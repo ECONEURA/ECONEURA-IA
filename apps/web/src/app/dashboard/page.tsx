@@ -90,7 +90,7 @@ function DashboardContent() {
               <h1 className="text-xl font-semibold">ECONEURA Dashboard</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-gray-700">{user?.name || user?.email}</span>
+              <span className="text-gray-700">{user?.displayName || user?.email}</span>
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
@@ -112,7 +112,7 @@ function DashboardContent() {
             <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
               <div className="sm:col-span-1">
                 <dt className="text-sm font-medium text-gray-500">Nombre</dt>
-                <dd className="mt-1 text-sm text-gray-900">{user?.name || 'No especificado'}</dd>
+                <dd className="mt-1 text-sm text-gray-900">{user?.displayName || 'No especificado'}</dd>
               </div>
               <div className="sm:col-span-1">
                 <dt className="text-sm font-medium text-gray-500">Email</dt>
@@ -120,11 +120,11 @@ function DashboardContent() {
               </div>
               <div className="sm:col-span-1">
                 <dt className="text-sm font-medium text-gray-500">Rol</dt>
-                <dd className="mt-1 text-sm text-gray-900">{user?.role}</dd>
+                <dd className="mt-1 text-sm text-gray-900">{user?.status || 'Usuario'}</dd>
               </div>
               <div className="sm:col-span-1">
                 <dt className="text-sm font-medium text-gray-500">Organización</dt>
-                <dd className="mt-1 text-sm text-gray-900">{user?.organizationName}</dd>
+                <dd className="mt-1 text-sm text-gray-900">ECONEURA</dd>
               </div>
             </dl>
           </div>

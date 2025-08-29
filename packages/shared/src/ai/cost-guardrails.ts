@@ -1,5 +1,5 @@
-import { logger } from '../logging/index.js';
-import { prometheus } from '../metrics/index.js';
+import { logger } from '../logging/index.ts';
+import { prometheus } from '../metrics/index.ts';
 
 export interface CostLimits {
   dailyLimitEUR: number;

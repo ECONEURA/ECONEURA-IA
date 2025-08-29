@@ -49,7 +49,7 @@ export function idempotency(options: IdempotencyOptions = {}) {
         // Check if TTL has expired
         if (new Date() > record.ttl_until) {
           // Remove expired key
-          await db.query('DELETE FROM idempotency_keys WHERE key = $1', [idempotencyKey]);
+          await db.query.'DELETE FROM idempotency_keys WHERE key = $1', [idempotencyKey]);
         } else {
           // Key is still valid
           if (record.in_progress) {
@@ -96,7 +96,7 @@ export function idempotency(options: IdempotencyOptions = {}) {
       const ttlUntil = new Date();
       ttlUntil.setHours(ttlUntil.getHours() + ttlHours);
 
-      await db.query(
+      await db.query.
         `INSERT INTO idempotency_keys (key, first_seen_at, in_progress, ttl_until) 
          VALUES ($1, NOW(), true, $2)
          ON CONFLICT (key) DO UPDATE SET 
@@ -129,7 +129,7 @@ export function idempotency(options: IdempotencyOptions = {}) {
                 responseData = chunk;
               }
 
-              await db.query(
+              await db.query.
                 `UPDATE idempotency_keys 
                  SET in_progress = false, last_status = $1, response_json = $2 
                  WHERE key = $3`,
@@ -173,7 +173,7 @@ export function idempotency(options: IdempotencyOptions = {}) {
 // Cleanup function for expired keys (should be called by cron job)
 export async function cleanupExpiredIdempotencyKeys(): Promise<number> {
   try {
-    const result = await db.query(
+    const result = await db.query.
       'DELETE FROM idempotency_keys WHERE ttl_until < NOW()'
     );
     

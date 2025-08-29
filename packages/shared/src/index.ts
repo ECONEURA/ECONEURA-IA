@@ -1,12 +1,12 @@
 // Types (legacy)
-export * as LegacyTypes from './types/index.js';
+export * as LegacyTypes from './types/index.ts';
 
 // Schemas - Export all new schemas
-export * from './schemas/common.js';
-export * from './schemas/auth.js';
-export * from './schemas/crm.js';
-export * from './schemas/erp.js';
-export * from './schemas/finance.js';
+export * from './schemas/common.ts';
+export * from './schemas/auth.ts';
+export * from './schemas/crm.ts';
+export * from './schemas/erp.ts';
+export * from './schemas/finance.ts';
 
 // Re-export legacy schemas from index for backward compatibility
 export {
@@ -41,32 +41,32 @@ export {
   type SendMessage,
   type UpdateOrgLimits,
   type MetricsQuery,
-} from './schemas/index.js';
+} from './schemas/index.ts';
 
 // Security utilities
-export * from './security/index.js';
+export * from './security/index.ts';
 
 // Logging
-export * from './logging/index.js';
+export * from './logging/index.ts';
 
 // Metrics
-export * from './metrics/index.js';
+export * from './metrics/index.ts';
 
 // AI Router
-export { AIRouter, createAIRouter, type RouterDecision, type RouterConfig } from './ai/router.js';
-export { EnhancedAIRouter, type EnhancedAIRequest, type EnhancedRouterDecision, type AIRouterConfig } from './ai/enhanced-router.js';
-export { CostGuardrails, type CostLimits, type CostAlert, type UsageMetrics } from './ai/cost-guardrails.js';
-export { LLMProviderManager, type LLMProvider, type LLMModel, type ProviderHealth } from './ai/providers.js';
+export { AIRouter, createAIRouter, type RouterDecision, type RouterConfig } from './ai/router.ts';
+export { EnhancedAIRouter, type EnhancedAIRequest, type EnhancedRouterDecision, type AIRouterConfig } from './ai/enhanced-router.ts';
+export { CostGuardrails, type CostLimits, type CostAlert, type UsageMetrics } from './ai/cost-guardrails.ts';
+export { LLMProviderManager, type LLMProvider, type LLMModel, type ProviderHealth } from './ai/providers.ts';
 
 // Environment and configuration
-export { env, getEnv } from './env.js';
+export { env, getEnv } from './env.ts';
 
 // OpenTelemetry
-export * from './otel/index.js';
+export * from './otel/index.ts';
 
 // Cost metering
-export { costMeter } from './cost-meter.js';
-export type { CostUsage, ModelName } from './cost-meter.js';
+export { costMeter } from './cost-meter.ts';
+export type { CostUsage, ModelName } from './cost-meter.ts';
 
 // Version info
 export const VERSION = '1.0.0';

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'jest'
-import { PrismaClient } from '@prisma/client'
+// import { PrismaClient } from '@prisma/client'
 import { execSync } from 'child_process'
 import path from 'path'
 

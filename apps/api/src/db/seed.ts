@@ -205,7 +205,7 @@ async function seedOrganizations(): Promise<void> {
   for (const org of SEED_DATA.organizations) {
     const apiKeyHash = hashApiKey(org.api_key);
     
-    await db.query(
+    await db.query.
       `INSERT INTO organizations (org_id, name, api_key_hash) 
        VALUES ($1, $2, $3) 
        ON CONFLICT (org_id) DO UPDATE SET 
@@ -215,7 +215,7 @@ async function seedOrganizations(): Promise<void> {
     );
     
     // Also create org limits
-    await db.query(
+    await db.query.
       `INSERT INTO org_limits (org_id, monthly_cost_cap_eur) 
        VALUES ($1, $2) 
        ON CONFLICT (org_id) DO NOTHING`,
@@ -230,7 +230,7 @@ async function seedCustomers(): Promise<void> {
   logger.info('Seeding customers...');
   
   for (const customer of SEED_DATA.customers) {
-    await db.query(
+    await db.query.
       `INSERT INTO customers (org_id, email, name, phone) 
        VALUES ($1, $2, $3, $4) 
        ON CONFLICT (org_id, email) DO UPDATE SET 
@@ -269,7 +269,7 @@ async function seedInvoices(): Promise<void> {
     const customerId = customerMap.get(key);
     
     if (customerId) {
-      await db.query(
+      await db.query.
         `INSERT INTO invoices (org_id, customer_id, amount, due_date, status) 
          VALUES ($1, $2, $3, $4, $5)`,
         [invoice.org_id, customerId, invoice.amount, invoice.due_date, invoice.status]
@@ -308,7 +308,7 @@ async function seedInteractions(): Promise<void> {
     const customerId = customerMap.get(key);
     
     if (customerId) {
-      await db.query(
+      await db.query.
         `INSERT INTO interactions (org_id, customer_id, channel, payload) 
          VALUES ($1, $2, $3, $4)`,
         [interaction.org_id, customerId, interaction.channel, JSON.stringify(interaction.payload)]
@@ -324,7 +324,7 @@ async function runSeeding(): Promise<void> {
     logger.info('Starting database seeding...');
     
     // Check if we're in a fresh database
-    const orgCount = await db.query('SELECT COUNT(*) as count FROM organizations');
+    const orgCount = await db.query.'SELECT COUNT(*) as count FROM organizations');
     const existingOrgs = parseInt(orgCount.rows[0]?.count || '0');
     
     if (existingOrgs > 0) {
@@ -337,7 +337,7 @@ async function runSeeding(): Promise<void> {
     await seedInteractions();
     
     // Create some basic usage data
-    await db.query(
+    await db.query.
       `INSERT INTO org_usage_daily (org_id, day, http_requests, ai_cost_eur) 
        VALUES ('org-demo', CURRENT_DATE, 150, 2.50),
               ('org-demo', CURRENT_DATE - 1, 89, 1.75),
@@ -349,10 +349,10 @@ async function runSeeding(): Promise<void> {
     
     // Show summary
     const stats = await Promise.all([
-      db.query('SELECT COUNT(*) as count FROM organizations'),
-      db.query('SELECT COUNT(*) as count FROM customers'),
-      db.query('SELECT COUNT(*) as count FROM invoices'),
-      db.query('SELECT COUNT(*) as count FROM interactions'),
+      db.query.'SELECT COUNT(*) as count FROM organizations'),
+      db.query.'SELECT COUNT(*) as count FROM customers'),
+      db.query.'SELECT COUNT(*) as count FROM invoices'),
+      db.query.'SELECT COUNT(*) as count FROM interactions'),
     ]);
     
     logger.info('Database summary:', {

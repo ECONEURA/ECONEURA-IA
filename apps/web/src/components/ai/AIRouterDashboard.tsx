@@ -6,7 +6,8 @@ import {
   BarChart3,
   AlertTriangle,
   Zap,
-  RotateCcw
+  RotateCcw,
+  RefreshCw
 } from 'lucide-react';
 import MetricsCard from '../dashboard/MetricsCard';
 import LoadingSpinner from '../ui/LoadingSpinner';
@@ -158,7 +159,7 @@ export function AIRouterDashboard() {
           disabled={refreshing}
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
         >
-          <ArrowPathIcon className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
           Refresh
         </button>
       </div>
@@ -168,7 +169,7 @@ export function AIRouterDashboard() {
         <div className="bg-red-50 border-l-4 border-red-400 p-4">
           <div className="flex">
             <div className="flex-shrink-0">
-              <ExclamationTriangleIcon className="h-5 w-5 text-red-400" aria-hidden="true" />
+              <AlertTriangle className="h-5 w-5 text-red-400" aria-hidden="true" />
             </div>
             <div className="ml-3">
               <h3 className="text-sm font-medium text-red-800">Active Cost Alerts</h3>
@@ -190,24 +191,24 @@ export function AIRouterDashboard() {
           <MetricsCard
             title="Total Requests Today"
             value={usage.totalRequests.toLocaleString()}
-            icon={<ChartBarIcon className="h-5 w-5" />}
+            icon={<BarChart3 className="h-5 w-5" />}
           />
           <MetricsCard
             title="Daily Cost (EUR)"
             value={`€${usage.dailyCostEur.toFixed(2)}`}
-            icon={<BoltIcon className="h-5 w-5" />}
+            icon={<Zap className="h-5 w-5" />}
             subtitle={`${usage.utilizationDaily.toFixed(1)}% of limit`}
           />
           <MetricsCard
             title="Monthly Cost (EUR)"
             value={`€${usage.monthlyCostEur.toFixed(2)}`}
-            icon={<ChartBarIcon className="h-5 w-5" />}
+            icon={<BarChart3 className="h-5 w-5" />}
             subtitle={`${usage.utilizationMonthly.toFixed(1)}% of limit`}
           />
           <MetricsCard
             title="Active Providers"
             value={usage.activeProviders.length.toString()}
-            icon={<CpuChipIcon className="h-5 w-5" />}
+            icon={<Cpu className="h-5 w-5" />}
             subtitle={usage.activeProviders.join(', ')}
           />
         </div>
@@ -263,7 +264,7 @@ export function AIRouterDashboard() {
           <h3 className="text-lg leading-6 font-medium text-gray-900">Usage Trends</h3>
           <div className="mt-5 h-64 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg">
             <div className="text-center">
-              <ChartBarIcon className="mx-auto h-8 w-8 text-gray-400" />
+              <BarChart3 className="mx-auto h-8 w-8 text-gray-400" />
               <p className="mt-2 text-sm text-gray-500">Usage charts will be implemented in M7</p>
             </div>
           </div>

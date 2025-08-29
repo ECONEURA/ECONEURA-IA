@@ -2,12 +2,12 @@
   "name": "@econeura/db",
   "version": "1.0.0",
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "exports": {
-    ".": "./dist/index.js",
-    "./schema": "./dist/schema.js",
-    "./migrations": "./dist/migrations.js"
+    ".": "./src/index.ts",
+    "./schema": "./src/schema.ts",
+    "./migrations": "./src/migrations.ts"
   },
   "scripts": {
     "build": "tsc",

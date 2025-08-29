@@ -5,7 +5,7 @@ import {
   FileText, 
   Plus,
   Search,
-  Euro,
+  BarChart3,
   Calendar,
   MoreVertical,
   Pencil,
@@ -208,12 +208,12 @@ function InvoicesContent() {
 
   const getStatusIcon = (status: Invoice['status']) => {
     switch (status) {
-      case 'draft': return PencilIcon;
-      case 'sent': return PaperAirplaneIcon;
-      case 'paid': return CheckCircleIcon;
-      case 'overdue': return ExclamationTriangleIcon;
-      case 'cancelled': return XCircleIcon;
-      default: return ClockIcon;
+      case 'draft': return Pencil;
+      case 'sent': return Send;
+      case 'paid': return CheckCircle;
+      case 'overdue': return AlertTriangle;
+      case 'cancelled': return XCircle;
+      default: return Clock;
     }
   };
 
@@ -245,7 +245,7 @@ function InvoicesContent() {
         <div className="text-center">
           <div className="relative">
             <div className="w-16 h-16 border-4 border-mediterranean-200 border-t-mediterranean-500 rounded-full animate-spin mx-auto"></div>
-            <DocumentTextIcon className="w-6 h-6 text-coral-500 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+            <FileText className="w-6 h-6 text-coral-500 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
           </div>
           <p className="mt-4 text-mediterranean-700 font-medium">Cargando facturas...</p>
         </div>
@@ -258,7 +258,7 @@ function InvoicesContent() {
       {/* Mediterranean Header */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-terracotta-600 via-coral-500 to-mediterranean-500 opacity-90"></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="4"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-20"></div>
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
@@ -273,12 +273,12 @@ function InvoicesContent() {
             
             <div className="flex items-center gap-4">
               <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
-                <ArrowDownTrayIcon className="w-4 h-4" />
+                <Download className="w-4 h-4" />
                 Exportar
               </button>
               
               <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
-                <PlusIcon className="w-4 h-4" />
+                <Plus className="w-4 h-4" />
                 Nueva Factura
               </button>
             </div>
@@ -293,25 +293,25 @@ function InvoicesContent() {
             {
               label: 'Total Facturado',
               value: formatCurrency(totalAmount),
-              icon: CurrencyEuroIcon,
+              icon: BarChart3,
               color: 'mediterranean'
             },
             {
               label: 'Pagado',
               value: formatCurrency(paidAmount),
-              icon: CheckCircleIcon,
+              icon: CheckCircle,
               color: 'green'
             },
             {
               label: 'Pendiente Cobro',
               value: formatCurrency(pendingAmount),
-              icon: ClockIcon,
+              icon: Clock,
               color: 'orange'
             },
             {
               label: 'Facturas Vencidas',
               value: overdueCount.toString(),
-              icon: ExclamationTriangleIcon,
+              icon: AlertTriangle,
               color: 'red'
             }
           ].map((stat, index) => {
@@ -348,7 +348,7 @@ function InvoicesContent() {
           <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
             {/* Search */}
             <div className="relative flex-1 max-w-md">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-mediterranean-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-mediterranean-400" />
               <input
                 type="text"
                 placeholder="Buscar facturas..."
@@ -362,7 +362,7 @@ function InvoicesContent() {
             <div className="flex flex-wrap items-center gap-4">
               {/* Status Filter */}
               <div className="flex items-center gap-2">
-                <FunnelIcon className="w-5 h-5 text-mediterranean-600" />
+                <Filter className="w-5 h-5 text-mediterranean-600" />
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
@@ -493,13 +493,13 @@ function InvoicesContent() {
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center gap-2 justify-end">
                             <button className="p-2 text-coral-600 hover:bg-coral-50 rounded-lg transition-colors">
-                              <EyeIcon className="w-4 h-4" />
+                              <Eye className="w-4 h-4" />
                             </button>
                             <button className="p-2 text-mediterranean-600 hover:bg-mediterranean-50 rounded-lg transition-colors">
-                              <PencilIcon className="w-4 h-4" />
+                              <Pencil className="w-4 h-4" />
                             </button>
                             <button className="p-2 text-mediterranean-600 hover:bg-mediterranean-50 rounded-lg transition-colors">
-                              <EllipsisVerticalIcon className="w-4 h-4" />
+                              <MoreVertical className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
@@ -538,7 +538,7 @@ function InvoicesContent() {
                     <div className="flex items-center gap-2">
                       <StatusIcon className="w-5 h-5 text-mediterranean-600" />
                       <button className="p-1 hover:bg-mediterranean-50 rounded-full transition-colors">
-                        <EllipsisVerticalIcon className="w-4 h-4 text-mediterranean-400" />
+                        <MoreVertical className="w-4 h-4 text-mediterranean-400" />
                       </button>
                     </div>
                   </div>
@@ -589,11 +589,11 @@ function InvoicesContent() {
                   {/* Action Buttons */}
                   <div className="flex gap-2 pt-4 border-t border-mediterranean-100">
                     <button className="flex-1 bg-gradient-to-r from-coral-500 to-coral-600 text-white py-2 rounded-xl text-sm font-medium hover:shadow-md transition-all duration-200">
-                      <EyeIcon className="w-4 h-4 inline mr-1" />
+                      <Eye className="w-4 h-4 inline mr-1" />
                       Ver
                     </button>
                     <button className="px-3 py-2 border border-mediterranean-200 text-mediterranean-600 rounded-xl hover:bg-mediterranean-50 transition-colors">
-                      <PencilIcon className="w-4 h-4" />
+                      <Pencil className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -605,7 +605,7 @@ function InvoicesContent() {
         {/* Empty State */}
         {filteredInvoices.length === 0 && (
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-12 text-center">
-            <DocumentTextIcon className="w-16 h-16 text-mediterranean-400 mx-auto mb-4" />
+            <FileText className="w-16 h-16 text-mediterranean-400 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-mediterranean-800 font-playfair mb-2">
               No se encontraron facturas
             </h3>
@@ -616,7 +616,7 @@ function InvoicesContent() {
               }
             </p>
             <button className="bg-gradient-to-r from-coral-500 to-mediterranean-500 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-200">
-              <PlusIcon className="w-4 h-4 inline mr-2" />
+              <Plus className="w-4 h-4 inline mr-2" />
               Nueva Factura
             </button>
           </div>

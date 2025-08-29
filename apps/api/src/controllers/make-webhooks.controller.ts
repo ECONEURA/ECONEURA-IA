@@ -51,7 +51,7 @@ export class MakeWebhooksController {
           client_ip: clientIP,
         })
         
-        throw Problems.BAD_REQUEST('Invalid webhook payload', {
+        throw Problems.badRequest('Invalid webhook payload', {
           details: validation.error.errors,
         })
       }
@@ -162,7 +162,7 @@ export class MakeWebhooksController {
     })
 
     // Queue for CFO collection playbook
-    await db.query(
+    await db.query.
       `INSERT INTO job_queue (org_id, job_type, payload, priority) 
        VALUES ($1, $2, $3, $4)`,
       [
@@ -206,7 +206,7 @@ export class MakeWebhooksController {
     })
 
     // Update invoice status
-    await db.query(
+    await db.query.
       `UPDATE invoices 
        SET status = 'paid', 
            paid_at = NOW(), 
@@ -217,7 +217,7 @@ export class MakeWebhooksController {
     )
 
     // Queue notification
-    await db.query(
+    await db.query.
       `INSERT INTO job_queue (org_id, job_type, payload, priority) 
        VALUES ($1, $2, $3, $4)`,
       [
@@ -259,7 +259,7 @@ export class MakeWebhooksController {
     })
 
     // Create customer record
-    await db.query(
+    await db.query.
       `INSERT INTO companies (org_id, name, email, phone, contact_person, status) 
        VALUES ($1, $2, $3, $4, $5, $6)`,
       [orgId, company || name, email, phone, name, 'active']
@@ -291,7 +291,7 @@ export class MakeWebhooksController {
     })
 
     // Update deal status
-    await db.query(
+    await db.query.
       `UPDATE deals 
        SET status = 'won', 
            closed_at = $1,
@@ -324,7 +324,7 @@ export class MakeWebhooksController {
     })
 
     // Update task status
-    await db.query(
+    await db.query.
       `UPDATE tasks 
        SET status = 'completed', 
            completed_at = NOW(),
@@ -357,7 +357,7 @@ export class MakeWebhooksController {
     })
 
     // Queue for custom processing
-    await db.query(
+    await db.query.
       `INSERT INTO job_queue (org_id, job_type, payload, priority) 
        VALUES ($1, $2, $3, $4)`,
       [
@@ -404,7 +404,7 @@ export class MakeWebhooksController {
     const processingTime = Date.now() - startTime
 
     try {
-      await db.query(
+      await db.query.
         `INSERT INTO audit_events (org_id, actor, action, payload_json, created_at) 
          VALUES ($1, $2, $3, $4, NOW())`,
         [
@@ -436,7 +436,7 @@ export class MakeWebhooksController {
     try {
       const orgId = req.orgId
       if (!orgId) {
-        throw Problems.UNAUTHORIZED('Organization context required')
+        throw Problems.unauthorized('Organization context required')
       }
 
       await setOrg(orgId)

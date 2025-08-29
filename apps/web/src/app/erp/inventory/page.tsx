@@ -5,7 +5,7 @@ import {
   Store, 
   Plus,
   Search,
-  Cube,
+  Box,
   AlertTriangle,
   CheckCircle,
   XCircle,
@@ -264,10 +264,10 @@ function MediterraneanInventory() {
 
   const getMovementIcon = (type: StockMovement['type']) => {
     switch (type) {
-      case 'in': return ArrowDownTrayIcon;
-      case 'out': return ArrowUpTrayIcon;
-      case 'adjustment': return PencilIcon;
-      default: return CubeIcon;
+      case 'in': return Download;
+      case 'out': return Upload;
+      case 'adjustment': return Pencil;
+      default: return Box;
     }
   };
 
@@ -292,7 +292,7 @@ function MediterraneanInventory() {
         <div className="text-center">
           <div className="relative">
             <div className="w-16 h-16 border-4 border-mediterranean-200 border-t-mediterranean-500 rounded-full animate-spin mx-auto"></div>
-            <BuildingStorefrontIcon className="w-6 h-6 text-coral-500 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+            <Store className="w-6 h-6 text-coral-500 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
           </div>
           <p className="mt-4 text-mediterranean-700 font-medium">Cargando inventario...</p>
         </div>
@@ -305,7 +305,7 @@ function MediterraneanInventory() {
       {/* Mediterranean Header */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-olive-600 via-olive-500 to-terracotta-500 opacity-90"></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.1\"%3E%3Ccircle cx=\"30\" cy=\"30\" r=\"4\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-20"></div>
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
@@ -323,12 +323,12 @@ function MediterraneanInventory() {
                 onClick={() => setShowMovements(!showMovements)}
                 className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2"
               >
-                <ChartBarIcon className="w-4 h-4" />
+                <BarChart3 className="w-4 h-4" />
                 {showMovements ? 'Ver Inventario' : 'Ver Movimientos'}
               </button>
               
               <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
-                <PlusIcon className="w-4 h-4" />
+                <Plus className="w-4 h-4" />
                 Ajuste Stock
               </button>
             </div>
@@ -343,25 +343,25 @@ function MediterraneanInventory() {
             {
               label: 'Valor Total Inventario',
               value: `€${(totalValue / 1000).toFixed(0)}K`,
-              icon: CurrencyEuroIcon,
+              icon: BarChart3,
               color: 'olive'
             },
             {
               label: 'Total Productos',
               value: totalItems.toLocaleString(),
-              icon: CubeIcon,
+              icon: Box,
               color: 'mediterranean'
             },
             {
               label: 'Alertas de Stock',
               value: lowStockItems.length.toString(),
-              icon: ExclamationTriangleIcon,
+              icon: AlertTriangle,
               color: 'red'
             },
             {
               label: 'Categorías',
               value: categories.length.toString(),
-              icon: BuildingStorefrontIcon,
+              icon: Store,
               color: 'terracotta'
             }
           ].map((stat, index) => {
@@ -400,7 +400,7 @@ function MediterraneanInventory() {
               <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
                 {/* Search */}
                 <div className="relative flex-1 max-w-md">
-                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-mediterranean-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-mediterranean-400" />
                   <input
                     type="text"
                     placeholder="Buscar productos..."
@@ -414,7 +414,7 @@ function MediterraneanInventory() {
                 <div className="flex flex-wrap items-center gap-4">
                   {/* Category Filter */}
                   <div className="flex items-center gap-2">
-                    <FunnelIcon className="w-5 h-5 text-mediterranean-600" />
+                    <Filter className="w-5 h-5 text-mediterranean-600" />
                     <select
                       value={selectedCategory}
                       onChange={(e) => setSelectedCategory(e.target.value)}
@@ -548,13 +548,13 @@ function MediterraneanInventory() {
                           <td className="px-6 py-4 text-right">
                             <div className="flex items-center gap-2 justify-end">
                               <button className="p-2 text-olive-600 hover:bg-olive-50 rounded-lg transition-colors">
-                                <ArrowDownTrayIcon className="w-4 h-4" />
+                                <Download className="w-4 h-4" />
                               </button>
                               <button className="p-2 text-mediterranean-600 hover:bg-mediterranean-50 rounded-lg transition-colors">
-                                <PencilIcon className="w-4 h-4" />
+                                <Pencil className="w-4 h-4" />
                               </button>
                               <button className="p-2 text-mediterranean-600 hover:bg-mediterranean-50 rounded-lg transition-colors">
-                                <EllipsisVerticalIcon className="w-4 h-4" />
+                                <MoreVertical className="w-4 h-4" />
                               </button>
                             </div>
                           </td>
@@ -586,7 +586,7 @@ function MediterraneanInventory() {
                       </div>
                       
                       <button className="p-1 hover:bg-mediterranean-50 rounded-full transition-colors">
-                        <EllipsisVerticalIcon className="w-4 h-4 text-mediterranean-400" />
+                        <MoreVertical className="w-4 h-4 text-mediterranean-400" />
                       </button>
                     </div>
 
@@ -650,11 +650,11 @@ function MediterraneanInventory() {
                     {/* Action Buttons */}
                     <div className="flex gap-2 pt-4 border-t border-mediterranean-100">
                       <button className="flex-1 bg-gradient-to-r from-olive-500 to-olive-600 text-white py-2 rounded-xl text-sm font-medium hover:shadow-md transition-all duration-200">
-                        <ArrowDownTrayIcon className="w-4 h-4 inline mr-1" />
+                        <Download className="w-4 h-4 inline mr-1" />
                         Entrada
                       </button>
                       <button className="flex-1 bg-gradient-to-r from-terracotta-500 to-terracotta-600 text-white py-2 rounded-xl text-sm font-medium hover:shadow-md transition-all duration-200">
-                        <ArrowUpTrayIcon className="w-4 h-4 inline mr-1" />
+                        <Upload className="w-4 h-4 inline mr-1" />
                         Salida
                       </button>
                     </div>
@@ -666,7 +666,7 @@ function MediterraneanInventory() {
             {/* Empty State */}
             {filteredInventory.length === 0 && (
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-12 text-center">
-                <BuildingStorefrontIcon className="w-16 h-16 text-mediterranean-400 mx-auto mb-4" />
+                <Store className="w-16 h-16 text-mediterranean-400 mx-auto mb-4" />
                 <h3 className="text-xl font-bold text-mediterranean-800 font-playfair mb-2">
                   No se encontraron productos
                 </h3>
@@ -677,7 +677,7 @@ function MediterraneanInventory() {
                   }
                 </p>
                 <button className="bg-gradient-to-r from-olive-500 to-terracotta-500 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-200">
-                  <PlusIcon className="w-4 h-4 inline mr-2" />
+                  <Plus className="w-4 h-4 inline mr-2" />
                   Agregar Producto
                 </button>
               </div>

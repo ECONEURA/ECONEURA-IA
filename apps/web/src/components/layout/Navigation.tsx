@@ -12,7 +12,6 @@ import {
   Bell,
   ChevronDown,
   Cpu,
-  Euro,
   Beaker,
   Users,
   Building2,
@@ -186,8 +185,8 @@ export function Navigation() {
                 <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-olive-400 border-2 border-mediterranean-800 rounded-full animate-pulse" />
               </div>
               <div className="flex-1 text-left">
-                <p className="font-semibold text-white">{user.name}</p>
-                <p className="text-xs text-mediterranean-300">{user.organizationName}</p>
+                <p className="font-semibold text-white">{user.displayName}</p>
+                <p className="text-xs text-mediterranean-300">ECONEURA</p>
               </div>
               <ChevronDown
                 className={cn(
@@ -200,11 +199,11 @@ export function Navigation() {
             {showUserMenu && (
               <div className="absolute bottom-full mb-2 left-0 right-0 bg-white/95 backdrop-blur-xl border border-sand-200 rounded-2xl shadow-2xl py-2 z-50 animate-slide-up">
                 <div className="px-4 py-3 border-b border-sand-200/50">
-                  <p className="text-sm font-semibold text-mediterranean-900">{user.name}</p>
+                  <p className="text-sm font-semibold text-mediterranean-900">{user.displayName}</p>
                   <p className="text-xs text-mediterranean-600">{user.email}</p>
                   <p className="text-xs mt-1.5">
                     <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-coral-100 to-terracotta-100 text-coral-700 border border-coral-200">
-                      {user.role.toUpperCase()}
+                      {user.status.toUpperCase()}
                     </span>
                   </p>
                 </div>
@@ -214,7 +213,7 @@ export function Navigation() {
                   className="flex items-center px-4 py-3 text-sm text-mediterranean-700 hover:bg-sand-50/50 transition-colors duration-200 group"
                   onClick={() => setShowUserMenu(false)}
                 >
-                  <CogIcon className="mr-3 h-4 w-4 text-mediterranean-500 group-hover:text-coral-500 transition-colors duration-200" />
+                  <Settings className="mr-3 h-4 w-4 text-mediterranean-500 group-hover:text-coral-500 transition-colors duration-200" />
                   Configuración
                 </Link>
                 
@@ -223,7 +222,7 @@ export function Navigation() {
                   className="flex items-center px-4 py-3 text-sm text-mediterranean-700 hover:bg-sand-50/50 transition-colors duration-200 group"
                   onClick={() => setShowUserMenu(false)}
                 >
-                  <BellIcon className="mr-3 h-4 w-4 text-mediterranean-500 group-hover:text-coral-500 transition-colors duration-200" />
+                  <Bell className="mr-3 h-4 w-4 text-mediterranean-500 group-hover:text-coral-500 transition-colors duration-200" />
                   Notificaciones
                 </Link>
                 
@@ -236,7 +235,7 @@ export function Navigation() {
                   }}
                   className="w-full flex items-center px-4 py-3 text-sm text-danger-700 hover:bg-danger-50/50 transition-colors duration-200 group"
                 >
-                  <ArrowRightOnRectangleIcon className="mr-3 h-4 w-4 text-danger-500 group-hover:text-danger-600 transition-colors duration-200" />
+                  <LogOut className="mr-3 h-4 w-4 text-danger-500 group-hover:text-danger-600 transition-colors duration-200" />
                   Cerrar Sesión
                 </button>
               </div>

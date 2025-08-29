@@ -22,7 +22,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    throw new ProblemError(Problems.unauthorized('Bearer token required'))
+    throw new Error(Problems.unauthorized('Bearer token required'))
   }
 
   const token = authHeader.substring(7)
@@ -43,7 +43,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
     
     next()
   } catch (error) {
-    throw new ProblemError(Problems.unauthorized('Invalid token'))
+    throw new Error(Problems.unauthorized('Invalid token'))
   }
 }
 
@@ -51,7 +51,7 @@ export function requireOrg(req: Request, res: Response, next: NextFunction) {
   const orgId = req.headers['x-org-id'] as string || req.user?.orgId
   
   if (!orgId) {
-    throw new ProblemError(Problems.badRequest('Organization ID required'))
+    throw new Error(Problems.badRequest('Organization ID required'))
   }
   
   req.orgId = orgId
@@ -64,7 +64,7 @@ export async function setOrgContext(req: Request, res: Response, next: NextFunct
       await setOrg(req.orgId)
       next()
     } catch (error) {
-      throw new ProblemError(Problems.internalError('Failed to set organization context'))
+      throw new Error(Problems.internalError('Failed to set organization context'))
     }
   } else {
     next()
@@ -74,11 +74,11 @@ export async function setOrgContext(req: Request, res: Response, next: NextFunct
 export function requireRole(role: string) {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
-      throw new ProblemError(Problems.unauthorized())
+      throw new Error(Problems.unauthorized())
     }
     
     if (req.user.role !== role && req.user.role !== 'admin') {
-      throw new ProblemError(Problems.forbidden(`Role '${role}' required`))
+      throw new Error(Problems.forbidden(`Role '${role}' required`))
     }
     
     next()

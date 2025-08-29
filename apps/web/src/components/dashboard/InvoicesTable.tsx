@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { format } from 'date-fns';
 import StatusBadge from '../ui/StatusBadge';
 import LoadingSpinner from '../ui/LoadingSpinner';
-import { Invoice } from '../../lib/api-client';
+// import { Invoice } from '../../lib/api-client';
 
 interface InvoicesTableProps {
-  invoices: Invoice[];
+  invoices: any[];
   onStartCobro?: (invoiceIds: string[]) => void;
   loading?: boolean;
   selectedIds?: string[];
@@ -21,10 +21,10 @@ export default function InvoicesTable({
   selectedIds = [],
   onSelectionChange,
 }: InvoicesTableProps) {
-  const [sortField, setSortField] = useState<keyof Invoice>('due_date');
+  const [sortField, setSortField] = useState<string>('due_date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  const handleSort = (field: keyof Invoice) => {
+  const handleSort = (field: string) => {
     if (field === sortField) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
@@ -68,7 +68,7 @@ export default function InvoicesTable({
     }
   };
 
-  const getStatusBadge = (status: Invoice['status']) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case 'paid':
         return <StatusBadge status="success">Paid</StatusBadge>;

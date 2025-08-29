@@ -17,7 +17,7 @@ interface Migration {
 }
 
 async function createMigrationsTable(): Promise<void> {
-  await db.query(`
+  await db.query.`
     CREATE TABLE IF NOT EXISTS migrations (
       version INTEGER PRIMARY KEY,
       name VARCHAR(255) NOT NULL,

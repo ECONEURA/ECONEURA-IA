@@ -39,7 +39,7 @@ describe('Database Integration Tests', () => {
   });
 
   it('should have created all required tables', async () => {
-    const tables = await db.query(`
+    const tables = await db.query.`
       SELECT table_name 
       FROM information_schema.tables 
       WHERE table_schema = 'public' 
@@ -157,7 +157,7 @@ describe('Database Integration Tests', () => {
     ).rejects.toThrow('Rollback test');
     
     // Verify rollback worked
-    const orgResult = await db.query(
+    const orgResult = await db.query.
       'SELECT COUNT(*) as count FROM organizations WHERE org_id = $1',
       ['tx-test']
     );
@@ -167,7 +167,7 @@ describe('Database Integration Tests', () => {
 
   it('should create audit event partitions', async () => {
     // Check if partition tables were created
-    const partitions = await db.query(`
+    const partitions = await db.query.`
       SELECT schemaname, tablename 
       FROM pg_tables 
       WHERE tablename LIKE 'audit_events_%'
@@ -177,13 +177,13 @@ describe('Database Integration Tests', () => {
     expect(partitions.rows.length).toBeGreaterThan(0);
     
     // Test inserting audit event
-    await db.query(
+    await db.query.
       `INSERT INTO audit_events (org_id, route, actor, outcome, payload) 
        VALUES ($1, $2, $3, $4, $5)`,
       ['org-demo', '/api/test', 'system', 'success', JSON.stringify({ test: true })]
     );
     
-    const auditCount = await db.query(
+    const auditCount = await db.query.
       'SELECT COUNT(*) as count FROM audit_events WHERE org_id = $1',
       ['org-demo']
     );

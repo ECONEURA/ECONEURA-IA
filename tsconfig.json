@@ -18,8 +18,11 @@
     "paths": {
       "@econeura/shared": ["./packages/shared/src"],
       "@econeura/shared/*": ["./packages/shared/src/*"],
+      "@econeura/sdk": ["./packages/sdk/src"],
+      "@econeura/sdk/*": ["./packages/sdk/src/*"],
       "@econeura/db": ["./packages/db/src"],
-      "@econeura/db/*": ["./packages/db/src/*"]
+      "@econeura/db/*": ["./packages/db/src/*"],
+      "@/*": ["./apps/web/src/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],

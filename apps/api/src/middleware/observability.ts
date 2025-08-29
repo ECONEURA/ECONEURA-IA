@@ -11,7 +11,7 @@ import {
   getSpanId,
   customMetrics
 } from '@econeura/shared/otel'
-import { context, SpanStatusCode } from '@opentelemetry/api'
+// import { context, SpanStatusCode } from '@opentelemetry/api'
 
 /**
  * OpenTelemetry observability middleware for Express

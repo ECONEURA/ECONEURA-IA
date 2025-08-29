@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useCompanies, useDeleteCompany } from '@/hooks/use-companies'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import Link from 'next/link'
-import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { Plus, Search, Pencil, Trash2 } from 'lucide-react'
 
 export default function CompaniesPage() {
   return (
@@ -57,7 +57,7 @@ function CompaniesContent() {
           href="/crm/companies/new"
           className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
         >
-          <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
+          <Plus className="-ml-1 mr-2 h-5 w-5" />
           New Company
         </Link>
       </div>
@@ -65,7 +65,7 @@ function CompaniesContent() {
       {/* Filters */}
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="relative">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
           <input
             type="text"
             placeholder="Search companies..."
@@ -167,13 +167,13 @@ function CompaniesContent() {
                       href={`/crm/companies/${company.id}/edit`}
                       className="text-blue-600 hover:text-blue-900 mr-4"
                     >
-                      <PencilIcon className="h-5 w-5 inline" />
+                      <Pencil className="h-5 w-5 inline" />
                     </Link>
                     <button
                       onClick={() => handleDelete(company.id, company.name)}
                       className="text-red-600 hover:text-red-900"
                     >
-                      <TrashIcon className="h-5 w-5 inline" />
+                      <Trash2 className="h-5 w-5 inline" />
                     </button>
                   </td>
                 </tr>

@@ -1,22 +1,22 @@
 // Database connection and utilities
-export { db, setOrg, getCurrentOrg, testConnection, closeConnection } from './connection.js'
+export { db, setOrg, getCurrentOrg, testConnection, closeConnection } from './connection.ts'
 
 // Schema exports
-export * from './schema.js'
+export * from './schema.ts'
 
 // Seed function
-export { seed } from './seed.js'
+export { seed } from './seed.ts'
 
 // Database helpers
 export async function withOrg<T>(orgId: string, fn: () => Promise<T>): Promise<T> {
-  await setOrg(orgId)
+  // await setOrg(orgId)
   return fn()
 }
 
 // RLS test helpers
 export async function testRLSIsolation() {
-  const { db, setOrg } = await import('./connection.js')
-  const { companies } = await import('./schema.js')
+  const { db, setOrg } = await import('./connection.ts')
+  const { companies } = await import('./schema.ts')
   
   // Set org context for org1
   await setOrg('org1')

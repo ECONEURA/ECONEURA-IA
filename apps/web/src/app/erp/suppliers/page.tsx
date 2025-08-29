@@ -18,8 +18,7 @@ import {
   Clock,
   AlertTriangle,
   Filter,
-  BarChart3,
-  Euro
+  BarChart3
 } from 'lucide-react';
 import { ProtectedRoute } from '../../../components/auth/ProtectedRoute';
 
@@ -348,7 +347,7 @@ function MediterraneanSuppliers() {
 
   const getRatingStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
-      <StarSolidIcon
+      <Star
         key={i}
         className={`w-4 h-4 ${i < Math.floor(rating) ? 'text-yellow-400' : 'text-gray-200'}`}
       />
@@ -375,7 +374,7 @@ function MediterraneanSuppliers() {
         <div className="text-center">
           <div className="relative">
             <div className="w-16 h-16 border-4 border-mediterranean-200 border-t-mediterranean-500 rounded-full animate-spin mx-auto"></div>
-            <TruckIcon className="w-6 h-6 text-coral-500 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+            <Truck className="w-6 h-6 text-coral-500 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
           </div>
           <p className="mt-4 text-mediterranean-700 font-medium">Cargando proveedores...</p>
         </div>
@@ -388,7 +387,7 @@ function MediterraneanSuppliers() {
       {/* Mediterranean Header */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-mediterranean-600 via-mediterranean-500 to-olive-500 opacity-90"></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.1\"%3E%3Ccircle cx=\"30\" cy=\"30\" r=\"4\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-20"></div>
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
@@ -403,12 +402,12 @@ function MediterraneanSuppliers() {
             
             <div className="flex items-center gap-4">
               <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
-                <ChartBarIcon className="w-4 h-4" />
+                <BarChart3 className="w-4 h-4" />
                 Evaluación
               </button>
               
               <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
-                <PlusIcon className="w-4 h-4" />
+                <Plus className="w-4 h-4" />
                 Nuevo Proveedor
               </button>
             </div>
@@ -423,25 +422,25 @@ function MediterraneanSuppliers() {
             {
               label: 'Proveedores Activos',
               value: activeSuppliers.toString(),
-              icon: TruckIcon,
+              icon: Truck,
               color: 'mediterranean'
             },
             {
               label: 'Proveedores Preferidos',
               value: preferredSuppliers.toString(),
-              icon: StarSolidIcon,
+              icon: Star,
               color: 'yellow'
             },
             {
               label: 'Total Gastado',
               value: `€${(totalSpent / 1000000).toFixed(1)}M`,
-              icon: CurrencyEuroIcon,
+              icon: BarChart3,
               color: 'olive'
             },
             {
               label: 'Rating Promedio',
               value: `${averageRating.toFixed(1)}★`,
-              icon: ChartBarIcon,
+              icon: BarChart3,
               color: 'terracotta'
             }
           ].map((stat, index) => {
@@ -478,7 +477,7 @@ function MediterraneanSuppliers() {
           <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
             {/* Search */}
             <div className="relative flex-1 max-w-md">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-mediterranean-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-mediterranean-400" />
               <input
                 type="text"
                 placeholder="Buscar proveedores..."
@@ -492,7 +491,7 @@ function MediterraneanSuppliers() {
             <div className="flex flex-wrap items-center gap-4">
               {/* Category Filter */}
               <div className="flex items-center gap-2">
-                <FunnelIcon className="w-5 h-5 text-mediterranean-600" />
+                <Filter className="w-5 h-5 text-mediterranean-600" />
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
@@ -604,14 +603,14 @@ function MediterraneanSuppliers() {
                       className="p-1 hover:bg-mediterranean-50 rounded-full transition-colors"
                     >
                       {supplier.preferred ? (
-                        <StarSolidIcon className="w-5 h-5 text-yellow-500" />
+                        <Star className="w-5 h-5 text-yellow-500" />
                       ) : (
-                        <StarIcon className="w-5 h-5 text-mediterranean-400" />
+                        <Star className="w-5 h-5 text-mediterranean-400" />
                       )}
                     </button>
                     
                     <button className="p-1 hover:bg-mediterranean-50 rounded-full transition-colors">
-                      <EllipsisVerticalIcon className="w-5 h-5 text-mediterranean-400" />
+                      <MoreVertical className="w-5 h-5 text-mediterranean-400" />
                     </button>
                   </div>
                 </div>
@@ -619,22 +618,22 @@ function MediterraneanSuppliers() {
                 {/* Contact Information */}
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center gap-2 text-mediterranean-600">
-                    <EnvelopeIcon className="w-4 h-4 flex-shrink-0" />
+                    <Mail className="w-4 h-4 flex-shrink-0" />
                     <span className="text-sm truncate">{supplier.email}</span>
                   </div>
                   
                   <div className="flex items-center gap-2 text-mediterranean-600">
-                    <PhoneIcon className="w-4 h-4 flex-shrink-0" />
+                    <Phone className="w-4 h-4 flex-shrink-0" />
                     <span className="text-sm">{supplier.phone}</span>
                   </div>
                   
                   <div className="flex items-center gap-2 text-mediterranean-600">
-                    <MapPinIcon className="w-4 h-4 flex-shrink-0" />
+                    <MapPin className="w-4 h-4 flex-shrink-0" />
                     <span className="text-sm">{supplier.city}, {supplier.country}</span>
                   </div>
                   
                   <div className="flex items-center gap-2 text-mediterranean-600">
-                    <GlobeAltIcon className="w-4 h-4 flex-shrink-0" />
+                    <Globe className="w-4 h-4 flex-shrink-0" />
                     <span className="text-sm">{supplier.website}</span>
                   </div>
                 </div>
@@ -692,11 +691,11 @@ function MediterraneanSuppliers() {
                 {/* Action Buttons */}
                 <div className="flex gap-2 pt-4 border-t border-mediterranean-100">
                   <button className="flex-1 bg-gradient-to-r from-mediterranean-500 to-mediterranean-600 text-white py-2 rounded-xl text-sm font-medium hover:shadow-md transition-all duration-200">
-                    <EnvelopeIcon className="w-4 h-4 inline mr-1" />
+                    <Mail className="w-4 h-4 inline mr-1" />
                     Contactar
                   </button>
                   <button className="px-3 py-2 border border-mediterranean-200 text-mediterranean-600 rounded-xl hover:bg-mediterranean-50 transition-colors">
-                    <PencilIcon className="w-4 h-4" />
+                    <Pencil className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -746,7 +745,7 @@ function MediterraneanSuppliers() {
                           <div className="min-w-0">
                             <div className="font-medium text-mediterranean-800 flex items-center gap-2">
                               {supplier.name}
-                              {supplier.preferred && <StarSolidIcon className="w-4 h-4 text-yellow-500" />}
+                              {supplier.preferred && <Star className="w-4 h-4 text-yellow-500" />}
                             </div>
                             <div className="text-sm text-mediterranean-600">{supplier.category}</div>
                           </div>
@@ -798,13 +797,13 @@ function MediterraneanSuppliers() {
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center gap-2 justify-end">
                           <button className="p-2 text-mediterranean-600 hover:bg-mediterranean-50 rounded-lg transition-colors">
-                            <EnvelopeIcon className="w-4 h-4" />
+                            <Mail className="w-4 h-4" />
                           </button>
                           <button className="p-2 text-mediterranean-600 hover:bg-mediterranean-50 rounded-lg transition-colors">
-                            <PencilIcon className="w-4 h-4" />
+                            <Pencil className="w-4 h-4" />
                           </button>
                           <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                            <TrashIcon className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </td>
@@ -819,7 +818,7 @@ function MediterraneanSuppliers() {
         {/* Empty State */}
         {filteredAndSortedSuppliers.length === 0 && (
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-12 text-center">
-            <TruckIcon className="w-16 h-16 text-mediterranean-400 mx-auto mb-4" />
+            <Truck className="w-16 h-16 text-mediterranean-400 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-mediterranean-800 font-playfair mb-2">
               No se encontraron proveedores
             </h3>
@@ -830,7 +829,7 @@ function MediterraneanSuppliers() {
               }
             </p>
             <button className="bg-gradient-to-r from-mediterranean-500 to-olive-500 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-200">
-              <PlusIcon className="w-4 h-4 inline mr-2" />
+              <Plus className="w-4 h-4 inline mr-2" />
               Agregar Proveedor
             </button>
           </div>

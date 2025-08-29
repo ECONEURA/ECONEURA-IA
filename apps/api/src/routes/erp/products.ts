@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { z } from 'zod'
-import { PrismaClient } from '@prisma/client'
+// import { PrismaClient } from '@prisma/client'
 import { authenticateJWT, requirePermission } from '../../mw/auth'
 import { validateRequest } from '../../mw/validate'
 import { ProductSchema } from '@econeura/shared/schemas/erp'

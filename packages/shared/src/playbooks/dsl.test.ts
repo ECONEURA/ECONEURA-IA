@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { PlaybookDefinition, createPlaybookExecutor, StepDefinition } from './dsl.js'
+import { PlaybookDefinition, createPlaybookExecutor, StepDefinition } from './dsl.ts'
 
 // Mock dependencies
 vi.mock('../otel/index.js', () => ({

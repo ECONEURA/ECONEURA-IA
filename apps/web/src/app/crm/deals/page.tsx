@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  Handshake, 
+  Users, 
   Plus,
   Search,
-  Euro,
+  BarChart3,
   Calendar,
   Clock,
   MoreVertical,
@@ -15,8 +15,7 @@ import {
   TrendingDown,
   CheckCircle,
   XCircle,
-  Filter,
-  BarChart3
+  Filter
 } from 'lucide-react';
 import { ProtectedRoute } from '../../../components/auth/ProtectedRoute';
 
@@ -261,7 +260,7 @@ function MediterraneanDeals() {
         <div className="text-center">
           <div className="relative">
             <div className="w-16 h-16 border-4 border-mediterranean-200 border-t-mediterranean-500 rounded-full animate-spin mx-auto"></div>
-            <HandshakeIcon className="w-6 h-6 text-coral-500 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+            <Users className="w-6 h-6 text-coral-500 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
           </div>
           <p className="mt-4 text-mediterranean-700 font-medium">Cargando oportunidades...</p>
         </div>
@@ -274,7 +273,7 @@ function MediterraneanDeals() {
       {/* Mediterranean Header */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-terracotta-600 via-terracotta-500 to-mediterranean-500 opacity-90"></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.1\"%3E%3Ccircle cx=\"30\" cy=\"30\" r=\"4\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-20"></div>
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
@@ -289,7 +288,7 @@ function MediterraneanDeals() {
             
             <div className="flex items-center gap-4">
               <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
-                <PlusIcon className="w-4 h-4" />
+                <Plus className="w-4 h-4" />
                 Nueva Oportunidad
               </button>
             </div>
@@ -352,7 +351,7 @@ function MediterraneanDeals() {
           <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
             {/* Search */}
             <div className="relative flex-1 max-w-md">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-mediterranean-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-mediterranean-400" />
               <input
                 type="text"
                 placeholder="Buscar oportunidades..."
@@ -366,7 +365,7 @@ function MediterraneanDeals() {
             <div className="flex flex-wrap items-center gap-4">
               {/* Stage Filter */}
               <div className="flex items-center gap-2">
-                <FunnelIcon className="w-5 h-5 text-mediterranean-600" />
+                <Filter className="w-5 h-5 text-mediterranean-600" />
                 <select
                   value={selectedStage}
                   onChange={(e) => setSelectedStage(e.target.value)}
@@ -454,7 +453,7 @@ function MediterraneanDeals() {
                             {deal.title}
                           </h4>
                           <button className="p-1 hover:bg-mediterranean-50 rounded-full transition-colors">
-                            <EllipsisVerticalIcon className="w-4 h-4 text-mediterranean-400" />
+                            <MoreVertical className="w-4 h-4 text-mediterranean-400" />
                           </button>
                         </div>
                         
@@ -502,7 +501,7 @@ function MediterraneanDeals() {
                   {/* Empty State for Stage */}
                   {(!dealsByStage[stage.id] || dealsByStage[stage.id].length === 0) && (
                     <div className="text-center py-8 text-mediterranean-400">
-                      <HandshakeIcon className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <Users className="w-8 h-8 mx-auto mb-2 opacity-50" />
                       <p className="text-sm">No hay oportunidades en esta etapa</p>
                     </div>
                   )}
@@ -601,13 +600,13 @@ function MediterraneanDeals() {
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center gap-2 justify-end">
                             <button className="p-2 text-terracotta-600 hover:bg-terracotta-50 rounded-lg transition-colors">
-                              <ChartBarIcon className="w-4 h-4" />
+                              <BarChart3 className="w-4 h-4" />
                             </button>
                             <button className="p-2 text-mediterranean-600 hover:bg-mediterranean-50 rounded-lg transition-colors">
-                              <PencilIcon className="w-4 h-4" />
+                              <Pencil className="w-4 h-4" />
                             </button>
                             <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                              <TrashIcon className="w-4 h-4" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
@@ -623,7 +622,7 @@ function MediterraneanDeals() {
         {/* Empty State */}
         {filteredDeals.length === 0 && (
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-12 text-center">
-            <HandshakeIcon className="w-16 h-16 text-mediterranean-400 mx-auto mb-4" />
+            <Users className="w-16 h-16 text-mediterranean-400 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-mediterranean-800 font-playfair mb-2">
               No se encontraron oportunidades
             </h3>
@@ -634,7 +633,7 @@ function MediterraneanDeals() {
               }
             </p>
             <button className="bg-gradient-to-r from-terracotta-500 to-mediterranean-500 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-200">
-              <PlusIcon className="w-4 h-4 inline mr-2" />
+              <Plus className="w-4 h-4 inline mr-2" />
               Nueva Oportunidad
             </button>
           </div>

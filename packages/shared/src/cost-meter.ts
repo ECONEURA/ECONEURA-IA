@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { meter } from './otel/index.js'
-import { env } from './env.js'
+import { meter } from './otel/index.ts'
+import { env } from './env.ts'
 
 // Cost rates per model (EUR per 1K tokens)
 const COST_RATES = {

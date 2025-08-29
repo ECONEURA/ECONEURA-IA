@@ -1,7 +1,7 @@
-import { PlaybookDefinition, createPlaybookExecutor } from './dsl.js'
-import { createGraphClient } from '../graph/client.js'
-import { createEnhancedAIRouter } from '../ai/enhanced-router.js'
-import { logger } from '../logging/index.js'
+import { PlaybookDefinition, createPlaybookExecutor } from './dsl.ts'
+import { createGraphClient } from '../graph/client.ts'
+import { createEnhancedAIRouter } from '../ai/enhanced-router.ts'
+import { logger } from '../logging/index.ts'
 
 /**
  * CFO Collection Playbook v1.0

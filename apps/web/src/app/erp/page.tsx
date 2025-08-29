@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { 
-  Cube, 
+  Box, 
   Store, 
   Truck,
   Plus,
@@ -46,7 +46,7 @@ function MediterraneanERP() {
       title: 'Stock bajo detectado',
       description: 'Producto "Servidor Dell PowerEdge" - Solo quedan 2 unidades',
       time: 'Hace 10 minutos',
-      icon: ExclamationTriangleIcon,
+      icon: AlertTriangle,
       color: 'red'
     },
     {
@@ -55,7 +55,7 @@ function MediterraneanERP() {
       title: 'Pedido recibido',
       description: 'Orden de compra #PO-2024-0856 - Proveedor Tech Solutions',
       time: 'Hace 45 minutos',
-      icon: CheckCircleIcon,
+      icon: CheckCircle,
       color: 'green'
     },
     {
@@ -64,7 +64,7 @@ function MediterraneanERP() {
       title: 'Proveedor actualizado',
       description: 'Mediterráneo Hardware - Nuevos precios actualizados',
       time: 'Hace 1 hora',
-      icon: TruckIcon,
+      icon: Truck,
       color: 'blue'
     },
     {
@@ -73,7 +73,7 @@ function MediterraneanERP() {
       title: 'Producto añadido',
       description: 'Nuevo producto: "Laptop HP EliteBook 850" agregado al catálogo',
       time: 'Hace 2 horas',
-      icon: CubeIcon,
+      icon: Box,
       color: 'purple'
     }
   ];
@@ -129,28 +129,28 @@ function MediterraneanERP() {
     {
       title: 'Añadir Producto',
       description: 'Registrar nuevo producto en el inventario',
-      icon: CubeIcon,
+      icon: Box,
       color: 'coral',
       href: '/erp/products/new'
     },
     {
       title: 'Gestionar Stock',
       description: 'Actualizar niveles de inventario',
-      icon: BuildingStorefrontIcon,
+      icon: Store,
       color: 'olive',
       href: '/erp/inventory'
     },
     {
       title: 'Nuevo Proveedor',
       description: 'Registrar proveedor en el sistema',
-      icon: TruckIcon,
+      icon: Truck,
       color: 'mediterranean',
       href: '/erp/suppliers/new'
     },
     {
       title: 'Generar Orden',
       description: 'Crear orden de compra automática',
-      icon: ClockIcon,
+      icon: Clock,
       color: 'terracotta',
       href: '/erp/orders/new'
     }
@@ -173,7 +173,7 @@ function MediterraneanERP() {
       {/* Mediterranean Header */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-olive-600 via-olive-500 to-terracotta-500 opacity-90"></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.1\"%3E%3Ccircle cx=\"30\" cy=\"30\" r=\"4\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-20"></div>
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
@@ -189,7 +189,7 @@ function MediterraneanERP() {
             <div className="flex items-center gap-4">
               {/* Search Bar */}
               <div className="relative">
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60" />
                 <input
                   type="text"
                   placeholder="Buscar productos, proveedores..."
@@ -200,7 +200,7 @@ function MediterraneanERP() {
               </div>
               
               <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
-                <PlusIcon className="w-4 h-4" />
+                <Plus className="w-4 h-4" />
                 Nuevo
               </button>
             </div>
@@ -213,10 +213,10 @@ function MediterraneanERP() {
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-2">
           <div className="flex space-x-1">
             {[
-              { id: 'overview', label: 'Resumen', icon: ChartBarIcon },
-              { id: 'inventory', label: 'Inventario', icon: BuildingStorefrontIcon },
-              { id: 'products', label: 'Productos', icon: CubeIcon },
-              { id: 'suppliers', label: 'Proveedores', icon: TruckIcon }
+              { id: 'overview', label: 'Resumen', icon: BarChart3 },
+              { id: 'inventory', label: 'Inventario', icon: Store },
+              { id: 'products', label: 'Productos', icon: Box },
+              { id: 'suppliers', label: 'Proveedores', icon: Truck }
             ].map((tab) => {
               const IconComponent = tab.icon;
               return (
@@ -248,42 +248,42 @@ function MediterraneanERP() {
                 {
                   label: 'Productos Totales',
                   value: erpStats.totalProducts.toLocaleString(),
-                  icon: CubeIcon,
+                  icon: Box,
                   color: 'olive',
                   change: '+8%'
                 },
                 {
                   label: 'Stock Bajo',
                   value: erpStats.lowStockItems.toString(),
-                  icon: ExclamationTriangleIcon,
+                  icon: AlertTriangle,
                   color: 'red',
                   change: '-15%'
                 },
                 {
                   label: 'Proveedores Activos',
                   value: erpStats.totalSuppliers.toLocaleString(),
-                  icon: TruckIcon,
+                  icon: Truck,
                   color: 'mediterranean',
                   change: '+5%'
                 },
                 {
                   label: 'Órdenes Pendientes',
                   value: erpStats.pendingOrders.toString(),
-                  icon: ClockIcon,
+                  icon: Clock,
                   color: 'terracotta',
                   change: '+12%'
                 },
                 {
                   label: 'Valor Inventario',
                   value: `€${(erpStats.totalInventoryValue / 1000000).toFixed(1)}M`,
-                  icon: ChartBarIcon,
+                  icon: BarChart3,
                   color: 'coral',
                   change: '+18%'
                 },
                 {
                   label: 'Movimiento Mensual',
                   value: `€${(erpStats.monthlyMovement / 1000).toFixed(0)}K`,
-                  icon: ArrowTrendingUpIcon,
+                  icon: TrendingUp,
                   color: 'green',
                   change: '+24%'
                 }
@@ -470,7 +470,7 @@ function MediterraneanERP() {
         {selectedTab !== 'overview' && (
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-8 text-center">
             <div className="text-mediterranean-600 mb-4">
-              <ChartBarIcon className="w-16 h-16 mx-auto mb-4 opacity-50" />
+              <BarChart3 className="w-16 h-16 mx-auto mb-4 opacity-50" />
               <h3 className="text-xl font-bold text-mediterranean-800 font-playfair mb-2">
                 {selectedTab === 'inventory' && 'Gestión de Inventario'}
                 {selectedTab === 'products' && 'Catálogo de Productos'}

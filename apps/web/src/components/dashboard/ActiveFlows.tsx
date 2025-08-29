@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { format } from 'date-fns';
 import StatusBadge from '../ui/StatusBadge';
 import LoadingSpinner from '../ui/LoadingSpinner';
-import { FlowExecution } from '../../lib/api-client';
+// import { FlowExecution } from '../../lib/api-client';
 
 interface ActiveFlowsProps {
-  flows: FlowExecution[];
+  flows: any[];
   onCancelFlow?: (flowId: string) => void;
   loading?: boolean;
 }
@@ -25,7 +25,7 @@ export default function ActiveFlows({ flows, onCancelFlow, loading = false }: Ac
     setExpandedFlows(newExpanded);
   };
 
-  const getStatusBadge = (status: FlowExecution['status']) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
         return <StatusBadge status="success">Completed</StatusBadge>;
@@ -57,13 +57,13 @@ export default function ActiveFlows({ flows, onCancelFlow, loading = false }: Ac
     return format(new Date(dateString), 'dd/MM/yyyy HH:mm');
   };
 
-  const getProgressPercentage = (flow: FlowExecution) => {
+  const getProgressPercentage = (flow: any) => {
     const totalSteps = 5; // Assume typical flow has 5 steps
     const completedSteps = flow.steps_completed.length;
     return Math.round((completedSteps / totalSteps) * 100);
   };
 
-  const canCancel = (flow: FlowExecution) => {
+  const canCancel = (flow: any) => {
     return ['pending', 'running'].includes(flow.status) && onCancelFlow;
   };
 
@@ -170,12 +170,12 @@ export default function ActiveFlows({ flows, onCancelFlow, loading = false }: Ac
                     <div>
                       <h4 className="text-sm font-medium text-gray-700 mb-2">Completed Steps:</h4>
                       <div className="flex flex-wrap gap-2">
-                        {flow.steps_completed.map((step, index) => (
+                        {flow.steps_completed.map((step: any, index: number) => (
                           <span
                             key={index}
                             className="px-2 py-1 bg-success-50 text-success-700 text-xs rounded-full"
                           >
-                            {step.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            {step.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                           </span>
                         ))}
                       </div>

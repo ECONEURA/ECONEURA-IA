@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { 
-  Banknotes, 
+  Banknote, 
   FileText, 
   CreditCard,
   BarChart3,
@@ -13,8 +13,7 @@ import {
   Calendar,
   AlertTriangle,
   CheckCircle,
-  Clock,
-  Euro
+  Clock
 } from 'lucide-react';
 import { ProtectedRoute } from '../../components/auth/ProtectedRoute';
 
@@ -118,28 +117,28 @@ function MediterraneanFinance() {
     {
       title: 'Nueva Factura',
       description: 'Crear factura para cliente',
-      icon: DocumentTextIcon,
+      icon: FileText,
       color: 'coral',
       href: '/finance/invoices/new'
     },
     {
       title: 'Registrar Pago',
       description: 'Procesar pago recibido',
-      icon: CreditCardIcon,
+      icon: CreditCard,
       color: 'mediterranean',
       href: '/finance/payments/new'
     },
     {
       title: 'Generar Reporte',
       description: 'Crear reporte financiero',
-      icon: ChartBarIcon,
+      icon: BarChart3,
       color: 'olive',
       href: '/finance/reports/new'
     },
     {
       title: 'Gastos del Mes',
       description: 'Registrar nuevo gasto',
-      icon: BanknotesIcon,
+      icon: Banknote,
       color: 'terracotta',
       href: '/finance/expenses/new'
     }
@@ -183,7 +182,7 @@ function MediterraneanFinance() {
       {/* Mediterranean Header */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-terracotta-600 via-coral-500 to-mediterranean-500 opacity-90"></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.1\"%3E%3Ccircle cx=\"30\" cy=\"30\" r=\"4\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-20"></div>
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
@@ -199,7 +198,7 @@ function MediterraneanFinance() {
             <div className="flex items-center gap-4">
               {/* Search Bar */}
               <div className="relative">
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60" />
                 <input
                   type="text"
                   placeholder="Buscar facturas, pagos..."
@@ -210,7 +209,7 @@ function MediterraneanFinance() {
               </div>
               
               <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
-                <PlusIcon className="w-4 h-4" />
+                <Plus className="w-4 h-4" />
                 Nuevo
               </button>
             </div>
@@ -223,10 +222,10 @@ function MediterraneanFinance() {
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-2">
           <div className="flex space-x-1">
             {[
-              { id: 'overview', label: 'Resumen', icon: ChartBarIcon },
-              { id: 'invoices', label: 'Facturas', icon: DocumentTextIcon },
-              { id: 'payments', label: 'Pagos', icon: CreditCardIcon },
-              { id: 'reports', label: 'Reportes', icon: BanknotesIcon }
+              { id: 'overview', label: 'Resumen', icon: BarChart3 },
+              { id: 'invoices', label: 'Facturas', icon: FileText },
+              { id: 'payments', label: 'Pagos', icon: CreditCard },
+              { id: 'reports', label: 'Reportes', icon: Banknote }
             ].map((tab) => {
               const IconComponent = tab.icon;
               return (
@@ -258,28 +257,28 @@ function MediterraneanFinance() {
                 {
                   label: 'Ingresos Totales',
                   value: formatCurrency(financeStats.totalRevenue),
-                  icon: ArrowTrendingUpIcon,
+                  icon: TrendingUp,
                   color: 'green',
                   change: '+18.4%'
                 },
                 {
                   label: 'Gastos Totales',
                   value: formatCurrency(financeStats.totalExpenses),
-                  icon: ArrowTrendingDownIcon,
+                  icon: TrendingDown,
                   color: 'red',
                   change: '+12.1%'
                 },
                 {
                   label: 'Beneficio Neto',
                   value: formatCurrency(financeStats.netProfit),
-                  icon: CurrencyEuroIcon,
+                  icon: BarChart3,
                   color: 'mediterranean',
                   change: '+24.8%'
                 },
                 {
                   label: 'Facturas Pendientes',
                   value: financeStats.pendingInvoices.toString(),
-                  icon: ExclamationTriangleIcon,
+                  icon: AlertTriangle,
                   color: 'orange',
                   change: '-8.2%'
                 }
@@ -309,9 +308,9 @@ function MediterraneanFinance() {
                           isPositive ? 'text-green-200' : 'text-red-200'
                         }`}>
                           {isPositive ? (
-                            <ArrowTrendingUpIcon className="w-4 h-4 mr-1" />
+                            <TrendingUp className="w-4 h-4 mr-1" />
                           ) : (
-                            <ArrowTrendingDownIcon className="w-4 h-4 mr-1" />
+                            <TrendingDown className="w-4 h-4 mr-1" />
                           )}
                           {Math.abs(parseFloat(kpi.change.replace('%', '')))}%
                         </div>
@@ -392,9 +391,9 @@ function MediterraneanFinance() {
                     <div key={transaction.id} className="flex items-start gap-4 p-3 rounded-xl hover:bg-mediterranean-50 transition-colors duration-200">
                       <div className={`p-2 rounded-full ${getTransactionColor(transaction.type, transaction.status)}`}>
                         {transaction.type === 'income' ? (
-                          <ArrowTrendingUpIcon className="w-4 h-4" />
+                          <TrendingUp className="w-4 h-4" />
                         ) : (
-                          <ArrowTrendingDownIcon className="w-4 h-4" />
+                          <TrendingDown className="w-4 h-4" />
                         )}
                       </div>
                       
@@ -477,7 +476,7 @@ function MediterraneanFinance() {
         {selectedTab !== 'overview' && (
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-8 text-center">
             <div className="text-mediterranean-600 mb-4">
-              <ChartBarIcon className="w-16 h-16 mx-auto mb-4 opacity-50" />
+              <BarChart3 className="w-16 h-16 mx-auto mb-4 opacity-50" />
               <h3 className="text-xl font-bold text-mediterranean-800 font-playfair mb-2">
                 {selectedTab === 'invoices' && 'Gestión de Facturas'}
                 {selectedTab === 'payments' && 'Procesamiento de Pagos'}

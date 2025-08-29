@@ -3,7 +3,6 @@ import {
   BarChart3,
   Users,
   Building2,
-  Euro,
   Cpu,
   ArrowRight,
   Sparkles,
@@ -30,7 +29,7 @@ const features = [
   {
     name: 'Finanzas Inteligentes',
     description: 'Panel CFO con análisis financiero avanzado y reportes en tiempo real',
-    icon: Euro,
+    icon: BarChart3,
     href: '/finance',
     color: 'from-mediterranean-400 to-mediterranean-600',
     bgColor: 'from-mediterranean-50 to-mediterranean-100',

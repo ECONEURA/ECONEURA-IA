@@ -99,7 +99,7 @@ export async function auditLog(
   orgId: string,
   metadata?: any
 ) {
-  const { PrismaClient } = await import('@prisma/client')
+  const { PrismaClient } = await // import { PrismaClient } from '@prisma/client'
   const prisma = new PrismaClient()
   
   try {

@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+// import { PrismaClient } from '@prisma/client'
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 
