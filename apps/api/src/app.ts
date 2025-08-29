@@ -14,6 +14,7 @@ import { logger } from './lib/logger.js';
 import interactionsRoutes from './routes/interactions.routes.js';
 import productsRoutes from './routes/products.routes.js';
 import suppliersRoutes from './routes/suppliers.routes.js';
+import advancedFeaturesRouter from './routes/advanced-features';
 
 const app = express();
 
@@ -60,6 +61,7 @@ app.get('/health', (req, res) => {
 app.use('/api/interactions', requireAuth, interactionsRoutes);
 app.use('/api/products', requireAuth, productsRoutes);
 app.use('/api/suppliers', requireAuth, suppliersRoutes);
+app.use('/api/advanced', advancedFeaturesRouter);
 
 // Swagger documentation
 const swaggerOptions = {
