@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "lib": ["ES2022"],
+    "lib": ["ES2022", "DOM"],
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -17,7 +17,9 @@
     "baseUrl": ".",
     "paths": {
       "@econeura/shared": ["./packages/shared/src"],
-      "@econeura/shared/*": ["./packages/shared/src/*"]
+      "@econeura/shared/*": ["./packages/shared/src/*"],
+      "@econeura/db": ["./packages/db/src"],
+      "@econeura/db/*": ["./packages/db/src/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],

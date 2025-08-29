@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createMeter } from './otel/index.js'
+import { meter } from './otel/index.js'
 import { env } from './env.js'
 
 // Cost rates per model (EUR per 1K tokens)
@@ -23,11 +23,10 @@ const CostUsageSchema = z.object({
 type CostUsage = z.infer<typeof CostUsageSchema>
 
 class CostMeter {
-  private meter = createMeter('ai-cost-meter')
-  private costCounter = this.meter.createCounter('ai_cost_eur_total', {
+  private costCounter = meter.createCounter('ai_cost_eur_total', {
     description: 'Total AI cost in EUR',
   })
-  private usageCounter = this.meter.createCounter('ai_requests_total', {
+  private usageCounter = meter.createCounter('ai_requests_total', {
     description: 'Total AI requests',
   })
   private monthlyCap = env().AI_MONTHLY_CAP_EUR
@@ -91,11 +90,10 @@ class CostMeter {
         )
         .execute()
 
-      const totalCost = result.reduce((sum, row) => sum + Number(row.totalCost), 0)
+      const totalCost = result.reduce((sum: number, row: any) => sum + Number(row.totalCost), 0)
       return totalCost
       
     } catch (error) {
-      console.error('Error getting monthly usage:', error)
       // Fallback to in-memory tracking if database fails
       return 0
     }
