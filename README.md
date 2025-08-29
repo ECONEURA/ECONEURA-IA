@@ -240,6 +240,13 @@ pnpm dev                  # Desarrollo
 - **Servicios**: AutoML, Sentiment Analysis, Workflow Automation, Real-time Analytics, Semantic Search, Intelligent Reporting, Chatbot, BPM
 - **Impacto**: 87% automatización, 94% satisfacción cliente, 89% ROI
 
+### ✅ PR-15: Migración a Azure OpenAI con BFF Next.js
+- **Estado**: ✅ Completado y desplegado
+- **Descripción**: Migración completa a Azure OpenAI con arquitectura BFF
+- **Funcionalidades**: Chat GPT-4o-mini, DALL-E 3, Azure Speech TTS, Google CSE
+- **Características**: Modo demo robusto, backoff automático, content filtering
+- **Arquitectura**: BFF Next.js, API routes, TypeScript optimizado
+
 ## 📄 Licencia
 
 Este proyecto está bajo la Licencia MIT. Ver [LICENSE](LICENSE) para más detalles.
