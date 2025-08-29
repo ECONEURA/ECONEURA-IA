@@ -1,12 +1,15 @@
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
-import { PrismaClient } from '@prisma/client'
-import { apiRouter } from './routes'
+import bodyParser from 'body-parser'
+import rateLimit from 'express-rate-limit'
+import basicAuth from 'express-basic-auth'
+import { ai } from './routes/ai.js'
+import { search } from './routes/search.js'
+import { registry } from './lib/observe.js'
 
 const app = express()
-const prisma = new PrismaClient()
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT || 4000
 
 // Middleware
 app.use(helmet())
@@ -14,8 +17,8 @@ app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true
 }))
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+app.use(bodyParser.json({ limit: '2mb' }))
+app.use(rateLimit({ windowMs: 60_000, max: 180, keyGenerator: (req) => (req.headers['x-org-id'] as string) || req.ip }))
 
 // Request logging
 app.use((req, res, next) => {
@@ -23,8 +26,15 @@ app.use((req, res, next) => {
   next()
 })
 
+// Metrics (protected)
+app.get('/metrics', basicAuth({ users: { admin: process.env.METRICS_PWD || 'metrics' }, challenge: true }), async (_req, res) => {
+  res.setHeader('Content-Type', registry.contentType)
+  res.end(await registry.metrics())
+})
+
 // Routes
-app.use('/api', apiRouter)
+app.use('/v1/ai', ai)
+app.use('/v1/search', search)
 
 // Error handling
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -38,13 +48,8 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 // Start server
 async function startServer() {
   try {
-    // Test database connection
-    await prisma.$connect()
-    console.log('✅ Database connected')
-
     app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`)
-      console.log(`📚 API documentation: http://localhost:${PORT}/api`)
+      console.log(`🚀 API running on port ${PORT}`)
     })
   } catch (error) {
     console.error('❌ Failed to start server:', error)
@@ -54,14 +59,12 @@ async function startServer() {
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
-  console.log('SIGTERM received, closing connections...')
-  await prisma.$disconnect()
+  console.log('SIGTERM received')
   process.exit(0)
 })
 
 process.on('SIGINT', async () => {
-  console.log('SIGINT received, closing connections...')
-  await prisma.$disconnect()
+  console.log('SIGINT received')
   process.exit(0)
 })
 
