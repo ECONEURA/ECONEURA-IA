@@ -517,4 +517,230 @@ router.delete('/:id', controller.deleteInteraction.bind(controller));
  */
 router.get('/summary', controller.getInteractionSummary.bind(controller));
 
+/**
+ * @openapi
+ * /api/interactions/search:
+ *   get:
+ *     summary: Semantic search interactions with AI ranking
+ *     tags: [Interactions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: header
+ *         name: x-org-id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Organization ID for RLS
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Search query for semantic search
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Number of results to return
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: Number of results to skip
+ *     responses:
+ *       200:
+ *         description: Search results with relevance scores
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     allOf:
+ *                       - $ref: '#/components/schemas/Interaction'
+ *                       - type: object
+ *                         properties:
+ *                           relevance_score:
+ *                             type: number
+ *                             format: float
+ *                             description: AI-calculated relevance score (0-1)
+ *                           relevance_reason:
+ *                             type: string
+ *                             description: Explanation of relevance
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     offset:
+ *                       type: integer
+ *                     hasMore:
+ *                       type: boolean
+ *                 search_metadata:
+ *                   type: object
+ *                   properties:
+ *                     query:
+ *                       type: string
+ *                     total_results:
+ *                       type: integer
+ *                     search_time_ms:
+ *                       type: integer
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+router.get('/search', controller.searchInteractions.bind(controller));
+
+/**
+ * @openapi
+ * /api/interactions/analytics:
+ *   get:
+ *     summary: Get analytics dashboard data for interactions
+ *     tags: [Interactions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: header
+ *         name: x-org-id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Organization ID for RLS
+ *       - in: query
+ *         name: period
+ *         schema:
+ *           type: string
+ *           enum: [7d, 30d, 90d]
+ *           default: 30d
+ *         description: Time period for analytics
+ *       - in: query
+ *         name: company_id
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Filter by company ID
+ *       - in: query
+ *         name: contact_id
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Filter by contact ID
+ *       - in: query
+ *         name: deal_id
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Filter by deal ID
+ *     responses:
+ *       200:
+ *         description: Analytics dashboard data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     overview:
+ *                       type: object
+ *                       properties:
+ *                         total_interactions:
+ *                           type: integer
+ *                         interactions_per_day:
+ *                           type: number
+ *                         completion_rate:
+ *                           type: number
+ *                         avg_response_time_hours:
+ *                           type: number
+ *                     type_distribution:
+ *                       type: object
+ *                       additionalProperties:
+ *                         type: integer
+ *                     status_distribution:
+ *                       type: object
+ *                       additionalProperties:
+ *                         type: integer
+ *                     conversion_rates:
+ *                       type: object
+ *                       properties:
+ *                         calls:
+ *                           type: number
+ *                         emails:
+ *                           type: number
+ *                         meetings:
+ *                           type: number
+ *                         notes:
+ *                           type: number
+ *                         tasks:
+ *                           type: number
+ *                     daily_trends:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           date:
+ *                             type: string
+ *                           total:
+ *                             type: integer
+ *                           by_type:
+ *                             type: object
+ *                     top_performers:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           user_id:
+ *                             type: string
+ *                           name:
+ *                             type: string
+ *                           interactions:
+ *                             type: integer
+ *                           conversion_rate:
+ *                             type: number
+ *                     heatmap:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           day:
+ *                             type: string
+ *                           hours:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 hour:
+ *                                   type: integer
+ *                                 count:
+ *                                   type: integer
+ *                                 intensity:
+ *                                   type: number
+ *                     insights:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                     recommendations:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+router.get('/analytics', controller.getAnalytics.bind(controller));
+
 export default router;

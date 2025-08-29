@@ -6,6 +6,8 @@ import { CreateInteractionSchema, UpdateInteractionSchema } from '@econeura/shar
 import { createProblem } from '../lib/problem';
 import { logger } from '../lib/logger';
 import { aiService } from '../services/ai.service';
+import { notificationService } from '../services/notification.service';
+import { workflowService } from '../services/workflow.service';
 
 export class InteractionsController {
   // Get all interactions with filters
