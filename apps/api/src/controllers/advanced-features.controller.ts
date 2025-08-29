@@ -4,6 +4,14 @@ import { predictiveAIService } from '../services/predictive-ai.service';
 import { metricsService } from '../services/metrics.service';
 import { externalIntegrationsService } from '../services/external-integrations.service';
 import { auditService } from '../services/audit.service';
+import { automlService } from '../services/automl.service';
+import { sentimentAnalysisService } from '../services/sentiment-analysis.service';
+import { workflowAutomationService } from '../services/workflow-automation.service';
+import { realtimeAnalyticsService } from '../services/realtime-analytics.service';
+import { semanticSearchService } from '../services/semantic-search.service';
+import { intelligentReportingService } from '../services/intelligent-reporting.service';
+import { intelligentChatbotService } from '../services/intelligent-chatbot.service';
+import { businessProcessOptimizationService } from '../services/business-process-optimization.service';
 
 export class AdvancedFeaturesController {
   // AI Predictive Features
@@ -468,8 +476,21 @@ export class AdvancedFeaturesController {
           status: 'operational',
           last_calculation: new Date().toISOString()
         },
+        automl_system: {
+          status: 'operational',
+          models_count: 0
+        },
+        chatbot_system: {
+          status: 'operational',
+          active_sessions: 0
+        },
+        bpm_system: {
+          status: 'operational',
+          processes_count: 0
+        },
         overall_status: 'healthy',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        version: '3.0.0'
       };
 
       res.json({
@@ -482,6 +503,312 @@ export class AdvancedFeaturesController {
       res.status(500).json({
         success: false,
         error: 'Failed to get system status'
+      });
+    }
+  }
+
+  // AutoML Features
+  async trainModel(req: Request, res: Response) {
+    try {
+      const { orgId } = req.params;
+      const { config, dataset } = req.body;
+
+      const result = await automlService.trainModel(config, dataset);
+
+      await auditService.logDataAccess(
+        orgId,
+        req.user?.id || 'system',
+        'automl_training',
+        'model',
+        'train_model',
+        { modelId: result.modelId, algorithm: config.algorithm },
+        req.ip,
+        req.get('User-Agent')
+      );
+
+      res.json({
+        success: true,
+        data: result,
+        message: 'Model trained successfully'
+      });
+    } catch (error) {
+      logger.error('Error training model:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to train model'
+      });
+    }
+  }
+
+  async predictWithModel(req: Request, res: Response) {
+    try {
+      const { orgId } = req.params;
+      const { modelId, features } = req.body;
+
+      const prediction = await automlService.predict(modelId, features);
+
+      await auditService.logDataAccess(
+        orgId,
+        req.user?.id || 'system',
+        'automl_prediction',
+        'model',
+        'predict',
+        { modelId, features },
+        req.ip,
+        req.get('User-Agent')
+      );
+
+      res.json({
+        success: true,
+        data: prediction,
+        message: 'Prediction completed successfully'
+      });
+    } catch (error) {
+      logger.error('Error making prediction:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to make prediction'
+      });
+    }
+  }
+
+  // Sentiment Analysis Features
+  async analyzeSentiment(req: Request, res: Response) {
+    try {
+      const { orgId } = req.params;
+      const { text, language, context } = req.body;
+
+      const result = await sentimentAnalysisService.analyzeSentiment({
+        text,
+        language,
+        context
+      });
+
+      await auditService.logDataAccess(
+        orgId,
+        req.user?.id || 'system',
+        'sentiment_analysis',
+        'text',
+        'analyze_sentiment',
+        { textLength: text.length, context },
+        req.ip,
+        req.get('User-Agent')
+      );
+
+      res.json({
+        success: true,
+        data: result,
+        message: 'Sentiment analysis completed'
+      });
+    } catch (error) {
+      logger.error('Error analyzing sentiment:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to analyze sentiment'
+      });
+    }
+  }
+
+  // Workflow Automation Features
+  async createWorkflow(req: Request, res: Response) {
+    try {
+      const { orgId } = req.params;
+      const workflowData = req.body;
+
+      const workflow = await workflowAutomationService.createWorkflow(workflowData);
+
+      await auditService.logDataAccess(
+        orgId,
+        req.user?.id || 'system',
+        'workflow_creation',
+        'workflow',
+        'create_workflow',
+        { workflowId: workflow.id, name: workflow.name },
+        req.ip,
+        req.get('User-Agent')
+      );
+
+      res.json({
+        success: true,
+        data: workflow,
+        message: 'Workflow created successfully'
+      });
+    } catch (error) {
+      logger.error('Error creating workflow:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to create workflow'
+      });
+    }
+  }
+
+  // Real-time Analytics Features
+  async ingestEvent(req: Request, res: Response) {
+    try {
+      const { orgId } = req.params;
+      const eventData = req.body;
+
+      const eventId = await realtimeAnalyticsService.ingestEvent({
+        ...eventData,
+        source: orgId
+      });
+
+      await auditService.logDataAccess(
+        orgId,
+        req.user?.id || 'system',
+        'realtime_ingest',
+        'event',
+        'ingest_event',
+        { eventId, type: eventData.type },
+        req.ip,
+        req.get('User-Agent')
+      );
+
+      res.json({
+        success: true,
+        data: { eventId },
+        message: 'Event ingested successfully'
+      });
+    } catch (error) {
+      logger.error('Error ingesting event:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to ingest event'
+      });
+    }
+  }
+
+  // Semantic Search Features
+  async indexDocument(req: Request, res: Response) {
+    try {
+      const { orgId } = req.params;
+      const documentData = req.body;
+
+      const documentId = await semanticSearchService.indexDocument({
+        ...documentData,
+        metadata: { ...documentData.metadata, orgId }
+      });
+
+      await auditService.logDataAccess(
+        orgId,
+        req.user?.id || 'system',
+        'orgId',
+        'document',
+        'index_document',
+        { documentId, type: documentData.type },
+        req.ip,
+        req.get('User-Agent')
+      );
+
+      res.json({
+        success: true,
+        data: { documentId },
+        message: 'Document indexed successfully'
+      });
+    } catch (error) {
+      logger.error('Error indexing document:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to index document'
+      });
+    }
+  }
+
+  // Intelligent Reporting Features
+  async generateReport(req: Request, res: Response) {
+    try {
+      const { orgId } = req.params;
+      const reportRequest = req.body;
+
+      const report = await intelligentReportingService.generateReport(reportRequest);
+
+      await auditService.logDataAccess(
+        orgId,
+        req.user?.id || 'system',
+        'report_generation',
+        'report',
+        'generate_report',
+        { reportId: report.id, templateId: report.templateId },
+        req.ip,
+        req.get('User-Agent')
+      );
+
+      res.json({
+        success: true,
+        data: report,
+        message: 'Report generated successfully'
+      });
+    } catch (error) {
+      logger.error('Error generating report:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to generate report'
+      });
+    }
+  }
+
+  // Chatbot Features
+  async createChatSession(req: Request, res: Response) {
+    try {
+      const { orgId } = req.params;
+      const { userId } = req.body;
+
+      const session = await intelligentChatbotService.createSession(userId);
+
+      await auditService.logDataAccess(
+        orgId,
+        req.user?.id || 'system',
+        'chatbot_session',
+        'session',
+        'create_session',
+        { sessionId: session.id, userId },
+        req.ip,
+        req.get('User-Agent')
+      );
+
+      res.json({
+        success: true,
+        data: session,
+        message: 'Chat session created successfully'
+      });
+    } catch (error) {
+      logger.error('Error creating chat session:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to create chat session'
+      });
+    }
+  }
+
+  // Business Process Optimization Features
+  async createProcess(req: Request, res: Response) {
+    try {
+      const { orgId } = req.params;
+      const processData = req.body;
+
+      const process = await businessProcessOptimizationService.createProcess(processData);
+
+      await auditService.logDataAccess(
+        orgId,
+        req.user?.id || 'system',
+        'bpm_creation',
+        'process',
+        'create_process',
+        { processId: process.id, name: process.name },
+        req.ip,
+        req.get('User-Agent')
+      );
+
+      res.json({
+        success: true,
+        data: process,
+        message: 'Business process created successfully'
+      });
+    } catch (error) {
+      logger.error('Error creating business process:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to create business process'
       });
     }
   }

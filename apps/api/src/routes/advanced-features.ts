@@ -71,6 +71,59 @@ router.post(
   advancedFeaturesController.generateAIRecommendations
 );
 
+// AutoML Features Routes
+router.post(
+  '/ai/automl/train/:orgId',
+  advancedFeaturesController.trainModel
+);
+
+router.post(
+  '/ai/automl/predict/:orgId',
+  advancedFeaturesController.predictWithModel
+);
+
+// Sentiment Analysis Routes
+router.post(
+  '/ai/sentiment/analyze/:orgId',
+  advancedFeaturesController.analyzeSentiment
+);
+
+// Workflow Automation Routes
+router.post(
+  '/automation/workflow/create/:orgId',
+  advancedFeaturesController.createWorkflow
+);
+
+// Real-time Analytics Routes
+router.post(
+  '/analytics/realtime/ingest/:orgId',
+  advancedFeaturesController.ingestEvent
+);
+
+// Semantic Search Routes
+router.post(
+  '/search/semantic/index/:orgId',
+  advancedFeaturesController.indexDocument
+);
+
+// Intelligent Reporting Routes
+router.post(
+  '/reporting/generate/:orgId',
+  advancedFeaturesController.generateReport
+);
+
+// Chatbot Routes
+router.post(
+  '/chatbot/session/create/:orgId',
+  advancedFeaturesController.createChatSession
+);
+
+// Business Process Optimization Routes
+router.post(
+  '/bpm/process/create/:orgId',
+  advancedFeaturesController.createProcess
+);
+
 // Metrics and KPI Routes
 router.get(
   '/metrics/kpi-scorecard/:orgId',
