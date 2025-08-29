@@ -48,7 +48,9 @@
     "pnpm": ">=8.0.0"
   },
   "dependencies": {
+    "body-parser": "^2.2.0",
     "eventsource-parser": "^3.0.6",
+    "express-basic-auth": "^1.2.1",
     "pm2": "^6.0.8",
     "pnpm": "^8.15.0",
     "prom-client": "^15.1.3",
