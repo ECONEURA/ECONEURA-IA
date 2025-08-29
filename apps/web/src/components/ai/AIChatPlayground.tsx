@@ -15,6 +15,8 @@ import {
 import LoadingSpinner from '../ui/LoadingSpinner';
 import toast from 'react-hot-toast';
 import { iaText, iaTTS, iaImage, webSearch } from '@/lib/ia';
+import { intelligentCache } from '@/lib/cache';
+import { PromptTemplates } from './PromptTemplates';
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -53,6 +55,7 @@ export function AIChatPlayground() {
   const [loading, setLoading] = useState(false);
   const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [isImageLoading, setIsImageLoading] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
   const [options, setOptions] = useState<AIRequestOptions>({
     taskType: 'summarize',
     sensitivity: 'internal',
@@ -108,7 +111,13 @@ export function AIChatPlayground() {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
-      toast.success('Respuesta de Azure OpenAI');
+      
+      // Detectar modo demo
+      if (responseText.includes('🧪 DEMO')) {
+        toast('Modo demo activo - configura claves de Azure OpenAI', { icon: '🧪' });
+      } else {
+        toast.success('Respuesta de Azure OpenAI');
+      }
     } catch (error: any) {
       console.error(error);
       const errorMessage: ChatMessage = {
@@ -135,7 +144,7 @@ export function AIChatPlayground() {
     if (isAudioLoading) return;
     setIsAudioLoading(true);
     try {
-      const b64 = await iaTTS({ text, voice: "es-ES-AlvaroNeural" });
+      const b64 = await iaTTS({ text });
       const url = "data:audio/wav;base64," + b64;
       const audio = new Audio(url);
       await audio.play();
@@ -158,7 +167,7 @@ export function AIChatPlayground() {
     setMessages(prev => [...prev, userMessage]);
     setIsImageLoading(true);
     try {
-      const base64Data = await iaImage({ prompt, size: "1024x1024" });
+      const base64Data = await iaImage({ prompt });
       const src = `data:image/png;base64,${base64Data}`;
       const assistantMessage: ChatMessage = {
         role: 'assistant',
