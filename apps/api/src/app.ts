@@ -5,6 +5,7 @@ import rawBody from 'raw-body';
 import { metricsRegister } from '@econeura/shared/metrics';
 import { logger } from '@econeura/shared/logging';
 import { SECURITY_HEADERS } from '@econeura/shared/security';
+import '@econeura/shared/otel'; // Initialize OpenTelemetry
 
 // Middlewares
 import { requestId } from './mw/requestId.js';
@@ -13,6 +14,7 @@ import { idempotency } from './mw/idempotency.js';
 import { rateLimitOrg } from './mw/rateLimitOrg.js';
 import { requireAuth, optionalAuth } from './mw/auth.js';
 import { problemJson, notFoundHandler, asyncHandler, ApiError } from './mw/problemJson.js';
+import { observabilityMiddleware, errorObservabilityMiddleware } from './middleware/observability.js';
 
 // Routes (will be implemented)
 import { healthRoutes } from './routes/health.js';
@@ -90,6 +92,9 @@ app.use(cors({
 
 // Request ID and tracing
 app.use(requestId);
+
+// OpenTelemetry observability middleware
+app.use(observabilityMiddleware());
 
 // Raw body parser (solo para /api/webhooks/*)
 app.use('/api/webhooks', (req, res, next) => {
@@ -214,6 +219,9 @@ app.get('/api/openapi.json', asyncHandler(async (req, res) => {
 
 // 404 handler
 app.use(notFoundHandler);
+
+// Error observability middleware
+app.use(errorObservabilityMiddleware());
 
 // Global error handler
 app.use(problemJson);

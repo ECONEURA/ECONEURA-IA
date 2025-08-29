@@ -2,26 +2,25 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  TruckIcon, 
-  PlusIcon,
-  MagnifyingGlassIcon,
-  EnvelopeIcon,
-  PhoneIcon,
-  MapPinIcon,
-  GlobeAltIcon,
-  EllipsisVerticalIcon,
-  PencilIcon,
-  TrashIcon,
-  StarIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ClockIcon,
-  ExclamationTriangleIcon,
-  FunnelIcon,
-  ChartBarIcon,
-  CurrencyEuroIcon
-} from '@heroicons/react/24/outline';
-import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid';
+  Truck, 
+  Plus,
+  Search,
+  Mail,
+  Phone,
+  MapPin,
+  Globe,
+  MoreVertical,
+  Pencil,
+  Trash2,
+  Star,
+  CheckCircle,
+  XCircle,
+  Clock,
+  AlertTriangle,
+  Filter,
+  BarChart3,
+  Euro
+} from 'lucide-react';
 import { ProtectedRoute } from '../../../components/auth/ProtectedRoute';
 
 interface Supplier {

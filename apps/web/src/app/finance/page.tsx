@@ -2,20 +2,20 @@
 
 import { useState } from 'react';
 import { 
-  BanknotesIcon, 
-  DocumentTextIcon, 
-  CreditCardIcon,
-  ChartBarIcon,
-  PlusIcon,
-  MagnifyingGlassIcon,
-  ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon,
-  CalendarIcon,
-  ExclamationTriangleIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  CurrencyEuroIcon
-} from '@heroicons/react/24/outline';
+  Banknotes, 
+  FileText, 
+  CreditCard,
+  BarChart3,
+  Plus,
+  Search,
+  TrendingUp,
+  TrendingDown,
+  Calendar,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Euro
+} from 'lucide-react';
 import { ProtectedRoute } from '../../components/auth/ProtectedRoute';
 
 interface FinanceStats {

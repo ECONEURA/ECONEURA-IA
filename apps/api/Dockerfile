@@ -1,44 +1,51 @@
-FROM node:20-alpine AS builder
+# Use Node.js 20 Alpine as base image
+FROM node:20-alpine AS base
 
+# Install dependencies only when needed
+FROM base AS deps
+# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-COPY apps/api/package*.json ./apps/api/
-COPY packages/shared/package*.json ./packages/shared/
-COPY packages/sdk/package*.json ./packages/sdk/
+# Install dependencies based on the preferred package manager
+COPY package.json pnpm-lock.yaml* ./
+RUN npm install -g pnpm && pnpm install --frozen-lockfile
 
-# Install dependencies
-RUN npm ci
-
-# Copy source code
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Generate Prisma client
-RUN cd apps/api && npx prisma generate
+# Build the application
+RUN npm install -g pnpm && pnpm build
 
-# Build all packages
-RUN npm run build
-
-FROM node:20-alpine AS runner
-
+# Production image, copy all the files and run the app
+FROM base AS runner
 WORKDIR /app
 
-# Install production dependencies only
-COPY package*.json ./
-COPY apps/api/package*.json ./apps/api/
-COPY packages/shared/package*.json ./packages/shared/
+ENV NODE_ENV=production
+ENV PORT=3001
 
-RUN npm ci --production
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
-# Copy built application
+# Copy the built application
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+
+# Copy shared packages
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
-COPY --from=builder /app/apps/api/dist ./apps/api/dist
-COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
-COPY --from=builder /app/apps/api/node_modules/.prisma ./apps/api/node_modules/.prisma
+COPY --from=builder /app/packages/db/dist ./packages/db/dist
+COPY --from=builder /app/packages/playbooks/dist ./packages/playbooks/dist
 
-WORKDIR /app/apps/api
+USER nextjs
 
 EXPOSE 3001
 
+ENV PORT=3001
+ENV HOSTNAME="0.0.0.0"
+
+# Start the application
 CMD ["node", "dist/index.js"]

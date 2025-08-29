@@ -58,6 +58,16 @@ export { EnhancedAIRouter, type EnhancedAIRequest, type EnhancedRouterDecision, 
 export { CostGuardrails, type CostLimits, type CostAlert, type UsageMetrics } from './ai/cost-guardrails.js';
 export { LLMProviderManager, type LLMProvider, type LLMModel, type ProviderHealth } from './ai/providers.js';
 
+// Environment and configuration
+export { env, getEnv } from './env.js';
+
+// OpenTelemetry
+export * from './otel/index.js';
+
+// Cost metering
+export { costMeter } from './cost-meter.js';
+export type { CostUsage, ModelName } from './cost-meter.js';
+
 // Version info
 export const VERSION = '1.0.0';
 export const BUILD_TIME = new Date().toISOString();

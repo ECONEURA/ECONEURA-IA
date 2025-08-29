@@ -2,15 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  CurrencyEuroIcon,
-  ExclamationTriangleIcon,
-  ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon,
-  ArrowPathIcon,
-  CogIcon,
-  ShieldCheckIcon,
-  BoltIcon
-} from '@heroicons/react/24/outline';
+  Euro,
+  AlertTriangle,
+  TrendingUp,
+  TrendingDown,
+  RotateCcw,
+  Settings,
+  Shield,
+  Zap
+} from 'lucide-react';
 import MetricsCard from '../dashboard/MetricsCard';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import StatusBadge from '../ui/StatusBadge';

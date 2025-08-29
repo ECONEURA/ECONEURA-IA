@@ -1,59 +1,71 @@
-import { logger } from '../logging/index.js';
-import { prometheus } from '../metrics/index.js';
-import { redactPII } from '../security/index.js';
-import { CostGuardrails, type UsageMetrics, type CostAlert } from './cost-guardrails.js';
-import { LLMProviderManager, type LLMProvider } from './providers.js';
-import type { AIRequest, AIResponse } from '../types/index.js';
+import { z } from 'zod'
+import { logger } from '../logging/index.js'
+import { prometheus } from '../metrics/index.js'
+import { redactPII } from '../security/index.js'
+import { CostGuardrails, type UsageMetrics } from './cost-guardrails.js'
+import { LLMProviderManager, type LLMProvider, type LLMModel } from './providers.js'
+import { costMeter, type CostUsage } from '../cost-meter.js'
+import { createTracer, createMeter } from '../otel/index.js'
+import { env } from '../env.js'
 
-export interface EnhancedAIRequest extends AIRequest {
-  model?: string;
-  requiresCapabilities?: string[];
-  preferEdge?: boolean;
-  maxCostEUR?: number;
-  priority?: 'low' | 'medium' | 'high' | 'critical';
-  retryPolicy?: {
-    enabled: boolean;
-    maxAttempts: number;
-    backoffMs: number;
-  };
-  metadata?: Record<string, any>;
-}
+// Request schemas
+const AIRequestSchema = z.object({
+  orgId: z.string(),
+  prompt: z.string().min(1),
+  model: z.string().optional(),
+  maxTokens: z.number().positive().optional(),
+  temperature: z.number().min(0).max(2).optional(),
+  maxCostEUR: z.number().positive().optional(),
+  providerHint: z.enum(['mistral', 'azure-openai']).optional(),
+  language: z.string().optional(),
+  sensitivity: z.enum(['low', 'medium', 'high']).optional(),
+})
 
-export interface EnhancedRouterDecision {
-  provider: LLMProvider;
-  model: string;
-  endpoint: string;
-  headers: Record<string, string>;
-  shouldRedact: boolean;
-  maxRetries: number;
-  timeoutMs: number;
-  estimatedCost: number;
-  rateLimitOk: boolean;
-  fallbackProviders: string[];
-  routingReason: string;
-}
+const AIResponseSchema = z.object({
+  content: z.string(),
+  model: z.string(),
+  provider: z.string(),
+  tokens: z.object({
+    input: z.number(),
+    output: z.number(),
+  }),
+  costEUR: z.number(),
+  latencyMs: z.number(),
+  fallbackUsed: z.boolean(),
+  requestId: z.string(),
+})
 
-export interface AIRouterConfig {
-  costGuardrailsEnabled: boolean;
-  telemetryEnabled: boolean;
-  defaultMaxCostEUR: number;
-  emergencyStopEnabled: boolean;
-  healthCheckInterval: number;
-  alertWebhooks?: string[];
+export type AIRequest = z.infer<typeof AIRequestSchema>
+export type AIResponse = z.infer<typeof AIResponseSchema>
+
+export interface RouterDecision {
+  provider: string
+  model: string
+  maxRetries: number
+  timeoutMs: number
+  fallbackProvider?: string
 }
 
 export class EnhancedAIRouter {
-  private costGuardrails: CostGuardrails;
-  private providerManager: LLMProviderManager;
-  private config: AIRouterConfig;
-  private activeRequests: Map<string, { 
-    providerId: string; 
-    model: string;
-    orgId: string;
-    startTime: number; 
-  }> = new Map();
+  private costGuardrails: CostGuardrails
+  private providerManager: LLMProviderManager
+  private config: {
+    costGuardrailsEnabled: boolean
+    telemetryEnabled: boolean
+    defaultMaxCostEUR: number
+    emergencyStopEnabled: boolean
+    healthCheckInterval: number
+  }
+  private activeRequests = new Map<string, {
+    orgId: string
+    providerId: string
+    model: string
+    startTime: number
+  }>()
+  private tracer = createTracer('ai-router')
+  private meter = createMeter('ai-router')
 
-  constructor(config: Partial<AIRouterConfig> = {}) {
+  constructor(config = {}) {
     this.config = {
       costGuardrailsEnabled: true,
       telemetryEnabled: true,
@@ -61,180 +73,285 @@ export class EnhancedAIRouter {
       emergencyStopEnabled: true,
       healthCheckInterval: 30000,
       ...config,
-    };
+    }
 
-    this.costGuardrails = new CostGuardrails();
-    this.providerManager = new LLMProviderManager();
+    this.costGuardrails = new CostGuardrails()
+    this.providerManager = new LLMProviderManager()
 
     // Set up alert handlers
     if (this.config.costGuardrailsEnabled) {
-      this.costGuardrails.onAlert((alert) => this.handleCostAlert(alert));
+      this.costGuardrails.onAlert((alert) => this.handleCostAlert(alert))
     }
 
     // Set up default cost limits for organizations
-    this.setupDefaultCostLimits();
+    this.setupDefaultCostLimits()
 
     logger.info('Enhanced AI Router initialized', {
       cost_guardrails_enabled: this.config.costGuardrailsEnabled,
       telemetry: this.config.telemetryEnabled,
       emergency_stop: this.config.emergencyStopEnabled,
-    });
+    })
   }
 
   /**
-   * Routes AI request with enhanced decision making
+   * Main routing method with cost cap and fallback logic
    */
-  async routeRequest(request: EnhancedAIRequest): Promise<EnhancedRouterDecision> {
-    const startTime = Date.now();
-    const requestId = this.generateRequestId();
+  async routeRequest(request: AIRequest): Promise<AIResponse> {
+    const span = this.tracer.startSpan('ai_route_request')
+    const requestId = this.generateRequestId(request.orgId)
+    const startTime = Date.now()
 
-    logger.info('Enhanced AI routing started', {
-      x_x_request_id: requestId,
-      org_id: request.org_id,
-      tokens_est: request.tokens_est,
-      priority: request.priority || 'medium',
-    });
-
-    // métrica: peticiones activas
-    prometheus.aiActiveRequests?.labels?.({ org_id: request.org_id, provider: 'router' }).inc();
     try {
-      // Step 1: Find suitable providers
-      const suitableProviders = this.findSuitableProviders(request);
-      if (suitableProviders.length === 0) {
-        throw new Error('No suitable providers found for request requirements');
+      // Validate request
+      const validatedRequest = AIRequestSchema.parse(request)
+      
+      // Check monthly cost cap first
+      const capCheck = await costMeter.checkMonthlyCap(request.orgId)
+      if (!capCheck.withinLimit) {
+        throw new Error(`AI cost cap exceeded: ${capCheck.currentUsage}€/${capCheck.limit}€`)
       }
 
-      // Step 2: Cost validation
-      let selectedProvider: LLMProvider | null = null;
-      let estimatedCost = 0;
-      let rateLimitOk = false;
-
-      for (const provider of suitableProviders) {
-        const model = this.selectBestModel(provider, request);
-        if (!model) continue;
-
-        // Estimate cost
-        estimatedCost = this.providerManager.estimateCost(
-          provider.id,
-          model.id,
-          request.tokens_est || 1000,
-          Math.floor((request.tokens_est || 1000) * 0.3), // Assume 30% output ratio
-          {
-            images: request.content?.includes('image') ? 1 : 0,
-            functionCalls: request.tools_needed.includes('function_calling') ? 1 : 0,
-          }
-        );
-
-        // Check cost guardrails
-        if (this.config.costGuardrailsEnabled) {
-          const costValidation = await this.costGuardrails.validateRequest(
-            request.org_id,
-            estimatedCost,
-            provider.id,
-            model.id
-          );
-
-          if (!costValidation.allowed) {
-            logger.warn('Request blocked by cost guardrails', {
-              x_request_id: requestId,
-              org_id: request.org_id,
-              provider_id: provider.id,
-              estimated_cost: estimatedCost,
-              reason: costValidation.reason,
-            });
-            continue;
-          }
-        }
-
-        // Check rate limits
-        const rateLimitCheck = this.providerManager.checkRateLimit(
-          provider.id,
-          request.tokens_est || 1000
-        );
-
-        if (!rateLimitCheck.allowed) {
-          logger.warn('Request blocked by rate limits', {
-            x_request_id: requestId,
-            org_id: request.org_id,
-            provider_id: provider.id,
-            reason: rateLimitCheck.reason,
-          });
-          continue;
-        }
-
-        // Provider selected!
-        selectedProvider = provider;
-        rateLimitOk = rateLimitCheck.allowed;
-        break;
-      }
-
-      if (!selectedProvider) {
-        throw new Error('All providers rejected the request due to cost or rate limits');
-      }
-
-      // Step 3: Build routing decision
-      const model = this.selectBestModel(selectedProvider, request)!;
-      const decision = this.buildRoutingDecision(
-        selectedProvider,
-        model,
-        request,
-        estimatedCost,
-        rateLimitOk,
-        suitableProviders.filter(p => p.id !== selectedProvider.id).map(p => p.id)
-      );
-
-      // Step 4: Track active request
+      // Make routing decision
+      const decision = await this.makeRoutingDecision(validatedRequest)
+      
+      // Track active request
       this.activeRequests.set(requestId, {
-        providerId: selectedProvider.id,
-        model: this.selectBestModel(selectedProvider, request)!.id,
-        orgId: request.org_id,
-        startTime
-      });
+        orgId: request.orgId,
+        providerId: decision.provider,
+        model: decision.model,
+        startTime,
+      })
 
-      // Step 5: Update metrics
-      prometheus.aiRoutingDecisions.labels({
-        org_id: request.org_id,
-        provider: selectedProvider.id,
-        model: model.id,
-        routing_reason: decision.routingReason,
-      }).inc();
+      // Execute request with fallback
+      const result = await this.executeWithFallback(validatedRequest, decision, requestId)
 
-      logger.info('AI routing decision completed', {
-        x_request_id: requestId,
-        org_id: request.org_id,
-        selected_provider: selectedProvider.id,
-        selected_model: model.id,
-        estimated_cost: estimatedCost,
-        routing_reason: decision.routingReason,
-        decision_time_ms: Date.now() - startTime,
-      });
+      // Record completion
+      await this.recordRequestCompletion(
+        requestId,
+        true,
+        result.costEUR,
+        result.tokens.input,
+        result.tokens.output
+      )
 
-      return decision;
+      span.setAttributes({
+        'ai.request_id': requestId,
+        'ai.provider': result.provider,
+        'ai.model': result.model,
+        'ai.cost_eur': result.costEUR,
+        'ai.fallback_used': result.fallbackUsed,
+      })
+
+      return result
 
     } catch (error) {
-      logger.error('AI routing failed', error instanceof Error ? error : new Error(String(error)), {
-        x_request_id: requestId,
-        org_id: request.org_id,
-        decision_time_ms: Date.now() - startTime,
-      });
+      const errorType = this.classifyError(error)
+      
+      await this.recordRequestCompletion(
+        requestId,
+        false,
+        0,
+        0,
+        0,
+        errorType
+      )
 
-      prometheus.aiRoutingErrors.labels({
-        org_id: request.org_id,
-        error_type: 'routing_failure',
-      }).inc();
+      span.recordException(error as Error)
+      span.setAttributes({
+        'ai.error_type': errorType,
+        'ai.request_id': requestId,
+      })
 
-      throw error;
+      throw error
+    } finally {
+      span.end()
     }
-    finally {
-      // decrementa activas (etiquetas neutras al finalizar decisión)
-      prometheus.aiActiveRequests?.labels?.({ org_id: request.org_id, provider: 'router' }).dec();
+  }
+
+  /**
+   * Makes routing decision based on cost, availability, and preferences
+   */
+  private async makeRoutingDecision(request: AIRequest): Promise<RouterDecision> {
+    const span = this.tracer.startSpan('ai_make_routing_decision')
+    
+    try {
+      // Get available providers
+      const providers = await this.providerManager.getAvailableProviders()
+      
+      // Prefer Mistral for cost efficiency
+      const mistralProvider = providers.find(p => p.id === 'mistral')
+      const azureProvider = providers.find(p => p.id === 'azure-openai')
+      
+      if (!mistralProvider && !azureProvider) {
+        throw new Error('No AI providers available')
+      }
+
+      // Check provider health
+      const mistralHealthy = mistralProvider?.health === 'healthy'
+      const azureHealthy = azureProvider?.health === 'healthy'
+
+      // Determine primary and fallback providers
+      let primaryProvider: string
+      let fallbackProvider: string | undefined
+      let model: string
+
+      if (request.providerHint === 'azure-openai' && azureHealthy) {
+        primaryProvider = 'azure-openai'
+        fallbackProvider = mistralHealthy ? 'mistral' : undefined
+        model = request.model || 'gpt-4o-mini'
+      } else if (mistralHealthy) {
+        primaryProvider = 'mistral'
+        fallbackProvider = azureHealthy ? 'azure-openai' : undefined
+        model = request.model || 'mistral-instruct'
+      } else if (azureHealthy) {
+        primaryProvider = 'azure-openai'
+        model = request.model || 'gpt-4o-mini'
+      } else {
+        throw new Error('No healthy AI providers available')
+      }
+
+      // Estimate cost for primary provider
+      const estimatedTokens = this.estimateTokens(request.prompt, request.maxTokens)
+      const estimatedCost = costMeter.calculateCost(
+        model as any,
+        estimatedTokens,
+        estimatedTokens * 0.5 // Assume 50% output ratio
+      )
+
+      // Check if cost exceeds limit
+      const maxCost = request.maxCostEUR || this.config.defaultMaxCostEUR
+      if (estimatedCost > maxCost) {
+        throw new Error(`Estimated cost ${estimatedCost}€ exceeds limit ${maxCost}€`)
+      }
+
+      span.setAttributes({
+        'ai.primary_provider': primaryProvider,
+        'ai.fallback_provider': fallbackProvider,
+        'ai.model': model,
+        'ai.estimated_cost': estimatedCost,
+      })
+
+      return {
+        provider: primaryProvider,
+        model,
+        maxRetries: 2,
+        timeoutMs: 30000,
+        fallbackProvider,
+      }
+
+    } finally {
+      span.end()
+    }
+  }
+
+  /**
+   * Executes request with automatic fallback
+   */
+  private async executeWithFallback(
+    request: AIRequest,
+    decision: RouterDecision,
+    requestId: string
+  ): Promise<AIResponse> {
+    const span = this.tracer.startSpan('ai_execute_with_fallback')
+    
+    try {
+      // Try primary provider
+      try {
+        return await this.executeRequest(request, decision.provider, decision.model, requestId, false)
+      } catch (error) {
+        logger.warn('Primary provider failed, attempting fallback', {
+          primary_provider: decision.provider,
+          fallback_provider: decision.fallbackProvider,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        })
+
+        // Try fallback if available
+        if (decision.fallbackProvider) {
+          try {
+            return await this.executeRequest(request, decision.fallbackProvider, decision.model, requestId, true)
+          } catch (fallbackError) {
+            throw new Error(`Both primary and fallback providers failed: ${error instanceof Error ? error.message : 'Unknown'}, ${fallbackError instanceof Error ? fallbackError.message : 'Unknown'}`)
+          }
+        } else {
+          throw error
+        }
+      }
+    } finally {
+      span.end()
+    }
+  }
+
+  /**
+   * Executes a single request against a specific provider
+   */
+  private async executeRequest(
+    request: AIRequest,
+    providerId: string,
+    model: string,
+    requestId: string,
+    isFallback: boolean
+  ): Promise<AIResponse> {
+    const span = this.tracer.startSpan('ai_execute_request')
+    const startTime = Date.now()
+    
+    try {
+      const provider = this.providerManager.getProvider(providerId)
+      if (!provider) {
+        throw new Error(`Provider ${providerId} not found`)
+      }
+
+      // Prepare request for provider
+      const providerRequest = {
+        prompt: request.prompt,
+        model,
+        maxTokens: request.maxTokens || 1000,
+        temperature: request.temperature || 0.7,
+      }
+
+      // Execute request
+      const response = await provider.execute(providerRequest)
+      
+      // Calculate actual cost
+      const costUsage = costMeter.recordUsage(
+        request.orgId,
+        model,
+        response.tokens.input,
+        response.tokens.output
+      )
+
+      const latency = Date.now() - startTime
+
+      span.setAttributes({
+        'ai.provider': providerId,
+        'ai.model': model,
+        'ai.cost_eur': costUsage.costEur,
+        'ai.latency_ms': latency,
+        'ai.fallback_used': isFallback,
+      })
+
+      return {
+        content: response.content,
+        model,
+        provider: providerId,
+        tokens: {
+          input: response.tokens.input,
+          output: response.tokens.output,
+        },
+        costEUR: costUsage.costEur,
+        latencyMs: latency,
+        fallbackUsed: isFallback,
+        requestId,
+      }
+
+    } finally {
+      span.end()
     }
   }
 
   /**
    * Records request completion and updates metrics
    */
-  async recordRequestCompletion(
+  private async recordRequestCompletion(
     requestId: string,
     success: boolean,
     actualCost: number,
@@ -242,21 +359,21 @@ export class EnhancedAIRouter {
     tokensOutput: number,
     errorType?: string
   ): Promise<void> {
-    const activeRequest = this.activeRequests.get(requestId);
+    const activeRequest = this.activeRequests.get(requestId)
     if (!activeRequest) {
-      logger.warn('Request completion recorded for unknown request', { x_request_id: requestId });
-      return;
+      logger.warn('Request completion recorded for unknown request', { x_request_id: requestId })
+      return
     }
 
-    const latency = Date.now() - activeRequest.startTime;
-    const provider = this.providerManager.getProvider(activeRequest.providerId);
+    const latency = Date.now() - activeRequest.startTime
+    const provider = this.providerManager.getProvider(activeRequest.providerId)
     
     if (!provider) {
       logger.error('Provider not found for completed request', undefined, {
         x_request_id: requestId,
         provider_id: activeRequest.providerId,
-      });
-      return;
+      })
+      return
     }
 
     // Record usage in cost guardrails
@@ -272,27 +389,27 @@ export class EnhancedAIRouter {
         timestamp: new Date(),
         success,
         errorType,
-      };
+      }
 
-      this.costGuardrails.recordUsage(usage);
+      this.costGuardrails.recordUsage(usage)
     }
 
     // Update Prometheus metrics
     prometheus.aiRequestDuration.labels({
       provider: provider.id,
       status: success ? 'success' : 'error',
-    }).observe(latency / 1000);
+    }).observe(latency / 1000)
 
     if (!success && errorType) {
       prometheus.aiErrorsTotal.labels({
         org_id: requestId.split('-')[0],
         provider: provider.id,
         error_type: errorType,
-      }).inc();
+      }).inc()
     }
 
     // Clean up active request tracking
-    this.activeRequests.delete(requestId);
+    this.activeRequests.delete(requestId)
 
     logger.info('Request completion recorded', {
       x_request_id: requestId,
@@ -302,330 +419,115 @@ export class EnhancedAIRouter {
       tokens_input: tokensInput,
       tokens_output: tokensOutput,
       latency_ms: latency,
-    });
+    })
   }
 
   /**
-   * Processes request content with redaction if needed
+   * Handles cost alerts
    */
-  async processRequestContent(
-    content: string,
-    decision: EnhancedRouterDecision,
-    request: EnhancedAIRequest
-  ): Promise<{ processedContent: string; redactionTokens?: Record<string, string> }> {
-    if (decision.shouldRedact) {
-      const { redacted, tokens } = redactPII(content);
-      
-      logger.info('PII redacted for cloud processing', {
-        org_id: request.org_id,
-        provider: decision.provider.id,
-        redaction_tokens: Object.keys(tokens).length,
-      });
-
-      return { processedContent: redacted, redactionTokens: tokens };
-    }
-
-    return { processedContent: content };
-  }
-
-  /**
-   * Gets current usage and cost information for an organization
-   */
-  getOrganizationUsage(orgId: string) {
-    const usage = this.costGuardrails.getUsage(orgId);
-    const recentHistory = this.costGuardrails.getUsageHistory(orgId, 50);
-    const providerHealth = this.providerManager.getAllProviderHealth();
-
-    return {
-      costs: {
-        daily: usage.daily,
-        monthly: usage.monthly,
-        limits: usage.limits,
-        utilization: {
-          daily: usage.utilizationDaily,
-          monthly: usage.utilizationMonthly,
-        },
-      },
-      recentRequests: recentHistory,
-      providerStatus: providerHealth,
-      activeRequests: Array.from(this.activeRequests.entries()).length,
-    };
-  }
-
-  /**
-   * Gets system-wide statistics
-   */
-  getSystemStats() {
-    const aggregateStats = this.costGuardrails.getAggregateStats();
-    const allProviders = this.providerManager.getAllProviders();
-    const healthyProviders = this.providerManager.getAllProviderHealth()
-      .filter(h => h.status === 'healthy').length;
-
-    return {
-      ...aggregateStats,
-      providers: {
-        total: allProviders.length,
-        healthy: healthyProviders,
-        degraded: this.providerManager.getAllProviderHealth()
-          .filter(h => h.status === 'degraded').length,
-        down: this.providerManager.getAllProviderHealth()
-          .filter(h => h.status === 'down').length,
-      },
-      activeRequests: this.activeRequests.size,
-    };
-  }
-
-  /**
-   * Updates cost limits for an organization
-   */
-  updateOrganizationLimits(orgId: string, limits: Partial<{
-    dailyLimitEUR: number;
-    monthlyLimitEUR: number;
-    perRequestLimitEUR: number;
-    warningThresholds: { daily: number; monthly: number };
-    emergencyStop: { enabled: boolean; thresholdEUR: number };
-  }>) {
-    const currentLimits = this.costGuardrails.getCostLimits(orgId);
-    const newLimits = { ...currentLimits, ...limits };
-    this.costGuardrails.setCostLimits(orgId, newLimits);
-  }
-
-  // Private methods
-  
-  private async scoreProviders(
-    providerCosts: Array<{ provider: LLMProvider; cost: number }>,
-    request: EnhancedAIRequest
-  ): Promise<Array<{ provider: LLMProvider; cost: number; score: number }>> {
-    // Nueva regla: score ALTO es mejor.
-    return providerCosts
-      .map(({ provider, cost }) => {
-        // Obtener health status desde provider manager
-        const healthStatus = this.providerManager.getProviderHealth(provider.id);
-        const perf = Math.max(healthStatus?.latency || 100, 1);
-        const health = healthStatus?.status === 'healthy' ? 1 : 0.5;
-        const activeReqs = healthStatus?.details?.concurrentRequests || 0;
-        
-        const costScore = 1 / (cost + 0.001);
-        const perfScore = health * (1 / perf);
-        const loadScore = 1 / (activeReqs + 1);
-        const totalScore = 0.45 * costScore + 0.35 * perfScore + 0.20 * loadScore;
-        
-        return { provider, cost, score: totalScore };
-      })
-      .sort((a, b) => b.score - a.score); // Mayor primero
-  }
-
-  private findSuitableProviders(request: EnhancedAIRequest): LLMProvider[] {
-    const requirements = {
-      capabilities: request.requiresCapabilities || [],
-      languages: request.languages || ['en'],
-      maxCost: request.maxCostEUR || this.config.defaultMaxCostEUR,
-      preferEdge: request.preferEdge !== false, // Default to preferring edge
-    };
-
-    // Add implicit capabilities based on request
-    if (request.tools_needed.includes('function_calling')) {
-      requirements.capabilities.push('function_calling');
-    }
-    if (request.tools_needed.includes('vision')) {
-      requirements.capabilities.push('vision');
-    }
-    if (request.tools_needed.includes('code_interpreter')) {
-      requirements.capabilities.push('code_interpreter');
-    }
-
-    const providers = [];
-    
-    // Try to get best provider
-    const bestProvider = this.providerManager.getBestProvider(requirements);
-    if (bestProvider) {
-      providers.push(bestProvider);
-    }
-
-    // Add fallback providers
-    const allSuitable = this.providerManager.getEnabledProviders().filter(provider => {
-      if (provider.id === bestProvider?.id) return false;
-      
-      // Basic capability check for fallbacks
-      return requirements.capabilities.every(cap => 
-        provider.models.some(model => model.capabilities.includes(cap))
-      );
-    });
-
-    providers.push(...allSuitable);
-
-    return providers;
-  }
-
-  private selectBestModel(provider: LLMProvider, request: EnhancedAIRequest): any {
-    let suitableModels = provider.models;
-
-    // Filter by capabilities
-    if (request.requiresCapabilities) {
-      suitableModels = suitableModels.filter(model =>
-        request.requiresCapabilities!.every(cap => model.capabilities.includes(cap))
-      );
-    }
-
-    // Filter by context window if needed
-    const contextRequired = request.tokens_est || 1000;
-    suitableModels = suitableModels.filter(model => model.contextWindow >= contextRequired);
-
-    if (suitableModels.length === 0) return null;
-
-    // Prefer requested model if specified and available
-    if (request.model) {
-      const requestedModel = suitableModels.find(m => m.id === request.model);
-      if (requestedModel) return requestedModel;
-    }
-
-    // Sort by cost and capability
-    return suitableModels.sort((a, b) => {
-      // Prefer models with more capabilities
-      const capabilityDiff = b.capabilities.length - a.capabilities.length;
-      if (capabilityDiff !== 0) return capabilityDiff;
-
-      // Then by cost (lower is better)
-      return a.inputCostPer1KTokens - b.inputCostPer1KTokens;
-    })[0];
-  }
-
-  private buildRoutingDecision(
-    provider: LLMProvider,
-    model: any,
-    request: EnhancedAIRequest,
-    estimatedCost: number,
-    rateLimitOk: boolean,
-    fallbackProviders: string[]
-  ): EnhancedRouterDecision {
-    const shouldRedact = provider.type === 'cloud' && 
-                        (request.sensitivity === 'pii' || request.sensitivity === 'confidential');
-
-    let endpoint = provider.config.baseUrl;
-    let headers = { ...provider.config.headers };
-
-    // Build provider-specific endpoint
-    switch (provider.id) {
-      case 'openai-gpt4':
-      case 'azure-openai':
-        endpoint += '/chat/completions';
-        if (provider.config.apiKey) {
-          headers['Authorization'] = `Bearer ${provider.config.apiKey}`;
-        }
-        break;
-      case 'anthropic-claude':
-        endpoint += '/messages';
-        if (provider.config.apiKey) {
-          headers['x-api-key'] = provider.config.apiKey;
-        }
-        break;
-      case 'google-gemini':
-        endpoint += `/models/${model.id}:generateContent`;
-        if (provider.config.apiKey) {
-          endpoint += `?key=${provider.config.apiKey}`;
-        }
-        break;
-      case 'mistral-edge':
-        endpoint += '/v1/chat/completions';
-        break;
-    }
-
-    // Determine routing reason
-    let routingReason = 'best_match';
-    if (request.preferEdge && provider.type === 'edge') {
-      routingReason = 'edge_preferred';
-    } else if (shouldRedact) {
-      routingReason = 'pii_cloud_routing';
-    } else if (request.requiresCapabilities?.length) {
-      routingReason = 'capability_requirement';
-    }
-
-    return {
-      provider,
-      model: model.id,
-      endpoint,
-      headers,
-      shouldRedact,
-      maxRetries: provider.config.retryAttempts,
-      timeoutMs: provider.config.timeout,
-      estimatedCost,
-      rateLimitOk,
-      fallbackProviders,
-      routingReason,
-    };
-  }
-
-  private handleCostAlert(alert: CostAlert): void {
-    logger.warn('Cost alert received', {
-      alert_type: alert.type,
+  private handleCostAlert(alert: any): void {
+    logger.warn('Cost alert triggered', {
       org_id: alert.orgId,
+      alert_type: alert.type,
       current_cost: alert.currentCost,
       limit: alert.limit,
-      period: alert.period,
-      message: alert.message,
-    });
+    })
 
-    // Send webhook notifications if configured
-    if (this.config.alertWebhooks) {
-      this.config.alertWebhooks.forEach(webhookUrl => {
-        this.sendWebhookAlert(webhookUrl, alert);
-      });
-    }
-
-    // Update metrics
-    prometheus.aiCostAlerts.labels({
-      org_id: alert.orgId,
-      type: alert.type,
-      period: alert.period,
-    }).inc();
-  }
-
-  private async sendWebhookAlert(webhookUrl: string, alert: CostAlert): Promise<void> {
-    try {
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          alert_type: alert.type,
-          organization_id: alert.orgId,
-          current_cost_eur: alert.currentCost,
-          limit_eur: alert.limit,
-          period: alert.period,
-          message: alert.message,
-          timestamp: alert.timestamp.toISOString(),
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Webhook returned ${response.status}`);
-      }
-    } catch (error) {
-      logger.error('Failed to send webhook alert', error instanceof Error ? error : new Error(String(error)), {
-        webhook_url: webhookUrl,
-        alert_type: alert.type,
-        org_id: alert.orgId,
-      });
+    // Implement alert handling (email, Slack, etc.)
+    if (this.config.emergencyStopEnabled && alert.type === 'emergency_stop') {
+      logger.error('Emergency stop triggered for organization', { org_id: alert.orgId })
     }
   }
 
+  /**
+   * Sets up default cost limits for organizations
+   */
   private setupDefaultCostLimits(): void {
-    // Set up default limits for demo organization
-    this.costGuardrails.setCostLimits('org-001', {
-      dailyLimitEUR: 25.0,
-      monthlyLimitEUR: 500.0,
-      perRequestLimitEUR: 2.0,
-      warningThresholds: {
-        daily: 75,
-        monthly: 80,
-      },
-      emergencyStop: {
-        enabled: true,
-        thresholdEUR: 750.0,
-      },
-    });
+    // Set default limits (50€ monthly cap as per requirements)
+    this.costGuardrails.setCostLimits('default', {
+      dailyLimitEUR: 5.0,
+      monthlyLimitEUR: 50.0,
+      warningThresholdPercent: 80,
+      emergencyStopThresholdPercent: 95,
+    })
   }
 
-  private generateRequestId(): string {
-    return `req-${Date.now()}-${Math.random().toString(36).substring(2)}`;
+  /**
+   * Generates unique request ID
+   */
+  private generateRequestId(orgId: string): string {
+    return `${orgId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
   }
+
+  /**
+   * Estimates token count for a prompt
+   */
+  private estimateTokens(prompt: string, maxTokens?: number): number {
+    // Simple estimation: ~4 characters per token
+    const estimated = Math.ceil(prompt.length / 4)
+    return maxTokens ? Math.min(estimated, maxTokens) : estimated
+  }
+
+  /**
+   * Classifies errors for metrics
+   */
+  private classifyError(error: unknown): string {
+    if (error instanceof Error) {
+      if (error.message.includes('cost cap exceeded')) return 'cost_cap_exceeded'
+      if (error.message.includes('No AI providers available')) return 'no_providers'
+      if (error.message.includes('timeout')) return 'timeout'
+      if (error.message.includes('rate limit')) return 'rate_limit'
+    }
+    return 'unknown'
+  }
+
+  /**
+   * Gets current provider health status
+   */
+  async getProviderHealth(): Promise<Record<string, any>> {
+    const providers = await this.providerManager.getAvailableProviders()
+    return providers.reduce((acc, provider) => {
+      acc[provider.id] = {
+        health: provider.health,
+        lastCheck: provider.lastHealthCheck,
+        models: provider.models,
+      }
+      return acc
+    }, {} as Record<string, any>)
+  }
+
+  /**
+   * Gets cost usage for an organization
+   */
+  async getCostUsage(orgId: string): Promise<{
+    currentMonthly: number
+    limit: number
+    usagePercent: number
+  }> {
+    const capCheck = await costMeter.checkMonthlyCap(orgId)
+    return {
+      currentMonthly: capCheck.currentUsage,
+      limit: capCheck.limit,
+      usagePercent: (capCheck.currentUsage / capCheck.limit) * 100,
+    }
+  }
+}
+
+// Default configuration factory
+export function createEnhancedAIRouter(config?: Partial<{
+  costGuardrailsEnabled: boolean
+  telemetryEnabled: boolean
+  defaultMaxCostEUR: number
+  emergencyStopEnabled: boolean
+  healthCheckInterval: number
+}>): EnhancedAIRouter {
+  const defaultConfig = {
+    costGuardrailsEnabled: env().NODE_ENV === 'production',
+    telemetryEnabled: true,
+    defaultMaxCostEUR: 1.0,
+    emergencyStopEnabled: true,
+    healthCheckInterval: 30000,
+  }
+
+  return new EnhancedAIRouter({ ...defaultConfig, ...config })
 }

@@ -1,151 +1,194 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { headers } from 'next/headers';
+import { NextRequest, NextResponse } from 'next/server'
+import { env } from '@econeura/shared'
 
-const BACKEND_BASE_URL = process.env.BACKEND_BASE_URL || 'http://localhost:5001';
+const API_BASE_URL = env().BFF_TARGET_API || 'http://localhost:3001'
 
-// Security headers to never forward from client
-const BLOCKED_HEADERS = new Set([
-  'host',
-  'authorization', // Will be set server-side
-  'cookie',
-  'x-forwarded-for',
-  'x-forwarded-proto',
-  'x-forwarded-host',
-]);
+/**
+ * BFF Proxy for ECONEURA API
+ * Forwards requests to the backend API with proper header propagation
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { path: string[] } }
+) {
+  return handleRequest(request, params.path, 'GET')
+}
 
-// Headers to always add/override
-const REQUIRED_HEADERS = {
-  'x-org-id': process.env.ORG_ID || 'org-demo',
-  'authorization': `Bearer ${process.env.ORG_API_KEY || 'key-demo-123456789abcdef'}`,
-  'content-type': 'application/json',
-};
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { path: string[] } }
+) {
+  return handleRequest(request, params.path, 'POST')
+}
 
-async function proxyRequest(request: NextRequest, path: string, method: string) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { path: string[] } }
+) {
+  return handleRequest(request, params.path, 'PUT')
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { path: string[] } }
+) {
+  return handleRequest(request, params.path, 'PATCH')
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { path: string[] } }
+) {
+  return handleRequest(request, params.path, 'DELETE')
+}
+
+async function handleRequest(
+  request: NextRequest,
+  pathSegments: string[],
+  method: string
+) {
   try {
-    const url = `${BACKEND_BASE_URL}/api/${path}`;
+    const targetPath = pathSegments.join('/')
+    const targetUrl = `${API_BASE_URL}/api/${targetPath}`
     
     // Get request body if present
-    let body: string | undefined;
-    if (method !== 'GET' && method !== 'HEAD') {
+    let body: string | undefined
+    if (['POST', 'PUT', 'PATCH'].includes(method)) {
       try {
-        const text = await request.text();
-        body = text || undefined;
+        body = await request.text()
       } catch {
-        // Ignore empty body
+        // No body present
       }
     }
 
-    // Prepare headers
-    const forwardHeaders: Record<string, string> = { ...REQUIRED_HEADERS };
+    // Prepare headers to forward
+    const headers = new Headers()
     
-    // Forward safe client headers
-    const headersList = headers();
-    headersList.forEach((value, key) => {
-      const lowerKey = key.toLowerCase();
-      if (!BLOCKED_HEADERS.has(lowerKey) && !REQUIRED_HEADERS.hasOwnProperty(key)) {
-        // Generate x-request-id if not present
-        if (lowerKey === 'x-request-id' || key.startsWith('x-') || key === 'user-agent') {
-          forwardHeaders[key] = value;
-        }
-      }
-    });
-
-    // Ensure x-request-id exists
-    if (!forwardHeaders['x-request-id']) {
-      forwardHeaders['x-request-id'] = crypto.randomUUID();
-    }
-
-    // Make backend request
-    const backendResponse = await fetch(url, {
-      method,
-      headers: forwardHeaders,
-      body,
-      // Timeout for backend requests
-      signal: AbortSignal.timeout(30000), // 30 second timeout
-    });
-
-    // Get response body
-    const responseText = await backendResponse.text();
-    let responseData;
-    
-    try {
-      responseData = responseText ? JSON.parse(responseText) : {};
-    } catch {
-      responseData = { data: responseText };
-    }
-
-    // Forward response headers (safe ones only)
-    const responseHeaders = new Headers();
-    const safeResponseHeaders = [
+    // Forward essential headers
+    const headersToForward = [
+      'authorization',
       'content-type',
+      'x-org-id',
       'x-request-id',
       'traceparent',
-      'x-idempotent-replay',
-      'x-ratelimit-limit',
-      'x-ratelimit-remaining',
-      'x-ratelimit-reset',
-    ];
+      'correlation-id',
+      'user-agent',
+      'accept',
+      'accept-language',
+    ]
 
-    safeResponseHeaders.forEach(headerName => {
-      const value = backendResponse.headers.get(headerName);
+    headersToForward.forEach(header => {
+      const value = request.headers.get(header)
       if (value) {
-        responseHeaders.set(headerName, value);
+        headers.set(header, value)
       }
-    });
+    })
 
-    // Add cache control for PII protection
-    responseHeaders.set('cache-control', 'no-store, no-cache, must-revalidate');
-    responseHeaders.set('pragma', 'no-cache');
+    // Generate correlation ID if not present
+    if (!headers.get('x-request-id')) {
+      const correlationId = crypto.randomUUID()
+      headers.set('x-request-id', correlationId)
+    }
 
-    return new NextResponse(JSON.stringify(responseData), {
-      status: backendResponse.status,
+    // Set traceparent if not present
+    if (!headers.get('traceparent')) {
+      const traceId = crypto.randomUUID().replace(/-/g, '').substring(0, 32)
+      const spanId = crypto.randomUUID().replace(/-/g, '').substring(0, 16)
+      headers.set('traceparent', `00-${traceId}-${spanId}-01`)
+    }
+
+    // Add BFF-specific headers
+    headers.set('x-bff-proxy', 'true')
+    headers.set('x-forwarded-for', request.ip || request.headers.get('x-forwarded-for') || 'unknown')
+    headers.set('x-forwarded-proto', request.headers.get('x-forwarded-proto') || 'http')
+
+    // Prepare fetch options
+    const fetchOptions: RequestInit = {
+      method,
+      headers,
+      signal: AbortSignal.timeout(30000), // 30 second timeout
+    }
+
+    // Add body if present
+    if (body) {
+      fetchOptions.body = body
+    }
+
+    // Forward request to API
+    const response = await fetch(targetUrl, fetchOptions)
+
+    // Get response body
+    const responseBody = await response.text()
+
+    // Prepare response headers
+    const responseHeaders = new Headers()
+    
+    // Forward response headers
+    const responseHeadersToForward = [
+      'content-type',
+      'content-length',
+      'cache-control',
+      'etag',
+      'last-modified',
+      'x-request-id',
+      'traceparent',
+    ]
+
+    responseHeadersToForward.forEach(header => {
+      const value = response.headers.get(header)
+      if (value) {
+        responseHeaders.set(header, value)
+      }
+    })
+
+    // Add CORS headers for web requests
+    responseHeaders.set('Access-Control-Allow-Origin', '*')
+    responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
+    responseHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-org-id, x-request-id, traceparent')
+
+    // Return response
+    return new NextResponse(responseBody, {
+      status: response.status,
+      statusText: response.statusText,
       headers: responseHeaders,
-    });
+    })
 
   } catch (error) {
-    console.error('BFF Proxy Error:', error);
-    
-    // Return structured error response
-    const errorResponse = {
-      type: 'https://econeura.dev/errors/bff_proxy_error',
-      title: 'BFF Proxy Error',
-      status: 503,
-      detail: error instanceof Error ? error.message : 'Backend service unavailable',
-      instance: `bff:${crypto.randomUUID()}`,
-    };
+    console.error('BFF Proxy Error:', error)
 
-    return new NextResponse(JSON.stringify(errorResponse), {
-      status: 503,
+    // Return error response
+    const errorResponse = {
+      type: 'https://tools.ietf.org/html/rfc7231#section-6.6.1',
+      title: 'Internal Server Error',
+      status: 500,
+      detail: 'BFF proxy error',
+      instance: `/api/econeura/${pathSegments.join('/')}`,
+      correlation_id: request.headers.get('x-request-id') || crypto.randomUUID(),
+    }
+
+    return NextResponse.json(errorResponse, {
+      status: 500,
       headers: {
-        'content-type': 'application/problem+json',
-        'cache-control': 'no-store',
+        'Content-Type': 'application/problem+json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-org-id, x-request-id, traceparent',
       },
-    });
+    })
   }
 }
 
-// HTTP method handlers
-export async function GET(request: NextRequest, { params }: { params: { path: string[] } }) {
-  const path = params.path.join('/');
-  return proxyRequest(request, path, 'GET');
-}
-
-export async function POST(request: NextRequest, { params }: { params: { path: string[] } }) {
-  const path = params.path.join('/');
-  return proxyRequest(request, path, 'POST');
-}
-
-export async function PUT(request: NextRequest, { params }: { params: { path: string[] } }) {
-  const path = params.path.join('/');
-  return proxyRequest(request, path, 'PUT');
-}
-
-export async function PATCH(request: NextRequest, { params }: { params: { path: string[] } }) {
-  const path = params.path.join('/');
-  return proxyRequest(request, path, 'PATCH');
-}
-
-export async function DELETE(request: NextRequest, { params }: { params: { path: string[] } }) {
-  const path = params.path.join('/');
-  return proxyRequest(request, path, 'DELETE');
+/**
+ * Handle OPTIONS requests for CORS preflight
+ */
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-org-id, x-request-id, traceparent',
+      'Access-Control-Max-Age': '86400',
+    },
+  })
 }

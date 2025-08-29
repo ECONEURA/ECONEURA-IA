@@ -2,18 +2,18 @@
 
 import { useState } from 'react';
 import { 
-  CubeIcon, 
-  BuildingStorefrontIcon, 
-  TruckIcon,
-  PlusIcon,
-  MagnifyingGlassIcon,
-  ChartBarIcon,
-  ExclamationTriangleIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon
-} from '@heroicons/react/24/outline';
+  Cube, 
+  Store, 
+  Truck,
+  Plus,
+  Search,
+  BarChart3,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  TrendingUp,
+  TrendingDown
+} from 'lucide-react';
 import { ProtectedRoute } from '../../components/auth/ProtectedRoute';
 
 interface ERPStats {

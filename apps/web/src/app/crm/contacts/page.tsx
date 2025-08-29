@@ -2,21 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  UsersIcon, 
-  PlusIcon,
-  MagnifyingGlassIcon,
-  EnvelopeIcon,
-  PhoneIcon,
-  MapPinIcon,
-  EllipsisVerticalIcon,
-  PencilIcon,
-  TrashIcon,
-  StarIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  FunnelIcon
-} from '@heroicons/react/24/outline';
-import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid';
+  Users, 
+  Plus,
+  Search,
+  Mail,
+  Phone,
+  MapPin,
+  MoreVertical,
+  Pencil,
+  Trash2,
+  Star,
+  CheckCircle,
+  XCircle,
+  Filter
+} from 'lucide-react';
 import { ProtectedRoute } from '../../../components/auth/ProtectedRoute';
 
 interface Contact {

@@ -1,20 +1,20 @@
 import Link from 'next/link'
 import { 
-  ChartBarIcon,
-  UserGroupIcon,
-  BuildingOfficeIcon,
-  CurrencyEuroIcon,
-  CpuChipIcon,
-  ArrowRightIcon,
-  SparklesIcon,
-} from '@heroicons/react/24/outline'
+  BarChart3,
+  Users,
+  Building2,
+  Euro,
+  Cpu,
+  ArrowRight,
+  Sparkles,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const features = [
   {
     name: 'CRM Avanzado',
     description: 'Gestiona contactos, empresas y oportunidades de negocio con elegancia mediterránea',
-    icon: UserGroupIcon,
+    icon: Users,
     href: '/crm',
     color: 'from-coral-400 to-terracotta-500',
     bgColor: 'from-coral-50 to-terracotta-50',
@@ -22,7 +22,7 @@ const features = [
   {
     name: 'ERP Completo',
     description: 'Sistema integral de gestión empresarial con facturación y control de inventario',
-    icon: BuildingOfficeIcon,
+    icon: Building2,
     href: '/erp',
     color: 'from-olive-400 to-olive-600',
     bgColor: 'from-olive-50 to-olive-100',
@@ -30,7 +30,7 @@ const features = [
   {
     name: 'Finanzas Inteligentes',
     description: 'Panel CFO con análisis financiero avanzado y reportes en tiempo real',
-    icon: CurrencyEuroIcon,
+    icon: Euro,
     href: '/finance',
     color: 'from-mediterranean-400 to-mediterranean-600',
     bgColor: 'from-mediterranean-50 to-mediterranean-100',
@@ -38,7 +38,7 @@ const features = [
   {
     name: 'Suite de IA',
     description: 'Herramientas de inteligencia artificial para automatizar y optimizar procesos',
-    icon: CpuChipIcon,
+    icon: Cpu,
     href: '/ai',
     color: 'from-sand-400 to-sand-600',
     bgColor: 'from-sand-50 to-sand-100',
@@ -62,9 +62,9 @@ export default function HomePage() {
           <div className="text-center">
             <div className="flex justify-center mb-6">
               <div className="flex items-center space-x-3 px-4 py-2 bg-gradient-to-r from-coral-100 to-terracotta-100 rounded-full border border-coral-200/50">
-                <SparklesIcon className="h-5 w-5 text-coral-600 animate-pulse" />
+                <Sparkles className="h-5 w-5 text-coral-600 animate-pulse" />
                 <span className="text-sm font-medium text-coral-700">Bienvenido a EcoNeura</span>
-                <SparklesIcon className="h-5 w-5 text-coral-600 animate-pulse" />
+                <Sparkles className="h-5 w-5 text-coral-600 animate-pulse" />
               </div>
             </div>
             <h1 className="text-5xl sm:text-6xl font-bold font-display">
@@ -84,14 +84,14 @@ export default function HomePage() {
                 className="inline-flex items-center px-8 py-3 border border-transparent text-base font-semibold rounded-xl text-white bg-gradient-to-r from-mediterranean-500 to-mediterranean-600 hover:from-mediterranean-600 hover:to-mediterranean-700 transform hover:scale-105 transition-all duration-300 shadow-mediterranean hover:shadow-lg"
               >
                 Ver Dashboard
-                <ArrowRightIcon className="ml-2 h-5 w-5" />
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
               <Link
                 href="/ai/playground"
                 className="inline-flex items-center px-8 py-3 border border-mediterranean-200 text-base font-semibold rounded-xl text-mediterranean-700 bg-white hover:bg-sand-50 transform hover:scale-105 transition-all duration-300 shadow-soft hover:shadow-mediterranean"
               >
                 Explorar IA
-                <CpuChipIcon className="ml-2 h-5 w-5" />
+                <Cpu className="ml-2 h-5 w-5" />
               </Link>
             </div>
           </div>
@@ -174,7 +174,7 @@ export default function HomePage() {
                   
                   <div className="mt-6 flex items-center text-mediterranean-500 group-hover:text-coral-500 transition-colors duration-300">
                     <span className="text-sm font-semibold">Explorar</span>
-                    <ArrowRightIcon className="ml-2 h-4 w-4 transform group-hover:translate-x-1 transition-transform duration-300" />
+                    <ArrowRight className="ml-2 h-4 w-4 transform group-hover:translate-x-1 transition-transform duration-300" />
                   </div>
                 </div>
               </Link>
@@ -197,7 +197,7 @@ export default function HomePage() {
               href="/dashboard"
               className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-semibold rounded-2xl text-mediterranean-900 bg-gradient-to-r from-sand-200 to-sand-300 hover:from-sand-300 hover:to-sand-400 transform hover:scale-105 transition-all duration-300 shadow-warm hover:shadow-2xl"
             >
-              <ChartBarIcon className="mr-3 h-6 w-6" />
+              <BarChart3 className="mr-3 h-6 w-6" />
               Ir al Dashboard
             </Link>
           </div>

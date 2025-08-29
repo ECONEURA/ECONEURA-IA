@@ -2,16 +2,16 @@
 
 import { useState } from 'react';
 import { 
-  UsersIcon, 
-  BuildingOfficeIcon, 
-  HandshakeIcon,
-  PlusIcon,
-  MagnifyingGlassIcon,
-  ChartBarIcon,
-  EnvelopeIcon,
-  PhoneIcon,
-  CalendarIcon
-} from '@heroicons/react/24/outline';
+  Users, 
+  Building2, 
+  Handshake,
+  Plus,
+  Search,
+  BarChart3,
+  Mail,
+  Phone,
+  Calendar
+} from 'lucide-react';
 import { ProtectedRoute } from '../../components/auth/ProtectedRoute';
 
 interface CRMStats {

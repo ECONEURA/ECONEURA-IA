@@ -2,21 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  BuildingStorefrontIcon, 
-  PlusIcon,
-  MagnifyingGlassIcon,
-  CubeIcon,
-  ExclamationTriangleIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ArrowDownTrayIcon,
-  ArrowUpTrayIcon,
-  EllipsisVerticalIcon,
-  PencilIcon,
-  TrashIcon,
-  FunnelIcon,
-  ChartBarIcon
-} from '@heroicons/react/24/outline';
+  Store, 
+  Plus,
+  Search,
+  Cube,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  Download,
+  Upload,
+  MoreVertical,
+  Pencil,
+  Trash2,
+  Filter,
+  BarChart3
+} from 'lucide-react';
 import { ProtectedRoute } from '../../../components/auth/ProtectedRoute';
 
 interface InventoryItem {

@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  CpuChipIcon,
-  ChartBarIcon,
-  ExclamationTriangleIcon,
-  BoltIcon,
-  ArrowPathIcon
-} from '@heroicons/react/24/outline';
+  Cpu,
+  BarChart3,
+  AlertTriangle,
+  Zap,
+  RotateCcw
+} from 'lucide-react';
 import MetricsCard from '../dashboard/MetricsCard';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import StatusBadge from '../ui/StatusBadge';

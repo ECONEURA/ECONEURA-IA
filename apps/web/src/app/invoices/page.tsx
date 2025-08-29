@@ -2,23 +2,23 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  DocumentTextIcon, 
-  PlusIcon,
-  MagnifyingGlassIcon,
-  CurrencyEuroIcon,
-  CalendarIcon,
-  EllipsisVerticalIcon,
-  PencilIcon,
-  TrashIcon,
-  EyeIcon,
-  PaperAirplaneIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ExclamationTriangleIcon,
-  ClockIcon,
-  FunnelIcon,
-  ArrowDownTrayIcon
-} from '@heroicons/react/24/outline';
+  FileText, 
+  Plus,
+  Search,
+  Euro,
+  Calendar,
+  MoreVertical,
+  Pencil,
+  Trash2,
+  Eye,
+  Send,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  Clock,
+  Filter,
+  Download
+} from 'lucide-react';
 import { ProtectedRoute } from '../../components/auth/ProtectedRoute';
 
 interface Invoice {

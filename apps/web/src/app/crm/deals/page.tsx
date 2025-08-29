@@ -2,22 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  HandshakeIcon, 
-  PlusIcon,
-  MagnifyingGlassIcon,
-  CurrencyEuroIcon,
-  CalendarIcon,
-  ClockIcon,
-  EllipsisVerticalIcon,
-  PencilIcon,
-  TrashIcon,
-  ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  FunnelIcon,
-  ChartBarIcon
-} from '@heroicons/react/24/outline';
+  Handshake, 
+  Plus,
+  Search,
+  Euro,
+  Calendar,
+  Clock,
+  MoreVertical,
+  Pencil,
+  Trash2,
+  TrendingUp,
+  TrendingDown,
+  CheckCircle,
+  XCircle,
+  Filter,
+  BarChart3
+} from 'lucide-react';
 import { ProtectedRoute } from '../../../components/auth/ProtectedRoute';
 
 interface Deal {

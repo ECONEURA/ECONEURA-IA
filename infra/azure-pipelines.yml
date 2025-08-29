@@ -1,0 +1,381 @@
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - apps/*
+    - packages/*
+    - infra/*
+
+variables:
+  environment: 'staging'
+  azureRegion: 'West Europe'
+  resourceGroup: 'econeura-rg'
+  acrName: 'econeura$(environment)acr'
+
+stages:
+- stage: Build
+  displayName: 'Build and Test'
+  jobs:
+  - job: BuildAndTest
+    displayName: 'Build and Test Applications'
+    pool:
+      vmImage: 'ubuntu-latest'
+    
+    steps:
+    - task: NodeTool@0
+      displayName: 'Use Node.js 20.x'
+      inputs:
+        versionSpec: '20.x'
+    
+    - task: Cache@2
+      displayName: 'Cache pnpm store'
+      inputs:
+        key: 'pnpm | "$(Agent.OS)" | pnpm-lock.yaml'
+        restoreKeys: |
+          pnpm | "$(Agent.OS)"
+        path: $(PNPM_STORE_PATH)
+    
+    - script: |
+        npm install -g pnpm
+        pnpm install --frozen-lockfile
+      displayName: 'Install dependencies'
+    
+    - script: |
+        pnpm lint
+        pnpm typecheck
+        pnpm test:coverage
+      displayName: 'Run tests and linting'
+    
+    - script: |
+        pnpm build
+      displayName: 'Build applications'
+    
+    - task: PublishTestResults@2
+      displayName: 'Publish test results'
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: '**/test-results.xml'
+        mergeTestResults: true
+        testRunTitle: 'ECONEURA Tests'
+      condition: succeededOrFailed()
+    
+    - task: PublishCodeCoverageResults@1
+      displayName: 'Publish code coverage'
+      inputs:
+        codeCoverageTool: 'Cobertura'
+        summaryFileLocation: '**/coverage/cobertura-coverage.xml'
+        reportDirectory: '**/coverage'
+      condition: succeededOrFailed()
+
+- stage: DeployInfrastructure
+  displayName: 'Deploy Infrastructure'
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - deployment: DeployInfrastructure
+    displayName: 'Deploy Azure Infrastructure'
+    environment: $(environment)
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureCLI@2
+            displayName: 'Deploy Infrastructure with Bicep'
+            inputs:
+              azureSubscription: 'Azure Subscription'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                # Install Bicep
+                az bicep install
+                
+                # Deploy infrastructure
+                az deployment group create \
+                  --resource-group $(resourceGroup) \
+                  --template-file infra/main.bicep \
+                  --parameters \
+                    environment=$(environment) \
+                    location=$(azureRegion) \
+                    domainName=$(DOMAIN_NAME) \
+                    enableFrontDoor=true \
+                    enableACR=true \
+                    enableKeyVault=true \
+                    enableAppInsights=true \
+                    enablePostgreSQL=true \
+                    enableFunctions=true \
+                    enableContainerApps=true \
+                  --verbose
+                
+                # Get deployment outputs
+                DEPLOYMENT_OUTPUTS=$(az deployment group show \
+                  --resource-group $(resourceGroup) \
+                  --name main \
+                  --query properties.outputs \
+                  --output json)
+                
+                # Set pipeline variables
+                echo "##vso[task.setvariable variable=ACR_LOGIN_SERVER;isOutput=true]$(echo $DEPLOYMENT_OUTPUTS | jq -r '.acrLoginServer.value')"
+                echo "##vso[task.setvariable variable=KEY_VAULT_NAME;isOutput=true]$(echo $DEPLOYMENT_OUTPUTS | jq -r '.keyVaultName.value')"
+                echo "##vso[task.setvariable variable=APP_INSIGHTS_CONNECTION_STRING;isOutput=true]$(echo $DEPLOYMENT_OUTPUTS | jq -r '.appInsightsConnectionString.value')"
+                echo "##vso[task.setvariable variable=POSTGRES_SERVER_FQDN;isOutput=true]$(echo $DEPLOYMENT_OUTPUTS | jq -r '.postgresServerFqdn.value')"
+                echo "##vso[task.setvariable variable=API_URL;isOutput=true]$(echo $DEPLOYMENT_OUTPUTS | jq -r '.apiUrl.value')"
+                echo "##vso[task.setvariable variable=WEB_URL;isOutput=true]$(echo $DEPLOYMENT_OUTPUTS | jq -r '.webUrl.value')"
+                echo "##vso[task.setvariable variable=FRONT_DOOR_URL;isOutput=true]$(echo $DEPLOYMENT_OUTPUTS | jq -r '.frontDoorUrl.value')"
+            name: deployInfrastructure
+
+- stage: BuildAndPushImages
+  displayName: 'Build and Push Images'
+  dependsOn: DeployInfrastructure
+  condition: succeeded()
+  jobs:
+  - job: BuildAndPushImages
+    displayName: 'Build and Push Container Images'
+    pool:
+      vmImage: 'ubuntu-latest'
+    
+    steps:
+    - task: NodeTool@0
+      displayName: 'Use Node.js 20.x'
+      inputs:
+        versionSpec: '20.x'
+    
+    - script: |
+        npm install -g pnpm
+        pnpm install --frozen-lockfile
+        pnpm build
+      displayName: 'Build applications'
+    
+    - task: AzureCLI@2
+      displayName: 'Login to Azure Container Registry'
+      inputs:
+        azureSubscription: 'Azure Subscription'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          az acr login --name $(deployInfrastructure.ACR_LOGIN_SERVER)
+    
+    - task: Docker@2
+      displayName: 'Build and push API image'
+      inputs:
+        containerRegistry: 'Azure Container Registry'
+        repository: 'econeura-api'
+        command: 'buildAndPush'
+        Dockerfile: 'apps/api/Dockerfile'
+        context: '.'
+        tags: |
+          latest
+          $(Build.BuildId)
+    
+    - task: Docker@2
+      displayName: 'Build and push Web image'
+      inputs:
+        containerRegistry: 'Azure Container Registry'
+        repository: 'econeura-web'
+        command: 'buildAndPush'
+        Dockerfile: 'apps/web/Dockerfile'
+        context: '.'
+        tags: |
+          latest
+          $(Build.BuildId)
+
+- stage: DeployApplications
+  displayName: 'Deploy Applications'
+  dependsOn: BuildAndPushImages
+  condition: succeeded()
+  jobs:
+  - deployment: DeployApplications
+    displayName: 'Deploy Applications'
+    environment: $(environment)
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureCLI@2
+            displayName: 'Deploy API Container App'
+            inputs:
+              azureSubscription: 'Azure Subscription'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                RESOURCE_PREFIX="econeura-$(environment)"
+                
+                # Update API Container App
+                az containerapp update \
+                  --name "${RESOURCE_PREFIX}api" \
+                  --resource-group $(resourceGroup) \
+                  --image "$(deployInfrastructure.ACR_LOGIN_SERVER)/econeura-api:$(Build.BuildId)" \
+                  --set-env-vars \
+                    NODE_ENV=$(environment) \
+                    PGHOST=$(deployInfrastructure.POSTGRES_SERVER_FQDN) \
+                    PGUSER=econeura_admin \
+                    PGDATABASE=econeura \
+                    PGPORT=5432 \
+                    APPLICATIONINSIGHTS_CONNECTION_STRING="$(deployInfrastructure.APP_INSIGHTS_CONNECTION_STRING)" \
+                    MISTRAL_BASE_URL=$(MISTRAL_BASE_URL) \
+                    AZURE_OPENAI_ENDPOINT=$(AZURE_OPENAI_ENDPOINT) \
+                    AZURE_OPENAI_API_KEY=$(AZURE_OPENAI_API_KEY) \
+                    AZURE_TENANT_ID=$(AZURE_TENANT_ID) \
+                    AZURE_CLIENT_ID=$(AZURE_CLIENT_ID) \
+                    AZURE_CLIENT_SECRET=$(AZURE_CLIENT_SECRET) \
+                    MAKE_WEBHOOK_HMAC_SECRET=$(MAKE_WEBHOOK_HMAC_SECRET) \
+                    MAKE_ALLOWED_IPS=$(MAKE_ALLOWED_IPS)
+          
+          - task: AzureCLI@2
+            displayName: 'Deploy Web Container App'
+            inputs:
+              azureSubscription: 'Azure Subscription'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                RESOURCE_PREFIX="econeura-$(environment)"
+                
+                # Update Web Container App
+                az containerapp update \
+                  --name "${RESOURCE_PREFIX}web" \
+                  --resource-group $(resourceGroup) \
+                  --image "$(deployInfrastructure.ACR_LOGIN_SERVER)/econeura-web:$(Build.BuildId)" \
+                  --set-env-vars \
+                    NODE_ENV=$(environment) \
+                    NEXT_PUBLIC_API_URL="$(deployInfrastructure.API_URL)"
+
+- stage: DatabaseMigration
+  displayName: 'Database Migration'
+  dependsOn: DeployApplications
+  condition: succeeded()
+  jobs:
+  - deployment: DatabaseMigration
+    displayName: 'Run Database Migrations'
+    environment: $(environment)
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: NodeTool@0
+            displayName: 'Use Node.js 20.x'
+            inputs:
+              versionSpec: '20.x'
+          
+          - script: |
+              npm install -g pnpm
+              pnpm install --frozen-lockfile
+            displayName: 'Install dependencies'
+          
+          - script: |
+              export PGHOST="$(deployInfrastructure.POSTGRES_SERVER_FQDN)"
+              export PGUSER="econeura_admin"
+              export PGPASSWORD="$(POSTGRES_PASSWORD)"
+              export PGDATABASE="econeura"
+              export PGPORT="5432"
+              
+              pnpm db:migrate
+              
+              if [ "$(environment)" = "dev" ] || [ "$(environment)" = "staging" ]; then
+                pnpm db:seed
+              fi
+            displayName: 'Run database migrations'
+
+- stage: SmokeTests
+  displayName: 'Smoke Tests'
+  dependsOn: DatabaseMigration
+  condition: succeeded()
+  jobs:
+  - job: SmokeTests
+    displayName: 'Run Smoke Tests'
+    pool:
+      vmImage: 'ubuntu-latest'
+    
+    steps:
+    - script: |
+        # Test API health endpoint
+        echo "Testing API health endpoint..."
+        curl -f "$(deployInfrastructure.API_URL)/health" || exit 1
+        
+        # Test Web application
+        echo "Testing Web application..."
+        curl -f "$(deployInfrastructure.WEB_URL)" || exit 1
+        
+        # Test Front Door (if enabled)
+        if [ "$(deployInfrastructure.FRONT_DOOR_URL)" != "null" ]; then
+          echo "Testing Front Door..."
+          curl -f "$(deployInfrastructure.FRONT_DOOR_URL)" || exit 1
+        fi
+        
+        echo "✅ All smoke tests passed!"
+      displayName: 'Run smoke tests'
+
+- stage: PerformanceTests
+  displayName: 'Performance Tests'
+  dependsOn: SmokeTests
+  condition: and(succeeded(), eq(variables['environment'], 'prod'))
+  jobs:
+  - job: PerformanceTests
+    displayName: 'Run Performance Tests'
+    pool:
+      vmImage: 'ubuntu-latest'
+    
+    steps:
+    - task: NodeTool@0
+      displayName: 'Use Node.js 20.x'
+      inputs:
+        versionSpec: '20.x'
+    
+    - script: |
+        npm install -g pnpm
+        pnpm install --frozen-lockfile
+      displayName: 'Install dependencies'
+    
+    - script: |
+        export API_URL="$(deployInfrastructure.API_URL)"
+        export WEB_URL="$(deployInfrastructure.WEB_URL)"
+        
+        pnpm test:performance
+      displayName: 'Run performance tests'
+    
+    - task: PublishTestResults@2
+      displayName: 'Publish performance test results'
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: '**/performance-results/*.xml'
+        mergeTestResults: true
+        testRunTitle: 'ECONEURA Performance Tests'
+      condition: succeededOrFailed()
+
+- stage: Notify
+  displayName: 'Notify Deployment'
+  dependsOn: [SmokeTests, PerformanceTests]
+  condition: always()
+  jobs:
+  - job: NotifyDeployment
+    displayName: 'Send Deployment Notifications'
+    pool:
+      vmImage: 'ubuntu-latest'
+    
+    steps:
+    - script: |
+        echo "## Deployment Summary"
+        echo "Environment: $(environment)"
+        echo "Build ID: $(Build.BuildId)"
+        echo "API URL: $(deployInfrastructure.API_URL)"
+        echo "Web URL: $(deployInfrastructure.WEB_URL)"
+        echo "Front Door URL: $(deployInfrastructure.FRONT_DOOR_URL)"
+        echo "Status: $(Agent.JobStatus)"
+      displayName: 'Deployment Summary'
+    
+    - script: |
+        if [ "$(environment)" = "prod" ] && [ "$(Agent.JobStatus)" = "Succeeded" ]; then
+          curl -H "Content-Type: application/json" \
+            -d '{
+              "text": "🎉 **ECONEURA Production Deployment Successful!**\n\n'\
+              '**Environment:** Production\n'\
+              '**Build ID:** $(Build.BuildId)\n'\
+              '**API:** $(deployInfrastructure.API_URL)\n'\
+              '**Web:** $(deployInfrastructure.WEB_URL)\n'\
+              '**Front Door:** $(deployInfrastructure.FRONT_DOOR_URL)\n\n'\
+              'All smoke tests passed! 🚀"
+            }' \
+            $(TEAMS_WEBHOOK_URL)
+        fi
+      displayName: 'Send Teams notification'
+      condition: and(eq(variables['environment'], 'prod'), succeeded())

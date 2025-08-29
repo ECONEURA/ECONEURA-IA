@@ -4,36 +4,23 @@ import { useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { cn } from '@/lib/utils'
 import {
-  ChartBarIcon,
-  DocumentTextIcon,
-  CogIcon,
-  ArrowRightOnRectangleIcon,
-  UserCircleIcon,
-  BellIcon,
-  ChevronDownIcon,
-  CpuChipIcon,
-  CurrencyEuroIcon,
-  BeakerIcon,
-  UserGroupIcon,
-  BuildingOfficeIcon,
-  ShoppingCartIcon,
-  ClipboardDocumentListIcon,
-  CalculatorIcon,
-  ChartPieIcon,
-} from '@heroicons/react/24/outline'
-import {
-  ChartBarIcon as ChartBarIconSolid,
-  DocumentTextIcon as DocumentTextIconSolid,
-  CpuChipIcon as CpuChipIconSolid,
-  CurrencyEuroIcon as CurrencyEuroIconSolid,
-  BeakerIcon as BeakerIconSolid,
-  UserGroupIcon as UserGroupIconSolid,
-  BuildingOfficeIcon as BuildingOfficeIconSolid,
-  ShoppingCartIcon as ShoppingCartIconSolid,
-  ClipboardDocumentListIcon as ClipboardDocumentListIconSolid,
-  CalculatorIcon as CalculatorIconSolid,
-  ChartPieIcon as ChartPieIconSolid,
-} from '@heroicons/react/24/solid'
+  BarChart3,
+  FileText,
+  Settings,
+  LogOut,
+  User,
+  Bell,
+  ChevronDown,
+  Cpu,
+  Euro,
+  Beaker,
+  Users,
+  Building2,
+  ShoppingCart,
+  ClipboardList,
+  Calculator,
+  PieChart,
+} from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -41,16 +28,14 @@ const navigation = [
   {
     name: 'Dashboard',
     href: '/dashboard',
-    icon: ChartBarIcon,
-    iconSolid: ChartBarIconSolid,
+    icon: BarChart3,
     permission: 'dashboard:view',
     category: 'main'
   },
   {
     name: 'CRM',
     href: '/crm',
-    icon: UserGroupIcon,
-    iconSolid: UserGroupIconSolid,
+    icon: Users,
     permission: 'crm:view',
     category: 'crm',
     children: [
@@ -63,8 +48,7 @@ const navigation = [
   {
     name: 'ERP',
     href: '/erp',
-    icon: BuildingOfficeIcon,
-    iconSolid: BuildingOfficeIconSolid,
+    icon: Building2,
     permission: 'erp:view',
     category: 'erp',
     children: [
@@ -77,8 +61,7 @@ const navigation = [
   {
     name: 'Finanzas',
     href: '/finance',
-    icon: CalculatorIcon,
-    iconSolid: CalculatorIconSolid,
+    icon: Calculator,
     permission: 'finance:view',
     category: 'finance',
     children: [
@@ -90,8 +73,7 @@ const navigation = [
   {
     name: 'AI Suite',
     href: '/ai',
-    icon: CpuChipIcon,
-    iconSolid: CpuChipIconSolid,
+    icon: Cpu,
     permission: 'ai:view',
     category: 'ai',
     children: [
@@ -103,8 +85,7 @@ const navigation = [
   {
     name: 'Analytics',
     href: '/analytics',
-    icon: ChartPieIcon,
-    iconSolid: ChartPieIconSolid,
+    icon: PieChart,
     permission: 'analytics:view',
     category: 'analytics'
   },
@@ -141,7 +122,7 @@ export function Navigation() {
         <div className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           {filteredNavigation.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-            const Icon = isActive ? item.iconSolid : item.icon
+            const Icon = item.icon
             
             return (
               <div key={item.name}>
@@ -201,14 +182,14 @@ export function Navigation() {
               className="w-full flex items-center px-4 py-3 text-sm text-mediterranean-200 hover:bg-mediterranean-700/40 hover:text-white rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-soft group"
             >
               <div className="relative mr-3">
-                <UserCircleIcon className="h-10 w-10 text-mediterranean-300 group-hover:text-coral-300 transition-colors duration-200" />
+                <User className="h-10 w-10 text-mediterranean-300 group-hover:text-coral-300 transition-colors duration-200" />
                 <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-olive-400 border-2 border-mediterranean-800 rounded-full animate-pulse" />
               </div>
               <div className="flex-1 text-left">
                 <p className="font-semibold text-white">{user.name}</p>
                 <p className="text-xs text-mediterranean-300">{user.organizationName}</p>
               </div>
-              <ChevronDownIcon
+              <ChevronDown
                 className={cn(
                   'ml-2 h-4 w-4 transition-all duration-300 text-mediterranean-400 group-hover:text-coral-300',
                   showUserMenu && 'rotate-180'
