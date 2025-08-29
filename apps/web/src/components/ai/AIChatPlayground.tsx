@@ -15,6 +15,8 @@ import {
 import LoadingSpinner from '../ui/LoadingSpinner';
 import toast from 'react-hot-toast';
 import { iaText, iaTTS, iaImage, webSearch } from '@/lib/ia';
+import { intelligentCache } from '@/lib/cache';
+import { PromptTemplates } from './PromptTemplates';
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -53,6 +55,7 @@ export function AIChatPlayground() {
   const [loading, setLoading] = useState(false);
   const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [isImageLoading, setIsImageLoading] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
   const [options, setOptions] = useState<AIRequestOptions>({
     taskType: 'summarize',
     sensitivity: 'internal',
