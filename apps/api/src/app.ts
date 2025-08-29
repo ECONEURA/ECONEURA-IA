@@ -182,10 +182,12 @@ app.use(idempotency({
 
 // Import AI routes
 import aiRoutes from './routes/ai.js';
+import interactionsRoutes from './routes/interactions.routes.js';
 
 // Routes
 app.use('/', healthRoutes);
 app.use('/api/flows', requireAuth, flowRoutes);
+app.use('/api/interactions', requireAuth, interactionsRoutes);
 
 // Webhooks por fuente + verificación HMAC antes del router
 // Stripe: el verifyHmac internamente usa stripe.webhooks.constructEvent(req.rawBody, sig, secret)

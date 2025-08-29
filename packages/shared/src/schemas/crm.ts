@@ -171,6 +171,39 @@ export const CreateActivitySchema = ActivitySchema.omit({
 
 export const UpdateActivitySchema = CreateActivitySchema.partial();
 
+export const InteractionSchema = z.object({
+  id: z.string().uuid(),
+  org_id: z.string(),
+  company_id: z.string().uuid().optional(),
+  contact_id: z.string().uuid().optional(),
+  deal_id: z.string().uuid().optional(),
+  type: z.enum(['email', 'call', 'meeting', 'note', 'task']),
+  subject: z.string().optional(),
+  content: z.string().optional(),
+  status: z.enum(['pending', 'completed', 'cancelled']).default('pending'),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
+  due_date: z.string().datetime().optional(),
+  completed_at: z.string().datetime().optional(),
+  assigned_to: z.string().uuid().optional(),
+  created_by: z.string().uuid(),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
+  metadata: z.record(z.any()).optional(),
+});
+
+export const CreateInteractionSchema = InteractionSchema.omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+});
+
+export const UpdateInteractionSchema = InteractionSchema.partial().omit({
+  id: true,
+  org_id: true,
+  created_at: true,
+  updated_at: true,
+});
+
 // Export types
 export type Company = z.infer<typeof CompanySchema>;
 export type CreateCompany = z.infer<typeof CreateCompanySchema>;
@@ -192,3 +225,7 @@ export type Activity = z.infer<typeof ActivitySchema>;
 export type CreateActivity = z.infer<typeof CreateActivitySchema>;
 export type UpdateActivity = z.infer<typeof UpdateActivitySchema>;
 export type ActivityType = z.infer<typeof ActivityTypeSchema>;
+
+export type Interaction = z.infer<typeof InteractionSchema>;
+export type CreateInteraction = z.infer<typeof CreateInteractionSchema>;
+export type UpdateInteraction = z.infer<typeof UpdateInteractionSchema>;

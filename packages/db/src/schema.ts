@@ -117,6 +117,38 @@ export const interactions = pgTable('interactions', {
   typeIdx: index('interactions_type_idx').on(table.type),
 }))
 
+// RLS Policies
+export const rlsPolicies = {
+  interactions: {
+    enable: sql`ALTER TABLE interactions ENABLE ROW LEVEL SECURITY`,
+    policy: sql`
+      CREATE POLICY "Users can view interactions from their organization" ON interactions
+      FOR ALL USING (org_id = current_setting('app.org_id')::text)
+    `,
+  },
+  companies: {
+    enable: sql`ALTER TABLE companies ENABLE ROW LEVEL SECURITY`,
+    policy: sql`
+      CREATE POLICY "Users can view companies from their organization" ON companies
+      FOR ALL USING (org_id = current_setting('app.org_id')::text)
+    `,
+  },
+  contacts: {
+    enable: sql`ALTER TABLE contacts ENABLE ROW LEVEL SECURITY`,
+    policy: sql`
+      CREATE POLICY "Users can view contacts from their organization" ON contacts
+      FOR ALL USING (org_id = current_setting('app.org_id')::text)
+    `,
+  },
+  deals: {
+    enable: sql`ALTER TABLE deals ENABLE ROW LEVEL SECURITY`,
+    policy: sql`
+      CREATE POLICY "Users can view deals from their organization" ON deals
+      FOR ALL USING (org_id = current_setting('app.org_id')::text)
+    `,
+  },
+};
+
 // Invoices table (Finance)
 export const invoices = pgTable('invoices', {
   id: uuid('id').primaryKey().defaultRandom(),
