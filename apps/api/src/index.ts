@@ -1,56 +1,23 @@
-import express from 'express'
-import cors from 'cors'
-import helmet from 'helmet'
-import { apiRouter } from './routes'
-import { problemJsonMiddleware } from './middleware/problem-json.js'
-import { env } from '@econeura/shared'
+import express from "express";
+import cors from "cors";
+import bodyParser from "body-parser";
+import rateLimit from "express-rate-limit";
+import basicAuth from "express-basic-auth";
+import { ai } from "./routes/ai.js";
+import { search } from "./routes/search.js";
+import { registry } from "./lib/observe.js";
 
-const app = express()
-const PORT = env().PORT
+const app = express();
+app.use(cors({ origin: [/localhost:3000$/], credentials: false }));
+app.use(bodyParser.json({ limit:"2mb" }));
+app.use(rateLimit({ windowMs:60_000, max:180, keyGenerator:(req)=> (req.headers["x-org-id"] as string)||req.ip }));
 
-// Middleware
-app.use(helmet())
-app.use(cors({
-  origin: env().FRONTEND_URL,
-  credentials: true
-}))
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+app.get("/metrics", basicAuth({ users: { admin: process.env.METRICS_PWD||"metrics" }, challenge:true }), async (_req,res)=>{
+  res.setHeader("Content-Type", registry.contentType);
+  res.end(await registry.metrics());
+});
 
-// Request logging
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} ${req.method} ${req.path}`)
-  next()
-})
+app.use("/v1/ai", ai);
+app.use("/v1/search", search);
 
-// Routes
-app.use('/api', apiRouter)
-
-// Problem+JSON error handling (must be last)
-app.use(problemJsonMiddleware)
-
-// Start server
-async function startServer() {
-  try {
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`)
-      console.log(`📚 API documentation: http://localhost:${PORT}/api`)
-    })
-  } catch (error) {
-    console.error('❌ Failed to start server:', error)
-    process.exit(1)
-  }
-}
-
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received, shutting down...')
-  process.exit(0)
-})
-
-process.on('SIGINT', async () => {
-  console.log('SIGINT received, shutting down...')
-  process.exit(0)
-})
-
-startServer()
+app.listen(process.env.PORT||4000, ()=> console.log("API on :4000"));
