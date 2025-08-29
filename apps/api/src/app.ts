@@ -1,270 +1,169 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import rawBody from 'raw-body';
-import { metricsRegister } from '@econeura/shared/metrics';
-import { logger } from '@econeura/shared/logging';
-import { SECURITY_HEADERS } from '@econeura/shared/security';
-import '@econeura/shared/otel'; // Initialize OpenTelemetry
+import compression from 'compression';
+import { rateLimit } from 'express-rate-limit';
+import swaggerUi from 'swagger-ui-express';
+import swaggerJsdoc from 'swagger-jsdoc';
 
-// Middlewares
-import { requestId } from './mw/requestId.js';
-// import { verifyHmac } from '../middleware/verifyHmac.js'
-import { idempotency } from './mw/idempotency.js';
-import { rateLimitOrg } from './mw/rateLimitOrg.js';
-import { requireAuth, optionalAuth } from './mw/auth.js';
-import { problemJson, notFoundHandler, asyncHandler, ApiError } from './mw/problemJson.js';
-import { observabilityMiddleware, errorObservabilityMiddleware } from './middleware/observability.js';
+import { requireAuth } from './middleware/auth.js';
+import { errorHandler } from './middleware/error.js';
+import { logger } from './lib/logger.js';
 
-// Routes (will be implemented)
-import { healthRoutes } from './routes/health.js';
-import { flowRoutes } from './routes/flows.js';
-import { webhookRoutes } from './routes/webhooks.js';
-import { providerRoutes } from './routes/providers.js';
-import { channelRoutes } from './routes/channels.js';
-import { adminRoutes } from './routes/admin.js';
+// Import routes
+import interactionsRoutes from './routes/interactions.routes.js';
+import productsRoutes from './routes/products.routes.js';
+import suppliersRoutes from './routes/suppliers.routes.js';
 
 const app = express();
 
-// Trust proxy for accurate IP addresses in production
-app.set('trust proxy', true);
-
-// Remove X-Powered-By header for security
-app.disable('x-powered-by');
-
-// Security headers
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'"],
-      fontSrc: ["'self'"],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'"],
-      frameSrc: ["'none'"],
-    },
-  },
-  hsts: {
-    maxAge: 31536000, // 1 year
-    includeSubDomains: true,
-    preload: true,
-  },
-  noSniff: true,
-  frameguard: { action: 'deny' },
-  xssFilter: true,
-}));
-
-// Additional security headers
-app.use((req, res, next) => {
-  Object.entries(SECURITY_HEADERS).forEach(([key, value]) => {
-    res.setHeader(key, value);
-  });
-  next();
-});
-
-// CORS configuration (lista blanca estricta)
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
-  .split(',')
-  .map(s => s.trim());
-
+// Security middleware
+app.use(helmet());
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // clientes nativos
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    logger.logSecurityEvent('CORS violation', {
-      event_type: 'auth_failure',
-      details: { origin, allowed_origins: allowedOrigins },
-    });
-    callback(new ApiError(403, 'cors_violation', 'CORS Violation', `Origin ${origin} not allowed`));
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: [
-    'Content-Type','Authorization','x-org-id','x-request-id','traceparent',
-    'x-idempotency-key','x-timestamp','x-signature'
-  ],
-  exposedHeaders: ['x-request-id','traceparent','x-idempotent-replay',
-    'x-ratelimit-limit','x-ratelimit-remaining','x-ratelimit-reset'],
+  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+  credentials: true
 }));
 
-// Request ID and tracing
-app.use(requestId);
-
-// OpenTelemetry observability middleware
-app.use(observabilityMiddleware());
-
-// Raw body parser (solo para /api/webhooks/*)
-app.use('/api/webhooks', (req, res, next) => {
-  rawBody(req, {
-    length: req.get('Content-Length'),
-    limit: '10mb',
-    encoding: 'utf8',
-  }, (err, string) => {
-    if (err) {
-      logger.error('Raw body parsing failed', err, {
-        corr_id: res.locals.corr_id,
-        path: (req as any).path,
-      });
-      return next(new ApiError(400, 'invalid_body', 'Invalid Request Body', 'Failed to parse request body'));
-    }
-    
-    (req as any).rawBody = string;
-    next();
-  });
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.'
 });
+app.use('/api/', limiter);
 
-// JSON body parser for non-webhook routes
-app.use(express.json({ 
-  limit: '10mb',
-  verify: (req, res, buf) => {
-    // Store raw body for specific routes that need it
-    if (req.path.startsWith('/api/webhooks')) {
-      (req as any).rawBody = buf.toString('utf8');
-    }
-  },
-}));
-
-// URL-encoded parser
+// Body parsing middleware
+app.use(compression());
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Request logging middleware
+// Request logging
 app.use((req, res, next) => {
-  const startTime = Date.now();
-  
-  // Log request
-  logger.logAPIRequest('Request received', {
-    method: req.method,
-    path: req.path,
-    status_code: 0, // Will be updated in response
-    latency_ms: 0, // Will be updated in response
-    org_id: req.header('x-org-id'),
-    x_request_id: res.locals.corr_id,
-    user_agent: req.get('user-agent'),
+  logger.info(`${req.method} ${req.path}`, {
+    ip: req.ip,
+    userAgent: req.get('User-Agent'),
+    orgId: req.headers['x-org-id']
   });
-  
-  // Capture response logging
-  const originalSend = res.send;
-  res.send = function(body) {
-    const latency = Date.now() - startTime;
-    
-    logger.logAPIRequest('Request completed', {
-      method: req.method,
-      path: req.path,
-      status_code: res.statusCode,
-      latency_ms: latency,
-      org_id: req.header('x-org-id'),
-      x_request_id: res.locals.corr_id,
-      user_agent: req.get('user-agent'),
-    });
-    
-    return originalSend.call(this, body);
-  };
-  
   next();
 });
 
-// Rate limiting (applied to all routes except health and metrics)
-app.use((req, res, next) => {
-  if (req.path === '/health' || req.path === '/metrics') {
-    return next();
-  }
-  return rateLimitOrg()(req, res, next);
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    version: process.env.npm_package_version || '1.0.0'
+  });
 });
 
-// Idempotency middleware (for mutation operations)
-app.use(idempotency({
-  ttlHours: 24,
-  skipRoutes: ['/health', '/metrics', '/api/webhooks'],
-}));
-
-// Import AI routes
-import aiRoutes from './routes/ai.js';
-import interactionsRoutes from './routes/interactions.routes.js';
-
-// Routes
-app.use('/', healthRoutes);
-app.use('/api/flows', requireAuth, flowRoutes);
+// API routes
 app.use('/api/interactions', requireAuth, interactionsRoutes);
+app.use('/api/products', requireAuth, productsRoutes);
+app.use('/api/suppliers', requireAuth, suppliersRoutes);
 
-// Webhooks por fuente + verificación HMAC antes del router
-// Stripe: el verifyHmac internamente usa stripe.webhooks.constructEvent(req.rawBody, sig, secret)
-app.post('/api/webhooks/stripe', verifyHmac('stripe'), webhookRoutes);
-app.post('/api/webhooks/github', verifyHmac('github'), webhookRoutes);
-app.post('/api/webhooks/slack', verifyHmac('slack'), webhookRoutes);
-
-app.use('/api/providers', requireAuth, providerRoutes);
-app.use('/api/channels', requireAuth, channelRoutes);
-app.use('/api/admin', requireAuth, adminRoutes);
-app.use('/api/ai', requireAuth, aiRoutes); // AI Router endpoints
-
-// Metrics endpoint (Prometheus)
-app.get('/metrics', asyncHandler(async (req, res) => {
-  res.set('Content-Type', metricsRegister.contentType);
-  const metrics = await metricsRegister.metrics();
-  res.send(metrics);
-}));
-
-// OpenAPI endpoint
-app.get('/api/openapi.json', asyncHandler(async (req, res) => {
-  try {
-    const openApiPath = new URL('../openapi.json', import.meta.url).pathname;
-    const openApiDoc = JSON.parse(await import('fs').then(fs => fs.promises.readFile(openApiPath, 'utf-8')));
-    res.json(openApiDoc);
-  } catch (error) {
-    logger.error('Failed to serve OpenAPI spec', error, { corr_id: res.locals.corr_id });
-    throw new ApiError(500, 'openapi_error', 'OpenAPI Error', 'Failed to load OpenAPI specification');
-  }
-}));
-
-// 404 handler
-app.use(notFoundHandler);
-
-// Error observability middleware
-app.use(errorObservabilityMiddleware());
-
-// Global error handler
-app.use(problemJson);
-
-// Graceful shutdown handler
-const server = app.listen(process.env.PORT || 5001, () => {
-  const port = (server.address() as any)?.port || process.env.PORT || 5001;
-  logger.info(`EcoNeura API server started on port ${port}`, {
-    environment: process.env.NODE_ENV || 'development',
-    version: '1.0.0',
-  });
-});
-
-// Graceful shutdown
-const gracefulShutdown = (signal: string) => {
-  logger.info(`Received ${signal}, starting graceful shutdown`);
-  
-  server.close(() => {
-    logger.info('HTTP server closed');
-    
-    // Close database connections
-    import('./db/connection.js').then(({ db }) => {
-      return db.close();
-    }).then(() => {
-      logger.info('Database connections closed');
-      process.exit(0);
-    }).catch((error) => {
-      logger.error('Error during shutdown', error);
-      process.exit(1);
-    });
-  });
-  
-  // Force shutdown after 10 seconds
-  setTimeout(() => {
-    logger.error('Forced shutdown after timeout');
-    process.exit(1);
-  }, 10000);
+// Swagger documentation
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'EcoNeura API',
+      version: '1.0.0',
+      description: 'API documentation for EcoNeura CRM/ERP system',
+    },
+    servers: [
+      {
+        url: process.env.API_BASE_URL || 'http://localhost:3001',
+        description: 'Development server',
+      },
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+      responses: {
+        BadRequest: {
+          description: 'Bad Request',
+          content: {
+            'application/problem+json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  title: { type: 'string' },
+                  detail: { type: 'string' },
+                  status: { type: 'number' },
+                },
+              },
+            },
+          },
+        },
+        Unauthorized: {
+          description: 'Unauthorized',
+          content: {
+            'application/problem+json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  title: { type: 'string' },
+                  detail: { type: 'string' },
+                  status: { type: 'number' },
+                },
+              },
+            },
+          },
+        },
+        NotFound: {
+          description: 'Not Found',
+          content: {
+            'application/problem+json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  title: { type: 'string' },
+                  detail: { type: 'string' },
+                  status: { type: 'number' },
+                },
+              },
+            },
+          },
+        },
+        InternalServerError: {
+          description: 'Internal Server Error',
+          content: {
+            'application/problem+json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  title: { type: 'string' },
+                  detail: { type: 'string' },
+                  status: { type: 'number' },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  apis: ['./src/routes/*.ts'], // Path to the API routes
 };
 
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+const specs = swaggerJsdoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+
+// Error handling middleware
+app.use(errorHandler);
+
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    title: 'Not Found',
+    detail: `Route ${req.originalUrl} not found`,
+    status: 404
+  });
+});
 
 export default app;
-export { server };

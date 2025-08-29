@@ -247,6 +247,83 @@ export const aiCostUsage = pgTable('ai_cost_usage', {
   createdAtIdx: index('ai_cost_usage_created_at_idx').on(table.createdAt),
 }))
 
+// Suppliers table (Inventory)
+export const suppliers = pgTable('suppliers', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orgId: text('org_id').notNull(), // RLS key
+  name: text('name').notNull(),
+  contact_person: text('contact_person'),
+  email: text('email'),
+  phone: text('phone'),
+  website: text('website'),
+  address: jsonb('address').$type<{
+    street?: string
+    city?: string
+    state?: string
+    postal_code?: string
+    country?: string
+  }>(),
+  tax_id: text('tax_id'),
+  payment_terms: text('payment_terms').default('30 days'),
+  credit_limit: decimal('credit_limit', { precision: 10, scale: 2 }),
+  currency: text('currency').default('EUR'),
+  is_active: boolean('is_active').default(true),
+  rating: integer('rating'),
+  notes: text('notes'),
+  metadata: jsonb('metadata'),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  suppliers_org_name_idx: uniqueIndex('suppliers_org_name_idx').on(table.orgId, table.name),
+  suppliers_email_idx: index('suppliers_email_idx').on(table.orgId, table.email),
+}))
+
+// Products table (Inventory)
+export const products = pgTable('products', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orgId: text('org_id').notNull(), // RLS key
+  name: text('name').notNull(),
+  description: text('description'),
+  sku: text('sku').notNull(),
+  category: text('category'),
+  unit_price: decimal('unit_price', { precision: 10, scale: 2 }).notNull(),
+  cost_price: decimal('cost_price', { precision: 10, scale: 2 }),
+  currency: text('currency').default('EUR'),
+  unit: text('unit').default('piece'),
+  stock_quantity: integer('stock_quantity').default(0),
+  min_stock_level: integer('min_stock_level').default(0),
+  supplier_id: uuid('supplier_id').references(() => suppliers.id, { onDelete: 'set null' }),
+  is_active: boolean('is_active').default(true),
+  metadata: jsonb('metadata'),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  products_org_sku_idx: uniqueIndex('products_org_sku_idx').on(table.orgId, table.sku),
+  products_supplier_idx: index('products_supplier_idx').on(table.orgId, table.supplier_id),
+  products_category_idx: index('products_category_idx').on(table.orgId, table.category),
+}))
+
+// Invoice Items table (Finance)
+export const invoice_items = pgTable('invoice_items', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  invoice_id: uuid('invoice_id').references(() => invoices.id, { onDelete: 'cascade' }).notNull(),
+  product_id: uuid('product_id').references(() => products.id, { onDelete: 'set null' }),
+  name: text('name').notNull(),
+  description: text('description'),
+  quantity: decimal('quantity', { precision: 10, scale: 2 }).notNull(),
+  unit_price: decimal('unit_price', { precision: 10, scale: 2 }).notNull(),
+  unit: text('unit').default('piece'),
+  tax_rate: decimal('tax_rate', { precision: 5, scale: 2 }).default('0.00'),
+  subtotal: decimal('subtotal', { precision: 10, scale: 2 }).notNull(),
+  tax_amount: decimal('tax_amount', { precision: 10, scale: 2 }).default('0.00'),
+  total: decimal('total', { precision: 10, scale: 2 }).notNull(),
+  metadata: jsonb('metadata'),
+  created_at: timestamp('created_at').defaultNow(),
+}, (table) => ({
+  invoice_items_invoice_idx: index('invoice_items_invoice_idx').on(table.invoice_id),
+  invoice_items_product_idx: index('invoice_items_product_idx').on(table.product_id),
+}))
+
 // Zod schemas for validation
 export const insertOrganizationSchema = createInsertSchema(organizations)
 export const selectOrganizationSchema = createSelectSchema(organizations)
