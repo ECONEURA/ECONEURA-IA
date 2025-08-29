@@ -1,15 +1,20 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { 
   Send,
   Cpu,
   Clock,
   BarChart3,
-  AlertTriangle
+  AlertTriangle,
+  Volume2,
+  Image,
+  Search,
+  Brain
 } from 'lucide-react';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import toast from 'react-hot-toast';
+import { iaText, iaTTS, iaImage, webSearch } from '@/lib/ia';
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -46,6 +51,8 @@ export function AIChatPlayground() {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isAudioLoading, setIsAudioLoading] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(false);
   const [options, setOptions] = useState<AIRequestOptions>({
     taskType: 'summarize',
     sensitivity: 'internal',
@@ -56,7 +63,7 @@ export function AIChatPlayground() {
     maxTokens: 1000,
   });
 
-  const handleSend = async () => {
+  const handleSend = useCallback(async () => {
     if (!input.trim() || loading) return;
 
     const userMessage: ChatMessage = {
@@ -70,73 +77,51 @@ export function AIChatPlayground() {
     setLoading(true);
 
     try {
-      const requestPayload = {
-        content: input,
-        task_type: options.taskType,
-        sensitivity: options.sensitivity,
-        priority: options.priority,
-        prefer_edge: options.preferEdge,
-        max_cost_eur: options.maxCostEur,
-        model: options.model,
-        temperature: options.temperature,
-        max_tokens: options.maxTokens,
-        languages: ['en'],
-      };
+      const history = messages
+        .slice(-8)
+        .filter((i) => typeof i.content === "string")
+        .map((i) => ({ 
+          role: (i.role === "user" ? "user" : "model") as "user" | "model", 
+          text: i.content as string 
+        }));
 
-      const response = await fetch('/api/econeura/ai/generate', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestPayload),
+      const systemInstruction = `Eres ECONEURA, asistente de IA empresarial. Sé conciso y proactivo. Da respuestas accionables y en tono profesional.`;
+
+      const responseText = await iaText({
+        prompt: input,
+        system: systemInstruction,
+        history,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
 
       const assistantMessage: ChatMessage = {
         role: 'assistant',
-        content: data.content || 'No response content',
+        content: responseText,
         timestamp: new Date(),
         metadata: {
-          provider: data.provider_used,
-          model: data.model_used,
-          latency: data.latency_ms,
-          costEur: data.cost_cents ? data.cost_cents / 100 : undefined,
-          tokensIn: data.tokens_in,
-          tokensOut: data.tokens_out,
+          provider: 'Azure OpenAI',
+          model: 'gpt-4o-mini',
+          latency: 0,
+          costEur: 0,
+          tokensIn: 0,
+          tokensOut: 0,
         },
       };
 
       setMessages(prev => [...prev, assistantMessage]);
-
-      // Show success toast with routing info
-      if (data.provider_used) {
-        toast.success(`Response from ${data.provider_used} (${data.latency_ms}ms)`, {
-          duration: 3000,
-        });
-      }
-
-    } catch (error) {
-      console.error('AI request failed:', error);
-      
+      toast.success('Respuesta de Azure OpenAI');
+    } catch (error: any) {
+      console.error(error);
       const errorMessage: ChatMessage = {
-        role: 'assistant',
-        content: `Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`,
+        role: 'system',
+        content: `Error: ${error.message || "Modo demo: configura claves de Azure OpenAI"}`,
         timestamp: new Date(),
       };
-
       setMessages(prev => [...prev, errorMessage]);
-      toast.error('AI request failed');
+      toast.error('Error en la comunicación con IA');
     } finally {
       setLoading(false);
     }
-  };
+  }, [input, loading, messages]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -144,6 +129,93 @@ export function AIChatPlayground() {
       handleSend();
     }
   };
+
+  // TTS Function
+  const onPlayAudio = useCallback(async (text: string) => {
+    if (isAudioLoading) return;
+    setIsAudioLoading(true);
+    try {
+      const b64 = await iaTTS({ text, voice: "es-ES-AlvaroNeural" });
+      const url = "data:audio/wav;base64," + b64;
+      const audio = new Audio(url);
+      await audio.play();
+    } catch (e: any) {
+      console.error(e);
+      toast.error("No se pudo generar el audio (demo o error de red)");
+    } finally {
+      setIsAudioLoading(false);
+    }
+  }, [isAudioLoading]);
+
+  // Image Generation Function
+  const generateImageConcept = useCallback(async () => {
+    const prompt = `Concepto visual para una campaña de marketing empresarial. Estilo: ilustración limpia, corporativa, optimista.`;
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: `Generar un concepto visual empresarial.`,
+      timestamp: new Date(),
+    };
+    setMessages(prev => [...prev, userMessage]);
+    setIsImageLoading(true);
+    try {
+      const base64Data = await iaImage({ prompt, size: "1024x1024" });
+      const src = `data:image/png;base64,${base64Data}`;
+      const assistantMessage: ChatMessage = {
+        role: 'assistant',
+        content: `<img src="${src}" alt="Concepto visual generado por IA" className="rounded-lg shadow-md" />`,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (e) {
+      console.error(e);
+      const errorMessage: ChatMessage = {
+        role: 'system',
+        content: "No se pudo generar la imagen (demo o error de red)",
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsImageLoading(false);
+    }
+  }, []);
+
+  // Market Trends Analysis Function
+  const analyzeMarketTrends = useCallback(async (topic: string) => {
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: `Analizando tendencias de mercado para: "${topic}"`,
+      timestamp: new Date(),
+    };
+    setMessages(prev => [...prev, userMessage]);
+    setLoading(true);
+    try {
+      const sources = await webSearch(topic);
+      const refs = sources.length
+        ? sources.map((s, i) => `(${i + 1}) ${s.title} — ${s.url}\n${s.snippet}`).join("\n\n")
+        : "No se encontraron fuentes con el proveedor actual.";
+
+      const system = "Eres un analista de mercado senior. Estructura la respuesta en español con: 1) Resumen ejecutivo, 2) Tendencias clave (viñetas), 3) Players a observar, 4) Outlook. Sé conciso y accionable.";
+      const prompt = `Tema: ${topic}\n\nFuentes:\n${refs}\n\nInstrucción: sintetiza en 200-300 palabras, citando [1], [2], etc. al final de puntos relevantes.`;
+
+      const text = await iaText({ prompt, system });
+      const assistantMessage: ChatMessage = {
+        role: 'assistant',
+        content: text,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (e) {
+      console.error(e);
+      const errorMessage: ChatMessage = {
+        role: 'system',
+        content: "No se pudo analizar las tendencias (demo o error de red).",
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const clearChat = () => {
     setMessages([
@@ -243,7 +315,25 @@ export function AIChatPlayground() {
           </div>
         </div>
 
-        <div className="mt-3 flex justify-end">
+        <div className="mt-3 flex justify-between">
+          <div className="flex gap-2">
+            <button
+              onClick={() => analyzeMarketTrends("tecnología empresarial")}
+              disabled={loading}
+              className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+            >
+              <Search className="h-4 w-4 inline mr-1" />
+              Tendencias
+            </button>
+            <button
+              onClick={generateImageConcept}
+              disabled={isImageLoading}
+              className="px-3 py-1 text-sm bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50"
+            >
+              <Image className="h-4 w-4 inline mr-1" />
+              Imagen
+            </button>
+          </div>
           <button
             onClick={clearChat}
             className="px-3 py-1 text-sm text-gray-600 hover:text-gray-900"
@@ -271,7 +361,7 @@ export function AIChatPlayground() {
                   : 'bg-white text-gray-800 shadow'
               }`}
             >
-              <div className="text-sm">{message.content}</div>
+              <div className="text-sm" dangerouslySetInnerHTML={{ __html: message.content }}></div>
               
               {message.metadata && (
                 <div className="mt-2 pt-2 border-t border-gray-200 text-xs space-y-1">
@@ -300,6 +390,20 @@ export function AIChatPlayground() {
                       Tokens: {message.metadata.tokensIn || 0} → {message.metadata.tokensOut || 0}
                     </div>
                   )}
+                </div>
+              )}
+              
+              {/* Action buttons for assistant messages */}
+              {message.role === 'assistant' && typeof message.content === 'string' && (
+                <div className="mt-2 flex gap-2">
+                  <button
+                    onClick={() => onPlayAudio(message.content)}
+                    disabled={isAudioLoading}
+                    className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    <Volume2 className="h-3 w-3 inline mr-1" />
+                    Escuchar
+                  </button>
                 </div>
               )}
               
