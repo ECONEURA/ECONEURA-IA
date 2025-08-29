@@ -3,6 +3,7 @@ import { Inter, Playfair_Display, Montserrat } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from '@/lib/auth-context'
+import { QueryProvider } from '@/lib/query-client'
 import { Navigation } from '@/components/layout/Navigation'
 import { cn } from '@/lib/utils'
 
@@ -54,16 +55,18 @@ export default function RootLayout({
         "h-full font-sans bg-gradient-to-br from-sand-50 via-white to-mediterranean-50"
       )}>
         <AuthProvider>
-          <div className="flex h-full">
-            <Navigation />
-            <main className="flex-1 ml-64 overflow-y-auto">
-              <div className="p-6 min-h-full">
-                <div className="animate-fade-in">
-                  {children}
+          <QueryProvider>
+            <div className="flex h-full">
+              <Navigation />
+              <main className="flex-1 ml-64 overflow-y-auto">
+                <div className="p-6 min-h-full">
+                  <div className="animate-fade-in">
+                    {children}
+                  </div>
                 </div>
-              </div>
-            </main>
-          </div>
+              </main>
+            </div>
+          </QueryProvider>
         </AuthProvider>
         <Toaster
           position="top-right"
