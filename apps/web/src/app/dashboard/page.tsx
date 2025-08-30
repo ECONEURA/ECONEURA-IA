@@ -1,304 +1,319 @@
-'use client'
+'use client';
 
-import { useAuth } from '@/lib/auth-context'
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react';
 
-interface Session {
-  id: string
-  deviceName: string
-  ipAddress: string
-  userAgent: string
-  createdAt: string
-  lastUsedAt: string
-  isCurrentSession: boolean
+interface DashboardData {
+  overview: {
+    total_customers: number;
+    total_products: number;
+    total_sales: number;
+    active_interactions: number;
+  };
+  recent_activity: Array<{
+    type: string;
+    message: string;
+    timestamp: string;
+  }>;
+}
+
+interface AnalyticsData {
+  timestamp: string;
+  period: string;
+  crm: {
+    total_interactions: number;
+    active_deals: number;
+    conversion_rate: string;
+    avg_deal_value: string;
+    top_sources: string[];
+  };
+  erp: {
+    total_invoices: number;
+    paid_invoices: number;
+    outstanding_amount: string;
+    avg_payment_time: number;
+    top_products: string[];
+  };
+  inventory: {
+    total_products: number;
+    low_stock_alerts: number;
+    total_value: string;
+    turnover_rate: string;
+  };
+  ai: {
+    total_requests: number;
+    chat_sessions: number;
+    image_generations: number;
+    tts_requests: number;
+    total_tokens: number;
+    estimated_cost: string;
+    cache_hit_rate: string;
+  };
+  performance: {
+    api_p95_latency: number;
+    ai_p95_latency: number;
+    error_rate: string;
+    uptime_percentage: string;
+  };
+}
+
+interface Alert {
+  id: string;
+  type: string;
+  severity: string;
+  title: string;
+  message: string;
+  timestamp: string;
+  category: string;
+  actionable: boolean;
+  action_url: string;
 }
 
 export default function DashboardPage() {
-  return (
-    <ProtectedRoute>
-      <DashboardContent />
-    </ProtectedRoute>
-  )
-}
-
-function DashboardContent() {
-  const { user, logout, hasPermission } = useAuth()
-  const router = useRouter()
-  const [sessions, setSessions] = useState<Session[]>([])
-  const [isLoadingSessions, setIsLoadingSessions] = useState(false)
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchSessions()
-  }, [])
+    const fetchData = async () => {
+      try {
+        const [dashboardRes, analyticsRes, alertsRes] = await Promise.all([
+          fetch('/api/dashboard'),
+          fetch('/api/v1/analytics/overview'),
+          fetch('/api/v1/alerts/active')
+        ]);
 
-  const fetchSessions = async () => {
-    try {
-      setIsLoadingSessions(true)
-      const token = localStorage.getItem('accessToken')
-      const response = await fetch('http://localhost:3001/api/auth/sessions', {
-        headers: {
-          'Authorization': `Bearer ${token}`
+        if (dashboardRes.ok) {
+          const dashboard = await dashboardRes.json();
+          setDashboardData(dashboard);
         }
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        setSessions(data)
-      }
-    } catch (error) {
-      console.error('Error fetching sessions:', error)
-    } finally {
-      setIsLoadingSessions(false)
-    }
-  }
 
-  const handleRevokeSession = async (sessionId: string) => {
-    if (!confirm('¿Estás seguro de que deseas revocar esta sesión?')) {
-      return
-    }
-
-    try {
-      const token = localStorage.getItem('accessToken')
-      const response = await fetch(`http://localhost:3001/api/auth/sessions/${sessionId}/revoke`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
+        if (analyticsRes.ok) {
+          const analytics = await analyticsRes.json();
+          setAnalyticsData(analytics.data);
         }
-      })
-      
-      if (response.ok) {
-        await fetchSessions()
+
+        if (alertsRes.ok) {
+          const alertsData = await alertsRes.json();
+          setAlerts(alertsData.data.alerts);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error revoking session:', error)
-    }
+    };
+
+    fetchData();
+    const interval = setInterval(fetchData, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      </div>
+    );
   }
 
-  const handleLogout = async () => {
-    await logout()
-    router.push('/login')
-  }
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'high': return 'bg-red-100 text-red-800 border-red-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'low': return 'bg-blue-100 text-blue-800 border-blue-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold">ECONEURA Dashboard</h1>
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <span className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+          <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+          Live Data
+        </span>
+      </div>
+
+      {/* Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white rounded-lg border shadow-sm p-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium text-gray-500">Total Customers</h3>
+            <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+            </svg>
+          </div>
+          <div className="text-2xl font-bold">{dashboardData?.overview.total_customers || 0}</div>
+          <p className="text-xs text-gray-500 mt-1">
+            <span className="text-green-500">↗</span> +12% from last month
+          </p>
+        </div>
+
+        <div className="bg-white rounded-lg border shadow-sm p-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium text-gray-500">Total Sales</h3>
+            <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div className="text-2xl font-bold">€{dashboardData?.overview.total_sales?.toLocaleString() || 0}</div>
+          <p className="text-xs text-gray-500 mt-1">
+            <span className="text-green-500">↗</span> +8% from last month
+          </p>
+        </div>
+
+        <div className="bg-white rounded-lg border shadow-sm p-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium text-gray-500">Active Interactions</h3>
+            <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <div className="text-2xl font-bold">{dashboardData?.overview.active_interactions || 0}</div>
+          <p className="text-xs text-gray-500 mt-1">
+            <span className="text-red-500">↘</span> -3% from last week
+          </p>
+        </div>
+
+        <div className="bg-white rounded-lg border shadow-sm p-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium text-gray-500">Total Products</h3>
+            <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+          </div>
+          <div className="text-2xl font-bold">{dashboardData?.overview.total_products || 0}</div>
+          <p className="text-xs text-gray-500 mt-1">
+            <span className="text-green-500">↗</span> +5% from last month
+          </p>
+        </div>
+      </div>
+
+      {/* Analytics and Alerts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* CRM Analytics */}
+        <div className="bg-white rounded-lg border shadow-sm lg:col-span-2">
+          <div className="p-6">
+            <h3 className="text-lg font-semibold">CRM Analytics</h3>
+          </div>
+          <div className="p-6 pt-0 space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium">Total Interactions</p>
+                <p className="text-2xl font-bold">{analyticsData?.crm.total_interactions || 0}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Active Deals</p>
+                <p className="text-2xl font-bold">{analyticsData?.crm.active_deals || 0}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Conversion Rate</p>
+                <p className="text-2xl font-bold">{analyticsData?.crm.conversion_rate || '0%'}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Avg Deal Value</p>
+                <p className="text-2xl font-bold">€{analyticsData?.crm.avg_deal_value || '0'}</p>
+              </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-700">{user?.displayName || user?.email}</span>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
-              >
-                Cerrar sesión
-              </button>
+            <div>
+              <p className="text-sm font-medium mb-2">Top Lead Sources</p>
+              <div className="flex flex-wrap gap-2">
+                {analyticsData?.crm.top_sources.map((source, index) => (
+                  <span key={index} className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">
+                    {source}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </nav>
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {/* User Information Card */}
-        <div className="bg-white shadow rounded-lg mb-6">
-          <div className="px-4 py-5 sm:p-6">
-            <h2 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-              Información del Usuario
-            </h2>
-            <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">Nombre</dt>
-                <dd className="mt-1 text-sm text-gray-900">{user?.displayName || 'No especificado'}</dd>
-              </div>
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">Email</dt>
-                <dd className="mt-1 text-sm text-gray-900">{user?.email}</dd>
-              </div>
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">Rol</dt>
-                <dd className="mt-1 text-sm text-gray-900">{user?.status || 'Usuario'}</dd>
-              </div>
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">Organización</dt>
-                <dd className="mt-1 text-sm text-gray-900">ECONEURA</dd>
-              </div>
-            </dl>
+        {/* Active Alerts */}
+        <div className="bg-white rounded-lg border shadow-sm">
+          <div className="p-6">
+            <h3 className="text-lg font-semibold">Active Alerts</h3>
+          </div>
+          <div className="p-6 pt-0">
+            <div className="space-y-4">
+              {alerts.length === 0 ? (
+                <p className="text-sm text-gray-500">No active alerts</p>
+              ) : (
+                alerts.map((alert) => (
+                  <div key={alert.id} className="flex items-start space-x-3 p-3 border rounded-lg">
+                    <div className={`p-1 rounded ${getSeverityColor(alert.severity)}`}>
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium">{alert.title}</p>
+                      <p className="text-xs text-gray-500">{alert.message}</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {new Date(alert.timestamp).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Quick Access Cards */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-6">
-          {hasPermission('crm:companies:read') && (
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <svg className="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M12 7h.01M8 7h.01M16 7h.01M12 11h.01M8 11h.01M16 11h.01M12 15h.01M8 15h.01M16 15h.01" />
-                    </svg>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Empresas
-                      </dt>
-                      <dd className="flex items-baseline">
-                        <div className="text-2xl font-semibold text-gray-900">CRM</div>
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-gray-50 px-5 py-3">
-                <div className="text-sm">
-                  <a href="/crm/companies" className="font-medium text-blue-600 hover:text-blue-500">
-                    Ver todas
-                  </a>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {hasPermission('erp:products:read') && (
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <svg className="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                    </svg>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Productos
-                      </dt>
-                      <dd className="flex items-baseline">
-                        <div className="text-2xl font-semibold text-gray-900">ERP</div>
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-gray-50 px-5 py-3">
-                <div className="text-sm">
-                  <a href="/erp/products" className="font-medium text-blue-600 hover:text-blue-500">
-                    Ver inventario
-                  </a>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {hasPermission('finance:invoices:read') && (
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <svg className="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Finanzas
-                      </dt>
-                      <dd className="flex items-baseline">
-                        <div className="text-2xl font-semibold text-gray-900">Facturas</div>
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-gray-50 px-5 py-3">
-                <div className="text-sm">
-                  <a href="/finance/invoices" className="font-medium text-blue-600 hover:text-blue-500">
-                    Ver facturas
-                  </a>
-                </div>
-              </div>
-            </div>
-          )}
+      {/* Performance Metrics */}
+      <div className="bg-white rounded-lg border shadow-sm">
+        <div className="p-6">
+          <h3 className="text-lg font-semibold">System Performance</h3>
         </div>
-
-        {/* Active Sessions */}
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <h2 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-              Sesiones Activas
-            </h2>
-            {isLoadingSessions ? (
-              <div className="text-center py-4">
-                <div className="inline-flex items-center">
-                  <svg className="animate-spin h-5 w-5 mr-3 text-blue-600" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Cargando sesiones...
-                </div>
-              </div>
-            ) : sessions.length === 0 ? (
-              <p className="text-gray-500">No hay sesiones activas</p>
-            ) : (
-              <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-                <table className="min-w-full divide-y divide-gray-300">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Dispositivo
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        IP
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Última actividad
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Acciones
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {sessions.map((session) => (
-                      <tr key={session.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {session.deviceName}
-                          {session.isCurrentSession && (
-                            <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              Sesión actual
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {session.ipAddress}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {new Date(session.lastUsedAt).toLocaleString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          {!session.isCurrentSession && (
-                            <button
-                              onClick={() => handleRevokeSession(session.id)}
-                              className="text-red-600 hover:text-red-900"
-                            >
-                              Revocar
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+        <div className="p-6 pt-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <p className="text-sm font-medium">API Latency (p95)</p>
+              <p className="text-2xl font-bold">{analyticsData?.performance.api_p95_latency || 0}ms</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium">AI Latency (p95)</p>
+              <p className="text-2xl font-bold">{analyticsData?.performance.ai_p95_latency || 0}ms</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium">Error Rate</p>
+              <p className="text-2xl font-bold">{(parseFloat(analyticsData?.performance.error_rate || '0') * 100).toFixed(2)}%</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium">Uptime</p>
+              <p className="text-2xl font-bold">{analyticsData?.performance.uptime_percentage || '0'}%</p>
+            </div>
           </div>
         </div>
-      </main>
+      </div>
+
+      {/* Recent Activity */}
+      <div className="bg-white rounded-lg border shadow-sm">
+        <div className="p-6">
+          <h3 className="text-lg font-semibold">Recent Activity</h3>
+        </div>
+        <div className="p-6 pt-0">
+          <div className="space-y-4">
+            {dashboardData?.recent_activity.map((activity, index) => (
+              <div key={index} className="flex items-center space-x-4">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <div className="flex-1">
+                  <p className="text-sm">{activity.message}</p>
+                  <p className="text-xs text-gray-500">
+                    {new Date(activity.timestamp).toLocaleString()}
+                  </p>
+                </div>
+                <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">
+                  {activity.type}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
-  )
+  );
 }

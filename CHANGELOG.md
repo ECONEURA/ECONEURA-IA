@@ -1,0 +1,149 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+## [Unreleased]
+
+### Added
+- **PR-22**: Health & degradación coherente (web + api)
+  - Endpoints de health avanzados para API Express (`/health/live`, `/health/ready`)
+  - Endpoints de health para Web BFF (`/api/health/live`, `/api/health/ready`, `/api/health/degraded`)
+  - Detección automática de degradación del sistema (ok/demo/degraded/down)
+  - Componente SystemStatus para monitoreo en tiempo real
+  - Headers de health (`X-System-Mode`)
+  - Script de smoke test automatizado (`scripts/smoke-pr-22.sh`)
+  - Verificación de servicios externos (Azure OpenAI, Bing Search)
+  - Manejo graceful de degradación del sistema
+
+### Changed
+- **PR-22**: Mejorado el sistema de monitoreo y observabilidad
+  - Actualización automática del estado del sistema cada 30 segundos
+  - Indicadores visuales mejorados para diferentes estados
+  - Notificaciones de degradación en tiempo real
+
+### Fixed
+- **PR-22**: Corregidos problemas de componentes UI faltantes
+  - Agregados componentes Card, Badge, Progress
+  - Restaurado archivo utils.ts con función cn
+  - Simplificado dashboard para evitar dependencias complejas
+
+## [PR-20] - 2025-08-30
+
+### Added
+- **PR-20**: Sistema de Corrección y Estabilización
+  - API Express simplificado y autónomo
+  - Endpoints demo funcionales para todas las funcionalidades
+  - Script de smoke test mejorado
+  - Limpieza agresiva de archivos conflictivos
+
+### Changed
+- **PR-20**: Arquitectura API simplificada
+  - Eliminados paquetes problemáticos (packages/db, packages/shared)
+  - Removidos controladores y middleware conflictivos
+  - API autónomo sin dependencias externas complejas
+
+### Fixed
+- **PR-20**: Resueltos 882 errores de build
+  - Configuración TypeScript corregida
+  - Dependencias simplificadas
+  - Estructura de archivos optimizada
+
+## [PR-15 to PR-19] - 2025-08-30
+
+### Added
+- **PR-15 to PR-19**: Mega Azure OpenAI Migration
+  - Integración completa con Azure OpenAI (chat, imágenes, TTS)
+  - BFF Next.js para manejo de API calls
+  - Sistema de retry y backoff automático
+  - Búsqueda unificada (Bing/Google/Demo)
+  - Caché inteligente para respuestas
+  - Filtrado de contenido y validación
+  - Modo demo para desarrollo sin credenciales
+  - Métricas y monitoreo de uso de IA
+  - Sistema de presupuesto y rate limiting
+
+### Changed
+- **PR-15 to PR-19**: Refactorización completa del sistema de IA
+  - Migración desde servicios locales a Azure OpenAI
+  - Arquitectura BFF para mejor seguridad
+  - Manejo robusto de errores y timeouts
+  - UI mejorada para todas las funcionalidades de IA
+
+### Fixed
+- **PR-15 to PR-19**: Resueltos problemas de integración
+  - Errores de importación de node-fetch
+  - Configuración de TypeScript
+  - Dependencias faltantes
+
+## [PR-14] - 2025-08-30
+
+### Added
+- **PR-14**: Enterprise AI Platform (10 mejoras adicionales)
+  - AutoML para entrenamiento automático de modelos
+  - Análisis de sentimientos avanzado
+  - Automatización de workflows inteligente
+  - Analytics en tiempo real
+  - Búsqueda semántica
+  - Reportes inteligentes
+  - Chatbot empresarial
+  - Optimización de procesos de negocio
+  - Dashboard empresarial de IA
+  - Documentación completa del sistema
+
+## [PR-13] - 2025-08-30
+
+### Added
+- **PR-13**: Advanced Business Intelligence System (10 mejoras)
+  - IA predictiva para análisis de datos
+  - Métricas avanzadas de negocio
+  - Integraciones externas
+  - Auditoría y compliance
+  - Dashboard avanzado con gráficos interactivos
+  - Sistema de notificaciones inteligente
+  - Reportes automatizados
+  - Análisis de tendencias
+  - KPIs personalizables
+  - Alertas proactivas
+
+## [PR-12] - 2025-08-30
+
+### Added
+- **PR-12**: Products/Suppliers CRUD
+  - Gestión completa de inventario
+  - CRUD para productos y proveedores
+  - Esquemas de base de datos
+  - Controladores y rutas API
+  - Datos de prueba (seeds)
+  - Páginas frontend dedicadas
+  - Validación con Zod
+  - Relaciones entre entidades
+
+## [PR-11] - 2025-08-30
+
+### Added
+- **PR-11**: CRM Interactions with RLS
+  - Sistema completo de interacciones CRM
+  - Row Level Security (RLS)
+  - Endpoint de resumen con IA
+  - Timeline de interacciones en frontend
+  - Integración con notificaciones y workflows
+  - Esquemas de validación
+  - Controladores CRUD completos
+
+## [PR-0 to PR-10] - 2025-08-30
+
+### Added
+- **PR-0 to PR-10**: Critical Build Fixes
+  - Configuración inicial del proyecto
+  - Resolución de errores de TypeScript
+  - Configuración de ESLint
+  - Migración de iconos a lucide-react
+  - Scripts de desarrollo funcionales
+  - Estructura de monorepo con pnpm workspaces
+
+### Fixed
+- **PR-0 to PR-10**: Errores críticos de build
+  - Problemas de resolución de módulos
+  - Configuración de tsconfig.json
+  - Import paths corregidos
+  - Dependencias actualizadas

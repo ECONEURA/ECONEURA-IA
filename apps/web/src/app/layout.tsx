@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from '@/lib/auth-context'
 import { Navigation } from '@/components/layout/Navigation'
 import { cn } from '@/lib/utils'
+import SystemStatus from '@/components/SystemStatus';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -65,6 +66,7 @@ export default function RootLayout({
             </main>
           </div>
         </AuthProvider>
+        <SystemStatus />
         <Toaster
           position="top-right"
           toastOptions={{
