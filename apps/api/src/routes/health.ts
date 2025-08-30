@@ -1,52 +1,96 @@
-import { Router } from 'express';
-import { db } from '../db/connection.js';
-import { asyncHandler } from '../mw/problemJson.js';
+import { Router } from "express";
+import { registry } from "../lib/observe.js";
+import { logger } from "../lib/logger.js";
 
-export const healthRoutes = Router();
+export const health = Router();
 
-healthRoutes.get('/health', asyncHandler(async (req, res) => {
+interface HealthStatus {
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  timestamp: string;
+  uptime: number;
+  version: string;
+  services: {
+    azure_openai: 'healthy' | 'degraded' | 'unhealthy';
+    azure_speech: 'healthy' | 'degraded' | 'unhealthy';
+    cache: 'healthy' | 'degraded' | 'unhealthy';
+    database?: 'healthy' | 'degraded' | 'unhealthy';
+  };
+  metrics: {
+    total_requests: number;
+    error_rate: number;
+    avg_response_time: number;
+  };
+}
+
+health.get("/", async (req, res) => {
   const startTime = Date.now();
   
-  // Check database health
-  const dbHealth = await db.healthCheck();
-  
-  // Check external dependencies (mock for now)
-  const dependencies = {
-    mistral_edge: { status: 'ok' as const, latency_ms: 50 },
-    redis: { status: 'ok' as const, latency_ms: 10 },
-    openai_cloud: { status: 'ok' as const, latency_ms: 200 },
-  };
-  
-  // Determine overall status
-  let overallStatus: 'ok' | 'degraded' | 'error' = 'ok';
-  
-  if (dbHealth.status === 'error') {
-    overallStatus = 'error';
-  } else if (Object.values(dependencies).some(dep => dep.status !== 'ok')) {
-    overallStatus = 'degraded';
+  try {
+    // Verificar servicios
+    const azureOpenAI = process.env.AZURE_OPENAI_API_KEY ? 'healthy' : 'degraded';
+    const azureSpeech = process.env.AZURE_SPEECH_KEY ? 'healthy' : 'degraded';
+    const cache = 'healthy'; // Cache en memoria siempre disponible
+
+    // Calcular métricas básicas
+    const metrics = await registry.getMetricsAsJSON();
+    const totalRequests = metrics.find(m => m.name === 'ai_requests_total')?.values?.[0]?.value || 0;
+    const errorRequests = metrics.find(m => m.name === 'ai_requests_total' && m.labels?.status !== '200')?.values?.[0]?.value || 0;
+    const errorRate = totalRequests > 0 ? (errorRequests / totalRequests) * 100 : 0;
+
+    const healthStatus: HealthStatus = {
+      status: azureOpenAI === 'healthy' && azureSpeech === 'healthy' ? 'healthy' : 'degraded',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      version: process.env.npm_package_version || '1.0.0',
+      services: {
+        azure_openai: azureOpenAI,
+        azure_speech: azureSpeech,
+        cache: cache
+      },
+      metrics: {
+        total_requests: totalRequests,
+        error_rate: errorRate,
+        avg_response_time: Date.now() - startTime
+      }
+    };
+
+    logger.info('Health check completed', {
+      endpoint: '/health',
+      method: 'GET',
+      duration: Date.now() - startTime,
+      status: healthStatus.status
+    });
+
+    const statusCode = healthStatus.status === 'healthy' ? 200 : 503;
+    res.status(statusCode).json(healthStatus);
+  } catch (error) {
+    logger.error('Health check failed', {
+      endpoint: '/health',
+      method: 'GET',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+
+    res.status(503).json({
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      error: 'Health check failed'
+    });
   }
-  
-  const responseTime = Date.now() - startTime;
-  
-  const health = {
-    status: overallStatus,
+});
+
+health.get("/ready", (req, res) => {
+  // Liveness probe - verificar que la app está lista
+  res.status(200).json({
+    status: 'ready',
+    timestamp: new Date().toISOString()
+  });
+});
+
+health.get("/live", (req, res) => {
+  // Readiness probe - verificar que la app está viva
+  res.status(200).json({
+    status: 'alive',
     timestamp: new Date().toISOString(),
-    version: '1.0.0',
-    uptime_seconds: process.uptime(),
-    response_time_ms: responseTime,
-    database: {
-      status: dbHealth.status,
-      latency_ms: dbHealth.latency_ms,
-    },
-    dependencies,
-    memory: {
-      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
-    },
-  };
-  
-  // Set appropriate HTTP status
-  const statusCode = overallStatus === 'ok' ? 200 : overallStatus === 'degraded' ? 200 : 503;
-  
-  res.status(statusCode).json(health);
-}));
+    uptime: process.uptime()
+  });
+});
