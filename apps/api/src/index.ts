@@ -16,6 +16,8 @@ import { apiGateway } from "./lib/gateway.js";
 import { gatewayRoutingMiddleware, gatewayProxyMiddleware, gatewayMetricsMiddleware, gatewayCircuitBreakerMiddleware } from "./middleware/gateway.js";
 import { eventSourcingSystem, createCommand, createQuery } from "./lib/events.js";
 import { registerUserHandlers } from "./lib/handlers/user-handlers.js";
+import { serviceRegistry, serviceDiscovery } from "./lib/service-discovery.js";
+import { serviceMesh } from "./lib/service-mesh.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -53,6 +55,86 @@ app.use(gatewayProxyMiddleware);
 
 // Inicializar sistema de Event Sourcing
 registerUserHandlers();
+
+// Inicializar sistema de microservicios
+const registerDefaultServices = () => {
+  // Registrar servicios por defecto
+  serviceRegistry.register({
+    name: 'api-express',
+    version: '1.0.0',
+    host: 'localhost',
+    port: 4000,
+    url: 'http://localhost:4000',
+    health: 'healthy',
+    status: 'online',
+    metadata: {
+      environment: 'development',
+      region: 'us-east-1',
+      zone: 'zone-a',
+      tags: ['api', 'express', 'backend'],
+      capabilities: ['rest', 'graphql', 'websockets'],
+      load: 0,
+      memory: 512,
+      cpu: 25,
+      endpoints: [
+        {
+          path: '/health',
+          method: 'GET',
+          description: 'Health check endpoint',
+          version: '1.0.0',
+          deprecated: false,
+        },
+        {
+          path: '/v1/ai/chat',
+          method: 'POST',
+          description: 'AI chat endpoint',
+          version: '1.0.0',
+          deprecated: false,
+        },
+      ],
+    },
+  });
+
+  serviceRegistry.register({
+    name: 'web-bff',
+    version: '1.0.0',
+    host: 'localhost',
+    port: 3000,
+    url: 'http://localhost:3000',
+    health: 'healthy',
+    status: 'online',
+    metadata: {
+      environment: 'development',
+      region: 'us-east-1',
+      zone: 'zone-a',
+      tags: ['web', 'bff', 'frontend'],
+      capabilities: ['ssr', 'api-routes', 'dashboard'],
+      load: 0,
+      memory: 256,
+      cpu: 15,
+      endpoints: [
+        {
+          path: '/api/health',
+          method: 'GET',
+          description: 'Web BFF health check',
+          version: '1.0.0',
+          deprecated: false,
+        },
+        {
+          path: '/dashboard',
+          method: 'GET',
+          description: 'Dashboard page',
+          version: '1.0.0',
+          deprecated: false,
+        },
+      ],
+    },
+  });
+
+  logger.info('Default services registered');
+};
+
+registerDefaultServices();
 
 // Endpoints de health
 app.get("/health/live", (req, res) => {
@@ -1262,6 +1344,232 @@ app.get("/v1/events/stats", async (req, res) => {
   }
 });
 
+// Endpoints de Microservicios y Service Mesh
+app.post("/v1/microservices/register", (req, res) => {
+  try {
+    const serviceData = req.body;
+    const serviceId = serviceRegistry.register(serviceData);
+    
+    res.status(201).json({
+      success: true,
+      data: {
+        serviceId,
+        message: 'Service registered successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to register service', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.delete("/v1/microservices/deregister/:serviceId", (req, res) => {
+  try {
+    const { serviceId } = req.params;
+    const deregistered = serviceRegistry.deregister(serviceId);
+    
+    if (!deregistered) {
+      return res.status(404).json({ error: 'Service not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        serviceId,
+        message: 'Service deregistered successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to deregister service', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/microservices/services", (req, res) => {
+  try {
+    const { name, version, environment, region, health, status } = req.query;
+    
+    let services = serviceRegistry.getAllServices();
+    
+    // Aplicar filtros
+    if (name) {
+      services = services.filter(s => s.name === name);
+    }
+    if (version) {
+      services = services.filter(s => s.version === version);
+    }
+    if (environment) {
+      services = services.filter(s => s.metadata.environment === environment);
+    }
+    if (region) {
+      services = services.filter(s => s.metadata.region === region);
+    }
+    if (health) {
+      services = services.filter(s => s.health === health);
+    }
+    if (status) {
+      services = services.filter(s => s.status === status);
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        services,
+        count: services.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get services', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/microservices/discover/:serviceName", (req, res) => {
+  try {
+    const { serviceName } = req.params;
+    const { version, environment, region, health, status } = req.query;
+    
+    const filters: any = {};
+    if (version) filters.version = version;
+    if (environment) filters.environment = environment;
+    if (region) filters.region = region;
+    if (health) filters.health = health;
+    if (status) filters.status = status;
+    
+    const instances = serviceDiscovery.discover(serviceName, filters);
+    
+    res.json({
+      success: true,
+      data: {
+        serviceName,
+        instances,
+        count: instances.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to discover services', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/microservices/request", async (req, res) => {
+  try {
+    const { serviceName, path, method, headers, body, timeout, retries } = req.body;
+    
+    const response = await serviceMesh.request({
+      serviceName,
+      path,
+      method,
+      headers: headers || {},
+      body,
+      timeout,
+      retries,
+    });
+    
+    res.json({
+      success: true,
+      data: response
+    });
+  } catch (error) {
+    logger.error('Service mesh request failed', { error: (error as Error).message });
+    res.status(500).json({ 
+      error: (error as Error).message,
+      code: 'SERVICE_MESH_ERROR'
+    });
+  }
+});
+
+app.get("/v1/microservices/stats", (req, res) => {
+  try {
+    const meshStats = serviceMesh.getStats();
+    const registryStats = {
+      totalServices: serviceRegistry.getAllServices().length,
+      healthyServices: serviceRegistry.getAllServices().filter(s => s.health === 'healthy').length,
+      onlineServices: serviceRegistry.getAllServices().filter(s => s.status === 'online').length,
+    };
+    
+    res.json({
+      success: true,
+      data: {
+        serviceMesh: meshStats,
+        serviceRegistry: registryStats,
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get microservices stats', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/microservices/heartbeat/:serviceId", (req, res) => {
+  try {
+    const { serviceId } = req.params;
+    const success = serviceRegistry.heartbeat(serviceId);
+    
+    if (!success) {
+      return res.status(404).json({ error: 'Service not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        serviceId,
+        message: 'Heartbeat received successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to process heartbeat', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put("/v1/microservices/health/:serviceId", (req, res) => {
+  try {
+    const { serviceId } = req.params;
+    const { health } = req.body;
+    
+    const success = serviceRegistry.updateHealth(serviceId, health);
+    
+    if (!success) {
+      return res.status(404).json({ error: 'Service not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        serviceId,
+        health,
+        message: 'Health updated successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to update service health', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/microservices/circuit-breaker/reset/:serviceName", (req, res) => {
+  try {
+    const { serviceName } = req.params;
+    const success = serviceMesh.resetCircuitBreaker(serviceName);
+    
+    if (!success) {
+      return res.status(404).json({ error: 'Circuit breaker not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        serviceName,
+        message: 'Circuit breaker reset successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to reset circuit breaker', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Endpoints demo con rate limiting específico
 app.get("/v1/demo/health", rateLimitByEndpoint, (req, res) => {
   res.json({
@@ -1484,6 +1792,7 @@ app.listen(PORT, async () => {
   console.log(`🔒 Row Level Security (RLS) enabled with multi-tenant isolation`);
   console.log(`🌐 API Gateway enabled with intelligent routing and load balancing`);
   console.log(`📊 Event Sourcing and CQRS system enabled with aggregates and projections`);
+  console.log(`🔗 Microservices system enabled with service mesh and discovery`);
   
   // Inicializar warmup del caché
   try {
