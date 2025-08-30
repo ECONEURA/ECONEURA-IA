@@ -53,7 +53,7 @@ app.get("/v1/rate-limit/organizations", (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to get organizations', { error: error as Error });
+    logger.error('Failed to get organizations', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -193,12 +193,12 @@ app.get("/v1/rate-limit/stats", (req, res) => {
 // Endpoints de alertas (con rate limiting específico)
 app.get("/v1/alerts/rules", rateLimitByEndpoint, (req, res) => {
   try {
-    const rules = alertSystem.getRules();
+    const rules = alertSystem.getAllRules();
     res.json({
       success: true,
       data: {
-        rules: Array.from(rules.values()),
-        count: rules.size
+        rules: rules,
+        count: rules.length
       }
     });
   } catch (error) {
@@ -213,8 +213,8 @@ app.get("/v1/alerts/active", rateLimitByEndpoint, (req, res) => {
     res.json({
       success: true,
       data: {
-        alerts: Array.from(alerts.values()),
-        count: alerts.size
+        alerts: alerts,
+        count: alerts.length
       }
     });
   } catch (error) {
@@ -225,7 +225,7 @@ app.get("/v1/alerts/active", rateLimitByEndpoint, (req, res) => {
 
 app.get("/v1/alerts/stats", rateLimitByEndpoint, (req, res) => {
   try {
-    const stats = alertSystem.getStatistics();
+    const stats = alertSystem.getAlertStats();
     res.json({
       success: true,
       data: stats

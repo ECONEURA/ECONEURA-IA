@@ -31,6 +31,22 @@ interface LogContext {
   acknowledgedBy?: string;
   alertCount?: number;
   alerts?: any[];
+  // Cache fields
+  key?: string;
+  type?: string;
+  ttl?: number;
+  maxSize?: number;
+  patternsCount?: number;
+  warmupItems?: number;
+  previousSize?: number;
+  intervalMinutes?: number;
+  // Rate limiting fields
+  organizationId?: string;
+  // Request fields
+  path?: string;
+  prompt?: string;
+  query?: string;
+  current?: number;
 }
 
 interface LogEntry {
