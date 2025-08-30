@@ -10,6 +10,8 @@ import { rateLimiter } from "./lib/rate-limiting.js";
 import { CacheManager } from "./lib/cache.js";
 import { finOpsSystem } from "./lib/finops.js";
 import { finOpsMiddleware, finOpsCostTrackingMiddleware, finOpsBudgetCheckMiddleware } from "./middleware/finops.js";
+import { rlsSystem } from "./lib/rls.js";
+import { rlsMiddleware, rlsAccessControlMiddleware, rlsDataSanitizationMiddleware, rlsResponseValidationMiddleware, rlsCleanupMiddleware } from "./middleware/rls.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -34,6 +36,10 @@ app.use(healthCheckMiddleware);
 app.use(finOpsMiddleware);
 app.use(finOpsBudgetCheckMiddleware);
 app.use(finOpsCostTrackingMiddleware);
+
+// Middleware de Row Level Security
+app.use(rlsMiddleware);
+app.use(rlsCleanupMiddleware);
 
 // Endpoints de health
 app.get("/health/live", (req, res) => {
@@ -808,6 +814,139 @@ app.post("/v1/finops/costs/estimate", (req, res) => {
   }
 });
 
+// Endpoints de Row Level Security
+app.get("/v1/rls/rules", rlsAccessControlMiddleware('rls', 'read'), (req, res) => {
+  try {
+    const { organizationId } = req.query;
+    const rules = organizationId 
+      ? rlsSystem.getRulesByOrganization(organizationId as string)
+      : Array.from(rlsSystem['rules'].values());
+    
+    res.json({
+      success: true,
+      data: {
+        rules,
+        count: rules.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get RLS rules', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/rls/rules", rlsAccessControlMiddleware('rls', 'write'), rlsDataSanitizationMiddleware('rls_rules'), (req, res) => {
+  try {
+    const ruleData = req.body;
+    const ruleId = rlsSystem.createRule(ruleData);
+    
+    res.status(201).json({
+      success: true,
+      data: {
+        ruleId,
+        message: 'RLS rule created successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to create RLS rule', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.put("/v1/rls/rules/:ruleId", rlsAccessControlMiddleware('rls', 'write'), rlsDataSanitizationMiddleware('rls_rules'), (req, res) => {
+  try {
+    const { ruleId } = req.params;
+    const updates = req.body;
+    
+    const updated = rlsSystem.updateRule(ruleId, updates);
+    
+    if (!updated) {
+      return res.status(404).json({ error: 'RLS rule not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        ruleId,
+        message: 'RLS rule updated successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to update RLS rule', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete("/v1/rls/rules/:ruleId", rlsAccessControlMiddleware('rls', 'write'), (req, res) => {
+  try {
+    const { ruleId } = req.params;
+    const deleted = rlsSystem.deleteRule(ruleId);
+    
+    if (!deleted) {
+      return res.status(404).json({ error: 'RLS rule not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        ruleId,
+        message: 'RLS rule deleted successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to delete RLS rule', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/rls/context", (req, res) => {
+  try {
+    const context = rlsSystem.getContext();
+    
+    res.json({
+      success: true,
+      data: context
+    });
+  } catch (error) {
+    logger.error('Failed to get RLS context', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/rls/check-access", rlsDataSanitizationMiddleware('access_check'), (req, res) => {
+  try {
+    const { resource, action } = req.body;
+    const hasAccess = rlsSystem.checkAccess(resource, action);
+    
+    res.json({
+      success: true,
+      data: {
+        resource,
+        action,
+        hasAccess,
+        context: rlsSystem.getContext()
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to check access', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/rls/stats", (req, res) => {
+  try {
+    const stats = rlsSystem.getStats();
+    
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    logger.error('Failed to get RLS stats', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Endpoints demo con rate limiting específico
 app.get("/v1/demo/health", rateLimitByEndpoint, (req, res) => {
   res.json({
@@ -1027,6 +1166,7 @@ app.listen(PORT, async () => {
   console.log(`🚨 Alert system integrated and monitoring`);
   console.log(`💾 Cache system initialized with AI and Search caches`);
   console.log(`💰 FinOps system enabled with cost tracking and budget management`);
+  console.log(`🔒 Row Level Security (RLS) enabled with multi-tenant isolation`);
   
   // Inicializar warmup del caché
   try {

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { CacheStatus } from '@/components/CacheStatus';
 import { FinOpsStatus } from '@/components/FinOpsStatus';
+import RLSStatus from '@/components/RLSStatus';
 
 interface DashboardData {
   overview: {
