@@ -12,6 +12,8 @@ import { finOpsSystem } from "./lib/finops.js";
 import { finOpsMiddleware, finOpsCostTrackingMiddleware, finOpsBudgetCheckMiddleware } from "./middleware/finops.js";
 import { rlsSystem } from "./lib/rls.js";
 import { rlsMiddleware, rlsAccessControlMiddleware, rlsDataSanitizationMiddleware, rlsResponseValidationMiddleware, rlsCleanupMiddleware } from "./middleware/rls.js";
+import { apiGateway } from "./lib/gateway.js";
+import { gatewayRoutingMiddleware, gatewayProxyMiddleware, gatewayMetricsMiddleware, gatewayCircuitBreakerMiddleware } from "./middleware/gateway.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -40,6 +42,12 @@ app.use(finOpsCostTrackingMiddleware);
 // Middleware de Row Level Security
 app.use(rlsMiddleware);
 app.use(rlsCleanupMiddleware);
+
+// Middleware de API Gateway
+app.use(gatewayMetricsMiddleware);
+app.use(gatewayCircuitBreakerMiddleware);
+app.use(gatewayRoutingMiddleware);
+app.use(gatewayProxyMiddleware);
 
 // Endpoints de health
 app.get("/health/live", (req, res) => {
@@ -947,6 +955,165 @@ app.get("/v1/rls/stats", (req, res) => {
   }
 });
 
+// Endpoints de API Gateway
+app.get("/v1/gateway/services", (req, res) => {
+  try {
+    const services = apiGateway.getAllServices();
+    
+    res.json({
+      success: true,
+      data: {
+        services,
+        count: services.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get gateway services', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/gateway/services", (req, res) => {
+  try {
+    const serviceData = req.body;
+    const serviceId = apiGateway.addService(serviceData);
+    
+    res.status(201).json({
+      success: true,
+      data: {
+        serviceId,
+        message: 'Service added to gateway successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to add service to gateway', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.delete("/v1/gateway/services/:serviceId", (req, res) => {
+  try {
+    const { serviceId } = req.params;
+    const deleted = apiGateway.removeService(serviceId);
+    
+    if (!deleted) {
+      return res.status(404).json({ error: 'Service not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        serviceId,
+        message: 'Service removed from gateway successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to remove service from gateway', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/gateway/routes", (req, res) => {
+  try {
+    const routes = apiGateway.getAllRoutes();
+    
+    res.json({
+      success: true,
+      data: {
+        routes,
+        count: routes.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get gateway routes', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/gateway/routes", (req, res) => {
+  try {
+    const routeData = req.body;
+    const routeId = apiGateway.addRoute(routeData);
+    
+    res.status(201).json({
+      success: true,
+      data: {
+        routeId,
+        message: 'Route added to gateway successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to add route to gateway', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.delete("/v1/gateway/routes/:routeId", (req, res) => {
+  try {
+    const { routeId } = req.params;
+    const deleted = apiGateway.removeRoute(routeId);
+    
+    if (!deleted) {
+      return res.status(404).json({ error: 'Route not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        routeId,
+        message: 'Route removed from gateway successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to remove route from gateway', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/gateway/stats", (req, res) => {
+  try {
+    const stats = apiGateway.getStats();
+    
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    logger.error('Failed to get gateway stats', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/gateway/test-route", (req, res) => {
+  try {
+    const { path, method, headers, query } = req.body;
+    const route = apiGateway.findRoute(path, method, headers || {}, query || {});
+    
+    if (!route) {
+      return res.status(404).json({
+        success: false,
+        data: {
+          message: 'No route found for the specified criteria'
+        }
+      });
+    }
+
+    const service = apiGateway.getService(route.serviceId);
+    
+    res.json({
+      success: true,
+      data: {
+        route,
+        service,
+        message: 'Route found successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to test route', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Endpoints demo con rate limiting específico
 app.get("/v1/demo/health", rateLimitByEndpoint, (req, res) => {
   res.json({
@@ -1167,6 +1334,7 @@ app.listen(PORT, async () => {
   console.log(`💾 Cache system initialized with AI and Search caches`);
   console.log(`💰 FinOps system enabled with cost tracking and budget management`);
   console.log(`🔒 Row Level Security (RLS) enabled with multi-tenant isolation`);
+  console.log(`🌐 API Gateway enabled with intelligent routing and load balancing`);
   
   // Inicializar warmup del caché
   try {
