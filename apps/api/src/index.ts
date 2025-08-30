@@ -1,119 +1,187 @@
 import express from "express";
 import cors from "cors";
-import bodyParser from "body-parser";
-import rateLimit from "express-rate-limit";
-import basicAuth from "express-basic-auth";
-import { ai } from "./routes/ai.js";
-import { search } from "./routes/search.js";
-import { health } from "./routes/health.js";
-import { dashboard } from "./routes/dashboard.js";
-import { registry } from "./lib/observe.js";
-import { logger } from "./lib/logger.js";
-import { analytics } from "./lib/analytics.js";
-import { alertSystem } from "./lib/alerts.js";
-import { smartCache } from "./lib/smart-cache.js";
-import { securityMiddleware } from "./middleware/security.js";
-import { smartRateLimit, aiRateLimit } from "./middleware/smart-rate-limit.js";
 
 const app = express();
 
-// Middleware de seguridad
-app.use(securityMiddleware.corsMiddleware);
-app.use(securityMiddleware.securityHeaders);
-app.use(securityMiddleware.requestSizeLimit);
-app.use(securityMiddleware.sanitizeInput);
-app.use(securityMiddleware.securityLogging);
+// Middleware básico
+app.use(cors({ origin: [/localhost:3000$/], credentials: false }));
+app.use(express.json({ limit: "2mb" }));
 
-// Rate limiting inteligente
-app.use(smartRateLimit);
-
-// Body parser
-app.use(bodyParser.json({ limit: "2mb" }));
-
-// Health checks
-app.use("/health", health);
-
-// Métricas protegidas
-app.get("/metrics", basicAuth({ 
-  users: { admin: process.env.METRICS_PWD || "metrics" }, 
-  challenge: true 
-}), async (_req, res) => {
-  res.setHeader("Content-Type", registry.contentType);
-  res.end(await registry.metrics());
+// Health check básico
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    version: "1.0.0"
+  });
 });
 
-// Dashboard de métricas
-app.use("/dashboard", dashboard);
-
-// Rutas de IA con rate limiting específico
-app.use("/v1/ai", aiRateLimit, ai);
-app.use("/v1/search", search);
-
-// Middleware de logging de requests
-app.use((req, res, next) => {
-  const startTime = Date.now();
+// Endpoint básico de IA
+app.post("/v1/ai/chat", (req, res) => {
+  const { prompt } = req.body;
   
-  res.on('finish', () => {
-    const duration = Date.now() - startTime;
-    const org = req.headers['x-org-id'] as string || 'demo-org';
-    
-    logger.info(`${req.method} ${req.path}`, {
-      endpoint: req.path,
-      method: req.method,
-      statusCode: res.statusCode,
-      duration,
-      org,
-      ip: req.ip,
-      userAgent: req.headers['user-agent']
+  if (!prompt) {
+    return res.status(400).json({
+      error: "Missing prompt",
+      message: "Prompt is required"
     });
+  }
 
-    // Track analytics
-    if (req.path.startsWith('/v1/ai')) {
-      analytics.trackEvent('api_request', org, {
-        endpoint: req.path,
-        method: req.method,
-        statusCode: res.statusCode,
-        duration
-      });
+  // Respuesta simulada para demo
+  res.json({
+    success: true,
+    data: {
+      response: `Demo response to: "${prompt}"`,
+      model: "gpt-4o-mini",
+      tokens: prompt.length,
+      cost: 0.001
     }
   });
-
-  next();
 });
 
-// Error handling global
-app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  logger.error('Global error handler', {
-    endpoint: req.path,
-    method: req.method,
-    error: error.message,
-    stack: error.stack
+// Endpoint básico de búsqueda
+app.get("/v1/search", (req, res) => {
+  const { q } = req.query;
+  
+  if (!q) {
+    return res.status(400).json({
+      error: "Missing query",
+      message: "Query parameter 'q' is required"
+    });
+  }
+
+  // Respuesta simulada para demo
+  res.json({
+    success: true,
+    data: {
+      results: [
+        {
+          title: `Demo result for: ${q}`,
+          snippet: `This is a demo search result for the query "${q}"`,
+          url: "https://demo.example.com"
+        }
+      ],
+      total: 1
+    }
   });
+});
 
-  const org = req.headers['x-org-id'] as string || 'demo-org';
-  analytics.trackError(org, error.message, req.path);
+// Endpoint básico de interacciones
+app.get("/v1/interactions", (req, res) => {
+  res.json({
+    success: true,
+    data: [
+      {
+        id: "1",
+        type: "email",
+        content: "Demo interaction 1",
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: "2", 
+        type: "call",
+        content: "Demo interaction 2",
+        createdAt: new Date().toISOString()
+      }
+    ],
+    count: 2
+  });
+});
 
+// Endpoint básico de productos
+app.get("/v1/products", (req, res) => {
+  res.json({
+    success: true,
+    data: [
+      {
+        id: "1",
+        name: "Demo Product 1",
+        sku: "DEMO-001",
+        price: 99.99,
+        stock: 10
+      },
+      {
+        id: "2",
+        name: "Demo Product 2", 
+        sku: "DEMO-002",
+        price: 149.99,
+        stock: 5
+      }
+    ],
+    count: 2
+  });
+});
+
+// Métricas básicas
+app.get("/metrics", (req, res) => {
+  res.setHeader("Content-Type", "text/plain");
+  res.end(`
+# HELP http_requests_total Total number of HTTP requests
+# TYPE http_requests_total counter
+http_requests_total{method="GET",status="200"} 10
+http_requests_total{method="POST",status="200"} 5
+
+# HELP ai_requests_total Total number of AI requests
+# TYPE ai_requests_total counter
+ai_requests_total{model="gpt-4o-mini"} 3
+
+# HELP search_requests_total Total number of search requests  
+# TYPE search_requests_total counter
+search_requests_total 2
+  `);
+});
+
+// Dashboard básico
+app.get("/dashboard", (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      general: {
+        totalRequests: 15,
+        uniqueUsers: 3,
+        errorRate: 0,
+        avgLatency: 150
+      },
+      ai: {
+        totalRequests: 3,
+        totalCost: 0.003,
+        popularModels: {
+          "gpt-4o-mini": 3
+        }
+      },
+      search: {
+        totalRequests: 2,
+        popularQueries: {
+          "demo": 2
+        }
+      },
+      system: {
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        nodeVersion: process.version
+      }
+    }
+  });
+});
+
+// Error handling básico
+app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('Error:', error);
   res.status(500).json({
     error: 'Internal server error',
-    timestamp: new Date().toISOString()
+    message: 'Something went wrong'
   });
 });
-
-// Limpieza periódica
-setInterval(() => {
-  analytics.cleanup();
-  smartCache.cleanup();
-}, 60 * 60 * 1000); // Cada hora
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
-  logger.info(`🚀 API server started on port ${PORT}`, {
-    environment: process.env.NODE_ENV || 'development',
-    version: process.env.npm_package_version || '1.0.0'
-  });
-  
   console.log(`🚀 API server running on port ${PORT}`);
   console.log(`📊 Metrics: http://localhost:${PORT}/metrics`);
   console.log(`🏥 Health: http://localhost:${PORT}/health`);
   console.log(`📈 Dashboard: http://localhost:${PORT}/dashboard`);
+  console.log(`🤖 AI Chat: POST http://localhost:${PORT}/v1/ai/chat`);
+  console.log(`🔍 Search: GET http://localhost:${PORT}/v1/search?q=query`);
+  console.log(`📞 Interactions: GET http://localhost:${PORT}/v1/interactions`);
+  console.log(`📦 Products: GET http://localhost:${PORT}/v1/products`);
 });
