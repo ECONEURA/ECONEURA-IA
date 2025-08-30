@@ -14,6 +14,8 @@ import { rlsSystem } from "./lib/rls.js";
 import { rlsMiddleware, rlsAccessControlMiddleware, rlsDataSanitizationMiddleware, rlsResponseValidationMiddleware, rlsCleanupMiddleware } from "./middleware/rls.js";
 import { apiGateway } from "./lib/gateway.js";
 import { gatewayRoutingMiddleware, gatewayProxyMiddleware, gatewayMetricsMiddleware, gatewayCircuitBreakerMiddleware } from "./middleware/gateway.js";
+import { eventSourcingSystem, createCommand, createQuery } from "./lib/events.js";
+import { registerUserHandlers } from "./lib/handlers/user-handlers.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -48,6 +50,9 @@ app.use(gatewayMetricsMiddleware);
 app.use(gatewayCircuitBreakerMiddleware);
 app.use(gatewayRoutingMiddleware);
 app.use(gatewayProxyMiddleware);
+
+// Inicializar sistema de Event Sourcing
+registerUserHandlers();
 
 // Endpoints de health
 app.get("/health/live", (req, res) => {
@@ -1114,6 +1119,149 @@ app.post("/v1/gateway/test-route", (req, res) => {
   }
 });
 
+// Endpoints de Event Sourcing y CQRS
+app.post("/v1/events/commands", async (req, res) => {
+  try {
+    const { type, aggregateId, data } = req.body;
+    const userId = req.headers['x-user-id'] as string;
+    const organizationId = req.headers['x-organization-id'] as string;
+
+    const command = createCommand(type, aggregateId, data, {
+      userId,
+      organizationId,
+      correlationId: req.headers['x-correlation-id'] as string,
+      causationId: req.headers['x-causation-id'] as string,
+    });
+
+    await eventSourcingSystem.executeCommand(command);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        commandId: command.id,
+        message: 'Command executed successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to execute command', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.post("/v1/events/queries", async (req, res) => {
+  try {
+    const { type, data } = req.body;
+    const userId = req.headers['x-user-id'] as string;
+    const organizationId = req.headers['x-organization-id'] as string;
+
+    const query = createQuery(type, data, {
+      userId,
+      organizationId,
+      correlationId: req.headers['x-correlation-id'] as string,
+    });
+
+    const result = await eventSourcingSystem.executeQuery(query);
+
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    logger.error('Failed to execute query', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/events/aggregates/:aggregateId", async (req, res) => {
+  try {
+    const { aggregateId } = req.params;
+    const { aggregateType } = req.query;
+
+    if (!aggregateType) {
+      return res.status(400).json({ error: 'aggregateType is required' });
+    }
+
+    // Por ahora solo soportamos UserAggregate
+    if (aggregateType === 'User') {
+      const { UserAggregate } = await import('./lib/aggregates/user.js');
+      const user = await eventSourcingSystem.loadAggregate(aggregateId, UserAggregate);
+      const state = user.getState();
+
+      res.json({
+        success: true,
+        data: {
+          aggregateId,
+          aggregateType,
+          version: user.version,
+          state
+        }
+      });
+    } else {
+      res.status(400).json({ error: 'Unsupported aggregate type' });
+    }
+  } catch (error) {
+    logger.error('Failed to load aggregate', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/events/events", async (req, res) => {
+  try {
+    const { fromTimestamp, eventType } = req.query;
+    const { eventStore } = await import('./lib/events.js');
+
+    let events;
+    if (eventType) {
+      events = await eventStore.getEventsByType(eventType as string, fromTimestamp ? new Date(fromTimestamp as string) : undefined);
+    } else {
+      events = await eventStore.getAllEvents(fromTimestamp ? new Date(fromTimestamp as string) : undefined);
+    }
+
+    res.json({
+      success: true,
+      data: {
+        events,
+        count: events.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get events', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/events/replay", async (req, res) => {
+  try {
+    const { fromTimestamp } = req.body;
+    
+    await eventSourcingSystem.replayEvents(fromTimestamp ? new Date(fromTimestamp) : undefined);
+
+    res.json({
+      success: true,
+      data: {
+        message: 'Event replay completed successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to replay events', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/events/stats", async (req, res) => {
+  try {
+    const stats = eventSourcingSystem.getStatistics();
+    
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    logger.error('Failed to get event sourcing stats', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Endpoints demo con rate limiting específico
 app.get("/v1/demo/health", rateLimitByEndpoint, (req, res) => {
   res.json({
@@ -1335,6 +1483,7 @@ app.listen(PORT, async () => {
   console.log(`💰 FinOps system enabled with cost tracking and budget management`);
   console.log(`🔒 Row Level Security (RLS) enabled with multi-tenant isolation`);
   console.log(`🌐 API Gateway enabled with intelligent routing and load balancing`);
+  console.log(`📊 Event Sourcing and CQRS system enabled with aggregates and projections`);
   
   // Inicializar warmup del caché
   try {
