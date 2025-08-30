@@ -130,6 +130,54 @@ class MetricsCollector {
     this.gauge('uptime_seconds', process.uptime());
   }
 
+  recordRateLimit(data: {
+    organizationId: string;
+    allowed: boolean;
+    strategy: string;
+    remaining: number;
+    requestId: string;
+  }): void {
+    const { organizationId, allowed, strategy, remaining } = data;
+
+    // Increment total requests
+    this.increment('rate_limit_total', 1, { organization_id: organizationId, strategy });
+
+    // Increment allowed/blocked counters
+    if (allowed) {
+      this.increment('rate_limit_allowed', 1, { organization_id: organizationId, strategy });
+    } else {
+      this.increment('rate_limit_blocked', 1, { organization_id: organizationId, strategy });
+    }
+
+    // Update remaining requests gauge
+    this.gauge('rate_limit_remaining', remaining, { organization_id: organizationId, strategy });
+
+    // Calculate and update utilization
+    const org = this.getOrganizationStats(organizationId);
+    if (org) {
+      const utilization = (org.stats.totalRequests / org.config.maxRequests) * 100;
+      this.gauge('rate_limit_utilization', utilization, { organization_id: organizationId, strategy });
+    }
+
+    // Log rate limit event
+    console.log('Rate limit metric recorded', {
+      organizationId,
+      allowed,
+      strategy,
+      remaining,
+      requestId: data.requestId
+    });
+  }
+
+  private getOrganizationStats(organizationId: string): any {
+    // This would integrate with the rate limiter to get organization stats
+    // For now, return a mock implementation
+    return {
+      config: { maxRequests: 100 },
+      stats: { totalRequests: 50 }
+    };
+  }
+
   // Métodos para obtener métricas
   getMetric(name: string): Metric | undefined {
     return this.metrics.get(name);

@@ -1,3 +1,5 @@
+import { logger } from './logger';
+
 export interface CacheConfig {
   type: 'memory' | 'redis';
   ttl: number; // seconds
@@ -13,7 +15,7 @@ export interface CacheItem<T = any> {
   lastAccessed: number;
 }
 
-export class WebCache {
+export class IntelligentCache {
   private memoryCache: Map<string, CacheItem> = new Map();
   private config: CacheConfig;
   private stats = {
@@ -26,7 +28,7 @@ export class WebCache {
 
   constructor(config: CacheConfig) {
     this.config = config;
-    console.log('Web cache system initialized', { 
+    logger.info('Cache system initialized', { 
       type: config.type, 
       ttl: config.ttl,
       maxSize: config.maxSize 
@@ -38,6 +40,7 @@ export class WebCache {
     
     if (!item) {
       this.stats.misses++;
+      logger.debug('Cache miss', { key, stats: this.stats });
       return null;
     }
 
@@ -47,6 +50,7 @@ export class WebCache {
     if (isExpired) {
       this.memoryCache.delete(key);
       this.stats.misses++;
+      logger.debug('Cache expired', { key, age: now - item.timestamp });
       return null;
     }
 
@@ -54,6 +58,13 @@ export class WebCache {
     item.accessCount++;
     item.lastAccessed = now;
     this.stats.hits++;
+
+    logger.debug('Cache hit', { 
+      key, 
+      accessCount: item.accessCount,
+      age: now - item.timestamp,
+      stats: this.stats 
+    });
 
     return item.value as T;
   }
@@ -79,30 +90,38 @@ export class WebCache {
 
     this.memoryCache.set(key, item);
     this.stats.sets++;
+
+    logger.debug('Cache set', { 
+      key, 
+      ttl: itemTtl,
+      cacheSize: this.memoryCache.size,
+      stats: this.stats 
+    });
   }
 
   async delete(key: string): Promise<void> {
     const deleted = this.memoryCache.delete(key);
     if (deleted) {
       this.stats.deletes++;
+      logger.debug('Cache delete', { key, stats: this.stats });
     }
   }
 
   async clear(): Promise<void> {
     const size = this.memoryCache.size;
     this.memoryCache.clear();
-    console.log('Web cache cleared', { previousSize: size });
+    logger.info('Cache cleared', { previousSize: size });
   }
 
   async warmup(patterns: Array<{ key: string; value: any; ttl?: number }>): Promise<void> {
-    console.log('Starting web cache warmup', { patternsCount: patterns.length });
+    logger.info('Starting cache warmup', { patternsCount: patterns.length });
     
     for (const pattern of patterns) {
       await this.set(pattern.key, pattern.value, pattern.ttl);
       this.stats.warmupItems++;
     }
 
-    console.log('Web cache warmup completed', { 
+    logger.info('Cache warmup completed', { 
       warmupItems: this.stats.warmupItems,
       totalItems: this.memoryCache.size 
     });
@@ -133,12 +152,13 @@ export class WebCache {
 
     if (leastUsedKey) {
       this.memoryCache.delete(leastUsedKey);
+      logger.debug('Evicted least used item', { key: leastUsedKey, score: leastUsedScore });
     }
   }
 }
 
-// Web AI Cache
-export class WebAICache extends WebCache {
+// AI Cache with specific patterns
+export class AICache extends IntelligentCache {
   constructor(config: CacheConfig) {
     super(config);
   }
@@ -173,6 +193,15 @@ export class WebAICache extends WebCache {
         },
         ttl: 3600,
       },
+      {
+        prompt: "How does neural networks work?",
+        response: {
+          content: "Neural networks are computing systems inspired by biological neural networks, consisting of interconnected nodes that process information.",
+          model: "gpt-4",
+          timestamp: Date.now(),
+        },
+        ttl: 3600,
+      },
     ];
 
     const patterns = commonPrompts.map(cp => ({
@@ -185,18 +214,19 @@ export class WebAICache extends WebCache {
   }
 
   private hashPrompt(prompt: string): string {
+    // Simple hash function for demo purposes
     let hash = 0;
     for (let i = 0; i < prompt.length; i++) {
       const char = prompt.charCodeAt(i);
       hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
+      hash = hash & hash; // Convert to 32-bit integer
     }
     return Math.abs(hash).toString(36);
   }
 }
 
-// Web Search Cache
-export class WebSearchCache extends WebCache {
+// Search Cache with specific patterns
+export class SearchCache extends IntelligentCache {
   constructor(config: CacheConfig) {
     super(config);
   }
@@ -237,6 +267,18 @@ export class WebSearchCache extends WebCache {
         },
         ttl: 1800,
       },
+      {
+        query: "neural networks",
+        results: {
+          items: [
+            { title: "Neural Network Architecture", url: "https://example.com/nn-architecture" },
+            { title: "Backpropagation Explained", url: "https://example.com/backprop" },
+          ],
+          total: 2,
+          timestamp: Date.now(),
+        },
+        ttl: 1800,
+      },
     ];
 
     const patterns = commonQueries.map(cq => ({
@@ -260,45 +302,45 @@ export class WebSearchCache extends WebCache {
   }
 }
 
-// Web Cache Manager
-export class WebCacheManager {
-  private aiCache: WebAICache;
-  private searchCache: WebSearchCache;
+// Cache manager for coordinating multiple caches
+export class CacheManager {
+  private aiCache: AICache;
+  private searchCache: SearchCache;
   private warmupInterval: NodeJS.Timeout | null = null;
 
   constructor() {
-    this.aiCache = new WebAICache({
+    this.aiCache = new AICache({
       type: 'memory',
       ttl: 3600, // 1 hour
-      maxSize: 100,
+      maxSize: 1000,
     });
 
-    this.searchCache = new WebSearchCache({
+    this.searchCache = new SearchCache({
       type: 'memory',
       ttl: 1800, // 30 minutes
-      maxSize: 50,
+      maxSize: 500,
     });
 
-    console.log('Web cache manager initialized');
+    logger.info('Cache manager initialized');
   }
 
-  getAICache(): WebAICache {
+  getAICache(): AICache {
     return this.aiCache;
   }
 
-  getSearchCache(): WebSearchCache {
+  getSearchCache(): SearchCache {
     return this.searchCache;
   }
 
   async warmupAll(): Promise<void> {
-    console.log('Starting comprehensive web cache warmup');
+    logger.info('Starting comprehensive cache warmup');
     
     await Promise.all([
       this.aiCache.warmupAI(),
       this.searchCache.warmupSearch(),
     ]);
 
-    console.log('Comprehensive web cache warmup completed');
+    logger.info('Comprehensive cache warmup completed');
   }
 
   startPeriodicWarmup(intervalMinutes: number = 60): void {
@@ -307,18 +349,18 @@ export class WebCacheManager {
     }
 
     this.warmupInterval = setInterval(async () => {
-      console.log('Running periodic web cache warmup');
+      logger.info('Running periodic cache warmup');
       await this.warmupAll();
     }, intervalMinutes * 60 * 1000);
 
-    console.log('Periodic web cache warmup started', { intervalMinutes });
+    logger.info('Periodic cache warmup started', { intervalMinutes });
   }
 
   stopPeriodicWarmup(): void {
     if (this.warmupInterval) {
       clearInterval(this.warmupInterval);
       this.warmupInterval = null;
-      console.log('Periodic web cache warmup stopped');
+      logger.info('Periodic cache warmup stopped');
     }
   }
 

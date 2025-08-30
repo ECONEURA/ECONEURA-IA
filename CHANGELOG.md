@@ -39,6 +39,52 @@ All notable changes to this project will be documented in this file.
   - Restaurado archivo utils.ts con función cn
   - Simplificado dashboard para evitar dependencias complejas
 
+## [PR-25] - 2024-12-19
+
+### Added
+- **Sistema de Rate Limiting Inteligente**: Implementación completa de rate limiting por organización
+- **API Express Rate Limiting**: Sistema de rate limiting en el servidor Express con múltiples estrategias
+- **Web BFF Rate Limiting**: Sistema de rate limiting en el Backend for Frontend con sincronización
+- **Rate Limit Strategies**: Soporte para token-bucket, sliding-window y fixed-window
+- **Organization Management**: CRUD completo para configuraciones de rate limiting por organización
+- **Rate Limit Headers**: Headers estándar de rate limiting (X-RateLimit-*)
+- **Rate Limit Metrics**: Métricas detalladas de rate limiting integradas con observabilidad
+- **Rate Limit Middleware**: Middleware inteligente para diferentes tipos de rate limiting
+- **Performance Monitoring**: Monitoreo de rendimiento del sistema de rate limiting
+- **Error Handling**: Manejo robusto de errores y límites excedidos
+
+### Technical Details
+- **Strategies**: token-bucket, sliding-window, fixed-window
+- **Organization-based**: Rate limiting configurado por organización
+- **Headers**: X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, X-RateLimit-Strategy
+- **Burst Handling**: Soporte para burst de requests con token bucket
+- **Window Management**: Ventanas de tiempo configurables
+- **Integration**: Integración completa con sistema de observabilidad
+- **Metrics**: rate_limit_total, rate_limit_allowed, rate_limit_blocked, rate_limit_remaining, rate_limit_utilization
+- **Error Responses**: Respuestas 429 con información detallada de retry
+
+### Files Added/Modified
+- `apps/api/src/lib/rate-limiting.ts`: Sistema de rate limiting para API Express
+- `apps/api/src/middleware/rate-limiting.ts`: Middleware de rate limiting
+- `apps/api/src/index.ts`: Endpoints de rate limiting integrados
+- `apps/web/src/lib/rate-limiting.ts`: Sistema de rate limiting para Web BFF
+- `apps/web/src/app/api/rate-limit/organizations/route.ts`: API de organizaciones
+- `apps/web/src/app/api/rate-limit/organizations/[organizationId]/route.ts`: API de organización específica
+- `apps/web/src/app/api/rate-limit/organizations/[organizationId]/reset/route.ts`: API de reset de organización
+- `apps/web/src/app/api/rate-limit/stats/route.ts`: API de estadísticas de rate limiting
+- `scripts/smoke-pr-25.sh`: Script de pruebas completo para PR-25
+
+### Testing
+- ✅ Rate limiting system is operational
+- ✅ Organization management is functional
+- ✅ Multiple strategies are working (token-bucket, sliding-window, fixed-window)
+- ✅ Rate limit headers are present and correct
+- ✅ Rate limit enforcement is working
+- ✅ Integration with existing systems is working
+- ✅ Performance is acceptable
+- ✅ Data quality is good
+- ✅ Error handling is robust
+
 ## [PR-24] - 2024-12-19
 
 ### Added

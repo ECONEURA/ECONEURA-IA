@@ -3,761 +3,1504 @@ import cors from "cors";
 import { logger } from "./lib/logger.js";
 import { metrics } from "./lib/metrics.js";
 import { tracing } from "./lib/tracing.js";
+import { observabilityMiddleware, errorObservabilityMiddleware, healthCheckMiddleware } from "./middleware/observability.js";
+import { rateLimitMiddleware, rateLimitByEndpoint, rateLimitByUser, rateLimitByApiKey } from "./middleware/rate-limiting.js";
 import { alertSystem } from "./lib/alerts.js";
-import { 
-  observabilityMiddleware, 
-  errorObservabilityMiddleware, 
-  healthCheckMiddleware,
-  startCleanupScheduler,
-  startSystemMetricsScheduler
-} from "./middleware/observability.js";
+import { rateLimiter } from "./lib/rate-limiting.js";
+import { CacheManager } from "./lib/cache.js";
+import { finOpsSystem } from "./lib/finops.js";
+import { finOpsMiddleware, finOpsCostTrackingMiddleware, finOpsBudgetCheckMiddleware } from "./middleware/finops.js";
+import { rlsSystem } from "./lib/rls.js";
+import { rlsMiddleware, rlsAccessControlMiddleware, rlsDataSanitizationMiddleware, rlsResponseValidationMiddleware, rlsCleanupMiddleware } from "./middleware/rls.js";
+import { apiGateway } from "./lib/gateway.js";
+import { gatewayRoutingMiddleware, gatewayProxyMiddleware, gatewayMetricsMiddleware, gatewayCircuitBreakerMiddleware } from "./middleware/gateway.js";
+import { eventSourcingSystem, createCommand, createQuery } from "./lib/events.js";
+import { registerUserHandlers } from "./lib/handlers/user-handlers.js";
 
 const app = express();
+const PORT = process.env.PORT || 4000;
+
+// Inicializar cache manager
+const cacheManager = new CacheManager();
 
 // Middleware básico
-app.use(cors({ 
-  origin: [/localhost:3000$/, /127.0.0.1:3000$/], 
-  credentials: false 
-}));
-app.use(express.json({ limit: "2mb" }));
+app.use(cors());
+app.use(express.json());
 
 // Middleware de observabilidad
 app.use(observabilityMiddleware);
+
+// Middleware de rate limiting (aplicar antes de las rutas)
+app.use(rateLimitMiddleware);
+
+// Middleware de health check
 app.use(healthCheckMiddleware);
 
-// Logging básico (reemplazado por observabilityMiddleware)
-app.use((req, res, next) => {
-  // El logging ahora se maneja en observabilityMiddleware
-  next();
-});
+// Middleware de FinOps
+app.use(finOpsMiddleware);
+app.use(finOpsBudgetCheckMiddleware);
+app.use(finOpsCostTrackingMiddleware);
 
-// Health check
-app.get("/health", (req, res) => {
-  res.json({ 
-    status: "ok", 
-    timestamp: new Date().toISOString(),
-    version: "1.0.0"
-  });
-});
+// Middleware de Row Level Security
+app.use(rlsMiddleware);
+app.use(rlsCleanupMiddleware);
 
-// Health endpoints avanzados
+// Middleware de API Gateway
+app.use(gatewayMetricsMiddleware);
+app.use(gatewayCircuitBreakerMiddleware);
+app.use(gatewayRoutingMiddleware);
+app.use(gatewayProxyMiddleware);
+
+// Inicializar sistema de Event Sourcing
+registerUserHandlers();
+
+// Endpoints de health
 app.get("/health/live", (req, res) => {
-  res.json({ 
-    status: "ok", 
-    timestamp: new Date().toISOString(),
-    service: "api-express",
-    uptime: process.uptime()
-  });
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-app.get("/health/ready", async (req, res) => {
+app.get("/health/ready", (req, res) => {
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+// Endpoints de rate limiting
+app.get("/v1/rate-limit/organizations", (req, res) => {
   try {
-    // Verificar base de datos (simulado por ahora)
-    const dbStatus = 'ok'; // En producción, aquí haríamos SELECT 1
-    
-    // Verificar colas/eventos básicos (simulado)
-    const queueStatus = 'ok';
-    
-    // Verificar integraciones externas
-    const integrationsStatus = 'ok';
-    
-    const overallStatus = dbStatus === 'ok' && queueStatus === 'ok' && integrationsStatus === 'ok';
-    
-    if (overallStatus) {
-      res.json({
-        status: "ok",
-        timestamp: new Date().toISOString(),
-        service: "api-express",
-        checks: {
-          database: dbStatus,
-          queues: queueStatus,
-          integrations: integrationsStatus
-        }
-      });
-    } else {
-      res.status(503).json({
-        status: "error",
-        timestamp: new Date().toISOString(),
-        service: "api-express",
-        checks: {
-          database: dbStatus,
-          queues: queueStatus,
-          integrations: integrationsStatus
-        }
-      });
-    }
+    const organizations = rateLimiter.getAllOrganizations();
+    res.json({
+      success: true,
+      data: {
+        organizations: organizations.map(org => ({
+          organizationId: org.organizationId,
+          config: org.config,
+          createdAt: org.createdAt,
+          updatedAt: org.updatedAt
+        }))
+      }
+    });
   } catch (error) {
-    res.status(503).json({
-      status: "error",
-      timestamp: new Date().toISOString(),
-      service: "api-express",
-      error: "Health check failed"
-    });
+    logger.error('Failed to get organizations', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Demo AI Chat con observabilidad
-app.post("/v1/ai/chat", async (req, res) => {
-  const { message } = req.body;
-  
-  if (!message) {
-    return res.status(400).json({ 
-      error: "Message is required" 
-    });
-  }
-
-  // Simulación de respuesta AI con observabilidad
-  const startTime = Date.now();
-  
+app.get("/v1/rate-limit/organizations/:organizationId", (req, res) => {
   try {
-    // Simular procesamiento de IA
-    await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 200));
+    const { organizationId } = req.params;
+    const stats = rateLimiter.getOrganizationStats(organizationId);
     
-    const duration = Date.now() - startTime;
-    const tokens = Math.floor(message.length / 4) + Math.floor(Math.random() * 100);
-    const cost = tokens * 0.00001; // Simulación de costo
-    
-    // Registrar métricas de IA
-    metrics.recordAIRequest('demo-gpt-4o-mini', 'demo', tokens, cost, duration);
-    
-    // Registrar log de IA
-    logger.aiRequest('demo-gpt-4o-mini', 'demo', tokens, cost, duration, {
-      requestId: (req as any).requestId,
-      traceId: (req as any).traceContext?.traceId
-    });
+    if (!stats) {
+      return res.status(404).json({ error: 'Organization not found' });
+    }
 
-    const response = {
-      id: `msg_${Date.now()}`,
-      message: `Demo response to: "${message}"`,
-      timestamp: new Date().toISOString(),
-      model: "demo-gpt-4o-mini",
-      tokens,
-      cost: cost.toFixed(6)
-    };
-
-    return res.json(response);
-  } catch (error: any) {
-    const duration = Date.now() - startTime;
-    
-    // Registrar error de IA
-    logger.aiError(error.message || 'Unknown error', 'demo-gpt-4o-mini', {
-      requestId: (req as any).requestId,
-      traceId: (req as any).traceContext?.traceId
+    res.json({
+      success: true,
+      data: {
+        organizationId,
+        config: stats.config,
+        state: stats.state,
+        stats: stats.stats
+      }
     });
-    
-    return res.status(500).json({ 
-      error: "AI processing failed",
-      message: error.message || 'Unknown error'
-    });
+  } catch (error) {
+    logger.error('Failed to get organization stats', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Demo Search con observabilidad
-app.get("/v1/search", (req, res) => {
-  const { q } = req.query;
-  
-  if (!q) {
-    return res.status(400).json({ 
-      error: "Query parameter 'q' is required" 
-    });
-  }
-
-  // Simulación de búsqueda
-  const results = {
-    query: q,
-    results: [
-      { id: 1, title: `Demo result for: ${q}`, content: "This is a demo search result" },
-      { id: 2, title: `Another result for: ${q}`, content: "Another demo search result" }
-    ],
-    total: 2
-  };
-
-  return res.json(results);
-});
-
-// Demo Interactions
-app.get("/v1/interactions", (req, res) => {
-  // Simulación de interacciones CRM
-  const interactions = [
-    {
-      id: "int_1",
-      customer_id: "cust_1",
-      type: "email",
-      status: "completed",
-      summary: "Customer inquiry about pricing",
-      created_at: new Date().toISOString()
-    },
-    {
-      id: "int_2", 
-      customer_id: "cust_2",
-      type: "call",
-      status: "pending",
-      summary: "Follow-up call scheduled",
-      created_at: new Date().toISOString()
-    }
-  ];
-
-  res.json({ interactions });
-});
-
-// Demo Products
-app.get("/v1/products", (req, res) => {
-  // Simulación de productos
-  const products = [
-    {
-      id: "prod_1",
-      name: "Demo Product 1",
-      sku: "DEMO001",
-      price: 99.99,
-      stock: 50
-    },
-    {
-      id: "prod_2",
-      name: "Demo Product 2", 
-      sku: "DEMO002",
-      price: 149.99,
-      stock: 25
-    }
-  ];
-
-  res.json({ products });
-});
-
-// Demo Metrics
-app.get("/metrics", (req, res) => {
-  const metricsData = {
-    requests_total: 1000,
-    requests_per_minute: 15,
-    average_response_time: 120,
-    error_rate: 0.02,
-    active_connections: 5
-  };
-
-  res.json(metricsData);
-});
-
-// Demo Dashboard
-app.get("/dashboard", (req, res) => {
-  const dashboard = {
-    overview: {
-      total_customers: 150,
-      total_products: 45,
-      total_sales: 12500,
-      active_interactions: 8
-    },
-    recent_activity: [
-      { type: "new_customer", message: "New customer registered", timestamp: new Date().toISOString() },
-      { type: "sale", message: "Sale completed", timestamp: new Date().toISOString() }
-    ]
-  };
-
-  res.json(dashboard);
-});
-
-// Analytics Endpoint
-app.get('/v1/analytics/overview', (req, res) => {
-  const now = new Date();
-  const analytics = {
-    timestamp: now.toISOString(),
-    period: 'last_30_days',
-    crm: {
-      total_interactions: Math.floor(Math.random() * 1000) + 200,
-      active_deals: Math.floor(Math.random() * 50) + 10,
-      conversion_rate: (Math.random() * 0.3 + 0.1).toFixed(3),
-      avg_deal_value: (Math.random() * 50000 + 10000).toFixed(2),
-      top_sources: ['Website', 'Referral', 'Social Media', 'Cold Call']
-    },
-    erp: {
-      total_invoices: Math.floor(Math.random() * 500) + 100,
-      paid_invoices: Math.floor(Math.random() * 400) + 80,
-      outstanding_amount: (Math.random() * 100000 + 50000).toFixed(2),
-      avg_payment_time: Math.floor(Math.random() * 15) + 5,
-      top_products: ['Product A', 'Product B', 'Service C']
-    },
-    inventory: {
-      total_products: Math.floor(Math.random() * 200) + 50,
-      low_stock_alerts: Math.floor(Math.random() * 10) + 2,
-      total_value: (Math.random() * 500000 + 200000).toFixed(2),
-      turnover_rate: (Math.random() * 0.8 + 0.2).toFixed(3)
-    },
-    ai: {
-      total_requests: Math.floor(Math.random() * 5000) + 1000,
-      chat_sessions: Math.floor(Math.random() * 200) + 50,
-      image_generations: Math.floor(Math.random() * 100) + 20,
-      tts_requests: Math.floor(Math.random() * 50) + 10,
-      total_tokens: Math.floor(Math.random() * 100000) + 20000,
-      estimated_cost: (Math.random() * 200 + 50).toFixed(2),
-      cache_hit_rate: (Math.random() * 0.4 + 0.3).toFixed(3)
-    },
-    performance: {
-      api_p95_latency: Math.floor(Math.random() * 200 + 100),
-      ai_p95_latency: Math.floor(Math.random() * 2000 + 1000),
-      error_rate: (Math.random() * 0.02).toFixed(4),
-      uptime_percentage: (Math.random() * 5 + 95).toFixed(2)
-    }
-  };
-  
-  res.json({
-    success: true,
-    message: 'Analytics Overview',
-    data: analytics
-  });
-});
-
-// System Metrics
-app.get('/v1/metrics/system', (req, res) => {
-  const systemMetrics = {
-    timestamp: new Date().toISOString(),
-    system: {
-      uptime: process.uptime(),
-      memory: {
-        used: process.memoryUsage().heapUsed,
-        total: process.memoryUsage().heapTotal,
-        external: process.memoryUsage().external,
-        rss: process.memoryUsage().rss
-      },
-      cpu: process.cpuUsage(),
-      version: process.version,
-      platform: process.platform,
-      arch: process.arch
-    },
-    performance: {
-      api_requests_per_minute: Math.floor(Math.random() * 100) + 20,
-      ai_requests_per_minute: Math.floor(Math.random() * 30) + 5,
-      avg_response_time_ms: Math.floor(Math.random() * 200) + 50,
-      error_rate_percent: (Math.random() * 2).toFixed(2),
-      active_connections: Math.floor(Math.random() * 50) + 10
-    },
-    cache: {
-      hit_rate: (Math.random() * 0.6 + 0.3).toFixed(3),
-      total_entries: Math.floor(Math.random() * 1000) + 200,
-      memory_usage_mb: (Math.random() * 50 + 10).toFixed(2),
-      evictions_per_minute: Math.floor(Math.random() * 10) + 1
-    }
-  };
-  
-  res.json({
-    success: true,
-    message: 'System Metrics',
-    data: systemMetrics
-  });
-});
-
-// Alerts and Notifications
-app.get('/v1/alerts/active', (req, res) => {
-  const alerts = [
-    {
-      id: 'alert-001',
-      type: 'warning',
-      severity: 'medium',
-      title: 'Low Stock Alert',
-      message: 'Product "Widget Pro" is running low on stock (5 units remaining)',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-      category: 'inventory',
-      actionable: true,
-      action_url: '/inventory/products/widget-pro'
-    },
-    {
-      id: 'alert-002',
-      type: 'info',
-      severity: 'low',
-      title: 'AI Budget Warning',
-      message: 'AI usage is at 85% of monthly budget',
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
-      category: 'ai',
-      actionable: true,
-      action_url: '/admin/finops'
-    },
-    {
-      id: 'alert-003',
-      type: 'error',
-      severity: 'high',
-      title: 'Payment Failed',
-      message: 'Invoice #INV-2024-001 payment failed - retry scheduled',
-      timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(), // 1 hour ago
-      category: 'finance',
-      actionable: true,
-      action_url: '/finance/invoices/INV-2024-001'
-    }
-  ];
-  
-  res.json({
-    success: true,
-    message: 'Active Alerts',
-    data: {
-      total: alerts.length,
-      by_severity: {
-        high: alerts.filter(a => a.severity === 'high').length,
-        medium: alerts.filter(a => a.severity === 'medium').length,
-        low: alerts.filter(a => a.severity === 'low').length
-      },
-      alerts: alerts
-    }
-  });
-});
-
-// Business Reports and KPIs
-app.get('/v1/reports/kpis', (req, res) => {
-  const kpis = {
-    timestamp: new Date().toISOString(),
-    period: 'current_month',
-    sales: {
-      total_revenue: (Math.random() * 500000 + 200000).toFixed(2),
-      total_orders: Math.floor(Math.random() * 1000) + 200,
-      avg_order_value: (Math.random() * 500 + 200).toFixed(2),
-      growth_rate: (Math.random() * 0.3 - 0.1).toFixed(3), // Can be negative
-      top_customers: [
-        { name: 'Enterprise Corp', revenue: (Math.random() * 50000 + 20000).toFixed(2) },
-        { name: 'Startup Inc', revenue: (Math.random() * 30000 + 15000).toFixed(2) },
-        { name: 'SMB Solutions', revenue: (Math.random() * 20000 + 10000).toFixed(2) }
-      ]
-    },
-    crm: {
-      total_leads: Math.floor(Math.random() * 500) + 100,
-      conversion_rate: (Math.random() * 0.4 + 0.1).toFixed(3),
-      avg_sales_cycle_days: Math.floor(Math.random() * 30) + 15,
-      customer_satisfaction: (Math.random() * 2 + 3).toFixed(1), // 3-5 scale
-      churn_rate: (Math.random() * 0.1).toFixed(3)
-    },
-    operations: {
-      inventory_turnover: (Math.random() * 8 + 2).toFixed(2),
-      order_fulfillment_rate: (Math.random() * 0.1 + 0.95).toFixed(3),
-      avg_delivery_time_days: (Math.random() * 3 + 1).toFixed(1),
-      supplier_performance: (Math.random() * 0.2 + 0.8).toFixed(3)
-    },
-    financial: {
-      gross_margin: (Math.random() * 0.4 + 0.3).toFixed(3),
-      net_profit_margin: (Math.random() * 0.2 + 0.1).toFixed(3),
-      cash_flow: (Math.random() * 100000 + 50000).toFixed(2),
-      outstanding_receivables: (Math.random() * 200000 + 100000).toFixed(2),
-      days_sales_outstanding: Math.floor(Math.random() * 30) + 15
-    }
-  };
-  
-  res.json({
-    success: true,
-    message: 'Business KPIs Report',
-    data: kpis
-  });
-});
-
-// Endpoints de observabilidad
-app.get('/v1/observability/logs', (req, res) => {
-  const logs = logger.getStats();
-  res.json({
-    success: true,
-    message: 'Logger Statistics',
-    data: logs
-  });
-});
-
-app.get('/v1/observability/metrics', (req, res) => {
-  const metricsData = metrics.getMetricsSummary();
-  res.json({
-    success: true,
-    message: 'Metrics Summary',
-    data: metricsData
-  });
-});
-
-app.get('/v1/observability/metrics/prometheus', (req, res) => {
-  const prometheusData = metrics.exportPrometheus();
-  res.setHeader('Content-Type', 'text/plain');
-  res.send(prometheusData);
-});
-
-app.get('/v1/observability/traces', (req, res) => {
-  const traces = tracing.exportTraces();
-  res.json({
-    success: true,
-    message: 'Traces Export',
-    data: traces
-  });
-});
-
-app.get('/v1/observability/traces/stats', (req, res) => {
-  const stats = tracing.getStats();
-  res.json({
-    success: true,
-    message: 'Traces Statistics',
-    data: stats
-  });
-});
-
-// Endpoints de alertas inteligentes
-app.get('/v1/alerts/rules', (req, res) => {
-  const rules = alertSystem.getAllRules();
-  res.json({
-    success: true,
-    message: 'Alert Rules',
-    data: rules
-  });
-});
-
-app.get('/v1/alerts/active', (req, res) => {
-  const activeAlerts = alertSystem.getActiveAlerts();
-  const stats = alertSystem.getAlertStats();
-  
-  res.json({
-    success: true,
-    message: 'Active Alerts',
-    data: {
-      alerts: activeAlerts,
-      stats: stats
-    }
-  });
-});
-
-app.get('/v1/alerts/stats', (req, res) => {
-  const alertStats = alertSystem.getAlertStats();
-  const notificationStats = alertSystem.getNotificationStats();
-  
-  res.json({
-    success: true,
-    message: 'Alert Statistics',
-    data: {
-      alerts: alertStats,
-      notifications: notificationStats
-    }
-  });
-});
-
-app.post('/v1/alerts/rules', (req, res) => {
-  const rule = req.body;
-  
+app.post("/v1/rate-limit/organizations", (req, res) => {
   try {
-    alertSystem.addRule(rule);
+    const { organizationId, config } = req.body;
     
-    logger.info('Alert rule added', {
-      ruleId: rule.id,
-      ruleName: rule.name,
-      requestId: (req as any).requestId
+    if (!organizationId) {
+      return res.status(400).json({ error: 'Organization ID is required' });
+    }
+
+    rateLimiter.addOrganization(organizationId, config || {});
+    
+    res.status(201).json({
+      success: true,
+      data: {
+        organizationId,
+        message: 'Organization rate limit added successfully'
+      }
     });
+  } catch (error) {
+    logger.error('Failed to add organization', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put("/v1/rate-limit/organizations/:organizationId", (req, res) => {
+  try {
+    const { organizationId } = req.params;
+    const { config } = req.body;
+    
+    const updated = rateLimiter.updateOrganization(organizationId, config || {});
+    
+    if (!updated) {
+      return res.status(404).json({ error: 'Organization not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        organizationId,
+        message: 'Organization rate limit updated successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to update organization', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete("/v1/rate-limit/organizations/:organizationId", (req, res) => {
+  try {
+    const { organizationId } = req.params;
+    const removed = rateLimiter.removeOrganization(organizationId);
+    
+    if (!removed) {
+      return res.status(404).json({ error: 'Organization not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        organizationId,
+        message: 'Organization rate limit removed successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to remove organization', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/rate-limit/organizations/:organizationId/reset", (req, res) => {
+  try {
+    const { organizationId } = req.params;
+    const reset = rateLimiter.resetOrganization(organizationId);
+    
+    if (!reset) {
+      return res.status(404).json({ error: 'Organization not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        organizationId,
+        message: 'Organization rate limit reset successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to reset organization', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/rate-limit/stats", (req, res) => {
+  try {
+    const stats = rateLimiter.getGlobalStats();
     
     res.json({
       success: true,
-      message: 'Alert rule added successfully',
-      data: { ruleId: rule.id }
+      data: {
+        stats,
+        timestamp: new Date().toISOString()
+      }
     });
-  } catch (error: any) {
-    logger.error('Failed to add alert rule', {
-      error: error.message,
-      requestId: (req as any).requestId
-    });
-    
-    res.status(400).json({
-      success: false,
-      message: 'Failed to add alert rule',
-      error: error.message
-    });
+  } catch (error) {
+    logger.error('Failed to get rate limit stats', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-app.put('/v1/alerts/rules/:ruleId', (req, res) => {
-  const { ruleId } = req.params;
-  const updates = req.body;
-  
+// Endpoints de alertas (con rate limiting específico)
+app.get("/v1/alerts/rules", rateLimitByEndpoint, (req, res) => {
   try {
-    const success = alertSystem.updateRule(ruleId, updates);
+    const rules = alertSystem.getAllRules();
+    res.json({
+      success: true,
+      data: {
+        rules: rules,
+        count: rules.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get alert rules', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/alerts/active", rateLimitByEndpoint, (req, res) => {
+  try {
+    const alerts = alertSystem.getActiveAlerts();
+    res.json({
+      success: true,
+      data: {
+        alerts: alerts,
+        count: alerts.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get active alerts', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/alerts/stats", rateLimitByEndpoint, (req, res) => {
+  try {
+    const stats = alertSystem.getAlertStats();
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    logger.error('Failed to get alert stats', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/alerts/rules", rateLimitByEndpoint, (req, res) => {
+  try {
+    const rule = req.body;
+    alertSystem.addRule(rule);
     
-    if (success) {
-      logger.info('Alert rule updated', {
+    res.status(201).json({
+      success: true,
+      data: {
+        rule,
+        message: 'Alert rule added successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to add alert rule', { error: error as Error });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.put("/v1/alerts/rules/:ruleId", rateLimitByEndpoint, (req, res) => {
+  try {
+    const { ruleId } = req.params;
+    const updates = req.body;
+    
+    const updated = alertSystem.updateRule(ruleId, updates);
+    
+    if (!updated) {
+      return res.status(404).json({ error: 'Alert rule not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
         ruleId,
-        updates,
-        requestId: (req as any).requestId
-      });
-      
-      res.json({
-        success: true,
-        message: 'Alert rule updated successfully',
-        data: { ruleId }
-      });
-    } else {
-      res.status(404).json({
-        success: false,
-        message: 'Alert rule not found',
-        data: { ruleId }
-      });
-    }
-  } catch (error: any) {
-    logger.error('Failed to update alert rule', {
-      ruleId,
-      error: error.message,
-      requestId: (req as any).requestId
+        message: 'Alert rule updated successfully'
+      }
     });
-    
-    res.status(400).json({
-      success: false,
-      message: 'Failed to update alert rule',
-      error: error.message
-    });
+  } catch (error) {
+    logger.error('Failed to update alert rule', { error: error as Error });
+    res.status(400).json({ error: (error as Error).message });
   }
 });
 
-app.delete('/v1/alerts/rules/:ruleId', (req, res) => {
-  const { ruleId } = req.params;
-  
+app.delete("/v1/alerts/rules/:ruleId", rateLimitByEndpoint, (req, res) => {
   try {
-    const success = alertSystem.removeRule(ruleId);
+    const { ruleId } = req.params;
+    const removed = alertSystem.removeRule(ruleId);
     
-    if (success) {
-      logger.info('Alert rule removed', {
+    if (!removed) {
+      return res.status(404).json({ error: 'Alert rule not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
         ruleId,
-        requestId: (req as any).requestId
-      });
-      
-      res.json({
-        success: true,
-        message: 'Alert rule removed successfully',
-        data: { ruleId }
-      });
-    } else {
-      res.status(404).json({
-        success: false,
-        message: 'Alert rule not found',
-        data: { ruleId }
-      });
-    }
-  } catch (error: any) {
-    logger.error('Failed to remove alert rule', {
-      ruleId,
-      error: error.message,
-      requestId: (req as any).requestId
+        message: 'Alert rule removed successfully'
+      }
     });
-    
-    res.status(400).json({
-      success: false,
-      message: 'Failed to remove alert rule',
-      error: error.message
-    });
+  } catch (error) {
+    logger.error('Failed to remove alert rule', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-app.post('/v1/alerts/:alertId/acknowledge', (req, res) => {
-  const { alertId } = req.params;
-  const { acknowledgedBy } = req.body;
-  
+app.post("/v1/alerts/:alertId/acknowledge", rateLimitByEndpoint, (req, res) => {
   try {
-    const success = alertSystem.acknowledgeAlert(alertId, acknowledgedBy || 'system');
+    const { alertId } = req.params;
+    const { acknowledgedBy } = req.body;
     
-    if (success) {
-      logger.info('Alert acknowledged', {
-        alertId,
-        acknowledgedBy,
-        requestId: (req as any).requestId
-      });
-      
-      res.json({
-        success: true,
-        message: 'Alert acknowledged successfully',
-        data: { alertId }
-      });
-    } else {
-      res.status(404).json({
-        success: false,
-        message: 'Alert not found',
-        data: { alertId }
-      });
+    const acknowledged = alertSystem.acknowledgeAlert(alertId, acknowledgedBy);
+    
+    if (!acknowledged) {
+      return res.status(404).json({ error: 'Alert not found' });
     }
-  } catch (error: any) {
-    logger.error('Failed to acknowledge alert', {
-      alertId,
-      error: error.message,
-      requestId: (req as any).requestId
+
+    res.json({
+      success: true,
+      data: {
+        alertId,
+        message: 'Alert acknowledged successfully'
+      }
     });
-    
-    res.status(400).json({
-      success: false,
-      message: 'Failed to acknowledge alert',
-      error: error.message
-    });
+  } catch (error) {
+    logger.error('Failed to acknowledge alert', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-app.post('/v1/alerts/:alertId/resolve', (req, res) => {
-  const { alertId } = req.params;
-  
+app.post("/v1/alerts/:alertId/resolve", rateLimitByEndpoint, (req, res) => {
   try {
-    const success = alertSystem.resolveAlert(alertId);
+    const { alertId } = req.params;
+    const { resolvedBy } = req.body;
     
-    if (success) {
-      logger.info('Alert resolved', {
-        alertId,
-        requestId: (req as any).requestId
-      });
-      
-      res.json({
-        success: true,
-        message: 'Alert resolved successfully',
-        data: { alertId }
-      });
-    } else {
-      res.status(404).json({
-        success: false,
-        message: 'Alert not found',
-        data: { alertId }
-      });
+    const resolved = alertSystem.resolveAlert(alertId, resolvedBy);
+    
+    if (!resolved) {
+      return res.status(404).json({ error: 'Alert not found' });
     }
-  } catch (error: any) {
-    logger.error('Failed to resolve alert', {
-      alertId,
-      error: error.message,
-      requestId: (req as any).requestId
+
+    res.json({
+      success: true,
+      data: {
+        alertId,
+        message: 'Alert resolved successfully'
+      }
     });
-    
-    res.status(400).json({
-      success: false,
-      message: 'Failed to resolve alert',
-      error: error.message
-    });
+  } catch (error) {
+    logger.error('Failed to resolve alert', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Error handling con observabilidad
+// Endpoints de observabilidad
+app.get("/v1/observability/logs", (req, res) => {
+  try {
+    const logs = logger.getRecentLogs();
+    res.json({
+      success: true,
+      data: {
+        logs,
+        count: logs.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get logs', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/observability/metrics", (req, res) => {
+  try {
+    const metricsData = metrics.getMetrics();
+    res.json({
+      success: true,
+      data: {
+        summary: metricsData.summary,
+        details: metricsData.details
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get metrics', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/observability/metrics/prometheus", (req, res) => {
+  try {
+    const prometheusMetrics = metrics.getPrometheusMetrics();
+    res.set('Content-Type', 'text/plain');
+    res.send(prometheusMetrics);
+  } catch (error) {
+    logger.error('Failed to get Prometheus metrics', { error: error as Error });
+    res.status(500).send('# Error generating Prometheus metrics\n');
+  }
+});
+
+app.get("/v1/observability/traces", (req, res) => {
+  try {
+    const traces = tracing.getRecentTraces();
+    res.json({
+      success: true,
+      data: {
+        traces,
+        count: traces.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get traces', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/observability/stats", (req, res) => {
+  try {
+    const stats = {
+      logs: logger.getStats(),
+      metrics: metrics.getStats(),
+      traces: tracing.getStats()
+    };
+    
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    logger.error('Failed to get observability stats', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Endpoints de caché
+app.get("/v1/cache/stats", (req, res) => {
+  try {
+    const stats = cacheManager.getStats();
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    logger.error('Failed to get cache stats', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/cache/warmup", (req, res) => {
+  try {
+    cacheManager.warmupAll();
+    res.json({
+      success: true,
+      data: {
+        message: 'Cache warmup initiated successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to initiate cache warmup', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/cache/warmup/start", (req, res) => {
+  try {
+    const { intervalMinutes = 60 } = req.body;
+    cacheManager.startPeriodicWarmup(intervalMinutes);
+    res.json({
+      success: true,
+      data: {
+        message: 'Periodic cache warmup started',
+        intervalMinutes
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to start periodic cache warmup', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/cache/warmup/stop", (req, res) => {
+  try {
+    cacheManager.stopPeriodicWarmup();
+    res.json({
+      success: true,
+      data: {
+        message: 'Periodic cache warmup stopped'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to stop periodic cache warmup', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete("/v1/cache/ai", (req, res) => {
+  try {
+    cacheManager.getAICache().clear();
+    res.json({
+      success: true,
+      data: {
+        message: 'AI cache cleared successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to clear AI cache', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete("/v1/cache/search", (req, res) => {
+  try {
+    cacheManager.getSearchCache().clear();
+    res.json({
+      success: true,
+      data: {
+        message: 'Search cache cleared successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to clear search cache', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete("/v1/cache/all", (req, res) => {
+  try {
+    cacheManager.getAICache().clear();
+    cacheManager.getSearchCache().clear();
+    res.json({
+      success: true,
+      data: {
+        message: 'All caches cleared successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to clear all caches', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Endpoints de FinOps
+app.get("/v1/finops/costs", (req, res) => {
+  try {
+    const { organizationId, period } = req.query;
+    const metrics = finOpsSystem.getCostMetrics(
+      organizationId as string,
+      period as string
+    );
+    
+    res.json({
+      success: true,
+      data: metrics
+    });
+  } catch (error) {
+    logger.error('Failed to get cost metrics', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/finops/budgets", (req, res) => {
+  try {
+    const { organizationId } = req.query;
+    const budgets = organizationId 
+      ? finOpsSystem.getBudgetsByOrganization(organizationId as string)
+      : Array.from(finOpsSystem['budgets'].values());
+    
+    res.json({
+      success: true,
+      data: {
+        budgets,
+        count: budgets.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get budgets', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/finops/budgets", (req, res) => {
+  try {
+    const budgetData = req.body;
+    const budgetId = finOpsSystem.createBudget(budgetData);
+    
+    res.status(201).json({
+      success: true,
+      data: {
+        budgetId,
+        message: 'Budget created successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to create budget', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.put("/v1/finops/budgets/:budgetId", (req, res) => {
+  try {
+    const { budgetId } = req.params;
+    const updates = req.body;
+    
+    const updated = finOpsSystem.updateBudget(budgetId, updates);
+    
+    if (!updated) {
+      return res.status(404).json({ error: 'Budget not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        budgetId,
+        message: 'Budget updated successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to update budget', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete("/v1/finops/budgets/:budgetId", (req, res) => {
+  try {
+    const { budgetId } = req.params;
+    const deleted = finOpsSystem.deleteBudget(budgetId);
+    
+    if (!deleted) {
+      return res.status(404).json({ error: 'Budget not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        budgetId,
+        message: 'Budget deleted successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to delete budget', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/finops/alerts", (req, res) => {
+  try {
+    const { organizationId } = req.query;
+    const alerts = finOpsSystem.getActiveAlerts(organizationId as string);
+    
+    res.json({
+      success: true,
+      data: {
+        alerts,
+        count: alerts.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get budget alerts', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/finops/alerts/:alertId/acknowledge", (req, res) => {
+  try {
+    const { alertId } = req.params;
+    const { acknowledgedBy } = req.body;
+    
+    const acknowledged = finOpsSystem.acknowledgeAlert(alertId, acknowledgedBy);
+    
+    if (!acknowledged) {
+      return res.status(404).json({ error: 'Alert not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        alertId,
+        message: 'Alert acknowledged successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to acknowledge alert', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/finops/stats", (req, res) => {
+  try {
+    const stats = finOpsSystem.getStats();
+    
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    logger.error('Failed to get FinOps stats', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Endpoints adicionales para análisis avanzado
+app.get("/v1/finops/budgets/:budgetId/usage", (req, res) => {
+  try {
+    const { budgetId } = req.params;
+    const currentSpend = finOpsSystem.getCurrentBudgetSpend(budgetId);
+    const usagePercentage = finOpsSystem.getBudgetUsagePercentage(budgetId);
+    const budget = finOpsSystem.getBudget(budgetId);
+    
+    if (!budget) {
+      return res.status(404).json({ error: 'Budget not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        budgetId,
+        budgetName: budget.name,
+        currentSpend,
+        budgetAmount: budget.amount,
+        usagePercentage,
+        remaining: budget.amount - currentSpend,
+        currency: budget.currency,
+        period: budget.period
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get budget usage', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/finops/budgets/near-limit", (req, res) => {
+  try {
+    const { threshold = 80 } = req.query;
+    const budgetsNearLimit = finOpsSystem.getBudgetsNearLimit(Number(threshold));
+    
+    res.json({
+      success: true,
+      data: {
+        budgets: budgetsNearLimit,
+        count: budgetsNearLimit.length,
+        threshold: Number(threshold)
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get budgets near limit', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/finops/organizations/:organizationId/cost", (req, res) => {
+  try {
+    const { organizationId } = req.params;
+    const { period } = req.query;
+    const totalCost = finOpsSystem.getOrganizationCost(organizationId, period as string);
+    
+    res.json({
+      success: true,
+      data: {
+        organizationId,
+        totalCost,
+        period: period || 'all-time',
+        currency: 'USD'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get organization cost', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/finops/costs/estimate", (req, res) => {
+  try {
+    const { operation, service, responseSize, complexity } = req.body;
+    
+    // Simular cálculo de costo estimado
+    const baseCosts: Record<string, number> = {
+      'ai': 0.01,
+      'chat': 0.02,
+      'image': 0.05,
+      'search': 0.005,
+      'unknown': 0.001,
+    };
+    
+    const baseCost = baseCosts[operation] || baseCosts['unknown'];
+    const sizeMultiplier = Math.max(1, (responseSize || 1000) / 1000);
+    const complexityMultiplier = complexity || 1;
+    
+    const estimatedCost = baseCost * sizeMultiplier * complexityMultiplier;
+    
+    res.json({
+      success: true,
+      data: {
+        operation,
+        service,
+        estimatedCost,
+        breakdown: {
+          baseCost,
+          sizeMultiplier,
+          complexityMultiplier
+        }
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to estimate cost', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Endpoints de Row Level Security
+app.get("/v1/rls/rules", rlsAccessControlMiddleware('rls', 'read'), (req, res) => {
+  try {
+    const { organizationId } = req.query;
+    const rules = organizationId 
+      ? rlsSystem.getRulesByOrganization(organizationId as string)
+      : Array.from(rlsSystem['rules'].values());
+    
+    res.json({
+      success: true,
+      data: {
+        rules,
+        count: rules.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get RLS rules', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/rls/rules", rlsAccessControlMiddleware('rls', 'write'), rlsDataSanitizationMiddleware('rls_rules'), (req, res) => {
+  try {
+    const ruleData = req.body;
+    const ruleId = rlsSystem.createRule(ruleData);
+    
+    res.status(201).json({
+      success: true,
+      data: {
+        ruleId,
+        message: 'RLS rule created successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to create RLS rule', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.put("/v1/rls/rules/:ruleId", rlsAccessControlMiddleware('rls', 'write'), rlsDataSanitizationMiddleware('rls_rules'), (req, res) => {
+  try {
+    const { ruleId } = req.params;
+    const updates = req.body;
+    
+    const updated = rlsSystem.updateRule(ruleId, updates);
+    
+    if (!updated) {
+      return res.status(404).json({ error: 'RLS rule not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        ruleId,
+        message: 'RLS rule updated successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to update RLS rule', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete("/v1/rls/rules/:ruleId", rlsAccessControlMiddleware('rls', 'write'), (req, res) => {
+  try {
+    const { ruleId } = req.params;
+    const deleted = rlsSystem.deleteRule(ruleId);
+    
+    if (!deleted) {
+      return res.status(404).json({ error: 'RLS rule not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        ruleId,
+        message: 'RLS rule deleted successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to delete RLS rule', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/rls/context", (req, res) => {
+  try {
+    const context = rlsSystem.getContext();
+    
+    res.json({
+      success: true,
+      data: context
+    });
+  } catch (error) {
+    logger.error('Failed to get RLS context', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/rls/check-access", rlsDataSanitizationMiddleware('access_check'), (req, res) => {
+  try {
+    const { resource, action } = req.body;
+    const hasAccess = rlsSystem.checkAccess(resource, action);
+    
+    res.json({
+      success: true,
+      data: {
+        resource,
+        action,
+        hasAccess,
+        context: rlsSystem.getContext()
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to check access', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/rls/stats", (req, res) => {
+  try {
+    const stats = rlsSystem.getStats();
+    
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    logger.error('Failed to get RLS stats', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Endpoints de API Gateway
+app.get("/v1/gateway/services", (req, res) => {
+  try {
+    const services = apiGateway.getAllServices();
+    
+    res.json({
+      success: true,
+      data: {
+        services,
+        count: services.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get gateway services', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/gateway/services", (req, res) => {
+  try {
+    const serviceData = req.body;
+    const serviceId = apiGateway.addService(serviceData);
+    
+    res.status(201).json({
+      success: true,
+      data: {
+        serviceId,
+        message: 'Service added to gateway successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to add service to gateway', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.delete("/v1/gateway/services/:serviceId", (req, res) => {
+  try {
+    const { serviceId } = req.params;
+    const deleted = apiGateway.removeService(serviceId);
+    
+    if (!deleted) {
+      return res.status(404).json({ error: 'Service not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        serviceId,
+        message: 'Service removed from gateway successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to remove service from gateway', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/gateway/routes", (req, res) => {
+  try {
+    const routes = apiGateway.getAllRoutes();
+    
+    res.json({
+      success: true,
+      data: {
+        routes,
+        count: routes.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get gateway routes', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/gateway/routes", (req, res) => {
+  try {
+    const routeData = req.body;
+    const routeId = apiGateway.addRoute(routeData);
+    
+    res.status(201).json({
+      success: true,
+      data: {
+        routeId,
+        message: 'Route added to gateway successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to add route to gateway', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.delete("/v1/gateway/routes/:routeId", (req, res) => {
+  try {
+    const { routeId } = req.params;
+    const deleted = apiGateway.removeRoute(routeId);
+    
+    if (!deleted) {
+      return res.status(404).json({ error: 'Route not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        routeId,
+        message: 'Route removed from gateway successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to remove route from gateway', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/gateway/stats", (req, res) => {
+  try {
+    const stats = apiGateway.getStats();
+    
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    logger.error('Failed to get gateway stats', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/gateway/test-route", (req, res) => {
+  try {
+    const { path, method, headers, query } = req.body;
+    const route = apiGateway.findRoute(path, method, headers || {}, query || {});
+    
+    if (!route) {
+      return res.status(404).json({
+        success: false,
+        data: {
+          message: 'No route found for the specified criteria'
+        }
+      });
+    }
+
+    const service = apiGateway.getService(route.serviceId);
+    
+    res.json({
+      success: true,
+      data: {
+        route,
+        service,
+        message: 'Route found successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to test route', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Endpoints de Event Sourcing y CQRS
+app.post("/v1/events/commands", async (req, res) => {
+  try {
+    const { type, aggregateId, data } = req.body;
+    const userId = req.headers['x-user-id'] as string;
+    const organizationId = req.headers['x-organization-id'] as string;
+
+    const command = createCommand(type, aggregateId, data, {
+      userId,
+      organizationId,
+      correlationId: req.headers['x-correlation-id'] as string,
+      causationId: req.headers['x-causation-id'] as string,
+    });
+
+    await eventSourcingSystem.executeCommand(command);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        commandId: command.id,
+        message: 'Command executed successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to execute command', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.post("/v1/events/queries", async (req, res) => {
+  try {
+    const { type, data } = req.body;
+    const userId = req.headers['x-user-id'] as string;
+    const organizationId = req.headers['x-organization-id'] as string;
+
+    const query = createQuery(type, data, {
+      userId,
+      organizationId,
+      correlationId: req.headers['x-correlation-id'] as string,
+    });
+
+    const result = await eventSourcingSystem.executeQuery(query);
+
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    logger.error('Failed to execute query', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/events/aggregates/:aggregateId", async (req, res) => {
+  try {
+    const { aggregateId } = req.params;
+    const { aggregateType } = req.query;
+
+    if (!aggregateType) {
+      return res.status(400).json({ error: 'aggregateType is required' });
+    }
+
+    // Por ahora solo soportamos UserAggregate
+    if (aggregateType === 'User') {
+      const { UserAggregate } = await import('./lib/aggregates/user.js');
+      const user = await eventSourcingSystem.loadAggregate(aggregateId, UserAggregate);
+      const state = user.getState();
+
+      res.json({
+        success: true,
+        data: {
+          aggregateId,
+          aggregateType,
+          version: user.version,
+          state
+        }
+      });
+    } else {
+      res.status(400).json({ error: 'Unsupported aggregate type' });
+    }
+  } catch (error) {
+    logger.error('Failed to load aggregate', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/events/events", async (req, res) => {
+  try {
+    const { fromTimestamp, eventType } = req.query;
+    const { eventStore } = await import('./lib/events.js');
+
+    let events;
+    if (eventType) {
+      events = await eventStore.getEventsByType(eventType as string, fromTimestamp ? new Date(fromTimestamp as string) : undefined);
+    } else {
+      events = await eventStore.getAllEvents(fromTimestamp ? new Date(fromTimestamp as string) : undefined);
+    }
+
+    res.json({
+      success: true,
+      data: {
+        events,
+        count: events.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get events', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/events/replay", async (req, res) => {
+  try {
+    const { fromTimestamp } = req.body;
+    
+    await eventSourcingSystem.replayEvents(fromTimestamp ? new Date(fromTimestamp) : undefined);
+
+    res.json({
+      success: true,
+      data: {
+        message: 'Event replay completed successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to replay events', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/events/stats", async (req, res) => {
+  try {
+    const stats = eventSourcingSystem.getStatistics();
+    
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    logger.error('Failed to get event sourcing stats', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Endpoints demo con rate limiting específico
+app.get("/v1/demo/health", rateLimitByEndpoint, (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      status: "healthy",
+      timestamp: new Date().toISOString(),
+      organizationId: req.organizationId,
+      requestId: req.requestId
+    }
+  });
+});
+
+app.get("/v1/demo/metrics", rateLimitByEndpoint, (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      cpu: process.cpuUsage(),
+      timestamp: new Date().toISOString(),
+      organizationId: req.organizationId,
+      requestId: req.requestId
+    }
+  });
+});
+
+app.get("/v1/demo/ai", rateLimitByEndpoint, async (req, res) => {
+  try {
+    const { prompt = "Hello, how are you?", model = "gpt-4" } = req.query;
+    
+    // Check cache first
+    const cachedResponse = await cacheManager.getAICache().getAIResponse(prompt as string, model as string);
+    
+    if (cachedResponse) {
+      logger.info('AI response served from cache', { 
+        prompt: prompt as string, 
+        model: model as string,
+        requestId: req.requestId 
+      });
+      
+      return res.json({
+        success: true,
+        data: {
+          ...cachedResponse,
+          cached: true,
+          timestamp: new Date().toISOString(),
+          organizationId: req.organizationId,
+          requestId: req.requestId
+        }
+      });
+    }
+
+    // Generate demo response
+    const demoResponse = {
+      content: `This is a demo AI response for: "${prompt}" using model: ${model}`,
+      model: model as string,
+      timestamp: Date.now(),
+    };
+
+    // Cache the response
+    await cacheManager.getAICache().setAIResponse(prompt as string, model as string, demoResponse);
+    
+    logger.info('AI response generated and cached', { 
+      prompt: prompt as string, 
+      model: model as string,
+      requestId: req.requestId 
+    });
+
+    res.json({
+      success: true,
+      data: {
+        ...demoResponse,
+        cached: false,
+        timestamp: new Date().toISOString(),
+        organizationId: req.organizationId,
+        requestId: req.requestId
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to process AI request', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/demo/search", rateLimitByEndpoint, async (req, res) => {
+  try {
+    const { query = "artificial intelligence", filters } = req.query;
+    
+    // Check cache first
+    const cachedResults = await cacheManager.getSearchCache().getSearchResults(query as string, filters);
+    
+    if (cachedResults) {
+      logger.info('Search results served from cache', { 
+        query: query as string, 
+        filters,
+        requestId: req.requestId 
+      });
+      
+      return res.json({
+        success: true,
+        data: {
+          ...cachedResults,
+          cached: true,
+          timestamp: new Date().toISOString(),
+          organizationId: req.organizationId,
+          requestId: req.requestId
+        }
+      });
+    }
+
+    // Generate demo search results
+    const demoResults = {
+      items: [
+        { title: `Demo result 1 for: ${query}`, url: "https://example.com/result1" },
+        { title: `Demo result 2 for: ${query}`, url: "https://example.com/result2" },
+        { title: `Demo result 3 for: ${query}`, url: "https://example.com/result3" },
+      ],
+      total: 3,
+      query: query as string,
+      filters,
+      timestamp: Date.now(),
+    };
+
+    // Cache the results
+    await cacheManager.getSearchCache().setSearchResults(query as string, demoResults, filters);
+    
+    logger.info('Search results generated and cached', { 
+      query: query as string, 
+      filters,
+      requestId: req.requestId 
+    });
+
+    res.json({
+      success: true,
+      data: {
+        ...demoResults,
+        cached: false,
+        timestamp: new Date().toISOString(),
+        organizationId: req.organizationId,
+        requestId: req.requestId
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to process search request', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/demo/crm", rateLimitByEndpoint, (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      message: "CRM endpoint demo",
+      timestamp: new Date().toISOString(),
+      organizationId: req.organizationId,
+      requestId: req.requestId
+    }
+  });
+});
+
+app.get("/v1/demo/products", rateLimitByEndpoint, (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      message: "Products endpoint demo",
+      timestamp: new Date().toISOString(),
+      organizationId: req.organizationId,
+      requestId: req.requestId
+    }
+  });
+});
+
+app.get("/v1/demo/dashboard", rateLimitByEndpoint, (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      message: "Dashboard endpoint demo",
+      timestamp: new Date().toISOString(),
+      organizationId: req.organizationId,
+      requestId: req.requestId
+    }
+  });
+});
+
+// Endpoint de métricas para Prometheus
+app.get("/metrics", (req, res) => {
+  try {
+    const prometheusMetrics = metrics.getPrometheusMetrics();
+    res.set('Content-Type', 'text/plain');
+    res.send(prometheusMetrics);
+  } catch (error) {
+    logger.error('Failed to get Prometheus metrics', { error: error as Error });
+    res.status(500).send('# Error generating Prometheus metrics\n');
+  }
+});
+
+// Middleware de manejo de errores
 app.use(errorObservabilityMiddleware);
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({ 
+// Middleware para rutas no encontradas
+app.use("*", (req, res) => {
+  res.status(404).json({
     error: "Not found",
-    path: req.originalUrl 
+    message: `Route ${req.method} ${req.originalUrl} not found`,
+    timestamp: new Date().toISOString()
   });
 });
 
-const PORT = process.env.PORT || 4000;
-
-// Iniciar schedulers de observabilidad
-startCleanupScheduler();
-startSystemMetricsScheduler();
-
-// Scheduler para evaluar alertas basadas en métricas
-setInterval(() => {
-  try {
-    const metricsData = metrics.getMetricsSummary();
-    const newAlerts = alertSystem.evaluateMetricsRealtime(metricsData);
-    
-    if (newAlerts.length > 0) {
-      logger.info(`Generated ${newAlerts.length} new alerts`, {
-        alertCount: newAlerts.length,
-        alerts: newAlerts.map(a => ({ id: a.id, name: a.name, severity: a.severity }))
-      });
-    }
-  } catch (error: any) {
-    logger.error('Failed to evaluate alerts', { error: error.message });
-  }
-}, 30 * 1000); // Cada 30 segundos
-
-app.listen(PORT, () => {
-  logger.info(`🚀 API Server running on port ${PORT}`, {
-    port: Number(PORT),
-    environment: process.env.NODE_ENV || 'development'
-  });
+// Iniciar servidor
+app.listen(PORT, async () => {
+  logger.info(`API Express server running on port ${PORT}`);
+  console.log(`🚀 API Express server running on port ${PORT}`);
+  console.log(`📊 Metrics available at http://localhost:${PORT}/metrics`);
+  console.log(`🔍 Health check at http://localhost:${PORT}/health/live`);
+  console.log(`⚡ Rate limiting enabled with intelligent strategies`);
+  console.log(`🚨 Alert system integrated and monitoring`);
+  console.log(`💾 Cache system initialized with AI and Search caches`);
+  console.log(`💰 FinOps system enabled with cost tracking and budget management`);
+  console.log(`🔒 Row Level Security (RLS) enabled with multi-tenant isolation`);
+  console.log(`🌐 API Gateway enabled with intelligent routing and load balancing`);
+  console.log(`📊 Event Sourcing and CQRS system enabled with aggregates and projections`);
   
-  console.log(`🚀 API Server running on port ${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/health`);
-  console.log(`🤖 AI Chat: http://localhost:${PORT}/v1/ai/chat`);
-  console.log(`🔍 Search: http://localhost:${PORT}/v1/search`);
-  console.log(`📈 Dashboard: http://localhost:${PORT}/dashboard`);
-  console.log(`📊 Observability: http://localhost:${PORT}/v1/observability`);
-  console.log(`🚨 Intelligent Alerts: http://localhost:${PORT}/v1/alerts`);
+  // Inicializar warmup del caché
+  try {
+    await cacheManager.warmupAll();
+    console.log(`🔥 Cache warmup completed successfully`);
+  } catch (error) {
+    console.log(`⚠️ Cache warmup failed: ${error}`);
+  }
+});
+
+// Manejo de señales de terminación
+process.on('SIGTERM', () => {
+  logger.info('SIGTERM received, shutting down gracefully');
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  logger.info('SIGINT received, shutting down gracefully');
+  process.exit(0);
 });
