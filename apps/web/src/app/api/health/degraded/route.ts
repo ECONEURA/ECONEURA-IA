@@ -1,7 +1,11 @@
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+import { observability } from '@/lib/observability';
+
 export async function GET() {
+  const startTime = Date.now();
+  
   try {
     // Verificar estado de IA
     let aiStatus = 'demo';
@@ -20,6 +24,7 @@ export async function GET() {
         aiStatus = response.ok ? 'ok' : 'down';
       } catch (error) {
         aiStatus = 'down';
+        observability.error('Azure OpenAI health check failed', { error: (error as Error).message });
       }
     }
 
@@ -39,6 +44,7 @@ export async function GET() {
         searchStatus = response.ok ? 'ok' : 'down';
       } catch (error) {
         searchStatus = 'down';
+        observability.error('Bing Search health check failed', { error: (error as Error).message });
       }
     }
 
@@ -49,6 +55,21 @@ export async function GET() {
     } else if (aiStatus === 'demo' && searchStatus === 'demo') {
       systemMode = 'demo';
     }
+
+    const duration = Date.now() - startTime;
+    
+    // Registrar métricas de health check
+    observability.recordMetric('health_check_duration_ms', duration, { service: 'web-bff' });
+    observability.recordMetric('health_check_total', 1, { service: 'web-bff', status: systemMode });
+    
+    // Registrar log de health check
+    observability.info('Health check completed', {
+      service: 'web-bff',
+      systemMode,
+      aiStatus,
+      searchStatus,
+      duration
+    });
 
     return Response.json(
       { 
@@ -63,11 +84,19 @@ export async function GET() {
         status: 200,
         headers: {
           'X-System-Mode': systemMode,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-Response-Time': `${duration}ms`
         }
       }
     );
-  } catch (error) {
+  } catch (error: any) {
+    const duration = Date.now() - startTime;
+    
+    observability.error('Health check failed', { 
+      error: error.message,
+      duration 
+    });
+    
     return Response.json(
       { 
         status: "error", 
@@ -82,7 +111,8 @@ export async function GET() {
         status: 503,
         headers: {
           'X-System-Mode': 'down',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-Response-Time': `${duration}ms`
         }
       }
     );

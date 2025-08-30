@@ -1,0 +1,227 @@
+interface MetricValue {
+  value: number;
+  timestamp: number;
+  labels?: Record<string, string>;
+}
+
+interface Metric {
+  name: string;
+  type: 'counter' | 'gauge' | 'histogram';
+  description: string;
+  values: MetricValue[];
+  maxValues: number;
+}
+
+class MetricsCollector {
+  private metrics: Map<string, Metric> = new Map();
+  private readonly MAX_VALUES_PER_METRIC = 1000;
+
+  constructor() {
+    this.initializeDefaultMetrics();
+  }
+
+  private initializeDefaultMetrics(): void {
+    // Métricas de requests HTTP
+    this.registerMetric('http_requests_total', 'counter', 'Total number of HTTP requests');
+    this.registerMetric('http_request_duration_ms', 'histogram', 'HTTP request duration in milliseconds');
+    this.registerMetric('http_requests_in_flight', 'gauge', 'Number of HTTP requests currently in flight');
+
+    // Métricas de IA
+    this.registerMetric('ai_requests_total', 'counter', 'Total number of AI requests');
+    this.registerMetric('ai_request_duration_ms', 'histogram', 'AI request duration in milliseconds');
+    this.registerMetric('ai_tokens_total', 'counter', 'Total number of tokens processed');
+    this.registerMetric('ai_cost_total', 'counter', 'Total cost of AI requests in EUR');
+
+    // Métricas de errores
+    this.registerMetric('errors_total', 'counter', 'Total number of errors');
+    this.registerMetric('error_rate', 'gauge', 'Error rate percentage');
+
+    // Métricas de sistema
+    this.registerMetric('memory_usage_bytes', 'gauge', 'Memory usage in bytes');
+    this.registerMetric('cpu_usage_percent', 'gauge', 'CPU usage percentage');
+    this.registerMetric('uptime_seconds', 'gauge', 'Application uptime in seconds');
+
+    // Métricas de health checks
+    this.registerMetric('health_check_total', 'counter', 'Total number of health checks');
+    this.registerMetric('health_check_duration_ms', 'histogram', 'Health check duration in milliseconds');
+  }
+
+  registerMetric(name: string, type: 'counter' | 'gauge' | 'histogram', description: string): void {
+    if (!this.metrics.has(name)) {
+      this.metrics.set(name, {
+        name,
+        type,
+        description,
+        values: [],
+        maxValues: this.MAX_VALUES_PER_METRIC
+      });
+    }
+  }
+
+  increment(name: string, value: number = 1, labels?: Record<string, string>): void {
+    this.addValue(name, value, labels);
+  }
+
+  gauge(name: string, value: number, labels?: Record<string, string>): void {
+    this.addValue(name, value, labels);
+  }
+
+  histogram(name: string, value: number, labels?: Record<string, string>): void {
+    this.addValue(name, value, labels);
+  }
+
+  private addValue(name: string, value: number, labels?: Record<string, string>): void {
+    const metric = this.metrics.get(name);
+    if (!metric) {
+      console.warn(`Metric ${name} not registered`);
+      return;
+    }
+
+    const metricValue: MetricValue = {
+      value,
+      timestamp: Date.now(),
+      labels
+    };
+
+    metric.values.push(metricValue);
+
+    // Limpiar valores antiguos si excedemos el límite
+    if (metric.values.length > metric.maxValues) {
+      metric.values = metric.values.slice(-metric.maxValues);
+    }
+  }
+
+  // Métodos específicos para métricas comunes
+  recordHttpRequest(method: string, path: string, statusCode: number, duration: number): void {
+    const labels = { method, path, status: statusCode.toString() };
+    
+    this.increment('http_requests_total', 1, labels);
+    this.histogram('http_request_duration_ms', duration, labels);
+    
+    if (statusCode >= 400) {
+      this.increment('errors_total', 1, { type: 'http_error', status: statusCode.toString() });
+    }
+  }
+
+  recordAIRequest(model: string, provider: string, tokens: number, cost: number, duration: number): void {
+    const labels = { model, provider };
+    
+    this.increment('ai_requests_total', 1, labels);
+    this.histogram('ai_request_duration_ms', duration, labels);
+    this.increment('ai_tokens_total', tokens, labels);
+    this.increment('ai_cost_total', cost, labels);
+  }
+
+  recordHealthCheck(service: string, status: string, duration: number): void {
+    const labels = { service, status };
+    
+    this.increment('health_check_total', 1, labels);
+    this.histogram('health_check_duration_ms', duration, labels);
+  }
+
+  recordSystemMetrics(): void {
+    const memUsage = process.memoryUsage();
+    const cpuUsage = process.cpuUsage();
+    
+    this.gauge('memory_usage_bytes', memUsage.heapUsed, { type: 'heap_used' });
+    this.gauge('memory_usage_bytes', memUsage.heapTotal, { type: 'heap_total' });
+    this.gauge('memory_usage_bytes', memUsage.rss, { type: 'rss' });
+    
+    this.gauge('uptime_seconds', process.uptime());
+  }
+
+  // Métodos para obtener métricas
+  getMetric(name: string): Metric | undefined {
+    return this.metrics.get(name);
+  }
+
+  getAllMetrics(): Map<string, Metric> {
+    return new Map(this.metrics);
+  }
+
+  getMetricsSummary(): any {
+    const summary: any = {};
+    
+    for (const [name, metric] of this.metrics) {
+      if (metric.values.length === 0) continue;
+
+      const values = metric.values.map(v => v.value);
+      const latestValue = values[values.length - 1];
+      
+      summary[name] = {
+        type: metric.type,
+        description: metric.description,
+        latest: latestValue,
+        count: values.length,
+        total: values.reduce((sum, val) => sum + val, 0),
+        average: values.reduce((sum, val) => sum + val, 0) / values.length,
+        min: Math.min(...values),
+        max: Math.max(...values)
+      };
+
+      // Para histogramas, agregar percentiles
+      if (metric.type === 'histogram') {
+        const sortedValues = [...values].sort((a, b) => a - b);
+        summary[name].p50 = sortedValues[Math.floor(sortedValues.length * 0.5)];
+        summary[name].p95 = sortedValues[Math.floor(sortedValues.length * 0.95)];
+        summary[name].p99 = sortedValues[Math.floor(sortedValues.length * 0.99)];
+      }
+    }
+
+    return summary;
+  }
+
+  // Método para exportar métricas en formato Prometheus
+  exportPrometheus(): string {
+    let output = '';
+    
+    for (const [name, metric] of this.metrics) {
+      if (metric.values.length === 0) continue;
+
+      // Agrupar por labels
+      const groupedByLabels = new Map<string, number>();
+      
+      for (const value of metric.values) {
+        const labelStr = value.labels 
+          ? Object.entries(value.labels).map(([k, v]) => `${k}="${v}"`).join(',')
+          : '';
+        
+        const key = labelStr ? `{${labelStr}}` : '';
+        
+        if (metric.type === 'counter' || metric.type === 'gauge') {
+          groupedByLabels.set(key, value.value);
+        } else if (metric.type === 'histogram') {
+          // Para histogramas, usar el último valor
+          groupedByLabels.set(key, value.value);
+        }
+      }
+
+      // Escribir métricas
+      for (const [labels, value] of groupedByLabels) {
+        output += `# HELP ${name} ${metric.description}\n`;
+        output += `# TYPE ${name} ${metric.type}\n`;
+        output += `${name}${labels} ${value}\n`;
+      }
+    }
+
+    return output;
+  }
+
+  // Método para limpiar métricas antiguas
+  cleanup(maxAgeMs: number = 24 * 60 * 60 * 1000): void { // Por defecto 24 horas
+    const cutoff = Date.now() - maxAgeMs;
+    
+    for (const [name, metric] of this.metrics) {
+      metric.values = metric.values.filter(v => v.timestamp >= cutoff);
+    }
+  }
+
+  // Método para resetear métricas
+  reset(): void {
+    for (const [name, metric] of this.metrics) {
+      metric.values = [];
+    }
+  }
+}
+
+export const metrics = new MetricsCollector();

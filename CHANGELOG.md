@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **PR-23**: Observabilidad coherente (logs + métricas + traces)
+  - Sistema completo de observabilidad entre API Express y Web BFF
+  - Logging estructurado con contexto rico y traces (`apps/api/src/lib/logger.ts`, `apps/web/src/lib/observability.ts`)
+  - Métricas en tiempo real con exportación Prometheus (`apps/api/src/lib/metrics.ts`)
+  - Sistema de traces distribuido para debugging (`apps/api/src/lib/tracing.ts`)
+  - Headers de observabilidad automáticos (`X-Request-ID`, `X-Trace-ID`, `X-Span-ID`)
+  - Middleware de observabilidad automático (`apps/api/src/middleware/observability.ts`)
+  - Endpoints de observabilidad (`/v1/observability/*`, `/api/observability/*`)
+  - Integración transparente con endpoints existentes
+  - Script de smoke test completo (`scripts/smoke-pr-23.sh`)
+  - Documentación detallada (`PR-23-OBSERVABILIDAD-COHERENTE.md`)
+
 - **PR-22**: Health & degradación coherente (web + api)
   - Endpoints de health avanzados para API Express (`/health/live`, `/health/ready`)
   - Endpoints de health para Web BFF (`/api/health/live`, `/api/health/ready`, `/api/health/degraded`)

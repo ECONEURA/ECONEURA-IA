@@ -1,5 +1,15 @@
 import express from "express";
 import cors from "cors";
+import { logger } from "./lib/logger.js";
+import { metrics } from "./lib/metrics.js";
+import { tracing } from "./lib/tracing.js";
+import { 
+  observabilityMiddleware, 
+  errorObservabilityMiddleware, 
+  healthCheckMiddleware,
+  startCleanupScheduler,
+  startSystemMetricsScheduler
+} from "./middleware/observability.js";
 
 const app = express();
 
@@ -10,9 +20,13 @@ app.use(cors({
 }));
 app.use(express.json({ limit: "2mb" }));
 
-// Logging básico
+// Middleware de observabilidad
+app.use(observabilityMiddleware);
+app.use(healthCheckMiddleware);
+
+// Logging básico (reemplazado por observabilityMiddleware)
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  // El logging ahora se maneja en observabilityMiddleware
   next();
 });
 
@@ -81,8 +95,8 @@ app.get("/health/ready", async (req, res) => {
   }
 });
 
-// Demo AI Chat
-app.post("/v1/ai/chat", (req, res) => {
+// Demo AI Chat con observabilidad
+app.post("/v1/ai/chat", async (req, res) => {
   const { message } = req.body;
   
   if (!message) {
@@ -91,18 +105,53 @@ app.post("/v1/ai/chat", (req, res) => {
     });
   }
 
-  // Simulación de respuesta AI
-  const response = {
-    id: `msg_${Date.now()}`,
-    message: `Demo response to: "${message}"`,
-    timestamp: new Date().toISOString(),
-    model: "demo-gpt-4o-mini"
-  };
+  // Simulación de respuesta AI con observabilidad
+  const startTime = Date.now();
+  
+  try {
+    // Simular procesamiento de IA
+    await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 200));
+    
+    const duration = Date.now() - startTime;
+    const tokens = Math.floor(message.length / 4) + Math.floor(Math.random() * 100);
+    const cost = tokens * 0.00001; // Simulación de costo
+    
+    // Registrar métricas de IA
+    metrics.recordAIRequest('demo-gpt-4o-mini', 'demo', tokens, cost, duration);
+    
+    // Registrar log de IA
+    logger.aiRequest('demo-gpt-4o-mini', 'demo', tokens, cost, duration, {
+      requestId: (req as any).requestId,
+      traceId: (req as any).traceContext?.traceId
+    });
 
-  return res.json(response);
+    const response = {
+      id: `msg_${Date.now()}`,
+      message: `Demo response to: "${message}"`,
+      timestamp: new Date().toISOString(),
+      model: "demo-gpt-4o-mini",
+      tokens,
+      cost: cost.toFixed(6)
+    };
+
+    return res.json(response);
+  } catch (error: any) {
+    const duration = Date.now() - startTime;
+    
+    // Registrar error de IA
+    logger.aiError(error.message || 'Unknown error', 'demo-gpt-4o-mini', {
+      requestId: (req as any).requestId,
+      traceId: (req as any).traceContext?.traceId
+    });
+    
+    return res.status(500).json({ 
+      error: "AI processing failed",
+      message: error.message || 'Unknown error'
+    });
+  }
 });
 
-// Demo Search
+// Demo Search con observabilidad
 app.get("/v1/search", (req, res) => {
   const { q } = req.query;
   
@@ -175,7 +224,7 @@ app.get("/v1/products", (req, res) => {
 
 // Demo Metrics
 app.get("/metrics", (req, res) => {
-  const metrics = {
+  const metricsData = {
     requests_total: 1000,
     requests_per_minute: 15,
     average_response_time: 120,
@@ -183,7 +232,7 @@ app.get("/metrics", (req, res) => {
     active_connections: 5
   };
 
-  res.json(metrics);
+  res.json(metricsData);
 });
 
 // Demo Dashboard
@@ -391,14 +440,51 @@ app.get('/v1/reports/kpis', (req, res) => {
   });
 });
 
-// Error handling básico
-app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Error:', error);
-  res.status(500).json({ 
-    error: "Internal server error",
-    message: error.message 
+// Endpoints de observabilidad
+app.get('/v1/observability/logs', (req, res) => {
+  const logs = logger.getStats();
+  res.json({
+    success: true,
+    message: 'Logger Statistics',
+    data: logs
   });
 });
+
+app.get('/v1/observability/metrics', (req, res) => {
+  const metricsData = metrics.getMetricsSummary();
+  res.json({
+    success: true,
+    message: 'Metrics Summary',
+    data: metricsData
+  });
+});
+
+app.get('/v1/observability/metrics/prometheus', (req, res) => {
+  const prometheusData = metrics.exportPrometheus();
+  res.setHeader('Content-Type', 'text/plain');
+  res.send(prometheusData);
+});
+
+app.get('/v1/observability/traces', (req, res) => {
+  const traces = tracing.exportTraces();
+  res.json({
+    success: true,
+    message: 'Traces Export',
+    data: traces
+  });
+});
+
+app.get('/v1/observability/traces/stats', (req, res) => {
+  const stats = tracing.getStats();
+  res.json({
+    success: true,
+    message: 'Traces Statistics',
+    data: stats
+  });
+});
+
+// Error handling con observabilidad
+app.use(errorObservabilityMiddleware);
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -410,10 +496,20 @@ app.use('*', (req, res) => {
 
 const PORT = process.env.PORT || 4000;
 
+// Iniciar schedulers de observabilidad
+startCleanupScheduler();
+startSystemMetricsScheduler();
+
 app.listen(PORT, () => {
+  logger.info(`🚀 API Server running on port ${PORT}`, {
+    port: Number(PORT),
+    environment: process.env.NODE_ENV || 'development'
+  });
+  
   console.log(`🚀 API Server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`🤖 AI Chat: http://localhost:${PORT}/v1/ai/chat`);
   console.log(`🔍 Search: http://localhost:${PORT}/v1/search`);
   console.log(`📈 Dashboard: http://localhost:${PORT}/dashboard`);
+  console.log(`📊 Observability: http://localhost:${PORT}/v1/observability`);
 });
