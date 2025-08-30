@@ -18,6 +18,8 @@ import { eventSourcingSystem, createCommand, createQuery } from "./lib/events.js
 import { registerUserHandlers } from "./lib/handlers/user-handlers.js";
 import { serviceRegistry, serviceDiscovery } from "./lib/service-discovery.js";
 import { serviceMesh } from "./lib/service-mesh.js";
+import { configurationManager } from "./lib/configuration.js";
+import { featureFlagInfoMiddleware, requireFeatureFlag } from "./middleware/feature-flags.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -28,6 +30,9 @@ const cacheManager = new CacheManager();
 // Middleware básico
 app.use(cors());
 app.use(express.json());
+
+// Middleware de Feature Flags (agregar información a todas las respuestas)
+app.use(featureFlagInfoMiddleware());
 
 // Middleware de observabilidad
 app.use(observabilityMiddleware);
@@ -1570,6 +1575,329 @@ app.post("/v1/microservices/circuit-breaker/reset/:serviceName", (req, res) => {
   }
 });
 
+// Endpoints de Configuración y Feature Flags
+app.get("/v1/config/feature-flags", (req, res) => {
+  try {
+    const { environment } = req.query;
+    
+    let flags = configurationManager.getAllFeatureFlags();
+    if (environment) {
+      flags = flags.filter(flag => flag.environment === environment);
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        flags,
+        count: flags.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get feature flags', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/config/feature-flags", (req, res) => {
+  try {
+    const flagData = req.body;
+    const flagId = configurationManager.createFeatureFlag(flagData);
+    
+    res.status(201).json({
+      success: true,
+      data: {
+        flagId,
+        message: 'Feature flag created successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to create feature flag', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.put("/v1/config/feature-flags/:flagId", (req, res) => {
+  try {
+    const { flagId } = req.params;
+    const updates = req.body;
+    
+    const updated = configurationManager.updateFeatureFlag(flagId, updates);
+    
+    if (!updated) {
+      return res.status(404).json({ error: 'Feature flag not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        flagId,
+        message: 'Feature flag updated successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to update feature flag', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete("/v1/config/feature-flags/:flagId", (req, res) => {
+  try {
+    const { flagId } = req.params;
+    const deleted = configurationManager.deleteFeatureFlag(flagId);
+    
+    if (!deleted) {
+      return res.status(404).json({ error: 'Feature flag not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        flagId,
+        message: 'Feature flag deleted successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to delete feature flag', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/config/feature-flags/:flagId/check", (req, res) => {
+  try {
+    const { flagId } = req.params;
+    const context = req.body;
+    
+    const isEnabled = configurationManager.isFeatureEnabled(flagId, context);
+    
+    res.json({
+      success: true,
+      data: {
+        flagId,
+        isEnabled,
+        context
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to check feature flag', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/config/environments", (req, res) => {
+  try {
+    const { name } = req.query;
+    
+    if (name) {
+      const config = configurationManager.getEnvironmentConfig(name as string);
+      if (!config) {
+        return res.status(404).json({ error: 'Environment not found' });
+      }
+      
+      res.json({
+        success: true,
+        data: config
+      });
+    } else {
+      const stats = configurationManager.getStats();
+      res.json({
+        success: true,
+        data: {
+          environments: stats.environments,
+          count: stats.environments.length
+        }
+      });
+    }
+  } catch (error) {
+    logger.error('Failed to get environments', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put("/v1/config/environments/:environment", (req, res) => {
+  try {
+    const { environment } = req.params;
+    const config = req.body;
+    
+    const updated = configurationManager.setEnvironmentConfig(environment, config);
+    
+    if (!updated) {
+      return res.status(400).json({ error: 'Failed to update environment config' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        environment,
+        message: 'Environment config updated successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to update environment config', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/config/values/:key", (req, res) => {
+  try {
+    const { key } = req.params;
+    const { environment, defaultValue } = req.query;
+    
+    const value = configurationManager.getConfigValue(key, environment as string, defaultValue);
+    
+    res.json({
+      success: true,
+      data: {
+        key,
+        value,
+        environment: environment || 'default'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get config value', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put("/v1/config/values/:key", (req, res) => {
+  try {
+    const { key } = req.params;
+    const { value, environment } = req.body;
+    
+    const set = configurationManager.setConfigValue(key, value, environment);
+    
+    if (!set) {
+      return res.status(400).json({ error: 'Failed to set config value' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        key,
+        value,
+        environment: environment || 'default',
+        message: 'Config value set successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to set config value', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/config/secrets/:key", (req, res) => {
+  try {
+    const { key } = req.params;
+    const { environment } = req.query;
+    
+    const secret = configurationManager.getSecret(key, environment as string);
+    
+    if (!secret) {
+      return res.status(404).json({ error: 'Secret not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        key,
+        hasValue: true,
+        environment: environment || 'default'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get secret', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put("/v1/config/secrets/:key", (req, res) => {
+  try {
+    const { key } = req.params;
+    const { value, environment } = req.body;
+    
+    const set = configurationManager.setSecret(key, value, environment);
+    
+    if (!set) {
+      return res.status(400).json({ error: 'Failed to set secret' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        key,
+        hasValue: true,
+        environment: environment || 'default',
+        message: 'Secret set successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to set secret', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/config/stats", (req, res) => {
+  try {
+    const stats = configurationManager.getStats();
+    
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    logger.error('Failed to get config stats', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/config/validate", (req, res) => {
+  try {
+    const isValid = configurationManager.validateConfiguration();
+    
+    res.json({
+      success: true,
+      data: {
+        isValid,
+        message: isValid ? 'Configuration is valid' : 'Configuration has errors'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to validate configuration', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/config/reload", (req, res) => {
+  try {
+    configurationManager.reloadConfiguration();
+    
+    res.json({
+      success: true,
+      data: {
+        message: 'Configuration reloaded successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to reload configuration', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Endpoint demo con feature flag requerido
+app.get("/v1/config/beta-features", requireFeatureFlag('beta_features'), (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      message: 'Beta features endpoint accessed successfully',
+      features: [
+        'Advanced Analytics',
+        'AI Chat',
+        'Real-time Dashboard',
+        'Custom Integrations'
+      ]
+    }
+  });
+});
+
 // Endpoints demo con rate limiting específico
 app.get("/v1/demo/health", rateLimitByEndpoint, (req, res) => {
   res.json({
@@ -1793,6 +2121,7 @@ app.listen(PORT, async () => {
   console.log(`🌐 API Gateway enabled with intelligent routing and load balancing`);
   console.log(`📊 Event Sourcing and CQRS system enabled with aggregates and projections`);
   console.log(`🔗 Microservices system enabled with service mesh and discovery`);
+  console.log(`⚙️ Configuration system enabled with feature flags and environment management`);
   
   // Inicializar warmup del caché
   try {
