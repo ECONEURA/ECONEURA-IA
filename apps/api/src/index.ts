@@ -699,6 +699,115 @@ app.get("/v1/finops/stats", (req, res) => {
   }
 });
 
+// Endpoints adicionales para análisis avanzado
+app.get("/v1/finops/budgets/:budgetId/usage", (req, res) => {
+  try {
+    const { budgetId } = req.params;
+    const currentSpend = finOpsSystem.getCurrentBudgetSpend(budgetId);
+    const usagePercentage = finOpsSystem.getBudgetUsagePercentage(budgetId);
+    const budget = finOpsSystem.getBudget(budgetId);
+    
+    if (!budget) {
+      return res.status(404).json({ error: 'Budget not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        budgetId,
+        budgetName: budget.name,
+        currentSpend,
+        budgetAmount: budget.amount,
+        usagePercentage,
+        remaining: budget.amount - currentSpend,
+        currency: budget.currency,
+        period: budget.period
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get budget usage', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/finops/budgets/near-limit", (req, res) => {
+  try {
+    const { threshold = 80 } = req.query;
+    const budgetsNearLimit = finOpsSystem.getBudgetsNearLimit(Number(threshold));
+    
+    res.json({
+      success: true,
+      data: {
+        budgets: budgetsNearLimit,
+        count: budgetsNearLimit.length,
+        threshold: Number(threshold)
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get budgets near limit', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/finops/organizations/:organizationId/cost", (req, res) => {
+  try {
+    const { organizationId } = req.params;
+    const { period } = req.query;
+    const totalCost = finOpsSystem.getOrganizationCost(organizationId, period as string);
+    
+    res.json({
+      success: true,
+      data: {
+        organizationId,
+        totalCost,
+        period: period || 'all-time',
+        currency: 'USD'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get organization cost', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/finops/costs/estimate", (req, res) => {
+  try {
+    const { operation, service, responseSize, complexity } = req.body;
+    
+    // Simular cálculo de costo estimado
+    const baseCosts: Record<string, number> = {
+      'ai': 0.01,
+      'chat': 0.02,
+      'image': 0.05,
+      'search': 0.005,
+      'unknown': 0.001,
+    };
+    
+    const baseCost = baseCosts[operation] || baseCosts['unknown'];
+    const sizeMultiplier = Math.max(1, (responseSize || 1000) / 1000);
+    const complexityMultiplier = complexity || 1;
+    
+    const estimatedCost = baseCost * sizeMultiplier * complexityMultiplier;
+    
+    res.json({
+      success: true,
+      data: {
+        operation,
+        service,
+        estimatedCost,
+        breakdown: {
+          baseCost,
+          sizeMultiplier,
+          complexityMultiplier
+        }
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to estimate cost', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Endpoints demo con rate limiting específico
 app.get("/v1/demo/health", rateLimitByEndpoint, (req, res) => {
   res.json({

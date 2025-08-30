@@ -46,6 +46,18 @@ export interface BudgetAlert {
   acknowledgedAt?: Date;
 }
 
+export interface BudgetNotification {
+  id: string;
+  alertId: string;
+  type: 'email' | 'slack' | 'webhook' | 'sms';
+  recipient: string;
+  message: string;
+  status: 'pending' | 'sent' | 'failed';
+  timestamp: Date;
+  retryCount: number;
+  maxRetries: number;
+}
+
 export interface CostMetrics {
   totalCost: number;
   costByService: Record<string, number>;
@@ -466,6 +478,67 @@ export class FinOpsSystem {
       activeAlerts: this.getActiveAlerts().length,
       costHistorySize: this.costHistory.length,
     };
+  }
+
+  // Método público para obtener el gasto actual de un presupuesto
+  getCurrentBudgetSpend(budgetId: string): number {
+    const budget = this.budgets.get(budgetId);
+    if (!budget) return 0;
+    return this.getCurrentBudgetSpend(budget);
+  }
+
+  // Método para obtener el porcentaje de uso de un presupuesto
+  getBudgetUsagePercentage(budgetId: string): number {
+    const budget = this.budgets.get(budgetId);
+    if (!budget) return 0;
+    const currentSpend = this.getCurrentBudgetSpend(budget);
+    return (currentSpend / budget.amount) * 100;
+  }
+
+  // Método para obtener presupuestos que están cerca de sus límites
+  getBudgetsNearLimit(threshold: number = 80): Budget[] {
+    return Array.from(this.budgets.values()).filter(budget => {
+      if (!budget.isActive) return false;
+      const percentage = this.getBudgetUsagePercentage(budget.id);
+      return percentage >= threshold;
+    });
+  }
+
+  // Método para obtener el costo total por organización en un período
+  getOrganizationCost(organizationId: string, period?: string): number {
+    let filteredCosts = this.costHistory.filter(cost => cost.organizationId === organizationId);
+    
+    if (period) {
+      const cutoffDate = this.getPeriodCutoffDate(period);
+      filteredCosts = filteredCosts.filter(cost => cost.timestamp >= cutoffDate);
+    }
+    
+    return filteredCosts.reduce((total, cost) => total + cost.amount, 0);
+  }
+
+  // Método para enviar notificaciones de alertas
+  sendBudgetAlertNotification(alert: BudgetAlert): void {
+    const notificationId = `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    const notification: BudgetNotification = {
+      id: notificationId,
+      alertId: alert.id,
+      type: 'email', // Por defecto email, pero podría ser configurable
+      recipient: 'admin@organization.com', // Configurable por organización
+      message: `Budget Alert: ${alert.message}`,
+      status: 'pending',
+      timestamp: new Date(),
+      retryCount: 0,
+      maxRetries: 3,
+    };
+
+    // Aquí se integraría con el sistema de notificaciones real
+    logger.info('Budget alert notification created', {
+      notificationId,
+      alertId: alert.id,
+      type: notification.type,
+      recipient: notification.recipient,
+    });
   }
 
   clearOldData(daysToKeep: number = 90): void {

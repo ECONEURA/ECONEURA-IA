@@ -47,6 +47,13 @@ interface LogContext {
   prompt?: string;
   query?: string;
   current?: number;
+  // FinOps fields
+  headers?: Record<string, string>;
+  reason?: string;
+  criticalAlerts?: number;
+  costId?: string;
+  budgetId?: string;
+  daysToKeep?: number;
 }
 
 interface LogEntry {
