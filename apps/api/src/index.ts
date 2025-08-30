@@ -8,6 +8,8 @@ import { rateLimitMiddleware, rateLimitByEndpoint, rateLimitByUser, rateLimitByA
 import { alertSystem } from "./lib/alerts.js";
 import { rateLimiter } from "./lib/rate-limiting.js";
 import { CacheManager } from "./lib/cache.js";
+import { finOpsSystem } from "./lib/finops.js";
+import { finOpsMiddleware, finOpsCostTrackingMiddleware, finOpsBudgetCheckMiddleware } from "./middleware/finops.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -27,6 +29,11 @@ app.use(rateLimitMiddleware);
 
 // Middleware de health check
 app.use(healthCheckMiddleware);
+
+// Middleware de FinOps
+app.use(finOpsMiddleware);
+app.use(finOpsBudgetCheckMiddleware);
+app.use(finOpsCostTrackingMiddleware);
 
 // Endpoints de health
 app.get("/health/live", (req, res) => {
@@ -533,6 +540,165 @@ app.delete("/v1/cache/all", (req, res) => {
   }
 });
 
+// Endpoints de FinOps
+app.get("/v1/finops/costs", (req, res) => {
+  try {
+    const { organizationId, period } = req.query;
+    const metrics = finOpsSystem.getCostMetrics(
+      organizationId as string,
+      period as string
+    );
+    
+    res.json({
+      success: true,
+      data: metrics
+    });
+  } catch (error) {
+    logger.error('Failed to get cost metrics', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/finops/budgets", (req, res) => {
+  try {
+    const { organizationId } = req.query;
+    const budgets = organizationId 
+      ? finOpsSystem.getBudgetsByOrganization(organizationId as string)
+      : Array.from(finOpsSystem['budgets'].values());
+    
+    res.json({
+      success: true,
+      data: {
+        budgets,
+        count: budgets.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get budgets', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/finops/budgets", (req, res) => {
+  try {
+    const budgetData = req.body;
+    const budgetId = finOpsSystem.createBudget(budgetData);
+    
+    res.status(201).json({
+      success: true,
+      data: {
+        budgetId,
+        message: 'Budget created successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to create budget', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.put("/v1/finops/budgets/:budgetId", (req, res) => {
+  try {
+    const { budgetId } = req.params;
+    const updates = req.body;
+    
+    const updated = finOpsSystem.updateBudget(budgetId, updates);
+    
+    if (!updated) {
+      return res.status(404).json({ error: 'Budget not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        budgetId,
+        message: 'Budget updated successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to update budget', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete("/v1/finops/budgets/:budgetId", (req, res) => {
+  try {
+    const { budgetId } = req.params;
+    const deleted = finOpsSystem.deleteBudget(budgetId);
+    
+    if (!deleted) {
+      return res.status(404).json({ error: 'Budget not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        budgetId,
+        message: 'Budget deleted successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to delete budget', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/finops/alerts", (req, res) => {
+  try {
+    const { organizationId } = req.query;
+    const alerts = finOpsSystem.getActiveAlerts(organizationId as string);
+    
+    res.json({
+      success: true,
+      data: {
+        alerts,
+        count: alerts.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get budget alerts', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/finops/alerts/:alertId/acknowledge", (req, res) => {
+  try {
+    const { alertId } = req.params;
+    const { acknowledgedBy } = req.body;
+    
+    const acknowledged = finOpsSystem.acknowledgeAlert(alertId, acknowledgedBy);
+    
+    if (!acknowledged) {
+      return res.status(404).json({ error: 'Alert not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        alertId,
+        message: 'Alert acknowledged successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to acknowledge alert', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/finops/stats", (req, res) => {
+  try {
+    const stats = finOpsSystem.getStats();
+    
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    logger.error('Failed to get FinOps stats', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Endpoints demo con rate limiting específico
 app.get("/v1/demo/health", rateLimitByEndpoint, (req, res) => {
   res.json({
@@ -751,6 +917,7 @@ app.listen(PORT, async () => {
   console.log(`⚡ Rate limiting enabled with intelligent strategies`);
   console.log(`🚨 Alert system integrated and monitoring`);
   console.log(`💾 Cache system initialized with AI and Search caches`);
+  console.log(`💰 FinOps system enabled with cost tracking and budget management`);
   
   // Inicializar warmup del caché
   try {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { CacheStatus } from '@/components/CacheStatus';
+import { FinOpsStatus } from '@/components/FinOpsStatus';
 
 interface DashboardData {
   overview: {
@@ -318,6 +319,9 @@ export default function DashboardPage() {
 
       {/* Cache Status */}
       <CacheStatus />
+
+      {/* FinOps Status */}
+      <FinOpsStatus />
     </div>
   );
 }
