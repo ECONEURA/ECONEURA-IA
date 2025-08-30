@@ -3,6 +3,7 @@ import cors from "cors";
 import { logger } from "./lib/logger.js";
 import { metrics } from "./lib/metrics.js";
 import { tracing } from "./lib/tracing.js";
+import { alertSystem } from "./lib/alerts.js";
 import { 
   observabilityMiddleware, 
   errorObservabilityMiddleware, 
@@ -483,6 +484,235 @@ app.get('/v1/observability/traces/stats', (req, res) => {
   });
 });
 
+// Endpoints de alertas inteligentes
+app.get('/v1/alerts/rules', (req, res) => {
+  const rules = alertSystem.getAllRules();
+  res.json({
+    success: true,
+    message: 'Alert Rules',
+    data: rules
+  });
+});
+
+app.get('/v1/alerts/active', (req, res) => {
+  const activeAlerts = alertSystem.getActiveAlerts();
+  const stats = alertSystem.getAlertStats();
+  
+  res.json({
+    success: true,
+    message: 'Active Alerts',
+    data: {
+      alerts: activeAlerts,
+      stats: stats
+    }
+  });
+});
+
+app.get('/v1/alerts/stats', (req, res) => {
+  const alertStats = alertSystem.getAlertStats();
+  const notificationStats = alertSystem.getNotificationStats();
+  
+  res.json({
+    success: true,
+    message: 'Alert Statistics',
+    data: {
+      alerts: alertStats,
+      notifications: notificationStats
+    }
+  });
+});
+
+app.post('/v1/alerts/rules', (req, res) => {
+  const rule = req.body;
+  
+  try {
+    alertSystem.addRule(rule);
+    
+    logger.info('Alert rule added', {
+      ruleId: rule.id,
+      ruleName: rule.name,
+      requestId: (req as any).requestId
+    });
+    
+    res.json({
+      success: true,
+      message: 'Alert rule added successfully',
+      data: { ruleId: rule.id }
+    });
+  } catch (error: any) {
+    logger.error('Failed to add alert rule', {
+      error: error.message,
+      requestId: (req as any).requestId
+    });
+    
+    res.status(400).json({
+      success: false,
+      message: 'Failed to add alert rule',
+      error: error.message
+    });
+  }
+});
+
+app.put('/v1/alerts/rules/:ruleId', (req, res) => {
+  const { ruleId } = req.params;
+  const updates = req.body;
+  
+  try {
+    const success = alertSystem.updateRule(ruleId, updates);
+    
+    if (success) {
+      logger.info('Alert rule updated', {
+        ruleId,
+        updates,
+        requestId: (req as any).requestId
+      });
+      
+      res.json({
+        success: true,
+        message: 'Alert rule updated successfully',
+        data: { ruleId }
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: 'Alert rule not found',
+        data: { ruleId }
+      });
+    }
+  } catch (error: any) {
+    logger.error('Failed to update alert rule', {
+      ruleId,
+      error: error.message,
+      requestId: (req as any).requestId
+    });
+    
+    res.status(400).json({
+      success: false,
+      message: 'Failed to update alert rule',
+      error: error.message
+    });
+  }
+});
+
+app.delete('/v1/alerts/rules/:ruleId', (req, res) => {
+  const { ruleId } = req.params;
+  
+  try {
+    const success = alertSystem.removeRule(ruleId);
+    
+    if (success) {
+      logger.info('Alert rule removed', {
+        ruleId,
+        requestId: (req as any).requestId
+      });
+      
+      res.json({
+        success: true,
+        message: 'Alert rule removed successfully',
+        data: { ruleId }
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: 'Alert rule not found',
+        data: { ruleId }
+      });
+    }
+  } catch (error: any) {
+    logger.error('Failed to remove alert rule', {
+      ruleId,
+      error: error.message,
+      requestId: (req as any).requestId
+    });
+    
+    res.status(400).json({
+      success: false,
+      message: 'Failed to remove alert rule',
+      error: error.message
+    });
+  }
+});
+
+app.post('/v1/alerts/:alertId/acknowledge', (req, res) => {
+  const { alertId } = req.params;
+  const { acknowledgedBy } = req.body;
+  
+  try {
+    const success = alertSystem.acknowledgeAlert(alertId, acknowledgedBy || 'system');
+    
+    if (success) {
+      logger.info('Alert acknowledged', {
+        alertId,
+        acknowledgedBy,
+        requestId: (req as any).requestId
+      });
+      
+      res.json({
+        success: true,
+        message: 'Alert acknowledged successfully',
+        data: { alertId }
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: 'Alert not found',
+        data: { alertId }
+      });
+    }
+  } catch (error: any) {
+    logger.error('Failed to acknowledge alert', {
+      alertId,
+      error: error.message,
+      requestId: (req as any).requestId
+    });
+    
+    res.status(400).json({
+      success: false,
+      message: 'Failed to acknowledge alert',
+      error: error.message
+    });
+  }
+});
+
+app.post('/v1/alerts/:alertId/resolve', (req, res) => {
+  const { alertId } = req.params;
+  
+  try {
+    const success = alertSystem.resolveAlert(alertId);
+    
+    if (success) {
+      logger.info('Alert resolved', {
+        alertId,
+        requestId: (req as any).requestId
+      });
+      
+      res.json({
+        success: true,
+        message: 'Alert resolved successfully',
+        data: { alertId }
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: 'Alert not found',
+        data: { alertId }
+      });
+    }
+  } catch (error: any) {
+    logger.error('Failed to resolve alert', {
+      alertId,
+      error: error.message,
+      requestId: (req as any).requestId
+    });
+    
+    res.status(400).json({
+      success: false,
+      message: 'Failed to resolve alert',
+      error: error.message
+    });
+  }
+});
+
 // Error handling con observabilidad
 app.use(errorObservabilityMiddleware);
 
@@ -500,6 +730,23 @@ const PORT = process.env.PORT || 4000;
 startCleanupScheduler();
 startSystemMetricsScheduler();
 
+// Scheduler para evaluar alertas basadas en métricas
+setInterval(() => {
+  try {
+    const metricsData = metrics.getMetricsSummary();
+    const newAlerts = alertSystem.evaluateMetricsRealtime(metricsData);
+    
+    if (newAlerts.length > 0) {
+      logger.info(`Generated ${newAlerts.length} new alerts`, {
+        alertCount: newAlerts.length,
+        alerts: newAlerts.map(a => ({ id: a.id, name: a.name, severity: a.severity }))
+      });
+    }
+  } catch (error: any) {
+    logger.error('Failed to evaluate alerts', { error: error.message });
+  }
+}, 30 * 1000); // Cada 30 segundos
+
 app.listen(PORT, () => {
   logger.info(`🚀 API Server running on port ${PORT}`, {
     port: Number(PORT),
@@ -512,4 +759,5 @@ app.listen(PORT, () => {
   console.log(`🔍 Search: http://localhost:${PORT}/v1/search`);
   console.log(`📈 Dashboard: http://localhost:${PORT}/dashboard`);
   console.log(`📊 Observability: http://localhost:${PORT}/v1/observability`);
+  console.log(`🚨 Intelligent Alerts: http://localhost:${PORT}/v1/alerts`);
 });

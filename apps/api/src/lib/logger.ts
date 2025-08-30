@@ -24,6 +24,13 @@ interface LogContext {
   metricValue?: number;
   metricLabels?: Record<string, string>;
   operation?: string;
+  ruleId?: string;
+  ruleName?: string;
+  updates?: any;
+  alertId?: string;
+  acknowledgedBy?: string;
+  alertCount?: number;
+  alerts?: any[];
 }
 
 interface LogEntry {
