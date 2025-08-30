@@ -7,9 +7,13 @@ import { observabilityMiddleware, errorObservabilityMiddleware, healthCheckMiddl
 import { rateLimitMiddleware, rateLimitByEndpoint, rateLimitByUser, rateLimitByApiKey } from "./middleware/rate-limiting.js";
 import { alertSystem } from "./lib/alerts.js";
 import { rateLimiter } from "./lib/rate-limiting.js";
+import { CacheManager } from "./lib/cache.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+
+// Inicializar cache manager
+const cacheManager = new CacheManager();
 
 // Middleware básico
 app.use(cors());
@@ -422,6 +426,113 @@ app.get("/v1/observability/stats", (req, res) => {
   }
 });
 
+// Endpoints de caché
+app.get("/v1/cache/stats", (req, res) => {
+  try {
+    const stats = cacheManager.getStats();
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    logger.error('Failed to get cache stats', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/cache/warmup", (req, res) => {
+  try {
+    cacheManager.warmupAll();
+    res.json({
+      success: true,
+      data: {
+        message: 'Cache warmup initiated successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to initiate cache warmup', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/cache/warmup/start", (req, res) => {
+  try {
+    const { intervalMinutes = 60 } = req.body;
+    cacheManager.startPeriodicWarmup(intervalMinutes);
+    res.json({
+      success: true,
+      data: {
+        message: 'Periodic cache warmup started',
+        intervalMinutes
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to start periodic cache warmup', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/cache/warmup/stop", (req, res) => {
+  try {
+    cacheManager.stopPeriodicWarmup();
+    res.json({
+      success: true,
+      data: {
+        message: 'Periodic cache warmup stopped'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to stop periodic cache warmup', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete("/v1/cache/ai", (req, res) => {
+  try {
+    cacheManager.getAICache().clear();
+    res.json({
+      success: true,
+      data: {
+        message: 'AI cache cleared successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to clear AI cache', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete("/v1/cache/search", (req, res) => {
+  try {
+    cacheManager.getSearchCache().clear();
+    res.json({
+      success: true,
+      data: {
+        message: 'Search cache cleared successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to clear search cache', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete("/v1/cache/all", (req, res) => {
+  try {
+    cacheManager.getAICache().clear();
+    cacheManager.getSearchCache().clear();
+    res.json({
+      success: true,
+      data: {
+        message: 'All caches cleared successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to clear all caches', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Endpoints demo con rate limiting específico
 app.get("/v1/demo/health", rateLimitByEndpoint, (req, res) => {
   res.json({
@@ -449,28 +560,126 @@ app.get("/v1/demo/metrics", rateLimitByEndpoint, (req, res) => {
   });
 });
 
-app.get("/v1/demo/ai", rateLimitByEndpoint, (req, res) => {
-  res.json({
-    success: true,
-    data: {
-      message: "AI endpoint demo",
-      timestamp: new Date().toISOString(),
-      organizationId: req.organizationId,
-      requestId: req.requestId
+app.get("/v1/demo/ai", rateLimitByEndpoint, async (req, res) => {
+  try {
+    const { prompt = "Hello, how are you?", model = "gpt-4" } = req.query;
+    
+    // Check cache first
+    const cachedResponse = await cacheManager.getAICache().getAIResponse(prompt as string, model as string);
+    
+    if (cachedResponse) {
+      logger.info('AI response served from cache', { 
+        prompt: prompt as string, 
+        model: model as string,
+        requestId: req.requestId 
+      });
+      
+      return res.json({
+        success: true,
+        data: {
+          ...cachedResponse,
+          cached: true,
+          timestamp: new Date().toISOString(),
+          organizationId: req.organizationId,
+          requestId: req.requestId
+        }
+      });
     }
-  });
+
+    // Generate demo response
+    const demoResponse = {
+      content: `This is a demo AI response for: "${prompt}" using model: ${model}`,
+      model: model as string,
+      timestamp: Date.now(),
+    };
+
+    // Cache the response
+    await cacheManager.getAICache().setAIResponse(prompt as string, model as string, demoResponse);
+    
+    logger.info('AI response generated and cached', { 
+      prompt: prompt as string, 
+      model: model as string,
+      requestId: req.requestId 
+    });
+
+    res.json({
+      success: true,
+      data: {
+        ...demoResponse,
+        cached: false,
+        timestamp: new Date().toISOString(),
+        organizationId: req.organizationId,
+        requestId: req.requestId
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to process AI request', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
-app.get("/v1/demo/search", rateLimitByEndpoint, (req, res) => {
-  res.json({
-    success: true,
-    data: {
-      message: "Search endpoint demo",
-      timestamp: new Date().toISOString(),
-      organizationId: req.organizationId,
-      requestId: req.requestId
+app.get("/v1/demo/search", rateLimitByEndpoint, async (req, res) => {
+  try {
+    const { query = "artificial intelligence", filters } = req.query;
+    
+    // Check cache first
+    const cachedResults = await cacheManager.getSearchCache().getSearchResults(query as string, filters);
+    
+    if (cachedResults) {
+      logger.info('Search results served from cache', { 
+        query: query as string, 
+        filters,
+        requestId: req.requestId 
+      });
+      
+      return res.json({
+        success: true,
+        data: {
+          ...cachedResults,
+          cached: true,
+          timestamp: new Date().toISOString(),
+          organizationId: req.organizationId,
+          requestId: req.requestId
+        }
+      });
     }
-  });
+
+    // Generate demo search results
+    const demoResults = {
+      items: [
+        { title: `Demo result 1 for: ${query}`, url: "https://example.com/result1" },
+        { title: `Demo result 2 for: ${query}`, url: "https://example.com/result2" },
+        { title: `Demo result 3 for: ${query}`, url: "https://example.com/result3" },
+      ],
+      total: 3,
+      query: query as string,
+      filters,
+      timestamp: Date.now(),
+    };
+
+    // Cache the results
+    await cacheManager.getSearchCache().setSearchResults(query as string, demoResults, filters);
+    
+    logger.info('Search results generated and cached', { 
+      query: query as string, 
+      filters,
+      requestId: req.requestId 
+    });
+
+    res.json({
+      success: true,
+      data: {
+        ...demoResults,
+        cached: false,
+        timestamp: new Date().toISOString(),
+        organizationId: req.organizationId,
+        requestId: req.requestId
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to process search request', { error: error as Error });
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 app.get("/v1/demo/crm", rateLimitByEndpoint, (req, res) => {
@@ -534,13 +743,22 @@ app.use("*", (req, res) => {
 });
 
 // Iniciar servidor
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   logger.info(`API Express server running on port ${PORT}`);
   console.log(`🚀 API Express server running on port ${PORT}`);
   console.log(`📊 Metrics available at http://localhost:${PORT}/metrics`);
   console.log(`🔍 Health check at http://localhost:${PORT}/health/live`);
   console.log(`⚡ Rate limiting enabled with intelligent strategies`);
   console.log(`🚨 Alert system integrated and monitoring`);
+  console.log(`💾 Cache system initialized with AI and Search caches`);
+  
+  // Inicializar warmup del caché
+  try {
+    await cacheManager.warmupAll();
+    console.log(`🔥 Cache warmup completed successfully`);
+  } catch (error) {
+    console.log(`⚠️ Cache warmup failed: ${error}`);
+  }
 });
 
 // Manejo de señales de terminación

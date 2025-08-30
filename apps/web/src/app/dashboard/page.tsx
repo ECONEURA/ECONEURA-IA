@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { CacheStatus } from '@/components/CacheStatus';
 
 interface DashboardData {
   overview: {
@@ -314,6 +315,9 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Cache Status */}
+      <CacheStatus />
     </div>
   );
 }
