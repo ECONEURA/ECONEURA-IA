@@ -20,6 +20,7 @@ import { serviceRegistry, serviceDiscovery } from "./lib/service-discovery.js";
 import { serviceMesh } from "./lib/service-mesh.js";
 import { configurationManager } from "./lib/configuration.js";
 import { featureFlagInfoMiddleware, requireFeatureFlag } from "./middleware/feature-flags.js";
+import { workflowEngine } from "./lib/workflows.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -140,6 +141,265 @@ const registerDefaultServices = () => {
 };
 
 registerDefaultServices();
+
+// Inicializar workflows de ejemplo
+const initializeExampleWorkflows = () => {
+  // Workflow BPMN de ejemplo: Proceso de Onboarding
+  const onboardingWorkflowId = workflowEngine.createWorkflow({
+    name: 'User Onboarding Process',
+    version: '1.0.0',
+    description: 'BPMN workflow for user onboarding',
+    type: 'bpmn',
+    definition: {
+      elements: [
+        {
+          id: 'start',
+          type: 'startEvent',
+          name: 'Start Onboarding',
+          position: { x: 100, y: 100 },
+          properties: {},
+          actions: ['sendEmail'],
+        },
+        {
+          id: 'validate',
+          type: 'task',
+          name: 'Validate User Data',
+          position: { x: 300, y: 100 },
+          properties: { timeout: 5000 },
+          actions: ['httpRequest'],
+        },
+        {
+          id: 'approve',
+          type: 'gateway',
+          name: 'Approve User',
+          position: { x: 500, y: 100 },
+          properties: {},
+          conditions: '${userType} === "premium"',
+        },
+        {
+          id: 'premium',
+          type: 'task',
+          name: 'Premium Setup',
+          position: { x: 700, y: 50 },
+          properties: {},
+          actions: ['notification'],
+        },
+        {
+          id: 'standard',
+          type: 'task',
+          name: 'Standard Setup',
+          position: { x: 700, y: 150 },
+          properties: {},
+          actions: ['delay'],
+        },
+        {
+          id: 'complete',
+          type: 'endEvent',
+          name: 'Onboarding Complete',
+          position: { x: 900, y: 100 },
+          properties: {},
+          actions: ['sendEmail'],
+        },
+      ],
+      flows: [
+        { id: 'flow1', sourceId: 'start', targetId: 'validate', properties: {} },
+        { id: 'flow2', sourceId: 'validate', targetId: 'approve', properties: {} },
+        { id: 'flow3', sourceId: 'approve', targetId: 'premium', condition: '${userType} === "premium"', properties: {} },
+        { id: 'flow4', sourceId: 'approve', targetId: 'standard', condition: '${userType} !== "premium"', properties: {} },
+        { id: 'flow5', sourceId: 'premium', targetId: 'complete', properties: {} },
+        { id: 'flow6', sourceId: 'standard', targetId: 'complete', properties: {} },
+      ],
+      startEvent: 'start',
+      endEvents: ['complete'],
+    },
+    metadata: {
+      author: 'System',
+      category: 'User Management',
+      tags: ['onboarding', 'user', 'bpmn'],
+      priority: 'high',
+      timeout: 300000, // 5 minutos
+      retryPolicy: {
+        maxRetries: 3,
+        backoffStrategy: 'exponential',
+        initialDelay: 1000,
+        maxDelay: 10000,
+      },
+      notifications: [
+        {
+          type: 'email',
+          trigger: 'complete',
+          config: { template: 'onboarding-complete' },
+        },
+      ],
+    },
+  });
+
+  // Workflow State Machine de ejemplo: Order Processing
+  const orderWorkflowId = workflowEngine.createWorkflow({
+    name: 'Order Processing State Machine',
+    version: '1.0.0',
+    description: 'State machine for order processing',
+    type: 'state-machine',
+    definition: {
+      states: [
+        {
+          id: 'pending',
+          name: 'Pending',
+          type: 'initial',
+          actions: [
+            {
+              type: 'notification',
+              name: 'sendOrderConfirmation',
+              config: { template: 'order-confirmation' },
+              order: 1,
+            },
+          ],
+          properties: {},
+        },
+        {
+          id: 'processing',
+          name: 'Processing',
+          type: 'intermediate',
+          actions: [
+            {
+              type: 'http',
+              name: 'validatePayment',
+              config: { url: '/api/payment/validate' },
+              order: 1,
+            },
+            {
+              type: 'function',
+              name: 'updateInventory',
+              config: { function: 'updateInventory' },
+              order: 2,
+            },
+          ],
+          timeout: 30000, // 30 segundos
+          properties: {},
+        },
+        {
+          id: 'shipped',
+          name: 'Shipped',
+          type: 'intermediate',
+          actions: [
+            {
+              type: 'notification',
+              name: 'sendShippingNotification',
+              config: { template: 'shipping-notification' },
+              order: 1,
+            },
+          ],
+          properties: {},
+        },
+        {
+          id: 'delivered',
+          name: 'Delivered',
+          type: 'final',
+          actions: [
+            {
+              type: 'notification',
+              name: 'sendDeliveryConfirmation',
+              config: { template: 'delivery-confirmation' },
+              order: 1,
+            },
+          ],
+          properties: {},
+        },
+        {
+          id: 'cancelled',
+          name: 'Cancelled',
+          type: 'final',
+          actions: [
+            {
+              type: 'notification',
+              name: 'sendCancellationNotification',
+              config: { template: 'cancellation-notification' },
+              order: 1,
+            },
+          ],
+          properties: {},
+        },
+      ],
+      transitions: [
+        {
+          id: 'start-processing',
+          fromState: 'pending',
+          toState: 'processing',
+          event: 'start_processing',
+          actions: [],
+          properties: {},
+        },
+        {
+          id: 'ship-order',
+          fromState: 'processing',
+          toState: 'shipped',
+          event: 'ship',
+          condition: '${paymentValid} === true && ${inventoryAvailable} === true',
+          actions: [],
+          properties: {},
+        },
+        {
+          id: 'deliver-order',
+          fromState: 'shipped',
+          toState: 'delivered',
+          event: 'deliver',
+          actions: [],
+          properties: {},
+        },
+        {
+          id: 'cancel-order',
+          fromState: 'pending',
+          toState: 'cancelled',
+          event: 'cancel',
+          actions: [],
+          properties: {},
+        },
+        {
+          id: 'cancel-processing',
+          fromState: 'processing',
+          toState: 'cancelled',
+          event: 'cancel',
+          actions: [],
+          properties: {},
+        },
+      ],
+      initialState: 'pending',
+      finalStates: ['delivered', 'cancelled'],
+    },
+    metadata: {
+      author: 'System',
+      category: 'Order Management',
+      tags: ['order', 'processing', 'state-machine'],
+      priority: 'critical',
+      timeout: 86400000, // 24 horas
+      retryPolicy: {
+        maxRetries: 5,
+        backoffStrategy: 'linear',
+        initialDelay: 2000,
+        maxDelay: 30000,
+      },
+      notifications: [
+        {
+          type: 'email',
+          trigger: 'complete',
+          config: { template: 'order-complete' },
+        },
+        {
+          type: 'webhook',
+          trigger: 'error',
+          config: { url: '/api/webhooks/order-error' },
+        },
+      ],
+    },
+  });
+
+  logger.info('Example workflows initialized', {
+    onboardingWorkflowId,
+    orderWorkflowId,
+  });
+};
+
+initializeExampleWorkflows();
 
 // Endpoints de health
 app.get("/health/live", (req, res) => {
@@ -1898,6 +2158,287 @@ app.get("/v1/config/beta-features", requireFeatureFlag('beta_features'), (req, r
   });
 });
 
+// Endpoints de Workflows y BPMN
+app.get("/v1/workflows", (req, res) => {
+  try {
+    const { type, category, status } = req.query;
+    
+    let workflows = workflowEngine.getAllWorkflows();
+    
+    // Aplicar filtros
+    if (type) {
+      workflows = workflows.filter(w => w.type === type);
+    }
+    if (category) {
+      workflows = workflows.filter(w => w.metadata.category === category);
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        workflows,
+        count: workflows.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get workflows', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/workflows", (req, res) => {
+  try {
+    const workflowData = req.body;
+    const workflowId = workflowEngine.createWorkflow(workflowData);
+    
+    res.status(201).json({
+      success: true,
+      data: {
+        workflowId,
+        message: 'Workflow created successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to create workflow', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/workflows/:workflowId", (req, res) => {
+  try {
+    const { workflowId } = req.params;
+    const workflow = workflowEngine.getWorkflow(workflowId);
+    
+    if (!workflow) {
+      return res.status(404).json({ error: 'Workflow not found' });
+    }
+
+    res.json({
+      success: true,
+      data: workflow
+    });
+  } catch (error) {
+    logger.error('Failed to get workflow', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put("/v1/workflows/:workflowId", (req, res) => {
+  try {
+    const { workflowId } = req.params;
+    const updates = req.body;
+    
+    const updated = workflowEngine.updateWorkflow(workflowId, updates);
+    
+    if (!updated) {
+      return res.status(404).json({ error: 'Workflow not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        workflowId,
+        message: 'Workflow updated successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to update workflow', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete("/v1/workflows/:workflowId", (req, res) => {
+  try {
+    const { workflowId } = req.params;
+    const deleted = workflowEngine.deleteWorkflow(workflowId);
+    
+    if (!deleted) {
+      return res.status(404).json({ error: 'Workflow not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        workflowId,
+        message: 'Workflow deleted successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to delete workflow', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/workflows/:workflowId/start", (req, res) => {
+  try {
+    const { workflowId } = req.params;
+    const { context, metadata } = req.body;
+    
+    const instanceId = workflowEngine.startWorkflow(workflowId, context, metadata);
+    
+    res.status(201).json({
+      success: true,
+      data: {
+        instanceId,
+        workflowId,
+        message: 'Workflow instance started successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to start workflow', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/workflows/instances", (req, res) => {
+  try {
+    const { workflowId, status, userId, organizationId } = req.query;
+    
+    const filters: any = {};
+    if (workflowId) filters.workflowId = workflowId;
+    if (status) filters.status = status;
+    if (userId) filters.userId = userId;
+    if (organizationId) filters.organizationId = organizationId;
+    
+    const instances = workflowEngine.getAllInstances(filters);
+    
+    res.json({
+      success: true,
+      data: {
+        instances,
+        count: instances.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get workflow instances', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/workflows/instances/:instanceId", (req, res) => {
+  try {
+    const { instanceId } = req.params;
+    const instance = workflowEngine.getWorkflowInstance(instanceId);
+    
+    if (!instance) {
+      return res.status(404).json({ error: 'Workflow instance not found' });
+    }
+
+    res.json({
+      success: true,
+      data: instance
+    });
+  } catch (error) {
+    logger.error('Failed to get workflow instance', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/workflows/instances/:instanceId/pause", (req, res) => {
+  try {
+    const { instanceId } = req.params;
+    const paused = workflowEngine.pauseWorkflow(instanceId);
+    
+    if (!paused) {
+      return res.status(400).json({ error: 'Cannot pause workflow instance' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        instanceId,
+        message: 'Workflow instance paused successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to pause workflow instance', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/workflows/instances/:instanceId/resume", (req, res) => {
+  try {
+    const { instanceId } = req.params;
+    const resumed = workflowEngine.resumeWorkflow(instanceId);
+    
+    if (!resumed) {
+      return res.status(400).json({ error: 'Cannot resume workflow instance' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        instanceId,
+        message: 'Workflow instance resumed successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to resume workflow instance', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/workflows/instances/:instanceId/cancel", (req, res) => {
+  try {
+    const { instanceId } = req.params;
+    const cancelled = workflowEngine.cancelWorkflow(instanceId);
+    
+    if (!cancelled) {
+      return res.status(400).json({ error: 'Cannot cancel workflow instance' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        instanceId,
+        message: 'Workflow instance cancelled successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to cancel workflow instance', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/workflows/instances/:instanceId/actions", (req, res) => {
+  try {
+    const { instanceId } = req.params;
+    const { actionName, data } = req.body;
+    
+    const executed = workflowEngine.executeAction(instanceId, actionName, data);
+    
+    if (!executed) {
+      return res.status(400).json({ error: 'Cannot execute action on workflow instance' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        instanceId,
+        actionName,
+        message: 'Action executed successfully'
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to execute action', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/workflows/stats", (req, res) => {
+  try {
+    const stats = workflowEngine.getWorkflowStats();
+    
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    logger.error('Failed to get workflow stats', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Endpoints demo con rate limiting específico
 app.get("/v1/demo/health", rateLimitByEndpoint, (req, res) => {
   res.json({
@@ -2122,6 +2663,7 @@ app.listen(PORT, async () => {
   console.log(`📊 Event Sourcing and CQRS system enabled with aggregates and projections`);
   console.log(`🔗 Microservices system enabled with service mesh and discovery`);
   console.log(`⚙️ Configuration system enabled with feature flags and environment management`);
+  console.log(`🔄 Workflow system enabled with BPMN and state machines`);
   
   // Inicializar warmup del caché
   try {
