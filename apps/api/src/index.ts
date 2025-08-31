@@ -195,7 +195,7 @@ app.get("/v1/rate-limit/organizations/:organizationId", (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to get organization stats', { error: error as Error });
+    logger.error('Failed to get organization stats', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
