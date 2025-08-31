@@ -2083,6 +2083,145 @@ app.get("/v1/demo/dashboard", rateLimitByEndpoint, (req, res) => {
   });
 });
 
+// ============================================================================
+// ENDPOINTS DEL SISTEMA DE AI CHAT AVANZADO
+// ============================================================================
+
+// Endpoints de Sesiones
+app.get("/v1/ai-chat/sessions", async (req, res) => {
+  try {
+    const { userId, orgId } = req.query;
+    if (!userId || !orgId) {
+      return res.status(400).json({ error: 'userId and orgId are required' });
+    }
+    const sessions = await advancedAIChatSystem.listSessions(userId as string, orgId as string);
+    res.json(sessions);
+  } catch (error) {
+    logger.error('Failed to get sessions', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/ai-chat/sessions", async (req, res) => {
+  try {
+    const { userId, orgId, title, model } = req.body;
+    const session = await advancedAIChatSystem.createSession(userId, orgId, title, model);
+    res.status(201).json(session);
+  } catch (error) {
+    logger.error('Failed to create session', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/ai-chat/sessions/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const session = await advancedAIChatSystem.getSession(id);
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+    res.json(session);
+  } catch (error) {
+    logger.error('Failed to get session', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete("/v1/ai-chat/sessions/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await advancedAIChatSystem.deleteSession(id);
+    res.status(204).send();
+  } catch (error) {
+    logger.error('Failed to delete session', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// Endpoints de Chat
+app.post("/v1/ai-chat/chat", async (req, res) => {
+  try {
+    const chatRequest = req.body;
+    const response = await advancedAIChatSystem.processMessage(chatRequest);
+    res.json(response);
+  } catch (error) {
+    logger.error('Failed to process chat message', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// Endpoints de Modelos
+app.get("/v1/ai-chat/models", async (req, res) => {
+  try {
+    const models = advancedAIChatSystem.getAvailableModels();
+    res.json(models);
+  } catch (error) {
+    logger.error('Failed to get models', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Endpoints de Funciones
+app.get("/v1/ai-chat/functions", async (req, res) => {
+  try {
+    const functions = advancedAIChatSystem.getAvailableFunctions();
+    res.json(functions);
+  } catch (error) {
+    logger.error('Failed to get functions', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Endpoints de Análisis de Sentimientos
+app.post("/v1/ai-chat/sentiment", async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) {
+      return res.status(400).json({ error: 'text is required' });
+    }
+    const sentiment = await advancedAIChatSystem.analyzeSentiment(text);
+    res.json(sentiment);
+  } catch (error) {
+    logger.error('Failed to analyze sentiment', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Endpoints de Estadísticas
+app.get("/v1/ai-chat/stats", async (req, res) => {
+  try {
+    const stats = await advancedAIChatSystem.getStatistics();
+    res.json(stats);
+  } catch (error) {
+    logger.error('Failed to get statistics', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/ai-chat/sessions/:id/stats", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const session = await advancedAIChatSystem.getSession(id);
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+    
+    const duration = session.updatedAt.getTime() - session.createdAt.getTime();
+    const stats = {
+      messageCount: session.metadata?.messageCount || 0,
+      totalTokens: session.metadata?.totalTokens || 0,
+      totalCost: session.metadata?.totalCost || 0,
+      averageSentiment: session.metadata?.averageSentiment || null,
+      duration,
+    };
+    
+    res.json(stats);
+  } catch (error) {
+    logger.error('Failed to get session stats', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Endpoint de métricas para Prometheus
 app.get("/metrics", (req, res) => {
   try {

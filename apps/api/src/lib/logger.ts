@@ -54,6 +54,18 @@ interface LogContext {
   costId?: string;
   budgetId?: string;
   daysToKeep?: number;
+  // AI Chat related fields
+  location?: string;
+  category?: string;
+  modelsCount?: number;
+  sessionId?: string;
+  request?: any;
+  unit?: string;
+  limit?: number;
+  functionsCount?: number;
+  orgId?: string;
+  functionName?: string;
+  arguments?: any;
 }
 
 interface LogEntry {
