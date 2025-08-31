@@ -2222,6 +2222,200 @@ app.get("/v1/ai-chat/sessions/:id/stats", async (req, res) => {
   }
 });
 
+// ============================================================================
+// ENDPOINTS DEL SISTEMA DE ANALYTICS DE DATOS
+// ============================================================================
+
+// Endpoints de Métricas
+app.post("/v1/analytics/metrics", async (req, res) => {
+  try {
+    const query = req.body;
+    const result = await analyticsSystem.getMetrics(query);
+    res.json(result);
+  } catch (error) {
+    logger.error('Failed to get metrics', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.post("/v1/analytics/metrics/realtime", async (req, res) => {
+  try {
+    const { metrics } = req.body;
+    const result = await analyticsSystem.getRealTimeMetrics(metrics);
+    res.json(result);
+  } catch (error) {
+    logger.error('Failed to get real-time metrics', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/analytics/metrics/available", async (req, res) => {
+  try {
+    const metrics = await analyticsSystem.getAvailableMetrics();
+    res.json(metrics);
+  } catch (error) {
+    logger.error('Failed to get available metrics', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/analytics/dimensions/available", async (req, res) => {
+  try {
+    const dimensions = await analyticsSystem.getAvailableDimensions();
+    res.json(dimensions);
+  } catch (error) {
+    logger.error('Failed to get available dimensions', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/analytics/sample-data", async (req, res) => {
+  try {
+    const data = await analyticsSystem.getSampleData();
+    res.json(data);
+  } catch (error) {
+    logger.error('Failed to get sample data', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Endpoints de Dashboards
+app.get("/v1/analytics/dashboards", async (req, res) => {
+  try {
+    const { userId, orgId } = req.query;
+    if (!userId || !orgId) {
+      return res.status(400).json({ error: 'userId and orgId are required' });
+    }
+    const dashboards = await analyticsSystem.listDashboards(userId as string, orgId as string);
+    res.json(dashboards);
+  } catch (error) {
+    logger.error('Failed to get dashboards', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/analytics/dashboards", async (req, res) => {
+  try {
+    const dashboard = req.body;
+    const result = await analyticsSystem.createDashboard(dashboard);
+    res.status(201).json(result);
+  } catch (error) {
+    logger.error('Failed to create dashboard', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/analytics/dashboards/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const dashboard = await analyticsSystem.getDashboard(id);
+    if (!dashboard) {
+      return res.status(404).json({ error: 'Dashboard not found' });
+    }
+    res.json(dashboard);
+  } catch (error) {
+    logger.error('Failed to get dashboard', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put("/v1/analytics/dashboards/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const result = await analyticsSystem.updateDashboard(id, updates);
+    res.json(result);
+  } catch (error) {
+    logger.error('Failed to update dashboard', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.delete("/v1/analytics/dashboards/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await analyticsSystem.deleteDashboard(id);
+    res.status(204).send();
+  } catch (error) {
+    logger.error('Failed to delete dashboard', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// Endpoints de Reportes
+app.get("/v1/analytics/reports", async (req, res) => {
+  try {
+    const { userId, orgId } = req.query;
+    if (!userId || !orgId) {
+      return res.status(400).json({ error: 'userId and orgId are required' });
+    }
+    const reports = await analyticsSystem.listReports(userId as string, orgId as string);
+    res.json(reports);
+  } catch (error) {
+    logger.error('Failed to get reports', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/analytics/reports", async (req, res) => {
+  try {
+    const report = req.body;
+    const result = await analyticsSystem.createReport(report);
+    res.status(201).json(result);
+  } catch (error) {
+    logger.error('Failed to create report', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/analytics/reports/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const report = await analyticsSystem.getReport(id);
+    if (!report) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    res.json(report);
+  } catch (error) {
+    logger.error('Failed to get report', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put("/v1/analytics/reports/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const result = await analyticsSystem.updateReport(id, updates);
+    res.json(result);
+  } catch (error) {
+    logger.error('Failed to update report', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.delete("/v1/analytics/reports/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await analyticsSystem.deleteReport(id);
+    res.status(204).send();
+  } catch (error) {
+    logger.error('Failed to delete report', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.post("/v1/analytics/reports/:id/generate", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await analyticsSystem.generateReport(id);
+    res.json(result);
+  } catch (error) {
+    logger.error('Failed to generate report', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
 // Endpoint de métricas para Prometheus
 app.get("/metrics", (req, res) => {
   try {
