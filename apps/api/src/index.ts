@@ -2159,44 +2159,39 @@ app.get("/v1/config/beta-features", requireFeatureFlag('beta_features'), (req, r
 });
 
 // Endpoints de Workflows y BPMN
-app.get("/v1/workflows", (req, res) => {
+app.get("/v1/workflows", async (req, res) => {
   try {
-    const { type, category, status } = req.query;
+    const { type, category, status, tags } = req.query;
     
-    let workflows = workflowEngine.getAllWorkflows();
-    
-    // Aplicar filtros
-    if (type) {
-      workflows = workflows.filter(w => w.type === type);
-    }
-    if (category) {
-      workflows = workflows.filter(w => w.metadata.category === category);
-    }
-    
-    res.json({
-      success: true,
-      data: {
-        workflows,
-        count: workflows.length
+    const filters: any = {};
+    if (type) filters.type = type;
+    if (category) filters.category = category;
+    if (status) filters.status = status;
+    if (tags) {
+      if (Array.isArray(tags)) {
+        filters.tags = tags;
+      } else {
+        filters.tags = [tags];
       }
-    });
+    }
+    
+    const workflows = await workflowEngine.listWorkflows(filters);
+    
+    res.json(workflows);
   } catch (error) {
     logger.error('Failed to get workflows', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-app.post("/v1/workflows", (req, res) => {
+app.post("/v1/workflows", async (req, res) => {
   try {
     const workflowData = req.body;
-    const workflowId = workflowEngine.createWorkflow(workflowData);
+    const workflow = await workflowEngine.createWorkflow(workflowData);
     
     res.status(201).json({
-      success: true,
-      data: {
-        workflowId,
-        message: 'Workflow created successfully'
-      }
+      data: workflow,
+      message: 'Workflow created successfully'
     });
   } catch (error) {
     logger.error('Failed to create workflow', { error: (error as Error).message });
@@ -2204,18 +2199,18 @@ app.post("/v1/workflows", (req, res) => {
   }
 });
 
-app.get("/v1/workflows/:workflowId", (req, res) => {
+app.get("/v1/workflows/:workflowId", async (req, res) => {
   try {
     const { workflowId } = req.params;
-    const workflow = workflowEngine.getWorkflow(workflowId);
+    const workflow = await workflowEngine.getWorkflow(workflowId);
     
     if (!workflow) {
       return res.status(404).json({ error: 'Workflow not found' });
     }
 
     res.json({
-      success: true,
-      data: workflow
+      data: workflow,
+      message: 'Workflow retrieved successfully'
     });
   } catch (error) {
     logger.error('Failed to get workflow', { error: (error as Error).message });
@@ -2223,23 +2218,16 @@ app.get("/v1/workflows/:workflowId", (req, res) => {
   }
 });
 
-app.put("/v1/workflows/:workflowId", (req, res) => {
+app.put("/v1/workflows/:workflowId", async (req, res) => {
   try {
     const { workflowId } = req.params;
     const updates = req.body;
     
-    const updated = workflowEngine.updateWorkflow(workflowId, updates);
+    const workflow = await workflowEngine.updateWorkflow(workflowId, updates);
     
-    if (!updated) {
-      return res.status(404).json({ error: 'Workflow not found' });
-    }
-
     res.json({
-      success: true,
-      data: {
-        workflowId,
-        message: 'Workflow updated successfully'
-      }
+      data: workflow,
+      message: 'Workflow updated successfully'
     });
   } catch (error) {
     logger.error('Failed to update workflow', { error: (error as Error).message });
@@ -2247,21 +2235,13 @@ app.put("/v1/workflows/:workflowId", (req, res) => {
   }
 });
 
-app.delete("/v1/workflows/:workflowId", (req, res) => {
+app.delete("/v1/workflows/:workflowId", async (req, res) => {
   try {
     const { workflowId } = req.params;
-    const deleted = workflowEngine.deleteWorkflow(workflowId);
+    await workflowEngine.deleteWorkflow(workflowId);
     
-    if (!deleted) {
-      return res.status(404).json({ error: 'Workflow not found' });
-    }
-
     res.json({
-      success: true,
-      data: {
-        workflowId,
-        message: 'Workflow deleted successfully'
-      }
+      message: 'Workflow deleted successfully'
     });
   } catch (error) {
     logger.error('Failed to delete workflow', { error: (error as Error).message });
@@ -2269,20 +2249,16 @@ app.delete("/v1/workflows/:workflowId", (req, res) => {
   }
 });
 
-app.post("/v1/workflows/:workflowId/start", (req, res) => {
+app.post("/v1/workflows/:workflowId/start", async (req, res) => {
   try {
     const { workflowId } = req.params;
-    const { context, metadata } = req.body;
+    const { context = {}, metadata = {} } = req.body;
     
-    const instanceId = workflowEngine.startWorkflow(workflowId, context, metadata);
+    const instance = await workflowEngine.startWorkflow(workflowId, context, metadata);
     
-    res.status(201).json({
-      success: true,
-      data: {
-        instanceId,
-        workflowId,
-        message: 'Workflow instance started successfully'
-      }
+    res.status(200).json({
+      data: instance,
+      message: 'Workflow started successfully'
     });
   } catch (error) {
     logger.error('Failed to start workflow', { error: (error as Error).message });
@@ -2290,43 +2266,39 @@ app.post("/v1/workflows/:workflowId/start", (req, res) => {
   }
 });
 
-app.get("/v1/workflows/instances", (req, res) => {
+app.get("/v1/workflows/instances", async (req, res) => {
   try {
-    const { workflowId, status, userId, organizationId } = req.query;
+    const { workflowId, status, userId, orgId, fromDate, toDate } = req.query;
     
     const filters: any = {};
     if (workflowId) filters.workflowId = workflowId;
     if (status) filters.status = status;
     if (userId) filters.userId = userId;
-    if (organizationId) filters.organizationId = organizationId;
+    if (orgId) filters.orgId = orgId;
+    if (fromDate) filters.fromDate = new Date(fromDate as string);
+    if (toDate) filters.toDate = new Date(toDate as string);
     
-    const instances = workflowEngine.getAllInstances(filters);
+    const instances = await workflowEngine.listInstances(filters);
     
-    res.json({
-      success: true,
-      data: {
-        instances,
-        count: instances.length
-      }
-    });
+    res.json(instances);
   } catch (error) {
     logger.error('Failed to get workflow instances', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-app.get("/v1/workflows/instances/:instanceId", (req, res) => {
+app.get("/v1/workflows/instances/:instanceId", async (req, res) => {
   try {
     const { instanceId } = req.params;
-    const instance = workflowEngine.getWorkflowInstance(instanceId);
+    const instance = await workflowEngine.getInstance(instanceId);
     
     if (!instance) {
       return res.status(404).json({ error: 'Workflow instance not found' });
     }
 
     res.json({
-      success: true,
-      data: instance
+      data: instance,
+      message: 'Workflow instance retrieved successfully'
     });
   } catch (error) {
     logger.error('Failed to get workflow instance', { error: (error as Error).message });
@@ -2334,21 +2306,13 @@ app.get("/v1/workflows/instances/:instanceId", (req, res) => {
   }
 });
 
-app.post("/v1/workflows/instances/:instanceId/pause", (req, res) => {
+app.post("/v1/workflows/instances/:instanceId/pause", async (req, res) => {
   try {
     const { instanceId } = req.params;
-    const paused = workflowEngine.pauseWorkflow(instanceId);
+    await workflowEngine.pauseInstance(instanceId);
     
-    if (!paused) {
-      return res.status(400).json({ error: 'Cannot pause workflow instance' });
-    }
-
     res.json({
-      success: true,
-      data: {
-        instanceId,
-        message: 'Workflow instance paused successfully'
-      }
+      message: 'Workflow instance paused successfully'
     });
   } catch (error) {
     logger.error('Failed to pause workflow instance', { error: (error as Error).message });
@@ -2356,21 +2320,13 @@ app.post("/v1/workflows/instances/:instanceId/pause", (req, res) => {
   }
 });
 
-app.post("/v1/workflows/instances/:instanceId/resume", (req, res) => {
+app.post("/v1/workflows/instances/:instanceId/resume", async (req, res) => {
   try {
     const { instanceId } = req.params;
-    const resumed = workflowEngine.resumeWorkflow(instanceId);
+    await workflowEngine.resumeInstance(instanceId);
     
-    if (!resumed) {
-      return res.status(400).json({ error: 'Cannot resume workflow instance' });
-    }
-
     res.json({
-      success: true,
-      data: {
-        instanceId,
-        message: 'Workflow instance resumed successfully'
-      }
+      message: 'Workflow instance resumed successfully'
     });
   } catch (error) {
     logger.error('Failed to resume workflow instance', { error: (error as Error).message });
@@ -2378,21 +2334,13 @@ app.post("/v1/workflows/instances/:instanceId/resume", (req, res) => {
   }
 });
 
-app.post("/v1/workflows/instances/:instanceId/cancel", (req, res) => {
+app.post("/v1/workflows/instances/:instanceId/cancel", async (req, res) => {
   try {
     const { instanceId } = req.params;
-    const cancelled = workflowEngine.cancelWorkflow(instanceId);
+    await workflowEngine.cancelInstance(instanceId);
     
-    if (!cancelled) {
-      return res.status(400).json({ error: 'Cannot cancel workflow instance' });
-    }
-
     res.json({
-      success: true,
-      data: {
-        instanceId,
-        message: 'Workflow instance cancelled successfully'
-      }
+      message: 'Workflow instance cancelled successfully'
     });
   } catch (error) {
     logger.error('Failed to cancel workflow instance', { error: (error as Error).message });
@@ -2400,24 +2348,15 @@ app.post("/v1/workflows/instances/:instanceId/cancel", (req, res) => {
   }
 });
 
-app.post("/v1/workflows/instances/:instanceId/actions", (req, res) => {
+app.post("/v1/workflows/instances/:instanceId/actions", async (req, res) => {
   try {
     const { instanceId } = req.params;
-    const { actionName, data } = req.body;
+    const { actionId } = req.body;
     
-    const executed = workflowEngine.executeAction(instanceId, actionName, data);
+    await workflowEngine.executeAction(instanceId, actionId);
     
-    if (!executed) {
-      return res.status(400).json({ error: 'Cannot execute action on workflow instance' });
-    }
-
     res.json({
-      success: true,
-      data: {
-        instanceId,
-        actionName,
-        message: 'Action executed successfully'
-      }
+      message: 'Action executed successfully'
     });
   } catch (error) {
     logger.error('Failed to execute action', { error: (error as Error).message });
@@ -2425,14 +2364,11 @@ app.post("/v1/workflows/instances/:instanceId/actions", (req, res) => {
   }
 });
 
-app.get("/v1/workflows/stats", (req, res) => {
+app.get("/v1/workflows/stats", async (req, res) => {
   try {
-    const stats = workflowEngine.getWorkflowStats();
+    const stats = await workflowEngine.getStats();
     
-    res.json({
-      success: true,
-      data: stats
-    });
+    res.json(stats);
   } catch (error) {
     logger.error('Failed to get workflow stats', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });

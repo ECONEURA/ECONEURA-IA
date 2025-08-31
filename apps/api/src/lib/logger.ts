@@ -54,6 +54,47 @@ interface LogContext {
   costId?: string;
   budgetId?: string;
   daysToKeep?: number;
+  // Additional fields used across the codebase
+  stats?: any;
+  age?: number;
+  accessCount?: number;
+  cacheSize?: number;
+  totalItems?: number;
+  score?: number;
+  flagId?: string;
+  variablesCount?: number;
+  valueType?: string;
+  valueLength?: number;
+  aggregateId?: string;
+  eventId?: string;
+  eventType?: string;
+  readModelId?: string;
+  commandType?: string;
+  commandId?: string;
+  queryType?: string;
+  queryId?: string;
+  fromTimestamp?: string;
+  eventCount?: number;
+  amount?: number;
+  percentage?: number;
+  notificationId?: string;
+  cutoffDate?: string;
+  config?: any;
+  serviceId?: string;
+  routeId?: string;
+  serviceName?: string;
+  flags?: any;
+  flagIds?: string[];
+  remaining?: number;
+  apiKey?: string;
+  role?: string;
+  table?: string;
+  resource?: string;
+  expected?: string;
+  limit?: number;
+  strategy?: string;
+  filters?: any;
+  model?: string;
 }
 
 interface LogEntry {

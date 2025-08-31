@@ -1,487 +1,479 @@
-import { logger } from './logger.js';
+import { z } from 'zod';
 
-export interface WorkflowDefinition {
-  id: string;
-  name: string;
-  version: string;
-  description: string;
-  type: 'bpmn' | 'state-machine';
-  definition: BPMNDefinition | StateMachineDefinition;
-  metadata: WorkflowMetadata;
-  createdAt: Date;
-  updatedAt: Date;
+// ============================================================================
+// TIPOS Y ESQUEMAS
+// ============================================================================
+
+export const WorkflowTypeSchema = z.enum(['bpmn', 'state_machine']);
+export type WorkflowType = z.infer<typeof WorkflowTypeSchema>;
+
+export const WorkflowStatusSchema = z.enum(['draft', 'active', 'inactive', 'archived']);
+export type WorkflowStatus = z.infer<typeof WorkflowStatusSchema>;
+
+export const InstanceStatusSchema = z.enum(['running', 'completed', 'failed', 'paused', 'cancelled']);
+export type InstanceStatus = z.infer<typeof InstanceStatusSchema>;
+
+export const ActionTypeSchema = z.enum(['function', 'http', 'delay', 'condition', 'notification']);
+export type ActionType = z.infer<typeof ActionTypeSchema>;
+
+export const RetryStrategySchema = z.enum(['fixed', 'exponential', 'linear']);
+export type RetryStrategy = z.infer<typeof RetryStrategySchema>;
+
+// ============================================================================
+// ESQUEMAS BPMN
+// ============================================================================
+
+export const BpmnElementTypeSchema = z.enum(['startEvent', 'endEvent', 'task', 'gateway', 'subprocess']);
+export type BpmnElementType = z.infer<typeof BpmnElementTypeSchema>;
+
+export const BpmnElementSchema = z.object({
+  id: z.string(),
+  type: BpmnElementTypeSchema,
+  name: z.string(),
+  x: z.number(),
+  y: z.number(),
+  properties: z.record(z.any()).optional(),
+  actions: z.array(z.string()).optional(),
+  conditions: z.record(z.string()).optional(),
+});
+
+export const BpmnFlowSchema = z.object({
+  id: z.string(),
+  source: z.string(),
+  target: z.string(),
+  condition: z.string().optional(),
+});
+
+export const BpmnWorkflowSchema = z.object({
+  elements: z.array(BpmnElementSchema),
+  flows: z.array(BpmnFlowSchema),
+  startElement: z.string(),
+  endElements: z.array(z.string()),
+});
+
+// ============================================================================
+// ESQUEMAS STATE MACHINE
+// ============================================================================
+
+export const StateTypeSchema = z.enum(['initial', 'intermediate', 'final', 'error']);
+export type StateType = z.infer<typeof StateTypeSchema>;
+
+export const StateSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  type: StateTypeSchema,
+  actions: z.array(z.string()).optional(),
+  timeout: z.number().optional(), // segundos
+  properties: z.record(z.any()).optional(),
+});
+
+export const TransitionSchema = z.object({
+  id: z.string(),
+  from: z.string(),
+  to: z.string(),
+  event: z.string().optional(),
+  condition: z.string().optional(),
+});
+
+export const StateMachineWorkflowSchema = z.object({
+  states: z.array(StateSchema),
+  transitions: z.array(TransitionSchema),
+  initialState: z.string(),
+  finalStates: z.array(z.string()),
+});
+
+// ============================================================================
+// ESQUEMAS DE ACCIONES
+// ============================================================================
+
+export const ActionSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  type: ActionTypeSchema,
+  config: z.record(z.any()),
+  order: z.number(),
+  timeout: z.number().optional(),
+  retry: z.object({
+    maxAttempts: z.number(),
+    strategy: RetryStrategySchema,
+    delay: z.number(),
+  }).optional(),
+});
+
+// ============================================================================
+// ESQUEMAS PRINCIPALES
+// ============================================================================
+
+export const WorkflowMetadataSchema = z.object({
+  author: z.string().optional(),
+  category: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  priority: z.number().optional(),
+  timeout: z.number().optional(), // segundos
+  description: z.string().optional(),
+});
+
+export const WorkflowSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  type: WorkflowTypeSchema,
+  status: WorkflowStatusSchema,
+  version: z.number(),
+  definition: z.union([BpmnWorkflowSchema, StateMachineWorkflowSchema]),
+  actions: z.array(ActionSchema),
+  metadata: WorkflowMetadataSchema,
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export const WorkflowInstanceSchema = z.object({
+  id: z.string(),
+  workflowId: z.string(),
+  status: InstanceStatusSchema,
+  context: z.record(z.any()),
+  metadata: z.record(z.any()),
+  currentElement: z.string().optional(),
+  currentState: z.string().optional(),
+  history: z.array(z.object({
+    timestamp: z.date(),
+    action: z.string(),
+    message: z.string(),
+    data: z.record(z.any()).optional(),
+  })),
+  startedAt: z.date(),
+  completedAt: z.date().optional(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+// ============================================================================
+// INTERFACES
+// ============================================================================
+
+export interface IWorkflowEngine {
+  createWorkflow(workflow: Omit<Workflow, 'id' | 'createdAt' | 'updatedAt'>): Promise<Workflow>;
+  getWorkflow(id: string): Promise<Workflow | null>;
+  updateWorkflow(id: string, updates: Partial<Workflow>): Promise<Workflow>;
+  deleteWorkflow(id: string): Promise<void>;
+  listWorkflows(filters?: WorkflowFilters): Promise<Workflow[]>;
+  
+  startWorkflow(workflowId: string, context?: Record<string, any>, metadata?: Record<string, any>): Promise<WorkflowInstance>;
+  getInstance(instanceId: string): Promise<WorkflowInstance | null>;
+  listInstances(filters?: InstanceFilters): Promise<WorkflowInstance[]>;
+  
+  pauseInstance(instanceId: string): Promise<void>;
+  resumeInstance(instanceId: string): Promise<void>;
+  cancelInstance(instanceId: string): Promise<void>;
+  executeAction(instanceId: string, actionId: string): Promise<void>;
+  
+  getStats(): Promise<WorkflowStats>;
 }
 
-export interface WorkflowMetadata {
-  author: string;
-  category: string;
-  tags: string[];
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  timeout: number;
-  retryPolicy: RetryPolicy;
-  notifications: NotificationConfig[];
+export interface WorkflowFilters {
+  type?: WorkflowType;
+  status?: WorkflowStatus;
+  category?: string;
+  tags?: string[];
 }
 
-export interface RetryPolicy {
-  maxRetries: number;
-  backoffStrategy: 'fixed' | 'exponential' | 'linear';
-  initialDelay: number;
-  maxDelay: number;
-}
-
-export interface NotificationConfig {
-  type: 'email' | 'webhook' | 'slack' | 'sms';
-  trigger: 'start' | 'complete' | 'error' | 'timeout';
-  config: Record<string, any>;
-}
-
-export interface BPMNDefinition {
-  elements: BPMNElement[];
-  flows: BPMNFlow[];
-  startEvent: string;
-  endEvents: string[];
-}
-
-export interface BPMNElement {
-  id: string;
-  type: 'startEvent' | 'endEvent' | 'task' | 'gateway' | 'subprocess';
-  name: string;
-  position: { x: number; y: number };
-  properties: Record<string, any>;
-  conditions?: string;
-  actions?: string[];
-}
-
-export interface BPMNFlow {
-  id: string;
-  sourceId: string;
-  targetId: string;
-  condition?: string;
-  properties: Record<string, any>;
-}
-
-export interface StateMachineDefinition {
-  states: StateDefinition[];
-  transitions: StateTransition[];
-  initialState: string;
-  finalStates: string[];
-}
-
-export interface StateDefinition {
-  id: string;
-  name: string;
-  type: 'initial' | 'intermediate' | 'final' | 'error';
-  actions: StateAction[];
-  timeout?: number;
-  properties: Record<string, any>;
-}
-
-export interface StateAction {
-  type: 'function' | 'http' | 'delay' | 'condition' | 'notification';
-  name: string;
-  config: Record<string, any>;
-  order: number;
-}
-
-export interface StateTransition {
-  id: string;
-  fromState: string;
-  toState: string;
-  event: string;
-  condition?: string;
-  actions: StateAction[];
-  properties: Record<string, any>;
-}
-
-export interface WorkflowInstance {
-  id: string;
-  workflowId: string;
-  status: 'running' | 'completed' | 'failed' | 'paused' | 'cancelled';
-  currentState: string;
-  context: Record<string, any>;
-  history: WorkflowHistoryItem[];
-  metadata: WorkflowInstanceMetadata;
-  createdAt: Date;
-  updatedAt: Date;
-  startedAt?: Date;
-  completedAt?: Date;
-}
-
-export interface WorkflowHistoryItem {
-  id: string;
-  timestamp: Date;
-  type: 'state_change' | 'action_executed' | 'error' | 'timeout' | 'user_action';
-  state?: string;
-  action?: string;
-  data: Record<string, any>;
-  message: string;
-}
-
-export interface WorkflowInstanceMetadata {
-  userId: string;
-  organizationId: string;
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  tags: string[];
-  customData: Record<string, any>;
-}
-
-export interface WorkflowEngine {
-  createWorkflow(definition: Omit<WorkflowDefinition, 'id' | 'createdAt' | 'updatedAt'>): string;
-  getWorkflow(workflowId: string): WorkflowDefinition | undefined;
-  getAllWorkflows(): WorkflowDefinition[];
-  updateWorkflow(workflowId: string, updates: Partial<WorkflowDefinition>): boolean;
-  deleteWorkflow(workflowId: string): boolean;
-  startWorkflow(workflowId: string, context: Record<string, any>, metadata: WorkflowInstanceMetadata): string;
-  getWorkflowInstance(instanceId: string): WorkflowInstance | undefined;
-  getAllInstances(filters?: WorkflowInstanceFilters): WorkflowInstance[];
-  pauseWorkflow(instanceId: string): boolean;
-  resumeWorkflow(instanceId: string): boolean;
-  cancelWorkflow(instanceId: string): boolean;
-  executeAction(instanceId: string, actionName: string, data?: Record<string, any>): boolean;
-  getWorkflowStats(): WorkflowStats;
-}
-
-export interface WorkflowInstanceFilters {
+export interface InstanceFilters {
   workflowId?: string;
-  status?: WorkflowInstance['status'];
+  status?: InstanceStatus;
   userId?: string;
-  organizationId?: string;
-  createdAfter?: Date;
-  createdBefore?: Date;
+  orgId?: string;
+  fromDate?: Date;
+  toDate?: Date;
 }
 
 export interface WorkflowStats {
   totalWorkflows: number;
   totalInstances: number;
-  runningInstances: number;
-  completedInstances: number;
-  failedInstances: number;
+  workflowsByType: Record<WorkflowType, number>;
+  instancesByStatus: Record<InstanceStatus, number>;
   averageExecutionTime: number;
-  workflowsByType: Record<string, number>;
-  instancesByStatus: Record<string, number>;
+  successRate: number;
+  recentActivity: Array<{
+    workflowId: string;
+    workflowName: string;
+    instanceId: string;
+    action: string;
+    timestamp: Date;
+  }>;
 }
 
-export class WorkflowEngineImpl implements WorkflowEngine {
-  private workflows: Map<string, WorkflowDefinition> = new Map();
+// ============================================================================
+// TIPOS DERIVADOS
+// ============================================================================
+
+export type Workflow = z.infer<typeof WorkflowSchema>;
+export type WorkflowInstance = z.infer<typeof WorkflowInstanceSchema>;
+export type Action = z.infer<typeof ActionSchema>;
+export type BpmnWorkflow = z.infer<typeof BpmnWorkflowSchema>;
+export type StateMachineWorkflow = z.infer<typeof StateMachineWorkflowSchema>;
+
+// ============================================================================
+// IMPLEMENTACIÓN DEL WORKFLOW ENGINE
+// ============================================================================
+
+class WorkflowEngineImpl implements IWorkflowEngine {
+  private workflows: Map<string, Workflow> = new Map();
   private instances: Map<string, WorkflowInstance> = new Map();
-  private executionQueue: Map<string, NodeJS.Timeout> = new Map();
+  private executionQueue: Array<{ instanceId: string; actionId: string }> = [];
 
   constructor() {
-    logger.info('Workflow Engine initialized');
+    this.startExecutionLoop();
   }
 
-  createWorkflow(definition: Omit<WorkflowDefinition, 'id' | 'createdAt' | 'updatedAt'>): string {
-    const id = `workflow_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  // ============================================================================
+  // GESTIÓN DE WORKFLOWS
+  // ============================================================================
+
+  async createWorkflow(workflow: Omit<Workflow, 'id' | 'createdAt' | 'updatedAt'>): Promise<Workflow> {
+    const id = `wf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date();
     
-    const workflow: WorkflowDefinition = {
-      ...definition,
+    const newWorkflow: Workflow = {
+      ...workflow,
       id,
       createdAt: now,
       updatedAt: now,
     };
 
-    this.workflows.set(id, workflow);
-
-    logger.info('Workflow created', {
-      workflowId: id,
-      workflowName: definition.name,
-      workflowType: definition.type,
-    });
-
-    return id;
+    this.workflows.set(id, newWorkflow);
+    return newWorkflow;
   }
 
-  getWorkflow(workflowId: string): WorkflowDefinition | undefined {
-    return this.workflows.get(workflowId);
+  async getWorkflow(id: string): Promise<Workflow | null> {
+    return this.workflows.get(id) || null;
   }
 
-  getAllWorkflows(): WorkflowDefinition[] {
-    return Array.from(this.workflows.values());
-  }
-
-  updateWorkflow(workflowId: string, updates: Partial<WorkflowDefinition>): boolean {
-    const workflow = this.workflows.get(workflowId);
+  async updateWorkflow(id: string, updates: Partial<Workflow>): Promise<Workflow> {
+    const workflow = this.workflows.get(id);
     if (!workflow) {
-      return false;
+      throw new Error(`Workflow ${id} not found`);
     }
 
-    const updatedWorkflow: WorkflowDefinition = {
+    const updatedWorkflow: Workflow = {
       ...workflow,
       ...updates,
       updatedAt: new Date(),
     };
 
-    this.workflows.set(workflowId, updatedWorkflow);
-
-    logger.info('Workflow updated', {
-      workflowId,
-      workflowName: updatedWorkflow.name,
-    });
-
-    return true;
+    this.workflows.set(id, updatedWorkflow);
+    return updatedWorkflow;
   }
 
-  deleteWorkflow(workflowId: string): boolean {
-    const deleted = this.workflows.delete(workflowId);
-    if (deleted) {
-      logger.info('Workflow deleted', { workflowId });
+  async deleteWorkflow(id: string): Promise<void> {
+    const workflow = this.workflows.get(id);
+    if (!workflow) {
+      throw new Error(`Workflow ${id} not found`);
     }
-    return deleted;
+
+    // Verificar que no hay instancias activas
+    const activeInstances = Array.from(this.instances.values()).filter(
+      instance => instance.workflowId === id && instance.status === 'running'
+    );
+
+    if (activeInstances.length > 0) {
+      throw new Error(`Cannot delete workflow with ${activeInstances.length} active instances`);
+    }
+
+    this.workflows.delete(id);
   }
 
-  startWorkflow(workflowId: string, context: Record<string, any>, metadata: WorkflowInstanceMetadata): string {
+  async listWorkflows(filters?: WorkflowFilters): Promise<Workflow[]> {
+    let workflows = Array.from(this.workflows.values());
+
+    if (filters?.type) {
+      workflows = workflows.filter(w => w.type === filters.type);
+    }
+
+    if (filters?.status) {
+      workflows = workflows.filter(w => w.status === filters.status);
+    }
+
+    if (filters?.category) {
+      workflows = workflows.filter(w => w.metadata.category === filters.category);
+    }
+
+    if (filters?.tags && filters.tags.length > 0) {
+      workflows = workflows.filter(w => 
+        w.metadata.tags?.some(tag => filters.tags!.includes(tag))
+      );
+    }
+
+    return workflows.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+  }
+
+  // ============================================================================
+  // GESTIÓN DE INSTANCIAS
+  // ============================================================================
+
+  async startWorkflow(workflowId: string, context: Record<string, any> = {}, metadata: Record<string, any> = {}): Promise<WorkflowInstance> {
     const workflow = this.workflows.get(workflowId);
     if (!workflow) {
-      throw new Error(`Workflow not found: ${workflowId}`);
+      throw new Error(`Workflow ${workflowId} not found`);
     }
 
-    const instanceId = `instance_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    if (workflow.status !== 'active') {
+      throw new Error(`Workflow ${workflowId} is not active`);
+    }
+
+    const instanceId = `inst_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date();
-
-    let currentState: string;
-    if (workflow.type === 'bpmn') {
-      const bpmnDef = workflow.definition as BPMNDefinition;
-      currentState = bpmnDef.startEvent;
-    } else {
-      const stateDef = workflow.definition as StateMachineDefinition;
-      currentState = stateDef.initialState;
-    }
 
     const instance: WorkflowInstance = {
       id: instanceId,
       workflowId,
       status: 'running',
-      currentState,
       context,
-      history: [{
-        id: `history_${Date.now()}`,
-        timestamp: now,
-        type: 'state_change',
-        state: currentState,
-        data: { context },
-        message: 'Workflow started',
-      }],
       metadata,
+      history: [{
+        timestamp: now,
+        action: 'workflow_started',
+        message: `Workflow ${workflow.name} started`,
+        data: { workflowId, context, metadata }
+      }],
+      startedAt: now,
       createdAt: now,
       updatedAt: now,
-      startedAt: now,
     };
+
+    // Determinar elemento inicial
+    if (workflow.type === 'bpmn') {
+      const bpmnDef = workflow.definition as BpmnWorkflow;
+      instance.currentElement = bpmnDef.startElement;
+    } else {
+      const stateDef = workflow.definition as StateMachineWorkflow;
+      instance.currentState = stateDef.initialState;
+    }
 
     this.instances.set(instanceId, instance);
 
-    // Iniciar ejecución
-    this.executeWorkflow(instanceId);
+    // Ejecutar primera acción
+    await this.executeNextAction(instanceId);
 
-    logger.info('Workflow instance started', {
-      instanceId,
-      workflowId,
-      workflowName: workflow.name,
-      currentState,
-    });
-
-    return instanceId;
+    return instance;
   }
 
-  getWorkflowInstance(instanceId: string): WorkflowInstance | undefined {
-    return this.instances.get(instanceId);
+  async getInstance(instanceId: string): Promise<WorkflowInstance | null> {
+    return this.instances.get(instanceId) || null;
   }
 
-  getAllInstances(filters?: WorkflowInstanceFilters): WorkflowInstance[] {
+  async listInstances(filters?: InstanceFilters): Promise<WorkflowInstance[]> {
     let instances = Array.from(this.instances.values());
 
-    if (filters) {
-      if (filters.workflowId) {
-        instances = instances.filter(i => i.workflowId === filters.workflowId);
-      }
-      if (filters.status) {
-        instances = instances.filter(i => i.status === filters.status);
-      }
-      if (filters.userId) {
-        instances = instances.filter(i => i.metadata.userId === filters.userId);
-      }
-      if (filters.organizationId) {
-        instances = instances.filter(i => i.metadata.organizationId === filters.organizationId);
-      }
-      if (filters.createdAfter) {
-        instances = instances.filter(i => i.createdAt >= filters.createdAfter!);
-      }
-      if (filters.createdBefore) {
-        instances = instances.filter(i => i.createdAt <= filters.createdBefore!);
-      }
+    if (filters?.workflowId) {
+      instances = instances.filter(i => i.workflowId === filters.workflowId);
     }
 
-    return instances;
+    if (filters?.status) {
+      instances = instances.filter(i => i.status === filters.status);
+    }
+
+    if (filters?.userId) {
+      instances = instances.filter(i => i.metadata.userId === filters.userId);
+    }
+
+    if (filters?.orgId) {
+      instances = instances.filter(i => i.metadata.orgId === filters.orgId);
+    }
+
+    if (filters?.fromDate) {
+      instances = instances.filter(i => i.createdAt >= filters.fromDate!);
+    }
+
+    if (filters?.toDate) {
+      instances = instances.filter(i => i.createdAt <= filters.toDate!);
+    }
+
+    return instances.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
-  pauseWorkflow(instanceId: string): boolean {
+  async pauseInstance(instanceId: string): Promise<void> {
     const instance = this.instances.get(instanceId);
-    if (!instance || instance.status !== 'running') {
-      return false;
+    if (!instance) {
+      throw new Error(`Instance ${instanceId} not found`);
+    }
+
+    if (instance.status !== 'running') {
+      throw new Error(`Instance ${instanceId} is not running`);
     }
 
     instance.status = 'paused';
     instance.updatedAt = new Date();
     instance.history.push({
-      id: `history_${Date.now()}`,
       timestamp: new Date(),
-      type: 'user_action',
-      data: {},
-      message: 'Workflow paused by user',
+      action: 'instance_paused',
+      message: 'Instance paused by user',
     });
-
-    // Cancelar ejecución programada
-    const timeout = this.executionQueue.get(instanceId);
-    if (timeout) {
-      clearTimeout(timeout);
-      this.executionQueue.delete(instanceId);
-    }
-
-    logger.info('Workflow paused', { instanceId });
-    return true;
   }
 
-  resumeWorkflow(instanceId: string): boolean {
+  async resumeInstance(instanceId: string): Promise<void> {
     const instance = this.instances.get(instanceId);
-    if (!instance || instance.status !== 'paused') {
-      return false;
+    if (!instance) {
+      throw new Error(`Instance ${instanceId} not found`);
+    }
+
+    if (instance.status !== 'paused') {
+      throw new Error(`Instance ${instanceId} is not paused`);
     }
 
     instance.status = 'running';
     instance.updatedAt = new Date();
     instance.history.push({
-      id: `history_${Date.now()}`,
       timestamp: new Date(),
-      type: 'user_action',
-      data: {},
-      message: 'Workflow resumed by user',
+      action: 'instance_resumed',
+      message: 'Instance resumed by user',
     });
 
-    // Reanudar ejecución
-    this.executeWorkflow(instanceId);
-
-    logger.info('Workflow resumed', { instanceId });
-    return true;
+    // Continuar ejecución
+    await this.executeNextAction(instanceId);
   }
 
-  cancelWorkflow(instanceId: string): boolean {
+  async cancelInstance(instanceId: string): Promise<void> {
     const instance = this.instances.get(instanceId);
-    if (!instance || instance.status === 'completed' || instance.status === 'cancelled') {
-      return false;
+    if (!instance) {
+      throw new Error(`Instance ${instanceId} not found`);
+    }
+
+    if (instance.status === 'completed' || instance.status === 'failed') {
+      throw new Error(`Instance ${instanceId} is already finished`);
     }
 
     instance.status = 'cancelled';
     instance.updatedAt = new Date();
     instance.history.push({
-      id: `history_${Date.now()}`,
       timestamp: new Date(),
-      type: 'user_action',
-      data: {},
-      message: 'Workflow cancelled by user',
+      action: 'instance_cancelled',
+      message: 'Instance cancelled by user',
     });
-
-    // Cancelar ejecución programada
-    const timeout = this.executionQueue.get(instanceId);
-    if (timeout) {
-      clearTimeout(timeout);
-      this.executionQueue.delete(instanceId);
-    }
-
-    logger.info('Workflow cancelled', { instanceId });
-    return true;
   }
 
-  executeAction(instanceId: string, actionName: string, data?: Record<string, any>): boolean {
+  async executeAction(instanceId: string, actionId: string): Promise<void> {
     const instance = this.instances.get(instanceId);
-    if (!instance || instance.status !== 'running') {
-      return false;
+    if (!instance) {
+      throw new Error(`Instance ${instanceId} not found`);
     }
 
     const workflow = this.workflows.get(instance.workflowId);
     if (!workflow) {
-      return false;
+      throw new Error(`Workflow ${instance.workflowId} not found`);
     }
 
-    try {
-      // Ejecutar acción
-      const result = this.executeActionByName(actionName, data || {}, instance.context);
-      
-      // Actualizar contexto
-      instance.context = { ...instance.context, ...result };
-      instance.updatedAt = new Date();
-      instance.history.push({
-        id: `history_${Date.now()}`,
-        timestamp: new Date(),
-        type: 'action_executed',
-        action: actionName,
-        data: { input: data, output: result },
-        message: `Action '${actionName}' executed successfully`,
-      });
-
-      logger.info('Action executed', {
-        instanceId,
-        actionName,
-        result,
-      });
-
-      return true;
-    } catch (error) {
-      instance.history.push({
-        id: `history_${Date.now()}`,
-        timestamp: new Date(),
-        type: 'error',
-        action: actionName,
-        data: { input: data, error: (error as Error).message },
-        message: `Action '${actionName}' failed: ${(error as Error).message}`,
-      });
-
-      logger.error('Action execution failed', {
-        instanceId,
-        actionName,
-        error: (error as Error).message,
-      });
-
-      return false;
+    const action = workflow.actions.find(a => a.id === actionId);
+    if (!action) {
+      throw new Error(`Action ${actionId} not found in workflow ${instance.workflowId}`);
     }
+
+    await this.executeActionInternal(instance, action);
   }
 
-  getWorkflowStats(): WorkflowStats {
-    const instances = Array.from(this.instances.values());
-    const workflows = Array.from(this.workflows.values());
+  // ============================================================================
+  // EJECUCIÓN INTERNA
+  // ============================================================================
 
-    const workflowsByType: Record<string, number> = {};
-    const instancesByStatus: Record<string, number> = {};
-
-    // Contar workflows por tipo
-    for (const workflow of workflows) {
-      workflowsByType[workflow.type] = (workflowsByType[workflow.type] || 0) + 1;
-    }
-
-    // Contar instancias por status
-    for (const instance of instances) {
-      instancesByStatus[instance.status] = (instancesByStatus[instance.status] || 0) + 1;
-    }
-
-    // Calcular tiempo promedio de ejecución
-    const completedInstances = instances.filter(i => i.status === 'completed' && i.completedAt);
-    const totalExecutionTime = completedInstances.reduce((sum, instance) => {
-      return sum + (instance.completedAt!.getTime() - instance.startedAt!.getTime());
-    }, 0);
-    const averageExecutionTime = completedInstances.length > 0 ? totalExecutionTime / completedInstances.length : 0;
-
-    return {
-      totalWorkflows: workflows.length,
-      totalInstances: instances.length,
-      runningInstances: instancesByStatus['running'] || 0,
-      completedInstances: instancesByStatus['completed'] || 0,
-      failedInstances: instancesByStatus['failed'] || 0,
-      averageExecutionTime,
-      workflowsByType,
-      instancesByStatus,
-    };
-  }
-
-  private executeWorkflow(instanceId: string): void {
+  private async executeNextAction(instanceId: string): Promise<void> {
     const instance = this.instances.get(instanceId);
     if (!instance || instance.status !== 'running') {
       return;
@@ -492,265 +484,417 @@ export class WorkflowEngineImpl implements WorkflowEngine {
       return;
     }
 
-    try {
-      if (workflow.type === 'bpmn') {
-        this.executeBPMNWorkflow(instance, workflow);
-      } else {
-        this.executeStateMachineWorkflow(instance, workflow);
+    // Encontrar acciones del elemento/estado actual
+    let currentActions: string[] = [];
+
+    if (workflow.type === 'bpmn') {
+      const bpmnDef = workflow.definition as BpmnWorkflow;
+      const currentElement = bpmnDef.elements.find(e => e.id === instance.currentElement);
+      if (currentElement?.actions) {
+        currentActions = currentElement.actions;
       }
+    } else {
+      const stateDef = workflow.definition as StateMachineWorkflow;
+      const currentState = stateDef.states.find(s => s.id === instance.currentState);
+      if (currentState?.actions) {
+        currentActions = currentState.actions;
+      }
+    }
+
+    // Ejecutar acciones en orden
+    for (const actionId of currentActions) {
+      const action = workflow.actions.find(a => a.id === actionId);
+      if (action) {
+        await this.executeActionInternal(instance, action);
+      }
+    }
+
+    // Determinar siguiente elemento/estado
+    await this.advanceWorkflow(instance, workflow);
+  }
+
+  private async executeActionInternal(instance: WorkflowInstance, action: Action): Promise<void> {
+    try {
+      instance.history.push({
+        timestamp: new Date(),
+        action: 'action_started',
+        message: `Executing action: ${action.name}`,
+        data: { actionId: action.id, actionType: action.type }
+      });
+
+      let result: any;
+
+      switch (action.type) {
+        case 'function':
+          result = await this.executeFunctionAction(action, instance.context);
+          break;
+        case 'http':
+          result = await this.executeHttpAction(action, instance.context);
+          break;
+        case 'delay':
+          result = await this.executeDelayAction(action);
+          break;
+        case 'condition':
+          result = await this.executeConditionAction(action, instance.context);
+          break;
+        case 'notification':
+          result = await this.executeNotificationAction(action, instance.context);
+          break;
+        default:
+          throw new Error(`Unknown action type: ${action.type}`);
+      }
+
+      instance.history.push({
+        timestamp: new Date(),
+        action: 'action_completed',
+        message: `Action ${action.name} completed successfully`,
+        data: { actionId: action.id, result }
+      });
+
+      // Actualizar contexto con resultado
+      if (result) {
+        instance.context[`action_${action.id}_result`] = result;
+      }
+
     } catch (error) {
+      instance.history.push({
+        timestamp: new Date(),
+        action: 'action_failed',
+        message: `Action ${action.name} failed: ${error instanceof Error ? error.message : String(error)}`,
+        data: { actionId: action.id, error: error instanceof Error ? error.message : String(error) }
+      });
+
+      // Manejar retry si está configurado
+      if (action.retry) {
+        await this.handleRetry(instance, action);
+      } else {
+        instance.status = 'failed';
+        instance.updatedAt = new Date();
+      }
+    }
+  }
+
+  private async executeFunctionAction(action: Action, context: Record<string, any>): Promise<any> {
+    const { functionName, parameters } = action.config;
+    
+    // Simular ejecución de función
+    console.log(`Executing function: ${functionName} with parameters:`, parameters);
+    
+    // Aquí se ejecutaría la función real
+    return { success: true, functionName, parameters };
+  }
+
+  private async executeHttpAction(action: Action, context: Record<string, any>): Promise<any> {
+    const { url, method, headers, body } = action.config;
+    
+    // Simular llamada HTTP
+    console.log(`Making HTTP ${method} request to: ${url}`);
+    
+    // Aquí se haría la llamada HTTP real
+    return { success: true, status: 200, url, method };
+  }
+
+  private async executeDelayAction(action: Action): Promise<any> {
+    const { duration } = action.config;
+    
+    console.log(`Delaying for ${duration}ms`);
+    await new Promise(resolve => setTimeout(resolve, duration));
+    
+    return { success: true, duration };
+  }
+
+  private async executeConditionAction(action: Action, context: Record<string, any>): Promise<any> {
+    const { expression } = action.config;
+    
+    // Evaluar condición
+    const result = this.evaluateCondition(expression, context);
+    
+    return { success: true, condition: expression, result };
+  }
+
+  private async executeNotificationAction(action: Action, context: Record<string, any>): Promise<any> {
+    const { type, recipient, message, template } = action.config;
+    
+    console.log(`Sending ${type} notification to: ${recipient}`);
+    
+    // Aquí se enviaría la notificación real
+    return { success: true, type, recipient, message };
+  }
+
+  private evaluateCondition(expression: string, context: Record<string, any>): boolean {
+    try {
+      // Evaluación simple de condiciones
+      // En producción usar una librería como jsonata o similar
+      const safeExpression = expression
+        .replace(/[^a-zA-Z0-9_$.\s()=!<>]/g, '')
+        .replace(/\b\w+\b/g, (match) => {
+          return context[match] !== undefined ? JSON.stringify(context[match]) : 'false';
+        });
+      
+      return eval(safeExpression) === true;
+    } catch (error) {
+      console.error('Error evaluating condition:', expression, error);
+      return false;
+    }
+  }
+
+  private async handleRetry(instance: WorkflowInstance, action: Action): Promise<void> {
+    const retryCount = instance.context[`retry_${action.id}`] || 0;
+    
+    if (retryCount < action.retry!.maxAttempts) {
+      instance.context[`retry_${action.id}`] = retryCount + 1;
+      
+      const delay = this.calculateRetryDelay(action.retry!, retryCount);
+      
+      instance.history.push({
+        timestamp: new Date(),
+        action: 'action_retry',
+        message: `Retrying action ${action.name} (attempt ${retryCount + 1}/${action.retry!.maxAttempts})`,
+        data: { actionId: action.id, retryCount: retryCount + 1, delay }
+      });
+
+      setTimeout(async () => {
+        await this.executeActionInternal(instance, action);
+      }, delay);
+    } else {
       instance.status = 'failed';
       instance.updatedAt = new Date();
       instance.history.push({
-        id: `history_${Date.now()}`,
         timestamp: new Date(),
-        type: 'error',
-        data: { error: (error as Error).message },
-        message: `Workflow execution failed: ${(error as Error).message}`,
-      });
-
-      logger.error('Workflow execution failed', {
-        instanceId,
-        error: (error as Error).message,
+        action: 'action_failed',
+        message: `Action ${action.name} failed after ${action.retry!.maxAttempts} retries`,
+        data: { actionId: action.id, maxAttempts: action.retry!.maxAttempts }
       });
     }
   }
 
-  private executeBPMNWorkflow(instance: WorkflowInstance, workflow: WorkflowDefinition): void {
-    const bpmnDef = workflow.definition as BPMNDefinition;
-    const currentElement = bpmnDef.elements.find(e => e.id === instance.currentState);
+  private calculateRetryDelay(retry: NonNullable<Action['retry']>, attempt: number): number {
+    switch (retry.strategy) {
+      case 'fixed':
+        return retry.delay;
+      case 'exponential':
+        return retry.delay * Math.pow(2, attempt);
+      case 'linear':
+        return retry.delay * (attempt + 1);
+      default:
+        return retry.delay;
+    }
+  }
+
+  private async advanceWorkflow(instance: WorkflowInstance, workflow: Workflow): Promise<void> {
+    if (workflow.type === 'bpmn') {
+      await this.advanceBpmnWorkflow(instance, workflow);
+    } else {
+      await this.advanceStateMachineWorkflow(instance, workflow);
+    }
+  }
+
+  private async advanceBpmnWorkflow(instance: WorkflowInstance, workflow: Workflow): Promise<void> {
+    const bpmnDef = workflow.definition as BpmnWorkflow;
+    const currentElement = bpmnDef.elements.find(e => e.id === instance.currentElement);
     
     if (!currentElement) {
-      throw new Error(`BPMN element not found: ${instance.currentState}`);
+      instance.status = 'failed';
+      instance.updatedAt = new Date();
+      return;
     }
 
-    switch (currentElement.type) {
-      case 'startEvent':
-        this.executeStartEvent(instance, currentElement);
-        break;
-      case 'task':
-        this.executeTask(instance, currentElement);
-        break;
-      case 'gateway':
-        this.executeGateway(instance, currentElement, bpmnDef);
-        break;
-      case 'endEvent':
-        this.executeEndEvent(instance, currentElement);
-        break;
-      case 'subprocess':
-        this.executeSubprocess(instance, currentElement);
-        break;
-    }
-  }
-
-  private executeStateMachineWorkflow(instance: WorkflowInstance, workflow: WorkflowDefinition): void {
-    const stateDef = workflow.definition as StateMachineDefinition;
-    const currentState = stateDef.states.find(s => s.id === instance.currentState);
-    
-    if (!currentState) {
-      throw new Error(`State not found: ${instance.currentState}`);
-    }
-
-    // Ejecutar acciones del estado
-    for (const action of currentState.actions) {
-      try {
-        const result = this.executeActionByName(action.name, action.config, instance.context);
-        instance.context = { ...instance.context, ...result };
-      } catch (error) {
-        logger.error('State action failed', {
-          instanceId: instance.id,
-          stateId: currentState.id,
-          actionName: action.name,
-          error: (error as Error).message,
-        });
-      }
-    }
-
-    // Programar siguiente ejecución si hay timeout
-    if (currentState.timeout) {
-      const timeout = setTimeout(() => {
-        this.executeWorkflow(instance.id);
-      }, currentState.timeout);
-      this.executionQueue.set(instance.id, timeout);
-    }
-  }
-
-  private executeStartEvent(instance: WorkflowInstance, element: BPMNElement): void {
-    // Ejecutar acciones del start event
-    if (element.actions) {
-      for (const action of element.actions) {
-        this.executeActionByName(action, {}, instance.context);
-      }
+    // Si es un endEvent, terminar
+    if (currentElement.type === 'endEvent') {
+      instance.status = 'completed';
+      instance.completedAt = new Date();
+      instance.updatedAt = new Date();
+      instance.history.push({
+        timestamp: new Date(),
+        action: 'workflow_completed',
+        message: 'Workflow completed successfully',
+      });
+      return;
     }
 
     // Encontrar siguiente elemento
-    const bpmnDef = (this.workflows.get(instance.workflowId)!.definition as BPMNDefinition);
-    const outgoingFlows = bpmnDef.flows.filter(f => f.sourceId === element.id);
+    const outgoingFlows = bpmnDef.flows.filter(f => f.source === instance.currentElement);
     
-    if (outgoingFlows.length > 0) {
-      const nextFlow = outgoingFlows[0]; // Tomar el primer flujo por defecto
-      instance.currentState = nextFlow.targetId;
+    if (outgoingFlows.length === 0) {
+      instance.status = 'failed';
       instance.updatedAt = new Date();
-      
-      // Continuar ejecución
-      setTimeout(() => this.executeWorkflow(instance.id), 100);
-    }
-  }
-
-  private executeTask(instance: WorkflowInstance, element: BPMNElement): void {
-    // Ejecutar acciones de la tarea
-    if (element.actions) {
-      for (const action of element.actions) {
-        this.executeActionByName(action, element.properties, instance.context);
-      }
+      instance.history.push({
+        timestamp: new Date(),
+        action: 'workflow_failed',
+        message: 'No outgoing flows found',
+      });
+      return;
     }
 
-    // Encontrar siguiente elemento
-    const bpmnDef = (this.workflows.get(instance.workflowId)!.definition as BPMNDefinition);
-    const outgoingFlows = bpmnDef.flows.filter(f => f.sourceId === element.id);
-    
-    if (outgoingFlows.length > 0) {
-      const nextFlow = outgoingFlows[0];
-      instance.currentState = nextFlow.targetId;
-      instance.updatedAt = new Date();
-      
-      // Continuar ejecución
-      setTimeout(() => this.executeWorkflow(instance.id), 100);
-    }
-  }
-
-  private executeGateway(instance: WorkflowInstance, element: BPMNElement, bpmnDef: BPMNDefinition): void {
-    const outgoingFlows = bpmnDef.flows.filter(f => f.sourceId === element.id);
-    
-    // Evaluar condiciones para encontrar el flujo correcto
-    let selectedFlow = outgoingFlows[0]; // Por defecto, el primero
-    
-    for (const flow of outgoingFlows) {
-      if (flow.condition) {
-        try {
-          const conditionResult = this.evaluateCondition(flow.condition, instance.context);
-          if (conditionResult) {
-            selectedFlow = flow;
-            break;
-          }
-        } catch (error) {
-          logger.warn('Condition evaluation failed', {
-            instanceId: instance.id,
-            flowId: flow.id,
-            condition: flow.condition,
-            error: (error as Error).message,
-          });
+    // Si hay múltiples flujos, evaluar condiciones
+    let nextFlow = outgoingFlows[0];
+    if (outgoingFlows.length > 1) {
+      for (const flow of outgoingFlows) {
+        if (flow.condition && this.evaluateCondition(flow.condition, instance.context)) {
+          nextFlow = flow;
+          break;
         }
       }
     }
 
-    instance.currentState = selectedFlow.targetId;
+    instance.currentElement = nextFlow.target;
     instance.updatedAt = new Date();
-    
+
     // Continuar ejecución
-    setTimeout(() => this.executeWorkflow(instance.id), 100);
+    await this.executeNextAction(instance.id);
   }
 
-  private executeEndEvent(instance: WorkflowInstance, element: BPMNElement): void {
-    // Ejecutar acciones del end event
-    if (element.actions) {
-      for (const action of element.actions) {
-        this.executeActionByName(action, {}, instance.context);
-      }
-    }
-
-    instance.status = 'completed';
-    instance.updatedAt = new Date();
-    instance.completedAt = new Date();
-    instance.history.push({
-      id: `history_${Date.now()}`,
-      timestamp: new Date(),
-      type: 'state_change',
-      state: instance.currentState,
-      data: {},
-      message: 'Workflow completed successfully',
-    });
-
-    logger.info('Workflow completed', { instanceId: instance.id });
-  }
-
-  private executeSubprocess(instance: WorkflowInstance, element: BPMNElement): void {
-    // Implementación simplificada de subprocess
-    // En una implementación real, esto crearía una nueva instancia de workflow
+  private async advanceStateMachineWorkflow(instance: WorkflowInstance, workflow: Workflow): Promise<void> {
+    const stateDef = workflow.definition as StateMachineWorkflow;
+    const currentState = stateDef.states.find(s => s.id === instance.currentState);
     
-    logger.info('Subprocess executed', {
-      instanceId: instance.id,
-      subprocessId: element.id,
-    });
-
-    // Continuar con el flujo normal
-    const bpmnDef = (this.workflows.get(instance.workflowId)!.definition as BPMNDefinition);
-    const outgoingFlows = bpmnDef.flows.filter(f => f.sourceId === element.id);
-    
-    if (outgoingFlows.length > 0) {
-      const nextFlow = outgoingFlows[0];
-      instance.currentState = nextFlow.targetId;
+    if (!currentState) {
+      instance.status = 'failed';
       instance.updatedAt = new Date();
-      
-      setTimeout(() => this.executeWorkflow(instance.id), 100);
+      return;
     }
-  }
 
-  private executeActionByName(actionName: string, config: Record<string, any>, context: Record<string, any>): Record<string, any> {
-    // Implementación simplificada de acciones
-    // En una implementación real, esto ejecutaría funciones reales
-    
-    switch (actionName) {
-      case 'sendEmail':
-        logger.info('Email action executed', { config, context });
-        return { emailSent: true, timestamp: new Date().toISOString() };
-      
-      case 'httpRequest':
-        logger.info('HTTP request action executed', { config, context });
-        return { httpResponse: { status: 200, data: 'success' } };
-      
-      case 'delay':
-        const delayMs = config.delay || 1000;
-        logger.info('Delay action executed', { delayMs });
-        return { delayed: true, delayMs };
-      
-      case 'condition':
-        const condition = config.condition || 'true';
-        const result = this.evaluateCondition(condition, context);
-        return { conditionResult: result };
-      
-      case 'notification':
-        logger.info('Notification action executed', { config, context });
-        return { notificationSent: true };
-      
-      default:
-        logger.warn('Unknown action', { actionName, config });
-        return { actionExecuted: true, actionName };
-    }
-  }
-
-  private evaluateCondition(condition: string, context: Record<string, any>): boolean {
-    // Implementación simplificada de evaluación de condiciones
-    // En una implementación real, usaría un motor de expresiones más robusto
-    
-    try {
-      // Reemplazar variables del contexto
-      let evaluatedCondition = condition;
-      for (const [key, value] of Object.entries(context)) {
-        const regex = new RegExp(`\\$\\{${key}\\}`, 'g');
-        evaluatedCondition = evaluatedCondition.replace(regex, JSON.stringify(value));
-      }
-      
-      // Evaluar la condición
-      return eval(evaluatedCondition);
-    } catch (error) {
-      logger.error('Condition evaluation failed', {
-        condition,
-        context,
-        error: (error as Error).message,
+    // Si es un estado final, terminar
+    if (currentState.type === 'final') {
+      instance.status = 'completed';
+      instance.completedAt = new Date();
+      instance.updatedAt = new Date();
+      instance.history.push({
+        timestamp: new Date(),
+        action: 'workflow_completed',
+        message: 'Workflow completed successfully',
       });
-      return false;
+      return;
     }
+
+    // Encontrar transiciones disponibles
+    const availableTransitions = stateDef.transitions.filter(t => t.from === instance.currentState);
+    
+    if (availableTransitions.length === 0) {
+      // Si no hay transiciones, verificar timeout
+      if (currentState.timeout) {
+        const timeInState = Date.now() - instance.updatedAt.getTime();
+        if (timeInState > currentState.timeout * 1000) {
+          instance.status = 'failed';
+          instance.updatedAt = new Date();
+          instance.history.push({
+            timestamp: new Date(),
+            action: 'state_timeout',
+            message: `State ${currentState.name} timed out after ${currentState.timeout}s`,
+          });
+          return;
+        }
+      }
+      return; // Esperar evento o timeout
+    }
+
+    // Evaluar transiciones
+    for (const transition of availableTransitions) {
+      if (!transition.condition || this.evaluateCondition(transition.condition, instance.context)) {
+        instance.currentState = transition.to;
+        instance.updatedAt = new Date();
+        instance.history.push({
+          timestamp: new Date(),
+          action: 'state_transition',
+          message: `Transitioned from ${currentState.name} to ${transition.to}`,
+          data: { from: currentState.id, to: transition.to, transitionId: transition.id }
+        });
+
+        // Continuar ejecución
+        await this.executeNextAction(instance.id);
+        return;
+      }
+    }
+  }
+
+  // ============================================================================
+  // LOOP DE EJECUCIÓN
+  // ============================================================================
+
+  private startExecutionLoop(): void {
+    setInterval(() => {
+      this.processExecutionQueue();
+    }, 1000); // Procesar cada segundo
+  }
+
+  private async processExecutionQueue(): Promise<void> {
+    const queue = [...this.executionQueue];
+    this.executionQueue = [];
+
+    for (const item of queue) {
+      try {
+        await this.executeAction(item.instanceId, item.actionId);
+      } catch (error) {
+        console.error('Error processing execution queue item:', error);
+      }
+    }
+  }
+
+  // ============================================================================
+  // ESTADÍSTICAS
+  // ============================================================================
+
+  async getStats(): Promise<WorkflowStats> {
+    const workflows = Array.from(this.workflows.values());
+    const instances = Array.from(this.instances.values());
+
+    const workflowsByType: Record<WorkflowType, number> = {
+      bpmn: 0,
+      state_machine: 0,
+    };
+
+    const instancesByStatus: Record<InstanceStatus, number> = {
+      running: 0,
+      completed: 0,
+      failed: 0,
+      paused: 0,
+      cancelled: 0,
+    };
+
+    let totalExecutionTime = 0;
+    let completedCount = 0;
+
+    // Contar workflows por tipo
+    for (const workflow of workflows) {
+      workflowsByType[workflow.type]++;
+    }
+
+    // Contar instancias por status y calcular tiempos
+    for (const instance of instances) {
+      instancesByStatus[instance.status]++;
+
+      if (instance.status === 'completed' && instance.completedAt) {
+        const executionTime = instance.completedAt.getTime() - instance.startedAt.getTime();
+        totalExecutionTime += executionTime;
+        completedCount++;
+      }
+    }
+
+    // Obtener actividad reciente
+    const recentActivity = instances
+      .flatMap(instance => 
+        instance.history
+          .filter(h => h.timestamp > new Date(Date.now() - 24 * 60 * 60 * 1000)) // Últimas 24h
+          .map(h => ({
+            workflowId: instance.workflowId,
+            workflowName: workflows.find(w => w.id === instance.workflowId)?.name || 'Unknown',
+            instanceId: instance.id,
+            action: h.action,
+            timestamp: h.timestamp,
+          }))
+      )
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+      .slice(0, 10);
+
+    return {
+      totalWorkflows: workflows.length,
+      totalInstances: instances.length,
+      workflowsByType,
+      instancesByStatus,
+      averageExecutionTime: completedCount > 0 ? totalExecutionTime / completedCount : 0,
+      successRate: instances.length > 0 ? (instancesByStatus.completed / instances.length) * 100 : 0,
+      recentActivity,
+    };
   }
 }
 

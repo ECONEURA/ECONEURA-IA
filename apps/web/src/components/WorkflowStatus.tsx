@@ -1,117 +1,82 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 
-interface WorkflowDefinition {
+// ============================================================================
+// TIPOS
+// ============================================================================
+
+interface WorkflowStats {
+  totalWorkflows: number;
+  totalInstances: number;
+  workflowsByType: {
+    bpmn: number;
+    state_machine: number;
+  };
+  instancesByStatus: {
+    running: number;
+    completed: number;
+    failed: number;
+    paused: number;
+    cancelled: number;
+  };
+  averageExecutionTime: number;
+  successRate: number;
+  recentActivity: Array<{
+    workflowId: string;
+    workflowName: string;
+    instanceId: string;
+    action: string;
+    timestamp: string;
+  }>;
+}
+
+interface Workflow {
   id: string;
   name: string;
-  version: string;
-  description: string;
-  type: 'bpmn' | 'state-machine';
-  definition: any;
-  metadata: WorkflowMetadata;
+  type: 'bpmn' | 'state_machine';
+  status: 'draft' | 'active' | 'inactive' | 'archived';
+  version: number;
+  metadata: {
+    category?: string;
+    tags?: string[];
+    description?: string;
+  };
   createdAt: string;
   updatedAt: string;
-}
-
-interface WorkflowMetadata {
-  author: string;
-  category: string;
-  tags: string[];
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  timeout: number;
-  retryPolicy: RetryPolicy;
-  notifications: NotificationConfig[];
-}
-
-interface RetryPolicy {
-  maxRetries: number;
-  backoffStrategy: 'fixed' | 'exponential' | 'linear';
-  initialDelay: number;
-  maxDelay: number;
-}
-
-interface NotificationConfig {
-  type: 'email' | 'webhook' | 'slack' | 'sms';
-  trigger: 'start' | 'complete' | 'error' | 'timeout';
-  config: Record<string, any>;
 }
 
 interface WorkflowInstance {
   id: string;
   workflowId: string;
   status: 'running' | 'completed' | 'failed' | 'paused' | 'cancelled';
-  currentState: string;
-  context: Record<string, any>;
-  history: WorkflowHistoryItem[];
-  metadata: WorkflowInstanceMetadata;
+  currentElement?: string;
+  currentState?: string;
+  startedAt: string;
+  completedAt?: string;
   createdAt: string;
   updatedAt: string;
-  startedAt?: string;
-  completedAt?: string;
 }
 
-interface WorkflowHistoryItem {
-  id: string;
-  timestamp: string;
-  type: 'state_change' | 'action_executed' | 'error' | 'timeout' | 'user_action';
-  state?: string;
-  action?: string;
-  data: Record<string, any>;
-  message: string;
-}
-
-interface WorkflowInstanceMetadata {
-  userId: string;
-  organizationId: string;
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  tags: string[];
-  customData: Record<string, any>;
-}
-
-interface WorkflowStats {
-  totalWorkflows: number;
-  totalInstances: number;
-  runningInstances: number;
-  completedInstances: number;
-  failedInstances: number;
-  averageExecutionTime: number;
-  workflowsByType: Record<string, number>;
-  instancesByStatus: Record<string, number>;
-}
+// ============================================================================
+// COMPONENTE PRINCIPAL
+// ============================================================================
 
 export default function WorkflowStatus() {
-  const [workflows, setWorkflows] = useState<WorkflowDefinition[]>([]);
-  const [instances, setInstances] = useState<WorkflowInstance[]>([]);
   const [stats, setStats] = useState<WorkflowStats | null>(null);
+  const [workflows, setWorkflows] = useState<Workflow[]>([]);
+  const [instances, setInstances] = useState<WorkflowInstance[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [newWorkflow, setNewWorkflow] = useState({
-    name: 'Test Workflow',
-    version: '1.0.0',
-    description: 'Test workflow description',
-    type: 'bpmn' as const,
-    definition: {
-      elements: [],
-      flows: [],
-      startEvent: 'start',
-      endEvents: ['end'],
-    },
-    metadata: {
-      author: 'System',
-      category: 'Test',
-      tags: ['test'],
-      priority: 'medium' as const,
-      timeout: 300000,
-      retryPolicy: {
-        maxRetries: 3,
-        backoffStrategy: 'exponential' as const,
-        initialDelay: 1000,
-        maxDelay: 10000,
-      },
-      notifications: [],
-    },
-  });
+  const [selectedWorkflow, setSelectedWorkflow] = useState<string | null>(null);
+
+  // ============================================================================
+  // EFECTOS
+  // ============================================================================
 
   useEffect(() => {
     fetchWorkflowData();
@@ -119,23 +84,14 @@ export default function WorkflowStatus() {
     return () => clearInterval(interval);
   }, []);
 
+  // ============================================================================
+  // FUNCIONES
+  // ============================================================================
+
   const fetchWorkflowData = async () => {
     try {
       setLoading(true);
-      
-      // Obtener workflows
-      const workflowsResponse = await fetch('/api/workflows');
-      if (workflowsResponse.ok) {
-        const workflowsData = await workflowsResponse.json();
-        setWorkflows(workflowsData.data.workflows);
-      }
-
-      // Obtener instancias desde la API principal
-      const instancesResponse = await fetch('http://localhost:4000/v1/workflows/instances');
-      if (instancesResponse.ok) {
-        const instancesData = await instancesResponse.json();
-        setInstances(instancesData.data.instances);
-      }
+      setError(null);
 
       // Obtener estadísticas
       const statsResponse = await fetch('/api/workflows/stats');
@@ -144,315 +100,461 @@ export default function WorkflowStatus() {
         setStats(statsData.data);
       }
 
-      setError(null);
+      // Obtener workflows
+      const workflowsResponse = await fetch('/api/workflows');
+      if (workflowsResponse.ok) {
+        const workflowsData = await workflowsResponse.json();
+        setWorkflows(workflowsData.data);
+      }
+
+      // Obtener instancias
+      const instancesResponse = await fetch('/api/workflows/instances');
+      if (instancesResponse.ok) {
+        const instancesData = await instancesResponse.json();
+        setInstances(instancesData.data);
+      }
+
     } catch (err) {
-      setError('Failed to fetch workflow data');
       console.error('Error fetching workflow data:', err);
+      setError('Failed to fetch workflow data');
     } finally {
       setLoading(false);
     }
   };
 
-  const createWorkflow = async () => {
-    try {
-      const response = await fetch('/api/workflows', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newWorkflow),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        alert(`Workflow created successfully!\nWorkflow ID: ${result.data.workflowId}`);
-        fetchWorkflowData(); // Refresh data
-      } else {
-        const error = await response.json();
-        alert(`Workflow creation failed: ${error.error}`);
-      }
-    } catch (err) {
-      console.error('Error creating workflow:', err);
-      alert('Error creating workflow');
-    }
-  };
-
   const startWorkflow = async (workflowId: string) => {
     try {
-      const response = await fetch(`http://localhost:4000/v1/workflows/${workflowId}/start`, {
+      const response = await fetch(`/api/workflows/${workflowId}/start`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          context: {
-            userId: 'test-user-123',
-            userType: 'premium',
-            orderId: 'order-456',
-          },
-          metadata: {
-            userId: 'test-user-123',
-            organizationId: 'test-org-456',
-            priority: 'medium',
-            tags: ['test'],
-            customData: {},
-          },
+          context: { userId: 'demo-user', orgId: 'demo-org' },
+          metadata: { source: 'web-ui' },
         }),
       });
 
       if (response.ok) {
-        const result = await response.json();
-        alert(`Workflow started successfully!\nInstance ID: ${result.data.instanceId}`);
-        fetchWorkflowData(); // Refresh data
+        await fetchWorkflowData(); // Recargar datos
       } else {
-        const error = await response.json();
-        alert(`Workflow start failed: ${error.error}`);
+        const errorData = await response.json();
+        setError(`Failed to start workflow: ${errorData.error}`);
       }
     } catch (err) {
       console.error('Error starting workflow:', err);
-      alert('Error starting workflow');
+      setError('Failed to start workflow');
     }
   };
+
+  const pauseInstance = async (instanceId: string) => {
+    try {
+      const response = await fetch(`/api/workflows/instances/${instanceId}/pause`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        await fetchWorkflowData();
+      } else {
+        const errorData = await response.json();
+        setError(`Failed to pause instance: ${errorData.error}`);
+      }
+    } catch (err) {
+      console.error('Error pausing instance:', err);
+      setError('Failed to pause instance');
+    }
+  };
+
+  const resumeInstance = async (instanceId: string) => {
+    try {
+      const response = await fetch(`/api/workflows/instances/${instanceId}/resume`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        await fetchWorkflowData();
+      } else {
+        const errorData = await response.json();
+        setError(`Failed to resume instance: ${errorData.error}`);
+      }
+    } catch (err) {
+      console.error('Error resuming instance:', err);
+      setError('Failed to resume instance');
+    }
+  };
+
+  const cancelInstance = async (instanceId: string) => {
+    try {
+      const response = await fetch(`/api/workflows/instances/${instanceId}/cancel`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        await fetchWorkflowData();
+      } else {
+        const errorData = await response.json();
+        setError(`Failed to cancel instance: ${errorData.error}`);
+      }
+    } catch (err) {
+      console.error('Error cancelling instance:', err);
+      setError('Failed to cancel instance');
+    }
+  };
+
+  // ============================================================================
+  // FUNCIONES AUXILIARES
+  // ============================================================================
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'running': return 'text-green-600';
-      case 'completed': return 'text-blue-600';
-      case 'failed': return 'text-red-600';
-      case 'paused': return 'text-yellow-600';
-      case 'cancelled': return 'text-gray-600';
-      default: return 'text-gray-600';
+      case 'running':
+        return 'bg-blue-500';
+      case 'completed':
+        return 'bg-green-500';
+      case 'failed':
+        return 'bg-red-500';
+      case 'paused':
+        return 'bg-yellow-500';
+      case 'cancelled':
+        return 'bg-gray-500';
+      default:
+        return 'bg-gray-400';
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'critical': return 'text-red-600';
-      case 'high': return 'text-orange-600';
-      case 'medium': return 'text-yellow-600';
-      case 'low': return 'text-green-600';
-      default: return 'text-gray-600';
-    }
-  };
-
-  const getTypeColor = (type: string) => {
+  const getWorkflowTypeColor = (type: string) => {
     switch (type) {
-      case 'bpmn': return 'text-purple-600';
-      case 'state-machine': return 'text-indigo-600';
-      default: return 'text-gray-600';
+      case 'bpmn':
+        return 'bg-purple-500';
+      case 'state_machine':
+        return 'bg-indigo-500';
+      default:
+        return 'bg-gray-400';
     }
   };
+
+  const formatDuration = (milliseconds: number) => {
+    const seconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+
+    if (hours > 0) {
+      return `${hours}h ${minutes % 60}m`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${seconds % 60}s`;
+    } else {
+      return `${seconds}s`;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString();
+  };
+
+  // ============================================================================
+  // RENDERIZADO
+  // ============================================================================
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold mb-4">🔄 Workflows & BPMN</h3>
-        <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-        </div>
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Workflow Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              <span className="ml-2">Loading workflow data...</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Workflow Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">Error</h3>
+                  <div className="mt-2 text-sm text-red-700">
+                    <p>{error}</p>
+                  </div>
+                  <div className="mt-4">
+                    <Button onClick={fetchWorkflowData} variant="outline" size="sm">
+                      Retry
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h3 className="text-lg font-semibold mb-4">🔄 Workflows & BPMN</h3>
-      
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
-        </div>
-      )}
-
-      {stats && (
-        <div className="mb-6">
-          <h4 className="font-medium text-gray-700 mb-3">System Statistics</h4>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h5 className="font-medium text-sm text-gray-600 mb-2">Workflows</h5>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="text-center">
-                  <div className="text-lg font-bold text-blue-600">{stats.totalWorkflows}</div>
-                  <div className="text-gray-500">Total</div>
+    <div className="space-y-6">
+      {/* Estadísticas Generales */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            Workflow Statistics
+            <Button onClick={fetchWorkflowData} variant="outline" size="sm">
+              Refresh
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {stats && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">{stats.totalWorkflows}</div>
+                <div className="text-sm text-gray-600">Total Workflows</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">{stats.totalInstances}</div>
+                <div className="text-sm text-gray-600">Total Instances</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-600">{stats.successRate.toFixed(1)}%</div>
+                <div className="text-sm text-gray-600">Success Rate</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-orange-600">
+                  {formatDuration(stats.averageExecutionTime)}
                 </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-purple-600">{stats.workflowsByType.bpmn || 0}</div>
-                  <div className="text-gray-500">BPMN</div>
-                </div>
+                <div className="text-sm text-gray-600">Avg Execution Time</div>
               </div>
             </div>
-            <div>
-              <h5 className="font-medium text-sm text-gray-600 mb-2">Instances</h5>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="text-center">
-                  <div className="text-lg font-bold text-green-600">{stats.runningInstances}</div>
-                  <div className="text-gray-500">Running</div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Distribución por Tipo */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Workflows by Type</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {stats && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Badge className={`${getWorkflowTypeColor('bpmn')} text-white`}>BPMN</Badge>
+                  <span className="ml-2">{stats.workflowsByType.bpmn} workflows</span>
                 </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-blue-600">{stats.completedInstances}</div>
-                  <div className="text-gray-500">Completed</div>
+                <div className="text-sm text-gray-600">
+                  {((stats.workflowsByType.bpmn / stats.totalWorkflows) * 100).toFixed(1)}%
                 </div>
               </div>
+              <Progress value={(stats.workflowsByType.bpmn / stats.totalWorkflows) * 100} className="h-2" />
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Badge className={`${getWorkflowTypeColor('state_machine')} text-white`}>State Machine</Badge>
+                  <span className="ml-2">{stats.workflowsByType.state_machine} workflows</span>
+                </div>
+                <div className="text-sm text-gray-600">
+                  {((stats.workflowsByType.state_machine / stats.totalWorkflows) * 100).toFixed(1)}%
+                </div>
+              </div>
+              <Progress value={(stats.workflowsByType.state_machine / stats.totalWorkflows) * 100} className="h-2" />
             </div>
-          </div>
-        </div>
-      )}
+          )}
+        </CardContent>
+      </Card>
 
-      <div className="mb-6">
-        <h4 className="font-medium text-gray-700 mb-3">Create Workflow</h4>
-        <div className="border rounded p-3">
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Name</label>
-              <input
-                type="text"
-                value={newWorkflow.name}
-                onChange={(e) => setNewWorkflow({ ...newWorkflow, name: e.target.value })}
-                className="w-full px-2 py-1 text-sm border rounded"
-              />
+      {/* Instancias por Status */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Instances by Status</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {stats && (
+            <div className="space-y-3">
+              {Object.entries(stats.instancesByStatus).map(([status, count]) => (
+                <div key={status} className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className={`w-3 h-3 rounded-full ${getStatusColor(status)} mr-2`}></div>
+                    <span className="capitalize">{status}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="font-medium">{count}</span>
+                    <span className="text-sm text-gray-600">
+                      ({((count / stats.totalInstances) * 100).toFixed(1)}%)
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Type</label>
-              <select
-                value={newWorkflow.type}
-                onChange={(e) => setNewWorkflow({ ...newWorkflow, type: e.target.value as 'bpmn' | 'state-machine' })}
-                className="w-full px-2 py-1 text-sm border rounded"
-              >
-                <option value="bpmn">BPMN</option>
-                <option value="state-machine">State Machine</option>
-              </select>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Category</label>
-              <input
-                type="text"
-                value={newWorkflow.metadata.category}
-                onChange={(e) => setNewWorkflow({
-                  ...newWorkflow,
-                  metadata: { ...newWorkflow.metadata, category: e.target.value }
-                })}
-                className="w-full px-2 py-1 text-sm border rounded"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Priority</label>
-              <select
-                value={newWorkflow.metadata.priority}
-                onChange={(e) => setNewWorkflow({
-                  ...newWorkflow,
-                  metadata: { ...newWorkflow.metadata, priority: e.target.value as any }
-                })}
-                className="w-full px-2 py-1 text-sm border rounded"
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="critical">Critical</option>
-              </select>
-            </div>
-          </div>
-          <button
-            onClick={createWorkflow}
-            className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-1 rounded"
-          >
-            Create Workflow
-          </button>
-        </div>
-      </div>
+          )}
+        </CardContent>
+      </Card>
 
-      {workflows.length > 0 && (
-        <div className="mb-6">
-          <h4 className="font-medium text-gray-700 mb-3">Workflows ({workflows.length})</h4>
-          <div className="space-y-3 max-h-60 overflow-y-auto">
+      {/* Workflows Disponibles */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Available Workflows</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
             {workflows.map((workflow) => (
-              <div key={workflow.id} className="border rounded p-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h5 className="font-medium">{workflow.name}</h5>
-                    <p className="text-sm text-gray-500">{workflow.description}</p>
-                    <p className="text-xs text-gray-400">
-                      v{workflow.version} | Created: {new Date(workflow.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span className={`text-sm font-medium ${getTypeColor(workflow.type)}`}>
+              <div key={workflow.id} className="border rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Badge className={`${getWorkflowTypeColor(workflow.type)} text-white`}>
                       {workflow.type.toUpperCase()}
-                    </span>
-                    <div className={`text-xs ${getPriorityColor(workflow.metadata.priority)}`}>
-                      {workflow.metadata.priority}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {workflow.metadata.category}
+                    </Badge>
+                    <div>
+                      <h3 className="font-medium">{workflow.name}</h3>
+                      <p className="text-sm text-gray-600">
+                        v{workflow.version} • {workflow.metadata.category || 'No category'}
+                      </p>
                     </div>
                   </div>
-                </div>
-                <div className="mt-2 flex justify-between items-center">
-                  <div className="text-xs text-gray-500">
-                    Tags: {workflow.metadata.tags.join(', ')} | 
-                    Timeout: {workflow.metadata.timeout / 1000}s |
-                    Retries: {workflow.metadata.retryPolicy.maxRetries}
+                  <div className="flex items-center space-x-2">
+                    <Badge variant={workflow.status === 'active' ? 'default' : 'secondary'}>
+                      {workflow.status}
+                    </Badge>
+                    {workflow.status === 'active' && (
+                      <Button
+                        onClick={() => startWorkflow(workflow.id)}
+                        size="sm"
+                        variant="outline"
+                      >
+                        Start
+                      </Button>
+                    )}
                   </div>
-                  <button
-                    onClick={() => startWorkflow(workflow.id)}
-                    className="bg-green-500 hover:bg-green-600 text-white text-xs px-2 py-1 rounded"
-                  >
-                    Start
-                  </button>
                 </div>
+                {workflow.metadata.description && (
+                  <p className="text-sm text-gray-600 mt-2">{workflow.metadata.description}</p>
+                )}
               </div>
             ))}
           </div>
-        </div>
-      )}
+        </CardContent>
+      </Card>
 
-      {instances.length > 0 && (
-        <div className="mb-6">
-          <h4 className="font-medium text-gray-700 mb-3">Workflow Instances ({instances.length})</h4>
-          <div className="space-y-3 max-h-60 overflow-y-auto">
-            {instances.map((instance) => (
-              <div key={instance.id} className="border rounded p-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h5 className="font-medium">Instance {instance.id.slice(-8)}</h5>
-                    <p className="text-sm text-gray-500">Workflow: {instance.workflowId.slice(-8)}</p>
-                    <p className="text-xs text-gray-400">
-                      Created: {new Date(instance.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span className={`text-sm font-medium ${getStatusColor(instance.status)}`}>
-                      {instance.status.toUpperCase()}
-                    </span>
-                    <div className="text-xs text-gray-500">
-                      State: {instance.currentState}
+      {/* Instancias Activas */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Active Instances</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {instances
+              .filter((instance) => ['running', 'paused'].includes(instance.status))
+              .map((instance) => {
+                const workflow = workflows.find((w) => w.id === instance.workflowId);
+                return (
+                  <div key={instance.id} className="border rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">
+                          {workflow?.name || 'Unknown Workflow'}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          Instance: {instance.id.slice(0, 8)}...
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Started: {formatDate(instance.startedAt)}
+                        </p>
+                        {instance.currentElement && (
+                          <p className="text-sm text-gray-600">
+                            Current Element: {instance.currentElement}
+                          </p>
+                        )}
+                        {instance.currentState && (
+                          <p className="text-sm text-gray-600">
+                            Current State: {instance.currentState}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Badge className={`${getStatusColor(instance.status)} text-white`}>
+                          {instance.status}
+                        </Badge>
+                        <div className="flex space-x-1">
+                          {instance.status === 'running' && (
+                            <Button
+                              onClick={() => pauseInstance(instance.id)}
+                              size="sm"
+                              variant="outline"
+                            >
+                              Pause
+                            </Button>
+                          )}
+                          {instance.status === 'paused' && (
+                            <Button
+                              onClick={() => resumeInstance(instance.id)}
+                              size="sm"
+                              variant="outline"
+                            >
+                              Resume
+                            </Button>
+                          )}
+                          <Button
+                            onClick={() => cancelInstance(instance.id)}
+                            size="sm"
+                            variant="destructive"
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-400">
-                      {instance.startedAt && `Started: ${new Date(instance.startedAt).toLocaleTimeString()}`}
-                    </div>
                   </div>
+                );
+              })}
+            {instances.filter((instance) => ['running', 'paused'].includes(instance.status)).length === 0 && (
+              <p className="text-gray-500 text-center py-4">No active instances</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Actividad Reciente */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {stats?.recentActivity.slice(0, 10).map((activity, index) => (
+              <div key={index} className="flex items-center space-x-3 text-sm">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <div className="flex-1">
+                  <span className="font-medium">{activity.action}</span>
+                  <span className="text-gray-600"> on </span>
+                  <span className="font-medium">{activity.workflowName}</span>
                 </div>
-                <div className="mt-2">
-                  <div className="text-xs text-gray-500">
-                    User: {instance.metadata.userId} | 
-                    Org: {instance.metadata.organizationId} |
-                    History: {instance.history.length} items
-                  </div>
+                <div className="text-gray-500">
+                  {formatDate(activity.timestamp)}
                 </div>
               </div>
             ))}
+            {(!stats?.recentActivity || stats.recentActivity.length === 0) && (
+              <p className="text-gray-500 text-center py-4">No recent activity</p>
+            )}
           </div>
-        </div>
-      )}
-
-      <div className="text-xs text-gray-500">
-        <p>🔄 BPMN workflows with visual process modeling</p>
-        <p>🏗️ State machines with complex state transitions</p>
-        <p>⚡ Real-time workflow execution and monitoring</p>
-        <p>📊 Comprehensive workflow statistics and analytics</p>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
