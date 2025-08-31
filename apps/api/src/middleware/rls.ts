@@ -93,11 +93,12 @@ export function rlsAccessControlMiddleware(resource: string, action: string) {
           method: req.method,
         });
 
-        return res.status(403).json({
+        res.status(403).json({
           error: 'Access denied',
           message: `Insufficient permissions for ${action} on ${resource}`,
           code: 'RLS_ACCESS_DENIED',
         });
+        return;
       }
 
       logger.debug('RLS access granted', {

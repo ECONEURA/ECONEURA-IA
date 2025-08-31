@@ -32,15 +32,16 @@ export function gatewayRoutingMiddleware(req: GatewayRequest, res: Response, nex
         path,
         method,
         clientIp,
-        headers: Object.keys(headers),
-        query: Object.keys(query),
+        headersCount: Object.keys(headers).length,
+        queryCount: Object.keys(query).length,
       });
 
-      return res.status(404).json({
+      res.status(404).json({
         error: 'Route not found',
         message: `No route found for ${method} ${path}`,
         code: 'GATEWAY_ROUTE_NOT_FOUND',
       });
+      return;
     }
 
     // Seleccionar servicio usando load balancing
@@ -49,17 +50,18 @@ export function gatewayRoutingMiddleware(req: GatewayRequest, res: Response, nex
     if (!service) {
       logger.error('No available service for route', {
         routeId: route.id,
-        routeName: route.name,
+        ruleName: route.name,
         serviceId: route.serviceId,
         path,
         method,
       });
 
-      return res.status(503).json({
+      res.status(503).json({
         error: 'Service unavailable',
         message: 'No healthy service available for this route',
         code: 'GATEWAY_SERVICE_UNAVAILABLE',
       });
+      return;
     }
 
     // Agregar información del gateway a la request

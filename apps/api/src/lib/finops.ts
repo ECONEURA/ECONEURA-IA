@@ -169,7 +169,7 @@ export class FinOpsSystem {
     const organizationBudgets = this.getBudgetsByOrganization(organizationId);
     
     for (const budget of organizationBudgets) {
-      const currentAmount = this.getCurrentBudgetSpend(budget);
+      const currentAmount = this.calculateCurrentBudgetSpend(budget);
       const percentage = (currentAmount / budget.amount) * 100;
 
       // Verificar si se debe crear una alerta
@@ -183,7 +183,7 @@ export class FinOpsSystem {
     }
   }
 
-  private getCurrentBudgetSpend(budget: Budget): number {
+  private calculateCurrentBudgetSpend(budget: Budget): number {
     const now = new Date();
     const startDate = this.getBudgetStartDate(budget, now);
     const endDate = this.getBudgetEndDate(budget, now);
@@ -414,8 +414,8 @@ export class FinOpsSystem {
       const budgetInfo = relevantBudgets.map(budget => ({
         id: budget.id,
         name: budget.name,
-        remaining: Math.max(0, budget.amount - this.getCurrentBudgetSpend(budget)),
-        percentage: (this.getCurrentBudgetSpend(budget) / budget.amount) * 100,
+        remaining: Math.max(0, budget.amount - this.calculateCurrentBudgetSpend(budget)),
+        percentage: (this.calculateCurrentBudgetSpend(budget) / budget.amount) * 100,
       }));
 
       headers['X-FinOps-Budgets'] = JSON.stringify(budgetInfo);
@@ -484,14 +484,14 @@ export class FinOpsSystem {
   getCurrentBudgetSpend(budgetId: string): number {
     const budget = this.budgets.get(budgetId);
     if (!budget) return 0;
-    return this.getCurrentBudgetSpend(budget);
+    return this.calculateCurrentBudgetSpend(budget);
   }
 
   // Método para obtener el porcentaje de uso de un presupuesto
   getBudgetUsagePercentage(budgetId: string): number {
     const budget = this.budgets.get(budgetId);
     if (!budget) return 0;
-    const currentSpend = this.getCurrentBudgetSpend(budget);
+    const currentSpend = this.calculateCurrentBudgetSpend(budget);
     return (currentSpend / budget.amount) * 100;
   }
 
@@ -554,7 +554,7 @@ export class FinOpsSystem {
       }
     }
 
-    logger.info('FinOps old data cleared', { daysToKeep, cutoffDate });
+    logger.info('FinOps old data cleared', { daysToKeep, cutoffDate: cutoffDate.toISOString() });
   }
 }
 

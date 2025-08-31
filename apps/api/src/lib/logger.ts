@@ -100,7 +100,6 @@ interface LogContext {
   mfaEnabled?: boolean;
   system?: string;
   action?: string;
-  userId?: string;
   permissionId?: string;
   roleId?: string;
   tokenId?: string;
@@ -113,19 +112,13 @@ interface LogContext {
   confidence?: number;
   country?: string;
   lastSeen?: string;
-  tokenId?: string;
   scopes?: string[];
-  roleId?: string;
   roleName?: string;
-  permissionId?: string;
   auditId?: string;
-  securityEventId?: string;
-  eventType?: string;
   bruteForceAttempts?: number;
   accountLocked?: boolean;
   threatReputation?: string;
   threatCountry?: string;
-  threatTypes?: string[];
   threatConfidence?: number;
   backupCodes?: string[];
   qrCode?: string;
@@ -138,6 +131,86 @@ interface LogContext {
   lockoutDuration?: number;
   securityEventCount?: number;
   timeWindow?: string;
+  // Analytics fields
+  dashboardsCount?: number;
+  metrics?: any;
+  metricsCount?: number;
+  dashboardId?: string;
+  reportId?: string;
+  filtersCount?: number;
+  orderByCount?: number;
+  // Configuration fields
+  flagName?: string;
+  secretsCount?: number;
+  // Events fields
+  fromVersion?: number;
+  handlerCount?: number;
+  readModelType?: string;
+  finalVersion?: number;
+  // FinOps additional fields
+  period?: string;
+  message?: string;
+  recipient?: string;
+  // Gateway fields
+  name?: string;
+  targetUrl?: string;
+  errorRate?: number;
+  // Notifications fields
+  templatesCount?: number;
+  templateId?: string;
+  priority?: string;
+  channel?: string;
+  total?: number;
+  scheduledAt?: string;
+  to?: string;
+  // Rate limiting fields
+  retryAfter?: number;
+  // Collaboration fields
+  collaboration?: string;
+  connections?: number;
+  connectionId?: string;
+  userName?: string;
+  roomId?: string;
+  roomsCount?: number;
+  // RLS fields
+  originalQuery?: string;
+  hasPermission?: boolean;
+  originalData?: any;
+  actual?: string;
+  // Service discovery fields
+  serviceUrl?: string;
+  health?: string;
+  // Service mesh fields
+  attempt?: number;
+  failureCount?: number;
+  // Feature flags fields
+  results?: any;
+  context?: any;
+  // Monitoring system fields
+  category?: string;
+  cpuUsage?: number;
+  memoryUsage?: number;
+  diskUsage?: number;
+  processCount?: number;
+  responseTime?: number;
+  uptime?: number;
+  transactionId?: string;
+  spanName?: string;
+  spanType?: string;
+  activeConnections?: number;
+  queryCount?: number;
+  slowQueries?: number;
+  cacheHitRate?: number;
+  anomalyMetric?: string;
+  anomalyValue?: number;
+  expectedRange?: [number, number];
+  severity?: string;
+  threshold?: number;
+  dashboardName?: string;
+  orgId?: string;
+  monitoringInterval?: number;
+  metricsCollected?: any;
+  components?: string[];
 }
 
 interface LogEntry {

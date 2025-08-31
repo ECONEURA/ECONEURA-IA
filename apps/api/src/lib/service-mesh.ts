@@ -129,8 +129,8 @@ export class ServiceMesh {
     }
 
     const serviceResponse: ServiceResponse = {
-      status: response.status,
-      headers: Object.fromEntries(response.headers.entries()),
+      status: response.status.toString(),
+      headers: Object.fromEntries(Array.from(response.headers.entries())),
       body: parsedBody,
       duration,
     };

@@ -38,7 +38,7 @@ export function observabilityMiddleware(req: ExtendedRequest, res: Response, nex
     path: req.path,
     userAgent: req.get('User-Agent'),
     ip: req.ip,
-    query: req.query,
+    query: JSON.stringify(req.query),
     body: req.method !== 'GET' ? req.body : undefined
   });
   
@@ -46,7 +46,9 @@ export function observabilityMiddleware(req: ExtendedRequest, res: Response, nex
   tracing.addTag(traceContext.spanId, 'http.method', req.method);
   tracing.addTag(traceContext.spanId, 'http.path', req.path);
   tracing.addTag(traceContext.spanId, 'http.user_agent', req.get('User-Agent') || 'unknown');
-  tracing.addTag(traceContext.spanId, 'http.ip', req.ip);
+  if (req.ip) {
+    tracing.addTag(traceContext.spanId, 'http.ip', req.ip);
+  }
   
   // Interceptar el final de la respuesta
   const originalSend = res.send;
@@ -171,7 +173,7 @@ export function startCleanupScheduler(): void {
       tracing.cleanup();
       logger.info('Observability cleanup completed');
     } catch (error) {
-      logger.error('Observability cleanup failed', { error: error.message });
+      logger.error('Observability cleanup failed', { error: (error as Error).message });
     }
   }, 5 * 60 * 1000); // Cada 5 minutos
 }
@@ -182,7 +184,7 @@ export function startSystemMetricsScheduler(): void {
     try {
       metrics.recordSystemMetrics();
     } catch (error) {
-      logger.error('System metrics recording failed', { error: error.message });
+      logger.error('System metrics recording failed', { error: (error as Error).message });
     }
   }, 30 * 1000); // Cada 30 segundos
 }
