@@ -5,6 +5,64 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **PR-41**: Advanced Security System
+  - Sistema completo de seguridad empresarial con autenticación avanzada
+  - Gestión de usuarios con roles y permisos (RBAC)
+  - Multi-Factor Authentication (MFA) con múltiples métodos (TOTP, SMS, Email, Hardware)
+  - Sistema de tokens API con gestión de permisos
+  - Auditoría completa con logs detallados de seguridad
+  - Monitoreo de eventos de seguridad en tiempo real
+  - Inteligencia de amenazas con análisis de IPs y reputación
+  - Estadísticas de seguridad con métricas detalladas
+  - Backend for Frontend (BFF) con validación Zod y headers FinOps
+  - Dashboard de seguridad avanzado con UI moderna
+  - Script de smoke test completo para validación de funcionalidad
+  - Integración completa con sistema de observabilidad existente
+
+### Technical Details
+- **Authentication**: Login/logout con validación robusta
+- **User Management**: CRUD completo de usuarios con validación
+- **MFA Methods**: TOTP, SMS, Email, Hardware token support
+- **RBAC**: Role-Based Access Control con permisos granulares
+- **API Tokens**: Gestión de tokens con permisos específicos
+- **Audit Logging**: Logs detallados de todas las acciones de seguridad
+- **Security Events**: Monitoreo en tiempo real de eventos de seguridad
+- **Threat Intelligence**: Análisis de amenazas y reputación de IPs
+- **Security Stats**: Métricas detalladas de seguridad
+- **BFF Routes**: Validación Zod, headers FinOps, error handling robusto
+- **Web Interface**: Dashboard moderno con componentes reutilizables
+
+### Files Added/Modified
+- `apps/api/src/lib/advanced-security.ts`: Sistema de seguridad avanzado
+- `apps/api/src/index.ts`: Endpoints de seguridad integrados
+- `apps/web/src/components/AdvancedSecurityDashboard.tsx`: Dashboard de seguridad
+- `apps/web/src/app/api/security/users/route.ts`: BFF para gestión de usuarios
+- `apps/web/src/app/api/security/auth/login/route.ts`: BFF para autenticación
+- `apps/web/src/app/api/security/mfa/setup/route.ts`: BFF para configuración MFA
+- `apps/web/src/app/api/security/mfa/verify/route.ts`: BFF para verificación MFA
+- `apps/web/src/app/api/security/roles/route.ts`: BFF para gestión de roles
+- `apps/web/src/app/api/security/permissions/route.ts`: BFF para gestión de permisos
+- `apps/web/src/app/api/security/audit/route.ts`: BFF para logs de auditoría
+- `apps/web/src/app/api/security/events/route.ts`: BFF para eventos de seguridad
+- `apps/web/src/app/api/security/threats/route.ts`: BFF para inteligencia de amenazas
+- `apps/web/src/app/api/security/stats/route.ts`: BFF para estadísticas de seguridad
+- `apps/web/src/app/security/page.tsx`: Página dedicada de seguridad
+- `scripts/smoke-pr-41.sh`: Script de pruebas completo para PR-41
+
+### Testing
+- ✅ User management endpoints functional
+- ✅ Authentication system working
+- ✅ MFA setup and verification operational
+- ✅ RBAC system with roles and permissions working
+- ✅ Audit logging system operational
+- ✅ Security events monitoring functional
+- ✅ Threat intelligence system working
+- ✅ Security statistics accurate
+- ✅ BFF routes with validation working
+- ✅ Web interface loads correctly
+- ✅ All smoke tests passing
+
+- **PR-23**: Observabilidad coherente (logs + métricas + traces)
 - **PR-23**: Observabilidad coherente (logs + métricas + traces)
   - Sistema completo de observabilidad entre API Express y Web BFF
   - Logging estructurado con contexto rico y traces (`apps/api/src/lib/logger.ts`, `apps/web/src/lib/observability.ts`)

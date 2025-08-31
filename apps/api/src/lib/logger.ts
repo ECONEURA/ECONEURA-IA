@@ -95,6 +95,49 @@ interface LogContext {
   strategy?: string;
   filters?: any;
   model?: string;
+  // Security system fields
+  mfaType?: string;
+  mfaEnabled?: boolean;
+  system?: string;
+  action?: string;
+  userId?: string;
+  permissionId?: string;
+  roleId?: string;
+  tokenId?: string;
+  auditLogId?: string;
+  securityEventId?: string;
+  threatId?: string;
+  ipAddress?: string;
+  reputation?: string;
+  threatTypes?: string[];
+  confidence?: number;
+  country?: string;
+  lastSeen?: string;
+  tokenId?: string;
+  scopes?: string[];
+  roleId?: string;
+  roleName?: string;
+  permissionId?: string;
+  auditId?: string;
+  securityEventId?: string;
+  eventType?: string;
+  bruteForceAttempts?: number;
+  accountLocked?: boolean;
+  threatReputation?: string;
+  threatCountry?: string;
+  threatTypes?: string[];
+  threatConfidence?: number;
+  backupCodes?: string[];
+  qrCode?: string;
+  phoneNumber?: string;
+  verificationCode?: string;
+  passwordHash?: string;
+  salt?: string;
+  jwtPayload?: any;
+  failedLoginCount?: number;
+  lockoutDuration?: number;
+  securityEventCount?: number;
+  timeWindow?: string;
 }
 
 interface LogEntry {

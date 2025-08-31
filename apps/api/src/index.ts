@@ -22,6 +22,7 @@ import { configurationManager } from "./lib/configuration.js";
 import { featureFlagInfoMiddleware, requireFeatureFlag } from "./middleware/feature-flags.js";
 import { workflowEngine } from "./lib/workflows.js";
 import { inventorySystem } from "./lib/inventory.js";
+import { securitySystem } from "./lib/security.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -2822,6 +2823,243 @@ app.get("/v1/inventory/products/:id/kardex-report", async (req, res) => {
   }
 });
 
+// ============================================================================
+// ADVANCED SECURITY SYSTEM ENDPOINTS
+// ============================================================================
+
+// User Management
+app.post("/v1/security/users", async (req, res) => {
+  try {
+    const { email, username, password, roles } = req.body;
+    const user = await securitySystem.createUser(email, username, password, roles);
+    res.status(201).json(user);
+  } catch (error) {
+    logger.error('Failed to create user', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/security/users", async (req, res) => {
+  try {
+    const users = await securitySystem.getUsers();
+    res.json(users);
+  } catch (error) {
+    logger.error('Failed to get users', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/security/users/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await securitySystem.getUserById(id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(user);
+  } catch (error) {
+    logger.error('Failed to get user', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+// Authentication
+app.post("/v1/security/auth/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
+    const userAgent = req.get('User-Agent') || 'unknown';
+    
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+    
+    const result = await securitySystem.authenticateUser(email, password);
+    if (!result) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    res.json(result);
+  } catch (error) {
+    logger.error('Authentication failed', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+// MFA Management
+app.post("/v1/security/mfa/setup", async (req, res) => {
+  try {
+    const { userId, method } = req.body;
+    if (!userId || !method) {
+      return res.status(400).json({ error: 'userId and method are required' });
+    }
+    
+    const result = await securitySystem.setupMFA(userId, method);
+    res.status(201).json(result);
+  } catch (error) {
+    logger.error('Failed to setup MFA', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.post("/v1/security/mfa/verify", async (req, res) => {
+  try {
+    const { userId, code } = req.body;
+    if (!userId || !code) {
+      return res.status(400).json({ error: 'userId and code are required' });
+    }
+    
+    const isValid = await securitySystem.verifyMFA(userId, code);
+    res.json({ valid: isValid });
+  } catch (error) {
+    logger.error('MFA verification failed', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+// Role and Permission Management
+app.post("/v1/security/roles", async (req, res) => {
+  try {
+    const { name, description, permissions, orgId } = req.body;
+    if (!name || !orgId) {
+      return res.status(400).json({ error: 'name and orgId are required' });
+    }
+    
+    const role = await securitySystem.createRole(name, description || '', permissions || [], orgId);
+    res.status(201).json(role);
+  } catch (error) {
+    logger.error('Failed to create role', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+// Role and Permission Management
+app.post("/v1/security/roles", async (req, res) => {
+  try {
+    const role = await securitySystem.createRole(name, description || '', permissions || [], orgId);
+    res.json(role);
+  } catch (error) {
+    logger.error('Failed to create role', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/security/roles", async (req, res) => {
+  try {
+    const roles = await securitySystem.getRoles();
+    res.json(roles);
+  } catch (error) {
+    logger.error('Failed to get roles', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.post("/v1/security/permissions", async (req, res) => {
+  try {
+    const { name, description, resource, action, orgId } = req.body;
+    if (!name || !resource || !action || !orgId) {
+      return res.status(400).json({ error: 'name, resource, action, and orgId are required' });
+    }
+    
+    const permission = await securitySystem.createPermission(name, description || '', resource, action, orgId);
+    res.status(201).json(permission);
+  } catch (error) {
+    logger.error('Failed to create permission', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/security/permissions", async (req, res) => {
+  try {
+    const permissions = await securitySystem.getPermissions();
+    res.json(permissions);
+  } catch (error) {
+    logger.error('Failed to get permissions', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.post("/v1/security/permissions/check", async (req, res) => {
+  try {
+    const { userId, resource, action } = req.body;
+    if (!userId || !resource || !action) {
+      return res.status(400).json({ error: 'userId, resource, and action are required' });
+    }
+    
+    const hasPermission = await securitySystem.checkPermission(userId, resource, action);
+    res.json({ hasPermission });
+  } catch (error) {
+    logger.error('Permission check failed', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+// Audit Logs
+app.get("/v1/security/audit", async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 100;
+    const logs = await securitySystem.getAuditLogs(limit);
+    res.json(logs);
+  } catch (error) {
+    logger.error('Failed to get audit logs', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+// Security Events
+app.get("/v1/security/events", async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 100;
+    const events = await securitySystem.getSecurityEvents(limit);
+    res.json(events);
+  } catch (error) {
+    logger.error('Failed to get security events', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+// Threat Intelligence
+app.get("/v1/security/threats", async (req, res) => {
+  try {
+    const ipAddress = req.query.ip as string;
+    if (!ipAddress) {
+      return res.status(400).json({ error: 'ipAddress is required' });
+    }
+    
+    const threatIntel = await securitySystem.checkIPReputation(ipAddress);
+    res.json(threatIntel);
+  } catch (error) {
+    logger.error('Failed to get threat intelligence', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.post("/v1/security/threats/check", async (req, res) => {
+  try {
+    const { ipAddress } = req.body;
+    if (!ipAddress) {
+      return res.status(400).json({ error: 'ipAddress is required' });
+    }
+    
+    const threatIntel = await securitySystem.checkIPReputation(ipAddress);
+    res.json(threatIntel);
+  } catch (error) {
+    logger.error('IP reputation check failed', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+// Security Stats
+app.get("/v1/security/stats", async (req, res) => {
+  try {
+    const stats = await securitySystem.getSecurityStats();
+    res.json(stats);
+  } catch (error) {
+    logger.error('Failed to get security stats', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
 // Endpoint de métricas para Prometheus
 app.get("/metrics", (req, res) => {
   try {
@@ -2862,6 +3100,7 @@ app.listen(PORT, async () => {
   console.log(`🔗 Microservices system enabled with service mesh and discovery`);
   console.log(`⚙️ Configuration system enabled with feature flags and environment management`);
   console.log(`🔄 Workflow system enabled with BPMN and state machines`);
+  console.log(`🔐 Advanced Security system enabled with MFA, RBAC, and threat detection`);
   
   // Inicializar warmup del caché
   try {
