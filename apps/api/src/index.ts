@@ -20,6 +20,7 @@ import { serviceRegistry, serviceDiscovery } from "./lib/service-discovery.js";
 import { serviceMesh } from "./lib/service-mesh.js";
 import { configurationManager } from "./lib/configuration.js";
 import { featureFlagInfoMiddleware, requireFeatureFlag } from "./middleware/feature-flags.js";
+import { notificationSystem } from "./lib/notifications.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -2416,6 +2417,283 @@ app.post("/v1/analytics/reports/:id/generate", async (req, res) => {
   }
 });
 
+// ============================================================================
+// ENDPOINTS DEL SISTEMA DE NOTIFICACIONES
+// ============================================================================
+
+// GET /v1/notifications - Listar notificaciones
+app.get("/v1/notifications", async (req, res) => {
+  try {
+    const { userId, orgId, status, type, priority, limit, offset } = req.query;
+    
+    if (!userId || !orgId) {
+      return res.status(400).json({ error: 'userId and orgId are required' });
+    }
+
+    const filters: any = {};
+    if (status) filters.status = status;
+    if (type) filters.type = type;
+    if (priority) filters.priority = priority;
+    if (limit) filters.limit = parseInt(limit as string);
+    if (offset) filters.offset = parseInt(offset as string);
+
+    const notifications = await notificationSystem.getNotifications(userId as string, orgId as string, filters);
+    res.json(notifications);
+  } catch (error) {
+    logger.error('Failed to get notifications', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /v1/notifications - Crear notificación
+app.post("/v1/notifications", async (req, res) => {
+  try {
+    const notification = await notificationSystem.createNotification(req.body);
+    res.status(201).json(notification);
+  } catch (error) {
+    logger.error('Failed to create notification', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// GET /v1/notifications/:id - Obtener notificación específica
+app.get("/v1/notifications/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const notification = await notificationSystem.getNotification(id);
+    
+    if (!notification) {
+      return res.status(404).json({ error: 'Notification not found' });
+    }
+    
+    res.json(notification);
+  } catch (error) {
+    logger.error('Failed to get notification', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PUT /v1/notifications/:id - Actualizar notificación
+app.put("/v1/notifications/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const notification = await notificationSystem.updateNotification(id, updates);
+    res.json(notification);
+  } catch (error) {
+    logger.error('Failed to update notification', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// DELETE /v1/notifications/:id - Eliminar notificación
+app.delete("/v1/notifications/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await notificationSystem.deleteNotification(id);
+    res.status(204).send();
+  } catch (error) {
+    logger.error('Failed to delete notification', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// POST /v1/notifications/:id/read - Marcar como leída
+app.post("/v1/notifications/:id/read", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const notification = await notificationSystem.markAsRead(id);
+    res.json(notification);
+  } catch (error) {
+    logger.error('Failed to mark notification as read', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// POST /v1/notifications/read-all - Marcar todas como leídas
+app.post("/v1/notifications/read-all", async (req, res) => {
+  try {
+    const { userId, orgId } = req.body;
+    
+    if (!userId || !orgId) {
+      return res.status(400).json({ error: 'userId and orgId are required' });
+    }
+
+    const result = await notificationSystem.markAllAsRead(userId, orgId);
+    res.json(result);
+  } catch (error) {
+    logger.error('Failed to mark all notifications as read', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// GET /v1/notifications/unread-count - Contar no leídas
+app.get("/v1/notifications/unread-count", async (req, res) => {
+  try {
+    const { userId, orgId } = req.query;
+    
+    if (!userId || !orgId) {
+      return res.status(400).json({ error: 'userId and orgId are required' });
+    }
+
+    const count = await notificationSystem.getUnreadCount(userId as string, orgId as string);
+    res.json({ count });
+  } catch (error) {
+    logger.error('Failed to get unread count', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /v1/notifications/templates - Listar templates
+app.get("/v1/notifications/templates", async (req, res) => {
+  try {
+    const { orgId } = req.query;
+    
+    if (!orgId) {
+      return res.status(400).json({ error: 'orgId is required' });
+    }
+
+    const templates = await notificationSystem.getTemplates(orgId as string);
+    res.json(templates);
+  } catch (error) {
+    logger.error('Failed to get templates', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /v1/notifications/templates - Crear template
+app.post("/v1/notifications/templates", async (req, res) => {
+  try {
+    const template = await notificationSystem.createTemplate(req.body);
+    res.status(201).json(template);
+  } catch (error) {
+    logger.error('Failed to create template', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// GET /v1/notifications/templates/:id - Obtener template específico
+app.get("/v1/notifications/templates/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const template = await notificationSystem.getTemplate(id);
+    
+    if (!template) {
+      return res.status(404).json({ error: 'Template not found' });
+    }
+    
+    res.json(template);
+  } catch (error) {
+    logger.error('Failed to get template', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PUT /v1/notifications/templates/:id - Actualizar template
+app.put("/v1/notifications/templates/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const template = await notificationSystem.updateTemplate(id, updates);
+    res.json(template);
+  } catch (error) {
+    logger.error('Failed to update template', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// DELETE /v1/notifications/templates/:id - Eliminar template
+app.delete("/v1/notifications/templates/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await notificationSystem.deleteTemplate(id);
+    res.status(204).send();
+  } catch (error) {
+    logger.error('Failed to delete template', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// GET /v1/notifications/preferences - Obtener preferencias
+app.get("/v1/notifications/preferences", async (req, res) => {
+  try {
+    const { userId, orgId } = req.query;
+    
+    if (!userId || !orgId) {
+      return res.status(400).json({ error: 'userId and orgId are required' });
+    }
+
+    const preferences = await notificationSystem.getPreferences(userId as string, orgId as string);
+    res.json(preferences);
+  } catch (error) {
+    logger.error('Failed to get preferences', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PUT /v1/notifications/preferences - Actualizar preferencias
+app.put("/v1/notifications/preferences", async (req, res) => {
+  try {
+    const preferences = await notificationSystem.updatePreferences(req.body);
+    res.json(preferences);
+  } catch (error) {
+    logger.error('Failed to update preferences', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// POST /v1/notifications/send - Enviar notificación
+app.post("/v1/notifications/send", async (req, res) => {
+  try {
+    const result = await notificationSystem.sendNotification(req.body);
+    res.json(result);
+  } catch (error) {
+    logger.error('Failed to send notification', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// POST /v1/notifications/send/bulk - Enviar notificaciones en lote
+app.post("/v1/notifications/send/bulk", async (req, res) => {
+  try {
+    const { notifications } = req.body;
+    const result = await notificationSystem.sendBulkNotifications(notifications);
+    res.json(result);
+  } catch (error) {
+    logger.error('Failed to send bulk notifications', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// POST /v1/notifications/schedule - Programar notificación
+app.post("/v1/notifications/schedule", async (req, res) => {
+  try {
+    const { notification, scheduledAt } = req.body;
+    const result = await notificationSystem.scheduleNotification(notification, new Date(scheduledAt));
+    res.json(result);
+  } catch (error) {
+    logger.error('Failed to schedule notification', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// GET /v1/notifications/stats - Obtener estadísticas
+app.get("/v1/notifications/stats", async (req, res) => {
+  try {
+    const { orgId } = req.query;
+    
+    if (!orgId) {
+      return res.status(400).json({ error: 'orgId is required' });
+    }
+
+    const stats = await notificationSystem.getStats(orgId as string);
+    res.json(stats);
+  } catch (error) {
+    logger.error('Failed to get notification stats', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Endpoint de métricas para Prometheus
 app.get("/metrics", (req, res) => {
   try {
@@ -2455,6 +2733,7 @@ app.listen(PORT, async () => {
   console.log(`📊 Event Sourcing and CQRS system enabled with aggregates and projections`);
   console.log(`🔗 Microservices system enabled with service mesh and discovery`);
   console.log(`⚙️ Configuration system enabled with feature flags and environment management`);
+  console.log(`📧 Notification system enabled with templates and multi-channel delivery`);
   
   // Inicializar warmup del caché
   try {

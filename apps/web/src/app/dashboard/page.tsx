@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { CacheStatus } from '@/components/CacheStatus';
 import { FinOpsStatus } from '@/components/FinOpsStatus';
 import RLSStatus from '@/components/RLSStatus';
+import NotificationCenter from '@/components/NotificationCenter';
 
 interface DashboardData {
   overview: {
@@ -323,6 +324,9 @@ export default function DashboardPage() {
 
       {/* FinOps Status */}
       <FinOpsStatus />
+
+      {/* Notification Center */}
+      <NotificationCenter />
     </div>
   );
 }

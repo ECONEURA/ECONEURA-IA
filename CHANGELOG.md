@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **PR-37: Sistema de Notificaciones**
+  - Sistema completo de notificaciones con templates y multi-canal
+  - Gestión de notificaciones (crear, leer, actualizar, eliminar)
+  - Templates de notificaciones reutilizables
+  - Preferencias de usuario por canal (email, SMS, push, in-app, webhook)
+  - Horarios silenciosos (quiet hours)
+  - Estadísticas y métricas de notificaciones
+  - Envío en lote y programación de notificaciones
+  - Integración completa con Web BFF
+  - Componente React NotificationCenter con UI moderna
+  - Headers FinOps para tracking de costos
+  - Logs estructurados para observabilidad
+  - Smoke test completo para validación
 - **PR-23**: Observabilidad coherente (logs + métricas + traces)
   - Sistema completo de observabilidad entre API Express y Web BFF
   - Logging estructurado con contexto rico y traces (`apps/api/src/lib/logger.ts`, `apps/web/src/lib/observability.ts`)
