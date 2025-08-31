@@ -21,6 +21,7 @@ import { serviceMesh } from "./lib/service-mesh.js";
 import { configurationManager } from "./lib/configuration.js";
 import { featureFlagInfoMiddleware, requireFeatureFlag } from "./middleware/feature-flags.js";
 import { workflowEngine } from "./lib/workflows.js";
+import { inventorySystem } from "./lib/inventory.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -2558,6 +2559,267 @@ app.get("/v1/demo/dashboard", rateLimitByEndpoint, (req, res) => {
       requestId: req.requestId
     }
   });
+});
+
+// ============================================================================
+// ENDPOINTS DEL SISTEMA DE INVENTARIO
+// ============================================================================
+
+// Endpoints de Productos
+app.get("/v1/inventory/products", async (req, res) => {
+  try {
+    const { category, supplier, location, lowStock, outOfStock, overstock, expiring, tags } = req.query;
+    const filters: any = {};
+    if (category) filters.category = category;
+    if (supplier) filters.supplier = supplier;
+    if (location) filters.location = location;
+    if (lowStock === 'true') filters.lowStock = true;
+    if (outOfStock === 'true') filters.outOfStock = true;
+    if (overstock === 'true') filters.overstock = true;
+    if (expiring === 'true') filters.expiring = true;
+    if (tags) {
+      if (Array.isArray(tags)) {
+        filters.tags = tags;
+      } else {
+        filters.tags = [tags];
+      }
+    }
+    const products = await inventorySystem.listProducts(filters);
+    res.json(products);
+  } catch (error) {
+    logger.error('Failed to get products', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/inventory/products", async (req, res) => {
+  try {
+    const productData = req.body;
+    const product = await inventorySystem.createProduct(productData);
+    res.status(201).json(product);
+  } catch (error) {
+    logger.error('Failed to create product', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/inventory/products/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await inventorySystem.getProduct(id);
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    res.json(product);
+  } catch (error) {
+    logger.error('Failed to get product', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put("/v1/inventory/products/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const product = await inventorySystem.updateProduct(id, updates);
+    res.json(product);
+  } catch (error) {
+    logger.error('Failed to update product', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.delete("/v1/inventory/products/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await inventorySystem.deleteProduct(id);
+    res.status(204).send();
+  } catch (error) {
+    logger.error('Failed to delete product', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// Endpoints de Transacciones
+app.get("/v1/inventory/transactions", async (req, res) => {
+  try {
+    const { productId, type, fromDate, toDate, userId, orgId } = req.query;
+    const filters: any = {};
+    if (productId) filters.productId = productId;
+    if (type) filters.type = type;
+    if (fromDate) filters.fromDate = new Date(fromDate as string);
+    if (toDate) filters.toDate = new Date(toDate as string);
+    if (userId) filters.userId = userId;
+    if (orgId) filters.orgId = orgId;
+    const transactions = await inventorySystem.listTransactions(filters);
+    res.json(transactions);
+  } catch (error) {
+    logger.error('Failed to get transactions', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/inventory/transactions", async (req, res) => {
+  try {
+    const transactionData = req.body;
+    const transaction = await inventorySystem.addTransaction(transactionData);
+    res.status(201).json(transaction);
+  } catch (error) {
+    logger.error('Failed to create transaction', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/inventory/transactions/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const transaction = await inventorySystem.getTransaction(id);
+    if (!transaction) {
+      return res.status(404).json({ error: 'Transaction not found' });
+    }
+    res.json(transaction);
+  } catch (error) {
+    logger.error('Failed to get transaction', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Endpoints de Alertas
+app.get("/v1/inventory/alerts", async (req, res) => {
+  try {
+    const { productId, type, status, severity, fromDate, toDate, orgId } = req.query;
+    const filters: any = {};
+    if (productId) filters.productId = productId;
+    if (type) filters.type = type;
+    if (status) filters.status = status;
+    if (severity) filters.severity = severity;
+    if (fromDate) filters.fromDate = new Date(fromDate as string);
+    if (toDate) filters.toDate = new Date(toDate as string);
+    if (orgId) filters.orgId = orgId;
+    const alerts = await inventorySystem.listAlerts(filters);
+    res.json(alerts);
+  } catch (error) {
+    logger.error('Failed to get alerts', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/inventory/alerts", async (req, res) => {
+  try {
+    const alertData = req.body;
+    const alert = await inventorySystem.createAlert(alertData);
+    res.status(201).json(alert);
+  } catch (error) {
+    logger.error('Failed to create alert', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/inventory/alerts/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const alert = await inventorySystem.getAlert(id);
+    if (!alert) {
+      return res.status(404).json({ error: 'Alert not found' });
+    }
+    res.json(alert);
+  } catch (error) {
+    logger.error('Failed to get alert', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put("/v1/inventory/alerts/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const alert = await inventorySystem.updateAlert(id, updates);
+    res.json(alert);
+  } catch (error) {
+    logger.error('Failed to update alert', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.delete("/v1/inventory/alerts/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await inventorySystem.deleteAlert(id);
+    res.status(204).send();
+  } catch (error) {
+    logger.error('Failed to delete alert', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.post("/v1/inventory/alerts/:id/acknowledge", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+    await inventorySystem.acknowledgeAlert(id, userId);
+    res.status(200).json({ message: 'Alert acknowledged successfully' });
+  } catch (error) {
+    logger.error('Failed to acknowledge alert', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.post("/v1/inventory/alerts/:id/resolve", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await inventorySystem.resolveAlert(id);
+    res.status(200).json({ message: 'Alert resolved successfully' });
+  } catch (error) {
+    logger.error('Failed to resolve alert', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// Endpoints de Reportes
+app.get("/v1/inventory/report", async (req, res) => {
+  try {
+    const report = await inventorySystem.getInventoryReport();
+    res.json(report);
+  } catch (error) {
+    logger.error('Failed to get inventory report', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/inventory/products/:id/report", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const report = await inventorySystem.getProductReport(id);
+    res.json(report);
+  } catch (error) {
+    logger.error('Failed to get product report', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/inventory/products/:id/kardex", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const kardex = await inventorySystem.getProductKardex(id);
+    res.json(kardex);
+  } catch (error) {
+    logger.error('Failed to get product kardex', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/inventory/products/:id/kardex-report", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { fromDate, toDate } = req.query;
+    const from = fromDate ? new Date(fromDate as string) : undefined;
+    const to = toDate ? new Date(toDate as string) : undefined;
+    const report = await inventorySystem.getKardexReport(id, from, to);
+    res.json(report);
+  } catch (error) {
+    logger.error('Failed to get kardex report', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
 });
 
 // Endpoint de métricas para Prometheus
