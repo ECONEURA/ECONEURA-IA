@@ -443,6 +443,11 @@ class StructuredLogger {
       environment: process.env.NODE_ENV || 'development'
     };
   }
+
+  // Método para obtener logs
+  getLogs(): LogEntry[] {
+    return []; // TODO: Implement log storage
+  }
 }
 
 export const logger = new StructuredLogger();

@@ -101,6 +101,10 @@ class TracingSystem {
     return this.traces.get(traceId);
   }
 
+  getTraces(): TraceSpan[] {
+    return Array.from(this.traces.values());
+  }
+
   getAllTraces(): TraceSpan[] {
     return Array.from(this.traces.values());
   }

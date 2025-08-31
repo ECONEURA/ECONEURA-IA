@@ -270,6 +270,17 @@ class MetricsCollector {
       metric.values = [];
     }
   }
+
+  getMetricsStats(): any {
+    return {
+      totalMetrics: this.metrics.size,
+      lastUpdated: new Date().toISOString()
+    };
+  }
+
+  getPrometheusMetrics(): string {
+    return this.exportPrometheus();
+  }
 }
 
 export const metrics = new MetricsCollector();
