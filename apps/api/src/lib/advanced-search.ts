@@ -2,310 +2,233 @@ import { z } from "zod";
 import { logger } from "./logger.js";
 
 // ============================================================================
-// TYPES AND INTERFACES
+// SCHEMAS
 // ============================================================================
 
-export const SearchQuerySchema = z.object({
+const SearchQuerySchema = z.object({
   query: z.string().min(1),
+  userId: z.string().optional(),
+  orgId: z.string().optional(),
   filters: z.record(z.any()).optional(),
   sortBy: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
-  page: z.number().min(1).default(1),
-  limit: z.number().min(1).max(100).default(20),
-  searchType: z.enum(["semantic", "keyword", "fuzzy", "federated"]).default("keyword"),
+  page: z.number().min(1).optional(),
+  limit: z.number().min(1).max(100).optional(),
   sources: z.array(z.string()).optional(),
-  includeSuggestions: z.boolean().default(true),
-  useCache: z.boolean().default(true),
+  includeFederated: z.boolean().optional(),
 });
 
-export const SearchResultSchema = z.object({
+const SearchResultSchema = z.object({
   id: z.string(),
   title: z.string(),
   content: z.string(),
   url: z.string().optional(),
-  type: z.string(),
-  score: z.number(),
+  type: z.enum(["document", "user", "product", "federated"]),
+  score: z.number().min(0).max(1),
   highlights: z.array(z.string()).optional(),
   metadata: z.record(z.any()).optional(),
   source: z.string(),
   timestamp: z.date(),
 });
 
-export const SearchSuggestionSchema = z.object({
+const SearchSuggestionSchema = z.object({
   query: z.string(),
   type: z.enum(["history", "popular", "related", "correction"]),
-  score: z.number(),
+  score: z.number().min(0).max(1),
   count: z.number().optional(),
 });
 
-export const SearchAnalyticsSchema = z.object({
-  totalSearches: z.number(),
-  uniqueUsers: z.number(),
-  averageQueryLength: z.number(),
-  topQueries: z.array(z.object({
-    query: z.string(),
-    count: z.number(),
-  })),
-  searchTypes: z.record(z.number()),
-  sources: z.record(z.number()),
-  averageResponseTime: z.number(),
-  cacheHitRate: z.number(),
-  zeroResultsRate: z.number(),
-});
-
-export const SearchHistorySchema = z.object({
+const SearchHistorySchema = z.object({
   id: z.string(),
   userId: z.string(),
   query: z.string(),
-  results: z.number(),
+  resultsCount: z.number(),
   timestamp: z.date(),
-  searchType: z.string(),
   filters: z.record(z.any()).optional(),
-  sessionId: z.string().optional(),
+  sources: z.array(z.string()).optional(),
 });
 
-export const FederatedSearchConfigSchema = z.object({
+const SearchAnalyticsSchema = z.object({
+  totalSearches: z.number(),
+  averageResponseTime: z.number(),
+  cacheHitRate: z.number(),
+  popularQueries: z.array(z.object({
+    query: z.string(),
+    count: z.number(),
+  })),
+  searchByType: z.record(z.number()),
+});
+
+const FederatedSearchConfigSchema = z.object({
   sourceId: z.string(),
   name: z.string(),
   url: z.string(),
-  type: z.enum(["api", "database", "file", "web"]),
-  priority: z.number().min(1).max(10),
-  timeout: z.number().min(1000).max(30000),
-  authentication: z.record(z.string()).optional(),
-  headers: z.record(z.string()).optional(),
-  enabled: z.boolean().default(true),
+  type: z.enum(["api", "database", "file"]),
+  config: z.record(z.any()),
+  enabled: z.boolean(),
 });
 
 // ============================================================================
-// SEARCH ENGINE IMPLEMENTATION
+// ADVANCED SEARCH ENGINE
 // ============================================================================
 
 export class AdvancedSearchEngine {
-  private searchHistory: Map<string, SearchHistorySchema[]> = new Map();
-  private searchCache: Map<string, any> = new Map();
-  private searchAnalytics: SearchAnalyticsSchema;
-  private federatedSources: Map<string, FederatedSearchConfigSchema> = new Map();
   private searchIndex: Map<string, any[]> = new Map();
+  private searchCache: Map<string, any> = new Map();
+  private searchHistory: Map<string, any[]> = new Map();
+  private searchAnalytics: any = {
+    totalSearches: 0,
+    averageResponseTime: 0,
+    cacheHitRate: 0,
+    popularQueries: [],
+    searchByType: {},
+  };
+  private federatedSources: Map<string, any> = new Map();
 
   constructor() {
-    this.searchAnalytics = {
-      totalSearches: 0,
-      uniqueUsers: 0,
-      averageQueryLength: 0,
-      topQueries: [],
-      searchTypes: {},
-      sources: {},
-      averageResponseTime: 0,
-      cacheHitRate: 0,
-      zeroResultsRate: 0,
-    };
-
     this.initializeSampleData();
-    logger.info("Advanced Search Engine initialized", { 
-      searchEngine: "advanced",
-      features: ["semantic", "fuzzy", "federated", "analytics"],
-      cacheSize: this.searchCache.size,
-      sourcesCount: this.federatedSources.size
-    });
+    logger.info("Advanced search engine initialized");
   }
 
   // ============================================================================
-  // CORE SEARCH METHODS
+  // MAIN SEARCH FUNCTION
   // ============================================================================
 
-  async search(params: z.infer<typeof SearchQuerySchema>): Promise<{
+    async search(params: z.infer<typeof SearchQuerySchema>): Promise<{
     results: z.infer<typeof SearchResultSchema>[];
     suggestions: z.infer<typeof SearchSuggestionSchema>[];
-    analytics: {
-      totalResults: number;
-      responseTime: number;
-      cacheHit: boolean;
-      sourcesQueried: string[];
-    };
+    analytics: z.infer<typeof SearchAnalyticsSchema>;
+    totalCount: number;
+    page: number;
+    limit: number;
   }> {
     const startTime = Date.now();
-    const validatedParams = SearchQuerySchema.parse(params);
-    
-    logger.info("Processing search request", {
-      query: validatedParams.query,
-      searchType: validatedParams.searchType,
-      filters: validatedParams.filters,
-      page: validatedParams.page,
-      limit: validatedParams.limit,
-      useCache: validatedParams.useCache
-    });
 
-    // Check cache first
-    const cacheKey = this.generateCacheKey(validatedParams);
-    if (validatedParams.useCache && this.searchCache.has(cacheKey)) {
+    try {
+      // Check cache first
+      const cacheKey = this.generateCacheKey(params);
       const cachedResult = this.searchCache.get(cacheKey);
-      this.updateAnalytics(startTime, true);
       
-      logger.info("Search result served from cache", {
-        query: validatedParams.query,
-        cacheHit: true,
-        responseTime: Date.now() - startTime
-      });
+      if (cachedResult) {
+        this.updateAnalytics(startTime, true);
+        return cachedResult;
+      }
 
-      return cachedResult;
-    }
+      // Perform search
+      let results: z.infer<typeof SearchResultSchema>[] = [];
 
-    let results: z.infer<typeof SearchResultSchema>[] = [];
-    const sourcesQueried: string[] = [];
+      // Local search
+      results = await this.performLocalSearch(params);
 
-    // Execute search based on type
-    switch (validatedParams.searchType) {
-      case "semantic":
-        results = await this.semanticSearch(validatedParams);
-        break;
-      case "fuzzy":
-        results = await this.fuzzySearch(validatedParams);
-        break;
-      case "federated":
-        results = await this.federatedSearch(validatedParams);
-        sourcesQueried.push(...validatedParams.sources || []);
-        break;
-      default:
-        results = await this.keywordSearch(validatedParams);
-    }
+      // Federated search if enabled
+      if (params.includeFederated !== false) {
+        const federatedResults = await this.performFederatedSearch(params);
+        results = results.concat(federatedResults);
+      }
 
-    // Apply filters and sorting
-    results = this.applyFilters(results, validatedParams.filters);
-    results = this.sortResults(results, validatedParams.sortBy, validatedParams.sortOrder);
+      // Apply filters
+      results = this.applyFilters(results, params.filters);
 
-    // Pagination
-    const startIndex = (validatedParams.page - 1) * validatedParams.limit;
-    const paginatedResults = results.slice(startIndex, startIndex + validatedParams.limit);
+      // Sort results
+      results = this.sortResults(results, params.sortBy, params.sortOrder);
 
-    // Generate suggestions
-    const suggestions = validatedParams.includeSuggestions 
-      ? await this.generateSuggestions(validatedParams.query, results)
-      : [];
+      // Pagination
+      const page = params.page || 1;
+      const limit = params.limit || 20;
+      const startIndex = (page - 1) * limit;
+      const paginatedResults = results.slice(startIndex, startIndex + limit);
 
-    // Save to history
-    await this.saveSearchHistory(validatedParams, results.length);
+      // Generate suggestions
+      const suggestions = await this.generateSuggestions(params.query, results);
 
-    // Cache results
-    if (validatedParams.useCache) {
-      this.searchCache.set(cacheKey, {
+      // Save search history
+      if (params.userId) {
+        await this.saveSearchHistory(params, results.length);
+      }
+
+      // Update analytics
+      this.updateAnalytics(startTime, false);
+
+      // Cache results
+      const result = {
         results: paginatedResults,
         suggestions,
-        analytics: {
-          totalResults: results.length,
-          responseTime: Date.now() - startTime,
-          cacheHit: false,
-          sourcesQueried,
-        }
-      });
+        analytics: this.getSearchAnalytics(),
+        totalCount: results.length,
+        page,
+        limit,
+      };
+
+      this.searchCache.set(cacheKey, result);
+
+      return result;
+
+    } catch (error) {
+      throw error;
     }
-
-    this.updateAnalytics(startTime, false);
-
-    logger.info("Search completed successfully", {
-      query: validatedParams.query,
-      totalResults: results.length,
-      returnedResults: paginatedResults.length,
-      responseTime: Date.now() - startTime,
-      searchType: validatedParams.searchType
-    });
-
-    return {
-      results: paginatedResults,
-      suggestions,
-      analytics: {
-        totalResults: results.length,
-        responseTime: Date.now() - startTime,
-        cacheHit: false,
-        sourcesQueried,
-      }
-    };
   }
 
   // ============================================================================
-  // SEARCH ALGORITHMS
+  // SEARCH IMPLEMENTATIONS
   // ============================================================================
 
-  private async semanticSearch(params: z.infer<typeof SearchQuerySchema>): Promise<z.infer<typeof SearchResultSchema>[]> {
-    // Simulate semantic search with embeddings
-    const queryEmbedding = this.generateEmbedding(params.query);
-    const results: z.infer<typeof SearchResultSchema>[] = [];
-
-    for (const [source, documents] of this.searchIndex.entries()) {
-      for (const doc of documents) {
-        const docEmbedding = this.generateEmbedding(doc.content);
-        const similarity = this.calculateCosineSimilarity(queryEmbedding, docEmbedding);
-        
-        if (similarity > 0.3) { // Threshold for semantic relevance
-          results.push({
-            id: doc.id,
-            title: doc.title,
-            content: doc.content,
-            url: doc.url,
-            type: doc.type,
-            score: similarity,
-            highlights: this.extractHighlights(doc.content, params.query),
-            metadata: doc.metadata,
-            source,
-            timestamp: new Date(),
-          });
-        }
-      }
-    }
-
-    return results.sort((a, b) => b.score - a.score);
-  }
-
-  private async fuzzySearch(params: z.infer<typeof SearchQuerySchema>): Promise<z.infer<typeof SearchResultSchema>[]> {
+  private async performLocalSearch(params: z.infer<typeof SearchQuerySchema>): Promise<z.infer<typeof SearchResultSchema>[]> {
     const results: z.infer<typeof SearchResultSchema>[] = [];
     const query = params.query.toLowerCase();
 
-    for (const [source, documents] of this.searchIndex.entries()) {
-      for (const doc of documents) {
-        const content = doc.content.toLowerCase();
-        const title = doc.title.toLowerCase();
-        
-        // Calculate fuzzy match scores
-        const contentScore = this.calculateFuzzyScore(content, query);
-        const titleScore = this.calculateFuzzyScore(title, query);
-        
-        const totalScore = (contentScore * 0.7) + (titleScore * 0.3);
-        
-        if (totalScore > 0.5) {
-          results.push({
-            id: doc.id,
-            title: doc.title,
-            content: doc.content,
-            url: doc.url,
-            type: doc.type,
-            score: totalScore,
-            highlights: this.extractFuzzyHighlights(doc.content, query),
-            metadata: doc.metadata,
-            source,
-            timestamp: new Date(),
-          });
-        }
+    // Search in documents
+    const documents = this.searchIndex.get("documents") || [];
+    for (const doc of documents) {
+      if (this.matchesQuery(doc, query)) {
+        results.push({
+          id: doc.id,
+          title: doc.title,
+          content: doc.content,
+          url: doc.url,
+          type: "document" as const,
+          score: this.calculateScore(doc, query),
+          highlights: this.generateHighlights(doc, query),
+          metadata: doc.metadata,
+          source: "local",
+          timestamp: new Date(doc.timestamp),
+        });
       }
     }
 
-    return results.sort((a, b) => b.score - a.score);
-  }
+    // Search in users
+    const users = this.searchIndex.get("users") || [];
+    for (const user of users) {
+      if (this.matchesQuery(user, query)) {
+        results.push({
+          id: user.id,
+          title: user.name,
+          content: user.email,
+          url: `/users/${user.id}`,
+          type: "user" as const,
+          score: this.calculateScore(user, query),
+          highlights: this.generateHighlights(user, query),
+          metadata: user.metadata,
+          source: "local",
+          timestamp: new Date(user.timestamp),
+        });
+      }
+    }
 
-  private async federatedSearch(params: z.infer<typeof SearchQuerySchema>): Promise<z.infer<typeof SearchResultSchema>[]> {
-    const results: z.infer<typeof SearchResultSchema>[] = [];
-    const sources = params.sources || Array.from(this.federatedSources.keys());
-
-    for (const sourceId of sources) {
-      const source = this.federatedSources.get(sourceId);
-      if (!source || !source.enabled) continue;
-
-      try {
-        const sourceResults = await this.queryFederatedSource(source, params);
-        results.push(...sourceResults);
-      } catch (error) {
-        logger.error("Federated search failed for source", {
-          sourceId,
-          error: (error as Error).message,
-          query: params.query
+    // Search in products
+    const products = this.searchIndex.get("products") || [];
+    for (const product of products) {
+      if (this.matchesQuery(product, query)) {
+        results.push({
+          id: product.id,
+          title: product.name,
+          content: product.description,
+          url: `/products/${product.id}`,
+          type: "product" as const,
+          score: this.calculateScore(product, query),
+          highlights: this.generateHighlights(product, query),
+          metadata: product.metadata,
+          source: "local",
+          timestamp: new Date(product.timestamp),
         });
       }
     }
@@ -313,171 +236,84 @@ export class AdvancedSearchEngine {
     return results;
   }
 
-  private async keywordSearch(params: z.infer<typeof SearchQuerySchema>): Promise<z.infer<typeof SearchResultSchema>[]> {
+  private async performFederatedSearch(params: z.infer<typeof SearchQuerySchema>): Promise<z.infer<typeof SearchResultSchema>[]> {
     const results: z.infer<typeof SearchResultSchema>[] = [];
-    const query = params.query.toLowerCase();
-    const keywords = query.split(/\s+/);
+    const sources = params.sources || Array.from(this.federatedSources.keys());
 
-    for (const [source, documents] of this.searchIndex.entries()) {
-      for (const doc of documents) {
-        const content = doc.content.toLowerCase();
-        const title = doc.title.toLowerCase();
-        
-        let score = 0;
-        let matches = 0;
-
-        for (const keyword of keywords) {
-          if (content.includes(keyword)) {
-            score += 1;
-            matches++;
-          }
-          if (title.includes(keyword)) {
-            score += 2; // Title matches are worth more
-            matches++;
-          }
-        }
-
-        if (matches > 0) {
-          const relevanceScore = score / keywords.length;
-          results.push({
-            id: doc.id,
-            title: doc.title,
-            content: doc.content,
-            url: doc.url,
-            type: doc.type,
-            score: relevanceScore,
-            highlights: this.extractKeywordHighlights(doc.content, keywords),
-            metadata: doc.metadata,
-            source,
-            timestamp: new Date(),
-          });
+    for (const sourceId of sources) {
+      const source = this.federatedSources.get(sourceId);
+      if (source && source.enabled) {
+        try {
+          const sourceResults = await this.queryFederatedSource(source, params);
+          results.push(...sourceResults);
+        } catch (error) {
+          logger.error("Federated search failed", { error: (error as Error).message });
         }
       }
     }
 
-    return results.sort((a, b) => b.score - a.score);
+    return results;
   }
 
-  // ============================================================================
-  // UTILITY METHODS
-  // ============================================================================
+  private matchesQuery(item: any, query: string): boolean {
+    const searchableFields = [
+      item.title || "",
+      item.name || "",
+      item.content || "",
+      item.description || "",
+      item.email || "",
+    ].join(" ").toLowerCase();
 
-  private generateCacheKey(params: z.infer<typeof SearchQuerySchema>): string {
-    return `search:${params.query}:${params.searchType}:${JSON.stringify(params.filters)}:${params.page}:${params.limit}`;
+    return searchableFields.includes(query);
   }
 
-  private generateEmbedding(text: string): number[] {
-    // Simulate embedding generation
-    const words = text.toLowerCase().split(/\s+/);
-    const embedding = new Array(128).fill(0);
+  private calculateScore(item: any, query: string): number {
+    const searchableFields = [
+      item.title || "",
+      item.name || "",
+      item.content || "",
+      item.description || "",
+      item.email || "",
+    ].join(" ").toLowerCase();
+
+    const queryWords = query.split(" ");
+    let score = 0;
+
+    for (const word of queryWords) {
+      if (searchableFields.includes(word)) {
+        score += 0.2;
+      }
+    }
+
+    return Math.min(score, 1);
+  }
+
+  private generateHighlights(item: any, query: string): string[] {
+    const highlights: string[] = [];
+    const searchableFields = [
+      item.title || "",
+      item.name || "",
+      item.content || "",
+      item.description || "",
+      item.email || "",
+    ];
+
+    const queryWords = query.split(" ");
     
-    for (let i = 0; i < Math.min(words.length, 128); i++) {
-      embedding[i] = words[i].length / 10; // Simple hash-based embedding
-    }
-    
-    return embedding;
-  }
-
-  private calculateCosineSimilarity(vec1: number[], vec2: number[]): number {
-    let dotProduct = 0;
-    let norm1 = 0;
-    let norm2 = 0;
-
-    for (let i = 0; i < vec1.length; i++) {
-      dotProduct += vec1[i] * vec2[i];
-      norm1 += vec1[i] * vec1[i];
-      norm2 += vec2[i] * vec2[i];
-    }
-
-    return dotProduct / (Math.sqrt(norm1) * Math.sqrt(norm2));
-  }
-
-  private calculateFuzzyScore(text: string, query: string): number {
-    // Simple Levenshtein-based fuzzy scoring
-    const distance = this.levenshteinDistance(text, query);
-    const maxLength = Math.max(text.length, query.length);
-    return 1 - (distance / maxLength);
-  }
-
-  private levenshteinDistance(str1: string, str2: string): number {
-    const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
-
-    for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
-    for (let j = 0; j <= str2.length; j++) matrix[j][0] = j;
-
-    for (let j = 1; j <= str2.length; j++) {
-      for (let i = 1; i <= str1.length; i++) {
-        const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
-        matrix[j][i] = Math.min(
-          matrix[j][i - 1] + 1,
-          matrix[j - 1][i] + 1,
-          matrix[j - 1][i - 1] + indicator
-        );
-      }
-    }
-
-    return matrix[str2.length][str1.length];
-  }
-
-  private extractHighlights(content: string, query: string): string[] {
-    const highlights: string[] = [];
-    const sentences = content.split(/[.!?]+/);
-    const queryLower = query.toLowerCase();
-
-    for (const sentence of sentences) {
-      if (sentence.toLowerCase().includes(queryLower)) {
-        highlights.push(sentence.trim());
-      }
-    }
-
-    return highlights.slice(0, 3);
-  }
-
-  private extractFuzzyHighlights(content: string, query: string): string[] {
-    const highlights: string[] = [];
-    const words = content.split(/\s+/);
-    const queryWords = query.split(/\s+/);
-
-    for (let i = 0; i < words.length - queryWords.length + 1; i++) {
-      let match = true;
-      for (let j = 0; j < queryWords.length; j++) {
-        if (this.levenshteinDistance(words[i + j].toLowerCase(), queryWords[j]) > 2) {
-          match = false;
-          break;
+    for (const field of searchableFields) {
+      for (const word of queryWords) {
+        if (field.toLowerCase().includes(word)) {
+          const index = field.toLowerCase().indexOf(word);
+          const highlight = field.substring(Math.max(0, index - 20), index + word.length + 20);
+          highlights.push(`...${highlight}...`);
         }
       }
-      if (match) {
-        highlights.push(words.slice(i, i + queryWords.length).join(" "));
-      }
     }
 
     return highlights.slice(0, 3);
   }
 
-  private extractKeywordHighlights(content: string, keywords: string[]): string[] {
-    const highlights: string[] = [];
-    const sentences = content.split(/[.!?]+/);
-
-    for (const sentence of sentences) {
-      const sentenceLower = sentence.toLowerCase();
-      let hasKeyword = false;
-      
-      for (const keyword of keywords) {
-        if (sentenceLower.includes(keyword)) {
-          hasKeyword = true;
-          break;
-        }
-      }
-      
-      if (hasKeyword) {
-        highlights.push(sentence.trim());
-      }
-    }
-
-    return highlights.slice(0, 3);
-  }
-
-  private applyFilters(results: z.infer<typeof SearchResultSchema>[], filters: Record<string, any> | undefined): z.infer<typeof SearchResultSchema>[]> {
+  private applyFilters(results: z.infer<typeof SearchResultSchema>[], filters: Record<string, any> | undefined): z.infer<typeof SearchResultSchema>[] {
     if (!filters) return results;
 
     return results.filter(result => {
@@ -503,7 +339,7 @@ export class AdvancedSearchEngine {
     });
   }
 
-  private async queryFederatedSource(source: FederatedSearchConfigSchema, params: z.infer<typeof SearchQuerySchema>): Promise<z.infer<typeof SearchResultSchema>[]> {
+  private async queryFederatedSource(source: any, params: z.infer<typeof SearchQuerySchema>): Promise<z.infer<typeof SearchResultSchema>[]> {
     // Simulate federated source query
     const results: z.infer<typeof SearchResultSchema>[] = [];
     
@@ -517,7 +353,7 @@ export class AdvancedSearchEngine {
         title: `Result from ${source.name}`,
         content: `Content from federated source ${source.name} for query: ${params.query}`,
         url: `${source.url}/result/${i}`,
-        type: "federated",
+        type: "federated" as const,
         score: Math.random(),
         highlights: [`Highlight from ${source.name}`],
         metadata: { source: source.sourceId },
@@ -566,7 +402,7 @@ export class AdvancedSearchEngine {
         if (entry.query.toLowerCase().includes(queryLower) && entry.query !== query) {
           suggestions.push({
             query: entry.query,
-            type: "history",
+            type: "history" as const,
             score: 0.8,
             count: 1,
           });
@@ -581,27 +417,22 @@ export class AdvancedSearchEngine {
     const suggestions: z.infer<typeof SearchSuggestionSchema>[] = [];
     const queryLower = query.toLowerCase();
 
-    // Simulate popular queries
+    // Mock popular queries
     const popularQueries = [
-      "machine learning",
-      "artificial intelligence",
-      "data analytics",
-      "cloud computing",
-      "cybersecurity",
-      "blockchain",
-      "internet of things",
-      "big data",
-      "devops",
-      "microservices"
+      "user management",
+      "product catalog",
+      "analytics dashboard",
+      "security settings",
+      "workflow engine",
     ];
 
     for (const popularQuery of popularQueries) {
       if (popularQuery.toLowerCase().includes(queryLower)) {
         suggestions.push({
           query: popularQuery,
-          type: "popular",
+          type: "popular" as const,
           score: 0.9,
-          count: Math.floor(Math.random() * 1000) + 100,
+          count: 10,
         });
       }
     }
@@ -611,20 +442,19 @@ export class AdvancedSearchEngine {
 
   private getRelatedSuggestions(query: string, results: z.infer<typeof SearchResultSchema>[]): z.infer<typeof SearchSuggestionSchema>[] {
     const suggestions: z.infer<typeof SearchSuggestionSchema>[] = [];
-    const words = query.toLowerCase().split(/\s+/);
 
     // Generate related queries based on result content
-    for (const result of results.slice(0, 5)) {
-      const contentWords = result.content.toLowerCase().split(/\s+/);
-      const newWords = contentWords.filter(word => !words.includes(word) && word.length > 3);
-      
-      if (newWords.length > 0) {
-        const relatedQuery = [...words, newWords[0]].join(" ");
-        suggestions.push({
-          query: relatedQuery,
-          type: "related",
-          score: 0.7,
-        });
+    for (const result of results.slice(0, 3)) {
+      const words = result.title.split(" ");
+      for (const word of words) {
+        if (word.length > 3 && !query.toLowerCase().includes(word.toLowerCase())) {
+          suggestions.push({
+            query: `${query} ${word}`,
+            type: "related" as const,
+            score: 0.6,
+            count: 1,
+          });
+        }
       }
     }
 
@@ -633,25 +463,23 @@ export class AdvancedSearchEngine {
 
   private getSpellCorrections(query: string): z.infer<typeof SearchSuggestionSchema>[] {
     const suggestions: z.infer<typeof SearchSuggestionSchema>[] = [];
-    const words = query.split(/\s+/);
 
-    // Simple spell correction simulation
+    // Simple spell correction (mock)
     const corrections: Record<string, string> = {
-      "machin": "machine",
-      "learnin": "learning",
-      "artificil": "artificial",
-      "inteligence": "intelligence",
+      "usar": "user",
+      "produt": "product",
       "analitics": "analytics",
-      "computin": "computing",
+      "securty": "security",
     };
 
-    for (const word of words) {
-      if (corrections[word.toLowerCase()]) {
-        const correctedQuery = query.replace(word, corrections[word.toLowerCase()]);
+    for (const [incorrect, correct] of Object.entries(corrections)) {
+      if (query.toLowerCase().includes(incorrect)) {
+        const correctedQuery = query.toLowerCase().replace(incorrect, correct);
         suggestions.push({
           query: correctedQuery,
-          type: "correction",
-          score: 0.6,
+          type: "correction" as const,
+          score: 0.7,
+          count: 1,
         });
       }
     }
@@ -659,16 +487,19 @@ export class AdvancedSearchEngine {
     return suggestions;
   }
 
+  // ============================================================================
+  // HISTORY AND ANALYTICS
+  // ============================================================================
+
   async saveSearchHistory(params: z.infer<typeof SearchQuerySchema>, resultsCount: number): Promise<void> {
     const historyEntry: z.infer<typeof SearchHistorySchema> = {
-      id: `search-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      userId: "anonymous", // In real implementation, get from auth context
+      id: `history_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      userId: params.userId!,
       query: params.query,
-      results: resultsCount,
+      resultsCount,
       timestamp: new Date(),
-      searchType: params.searchType,
       filters: params.filters,
-      sessionId: "session-123", // In real implementation, get from session
+      sources: params.sources,
     };
 
     const userId = historyEntry.userId;
@@ -678,29 +509,26 @@ export class AdvancedSearchEngine {
 
     this.searchHistory.get(userId)!.push(historyEntry);
 
-    // Keep only last 100 searches per user
-    const userHistory = this.searchHistory.get(userId)!;
-    if (userHistory.length > 100) {
-      this.searchHistory.set(userId, userHistory.slice(-100));
+    // Keep only last 50 searches per user
+    if (this.searchHistory.get(userId)!.length > 50) {
+      this.searchHistory.get(userId)!.shift();
     }
-  }
 
-  // ============================================================================
-  // ANALYTICS AND MONITORING
-  // ============================================================================
+    logger.info("Search history saved");
+  }
 
   private updateAnalytics(startTime: number, cacheHit: boolean): void {
     const responseTime = Date.now() - startTime;
-    
+
     this.searchAnalytics.totalSearches++;
-    this.searchAnalytics.averageResponseTime = 
+    this.searchAnalytics.averageResponseTime =
       (this.searchAnalytics.averageResponseTime * (this.searchAnalytics.totalSearches - 1) + responseTime) / this.searchAnalytics.totalSearches;
-    
+
     if (cacheHit) {
-      this.searchAnalytics.cacheHitRate = 
+      this.searchAnalytics.cacheHitRate =
         (this.searchAnalytics.cacheHitRate * (this.searchAnalytics.totalSearches - 1) + 1) / this.searchAnalytics.totalSearches;
     } else {
-      this.searchAnalytics.cacheHitRate = 
+      this.searchAnalytics.cacheHitRate =
         (this.searchAnalytics.cacheHitRate * (this.searchAnalytics.totalSearches - 1)) / this.searchAnalytics.totalSearches;
     }
   }
@@ -719,17 +547,12 @@ export class AdvancedSearchEngine {
 
   addFederatedSource(config: z.infer<typeof FederatedSearchConfigSchema>): void {
     this.federatedSources.set(config.sourceId, config);
-    logger.info("Federated source added", {
-      sourceId: config.sourceId,
-      name: config.name,
-      type: config.type,
-      priority: config.priority
-    });
+    logger.info("Federated source added");
   }
 
   removeFederatedSource(sourceId: string): void {
     this.federatedSources.delete(sourceId);
-    logger.info("Federated source removed", { sourceId });
+    logger.info("Federated source removed");
   }
 
   getFederatedSources(): z.infer<typeof FederatedSearchConfigSchema>[] {
@@ -739,6 +562,10 @@ export class AdvancedSearchEngine {
   // ============================================================================
   // CACHE MANAGEMENT
   // ============================================================================
+
+  private generateCacheKey(params: z.infer<typeof SearchQuerySchema>): string {
+    return `search_${JSON.stringify(params)}`;
+  }
 
   clearCache(): void {
     this.searchCache.clear();
@@ -757,90 +584,101 @@ export class AdvancedSearchEngine {
   // ============================================================================
 
   private initializeSampleData(): void {
-    // Initialize search index with sample documents
+    // Sample documents
     this.searchIndex.set("documents", [
       {
-        id: "doc-1",
-        title: "Machine Learning Fundamentals",
-        content: "Machine learning is a subset of artificial intelligence that enables computers to learn and make decisions without being explicitly programmed. It uses algorithms to identify patterns in data and make predictions or decisions based on those patterns.",
-        url: "/docs/ml-fundamentals",
-        type: "article",
-        metadata: { category: "AI", difficulty: "beginner" },
+        id: "doc_1",
+        title: "User Management Guide",
+        content: "Complete guide for managing users in the system",
+        url: "/docs/user-management",
+        metadata: { category: "documentation", author: "admin" },
+        timestamp: new Date(),
       },
       {
-        id: "doc-2",
-        title: "Advanced Data Analytics Techniques",
-        content: "Data analytics involves the process of examining data sets to draw conclusions about the information they contain. Advanced techniques include predictive analytics, prescriptive analytics, and real-time analytics.",
-        url: "/docs/advanced-analytics",
-        type: "article",
-        metadata: { category: "Analytics", difficulty: "advanced" },
+        id: "doc_2",
+        title: "Product Catalog API",
+        content: "API documentation for product catalog management",
+        url: "/docs/product-api",
+        metadata: { category: "api", author: "developer" },
+        timestamp: new Date(),
       },
       {
-        id: "doc-3",
-        title: "Cloud Computing Architecture",
-        content: "Cloud computing provides on-demand access to computing resources over the internet. It includes various service models like IaaS, PaaS, and SaaS, and deployment models like public, private, and hybrid clouds.",
-        url: "/docs/cloud-architecture",
-        type: "article",
-        metadata: { category: "Cloud", difficulty: "intermediate" },
-      },
-      {
-        id: "doc-4",
-        title: "Cybersecurity Best Practices",
-        content: "Cybersecurity involves protecting systems, networks, and programs from digital attacks. Best practices include regular updates, strong authentication, encryption, and security awareness training.",
-        url: "/docs/cybersecurity",
-        type: "article",
-        metadata: { category: "Security", difficulty: "intermediate" },
-      },
-      {
-        id: "doc-5",
-        title: "Blockchain Technology Overview",
-        content: "Blockchain is a distributed ledger technology that enables secure, transparent, and tamper-proof record-keeping. It's the foundation for cryptocurrencies and has applications in supply chain, finance, and more.",
-        url: "/docs/blockchain",
-        type: "article",
-        metadata: { category: "Blockchain", difficulty: "beginner" },
+        id: "doc_3",
+        title: "Analytics Dashboard Setup",
+        content: "How to set up and configure analytics dashboards",
+        url: "/docs/analytics-setup",
+        metadata: { category: "tutorial", author: "analyst" },
+        timestamp: new Date(),
       },
     ]);
 
-    // Initialize federated sources
+    // Sample users
+    this.searchIndex.set("users", [
+      {
+        id: "user_1",
+        name: "John Doe",
+        email: "john.doe@example.com",
+        metadata: { role: "admin", department: "IT" },
+        timestamp: new Date(),
+      },
+      {
+        id: "user_2",
+        name: "Jane Smith",
+        email: "jane.smith@example.com",
+        metadata: { role: "user", department: "Marketing" },
+        timestamp: new Date(),
+      },
+    ]);
+
+    // Sample products
+    this.searchIndex.set("products", [
+      {
+        id: "prod_1",
+        name: "Enterprise CRM",
+        description: "Complete customer relationship management solution",
+        metadata: { category: "software", price: 999 },
+        timestamp: new Date(),
+      },
+      {
+        id: "prod_2",
+        name: "Analytics Platform",
+        description: "Advanced analytics and reporting platform",
+        metadata: { category: "software", price: 1499 },
+        timestamp: new Date(),
+      },
+    ]);
+
+    // Add federated sources
     this.addFederatedSource({
-      sourceId: "api-docs",
-      name: "API Documentation",
-      url: "https://api.example.com/search",
+      sourceId: "external_api",
+      name: "External API",
+      url: "https://api.external.com",
       type: "api",
-      priority: 8,
-      timeout: 5000,
+      config: { apiKey: "mock_key" },
       enabled: true,
     });
 
     this.addFederatedSource({
       sourceId: "database",
-      name: "Internal Database",
-      url: "internal://database/search",
+      name: "Legacy Database",
+      url: "postgresql://legacy:5432",
       type: "database",
-      priority: 10,
-      timeout: 3000,
+      config: { connectionString: "mock_connection" },
       enabled: true,
     });
 
     this.addFederatedSource({
-      sourceId: "file-system",
+      sourceId: "file_system",
       name: "File System",
-      url: "file:///var/data/search",
+      url: "/mnt/files",
       type: "file",
-      priority: 6,
-      timeout: 2000,
+      config: { path: "/mnt/files" },
       enabled: true,
     });
 
-    logger.info("Sample data initialized for advanced search engine", {
-      documentsCount: this.searchIndex.get("documents")?.length || 0,
-      federatedSourcesCount: this.federatedSources.size
-    });
+    logger.info("Sample data initialized for advanced search engine");
   }
 }
 
-// ============================================================================
-// EXPORT INSTANCE
-// ============================================================================
-
+// Export singleton instance
 export const advancedSearchEngine = new AdvancedSearchEngine();
