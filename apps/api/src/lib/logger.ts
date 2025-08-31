@@ -66,6 +66,19 @@ interface LogContext {
   orgId?: string;
   functionName?: string;
   arguments?: any;
+  // Additional AI Chat fields
+  title?: string;
+  messageId?: string;
+  text?: string;
+  sentiment?: number;
+  model?: string;
+  sessionCount?: number;
+  totalMessages?: number;
+  totalTokens?: number;
+  totalCost?: number;
+  averageMessagesPerSession?: number;
+  averageTokensPerSession?: number;
+  averageCostPerSession?: number;
 }
 
 interface LogEntry {

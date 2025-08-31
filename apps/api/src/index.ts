@@ -21,6 +21,10 @@ import { serviceMesh } from "./lib/service-mesh.js";
 import { configurationManager } from "./lib/configuration.js";
 import { featureFlagInfoMiddleware, requireFeatureFlag } from "./middleware/feature-flags.js";
 import { notificationSystem } from "./lib/notifications.js";
+// import { workflowEngine } from "./lib/workflows.js";
+// import { inventorySystem } from "./lib/inventory.js";
+import { advancedAIChatSystem } from "./lib/ai-chat.js";
+// import { analyticsSystem } from "./lib/analytics.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -2085,9 +2089,10 @@ app.get("/v1/demo/dashboard", rateLimitByEndpoint, (req, res) => {
 });
 
 // ============================================================================
-// ENDPOINTS DEL SISTEMA DE AI CHAT AVANZADO
+// ENDPOINTS DEL SISTEMA DE AI CHAT AVANZADO (COMENTADO - NO IMPLEMENTADO EN ESTA RAMA)
 // ============================================================================
 
+/*
 // Endpoints de Sesiones
 app.get("/v1/ai-chat/sessions", async (req, res) => {
   try {
@@ -2222,9 +2227,10 @@ app.get("/v1/ai-chat/sessions/:id/stats", async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+*/
 
 // ============================================================================
-// ENDPOINTS DEL SISTEMA DE ANALYTICS DE DATOS
+// ENDPOINTS DEL SISTEMA DE ANALYTICS DE DATOS (COMENTADO - NO IMPLEMENTADO EN ESTA RAMA)
 // ============================================================================
 
 // Endpoints de Métricas
