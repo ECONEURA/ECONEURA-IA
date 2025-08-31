@@ -26,6 +26,7 @@ import { notificationSystem } from "./lib/notifications.js";
 import { advancedAIChatSystem } from "./lib/ai-chat.js";
 // import { analyticsSystem } from "./lib/analytics.js";
 import { advancedSearchEngine } from "./lib/advanced-search.js";
+import { realTimeCollaborationSystem } from "./lib/real-time-collaboration.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -2826,6 +2827,125 @@ app.get("/v1/search/cache/stats", async (req, res) => {
   }
 });
 
+// ============================================================================
+// REAL-TIME COLLABORATION ENDPOINTS
+// ============================================================================
+
+// GET /v1/collaboration/rooms - Obtener salas de colaboración
+app.get("/v1/collaboration/rooms", async (req, res) => {
+  try {
+    const { userId } = req.query;
+    const rooms = realTimeCollaborationSystem.listRooms(userId as string);
+    
+    // Add FinOps headers
+    res.set('X-Cost-Tracked', 'true');
+    res.set('X-Rooms-Count', rooms.length.toString());
+    
+    res.json({ rooms });
+  } catch (error) {
+    logger.error('Failed to get collaboration rooms', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /v1/collaboration/rooms - Crear sala de colaboración
+app.post("/v1/collaboration/rooms", async (req, res) => {
+  try {
+    const roomData = req.body;
+    const room = realTimeCollaborationSystem.createRoom(roomData);
+    
+    // Add FinOps headers
+    res.set('X-Cost-Tracked', 'true');
+    res.set('X-Room-Type', room.type);
+    res.set('X-Participants-Count', room.participants.length.toString());
+    
+    res.status(201).json(room);
+  } catch (error) {
+    logger.error('Failed to create collaboration room', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// GET /v1/collaboration/rooms/:roomId - Obtener información de sala
+app.get("/v1/collaboration/rooms/:roomId", async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const room = realTimeCollaborationSystem.getRoom(roomId);
+    
+    if (!room) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    
+    res.json({ room });
+  } catch (error) {
+    logger.error('Failed to get collaboration room', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PUT /v1/collaboration/rooms/:roomId - Actualizar sala de colaboración
+app.put("/v1/collaboration/rooms/:roomId", async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const updates = req.body;
+    const room = realTimeCollaborationSystem.updateRoom(roomId, updates);
+    
+    if (!room) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    
+    res.json({ room });
+  } catch (error) {
+    logger.error('Failed to update collaboration room', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// DELETE /v1/collaboration/rooms/:roomId - Eliminar sala de colaboración
+app.delete("/v1/collaboration/rooms/:roomId", async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const success = realTimeCollaborationSystem.deleteRoom(roomId);
+    
+    if (!success) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    
+    res.status(204).send();
+  } catch (error) {
+    logger.error('Failed to delete collaboration room', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// GET /v1/collaboration/presence/:userId - Obtener presencia de usuario
+app.get("/v1/collaboration/presence/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const presence = realTimeCollaborationSystem.getUserPresence(userId);
+    
+    if (!presence) {
+      return res.status(404).json({ error: 'User presence not found' });
+    }
+    
+    res.json({ presence });
+  } catch (error) {
+    logger.error('Failed to get user presence', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /v1/collaboration/analytics - Obtener analytics de colaboración
+app.get("/v1/collaboration/analytics", async (req, res) => {
+  try {
+    const analytics = realTimeCollaborationSystem.getCollaborationAnalytics();
+    res.json(analytics);
+  } catch (error) {
+    logger.error('Failed to get collaboration analytics', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Endpoint de métricas para Prometheus
 app.get("/metrics", (req, res) => {
   try {
@@ -2867,6 +2987,7 @@ app.listen(PORT, async () => {
   console.log(`⚙️ Configuration system enabled with feature flags and environment management`);
   console.log(`📧 Notification system enabled with templates and multi-channel delivery`);
   console.log(`🔍 Advanced Search Engine enabled with semantic, fuzzy, and federated search`);
+  console.log(`🤝 Real-time Collaboration System enabled with WebSockets and document sharing`);
   
   // Inicializar warmup del caché
   try {
