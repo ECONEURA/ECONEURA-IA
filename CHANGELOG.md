@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **PR-38: Sistema de Búsqueda Avanzada**
+  - Sistema completo de búsqueda con múltiples algoritmos
+  - Búsqueda semántica con embeddings y similitud coseno
+  - Búsqueda fuzzy con corrección ortográfica (Levenshtein)
+  - Búsqueda federada en múltiples fuentes (API, DB, archivos, web)
+  - Búsqueda por palabras clave con ranking inteligente
+  - Sugerencias de búsqueda (historial, populares, relacionadas, correcciones)
+  - Historial de búsquedas por usuario
+  - Analytics detallados del motor de búsqueda
+  - Gestión de fuentes federadas con prioridades y timeouts
+  - Sistema de caché para búsquedas con estadísticas
+  - Filtros avanzados y ordenamiento personalizable
+  - Paginación y límites configurables
+  - Componente de interfaz de búsqueda avanzada
+  - Componente de estado del sistema de búsqueda
+  - Página dedicada para búsqueda avanzada
+  - API routes completas para el Web BFF
+  - Integración con el dashboard principal
+  - Script de smoke test exhaustivo (20 tests)
+  - Headers de FinOps para tracking de costos
+  - Logs estructurados para observabilidad
+
 - **PR-37: Sistema de Notificaciones**
   - Sistema completo de notificaciones con templates y multi-canal
   - Gestión de notificaciones (crear, leer, actualizar, eliminar)

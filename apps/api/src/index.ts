@@ -25,6 +25,7 @@ import { notificationSystem } from "./lib/notifications.js";
 // import { inventorySystem } from "./lib/inventory.js";
 import { advancedAIChatSystem } from "./lib/ai-chat.js";
 // import { analyticsSystem } from "./lib/analytics.js";
+import { advancedSearchEngine } from "./lib/advanced-search.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -2700,6 +2701,131 @@ app.get("/v1/notifications/stats", async (req, res) => {
   }
 });
 
+// ============================================================================
+// ADVANCED SEARCH ENDPOINTS
+// ============================================================================
+
+// POST /v1/search - Búsqueda avanzada
+app.post("/v1/search", async (req, res) => {
+  try {
+    const searchParams = req.body;
+    const result = await advancedSearchEngine.search(searchParams);
+    
+    // Add FinOps headers
+    res.set('X-Cost-Tracked', 'true');
+    res.set('X-Search-Type', searchParams.searchType || 'keyword');
+    res.set('X-Results-Count', result.results.length.toString());
+    res.set('X-Response-Time', result.analytics.responseTime.toString());
+    
+    res.json(result);
+  } catch (error) {
+    logger.error('Failed to process search request', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// GET /v1/search/suggestions - Obtener sugerencias de búsqueda
+app.get("/v1/search/suggestions", async (req, res) => {
+  try {
+    const { query } = req.query;
+    
+    if (!query) {
+      return res.status(400).json({ error: 'query parameter is required' });
+    }
+
+    const suggestions = await advancedSearchEngine.generateSuggestions(query as string, []);
+    res.json({ suggestions });
+  } catch (error) {
+    logger.error('Failed to get search suggestions', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /v1/search/history - Obtener historial de búsquedas
+app.get("/v1/search/history", async (req, res) => {
+  try {
+    const { userId } = req.query;
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'userId parameter is required' });
+    }
+
+    const history = advancedSearchEngine.getSearchHistory(userId as string);
+    res.json({ history });
+  } catch (error) {
+    logger.error('Failed to get search history', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /v1/search/analytics - Obtener analytics de búsqueda
+app.get("/v1/search/analytics", async (req, res) => {
+  try {
+    const analytics = advancedSearchEngine.getSearchAnalytics();
+    res.json(analytics);
+  } catch (error) {
+    logger.error('Failed to get search analytics', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /v1/search/sources - Obtener fuentes federadas
+app.get("/v1/search/sources", async (req, res) => {
+  try {
+    const sources = advancedSearchEngine.getFederatedSources();
+    res.json({ sources });
+  } catch (error) {
+    logger.error('Failed to get federated sources', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /v1/search/sources - Agregar fuente federada
+app.post("/v1/search/sources", async (req, res) => {
+  try {
+    const sourceConfig = req.body;
+    advancedSearchEngine.addFederatedSource(sourceConfig);
+    res.status(201).json({ message: 'Federated source added successfully' });
+  } catch (error) {
+    logger.error('Failed to add federated source', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// DELETE /v1/search/sources/:sourceId - Eliminar fuente federada
+app.delete("/v1/search/sources/:sourceId", async (req, res) => {
+  try {
+    const { sourceId } = req.params;
+    advancedSearchEngine.removeFederatedSource(sourceId);
+    res.status(204).send();
+  } catch (error) {
+    logger.error('Failed to remove federated source', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// POST /v1/search/cache/clear - Limpiar caché de búsqueda
+app.post("/v1/search/cache/clear", async (req, res) => {
+  try {
+    advancedSearchEngine.clearCache();
+    res.json({ message: 'Search cache cleared successfully' });
+  } catch (error) {
+    logger.error('Failed to clear search cache', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /v1/search/cache/stats - Obtener estadísticas del caché
+app.get("/v1/search/cache/stats", async (req, res) => {
+  try {
+    const stats = advancedSearchEngine.getCacheStats();
+    res.json(stats);
+  } catch (error) {
+    logger.error('Failed to get cache stats', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Endpoint de métricas para Prometheus
 app.get("/metrics", (req, res) => {
   try {
@@ -2740,6 +2866,7 @@ app.listen(PORT, async () => {
   console.log(`🔗 Microservices system enabled with service mesh and discovery`);
   console.log(`⚙️ Configuration system enabled with feature flags and environment management`);
   console.log(`📧 Notification system enabled with templates and multi-channel delivery`);
+  console.log(`🔍 Advanced Search Engine enabled with semantic, fuzzy, and federated search`);
   
   // Inicializar warmup del caché
   try {

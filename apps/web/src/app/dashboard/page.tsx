@@ -5,6 +5,7 @@ import { CacheStatus } from '@/components/CacheStatus';
 import { FinOpsStatus } from '@/components/FinOpsStatus';
 import RLSStatus from '@/components/RLSStatus';
 import NotificationCenter from '@/components/NotificationCenter';
+import SearchStatus from '@/components/SearchStatus';
 
 interface DashboardData {
   overview: {
@@ -324,6 +325,9 @@ export default function DashboardPage() {
 
       {/* FinOps Status */}
       <FinOpsStatus />
+
+      {/* Search Status */}
+      <SearchStatus />
 
       {/* Notification Center */}
       <NotificationCenter />

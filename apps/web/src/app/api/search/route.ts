@@ -1,47 +1,58 @@
-// app/api/search/route.ts
-export const runtime = "nodejs";
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 
-import { noStoreJson, fetchWithBackoff } from "@/app/api/_utils";
+const SearchRequestSchema = z.object({
+  query: z.string().min(1),
+  filters: z.record(z.any()).optional(),
+  sortBy: z.string().optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
+  page: z.number().min(1).default(1),
+  limit: z.number().min(1).max(100).default(20),
+  searchType: z.enum(["semantic", "keyword", "fuzzy", "federated"]).default("keyword"),
+  sources: z.array(z.string()).optional(),
+  includeSuggestions: z.boolean().default(true),
+  useCache: z.boolean().default(true),
+});
 
-export async function POST(req: Request) {
-  if (req.method !== "POST") return noStoreJson({ ok: false, error: "Method not allowed" }, 405);
-  const { query } = await req.json();
-
-  if (!query || typeof query !== "string") {
-    return noStoreJson({ ok: false, error: "query requerido" }, 400);
-  }
-
-  const key = process.env.GOOGLE_SEARCH_API_KEY?.trim();
-  const cx = process.env.GOOGLE_SEARCH_CX?.trim();
-
-  // DEMO
-  if (!key || !cx) {
-    return noStoreJson({
-      ok: true,
-      items: [
-        { title: "Informe sectorial (demo)", url: "https://example.com/sector", snippet: "Panorama general del mercado y jugadores clave." },
-        { title: "Tendencias (demo)", url: "https://example.com/trends", snippet: "Crecimiento anual, adopción tecnológica y riesgos." },
-        { title: "Competidores (demo)", url: "https://example.com/competitors", snippet: "Lista de competidores relevantes y movimientos recientes." }
-      ]
-    });
-  }
-
+export async function POST(request: NextRequest) {
   try {
-    const url = `https://www.googleapis.com/customsearch/v1?key=${key}&cx=${cx}&q=${encodeURIComponent(query)}`;
-    const res = await fetchWithBackoff(url, { method: "GET" });
-    if (!res.ok) {
-      const txt = await res.text().catch(() => "");
-      return noStoreJson({ ok: false, error: `Search ${res.status}: ${txt || res.statusText}` }, res.status);
+    const body = await request.json();
+    const validatedData = SearchRequestSchema.parse(body);
+
+    const response = await fetch(`${process.env.API_BASE_URL}/v1/search`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Request-ID': request.headers.get('X-Request-ID') || '',
+        'X-User-ID': request.headers.get('X-User-ID') || '',
+        'X-Org-ID': request.headers.get('X-Org-ID') || '',
+      },
+      body: JSON.stringify(validatedData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return NextResponse.json(
+        { error: errorData.error || 'Search request failed' },
+        { status: response.status }
+      );
     }
-    const data = await res.json();
-    const items =
-      (data.items ?? []).slice(0, 5).map((x: any) => ({
-        title: x.title,
-        url: x.link,
-        snippet: x.snippet,
-      })) ?? [];
-    return noStoreJson({ ok: true, items });
-  } catch (e: any) {
-    return noStoreJson({ ok: false, error: e?.message ?? "Search error" }, 500);
+
+    const data = await response.json();
+
+    // Add FinOps headers to response
+    const responseHeaders = new Headers();
+    responseHeaders.set('X-Cost-Tracked', response.headers.get('X-Cost-Tracked') || 'false');
+    responseHeaders.set('X-Search-Type', response.headers.get('X-Search-Type') || 'keyword');
+    responseHeaders.set('X-Results-Count', response.headers.get('X-Results-Count') || '0');
+    responseHeaders.set('X-Response-Time', response.headers.get('X-Response-Time') || '0');
+
+    return NextResponse.json(data, { headers: responseHeaders });
+  } catch (error) {
+    console.error('Search API error:', error);
+    return NextResponse.json(
+      { error: 'Invalid search request' },
+      { status: 400 }
+    );
   }
 }
