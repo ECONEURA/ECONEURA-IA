@@ -20,6 +20,8 @@ import { serviceRegistry, serviceDiscovery } from "./lib/service-discovery.js";
 import { serviceMesh } from "./lib/service-mesh.js";
 import { configurationManager } from "./lib/configuration.js";
 import { featureFlagInfoMiddleware, requireFeatureFlag } from "./middleware/feature-flags.js";
+import { workflowEngine } from "./lib/workflows.js";
+import { inventorySystem } from "./lib/inventory.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -140,6 +142,265 @@ const registerDefaultServices = () => {
 };
 
 registerDefaultServices();
+
+// Inicializar workflows de ejemplo
+const initializeExampleWorkflows = () => {
+  // Workflow BPMN de ejemplo: Proceso de Onboarding
+  const onboardingWorkflowId = workflowEngine.createWorkflow({
+    name: 'User Onboarding Process',
+    version: '1.0.0',
+    description: 'BPMN workflow for user onboarding',
+    type: 'bpmn',
+    definition: {
+      elements: [
+        {
+          id: 'start',
+          type: 'startEvent',
+          name: 'Start Onboarding',
+          position: { x: 100, y: 100 },
+          properties: {},
+          actions: ['sendEmail'],
+        },
+        {
+          id: 'validate',
+          type: 'task',
+          name: 'Validate User Data',
+          position: { x: 300, y: 100 },
+          properties: { timeout: 5000 },
+          actions: ['httpRequest'],
+        },
+        {
+          id: 'approve',
+          type: 'gateway',
+          name: 'Approve User',
+          position: { x: 500, y: 100 },
+          properties: {},
+          conditions: '${userType} === "premium"',
+        },
+        {
+          id: 'premium',
+          type: 'task',
+          name: 'Premium Setup',
+          position: { x: 700, y: 50 },
+          properties: {},
+          actions: ['notification'],
+        },
+        {
+          id: 'standard',
+          type: 'task',
+          name: 'Standard Setup',
+          position: { x: 700, y: 150 },
+          properties: {},
+          actions: ['delay'],
+        },
+        {
+          id: 'complete',
+          type: 'endEvent',
+          name: 'Onboarding Complete',
+          position: { x: 900, y: 100 },
+          properties: {},
+          actions: ['sendEmail'],
+        },
+      ],
+      flows: [
+        { id: 'flow1', sourceId: 'start', targetId: 'validate', properties: {} },
+        { id: 'flow2', sourceId: 'validate', targetId: 'approve', properties: {} },
+        { id: 'flow3', sourceId: 'approve', targetId: 'premium', condition: '${userType} === "premium"', properties: {} },
+        { id: 'flow4', sourceId: 'approve', targetId: 'standard', condition: '${userType} !== "premium"', properties: {} },
+        { id: 'flow5', sourceId: 'premium', targetId: 'complete', properties: {} },
+        { id: 'flow6', sourceId: 'standard', targetId: 'complete', properties: {} },
+      ],
+      startEvent: 'start',
+      endEvents: ['complete'],
+    },
+    metadata: {
+      author: 'System',
+      category: 'User Management',
+      tags: ['onboarding', 'user', 'bpmn'],
+      priority: 'high',
+      timeout: 300000, // 5 minutos
+      retryPolicy: {
+        maxRetries: 3,
+        backoffStrategy: 'exponential',
+        initialDelay: 1000,
+        maxDelay: 10000,
+      },
+      notifications: [
+        {
+          type: 'email',
+          trigger: 'complete',
+          config: { template: 'onboarding-complete' },
+        },
+      ],
+    },
+  });
+
+  // Workflow State Machine de ejemplo: Order Processing
+  const orderWorkflowId = workflowEngine.createWorkflow({
+    name: 'Order Processing State Machine',
+    version: '1.0.0',
+    description: 'State machine for order processing',
+    type: 'state-machine',
+    definition: {
+      states: [
+        {
+          id: 'pending',
+          name: 'Pending',
+          type: 'initial',
+          actions: [
+            {
+              type: 'notification',
+              name: 'sendOrderConfirmation',
+              config: { template: 'order-confirmation' },
+              order: 1,
+            },
+          ],
+          properties: {},
+        },
+        {
+          id: 'processing',
+          name: 'Processing',
+          type: 'intermediate',
+          actions: [
+            {
+              type: 'http',
+              name: 'validatePayment',
+              config: { url: '/api/payment/validate' },
+              order: 1,
+            },
+            {
+              type: 'function',
+              name: 'updateInventory',
+              config: { function: 'updateInventory' },
+              order: 2,
+            },
+          ],
+          timeout: 30000, // 30 segundos
+          properties: {},
+        },
+        {
+          id: 'shipped',
+          name: 'Shipped',
+          type: 'intermediate',
+          actions: [
+            {
+              type: 'notification',
+              name: 'sendShippingNotification',
+              config: { template: 'shipping-notification' },
+              order: 1,
+            },
+          ],
+          properties: {},
+        },
+        {
+          id: 'delivered',
+          name: 'Delivered',
+          type: 'final',
+          actions: [
+            {
+              type: 'notification',
+              name: 'sendDeliveryConfirmation',
+              config: { template: 'delivery-confirmation' },
+              order: 1,
+            },
+          ],
+          properties: {},
+        },
+        {
+          id: 'cancelled',
+          name: 'Cancelled',
+          type: 'final',
+          actions: [
+            {
+              type: 'notification',
+              name: 'sendCancellationNotification',
+              config: { template: 'cancellation-notification' },
+              order: 1,
+            },
+          ],
+          properties: {},
+        },
+      ],
+      transitions: [
+        {
+          id: 'start-processing',
+          fromState: 'pending',
+          toState: 'processing',
+          event: 'start_processing',
+          actions: [],
+          properties: {},
+        },
+        {
+          id: 'ship-order',
+          fromState: 'processing',
+          toState: 'shipped',
+          event: 'ship',
+          condition: '${paymentValid} === true && ${inventoryAvailable} === true',
+          actions: [],
+          properties: {},
+        },
+        {
+          id: 'deliver-order',
+          fromState: 'shipped',
+          toState: 'delivered',
+          event: 'deliver',
+          actions: [],
+          properties: {},
+        },
+        {
+          id: 'cancel-order',
+          fromState: 'pending',
+          toState: 'cancelled',
+          event: 'cancel',
+          actions: [],
+          properties: {},
+        },
+        {
+          id: 'cancel-processing',
+          fromState: 'processing',
+          toState: 'cancelled',
+          event: 'cancel',
+          actions: [],
+          properties: {},
+        },
+      ],
+      initialState: 'pending',
+      finalStates: ['delivered', 'cancelled'],
+    },
+    metadata: {
+      author: 'System',
+      category: 'Order Management',
+      tags: ['order', 'processing', 'state-machine'],
+      priority: 'critical',
+      timeout: 86400000, // 24 horas
+      retryPolicy: {
+        maxRetries: 5,
+        backoffStrategy: 'linear',
+        initialDelay: 2000,
+        maxDelay: 30000,
+      },
+      notifications: [
+        {
+          type: 'email',
+          trigger: 'complete',
+          config: { template: 'order-complete' },
+        },
+        {
+          type: 'webhook',
+          trigger: 'error',
+          config: { url: '/api/webhooks/order-error' },
+        },
+      ],
+    },
+  });
+
+  logger.info('Example workflows initialized', {
+    onboardingWorkflowId,
+    orderWorkflowId,
+  });
+};
+
+initializeExampleWorkflows();
 
 // Endpoints de health
 app.get("/health/live", (req, res) => {
@@ -1898,6 +2159,223 @@ app.get("/v1/config/beta-features", requireFeatureFlag('beta_features'), (req, r
   });
 });
 
+// Endpoints de Workflows y BPMN
+app.get("/v1/workflows", async (req, res) => {
+  try {
+    const { type, category, status, tags } = req.query;
+    
+    const filters: any = {};
+    if (type) filters.type = type;
+    if (category) filters.category = category;
+    if (status) filters.status = status;
+    if (tags) {
+      if (Array.isArray(tags)) {
+        filters.tags = tags;
+      } else {
+        filters.tags = [tags];
+      }
+    }
+    
+    const workflows = await workflowEngine.listWorkflows(filters);
+    
+    res.json(workflows);
+  } catch (error) {
+    logger.error('Failed to get workflows', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/workflows", async (req, res) => {
+  try {
+    const workflowData = req.body;
+    const workflow = await workflowEngine.createWorkflow(workflowData);
+    
+    res.status(201).json({
+      data: workflow,
+      message: 'Workflow created successfully'
+    });
+  } catch (error) {
+    logger.error('Failed to create workflow', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/workflows/:workflowId", async (req, res) => {
+  try {
+    const { workflowId } = req.params;
+    const workflow = await workflowEngine.getWorkflow(workflowId);
+    
+    if (!workflow) {
+      return res.status(404).json({ error: 'Workflow not found' });
+    }
+
+    res.json({
+      data: workflow,
+      message: 'Workflow retrieved successfully'
+    });
+  } catch (error) {
+    logger.error('Failed to get workflow', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put("/v1/workflows/:workflowId", async (req, res) => {
+  try {
+    const { workflowId } = req.params;
+    const updates = req.body;
+    
+    const workflow = await workflowEngine.updateWorkflow(workflowId, updates);
+    
+    res.json({
+      data: workflow,
+      message: 'Workflow updated successfully'
+    });
+  } catch (error) {
+    logger.error('Failed to update workflow', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete("/v1/workflows/:workflowId", async (req, res) => {
+  try {
+    const { workflowId } = req.params;
+    await workflowEngine.deleteWorkflow(workflowId);
+    
+    res.json({
+      message: 'Workflow deleted successfully'
+    });
+  } catch (error) {
+    logger.error('Failed to delete workflow', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/workflows/:workflowId/start", async (req, res) => {
+  try {
+    const { workflowId } = req.params;
+    const { context = {}, metadata = {} } = req.body;
+    
+    const instance = await workflowEngine.startWorkflow(workflowId, context, metadata);
+    
+    res.status(200).json({
+      data: instance,
+      message: 'Workflow started successfully'
+    });
+  } catch (error) {
+    logger.error('Failed to start workflow', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/workflows/instances", async (req, res) => {
+  try {
+    const { workflowId, status, userId, orgId, fromDate, toDate } = req.query;
+    
+    const filters: any = {};
+    if (workflowId) filters.workflowId = workflowId;
+    if (status) filters.status = status;
+    if (userId) filters.userId = userId;
+    if (orgId) filters.orgId = orgId;
+    if (fromDate) filters.fromDate = new Date(fromDate as string);
+    if (toDate) filters.toDate = new Date(toDate as string);
+    
+    const instances = await workflowEngine.listInstances(filters);
+    
+    res.json(instances);
+  } catch (error) {
+    logger.error('Failed to get workflow instances', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/workflows/instances/:instanceId", async (req, res) => {
+  try {
+    const { instanceId } = req.params;
+    const instance = await workflowEngine.getInstance(instanceId);
+    
+    if (!instance) {
+      return res.status(404).json({ error: 'Workflow instance not found' });
+    }
+
+    res.json({
+      data: instance,
+      message: 'Workflow instance retrieved successfully'
+    });
+  } catch (error) {
+    logger.error('Failed to get workflow instance', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/workflows/instances/:instanceId/pause", async (req, res) => {
+  try {
+    const { instanceId } = req.params;
+    await workflowEngine.pauseInstance(instanceId);
+    
+    res.json({
+      message: 'Workflow instance paused successfully'
+    });
+  } catch (error) {
+    logger.error('Failed to pause workflow instance', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/workflows/instances/:instanceId/resume", async (req, res) => {
+  try {
+    const { instanceId } = req.params;
+    await workflowEngine.resumeInstance(instanceId);
+    
+    res.json({
+      message: 'Workflow instance resumed successfully'
+    });
+  } catch (error) {
+    logger.error('Failed to resume workflow instance', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/workflows/instances/:instanceId/cancel", async (req, res) => {
+  try {
+    const { instanceId } = req.params;
+    await workflowEngine.cancelInstance(instanceId);
+    
+    res.json({
+      message: 'Workflow instance cancelled successfully'
+    });
+  } catch (error) {
+    logger.error('Failed to cancel workflow instance', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/workflows/instances/:instanceId/actions", async (req, res) => {
+  try {
+    const { instanceId } = req.params;
+    const { actionId } = req.body;
+    
+    await workflowEngine.executeAction(instanceId, actionId);
+    
+    res.json({
+      message: 'Action executed successfully'
+    });
+  } catch (error) {
+    logger.error('Failed to execute action', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/workflows/stats", async (req, res) => {
+  try {
+    const stats = await workflowEngine.getStats();
+    
+    res.json(stats);
+  } catch (error) {
+    logger.error('Failed to get workflow stats', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Endpoints demo con rate limiting específico
 app.get("/v1/demo/health", rateLimitByEndpoint, (req, res) => {
   res.json({
@@ -2083,6 +2561,267 @@ app.get("/v1/demo/dashboard", rateLimitByEndpoint, (req, res) => {
   });
 });
 
+// ============================================================================
+// ENDPOINTS DEL SISTEMA DE INVENTARIO
+// ============================================================================
+
+// Endpoints de Productos
+app.get("/v1/inventory/products", async (req, res) => {
+  try {
+    const { category, supplier, location, lowStock, outOfStock, overstock, expiring, tags } = req.query;
+    const filters: any = {};
+    if (category) filters.category = category;
+    if (supplier) filters.supplier = supplier;
+    if (location) filters.location = location;
+    if (lowStock === 'true') filters.lowStock = true;
+    if (outOfStock === 'true') filters.outOfStock = true;
+    if (overstock === 'true') filters.overstock = true;
+    if (expiring === 'true') filters.expiring = true;
+    if (tags) {
+      if (Array.isArray(tags)) {
+        filters.tags = tags;
+      } else {
+        filters.tags = [tags];
+      }
+    }
+    const products = await inventorySystem.listProducts(filters);
+    res.json(products);
+  } catch (error) {
+    logger.error('Failed to get products', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/inventory/products", async (req, res) => {
+  try {
+    const productData = req.body;
+    const product = await inventorySystem.createProduct(productData);
+    res.status(201).json(product);
+  } catch (error) {
+    logger.error('Failed to create product', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/inventory/products/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await inventorySystem.getProduct(id);
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    res.json(product);
+  } catch (error) {
+    logger.error('Failed to get product', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put("/v1/inventory/products/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const product = await inventorySystem.updateProduct(id, updates);
+    res.json(product);
+  } catch (error) {
+    logger.error('Failed to update product', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.delete("/v1/inventory/products/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await inventorySystem.deleteProduct(id);
+    res.status(204).send();
+  } catch (error) {
+    logger.error('Failed to delete product', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// Endpoints de Transacciones
+app.get("/v1/inventory/transactions", async (req, res) => {
+  try {
+    const { productId, type, fromDate, toDate, userId, orgId } = req.query;
+    const filters: any = {};
+    if (productId) filters.productId = productId;
+    if (type) filters.type = type;
+    if (fromDate) filters.fromDate = new Date(fromDate as string);
+    if (toDate) filters.toDate = new Date(toDate as string);
+    if (userId) filters.userId = userId;
+    if (orgId) filters.orgId = orgId;
+    const transactions = await inventorySystem.listTransactions(filters);
+    res.json(transactions);
+  } catch (error) {
+    logger.error('Failed to get transactions', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/inventory/transactions", async (req, res) => {
+  try {
+    const transactionData = req.body;
+    const transaction = await inventorySystem.addTransaction(transactionData);
+    res.status(201).json(transaction);
+  } catch (error) {
+    logger.error('Failed to create transaction', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/inventory/transactions/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const transaction = await inventorySystem.getTransaction(id);
+    if (!transaction) {
+      return res.status(404).json({ error: 'Transaction not found' });
+    }
+    res.json(transaction);
+  } catch (error) {
+    logger.error('Failed to get transaction', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Endpoints de Alertas
+app.get("/v1/inventory/alerts", async (req, res) => {
+  try {
+    const { productId, type, status, severity, fromDate, toDate, orgId } = req.query;
+    const filters: any = {};
+    if (productId) filters.productId = productId;
+    if (type) filters.type = type;
+    if (status) filters.status = status;
+    if (severity) filters.severity = severity;
+    if (fromDate) filters.fromDate = new Date(fromDate as string);
+    if (toDate) filters.toDate = new Date(toDate as string);
+    if (orgId) filters.orgId = orgId;
+    const alerts = await inventorySystem.listAlerts(filters);
+    res.json(alerts);
+  } catch (error) {
+    logger.error('Failed to get alerts', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post("/v1/inventory/alerts", async (req, res) => {
+  try {
+    const alertData = req.body;
+    const alert = await inventorySystem.createAlert(alertData);
+    res.status(201).json(alert);
+  } catch (error) {
+    logger.error('Failed to create alert', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/inventory/alerts/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const alert = await inventorySystem.getAlert(id);
+    if (!alert) {
+      return res.status(404).json({ error: 'Alert not found' });
+    }
+    res.json(alert);
+  } catch (error) {
+    logger.error('Failed to get alert', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put("/v1/inventory/alerts/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const alert = await inventorySystem.updateAlert(id, updates);
+    res.json(alert);
+  } catch (error) {
+    logger.error('Failed to update alert', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.delete("/v1/inventory/alerts/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await inventorySystem.deleteAlert(id);
+    res.status(204).send();
+  } catch (error) {
+    logger.error('Failed to delete alert', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.post("/v1/inventory/alerts/:id/acknowledge", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+    await inventorySystem.acknowledgeAlert(id, userId);
+    res.status(200).json({ message: 'Alert acknowledged successfully' });
+  } catch (error) {
+    logger.error('Failed to acknowledge alert', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.post("/v1/inventory/alerts/:id/resolve", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await inventorySystem.resolveAlert(id);
+    res.status(200).json({ message: 'Alert resolved successfully' });
+  } catch (error) {
+    logger.error('Failed to resolve alert', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// Endpoints de Reportes
+app.get("/v1/inventory/report", async (req, res) => {
+  try {
+    const report = await inventorySystem.getInventoryReport();
+    res.json(report);
+  } catch (error) {
+    logger.error('Failed to get inventory report', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/v1/inventory/products/:id/report", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const report = await inventorySystem.getProductReport(id);
+    res.json(report);
+  } catch (error) {
+    logger.error('Failed to get product report', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/inventory/products/:id/kardex", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const kardex = await inventorySystem.getProductKardex(id);
+    res.json(kardex);
+  } catch (error) {
+    logger.error('Failed to get product kardex', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/inventory/products/:id/kardex-report", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { fromDate, toDate } = req.query;
+    const from = fromDate ? new Date(fromDate as string) : undefined;
+    const to = toDate ? new Date(toDate as string) : undefined;
+    const report = await inventorySystem.getKardexReport(id, from, to);
+    res.json(report);
+  } catch (error) {
+    logger.error('Failed to get kardex report', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
 // Endpoint de métricas para Prometheus
 app.get("/metrics", (req, res) => {
   try {
@@ -2122,6 +2861,7 @@ app.listen(PORT, async () => {
   console.log(`📊 Event Sourcing and CQRS system enabled with aggregates and projections`);
   console.log(`🔗 Microservices system enabled with service mesh and discovery`);
   console.log(`⚙️ Configuration system enabled with feature flags and environment management`);
+  console.log(`🔄 Workflow system enabled with BPMN and state machines`);
   
   // Inicializar warmup del caché
   try {
