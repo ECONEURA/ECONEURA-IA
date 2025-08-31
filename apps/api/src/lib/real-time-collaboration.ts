@@ -126,7 +126,7 @@ export class RealTimeCollaborationSystem extends EventEmitter {
       collaboration: "real-time",
       features: ["websockets", "documents", "chat", "presence", "analytics"],
       roomsCount: this.rooms.size,
-      connectionsCount: this.connections.size
+      connections: this.connections.size
     });
   }
 
@@ -198,7 +198,7 @@ export class RealTimeCollaborationSystem extends EventEmitter {
     }
 
     this.connections.delete(connectionId);
-    logger.info("WebSocket connection closed", { connectionId, userId });
+    logger.info("WebSocket connection closed", { connectionId, userId: userId || undefined });
   }
 
   // ============================================================================

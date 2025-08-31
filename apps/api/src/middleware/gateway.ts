@@ -269,7 +269,7 @@ export function gatewayCircuitBreakerMiddleware(req: GatewayRequest, res: Respon
       threshold: circuitBreakerThreshold,
     });
 
-    return res.status(503).json({
+    res.status(503).json({
       error: 'Service temporarily unavailable',
       message: 'Service is experiencing high error rate',
       code: 'GATEWAY_CIRCUIT_BREAKER',

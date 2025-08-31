@@ -669,7 +669,7 @@ export class AdvancedSecuritySystem extends EventEmitter {
         permissionId: permission.id,
         name: permission.name,
         resource: permission.resource,
-        action: permission.action,
+        permissionAction: permission.action,
       });
 
       return permission;

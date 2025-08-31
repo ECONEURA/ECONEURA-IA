@@ -129,8 +129,8 @@ export class ServiceMesh {
     }
 
     const serviceResponse: ServiceResponse = {
-      status: response.status.toString(),
-      headers: Object.fromEntries(Array.from(response.headers.entries())),
+      status: response.status,
+      headers: {} as Record<string, string>,
       body: parsedBody,
       duration,
     };
@@ -142,7 +142,7 @@ export class ServiceMesh {
         serviceInstance: serviceInstance.id,
         method: request.method,
         path: request.path,
-        status: response.status,
+        status: response.status.toString(),
         duration,
         url: serviceInstance.url,
       });

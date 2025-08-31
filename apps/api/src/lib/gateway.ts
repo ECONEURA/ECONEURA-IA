@@ -189,17 +189,17 @@ export class APIGateway {
 
     switch (this.loadBalancerConfig.strategy) {
       case 'round-robin':
-        return this.roundRobinSelection(availableServices);
+        return this.roundRobinSelection(availableServices.filter(Boolean) as ServiceEndpoint[]);
       case 'least-connections':
-        return this.leastConnectionsSelection(availableServices);
+        return this.leastConnectionsSelection(availableServices.filter(Boolean) as ServiceEndpoint[]);
       case 'weighted':
-        return this.weightedSelection(availableServices);
+        return this.weightedSelection(availableServices.filter(Boolean) as ServiceEndpoint[]);
       case 'ip-hash':
-        return this.ipHashSelection(availableServices, clientIp);
+        return this.ipHashSelection(availableServices.filter(Boolean) as ServiceEndpoint[], clientIp);
       case 'response-time':
-        return this.responseTimeSelection(availableServices);
+        return this.responseTimeSelection(availableServices.filter(Boolean) as ServiceEndpoint[]);
       default:
-        return availableServices[0];
+        return availableServices[0] || null;
     }
   }
 

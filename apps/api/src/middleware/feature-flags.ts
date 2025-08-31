@@ -19,7 +19,7 @@ export interface FeatureFlagMiddlewareOptions {
  * Middleware para verificar feature flags
  */
 export const featureFlagMiddleware = (options: FeatureFlagMiddlewareOptions = {}) => {
-  return (req: FeatureFlagRequest, res: Response, next: NextFunction) => {
+  return (req: FeatureFlagRequest, res: Response, next: NextFunction): void => {
     try {
       const { flags = [], requireAll = false, contextExtractor } = options;
       
@@ -45,7 +45,7 @@ export const featureFlagMiddleware = (options: FeatureFlagMiddlewareOptions = {}
             results: flagResults,
             context,
           });
-          return res.status(403).json({
+          res.status(403).json({
             error: 'Feature not available',
             message: 'Required feature flags are not enabled',
             flags: flagResults,
@@ -75,7 +75,7 @@ export const featureFlagMiddleware = (options: FeatureFlagMiddlewareOptions = {}
  * Middleware para verificar un feature flag específico
  */
 export const requireFeatureFlag = (flagId: string, contextExtractor?: (req: Request) => FeatureFlagContext) => {
-  return (req: FeatureFlagRequest, res: Response, next: NextFunction) => {
+  return (req: FeatureFlagRequest, res: Response, next: NextFunction): void => {
     try {
       const context = contextExtractor ? contextExtractor(req) : extractDefaultContext(req);
       req.featureFlagContext = context;
@@ -87,7 +87,7 @@ export const requireFeatureFlag = (flagId: string, contextExtractor?: (req: Requ
           flagId,
           context,
         });
-        return res.status(403).json({
+        res.status(403).json({
           error: 'Feature not available',
           message: `Feature flag '${flagId}' is not enabled`,
           flagId,
@@ -115,7 +115,7 @@ export const requireFeatureFlag = (flagId: string, contextExtractor?: (req: Requ
  * Middleware para verificar múltiples feature flags (al menos uno debe estar habilitado)
  */
 export const requireAnyFeatureFlag = (flagIds: string[], contextExtractor?: (req: Request) => FeatureFlagContext) => {
-  return (req: FeatureFlagRequest, res: Response, next: NextFunction) => {
+  return (req: FeatureFlagRequest, res: Response, next: NextFunction): void => {
     try {
       const context = contextExtractor ? contextExtractor(req) : extractDefaultContext(req);
       req.featureFlagContext = context;
@@ -137,7 +137,7 @@ export const requireAnyFeatureFlag = (flagIds: string[], contextExtractor?: (req
           results: flagResults,
           context,
         });
-        return res.status(403).json({
+        res.status(403).json({
           error: 'Feature not available',
           message: 'None of the required feature flags are enabled',
           flags: flagResults,

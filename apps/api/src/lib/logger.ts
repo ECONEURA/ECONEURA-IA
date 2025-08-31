@@ -211,6 +211,50 @@ interface LogContext {
   monitoringInterval?: number;
   metricsCollected?: any;
   components?: string[];
+  // Additional fields for all systems
+  email?: string;
+  code?: string;
+  reportsCount?: number;
+  timeRange?: string;
+  dimensionsCount?: number;
+  widgetsCount?: number;
+  count?: number;
+  enabled?: boolean;
+  toVersion?: number;
+  version?: string;
+  url?: string;
+  notificationsCount?: number;
+  features?: string[];
+  remoteAddress?: string;
+  messageType?: string;
+  ownerId?: string;
+  usersCount?: number;
+  filteredQuery?: string;
+  sanitizedData?: any;
+  successful?: number;
+  permissions?: string[];
+  permissionAction?: string;
+  auditAction?: string;
+  totalUsers?: number;
+  maxRetries?: number;
+  clientIp?: string;
+  body?: any;
+  routeName?: string;
+  success?: boolean;
+  // Additional fields for specific systems
+  onboardingWorkflowId?: string;
+  totalRecords?: number;
+  connectionsCount?: number;
+  username?: string;
+  totalRoles?: number;
+  serviceInstance?: string;
+  loadBalancerStrategy?: string;
+  headersCount?: number;
+  totalPermissions?: number;
+  resetTime?: string;
+  totalAuditLogs?: number;
+  serviceInstanceId?: string;
+  totalSecurityEvents?: number;
 }
 
 interface LogEntry {

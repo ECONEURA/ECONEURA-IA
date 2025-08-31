@@ -452,7 +452,7 @@ app.get("/v1/rate-limit/organizations/:organizationId", (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to get organization stats', { error: error as Error });
+    logger.error('Failed to get organization stats', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -475,7 +475,7 @@ app.post("/v1/rate-limit/organizations", (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to add organization', { error: error as Error });
+    logger.error('Failed to add organization', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -499,7 +499,7 @@ app.put("/v1/rate-limit/organizations/:organizationId", (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to update organization', { error: error as Error });
+    logger.error('Failed to update organization', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -521,7 +521,7 @@ app.delete("/v1/rate-limit/organizations/:organizationId", (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to remove organization', { error: error as Error });
+    logger.error('Failed to remove organization', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -543,7 +543,7 @@ app.post("/v1/rate-limit/organizations/:organizationId/reset", (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to reset organization', { error: error as Error });
+    logger.error('Failed to reset organization', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -560,7 +560,7 @@ app.get("/v1/rate-limit/stats", (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to get rate limit stats', { error: error as Error });
+    logger.error('Failed to get rate limit stats', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -577,7 +577,7 @@ app.get("/v1/alerts/rules", rateLimitByEndpoint, (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to get alert rules', { error: error as Error });
+    logger.error('Failed to get alert rules', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -593,7 +593,7 @@ app.get("/v1/alerts/active", rateLimitByEndpoint, (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to get active alerts', { error: error as Error });
+    logger.error('Failed to get active alerts', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -606,7 +606,7 @@ app.get("/v1/alerts/stats", rateLimitByEndpoint, (req, res) => {
       data: stats
     });
   } catch (error) {
-    logger.error('Failed to get alert stats', { error: error as Error });
+    logger.error('Failed to get alert stats', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -624,7 +624,7 @@ app.post("/v1/alerts/rules", rateLimitByEndpoint, (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to add alert rule', { error: error as Error });
+    logger.error('Failed to add alert rule', { error: (error as Error).message });
     res.status(400).json({ error: (error as Error).message });
   }
 });
@@ -648,7 +648,7 @@ app.put("/v1/alerts/rules/:ruleId", rateLimitByEndpoint, (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to update alert rule', { error: error as Error });
+    logger.error('Failed to update alert rule', { error: (error as Error).message });
     res.status(400).json({ error: (error as Error).message });
   }
 });
@@ -670,7 +670,7 @@ app.delete("/v1/alerts/rules/:ruleId", rateLimitByEndpoint, (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to remove alert rule', { error: error as Error });
+    logger.error('Failed to remove alert rule', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -694,7 +694,7 @@ app.post("/v1/alerts/:alertId/acknowledge", rateLimitByEndpoint, (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to acknowledge alert', { error: error as Error });
+    logger.error('Failed to acknowledge alert', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -704,7 +704,7 @@ app.post("/v1/alerts/:alertId/resolve", rateLimitByEndpoint, (req, res) => {
     const { alertId } = req.params;
     const { resolvedBy } = req.body;
     
-    const resolved = alertSystem.resolveAlert(alertId, resolvedBy);
+    const resolved = alertSystem.resolveAlert(alertId);
     
     if (!resolved) {
       return res.status(404).json({ error: 'Alert not found' });
@@ -718,7 +718,7 @@ app.post("/v1/alerts/:alertId/resolve", rateLimitByEndpoint, (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to resolve alert', { error: error as Error });
+    logger.error('Failed to resolve alert', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -726,7 +726,7 @@ app.post("/v1/alerts/:alertId/resolve", rateLimitByEndpoint, (req, res) => {
 // Endpoints de observabilidad
 app.get("/v1/observability/logs", (req, res) => {
   try {
-    const logs = logger.getRecentLogs();
+    const logs = logger.getLogs();
     res.json({
       success: true,
       data: {
@@ -735,14 +735,14 @@ app.get("/v1/observability/logs", (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to get logs', { error: error as Error });
+    logger.error('Failed to get logs', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 app.get("/v1/observability/metrics", (req, res) => {
   try {
-    const metricsData = metrics.getMetrics();
+    const metricsData = metrics.getAllMetrics();
     res.json({
       success: true,
       data: {
@@ -751,25 +751,25 @@ app.get("/v1/observability/metrics", (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to get metrics', { error: error as Error });
+    logger.error('Failed to get metrics', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 app.get("/v1/observability/metrics/prometheus", (req, res) => {
   try {
-    const prometheusMetrics = metrics.getPrometheusMetrics();
+    const prometheusMetrics = metrics.exportPrometheus();
     res.set('Content-Type', 'text/plain');
     res.send(prometheusMetrics);
   } catch (error) {
-    logger.error('Failed to get Prometheus metrics', { error: error as Error });
+    logger.error('Failed to get Prometheus metrics', { error: (error as Error).message });
     res.status(500).send('# Error generating Prometheus metrics\n');
   }
 });
 
 app.get("/v1/observability/traces", (req, res) => {
   try {
-    const traces = tracing.getRecentTraces();
+    const traces = tracing.getTraces();
     res.json({
       success: true,
       data: {
@@ -778,7 +778,7 @@ app.get("/v1/observability/traces", (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to get traces', { error: error as Error });
+    logger.error('Failed to get traces', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -787,7 +787,7 @@ app.get("/v1/observability/stats", (req, res) => {
   try {
     const stats = {
       logs: logger.getStats(),
-      metrics: metrics.getStats(),
+      metrics: metrics.getMetricsStats(),
       traces: tracing.getStats()
     };
     
@@ -796,7 +796,7 @@ app.get("/v1/observability/stats", (req, res) => {
       data: stats
     });
   } catch (error) {
-    logger.error('Failed to get observability stats', { error: error as Error });
+    logger.error('Failed to get observability stats', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -810,7 +810,7 @@ app.get("/v1/cache/stats", (req, res) => {
       data: stats
     });
   } catch (error) {
-    logger.error('Failed to get cache stats', { error: error as Error });
+    logger.error('Failed to get cache stats', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -825,7 +825,7 @@ app.post("/v1/cache/warmup", (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to initiate cache warmup', { error: error as Error });
+    logger.error('Failed to initiate cache warmup', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -842,7 +842,7 @@ app.post("/v1/cache/warmup/start", (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to start periodic cache warmup', { error: error as Error });
+    logger.error('Failed to start periodic cache warmup', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -857,7 +857,7 @@ app.post("/v1/cache/warmup/stop", (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to stop periodic cache warmup', { error: error as Error });
+    logger.error('Failed to stop periodic cache warmup', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -872,7 +872,7 @@ app.delete("/v1/cache/ai", (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to clear AI cache', { error: error as Error });
+    logger.error('Failed to clear AI cache', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -887,7 +887,7 @@ app.delete("/v1/cache/search", (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to clear search cache', { error: error as Error });
+    logger.error('Failed to clear search cache', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -903,7 +903,7 @@ app.delete("/v1/cache/all", (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to clear all caches', { error: error as Error });
+    logger.error('Failed to clear all caches', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -2378,7 +2378,7 @@ app.get("/v1/workflows/stats", async (req, res) => {
 });
 
 // Endpoints demo con rate limiting específico
-app.get("/v1/demo/health", rateLimitByEndpoint, (req, res) => {
+app.get("/v1/demo/health", rateLimitByEndpoint, (req: any, res) => {
   res.json({
     success: true,
     data: {
@@ -2390,7 +2390,7 @@ app.get("/v1/demo/health", rateLimitByEndpoint, (req, res) => {
   });
 });
 
-app.get("/v1/demo/metrics", rateLimitByEndpoint, (req, res) => {
+app.get("/v1/demo/metrics", rateLimitByEndpoint, (req: any, res) => {
   res.json({
     success: true,
     data: {
@@ -2404,7 +2404,7 @@ app.get("/v1/demo/metrics", rateLimitByEndpoint, (req, res) => {
   });
 });
 
-app.get("/v1/demo/ai", rateLimitByEndpoint, async (req, res) => {
+app.get("/v1/demo/ai", rateLimitByEndpoint, async (req: any, res) => {
   try {
     const { prompt = "Hello, how are you?", model = "gpt-4" } = req.query;
     
@@ -2457,12 +2457,12 @@ app.get("/v1/demo/ai", rateLimitByEndpoint, async (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to process AI request', { error: error as Error });
+    logger.error('Failed to process AI request', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-app.get("/v1/demo/search", rateLimitByEndpoint, async (req, res) => {
+app.get("/v1/demo/search", rateLimitByEndpoint, async (req: any, res) => {
   try {
     const { query = "artificial intelligence", filters } = req.query;
     
@@ -2521,12 +2521,12 @@ app.get("/v1/demo/search", rateLimitByEndpoint, async (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to process search request', { error: error as Error });
+    logger.error('Failed to process search request', { error: (error as Error).message });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-app.get("/v1/demo/crm", rateLimitByEndpoint, (req, res) => {
+app.get("/v1/demo/crm", rateLimitByEndpoint, (req: any, res) => {
   res.json({
     success: true,
     data: {
@@ -2538,7 +2538,7 @@ app.get("/v1/demo/crm", rateLimitByEndpoint, (req, res) => {
   });
 });
 
-app.get("/v1/demo/products", rateLimitByEndpoint, (req, res) => {
+app.get("/v1/demo/products", rateLimitByEndpoint, (req: any, res) => {
   res.json({
     success: true,
     data: {
@@ -2550,7 +2550,7 @@ app.get("/v1/demo/products", rateLimitByEndpoint, (req, res) => {
   });
 });
 
-app.get("/v1/demo/dashboard", rateLimitByEndpoint, (req, res) => {
+app.get("/v1/demo/dashboard", rateLimitByEndpoint, (req: any, res) => {
   res.json({
     success: true,
     data: {
@@ -2936,6 +2936,7 @@ app.post("/v1/security/roles", async (req, res) => {
 // Role and Permission Management
 app.post("/v1/security/roles", async (req, res) => {
   try {
+    const { name, description, permissions, orgId } = req.body;
     const role = await securitySystem.createRole(name, description || '', permissions || [], orgId);
     res.json(role);
   } catch (error) {
@@ -3067,7 +3068,7 @@ app.get("/metrics", (req, res) => {
     res.set('Content-Type', 'text/plain');
     res.send(prometheusMetrics);
   } catch (error) {
-    logger.error('Failed to get Prometheus metrics', { error: error as Error });
+    logger.error('Failed to get Prometheus metrics', { error: (error as Error).message });
     res.status(500).send('# Error generating Prometheus metrics\n');
   }
 });

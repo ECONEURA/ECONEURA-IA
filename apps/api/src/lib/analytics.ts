@@ -273,7 +273,7 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
         system: 'analytics',
         metricsCount: Object.keys(result.metrics).length,
         dimensionsCount: Object.keys(result.dimensions).length,
-        totalRecords: result.summary.totalRecords
+        totalRecords: result.summary?.totalRecords || 0
       });
 
       return result;
@@ -281,7 +281,7 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
       logger.error('Failed to get metrics', { 
         system: 'analytics',
         error: (error as Error).message,
-        query 
+        query: JSON.stringify(query) 
       });
       throw error;
     }

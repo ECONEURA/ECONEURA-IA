@@ -231,7 +231,7 @@ export class InMemoryReadModelStore implements ReadModelStore {
     logger.debug('Read model saved', {
       readModelId: readModel.id,
       readModelType: readModel.type,
-      version: readModel.version,
+      version: readModel.version.toString(),
     });
   }
 
@@ -434,13 +434,13 @@ export class EventSourcingSystem {
     logger.debug('Read model updated', {
       readModelId,
       readModelType,
-      version: updatedReadModel.version,
+      version: updatedReadModel.version.toString(),
     });
   }
 
   // Event replay
   async replayEvents(fromTimestamp?: Date): Promise<void> {
-    logger.info('Starting event replay', { fromTimestamp });
+    logger.info('Starting event replay', { fromTimestamp: fromTimestamp?.toISOString() });
     
     const events = await this.eventStore.getAllEvents(fromTimestamp);
     

@@ -38,7 +38,7 @@ export function rateLimitMiddleware(req: RateLimitRequest, res: Response, next: 
       requestId,
       remaining: result.remaining,
       resetTime: new Date(result.resetTime).toISOString(),
-      retryAfter: result.retryAfter.toString(),
+      retryAfter: result.retryAfter || 0,
       method: req.method,
       path: req.path,
       ip: req.ip

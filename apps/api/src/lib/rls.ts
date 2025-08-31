@@ -269,7 +269,7 @@ export class RowLevelSecurity {
     
     return rolePermissions.includes(requiredPermission) || 
            rolePermissions.includes('*:*') || // Super admin
-           (this.context.permissions && this.context.permissions.includes(requiredPermission));
+           (this.context.permissions && this.context.permissions.includes(requiredPermission)) || false;
   }
 
   // Obtener permisos por rol
