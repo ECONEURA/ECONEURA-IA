@@ -1,0 +1,60 @@
+name: Deploy API (OIDC)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Install repo dependencies
+        run: pnpm install -w
+
+      - name: Build API
+        run: pnpm -w run build:api
+
+      - name: Run smoke tests (optional)
+        run: |
+          echo "Running basic smoke checks"
+          # Example: run unit/integration tests or a simple health check
+          # pnpm -w run test:integration
+
+      - name: Deploy to Azure (example)
+        env:
+          AZURE_WEBAPP_NAME: ${{ secrets.AZURE_WEBAPP_NAME || '' }}
+        run: |
+          echo "Deploy step placeholder - replace with your deploy commands"
+          if [ -n "$AZURE_WEBAPP_NAME" ]; then
+            echo "Deploying to webapp: $AZURE_WEBAPP_NAME"
+            # Example using zip deploy (uncomment and adapt):
+            # cd apps/api
+            # zip -r ../api.zip .
+            # az webapp deployment source config-zip --resource-group <RG> --name "$AZURE_WEBAPP_NAME" --src ../api.zip
+          else
+            echo "AZURE_WEBAPP_NAME not set; skipping actual deploy"
+          fi
