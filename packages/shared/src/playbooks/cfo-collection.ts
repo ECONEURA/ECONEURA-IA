@@ -1,11 +1,11 @@
-import { PlaybookDefinition, createPlaybookExecutor } from './dsl.ts'
-import { createGraphClient } from '../graph/client.ts'
-import { createEnhancedAIRouter } from '../ai/enhanced-router.ts'
-import { logger } from '../logging/index.ts'
+import { PlaybookDefinition, createPlaybookExecutor } from './dsl'
+import { createGraphClient } from '../graph/client'
+import { createEnhancedAIRouter } from '../ai/enhanced-router'
+import { logger } from '../logging/index'
 
 /**
  * CFO Collection Playbook v1.0
- * 
+ *
  * Detects overdue invoices and creates:
  * 1. AI-generated email draft using cheap model
  * 2. Outlook draft for CFO approval
@@ -28,7 +28,7 @@ export const CFO_COLLECTION_PLAYBOOK: PlaybookDefinition = {
       description: 'Query database for overdue invoices',
       config: {
         query: `
-          SELECT 
+          SELECT
             i.id,
             i.invoice_number,
             i.amount,
@@ -69,21 +69,21 @@ export const CFO_COLLECTION_PLAYBOOK: PlaybookDefinition = {
       config: {
         prompt: `
           Generate a professional email draft for debt collection.
-          
+
           Context:
           - Company: {{detect_overdue.company_name}}
           - Invoice: {{detect_overdue.invoice_number}}
           - Amount: €{{detect_overdue.amount}}
           - Due Date: {{detect_overdue.due_date}}
           - Days Overdue: {{detect_overdue.days_overdue}}
-          
+
           Requirements:
           - Professional and courteous tone
           - Clear payment instructions
           - Offer payment plan if amount > €1000
           - Include invoice details
           - Maximum 200 words
-          
+
           Generate the email content only, no subject line.
         `,
         model: 'mistral-instruct',
@@ -116,13 +116,13 @@ export const CFO_COLLECTION_PLAYBOOK: PlaybookDefinition = {
           contentType: 'html',
           content: `
             <p>Dear {{detect_overdue.contact_person}},</p>
-            
+
             <p>{{ai_generate_draft.content}}</p>
-            
+
             <p>Best regards,<br>
             Finance Team<br>
             {{company_name}}</p>
-            
+
             <hr>
             <small>This is an automated draft requiring CFO approval before sending.</small>
           `,
@@ -143,11 +143,11 @@ export const CFO_COLLECTION_PLAYBOOK: PlaybookDefinition = {
           channelId: '{{finance_channel_id}}',
           message: `
             ⚠️ **Outlook Draft Creation Failed**
-            
+
             Invoice: {{detect_overdue.invoice_number}}
             Company: {{detect_overdue.company_name}}
             Amount: €{{detect_overdue.amount}}
-            
+
             Manual intervention required to create draft.
           `,
         },
@@ -165,17 +165,17 @@ export const CFO_COLLECTION_PLAYBOOK: PlaybookDefinition = {
         channelId: '{{finance_channel_id}}',
         message: `
           📧 **New Collection Action Created**
-          
+
           **Invoice:** {{detect_overdue.invoice_number}}
           **Company:** {{detect_overdue.company_name}}
           **Amount:** €{{detect_overdue.amount}}
           **Days Overdue:** {{detect_overdue.days_overdue}}
-          
+
           **Draft Created:** [View in Outlook]({{create_outlook_draft.webLink}})
-          
+
           **Status:** Pending CFO Approval
           **Expires:** {{approval_expiry}}
-          
+
           Please review and approve the draft email.
         `,
       },
@@ -191,12 +191,12 @@ export const CFO_COLLECTION_PLAYBOOK: PlaybookDefinition = {
         title: `Follow-up: {{detect_overdue.company_name}} - Invoice {{detect_overdue.invoice_number}}`,
         description: `
           Follow up on overdue invoice payment.
-          
+
           Invoice: {{detect_overdue.invoice_number}}
           Amount: €{{detect_overdue.amount}}
           Due Date: {{detect_overdue.due_date}}
           Days Overdue: {{detect_overdue.days_overdue}}
-          
+
           Draft email created and pending approval.
           Check approval status and send if approved.
         `,
@@ -213,16 +213,16 @@ export const CFO_COLLECTION_PLAYBOOK: PlaybookDefinition = {
       config: {
         query: `
           INSERT INTO audit_events (
-            org_id, 
-            actor, 
-            action, 
-            payload_json, 
+            org_id,
+            actor,
+            action,
+            payload_json,
             created_at
           ) VALUES (
-            $1, 
-            $2, 
-            $3, 
-            $4, 
+            $1,
+            $2,
+            $3,
+            $4,
             NOW()
           )
         `,
@@ -297,14 +297,14 @@ export class CFOCollectionExecutor {
     approvalRequired: boolean
     approvalExpiry: string
   }> {
-    const logger = logger.child({
-      playbook_id: CFO_COLLECTION_PLAYBOOK.id,
+    const reqLogger = logger.child({
+      event_type: 'playbook_execution',
       org_id: context.orgId,
-      user_id: context.userId,
-      request_id: context.requestId,
+      actor: context.userId,
+      x_request_id: context.requestId,
     })
 
-    logger.info('Starting CFO collection playbook')
+  reqLogger.info('Starting CFO collection playbook')
 
     // Set up variables
     const approvalExpiry = new Date()
@@ -334,7 +334,7 @@ export class CFOCollectionExecutor {
     const executor = createPlaybookExecutor(CFO_COLLECTION_PLAYBOOK, playbookContext)
     const result = await executor.execute()
 
-    logger.info('CFO collection playbook completed', {
+    reqLogger.info('CFO collection playbook completed', {
       success: result.success,
       total_steps: CFO_COLLECTION_PLAYBOOK.steps.length,
       audit_events: result.auditTrail.length,

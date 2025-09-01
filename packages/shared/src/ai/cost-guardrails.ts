@@ -1,5 +1,5 @@
-import { logger } from '../logging/index.ts';
-import { prometheus } from '../metrics/index.ts';
+import { logger } from '../logging';
+import { prometheus } from '../metrics';
 
 export interface CostLimits {
   dailyLimitEUR: number;
@@ -81,7 +81,7 @@ export class CostGuardrails {
    * Pre-request cost validation
    */
   async validateRequest(
-    orgId: string, 
+    orgId: string,
     estimatedCostEUR: number,
     provider: string,
     model: string
@@ -177,7 +177,7 @@ export class CostGuardrails {
     // Update cost tracking
     const currentDaily = this.dailyCosts.get(orgId) || 0;
     const currentMonthly = this.monthlyCosts.get(orgId) || 0;
-    
+
     this.dailyCosts.set(orgId, currentDaily + costEUR);
     this.monthlyCosts.set(orgId, currentMonthly + costEUR);
 
@@ -188,11 +188,11 @@ export class CostGuardrails {
     }
 
     // Update Prometheus metrics
-    prometheus.aiRequestsTotal.labels({ 
-      org_id: orgId, 
-      provider, 
-      model, 
-      status: success ? 'success' : 'error' 
+    prometheus.aiRequestsTotal.labels({
+      org_id: orgId,
+      provider,
+      model,
+      status: success ? 'success' : 'error'
     }).inc();
 
     prometheus.aiTokensTotal.labels({ org_id: orgId, provider, type: 'input' }).inc(metrics.tokensInput);
@@ -227,9 +227,9 @@ export class CostGuardrails {
    * Checks and triggers warning alerts if thresholds are exceeded
    */
   private checkWarningThresholds(
-    orgId: string, 
-    projectedDaily: number, 
-    projectedMonthly: number, 
+    orgId: string,
+    projectedDaily: number,
+    projectedMonthly: number,
     limits: CostLimits
   ): void {
     const dailyUtilization = (projectedDaily / limits.dailyLimitEUR) * 100;
@@ -284,10 +284,10 @@ export class CostGuardrails {
     });
 
     // Update alert metrics
-    prometheus.aiAlertsTotal.labels({ 
-      org_id: alert.orgId, 
-      type: alert.type, 
-      period: alert.period 
+    prometheus.aiAlertsTotal.labels({
+      org_id: alert.orgId,
+      type: alert.type,
+      period: alert.period
     }).inc();
   }
 
@@ -326,7 +326,7 @@ export class CostGuardrails {
    */
   getUsageHistory(orgId?: string, limit: number = 100): UsageMetrics[] {
     let history = this.usageHistory;
-    
+
     if (orgId) {
       history = history.filter(metric => metric.orgId === orgId);
     }
@@ -365,18 +365,18 @@ export class CostGuardrails {
   } {
     const now = new Date();
     const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    
+
     const recent24h = this.usageHistory.filter(m => m.timestamp >= yesterday);
-    
+
     const totalDailyCost = Array.from(this.dailyCosts.values()).reduce((sum, cost) => sum + cost, 0);
     const totalMonthlyCost = Array.from(this.monthlyCosts.values()).reduce((sum, cost) => sum + cost, 0);
     const activeOrganizations = new Set([...this.dailyCosts.keys(), ...this.monthlyCosts.keys()]).size;
-    
+
     const totalRequests24h = recent24h.length;
-    const averageLatency = recent24h.length > 0 
-      ? recent24h.reduce((sum, m) => sum + m.latencyMs, 0) / recent24h.length 
+    const averageLatency = recent24h.length > 0
+      ? recent24h.reduce((sum, m) => sum + m.latencyMs, 0) / recent24h.length
       : 0;
-    
+
     const errors24h = recent24h.filter(m => !m.success).length;
     const errorRate = totalRequests24h > 0 ? (errors24h / totalRequests24h) * 100 : 0;
 

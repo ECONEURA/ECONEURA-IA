@@ -11,10 +11,6 @@ declare module '@azure/openai' {
   }
 }
 
-declare module '@econeura/shared/config' {
-  export const config: any;
-}
-
 declare module 'helmet' {
   const helmet: any;
   export default helmet;

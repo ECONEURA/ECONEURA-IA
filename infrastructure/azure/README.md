@@ -1,3 +1,32 @@
+# Azure deploy (staging) - ECONEURA
+
+This folder contains Bicep templates and helper files used by the GitHub Actions `deploy-staging` workflow.
+
+Quick deploy notes
+- The workflow expects either GitHub OIDC configured or Azure Service Principal secrets in repository secrets.
+- Required repository secrets (add in Settings → Secrets):
+  - AZURE_TENANT_ID
+  - AZURE_SUBSCRIPTION_ID
+  - AZURE_CLIENT_ID (optional if OIDC used)
+  - AZURE_CLIENT_SECRET (optional if OIDC used)
+  - PG_ADMIN_PASSWORD (used for PostgreSQL admin during Bicep deploy)
+
+How the workflow works
+1. Install dependencies with pnpm.
+2. Login to Azure (OIDC preferred; client-id/secret fallback supported).
+3. Build and deploy Bicep `infrastructure/azure/bicep/main.bicep` into the staging resource group.
+4. Build API Docker image and push to the ACR created by the Bicep template.
+ 5. Update App Service to use the pushed image and run migrations (migration action currently a placeholder).
+   - NOTE: The `deploy-staging` workflow now runs `pnpm db:migrate` automatically after deploy. It requires the repository secret `PG_ADMIN_PASSWORD` to be set (used to build a temporary `DATABASE_URL` for migrations). Prefer configuring GitHub OIDC + federated credential (see `scripts/create-oidc-federation.sh`) to avoid storing long-lived Azure credentials in repository secrets.
+
+Next steps / TODO
+- Parameterize `main.bicep` outputs (ACR name, app name) so the workflow can programmatically fetch them.
+- Replace the migration placeholder with a db-migrate job or a one-off container that runs drizzle migrations.
+ - The workflow currently runs `pnpm db:migrate` as part of the `deploy-staging` job. For safer production usage consider:
+   - executing migrations from a dedicated runner job with stricter permissions,
+   - using a one-off container (Azure Container Instance) to run migrations under a managed identity,
+   - or using a migration pipeline that requires manual approval for prod.
+- Harden Key Vault integration and switch secrets to Key Vault references in App Service settings.
 # 🏗️ ECONEURA Azure Infrastructure
 
 ## Mediterranean CRM+ERP+AI System - Azure Deployment Infrastructure
@@ -127,7 +156,7 @@ Each App Service is granted the following Key Vault permissions:
       "features": ["CRM activities", "ERP transactions", "AI usage metrics"]
     },
     {
-      "name": "Exception Tracking", 
+      "name": "Exception Tracking",
       "features": ["Unhandled exceptions", "Custom error events", "Stack traces"]
     }
   ]
@@ -395,12 +424,12 @@ az postgres flexible-server connect \
 For infrastructure-related questions or support:
 
 - **Infrastructure Team**: infrastructure@econeura.com
-- **DevOps Lead**: devops@econeura.com  
+- **DevOps Lead**: devops@econeura.com
 - **Security Team**: security@econeura.com
 - **On-call Support**: +1-xxx-xxx-xxxx (production issues only)
 
 ---
 
-**Last Updated**: $(date +"%Y-%m-%d")  
-**Version**: 1.0.0  
+**Last Updated**: $(date +"%Y-%m-%d")
+**Version**: 1.0.0
 **Maintained by**: ECONEURA DevOps Team

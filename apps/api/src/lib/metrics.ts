@@ -79,10 +79,13 @@ export class MetricsService {
     // safe no-op for other metrics
   }
 
-  // Increment simple (name optional) — comportarse como alias para health check counter
-  increment(name: string, labels?: Record<string, string>): void {
+  // Increment flexible: increment(name), increment(name, labels), increment(name, value, labels)
+  increment(name: string, valueOrLabels?: number | Record<string, string>, maybeLabels?: Record<string, string>): void {
     try {
-      this.healthCheckCounter.labels(name, 'success').inc();
+      const value = typeof valueOrLabels === 'number' ? valueOrLabels : 1;
+      const labels = typeof valueOrLabels === 'object' ? valueOrLabels : maybeLabels || { success: 'true' };
+      // Use healthCheckCounter as a safe sink for simple increments
+      this.healthCheckCounter.labels(name, (labels as any).status || 'success').inc(value);
     } catch (e) {
       // no-op
     }

@@ -17,5 +17,8 @@
     "noEmit": false
   },
   "include": ["src/**/*"],
+  "paths": {
+    "@econeura/db": ["src/types/db-shim.d.ts"]
+  },
   "exclude": ["node_modules", "dist", "test", "**/*.test.ts"]
 }

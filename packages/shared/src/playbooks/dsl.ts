@@ -1,6 +1,6 @@
 import { z } from 'zod'
-// import { createTracer } from '../otel/index.ts'
-import { logger } from '../logging/index.ts'
+import { createSpan } from '../otel/index'
+import { logger } from '../logging/index'
 
 // Step types
 export const StepTypeSchema = z.enum([
@@ -101,7 +101,7 @@ export interface AuditEvent {
 
 // Playbook executor
 export class PlaybookExecutor {
-  private tracer = createTracer('playbook-executor')
+  private tracer = { startSpan: (name: string) => createSpan(name) }
   private context: PlaybookContext
   private definition: PlaybookDefinition
 
@@ -119,7 +119,7 @@ export class PlaybookExecutor {
     auditTrail: AuditEvent[]
   }> {
     const span = this.tracer.startSpan('playbook_execute')
-    
+
     try {
       span.setAttributes({
         'playbook.id': this.definition.id,
@@ -130,11 +130,11 @@ export class PlaybookExecutor {
       })
 
       logger.info('Starting playbook execution', {
-        playbook_id: this.definition.id,
-        playbook_name: this.definition.name,
-        org_id: this.context.orgId,
-        user_id: this.context.userId,
-        request_id: this.context.requestId,
+  playbook_id: this.definition.id,
+  playbook_name: this.definition.name,
+  org_id: this.context.orgId,
+  actor: this.context.userId,
+  x_request_id: this.context.requestId,
       })
 
       // Execute steps in order
@@ -171,10 +171,9 @@ export class PlaybookExecutor {
 
     } catch (error) {
       span.recordException(error as Error)
-      
-      logger.error('Playbook execution failed', {
+
+      logger.error('Playbook execution failed', error as Error, {
         playbook_id: this.definition.id,
-        error: error instanceof Error ? error.message : 'Unknown error',
       })
 
       // Execute all compensations
@@ -191,7 +190,7 @@ export class PlaybookExecutor {
    */
   private async executeStep(step: StepDefinition): Promise<void> {
     const span = this.tracer.startSpan('playbook_execute_step')
-    
+
     try {
       span.setAttributes({
         'step.id': step.id,
@@ -229,16 +228,15 @@ export class PlaybookExecutor {
       this.recordAuditEvent(step.id, 'complete', status, result.data, result.error)
 
       if (!result.success) {
-        logger.error('Step execution failed', {
+        logger.error('Step execution failed', new Error(String(result.error || 'step error')), {
           step_id: step.id,
           step_type: step.type,
-          error: result.error,
         })
       }
 
     } catch (error) {
       span.recordException(error as Error)
-      
+
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       const result: StepResult = {
         success: false,
@@ -249,10 +247,9 @@ export class PlaybookExecutor {
       this.context.stepResults.set(step.id, result)
       this.recordAuditEvent(step.id, 'error', 'failed', undefined, errorMessage)
 
-      logger.error('Step execution error', {
+      logger.error('Step execution error', new Error(errorMessage), {
         step_id: step.id,
         step_type: step.type,
-        error: errorMessage,
       })
     } finally {
       span.end()
@@ -292,10 +289,10 @@ export class PlaybookExecutor {
     try {
       // TODO: Integrate with AI router
       const { prompt, model, maxTokens } = step.config
-      
+
       // Mock AI generation for now
       const response = `AI generated content for: ${prompt}`
-      
+
       return {
         success: true,
         data: { content: response },
@@ -317,10 +314,10 @@ export class PlaybookExecutor {
     try {
       // TODO: Integrate with Graph client
       const { userId, subject, body, recipients } = step.config
-      
+
       // Mock draft creation
       const draftId = `draft_${Date.now()}`
-      
+
       return {
         success: true,
         data: { draftId, subject, recipients },
@@ -342,10 +339,10 @@ export class PlaybookExecutor {
     try {
       // TODO: Integrate with Graph client
       const { teamId, channelId, message } = step.config
-      
+
       // Mock Teams message
       const messageId = `msg_${Date.now()}`
-      
+
       return {
         success: true,
         data: { messageId, teamId, channelId },
@@ -367,10 +364,10 @@ export class PlaybookExecutor {
     try {
       // TODO: Integrate with Graph client
       const { planId, title, description, dueDateTime } = step.config
-      
+
       // Mock task creation
       const taskId = `task_${Date.now()}`
-      
+
       return {
         success: true,
         data: { taskId, title, planId },
@@ -392,10 +389,10 @@ export class PlaybookExecutor {
     try {
       // TODO: Integrate with database
       const { query, params } = step.config
-      
+
       // Mock database query
       const results = [{ id: 1, name: 'Test Result' }]
-      
+
       return {
         success: true,
         data: { results, query },
@@ -417,10 +414,10 @@ export class PlaybookExecutor {
     try {
       // TODO: Integrate with webhook system
       const { url, method, payload } = step.config
-      
+
       // Mock webhook call
       const responseId = `webhook_${Date.now()}`
-      
+
       return {
         success: true,
         data: { responseId, url, method },
@@ -442,7 +439,7 @@ export class PlaybookExecutor {
     try {
       const { conditions } = step.config
       const result = this.evaluateConditions(conditions)
-      
+
       return {
         success: true,
         data: { result },
@@ -463,9 +460,9 @@ export class PlaybookExecutor {
   private async executeDelay(step: StepDefinition): Promise<StepResult> {
     try {
       const { duration } = step.config
-      
+
       await new Promise(resolve => setTimeout(resolve, duration))
-      
+
       return {
         success: true,
         data: { duration },
@@ -485,7 +482,7 @@ export class PlaybookExecutor {
   private evaluateConditions(conditions: Condition[]): boolean {
     return conditions.every(condition => {
       const value = this.getVariableValue(condition.field)
-      
+
       switch (condition.operator) {
         case 'equals':
           return value === condition.value
@@ -517,7 +514,7 @@ export class PlaybookExecutor {
     // Check step results
     const [stepId, resultField] = field.split('.')
     const stepResult = this.context.stepResults.get(stepId)
-    
+
     if (stepResult && stepResult.data) {
       return resultField ? stepResult.data[resultField] : stepResult.data
     }
@@ -556,7 +553,7 @@ export class PlaybookExecutor {
    */
   private async executeCompensation(step: StepDefinition, originalResult: StepResult): Promise<void> {
     const span = this.tracer.startSpan('playbook_execute_compensation')
-    
+
     try {
       span.setAttributes({
         'step.id': step.id,
@@ -574,25 +571,23 @@ export class PlaybookExecutor {
       }
 
       const result = await this.executeStepByType(compensationStep)
-      
+
       const status = result.success ? 'compensated' : 'failed'
       this.recordAuditEvent(step.id, 'compensation_complete', status, result.data, result.error)
 
       logger.info('Compensation executed', {
         step_id: step.id,
         compensation_success: result.success,
-        error: result.error,
       })
 
     } catch (error) {
       span.recordException(error as Error)
-      
+
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       this.recordAuditEvent(step.id, 'compensation_error', 'failed', undefined, errorMessage)
 
-      logger.error('Compensation execution failed', {
+      logger.error('Compensation execution failed', new Error(errorMessage), {
         step_id: step.id,
-        error: errorMessage,
       })
     } finally {
       span.end()

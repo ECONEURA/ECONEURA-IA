@@ -1,12 +1,13 @@
 import { z } from 'zod'
-import { logger } from '../logging/index.ts'
-import { prometheus } from '../metrics/index.ts'
-import { redactPII } from '../security/index.ts'
-import { CostGuardrails, type UsageMetrics } from './cost-guardrails.ts'
-import { LLMProviderManager, type LLMProvider, type LLMModel } from './providers.ts'
-import { costMeter, type CostUsage } from '../cost-meter.ts'
-// import { createTracer } from '../otel/index.ts'
-import { env } from '../env.ts'
+import { logger } from '../logging'
+import { prometheus } from '../metrics'
+import { redactPII } from '../security'
+import { CostGuardrails, type UsageMetrics } from './cost-guardrails'
+import { LLMProviderManager, type LLMProvider, type LLMModel } from './providers'
+import { costMeter, type CostUsage } from '../cost-meter'
+// import { createTracer } from '../otel'
+import { env } from '../env'
+import { tracer, meter } from '../otel'
 
 // Request schemas
 const AIRequestSchema = z.object({
@@ -62,8 +63,8 @@ export class EnhancedAIRouter {
     model: string
     startTime: number
   }>()
-  private tracer = createTracer('ai-router')
-  private meter = createMeter('ai-router')
+  private tracer = tracer
+  private meter = meter
 
   constructor(config = {}) {
     this.config = {
@@ -104,7 +105,7 @@ export class EnhancedAIRouter {
     try {
       // Validate request
       const validatedRequest = AIRequestSchema.parse(request)
-      
+
       // Check monthly cost cap first
       const capCheck = await costMeter.checkMonthlyCap(request.orgId)
       if (!capCheck.withinLimit) {
@@ -113,7 +114,7 @@ export class EnhancedAIRouter {
 
       // Make routing decision
       const decision = await this.makeRoutingDecision(validatedRequest)
-      
+
       // Track active request
       this.activeRequests.set(requestId, {
         orgId: request.orgId,
@@ -134,19 +135,17 @@ export class EnhancedAIRouter {
         result.tokens.output
       )
 
-      span.setAttributes({
-        'ai.request_id': requestId,
-        'ai.provider': result.provider,
-        'ai.model': result.model,
-        'ai.cost_eur': result.costEUR,
-        'ai.fallback_used': result.fallbackUsed,
-      })
+  span.setAttribute('ai.request_id', requestId)
+  span.setAttribute('ai.provider', result.provider)
+  span.setAttribute('ai.model', result.model)
+  span.setAttribute('ai.cost_eur', result.costEUR)
+  span.setAttribute('ai.fallback_used', result.fallbackUsed)
 
       return result
 
     } catch (error) {
       const errorType = this.classifyError(error)
-      
+
       await this.recordRequestCompletion(
         requestId,
         false,
@@ -156,11 +155,9 @@ export class EnhancedAIRouter {
         errorType
       )
 
-      span.recordException(error as Error)
-      span.setAttributes({
-        'ai.error_type': errorType,
-        'ai.request_id': requestId,
-      })
+  span.recordException(error as Error)
+  span.setAttribute('ai.error_type', errorType)
+  span.setAttribute('ai.request_id', requestId)
 
       throw error
     } finally {
@@ -173,22 +170,24 @@ export class EnhancedAIRouter {
    */
   private async makeRoutingDecision(request: AIRequest): Promise<RouterDecision> {
     const span = this.tracer.startSpan('ai_make_routing_decision')
-    
+
     try {
-      // Get available providers
-      const providers = await this.providerManager.getAvailableProviders()
-      
-      // Prefer Mistral for cost efficiency
-      const mistralProvider = providers.find(p => p.id === 'mistral')
-      const azureProvider = providers.find(p => p.id === 'azure-openai')
-      
+  // Get available providers
+  const providers = await this.providerManager.getAllProviders()
+
+  // Prefer Mistral for cost efficiency
+  const mistralProvider = providers.find((p: LLMProvider) => p.id === 'mistral')
+  const azureProvider = providers.find((p: LLMProvider) => p.id === 'azure-openai')
+
       if (!mistralProvider && !azureProvider) {
         throw new Error('No AI providers available')
       }
 
-      // Check provider health
-      const mistralHealthy = mistralProvider?.health === 'healthy'
-      const azureHealthy = azureProvider?.health === 'healthy'
+  // Check provider health using the provider manager's health map
+  const mistralHealth = mistralProvider ? this.providerManager.getProviderHealth(mistralProvider.id) : undefined
+  const azureHealth = azureProvider ? this.providerManager.getProviderHealth(azureProvider.id) : undefined
+  const mistralHealthy = mistralHealth?.status === 'healthy'
+  const azureHealthy = azureHealth?.status === 'healthy'
 
       // Determine primary and fallback providers
       let primaryProvider: string
@@ -224,12 +223,18 @@ export class EnhancedAIRouter {
         throw new Error(`Estimated cost ${estimatedCost}€ exceeds limit ${maxCost}€`)
       }
 
-      span.setAttributes({
+      // Some OTEL mocks expose setAttribute (singular) instead of setAttributes.
+      const _attrs = {
         'ai.primary_provider': primaryProvider,
         'ai.fallback_provider': fallbackProvider,
         'ai.model': model,
         'ai.estimated_cost': estimatedCost,
-      })
+      }
+      if (typeof (span as any)?.setAttributes === 'function') {
+        ;(span as any).setAttributes(_attrs)
+      } else if (typeof (span as any)?.setAttribute === 'function') {
+        Object.entries(_attrs).forEach(([k, v]) => (span as any).setAttribute(k, v))
+      }
 
       return {
         provider: primaryProvider,
@@ -253,7 +258,7 @@ export class EnhancedAIRouter {
     requestId: string
   ): Promise<AIResponse> {
     const span = this.tracer.startSpan('ai_execute_with_fallback')
-    
+
     try {
       // Try primary provider
       try {
@@ -293,7 +298,7 @@ export class EnhancedAIRouter {
   ): Promise<AIResponse> {
     const span = this.tracer.startSpan('ai_execute_request')
     const startTime = Date.now()
-    
+
     try {
       const provider = this.providerManager.getProvider(providerId)
       if (!provider) {
@@ -309,8 +314,11 @@ export class EnhancedAIRouter {
       }
 
       // Execute request
+      if (typeof provider.execute !== 'function') {
+        throw new Error(`Provider ${provider.id} does not implement execute()`)
+      }
       const response = await provider.execute(providerRequest)
-      
+
       // Calculate actual cost
       const costUsage = costMeter.recordUsage(
         request.orgId,
@@ -321,13 +329,18 @@ export class EnhancedAIRouter {
 
       const latency = Date.now() - startTime
 
-      span.setAttributes({
+      const _execAttrs = {
         'ai.provider': providerId,
         'ai.model': model,
         'ai.cost_eur': costUsage.costEur,
         'ai.latency_ms': latency,
         'ai.fallback_used': isFallback,
-      })
+      }
+      if (typeof (span as any)?.setAttributes === 'function') {
+        ;(span as any).setAttributes(_execAttrs)
+      } else if (typeof (span as any)?.setAttribute === 'function') {
+        Object.entries(_execAttrs).forEach(([k, v]) => (span as any).setAttribute(k, v))
+      }
 
       return {
         content: response.content,
@@ -367,7 +380,7 @@ export class EnhancedAIRouter {
 
     const latency = Date.now() - activeRequest.startTime
     const provider = this.providerManager.getProvider(activeRequest.providerId)
-    
+
     if (!provider) {
       logger.error('Provider not found for completed request', undefined, {
         x_request_id: requestId,
@@ -434,8 +447,9 @@ export class EnhancedAIRouter {
     })
 
     // Implement alert handling (email, Slack, etc.)
-    if (this.config.emergencyStopEnabled && alert.type === 'emergency_stop') {
-      logger.error('Emergency stop triggered for organization', { org_id: alert.orgId })
+      if (this.config.emergencyStopEnabled && alert.type === 'emergency_stop') {
+      // Log minimal information to avoid typing issues with Error object shapes
+      logger.error(`Emergency stop triggered for organization ${alert.orgId}`)
     }
   }
 
@@ -447,8 +461,9 @@ export class EnhancedAIRouter {
     this.costGuardrails.setCostLimits('default', {
       dailyLimitEUR: 5.0,
       monthlyLimitEUR: 50.0,
-      warningThresholdPercent: 80,
-      emergencyStopThresholdPercent: 95,
+      perRequestLimitEUR: 5.0,
+      warningThresholds: { daily: 80, monthly: 85 },
+      emergencyStop: { enabled: true, thresholdEUR: 150.0 },
     })
   }
 
@@ -485,11 +500,13 @@ export class EnhancedAIRouter {
    * Gets current provider health status
    */
   async getProviderHealth(): Promise<Record<string, any>> {
-    const providers = await this.providerManager.getAvailableProviders()
+    // Use manager methods to obtain providers and their health status
+    const providers = this.providerManager.getAllProviders()
     return providers.reduce((acc, provider) => {
+      const health = this.providerManager.getProviderHealth(provider.id)
       acc[provider.id] = {
-        health: provider.health,
-        lastCheck: provider.lastHealthCheck,
+        health: health?.status ?? 'unknown',
+        lastCheck: health?.lastCheck ?? null,
         models: provider.models,
       }
       return acc

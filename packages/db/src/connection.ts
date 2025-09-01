@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import { env } from '@econeura/shared'
-import * as schema from './schema.ts'
+import * as schema from './schema'
 
 // Create postgres connection
 const connectionString = `postgresql://${env().PGUSER}:${env().PGPASSWORD}@${env().PGHOST}:${env().PGPORT}/${env().PGDATABASE}`

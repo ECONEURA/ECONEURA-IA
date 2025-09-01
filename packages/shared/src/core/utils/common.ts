@@ -112,8 +112,10 @@ export function memoize<T extends (...args: any[]) => any>(
     cache.set(key, { value, timestamp: now });
 
     if (cache.size > maxSize) {
-      const firstKey = cache.keys().next().value;
-      cache.delete(firstKey);
+      const firstKey = cache.keys().next().value as string | undefined;
+      if (firstKey) {
+        cache.delete(firstKey);
+      }
     }
 
     return value;
@@ -126,11 +128,11 @@ export function memoize<T extends (...args: any[]) => any>(
 export function chunk<T>(array: T[], size: number): T[][] {
   return array.reduce((chunks, item, index) => {
     const chunkIndex = Math.floor(index / size);
-    
+
     if (!chunks[chunkIndex]) {
       chunks[chunkIndex] = [];
     }
-    
+
     chunks[chunkIndex].push(item);
     return chunks;
   }, [] as T[][]);

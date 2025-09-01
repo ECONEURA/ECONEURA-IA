@@ -1,5 +1,5 @@
-import { db, setOrg } from './connection.ts'
-import { organizations, users, companies, contacts, deals, invoices, tasks } from './schema.ts'
+import { db, setOrg } from './connection'
+import { organizations, users, companies, contacts, deals, invoices, tasks } from './schema'
 import { env } from '@econeura/shared'
 
 async function seed() {
@@ -32,7 +32,7 @@ async function seed() {
 
     // Seed data for organization 1
     await setOrg(org1.id)
-    
+
     const [user1, user2] = await db.insert(users).values([
       {
         orgId: org1.id,
@@ -107,7 +107,7 @@ async function seed() {
         contactId: contact1.id,
         title: 'Website Redesign Project',
         description: 'Complete redesign of corporate website with modern UI/UX',
-        amount: 25000.00,
+        amount: '25000.00',
         stage: 'negotiation',
         probability: 75,
         expectedCloseDate: new Date('2024-03-15')
@@ -118,19 +118,19 @@ async function seed() {
         contactId: contact2.id,
         title: 'CRM Implementation',
         description: 'Custom CRM solution for sales team',
-        amount: 15000.00,
+        amount: '15000.00',
         stage: 'prospecting',
         probability: 50,
         expectedCloseDate: new Date('2024-04-30')
       }
     ]).returning()
 
-    const [invoice1, invoice2] = await db.insert(invoices).values([
+  const [invoice1, invoice2] = await db.insert(invoices).values([
       {
         orgId: org1.id,
         companyId: company1.id,
         invoiceNumber: 'INV-2024-001',
-        amount: 5000.00,
+    amount: '5000.00',
         status: 'sent',
         issueDate: new Date('2024-01-15'),
         dueDate: new Date('2024-02-15'),
@@ -138,8 +138,8 @@ async function seed() {
           {
             description: 'Initial consultation and planning',
             quantity: 1,
-            unitPrice: 5000.00,
-            total: 5000.00
+            unitPrice: '5000.00',
+            total: '5000.00'
           }
         ]
       },
@@ -147,7 +147,7 @@ async function seed() {
         orgId: org1.id,
         companyId: company2.id,
         invoiceNumber: 'INV-2024-002',
-        amount: 3000.00,
+    amount: '3000.00',
         status: 'paid',
         issueDate: new Date('2024-01-20'),
         dueDate: new Date('2024-02-20'),
@@ -156,12 +156,12 @@ async function seed() {
           {
             description: 'Software license and setup',
             quantity: 1,
-            unitPrice: 3000.00,
-            total: 3000.00
+            unitPrice: '3000.00',
+            total: '3000.00'
           }
         ]
       }
-    ]).returning()
+  ] as any).returning()
 
     const [task1, task2] = await db.insert(tasks).values([
       {
@@ -190,7 +190,7 @@ async function seed() {
 
     // Seed data for organization 2
     await setOrg(org2.id)
-    
+
     const [user3] = await db.insert(users).values([
       {
         orgId: org2.id,
@@ -236,7 +236,7 @@ async function seed() {
         contactId: contact3.id,
         title: 'Tourism Platform Development',
         description: 'Custom platform for managing tourism services',
-        amount: 35000.00,
+  amount: '35000.00',
         stage: 'qualification',
         probability: 60,
         expectedCloseDate: new Date('2024-05-15')
