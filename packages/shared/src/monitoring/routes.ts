@@ -1,9 +1,7 @@
 import { Router } from 'express';
 import { healthCheck } from './middleware';
 import { registry } from './metrics';
-import { EconeuraLogger } from './logger';
-
-const logger = new EconeuraLogger();
+import { logger } from '../logging/index';
 const monitoringRouter: Router = Router();
 
 /**
@@ -20,7 +18,7 @@ monitoringRouter.get('/metrics', async (req, res) => {
     res.set('Content-Type', registry.contentType);
     res.send(metrics);
   } catch (error) {
-    logger.error('Failed to collect metrics', { error });
+    logger.error('Failed to collect metrics', error as Error, {});
     res.status(500).send('Failed to collect metrics');
   }
 });

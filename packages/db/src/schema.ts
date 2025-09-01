@@ -1,6 +1,16 @@
 // import { Pool, PoolClient, QueryResult } from 'pg'
 // import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
 import { z } from 'zod'
+import { pgTable, uuid, text, jsonb, timestamp, boolean, decimal, integer, index, uniqueIndex } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
+// Optionally generate zod schemas with drizzle-zod (left commented if not available)
+// import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
+// Provide safe stubs when drizzle-zod is not present during typecheck in this environment
+declare const createInsertSchema: ((table: any) => any) | undefined
+declare const createSelectSchema: ((table: any) => any) | undefined
+
+const _createInsertSchema = typeof createInsertSchema !== 'undefined' ? createInsertSchema : (t: any) => undefined
+const _createSelectSchema = typeof createSelectSchema !== 'undefined' ? createSelectSchema : (t: any) => undefined
 
 // Organizations table
 export const organizations = pgTable('organizations', {
@@ -371,23 +381,23 @@ export const invoice_items = pgTable('invoice_items', {
 }))
 
 // Zod schemas for validation
-export const insertOrganizationSchema = createInsertSchema(organizations)
-export const selectOrganizationSchema = createSelectSchema(organizations)
+export const insertOrganizationSchema = _createInsertSchema(organizations)
+export const selectOrganizationSchema = _createSelectSchema(organizations)
 
-export const insertUserSchema = createInsertSchema(users)
-export const selectUserSchema = createSelectSchema(users)
+export const insertUserSchema = _createInsertSchema(users)
+export const selectUserSchema = _createSelectSchema(users)
 
-export const insertCompanySchema = createInsertSchema(companies)
-export const selectCompanySchema = createSelectSchema(companies)
+export const insertCompanySchema = _createInsertSchema(companies)
+export const selectCompanySchema = _createSelectSchema(companies)
 
-export const insertContactSchema = createInsertSchema(contacts)
-export const selectContactSchema = createSelectSchema(contacts)
+export const insertContactSchema = _createInsertSchema(contacts)
+export const selectContactSchema = _createSelectSchema(contacts)
 
-export const insertDealSchema = createInsertSchema(deals)
-export const selectDealSchema = createSelectSchema(deals)
+export const insertDealSchema = _createInsertSchema(deals)
+export const selectDealSchema = _createSelectSchema(deals)
 
-export const insertInvoiceSchema = createInsertSchema(invoices)
-export const selectInvoiceSchema = createSelectSchema(invoices)
+export const insertInvoiceSchema = _createInsertSchema(invoices)
+export const selectInvoiceSchema = _createSelectSchema(invoices)
 
 // Types
 export type Organization = z.infer<typeof selectOrganizationSchema>

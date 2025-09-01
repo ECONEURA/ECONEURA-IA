@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { httpMetrics } from './metrics';
+import { httpMetrics, systemMetrics } from './metrics';
 import { tracingManager } from './tracing';
-import { log } from './logger';
+import { logger } from '../logging/index';
 
 /**
  * HTTP request monitoring middleware
@@ -34,31 +34,29 @@ export function monitorRequest() {
       const statusCode = res.statusCode.toString();
 
       // Record metrics
-      httpMetrics.requestDuration.observe({ method, route, status_code: statusCode }, duration);
-      httpMetrics.requestsTotal.inc({ method, route, status_code: statusCode });
-      
+  httpMetrics.requestDuration.observe({ method, route, status_code: statusCode }, duration);
+  httpMetrics.requestsTotal.inc({ method, route, status_code: statusCode });
+
       // Record response size
       const responseLength = parseInt(res.get('content-length') || '0', 10);
       httpMetrics.responseSizeBytes.observe({ method, route }, responseLength);
 
       // End tracing span
       tracingManager.endSpan('http_request', {
-        attributes: {
-          'http.status_code': statusCode,
-          'http.response_content_length': responseLength,
-        },
+        status: undefined,
+        error: undefined,
       });
 
       // Log request
-      log.http(`${method} ${route} ${statusCode}`, {
-        duration,
-        requestSize: contentLength,
-        responseSize: responseLength,
-        userAgent: req.get('user-agent'),
-        ip: req.ip,
+      logger.logAPIRequest(`${method} ${route} ${statusCode}`, {
+        method,
+        path: route,
+        status_code: Number(statusCode),
+        latency_ms: Math.round(duration * 1000),
+        org_id: (req as any).org_id,
       });
 
-      return originalEnd.apply(this, args);
+  return originalEnd.apply(this, args as any);
     };
 
     next();
@@ -81,22 +79,10 @@ export function monitorErrors() {
     });
 
     // End tracing span with error
-    tracingManager.endSpan('http_request', {
-      error,
-      attributes: {
-        'http.status_code': '500',
-        'error.type': error.name,
-        'error.message': error.message,
-      },
-    });
+    tracingManager.endSpan('http_request', { error });
 
     // Log error
-    log.error(`${method} ${route} failed`, {
-      error: {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      },
+    logger.error(`${method} ${route} failed`, error, {
       request: {
         url: req.url,
         method: req.method,
@@ -120,12 +106,10 @@ export function healthCheck() {
 
     // Update system metrics
     Object.entries(memoryUsage).forEach(([type, bytes]) => {
-      metrics.systemMetrics.memory.set({ type }, bytes);
+      systemMetrics.memory.set({ type }, bytes as number);
     });
 
-    metrics.systemMetrics.cpuUsage.set(
-      (cpuUsage.user + cpuUsage.system) / 1000000
-    );
+    systemMetrics.cpuUsage.set((cpuUsage.user + cpuUsage.system) / 1000000);
 
     res.json({
       status: 'healthy',

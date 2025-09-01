@@ -1,3 +1,91 @@
+@description('Core infra for ECONEURA: Storage, Key Vault, ACR, App Service Plan + Web App, PostgreSQL Flexible')
+param location string = resourceGroup().location
+param prefix string = 'econeura'
+param skuName string = 'Standard_LRS'
+param postgresAdministratorLogin string = 'dbadmin'
+param postgresAdministratorPassword string
+
+resource storage 'Microsoft.Storage/storageAccounts@2022-09-01' = {
+  name: toLower('${prefix}storage')
+  location: location
+  sku: {
+    name: skuName
+  }
+  kind: 'StorageV2'
+  properties: {
+    allowBlobPublicAccess: false
+    minimumTlsVersion: 'TLS1_2'
+  }
+}
+
+resource acr 'Microsoft.ContainerRegistry/registries@2022-02-01' = {
+  name: toLower('${prefix}acr')
+  location: location
+  sku: {
+    name: 'Basic'
+  }
+  properties: {}
+}
+
+resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
+  name: '${prefix}-kv'
+  location: location
+  properties: {
+    tenantId: subscription().tenantId
+    sku: { family: 'A', name: 'standard' }
+    accessPolicies: []
+    enableSoftDelete: true
+  }
+}
+
+resource plan 'Microsoft.Web/serverfarms@2022-03-01' = {
+  name: '${prefix}-plan'
+  location: location
+  sku: {
+    name: 'P1v2'
+    tier: 'PremiumV2'
+    capacity: 1
+  }
+}
+
+resource web 'Microsoft.Web/sites@2022-03-01' = {
+  name: '${prefix}-api'
+  location: location
+  kind: 'app,linux'
+  properties: {
+    serverFarmId: plan.id
+    siteConfig: {
+      linuxFxVersion: 'DOCKER|<replace-with-image>'
+      appSettings: [
+        { name: 'WEBSITE_NODE_DEFAULT_VERSION'; value: '~18' }
+      ]
+    }
+  }
+  dependsOn: [plan]
+}
+
+resource postgres 'Microsoft.DBforPostgreSQL/flexibleServers@2022-09-30-preview' = {
+  name: '${prefix}-pg'
+  location: location
+  properties: {
+    version: '15'
+    administratorLogin: postgresAdministratorLogin
+    administratorLoginPassword: postgresAdministratorPassword
+    storage: { storageSizeGB: 32 }
+    highAvailability: { mode: 'Disabled' }
+    network: { delegatedSubnetResourceId: '' }
+  }
+  sku: {
+    name: 'Standard_D4s_v3'
+    tier: 'GeneralPurpose'
+  }
+}
+
+output storageAccountName string = storage.name
+output acrName string = acr.name
+output keyVaultName string = kv.name
+output appName string = web.name
+output postgresName string = postgres.name
 // ECONEURA Azure Infrastructure
 // Mediterranean CRM+ERP+AI System
 // Complete production-ready deployment
@@ -309,6 +397,13 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
     }
   }
 }
+
+// Final outputs to be consumed by CI/CD pipelines
+output finalAcrName string = acr.name
+output finalApiAppName string = apiApp.name
+output finalWebAppName string = webApp.name
+output finalPostgresName string = postgresServer.name
+
 
 // Blob containers
 resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' = {

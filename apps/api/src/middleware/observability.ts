@@ -18,54 +18,55 @@ export function observabilityMiddleware(req: ExtendedRequest, res: Response, nex
   req.requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   
   // Iniciar trace
-  const traceContext = tracing.startSpan(`HTTP ${req.method} ${req.path}`);
+  const traceContext = tracing.startSpan(`HTTP ${req.method} ${(req as any).path}`);
   req.traceContext = traceContext;
   
   // Registrar tiempo de inicio
   req.startTime = Date.now();
   
   // Agregar headers de trace
-  res.setHeader('X-Request-ID', req.requestId);
+  res.setHeader('X-Request-ID', (req as any).requestId);
   res.setHeader('X-Trace-ID', traceContext.traceId);
   res.setHeader('X-Span-ID', traceContext.spanId);
   
   // Log del request entrante
-  logger.info(`Request started: ${req.method} ${req.path}`, {
-    requestId: req.requestId,
+  logger.info(`Request started: ${req.method} ${(req as any).path}`, {
+    requestId: (req as any).requestId,
     traceId: traceContext.traceId,
     spanId: traceContext.spanId,
     method: req.method,
-    path: req.path,
-    userAgent: req.get('User-Agent'),
-    ip: req.ip,
-    query: JSON.stringify(req.query),
+    path: (req as any).path,
+    userAgent: (req as any).get ? (req as any).get('User-Agent') : undefined,
+    ip: (req as any).ip,
+    // ensure query fits expected Record<string, unknown>
+    query: (req.query as unknown) as Record<string, unknown>,
     body: req.method !== 'GET' ? req.body : undefined
   });
   
   // Agregar tags al trace
   tracing.addTag(traceContext.spanId, 'http.method', req.method);
-  tracing.addTag(traceContext.spanId, 'http.path', req.path);
-  tracing.addTag(traceContext.spanId, 'http.user_agent', req.get('User-Agent') || 'unknown');
-  if (req.ip) {
-    tracing.addTag(traceContext.spanId, 'http.ip', req.ip);
+  tracing.addTag(traceContext.spanId, 'http.path', (req as any).path);
+  tracing.addTag(traceContext.spanId, 'http.user_agent', (req as any).get ? (req as any).get('User-Agent') || 'unknown' : 'unknown');
+  if ((req as any).ip) {
+    tracing.addTag(traceContext.spanId, 'http.ip', (req as any).ip);
   }
   
   // Interceptar el final de la respuesta
-  const originalSend = res.send;
-  res.send = function(data: any): Response {
-    const duration = Date.now() - (req.startTime || 0);
-    const statusCode = res.statusCode;
+  const originalSend = (res as any).send;
+  (res as any).send = function(data: any): Response {
+    const duration = Date.now() - ((req as any).startTime || 0);
+    const statusCode = (res as any).statusCode;
     
     // Registrar métricas
-    metrics.recordHttpRequest(req.method, req.path, statusCode, duration);
+  metrics.recordHttpRequest(req.method, (req as any).path, statusCode, duration);
     
     // Registrar log del request completado
-    logger.request(req.method, req.path, statusCode, duration, {
-      requestId: req.requestId,
+    logger.request(req.method, (req as any).path, statusCode, duration, {
+      requestId: (req as any).requestId,
       traceId: traceContext.traceId,
       spanId: traceContext.spanId,
-      userAgent: req.get('User-Agent'),
-      ip: req.ip
+      userAgent: (req as any).get ? (req as any).get('User-Agent') : undefined,
+      ip: (req as any).ip
     });
     
     // Finalizar trace

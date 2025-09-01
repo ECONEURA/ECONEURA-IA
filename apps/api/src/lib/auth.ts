@@ -1,5 +1,5 @@
 import type { PrismaClient as PrismaClientType } from '@prisma/client';
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '@econeura/db';
 

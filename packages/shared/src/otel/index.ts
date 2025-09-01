@@ -1,16 +1,20 @@
-import { env } from '../env.ts'
+import { env } from '../env'
 
 // Temporary mock implementations for build
 export const tracer = {
   startSpan: (name: string) => ({
-    setAttribute: () => {},
-    setStatus: () => {},
+    setAttribute: (_k?: string, _v?: any) => {},
+    setAttributes: (_attrs?: Record<string, any>) => {},
+    recordException: (_err?: any) => {},
+    setStatus: (_s?: any) => {},
     end: () => {},
   }),
   getTracer: (name: string) => ({
     startSpan: (name: string) => ({
-      setAttribute: () => {},
-      setStatus: () => {},
+      setAttribute: (_k?: string, _v?: any) => {},
+      setAttributes: (_attrs?: Record<string, any>) => {},
+      recordException: (_err?: any) => {},
+      setStatus: (_s?: any) => {},
       end: () => {},
     }),
   }),
@@ -18,23 +22,23 @@ export const tracer = {
 
 export const meter = {
   createCounter: (name: string, options?: any) => ({
-    add: () => {},
+    add: (_value: number = 1, _labels?: Record<string, any>) => {},
   }),
   createHistogram: (name: string, options?: any) => ({
-    record: () => {},
+    record: (_value: number, _labels?: Record<string, any>) => {},
   }),
   createUpDownCounter: (name: string, options?: any) => ({
-    add: () => {},
+    add: (_value: number, _labels?: Record<string, any>) => {},
   }),
   getMeter: (name: string) => ({
     createCounter: (name: string, options?: any) => ({
-      add: () => {},
+      add: (_value: number = 1, _labels?: Record<string, any>) => {},
     }),
     createHistogram: (name: string, options?: any) => ({
-      record: () => {},
+      record: (_value: number, _labels?: Record<string, any>) => {},
     }),
     createUpDownCounter: (name: string, options?: any) => ({
-      add: () => {},
+      add: (_value: number, _labels?: Record<string, any>) => {},
     }),
   }),
 }
@@ -63,9 +67,11 @@ export const customMetrics = {
 // Mock utility functions
 export function createSpan(name: string, attributes?: Record<string, any>) {
   return {
-    setAttribute: () => {},
-    setStatus: () => {},
-    end: () => {},
+  setAttribute: (_k?: string, _v?: any) => {},
+  setAttributes: (_attrs?: Record<string, any>) => {},
+  recordException: (_err?: any) => {},
+  setStatus: (_s?: any) => {},
+  end: () => {},
   }
 }
 

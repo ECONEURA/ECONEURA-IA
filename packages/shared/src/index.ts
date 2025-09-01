@@ -1,12 +1,12 @@
 // Types (legacy)
-export * as LegacyTypes from './types/index.ts';
+export * as LegacyTypes from './types';
 
 // Schemas - Export all new schemas
-export * from './schemas/common.ts';
-export * from './schemas/auth.ts';
-export * from './schemas/crm.ts';
-export * from './schemas/erp.ts';
-export * from './schemas/finance.ts';
+export * from './schemas/common';
+export * from './schemas/auth';
+export * from './schemas/crm';
+export * from './schemas/erp';
+export * from './schemas/finance';
 
 // Re-export legacy schemas from index for backward compatibility
 export {
@@ -41,25 +41,25 @@ export {
   type SendMessage,
   type UpdateOrgLimits,
   type MetricsQuery,
-} from './schemas/index.ts';
+} from './schemas';
 
 // Security utilities
-export * from './security/index.ts';
+export * from './security';
 
 // Logging
-export * from './logging/index.ts';
+export * from './logging';
 
 // Metrics
-export * from './metrics/index.ts';
+export * from './metrics';
 
 // AI Router
-export { AIRouter, createAIRouter, type RouterDecision, type RouterConfig } from './ai/router.ts';
-export { EnhancedAIRouter, type AIRequest as EnhancedAIRequest, type AIResponse as EnhancedAIResponse } from './ai/enhanced-router.ts';
-export { CostGuardrails, type CostLimits, type CostAlert, type UsageMetrics } from './ai/cost-guardrails.ts';
-export { LLMProviderManager, type LLMProvider, type LLMModel, type ProviderHealth } from './ai/providers.ts';
+export { AIRouter, createAIRouter, type RouterDecision, type RouterConfig } from './ai/router';
+export { EnhancedAIRouter, type AIRequest as EnhancedAIRequest, type AIResponse as EnhancedAIResponse } from './ai/enhanced-router';
+export { CostGuardrails, type CostLimits, type CostAlert, type UsageMetrics } from './ai/cost-guardrails';
+export { LLMProviderManager, type LLMProvider, type LLMModel, type ProviderHealth } from './ai/providers';
 
 // Environment and configuration
-export { env, getEnv } from './env.ts';
+export { env, getEnv } from './env';
 
 // OpenTelemetry (re-export only tracing helpers to avoid duplicate metric helper exports)
 export {
@@ -74,11 +74,11 @@ export {
   getTraceId,
   getSpanId,
   sdk as otelSdk,
-} from './otel/index.ts';
+} from './otel';
 
 // Cost metering
-export { costMeter } from './cost-meter.ts';
-export type { CostUsage, ModelName } from './cost-meter.ts';
+export { costMeter } from './cost-meter';
+export type { CostUsage, ModelName } from './cost-meter';
 
 // Version info
 export const VERSION = '1.0.0';

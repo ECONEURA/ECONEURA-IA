@@ -1,0 +1,120 @@
+name: Deploy Staging to Azure
+
+on:
+  push:
+    branches: [ feature/pr-42-sepa ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Azure Login (OIDC)
+      id: azlogin
+      uses: azure/login@v1
+      with:
+        enable-AzPSSession: false
+        # For OIDC you only need the client-id and tenant-id of the App Registration
+        # created with a federated credential. No client secret is required.
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Validate Bicep
+      run: az bicep build --file infrastructure/azure/bicep/main.bicep
+
+    - name: Deploy Bicep to staging
+      run: |
+        az deployment group create \
+          --resource-group ${AZURE_RG:-econeura-staging-rg} \
+          --template-file infrastructure/azure/bicep/main.bicep \
+          --parameters prefix=econeura location=westeurope postgresAdministratorPassword=${{ secrets.PG_ADMIN_PASSWORD }}
+
+    - name: Fetch infra outputs
+      id: infra_outputs
+      run: |
+        # read outputs from last deployment
+        OUT_JSON=$(az deployment group show -g ${AZURE_RG:-econeura-staging-rg} --query properties.outputs -o json || echo '{}')
+        echo "OUT_JSON=$OUT_JSON" >> $GITHUB_ENV
+        ACR_NAME=$(echo "$OUT_JSON" | jq -r '.acrName.value // "econeuraacr"')
+        API_APP=$(echo "$OUT_JSON" | jq -r '.finalApiAppName.value // .appName.value // empty')
+        WEB_APP=$(echo "$OUT_JSON" | jq -r '.finalWebAppName.value // empty')
+        echo "ACR_NAME=$ACR_NAME" >> $GITHUB_ENV
+        echo "API_APP=$API_APP" >> $GITHUB_ENV
+        echo "WEB_APP=$WEB_APP" >> $GITHUB_ENV
+
+    - name: Login to ACR
+      run: |
+        az acr login --name $ACR_NAME
+
+    - name: Build and push image
+      run: |
+        IMAGE_NAME=${{ github.repository }}:staging-${{ github.sha }}
+        docker build -t $IMAGE_NAME ./apps/api
+        docker tag $IMAGE_NAME $ACR_NAME.azurecr.io/$IMAGE_NAME
+        docker push $ACR_NAME.azurecr.io/$IMAGE_NAME
+
+    - name: Update App Service with new image
+      run: |
+        APP_NAME=$(az deployment group show -g ${AZURE_RG:-econeura-staging-rg} --query properties.outputs.appName.value -o tsv)
+        ACR_NAME=${ACR_NAME}
+        az webapp config container set --name $APP_NAME --resource-group ${AZURE_RG:-econeura-staging-rg} --docker-custom-image-name $ACR_NAME.azurecr.io/${{ github.repository }}:staging-${{ github.sha }} --docker-registry-server-url https://$ACR_NAME.azurecr.io
+
+    - name: Run DB migrations
+      env:
+        RG: ${AZURE_RG:-econeura-staging-rg}
+      run: |
+        set -euo pipefail
+        # restart app to pick up new image
+        APP_NAME=$(az deployment group show -g ${RG} --query properties.outputs.appName.value -o tsv || echo "${API_APP:-}")
+        if [ -n "$APP_NAME" ]; then
+          echo "Restarting webapp $APP_NAME"
+          az webapp restart --name "$APP_NAME" --resource-group "${RG}"
+        else
+          echo "Warning: APP_NAME not found from deployment outputs; continuing"
+        fi
+
+        echo "Locating PostgreSQL flexible server in resource group ${RG}"
+        POSTGRES_NAME=$(az resource list -g "${RG}" --resource-type "Microsoft.DBforPostgreSQL/flexibleServers" --query "[0].name" -o tsv)
+        if [ -z "$POSTGRES_NAME" ]; then
+          echo "No Postgres flexible server found in ${RG}; aborting"
+          exit 1
+        fi
+        echo "Found Postgres server: $POSTGRES_NAME"
+
+        # get fully qualified domain name
+        POSTGRES_FQDN=$(az postgres flexible-server show -g "${RG}" -n "$POSTGRES_NAME" --query fullyQualifiedDomainName -o tsv || true)
+        if [ -z "$POSTGRES_FQDN" ]; then
+          echo "Could not determine Postgres FQDN for $POSTGRES_NAME; aborting"
+          exit 1
+        fi
+  echo "Postgres FQDN: $POSTGRES_FQDN"
+  # export PG_ADMIN_PASSWORD into the shell from GITHUB_ENV to safely reference it
+  echo "PG_ADMIN_PASSWORD=${{ secrets.PG_ADMIN_PASSWORD }}" >> $GITHUB_ENV
+  # build DATABASE_URL using the admin password
+  export DATABASE_URL="postgresql://dbadmin:${PG_ADMIN_PASSWORD}@${POSTGRES_FQDN}:5432/econeura_db?sslmode=require"
+  echo "Running database migrations (pnpm db:migrate) with DATABASE_URL set"
+  pnpm db:migrate
+
+    - name: Smoke tests
+      run: |
+        echo "Run smoke tests against staging URL"

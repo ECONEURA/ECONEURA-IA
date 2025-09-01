@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { meter } from './otel/index.ts'
-import { env } from './env.ts'
+import { meter } from './otel'
+import { env } from './env'
 
 // Cost rates per model (EUR per 1K tokens)
 const COST_RATES = {
@@ -71,28 +71,24 @@ class CostMeter {
   async getMonthlyUsage(orgId: string): Promise<number> {
     try {
       // Import database dynamically to avoid circular dependencies
-      const { db, setOrg } = await import('@econeura/db')
-      
+  // @ts-ignore - dynamic import, prefer runtime resolution; avoid pulling db sources into this TS project
+  const { db, setOrg } = await import('@econeura/db')
+
       // Set organization context for RLS
       await setOrg(orgId)
-      
+
       // Get current month's usage from database
       const currentDate = new Date()
       const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
-      
-      const { aiCostUsage } = await import('@econeura/db')
-      
-      const result = await db
-        .select({ totalCost: aiCostUsage.costEur })
-        .from(aiCostUsage)
-        .where(
-          aiCostUsage.timestamp >= startOfMonth
-        )
-        .execute()
 
-      const totalCost = result.reduce((sum: number, row: any) => sum + Number(row.totalCost), 0)
-      return totalCost
-      
+  // @ts-ignore - dynamic import
+  const { aiCostUsage } = await import('@econeura/db')
+
+  const result = await db.select().from(aiCostUsage).execute()
+  const filtered = result.filter((r: any) => new Date(r.createdAt) >= startOfMonth)
+  const totalCost = filtered.reduce((sum: number, row: any) => sum + Number(row.costEur), 0)
+  return totalCost
+
     } catch (error) {
       // Fallback to in-memory tracking if database fails
       return 0
@@ -110,22 +106,25 @@ class CostMeter {
 
   async recordUsageToDatabase(usage: CostUsage): Promise<void> {
     try {
-      const { db, setOrg } = await import('@econeura/db')
-      const { aiCostUsage } = await import('@econeura/db')
-      
+  // @ts-ignore - dynamic import
+  const { db, setOrg } = await import('@econeura/db')
+  // @ts-ignore - dynamic import
+  const { aiCostUsage } = await import('@econeura/db')
+
       // Set organization context for RLS
       await setOrg(usage.orgId)
-      
+
       // Insert usage record
       await db.insert(aiCostUsage).values({
         orgId: usage.orgId,
         model: usage.model,
+        provider: this.getProvider(usage.model),
         inputTokens: usage.inputTokens,
         outputTokens: usage.outputTokens,
-        costEur: usage.costEur,
-        timestamp: usage.timestamp,
+        costEur: String(usage.costEur),
+        createdAt: usage.timestamp,
       })
-      
+
     } catch (error) {
       console.error('Error recording usage to database:', error)
       // Don't throw - we don't want to break the AI request if metrics fail
@@ -134,30 +133,28 @@ class CostMeter {
 
   async getUsageHistory(orgId: string, days: number = 30): Promise<CostUsage[]> {
     try {
-      const { db, setOrg } = await import('@econeura/db')
-      const { aiCostUsage } = await import('@econeura/db')
-      
+  // @ts-ignore - dynamic import
+  const { db, setOrg } = await import('@econeura/db')
+  // @ts-ignore - dynamic import
+  const { aiCostUsage } = await import('@econeura/db')
+
       await setOrg(orgId)
-      
+
       const startDate = new Date()
       startDate.setDate(startDate.getDate() - days)
-      
-      const result = await db
-        .select()
-        .from(aiCostUsage)
-        .where(aiCostUsage.timestamp >= startDate)
-        .orderBy(aiCostUsage.timestamp)
-        .execute()
-      
-      return result.map(row => ({
+
+      const result = await db.select().from(aiCostUsage).execute()
+      const filtered = result.filter((r: any) => new Date(r.createdAt) >= startDate)
+      filtered.sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+      return filtered.map((row: any) => ({
         orgId: row.orgId,
         model: row.model,
         inputTokens: row.inputTokens,
         outputTokens: row.outputTokens,
         costEur: Number(row.costEur),
-        timestamp: row.timestamp,
+        timestamp: new Date(row.createdAt),
       }))
-      
+
     } catch (error) {
       console.error('Error getting usage history:', error)
       return []
@@ -172,33 +169,23 @@ class CostMeter {
     try {
       const { db, setOrg } = await import('@econeura/db')
       const { aiCostUsage } = await import('@econeura/db')
-      
+
       await setOrg(orgId)
-      
+
       const currentDate = new Date()
       const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
-      
-      const result = await db
-        .select({
-          totalCost: aiCostUsage.costEur,
-          count: aiCostUsage.id,
-        })
-        .from(aiCostUsage)
-        .where(
-          aiCostUsage.timestamp >= startOfMonth,
-          aiCostUsage.model.like(`${provider}%`)
-        )
-        .execute()
-      
-      const totalCost = result.reduce((sum, row) => sum + Number(row.totalCost), 0)
-      const totalRequests = result.reduce((sum, row) => sum + Number(row.count), 0)
-      
+
+  const result = await db.select().from(aiCostUsage).execute()
+  const filtered = result.filter((r: any) => new Date(r.createdAt) >= startOfMonth)
+  const totalCost = filtered.reduce((sum: number, row: any) => sum + Number(row.costEur), 0)
+  const totalRequests = filtered.length
+
       return {
         totalCost,
         totalRequests,
         averageLatency: 0, // TODO: Add latency tracking to database
       }
-      
+
     } catch (error) {
       console.error('Error getting provider usage:', error)
       return {

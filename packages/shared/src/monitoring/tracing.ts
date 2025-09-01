@@ -1,7 +1,9 @@
 import { Tracer, SpanKind, SpanStatusCode, Span, trace, context, metrics } from '@opentelemetry/api';
 import { Resource } from '@opentelemetry/resources';
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
+// @ts-ignore: optional opentelemetry SDK may not be installed in dev env
 import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
+// @ts-ignore: optional opentelemetry SDK may not be installed in dev env
 import { SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { envSchema } from '../core/config/env';
@@ -97,7 +99,7 @@ export class TracingManager {
     } = {}
   ): Promise<T> {
     const span = this.startSpan(name, options);
-    
+
     try {
       return await context.with(trace.setSpan(context.active(), span), () => fn(span));
     } catch (error) {
