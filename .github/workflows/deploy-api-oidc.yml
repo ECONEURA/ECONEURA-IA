@@ -1,3 +1,23 @@
+## OIDC / Azure setup notes (brief)
+
+# 1) If you created an App Registration in Azure Portal and want GitHub Actions to authenticate via OIDC,
+#    add a Federated Credential to the App Registration with these values:
+#
+#    - Issuer: https://token.actions.githubusercontent.com
+#    - Subject (example for main branch):
+#        repo:ECONEURA/ECONEURA-IA:ref:refs/heads/main
+#    - Subject (example for this feature branch):
+#        repo:ECONEURA/ECONEURA-IA:ref:refs/heads/feature/pr-42-sepa
+#    - Audience: api://AzureADTokenExchange
+#
+#    After adding the federated credential, add these repository secrets (Settings → Secrets → Actions):
+#    - AZURE_CLIENT_ID  (App Registration -> Overview -> Application (client) ID)
+#    - AZURE_TENANT_ID  (App Registration -> Overview -> Directory (tenant) ID)
+#    - AZURE_SUBSCRIPTION_ID (your subscription id)
+#
+# 2) If you'd rather use a Service Principal JSON (AZURE_CREDENTIALS), create it via CLI (or Portal) and
+#    add the JSON as secret `AZURE_CREDENTIALS` — but with OIDC this is not required.
+
 name: Deploy API (OIDC)
 
 on:

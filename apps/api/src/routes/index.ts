@@ -19,6 +19,7 @@ import { invoiceRoutes } from './invoice';
 import { supplierRoutes } from './supplier';
 import { dealRoutes } from './deal';
 import { interactionRoutes } from './interaction';
+import { agentsRoutes } from './agents';
 
 const router = express.Router();
 
@@ -56,6 +57,7 @@ router.use('/v1', authenticateToken, withTenant, [
   invoiceRoutes,
   supplierRoutes,
   dealRoutes,
+  agentsRoutes,
   interactionRoutes
 ]);
 
