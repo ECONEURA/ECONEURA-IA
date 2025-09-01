@@ -1,7 +1,8 @@
 // import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import { getPrisma } from '@econeura/db/client.lazy'
 
-const prisma = new PrismaClient()
+const prisma = getPrisma()
 
 // Utility to create or update records
 async function upsertRecord<T>(

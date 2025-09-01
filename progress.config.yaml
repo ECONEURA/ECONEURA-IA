@@ -79,13 +79,16 @@ functional_objectives:
       - kind: code_includes
         glob: "apps/api/src/**/*"
         contains: "@opentelemetry"
+      - kind: code_includes
+        glob: "apps/api/src/**/*"
+        contains: "agent.key"
   - id: cicd
     name: CI/CD con gates (OpenAPI/Playwright/k6)
     weight: 1
     checks:
       - kind: workflow_includes
         glob: ".github/workflows/**/*.yml"
-        contains_any: ["playwright", "k6"]
+  contains_any: ["e2e-playwright.yml", "k6-smoke.yml"]
   - id: erp
     name: ERP/CRM núcleo (CRUD + flujos)
     weight: 1

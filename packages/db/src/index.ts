@@ -1,7 +1,7 @@
 // Database connection and utilities
 export { db, setOrg, getCurrentOrg, testConnection, closeConnection } from './connection'
 // Exponer instancia de prisma
-export { prisma } from './client';
+export { prisma, getPrisma } from './client';
 
 // Schema exports
 export * from './schema'

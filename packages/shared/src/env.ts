@@ -4,6 +4,7 @@ export const Env = {
   REDIS_URL: process.env.REDIS_URL || '',
   POSTGRES_URL: process.env.POSTGRES_URL || '',
   MAKE_SIGNING_SECRET: process.env.MAKE_SIGNING_SECRET || 'dev',
+  USE_LOCAL_MISTRAL: process.env.USE_LOCAL_MISTRAL || 'false',
 };
 import { z } from 'zod'
 

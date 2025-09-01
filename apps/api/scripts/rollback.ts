@@ -3,7 +3,8 @@
 // import { PrismaClient } from '@prisma/client'
 import { confirm } from '@inquirer/prompts'
 
-const prisma = new PrismaClient()
+import { getPrisma } from '@econeura/db/client.lazy'
+const prisma = getPrisma();
 
 async function rollback() {
   console.log('⚠️  Database Rollback Script')

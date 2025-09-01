@@ -6,14 +6,19 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-export const prisma = global.prisma || new PrismaClient({
-  log: config.isDev ? ['query', 'error', 'warn'] : ['error'],
-  errorFormat: 'pretty',
-});
-
-if (config.isDev) {
-  global.prisma = prisma;
+let _prisma: PrismaClient | undefined;
+export function getPrisma(): PrismaClient {
+  if (_prisma) return _prisma;
+  _prisma = global.prisma || new PrismaClient({
+    log: config.isDev ? ['query', 'error', 'warn'] : ['error'],
+    errorFormat: 'pretty',
+  });
+  if (config.isDev) global.prisma = _prisma;
+  return _prisma;
 }
+
+// Backwards compat: default export 'prisma' still available (lazy)
+export const prisma = getPrisma();
 
 // Middleware para RLS
 prisma.$use(async (params, next) => {

@@ -25,6 +25,8 @@ import { inventorySystem } from "./lib/inventory.js";
 import { securitySystem } from "./lib/security.js";
 import sepaRouter from './routes/sepa';
 import progressRouter from './routes/progress';
+import hilRouter from './routes/hil';
+import { runAutoCancel } from './jobs/hil-autocancel';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -67,6 +69,8 @@ app.use(gatewayProxyMiddleware);
 app.use('/v1/sepa', sepaRouter);
 // Serve generated progress status
 app.use(progressRouter);
+// HIL endpoints
+app.use(hilRouter);
 
 // Inicializar sistema de Event Sourcing
 registerUserHandlers();
@@ -150,6 +154,9 @@ const registerDefaultServices = () => {
 };
 
 registerDefaultServices();
+
+// Run auto-cancel job in background (best-effort)
+runAutoCancel().catch(err => logger.warn('HIL auto-cancel job failed', { error: (err as Error).message }));
 
   // Inicializar workflows de ejemplo
   const initializeExampleWorkflows = () => {
