@@ -11,8 +11,8 @@ export interface RateLimitRequest extends Request {
 
 export function rateLimitMiddleware(req: RateLimitRequest, res: Response, next: NextFunction): void {
   // Extract organization ID from headers or query params
-  const organizationId = req.headers['x-organization-id'] as string || 
-                        req.query.organizationId as string || 
+  const organizationId = req.headers['x-organization-id'] as string ||
+                        req.query.organizationId as string ||
                         'default-org';
 
   // Use existing request ID or generate one
@@ -76,10 +76,10 @@ export function rateLimitByEndpoint(req: RateLimitRequest, res: Response, next: 
   const organizationId = req.organizationId || 'default-org';
   const endpoint = req.path;
   const method = req.method;
-  
+
   // Create endpoint-specific organization ID
   const endpointOrgId = `${organizationId}:${method}:${endpoint}`;
-  
+
   // Apply stricter limits for specific endpoints
   const endpointConfig = {
     windowMs: 60000,
@@ -113,8 +113,8 @@ export function rateLimitByEndpoint(req: RateLimitRequest, res: Response, next: 
 }
 
 export function rateLimitByUser(req: RateLimitRequest, res: Response, next: NextFunction): void {
-  const userId = req.headers['x-user-id'] as string || 
-                 req.query.userId as string || 
+  const userId = req.headers['x-user-id'] as string ||
+                 req.query.userId as string ||
                  req.ip; // Fallback to IP
 
   const organizationId = req.organizationId || 'default-org';
@@ -154,7 +154,7 @@ export function rateLimitByUser(req: RateLimitRequest, res: Response, next: Next
 
 // Middleware for API key rate limiting
 export function rateLimitByApiKey(req: RateLimitRequest, res: Response, next: NextFunction): void {
-  const apiKey = req.headers.authorization?.replace('Bearer ', '') || 
+  const apiKey = req.headers.authorization?.replace('Bearer ', '') ||
                  req.headers['x-api-key'] as string;
 
   if (!apiKey) {

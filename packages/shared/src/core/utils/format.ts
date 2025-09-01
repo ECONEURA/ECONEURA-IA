@@ -81,7 +81,7 @@ export function parseDuration(str: string): number {
     found = true;
     const [, value, unit] = match;
     const multiplier = units[unit.toLowerCase() as keyof typeof units];
-    
+
     if (!multiplier) {
       throw new Error(`Invalid duration unit: ${unit}`);
     }

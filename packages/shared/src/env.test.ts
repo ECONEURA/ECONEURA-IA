@@ -16,7 +16,7 @@ describe('env()', () => {
 
   it('should parse valid environment variables', () => {
     const result = env()
-    
+
     expect(result.PGHOST).toBe('localhost')
     expect(result.PGUSER).toBe('test')
     expect(result.PGPASSWORD).toBe('test')
@@ -41,7 +41,7 @@ describe('env()', () => {
 
   it('should use default values for optional variables', () => {
     const result = env()
-    
+
     expect(result.MISTRAL_BASE_URL).toBe('http://mistral:8080')
     expect(result.AZURE_OPENAI_API_VERSION).toBe('2024-02-15-preview')
     expect(result.AZURE_OPENAI_DEPLOYMENT).toBe('gpt-4o-mini')
