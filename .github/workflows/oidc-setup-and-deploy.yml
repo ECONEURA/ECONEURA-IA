@@ -1,0 +1,105 @@
+name: OIDC Setup + Deploy
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      run_setup:
+        description: 'Run the Azure App Registration setup job (requires AZURE_CREDENTIALS secret)'
+        required: false
+        default: 'false'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  setup:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_setup == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure login (Service Principal credentials)
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Create App Registration + Federated Credential (interactive via inputs)
+        env:
+          APP_NAME: "ec-action-oidc"
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          BRANCH_PATTERN: "refs/heads/main"
+          SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        run: |
+          set -euo pipefail
+          TMP_JSON="/tmp/${APP_NAME}-app.json"
+          echo "Creating App Registration $APP_NAME..."
+          az ad app create --display-name "$APP_NAME" --available-to-other-tenants false --query "{appId:appId,objectId:id}" -o json > "$TMP_JSON"
+          CLIENT_ID=$(jq -r .appId "$TMP_JSON")
+          APP_OBJECT_ID=$(jq -r .objectId "$TMP_JSON")
+          echo "CLIENT_ID=$CLIENT_ID"
+          echo "APP_OBJECT_ID=$APP_OBJECT_ID"
+
+          SUBJECT="repo:${REPO_OWNER}/${REPO_NAME}:ref:${BRANCH_PATTERN}"
+          echo "Adding federated credential for: $SUBJECT"
+          az ad app federated-credential create --id "$APP_OBJECT_ID" --parameters "{\"name\": \"github-actions-${REPO_OWNER}-${REPO_NAME}\", \"issuer\": \"https://token.actions.githubusercontent.com\", \"subject\": \"${SUBJECT}\", \"description\": \"Federated credential for GitHub Actions\" }"
+
+          az ad sp create --id "$CLIENT_ID" || true
+          SCOPE="/subscriptions/${SUBSCRIPTION_ID}"
+          az role assignment create --assignee "$CLIENT_ID" --role "Contributor" --scope "$SCOPE" || echo "Role assignment may have failed"
+
+          TENANT_ID=$(az account show --query tenantId -o tsv)
+          echo "Setup complete. Save these values as repo secrets: AZURE_CLIENT_ID=$CLIENT_ID, AZURE_TENANT_ID=$TENANT_ID, AZURE_SUBSCRIPTION_ID=${SUBSCRIPTION_ID}"
+
+  deploy:
+    needs: setup
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Install dependencies
+        run: pnpm install -w
+
+      - name: Build API
+        run: pnpm -w run build:api
+
+      - name: Deploy (placeholder)
+        env:
+          AZURE_WEBAPP_NAME: ${{ secrets.AZURE_WEBAPP_NAME }}
+        run: |
+          if [ -n "$AZURE_WEBAPP_NAME" ]; then
+            echo "Deploying to $AZURE_WEBAPP_NAME"
+            # cd apps/api && zip -r ../api.zip .
+            # az webapp deployment source config-zip --resource-group <RG> --name "$AZURE_WEBAPP_NAME" --src ../api.zip
+          else
+            echo "AZURE_WEBAPP_NAME not set; skipping deploy"
+          fi

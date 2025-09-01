@@ -1,0 +1,14 @@
+[
+  {
+    "department": "Finanzas (CFO)",
+    "department_key": "cfo",
+    "type": "agent",
+    "agent_key": "cfo_dunning",
+    "agent_name": "Dunning Inteligente",
+    "hitl": true,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-123",
+    "approval_tool": "Slack Approvals",
+    "budget_weight": 1.0
+  }
+]
