@@ -1,0 +1,12 @@
+[
+  {"department":"CEO — Ejecutivo","department_key":"ceo","type":"director","agent_key":"ceo_orquestador","agent_name":"Orquestador Ejecutivo","hitl":false},
+  {"department":"Plataforma IA","department_key":"ia","type":"agent","agent_key":"ia_cost_tracker","agent_name":"Cost Tracker","hitl":false},
+  {"department":"Tecnología (CTO)","department_key":"cto","type":"agent","agent_key":"cto_deploy_report","agent_name":"Informe de Despliegues","hitl":false},
+  {"department":"Seguridad (CISO)","department_key":"ciso","type":"agent","agent_key":"ciso_phishing","agent_name":"Phishing Triage","hitl":true},
+  {"department":"Operaciones (COO)","department_key":"coo","type":"agent","agent_key":"coo_sla_heartbeat","agent_name":"Latido de SLA","hitl":false},
+  {"department":"RRHH (CHRO)","department_key":"chro","type":"agent","agent_key":"chro_onboarding","agent_name":"Paquete de Onboarding","hitl":true},
+  {"department":"Marketing y Ventas","department_key":"mkt","type":"agent","agent_key":"mkt_lead_scoring","agent_name":"Puntuación y Enriquecimiento de Leads","hitl":false},
+  {"department":"Finanzas (CFO)","department_key":"cfo","type":"agent","agent_key":"cfo_dunning","agent_name":"Dunning Inteligente","hitl":true},
+  {"department":"Datos (CDO)","department_key":"cdo","type":"agent","agent_key":"cdo_dq_checks","agent_name":"Controles de Calidad de Datos","hitl":true},
+  {"department":"Organigrama","department_key":"org","type":"agent","agent_key":"org_snapshot","agent_name":"Instantánea Organizativa","hitl":false}
+]

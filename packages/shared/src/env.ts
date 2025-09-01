@@ -1,3 +1,10 @@
+export const Env = {
+  NODE_ENV: process.env.NODE_ENV || 'development',
+  AAD_REQUIRED: process.env.AAD_REQUIRED || 'false',
+  REDIS_URL: process.env.REDIS_URL || '',
+  POSTGRES_URL: process.env.POSTGRES_URL || '',
+  MAKE_SIGNING_SECRET: process.env.MAKE_SIGNING_SECRET || 'dev',
+};
 import { z } from 'zod'
 
 const envSchema = z.object({
