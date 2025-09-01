@@ -1,0 +1,104 @@
+name: Setup Azure OIDC (App Registration + Federated Credential)
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_name:
+        description: 'App Registration name'
+        required: true
+        default: 'ec-action-oidc'
+      subscription_id:
+        description: 'Subscription ID to assign role'
+        required: true
+      repo_owner:
+        description: 'GitHub repo owner'
+        required: true
+        default: 'ECONEURA'
+      repo_name:
+        description: 'GitHub repo name'
+        required: true
+        default: 'ECONEURA-IA'
+      branch_pattern:
+        description: 'Branch ref pattern (e.g. refs/heads/main) or leave blank for refs/heads/*'
+        required: false
+      scope:
+        description: 'Optional scope for role assignment (defaults to subscription)'
+        required: false
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 'Azure login using Service Principal (AZURE_CREDENTIALS secret)'
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Create App Registration, Federated Credential and Role Assignment
+        env:
+          APP_NAME: ${{ github.event.inputs.app_name }}
+          SUBSCRIPTION_ID: ${{ github.event.inputs.subscription_id }}
+          REPO_OWNER: ${{ github.event.inputs.repo_owner }}
+          REPO_NAME: ${{ github.event.inputs.repo_name }}
+          BRANCH_PATTERN: ${{ github.event.inputs.branch_pattern }}
+          SCOPE_INPUT: ${{ github.event.inputs.scope }}
+        run: |
+          set -euo pipefail
+          echo "Using app name: $APP_NAME"
+          TMP_JSON="/tmp/${APP_NAME}-app.json"
+
+          echo "Creating App Registration..."
+          az ad app create --display-name "$APP_NAME" --available-to-other-tenants false --query "{appId:appId,objectId:id}" -o json > "$TMP_JSON"
+          CLIENT_ID=$(jq -r .appId "$TMP_JSON")
+          APP_OBJECT_ID=$(jq -r .objectId "$TMP_JSON")
+
+          if [ -z "$CLIENT_ID" ] || [ -z "$APP_OBJECT_ID" ]; then
+            echo "Failed to create app registration; output:"; cat "$TMP_JSON"; exit 1
+          fi
+
+          echo "CLIENT_ID=$CLIENT_ID"
+          echo "APP_OBJECT_ID=$APP_OBJECT_ID"
+
+          # build subject
+          if [ -n "$BRANCH_PATTERN" ]; then
+            SUBJECT="repo:${REPO_OWNER}/${REPO_NAME}:ref:${BRANCH_PATTERN}"
+          else
+            SUBJECT="repo:${REPO_OWNER}/${REPO_NAME}:ref:refs/heads/*"
+          fi
+
+          echo "Creating federated credential for subject: $SUBJECT"
+          az ad app federated-credential create --id "$APP_OBJECT_ID" --parameters "{\"name\": \"github-actions-${REPO_OWNER}-${REPO_NAME}\", \"issuer\": \"https://token.actions.githubusercontent.com\", \"subject\": \"${SUBJECT}\", \"description\": \"Federated credential for GitHub Actions\" }"
+
+          echo "Ensuring Service Principal exists..."
+          az ad sp create --id "$CLIENT_ID" || true
+
+          if [ -n "$SCOPE_INPUT" ]; then
+            SCOPE="$SCOPE_INPUT"
+          else
+            SCOPE="/subscriptions/${SUBSCRIPTION_ID}"
+          fi
+
+          echo "Assigning Contributor role at scope: $SCOPE"
+          az role assignment create --assignee "$CLIENT_ID" --role "Contributor" --scope "$SCOPE" || echo "role assignment may have failed or you lack permissions"
+
+          TENANT_ID=$(az account show --query tenantId -o tsv)
+
+          echo "----- RESULT -----"
+          echo "CLIENT_ID=$CLIENT_ID"
+          echo "APP_OBJECT_ID=$APP_OBJECT_ID"
+          echo "TENANT_ID=$TENANT_ID"
+          echo "SUBSCRIPTION_ID=$SUBSCRIPTION_ID"
+          echo "Please add the CLIENT_ID/TENANT_ID/SUBSCRIPTION_ID as repo secrets: AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID"
+
+          rm -f "$TMP_JSON"
