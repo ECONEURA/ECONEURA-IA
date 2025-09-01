@@ -177,6 +177,52 @@ export const invoices = pgTable('invoices', {
   dueDateIdx: index('invoices_due_date_idx').on(table.dueDate),
 }))
 
+// SEPA Imports (PR-42)
+export const sepaImports = pgTable('sepa_imports', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orgId: text('org_id').notNull(),
+  filename: text('filename'),
+  contentHash: text('content_hash'),
+  importedAt: timestamp('imported_at').defaultNow().notNull(),
+  importerId: uuid('importer_id').references(() => users.id),
+  status: text('status').notNull().default('pending'),
+  metadata: jsonb('metadata').$type<Record<string, any>>().default({}),
+}, (t) => ({
+  orgIdx: index('sepa_imports_org_idx').on(t.orgId),
+  statusIdx: index('sepa_imports_status_idx').on(t.status),
+}))
+
+export const sepaMovements = pgTable('sepa_movements', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  importId: uuid('import_id').references(() => sepaImports.id),
+  orgId: text('org_id').notNull(),
+  bookingDate: timestamp('booking_date'),
+  valueDate: timestamp('value_date'),
+  amount: decimal('amount', { precision: 14, scale: 2 }).notNull(),
+  currency: text('currency').default('EUR'),
+  reference: text('reference'),
+  remittance: text('remittance'),
+  metadata: jsonb('metadata').$type<Record<string, any>>().default({}),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => ({
+  importIdx: index('sepa_movements_import_idx').on(t.importId),
+  orgIdx: index('sepa_movements_org_idx').on(t.orgId),
+}))
+
+export const reconciliations = pgTable('reconciliations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orgId: text('org_id').notNull(),
+  importId: uuid('import_id').references(() => sepaImports.id),
+  totalMovements: integer('total_movements').notNull().default(0),
+  matched: integer('matched').notNull().default(0),
+  unmatched: integer('unmatched').notNull().default(0),
+  details: jsonb('details').$type<Record<string, any>>().default({}),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => ({
+  orgIdx: index('reconciliations_org_idx').on(t.orgId),
+  importIdx: index('reconciliations_import_idx').on(t.importId),
+}))
+
 // Tasks table (Work Inbox)
 export const tasks = pgTable('tasks', {
   id: uuid('id').primaryKey().defaultRandom(),
