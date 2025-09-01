@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createSpan } from '../otel/index'
+import * as otel from '../otel/index'
 import { logger } from '../logging/index'
 
 // Step types
@@ -101,7 +101,19 @@ export interface AuditEvent {
 
 // Playbook executor
 export class PlaybookExecutor {
-  private tracer = { startSpan: (name: string) => createSpan(name) }
+  private tracer = { startSpan: (name: string) => {
+    // support different otel module shapes and test mocks
+    if (typeof (otel as any).createSpan === 'function') return (otel as any).createSpan(name)
+    if (typeof (otel as any).createTracer === 'function') return (otel as any).createTracer().startSpan(name)
+    // fallback minimal span
+    return {
+      setAttribute: (_k?: string, _v?: any) => {},
+      setAttributes: (_attrs?: Record<string, any>) => {},
+      recordException: (_err?: any) => {},
+      setStatus: (_s?: any) => {},
+      end: () => {},
+    }
+  } }
   private context: PlaybookContext
   private definition: PlaybookDefinition
 
