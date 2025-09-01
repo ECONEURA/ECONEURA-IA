@@ -23,6 +23,7 @@ import { featureFlagInfoMiddleware, requireFeatureFlag } from "./middleware/feat
 import { workflowEngine } from "./lib/workflows.js";
 import { inventorySystem } from "./lib/inventory.js";
 import { securitySystem } from "./lib/security.js";
+import sepaRouter from './routes/sepa';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -60,6 +61,9 @@ app.use(gatewayMetricsMiddleware);
 app.use(gatewayCircuitBreakerMiddleware);
 app.use(gatewayRoutingMiddleware);
 app.use(gatewayProxyMiddleware);
+
+// SEPA import/reconciliation (PR-42 scaffold)
+app.use('/v1/sepa', sepaRouter);
 
 // Inicializar sistema de Event Sourcing
 registerUserHandlers();
