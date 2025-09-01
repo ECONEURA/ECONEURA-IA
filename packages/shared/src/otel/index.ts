@@ -67,11 +67,17 @@ export const customMetrics = {
 // Mock utility functions
 export function createSpan(name: string, attributes?: Record<string, any>) {
   return {
-  setAttribute: (_k?: string, _v?: any) => {},
-  setAttributes: (_attrs?: Record<string, any>) => {},
-  recordException: (_err?: any) => {},
-  setStatus: (_s?: any) => {},
-  end: () => {},
+    setAttribute: (_k?: string, _v?: any) => {},
+    setAttributes: (_attrs?: Record<string, any>) => {},
+    recordException: (_err?: any) => {},
+    setStatus: (_s?: any) => {},
+    end: () => {},
+  }
+}
+
+export function createTracer(name?: string) {
+  return {
+    startSpan: (spanName: string) => createSpan(spanName)
   }
 }
 

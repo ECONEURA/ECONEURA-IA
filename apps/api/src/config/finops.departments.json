@@ -1,0 +1,5 @@
+[
+  { "department_key": "cfo", "monthly_budget_eur": 250.0 },
+  { "department_key": "mkt", "monthly_budget_eur": 400.0 },
+  { "department_key": "cto", "monthly_budget_eur": 180.0 }
+]
