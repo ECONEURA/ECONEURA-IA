@@ -23,6 +23,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dist/progress.json dist/progress-badge.svg PROGRESS.md dist/progress-history.jsonl || true
-          git commit -m "ci: update progress artifacts" || echo "no changes"
+          git add -f PROGRESS.md status/* || true
+          git commit -m "chore(progress): store artifacts under status/ and force-add in CI" || echo "no changes"
           git push || echo "push failed"

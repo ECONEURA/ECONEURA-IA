@@ -24,6 +24,7 @@ import { workflowEngine } from "./lib/workflows.js";
 import { inventorySystem } from "./lib/inventory.js";
 import { securitySystem } from "./lib/security.js";
 import sepaRouter from './routes/sepa';
+import progressRouter from './routes/progress';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -64,6 +65,8 @@ app.use(gatewayProxyMiddleware);
 
 // SEPA import/reconciliation (PR-42 scaffold)
 app.use('/v1/sepa', sepaRouter);
+// Serve generated progress status
+app.use(progressRouter);
 
 // Inicializar sistema de Event Sourcing
 registerUserHandlers();
