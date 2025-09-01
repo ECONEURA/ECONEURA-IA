@@ -17,7 +17,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@econeura/*": ["../../packages/*/src"]
+  "@econeura/*": ["../../packages/*/src"],
+  "@econeura/shared/*": ["../../packages/shared/src/*"]
     },
     "types": ["node"],
     "lib": ["ES2022", "DOM"],
@@ -44,8 +45,7 @@
     "build",
     "**/*.test.ts",
     "**/*.spec.ts",
-    "../../packages/db/src",
-    "../../packages/shared/src"
+    
   ],
   "ts-node": {
     "esm": true,
