@@ -23,4 +23,4 @@
 | Mistral local (sin PII) | 0% | 0/1 | mistral |
 | Reportes/ROI (feed runs, coste, SLO) | 50% | 1/2 | reports |
 
-_Última actualización:_ 2025-09-01T22:08:43.002Z · _Modelo:_ v3-0.4-0.6 · _Checksum:_ `4fdc41712fc4` 
+_Última actualización:_ 2025-09-01T22:17:06.377Z · _Modelo:_ v3-0.4-0.6 · _Checksum:_ `4fdc41712fc4` 
