@@ -26,10 +26,17 @@ describe('env()', () => {
     expect(result.AI_MONTHLY_CAP_EUR).toBe(50) // default value
   })
 
-  it('should throw error for missing required variables', () => {
-    delete process.env.PGHOST
-    
-    expect(() => env()).toThrow('Missing or invalid environment variables: PGHOST')
+  it('should throw error for missing required variables', async () => {
+    // unset PGHOST to simulate missing variable
+    (process.env as any).PGHOST = undefined
+
+    // reset module cache so env() re-parses process.env
+    vi.resetModules()
+
+    await expect(async () => {
+      const mod = await import('./env')
+      mod.env()
+    }).rejects.toThrow('Missing or invalid environment variables: PGHOST')
   })
 
   it('should use default values for optional variables', () => {

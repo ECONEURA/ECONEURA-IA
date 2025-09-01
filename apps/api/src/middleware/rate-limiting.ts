@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { rateLimiter } from '../lib/rate-limiting.js';
 import { logger } from '../lib/logger.js';
 
+// composite key rate limiting: org:agent and ip
+
 export interface RateLimitRequest extends Request {
   organizationId?: string;
   requestId?: string;

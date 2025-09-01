@@ -1,4 +1,4 @@
-import { AppError, ValidationError } from './index';
+import { AppError, ValidationError, createError } from './index';
 import { describe, expect, it } from 'vitest';
 
 describe('Error Classes', () => {

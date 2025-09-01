@@ -10,6 +10,12 @@ vi.mock('../otel/index.js', () => ({
       end: vi.fn(),
     })),
   }),
+  createSpan: (name: string) => ({
+    setAttribute: vi.fn(),
+    setAttributes: vi.fn(),
+    recordException: vi.fn(),
+    end: vi.fn(),
+  }),
 }))
 
 vi.mock('../logging/index.js', () => ({
