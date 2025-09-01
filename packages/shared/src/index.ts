@@ -54,15 +54,27 @@ export * from './metrics/index.ts';
 
 // AI Router
 export { AIRouter, createAIRouter, type RouterDecision, type RouterConfig } from './ai/router.ts';
-export { EnhancedAIRouter, type EnhancedAIRequest, type EnhancedRouterDecision, type AIRouterConfig } from './ai/enhanced-router.ts';
+export { EnhancedAIRouter, type AIRequest as EnhancedAIRequest, type AIResponse as EnhancedAIResponse } from './ai/enhanced-router.ts';
 export { CostGuardrails, type CostLimits, type CostAlert, type UsageMetrics } from './ai/cost-guardrails.ts';
 export { LLMProviderManager, type LLMProvider, type LLMModel, type ProviderHealth } from './ai/providers.ts';
 
 // Environment and configuration
 export { env, getEnv } from './env.ts';
 
-// OpenTelemetry
-export * from './otel/index.ts';
+// OpenTelemetry (re-export only tracing helpers to avoid duplicate metric helper exports)
+export {
+  tracer,
+  meter,
+  customMetrics,
+  createSpan,
+  recordException,
+  addEvent,
+  setAttributes,
+  getCurrentSpan,
+  getTraceId,
+  getSpanId,
+  sdk as otelSdk,
+} from './otel/index.ts';
 
 // Cost metering
 export { costMeter } from './cost-meter.ts';

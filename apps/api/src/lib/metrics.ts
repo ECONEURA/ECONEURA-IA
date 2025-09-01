@@ -1,8 +1,10 @@
 import { register, Counter, Histogram, collectDefaultMetrics } from 'prom-client';
 
 export class MetricsService {
-  private healthCheckCounter: Counter;
-  private healthCheckDuration: Histogram;
+  private healthCheckCounter!: Counter;
+  private healthCheckDuration!: Histogram;
+  // Marca como asignadas definitivamente después de initializeMetrics()
+  // para satisfacer al compilador TS y mantener la inicialización perezosa.
   private metricsInitialized: boolean = false;
 
   constructor() {

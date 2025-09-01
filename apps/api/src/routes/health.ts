@@ -1,10 +1,9 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { Redis } from 'ioredis';
-import { config } from '@econeura/shared/config';
 import { MetricsService } from '../lib/metrics';
-import { Logger } from '../lib/logger';
-import { AzureOpenAIService } from '../services/ai';
+import { logger } from '../lib/logger';
+import { AzureOpenAIService } from '../services/ai/azure-openai.service';
 import { asyncHandler } from '../lib/errors';
 
 interface HealthCheckResult {
@@ -22,10 +21,28 @@ interface SystemStatusResponse {
   totalResponseTime: number;
 }
 
+interface SystemStatus {
+  api: {
+    status: 'ok' | 'degraded' | 'error' | 'unknown';
+    version?: string | undefined;
+  };
+  database: {
+    status: 'ok' | 'unknown' | 'error';
+    latency: number | null;
+  };
+  redis: {
+    status: 'ok' | 'unknown' | 'error';
+    latency: number | null;
+  };
+  aiService: {
+    status: 'ok' | 'warning' | 'unknown';
+    quotaRemaining: number | null;
+  };
+}
+
 const prisma = new PrismaClient();
-const redis = new Redis(config.REDIS_URL);
+const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 const metrics = new MetricsService();
-const logger = new Logger('health');
 const aiService = new AzureOpenAIService();
 
 const router = Router();
@@ -51,7 +68,7 @@ router.get('/live', asyncHandler(async (req, res) => {
 
 // Readiness check completo
 router.get('/ready', asyncHandler(async (req, res) => {
-  const checks: HealthCheck[] = [];
+  const checks: HealthCheckResult[] = [];
   const startTime = Date.now();
   
   try {
@@ -63,8 +80,8 @@ router.get('/ready', asyncHandler(async (req, res) => {
       responseTime: Date.now() - startTime
     });
   } catch (err) {
-    const error = err as Error;
-    logger.error('Database health check failed', { error });
+  const error = err as Error;
+  logger.error('Database health check failed', { error: error.message, stack: error.stack });
     checks.push({
       component: 'database',
       status: 'unhealthy',
@@ -82,8 +99,8 @@ router.get('/ready', asyncHandler(async (req, res) => {
       responseTime: Date.now() - startTime
     });
   } catch (err) {
-    const error = err as Error;
-    logger.error('Redis health check failed', { error });
+  const error = err as Error;
+  logger.error('Redis health check failed', { error: error.message, stack: error.stack });
     checks.push({
       component: 'redis',
       status: 'unhealthy',
@@ -101,8 +118,8 @@ router.get('/ready', asyncHandler(async (req, res) => {
       responseTime: Date.now() - startTime
     });
   } catch (err) {
-    const error = err as Error;
-    logger.error('Azure OpenAI health check failed', { error });
+  const error = err as Error;
+  logger.error('Azure OpenAI health check failed', { error: error.message, stack: error.stack });
     checks.push({
       component: 'azure-openai',
       status: 'unhealthy',
@@ -127,13 +144,6 @@ router.get('/ready', asyncHandler(async (req, res) => {
 
   res.status(isHealthy ? 200 : 503).json(response);
 }));
-// Configuración del router
-export default router;
-    
-    results.status = 'error';
-    res.status(503).json(results);
-  }
-});
 
 // Métricas Prometheus
 router.get('/metrics', async (req, res) => {
@@ -142,14 +152,15 @@ router.get('/metrics', async (req, res) => {
     res.set('Content-Type', 'text/plain');
     res.send(metricsData);
   } catch (error) {
-    logger.error('Error getting metrics', error);
-    res.status(500).send('Error collecting metrics');
+  const err = error as Error;
+  logger.error('Error getting metrics', { error: err.message, stack: err.stack });
+  res.status(500).send('Error collecting metrics');
   }
 });
 
 // Estado del sistema
 router.get('/status', async (req, res) => {
-  const systemStatus = {
+  const systemStatus: SystemStatus = {
     api: {
       status: 'ok',
       version: process.env.npm_package_version
@@ -198,13 +209,14 @@ router.get('/status', async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    logger.error('Status check failed', error);
-    
+  const err = error as Error;
+  logger.error('Status check failed', { error: err.message, stack: err.stack });
+
     res.status(500).json({
       status: 'error',
       components: systemStatus,
       timestamp: new Date().toISOString(),
-      error: error.message
+      error: err.message
     });
   }
 });
