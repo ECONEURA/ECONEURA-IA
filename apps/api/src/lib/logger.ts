@@ -78,10 +78,9 @@ interface LogContext {
   // Rate limiting fields
   organizationId?: string;
   // Request fields
-  path?: string;
   prompt?: string;
-  query?: string;
   current?: number;
+  // note: `path` and `query` are declared above in 'Contexto de request' to avoid duplicates
   // FinOps fields
   headers?: Record<string, string>;
   reason?: string;
@@ -256,7 +255,6 @@ interface LogContext {
   count?: number;
   enabled?: boolean;
   toVersion?: number;
-  version?: string;
   url?: string;
   notificationsCount?: number;
   features?: string[];
