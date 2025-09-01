@@ -1,5 +1,5 @@
 import { OpenAIClient, AzureKeyCredential } from '@azure/openai';
-import { config } from '../../../../packages/shared/src/config';
+import { config } from '@econeura/shared/config';
 
 export class AzureOpenAIService {
   private client: OpenAIClient;
