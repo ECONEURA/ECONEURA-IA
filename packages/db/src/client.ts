@@ -59,14 +59,14 @@ export async function withTransaction<T>(
       SELECT set_config('app.current_tenant', ${tenant}, true);
       SELECT set_config('app.timestamp', NOW()::text, true);
     `;
-    
+
     const result = await callback(tx);
-    
+
     await tx.$executeRaw`
       SELECT set_config('app.current_tenant', '', true);
       SELECT set_config('app.timestamp', '', true);
     `;
-    
+
     return result;
   });
 }

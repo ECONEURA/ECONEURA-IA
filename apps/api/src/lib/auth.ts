@@ -19,7 +19,7 @@ class AuthService {
   async validateToken(token: string): Promise<TokenPayload> {
     try {
       return jwt.verify(
-        token, 
+        token,
         process.env.JWT_SECRET as string
       ) as TokenPayload;
     } catch (error) {
@@ -59,22 +59,22 @@ export const authenticate = (authService: AuthService) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
   const token = (req as any).headers?.authorization?.split(' ')[1];
-      
+
       if (!token) {
-        return (res as any).status(401).json({ 
+        return (res as any).status(401).json({
           error: 'No token provided',
           code: 'AUTH_NO_TOKEN'
         });
       }
 
       const payload = await authService.validateToken(token);
-      
+
       // Enriquecer request con información de usuario
   (req as any).user = payload;
-      
+
       // Establecer contexto de tenant
   await authService.setTenantContext(payload.orgId);
-      
+
       // Limpiar contexto al finalizar
       (res as any).on?.('finish', async () => {
         await authService.clearTenantContext();
@@ -95,7 +95,7 @@ export const authorize = (resource: string, action: string) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
   const { userId } = (req as any).user as TokenPayload;
-      
+
       const hasPermission = await prismaAuth.validatePermissions(
         userId,
         resource,
