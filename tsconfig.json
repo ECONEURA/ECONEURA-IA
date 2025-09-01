@@ -2,29 +2,47 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "lib": ["ES2022", "DOM"],
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
     "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
     "jsx": "preserve",
     "incremental": true,
     "baseUrl": ".",
+    "types": ["node", "express", "jest"],
     "paths": {
       "@econeura/shared": ["./packages/shared/src"],
       "@econeura/shared/*": ["./packages/shared/src/*"],
-      "@econeura/sdk": ["./packages/sdk/src"],
-      "@econeura/sdk/*": ["./packages/sdk/src/*"],
       "@econeura/db": ["./packages/db/src"],
       "@econeura/db/*": ["./packages/db/src/*"],
+      "@econeura/sdk": ["./packages/sdk/src"],
+      "@econeura/sdk/*": ["./packages/sdk/src/*"],
       "@/*": ["./apps/web/src/*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "**/dist", "**/build"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.mts",
+    "**/*.js",
+    "**/*.jsx",
+    "**/*.json"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/dist",
+    "**/build",
+    ".next",
+    "out",
+    ".cache"
+  ]
 }

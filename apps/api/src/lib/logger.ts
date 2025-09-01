@@ -1,14 +1,39 @@
 interface LogContext {
+  // Contexto organizacional
   org?: string;
+  orgTier?: string;
+  orgFeatures?: string[];
+  
+  // Contexto de usuario
   userId?: string;
+  userRole?: string;
+  userPermissions?: string[];
+  
+  // Contexto de request
   requestId?: string;
+  correlationId?: string;
   traceId?: string;
   spanId?: string;
+  parentSpanId?: string;
   endpoint?: string;
   method?: string;
+  path?: string;
+  query?: Record<string, unknown>;
+  
+  // Métricas de rendimiento
   duration?: number;
+  startTime?: number;
+  endTime?: number;
+  
+  // Métricas de IA
   tokens?: number;
   cost?: number;
+  aiModel?: string;
+  aiProvider?: string;
+  promptTokens?: number;
+  completionTokens?: number;
+  
+  // Contexto técnico
   userAgent?: string;
   ip?: string;
   statusCode?: number;
@@ -16,8 +41,18 @@ interface LogContext {
   stack?: string;
   port?: number;
   environment?: string;
-  aiModel?: string;
-  aiProvider?: string;
+  version?: string;
+  
+  // Contexto de negocio
+  businessUnit?: string;
+  operationType?: string;
+  resourceType?: string;
+  
+  // Flags y estados
+  isRetry?: boolean;
+  isCached?: boolean;
+  isDegraded?: boolean;
+  isRateLimited?: boolean;
   service?: string;
   status?: string;
   metricName?: string;
