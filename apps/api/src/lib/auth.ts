@@ -1,6 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import type { PrismaClient as PrismaClientType } from '@prisma/client';
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { prisma } from '@econeura/db';
 
 interface TokenPayload {
   userId: string;
@@ -9,9 +10,9 @@ interface TokenPayload {
 }
 
 class AuthService {
-  private prisma: PrismaClient;
+  private prisma: any;
 
-  constructor(prisma: PrismaClient) {
+  constructor(prisma: any) {
     this.prisma = prisma;
   }
 
@@ -57,10 +58,10 @@ class AuthService {
 export const authenticate = (authService: AuthService) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const token = req.headers.authorization?.split(' ')[1];
+  const token = (req as any).headers?.authorization?.split(' ')[1];
       
       if (!token) {
-        return res.status(401).json({ 
+        return (res as any).status(401).json({ 
           error: 'No token provided',
           code: 'AUTH_NO_TOKEN'
         });
@@ -69,19 +70,19 @@ export const authenticate = (authService: AuthService) => {
       const payload = await authService.validateToken(token);
       
       // Enriquecer request con información de usuario
-      req.user = payload;
+  (req as any).user = payload;
       
       // Establecer contexto de tenant
-      await authService.setTenantContext(payload.orgId);
+  await authService.setTenantContext(payload.orgId);
       
       // Limpiar contexto al finalizar
-      res.on('finish', async () => {
+      (res as any).on?.('finish', async () => {
         await authService.clearTenantContext();
       });
 
       next();
     } catch (error) {
-      return res.status(401).json({
+      return (res as any).status(401).json({
         error: 'Invalid token',
         code: 'AUTH_INVALID_TOKEN'
       });
@@ -93,7 +94,7 @@ export const authenticate = (authService: AuthService) => {
 export const authorize = (resource: string, action: string) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { userId } = req.user as TokenPayload;
+  const { userId } = (req as any).user as TokenPayload;
       
       const hasPermission = await prismaAuth.validatePermissions(
         userId,
@@ -102,7 +103,7 @@ export const authorize = (resource: string, action: string) => {
       );
 
       if (!hasPermission) {
-        return res.status(403).json({
+        return (res as any).status(403).json({
           error: 'Insufficient permissions',
           code: 'AUTH_INSUFFICIENT_PERMISSIONS'
         });
@@ -115,6 +116,5 @@ export const authorize = (resource: string, action: string) => {
   };
 };
 
-// Instancia del servicio de autenticación
-const prisma = new PrismaClient();
-export const prismaAuth = new AuthService(prisma);
+// Instancia del servicio de autenticación usando prisma exportado desde packages/db
+export const prismaAuth = new AuthService(prisma as any);

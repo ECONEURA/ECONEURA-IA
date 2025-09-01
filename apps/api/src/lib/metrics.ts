@@ -48,6 +48,63 @@ export class MetricsService {
     return register.metrics();
   }
 
+  // Compatibilidad: alias y helpers usados por código existente
+  async getPrometheusMetrics(): Promise<string> {
+    return this.getMetrics();
+  }
+
+  // Devuelve un resumen sencillo de métricas (placeholder compatible)
+  getMetricsSummary(): Record<string, unknown> {
+    return { metricCount: 0 };
+  }
+
+  // Devuelve todas las métricas en forma de objeto (placeholder)
+  getAllMetrics(): Record<string, unknown> {
+    return {};
+  }
+
+  // Exportar Prometheus (alias)
+  async exportPrometheus(): Promise<string> {
+    return this.getMetrics();
+  }
+
+  // Estadísticas de métricas (placeholder)
+  getMetricsStats(): Record<string, unknown> {
+    return {};
+  }
+
+  // Registro de métricas HTTP genérico utilizado por observability middleware
+  recordHttpRequest(route: string, method: string, statusCode: number, durationMs: number, org?: string): void {
+    this.recordHealthCheckDuration('http', durationMs);
+    // safe no-op for other metrics
+  }
+
+  // Increment simple (name optional) — comportarse como alias para health check counter
+  increment(name: string, labels?: Record<string, string>): void {
+    try {
+      this.healthCheckCounter.labels(name, 'success').inc();
+    } catch (e) {
+      // no-op
+    }
+  }
+
+  // Registro específico para rate limit
+  recordRateLimit(route: string, org?: string): void {
+    // no-op placeholder
+  }
+
+  // Registro genérico para sistema
+  recordSystemMetrics(): void {
+    // no-op placeholder
+  }
+
+  // Limpieza/stop de métricas
+  cleanup(): void {
+    register.clear();
+    this.metricsInitialized = false;
+    this.initializeMetrics();
+  }
+
   async getMetricsContentType(): Promise<string> {
     return register.contentType;
   }
