@@ -5,6 +5,9 @@ import { hmacSign } from '@econeura/shared/security';
 import crypto from 'node:crypto';
 
 describe('POST /v1/agents/:agent_key/trigger', () => {
+  process.env.AUTH_REQUIRED = 'false';
+  process.env.AAD_REQUIRED = 'false';
+  process.env.MAKE_SIGNING_SECRET = process.env.MAKE_SIGNING_SECRET || 'dev';
   const ts = Math.floor(Date.now()/1000).toString();
   const body = {
     request_id: crypto.randomUUID(),

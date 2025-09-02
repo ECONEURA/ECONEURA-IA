@@ -2,8 +2,7 @@ module.exports = {
   root: true,
   extends: [
     'eslint:recommended',
-    '@typescript-eslint/recommended',
-    'next/core-web-vitals',
+    'plugin:@typescript-eslint/recommended',
     'prettier'
   ],
   parser: '@typescript-eslint/parser',
@@ -26,6 +25,12 @@ module.exports = {
     'prefer-const': 'error',
     'no-var': 'error'
   },
+  overrides: [
+    {
+      files: ['apps/web/**/*.{js,jsx,ts,tsx}'],
+      extends: ['next/core-web-vitals']
+    }
+  ],
   ignorePatterns: [
     'node_modules/',
     '.next/',

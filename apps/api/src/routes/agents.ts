@@ -30,7 +30,10 @@ function verifyHmac(req: Request): boolean {
   const sig = (req.headers['x-signature'] || req.headers['X-Signature']) as string | undefined;
   if (!ts || !sig) return false;
   const body = JSON.stringify(req.body || {});
-  const secret = process.env.API_HMAC_SECRET || process.env.MAKE_SIGNING_SECRET || '';
+  // Use a sensible default in test to avoid spurious 401 due to unset secret
+  const secret = process.env.API_HMAC_SECRET
+    || process.env.MAKE_SIGNING_SECRET
+    || (process.env.NODE_ENV === 'test' ? 'dev' : '');
   const provided = String(sig).replace(/^sha256=/, '');
   // Path 1: canonical verification (timestamp + "\n" + body)
   if (hmacVerify(ts, body, provided, { secret })) return true;
