@@ -1,4 +1,4 @@
-import express from "express";
+import express, { type Application } from "express";
 import cors from "cors";
 import { logger } from "./lib/logger.js";
 import { metrics } from "./lib/metrics.js";
@@ -26,10 +26,17 @@ import { securitySystem } from "./lib/security.js";
 import sepaRouter from './routes/sepa';
 import progressRouter from './routes/progress';
 import hilRouter from './routes/hil';
+import { agentsRoutes } from './routes/agents';
+import { makeHealthRouter } from './routes/integrations.make.health';
 import { runAutoCancel } from './jobs/hil-autocancel';
-import { initPrisma } from '@econeura/db';
+import { startHilExpirer } from './cron/hil-expirer.js';
+import { latencyHeader } from './middleware/latency.js';
+// Placeholder import for future HIL approvals router
+// import { hilApprovals } from './routes/hil.approvals';
+// NOTE: Avoid static import of the DB package to keep tests lightweight.
+// We'll dynamically import and init Prisma only when DB env is present.
 
-const app = express();
+const app: Application = express();
 const PORT = process.env.PORT || 4000;
 
 // Inicializar cache manager
@@ -49,7 +56,7 @@ app.use(observabilityMiddleware);
 app.use(rateLimitMiddleware);
 
 // FinOps headers en todas las rutas /v1/*
-app.use('/v1', finopsHeaders(0.0000, 0));
+app.use('/v1', finopsHeaders());
 
 // Middleware de health check
 app.use(healthCheckMiddleware);
@@ -61,7 +68,11 @@ app.use(rlsCleanupMiddleware);
 // Inicializar Prisma middleware sólo si hay configuración de BD disponible
 if (process.env.POSTGRES_URL || process.env.DATABASE_URL) {
   try {
-    initPrisma();
+  // Dynamic import to prevent bundlers/tests from resolving @econeura/db when not needed
+  const mod = await import('@econeura/db');
+  // Some packages may export initPrisma via default or named export; support both defensively
+  const init = (mod as any).initPrisma ?? (mod as any).default?.initPrisma;
+  if (typeof init === 'function') init();
   } catch (err) {
     logger.warn('initPrisma failed', { error: (err as Error).message });
   }
@@ -79,6 +90,10 @@ app.use('/v1/sepa', sepaRouter);
 app.use(progressRouter);
 // HIL endpoints
 app.use(hilRouter);
+// Agents endpoints
+app.use(agentsRoutes);
+// Integrations health endpoints
+app.use(makeHealthRouter);
 
 // Inicializar sistema de Event Sourcing
 registerUserHandlers();
@@ -165,6 +180,22 @@ registerDefaultServices();
 
 // Run auto-cancel job in background (best-effort)
 runAutoCancel().catch(err => logger.warn('HIL auto-cancel job failed', { error: (err as Error).message }));
+
+// Start HIL expirer cron (best-effort, only when DB is configured)
+try {
+  const hasDb = !!(process.env.POSTGRES_URL || process.env.DATABASE_URL);
+  if (hasDb) {
+    // Lazy getter to avoid importing @econeura/db at module init
+    const getPrisma = () => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const mod = require('@econeura/db');
+      return (mod.getPrisma ?? mod.default?.getPrisma)();
+    };
+    startHilExpirer(getPrisma);
+  }
+} catch (err) {
+  logger.warn('HIL expirer not started', { error: (err as Error).message });
+}
 
   // Inicializar workflows de ejemplo
   const initializeExampleWorkflows = () => {
@@ -3107,8 +3138,8 @@ app.use("*", (req, res) => {
   });
 });
 
-// Iniciar servidor
-app.listen(PORT, async () => {
+// Iniciar servidor (evitar durante tests)
+if (process.env.NODE_ENV !== 'test') app.listen(PORT, async () => {
   logger.info(`API Express server running on port ${PORT}`);
   console.log(`🚀 API Express server running on port ${PORT}`);
   console.log(`📊 Metrics available at http://localhost:${PORT}/metrics`);
@@ -3144,3 +3175,5 @@ process.on('SIGINT', () => {
   logger.info('SIGINT received, shutting down gracefully');
   process.exit(0);
 });
+
+export default app;

@@ -1,6 +1,6 @@
 import { Command, CommandHandler, Query, QueryHandler, ReadModel } from '../events.js';
 import { UserAggregate, UserState } from '../aggregates/user.js';
-import { eventSourcingSystem, readModelStore } from '../events.js';
+import { eventSourcingSystem, readModelStore, eventBus } from '../events.js';
 
 // Command Handlers
 export const createUserHandler: CommandHandler = async (command: Command): Promise<any[]> => {
@@ -172,7 +172,6 @@ export function registerUserHandlers(): void {
   eventSourcingSystem.registerQueryHandler('GetSuspendedUsers', getSuspendedUsersHandler);
 
   // Event handlers (projections)
-  const { eventBus } = require('../events.js');
   eventBus.subscribe('UserCreated', userCreatedHandler);
   eventBus.subscribe('UserUpdated', userUpdatedHandler);
   eventBus.subscribe('UserSuspended', userSuspendedHandler);

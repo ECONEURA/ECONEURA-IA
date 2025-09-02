@@ -3,12 +3,15 @@ import express, { type Router as ExpressRouter } from 'express';
 import type { Request } from 'express';
 import { z } from 'zod';
 import { AGENTS_MASTER } from '../config/agents.master';
-import { hmacVerify as verifyHmacSignature } from '@econeura/shared/security';
-import { getIdempotency, setIdempotency } from '@econeura/shared/security';
+// Importar explícitamente para evitar conflictos con index.js antiguo
+import { hmacVerify } from '@econeura/shared/security/hmac';
+import { getIdempotency, setIdempotency } from '@econeura/shared/security/idempotency';
 import fs from 'fs';
 import path from 'path';
+import { requireAAD } from '../middleware/aad';
 
 const router = express.Router();
+router.use('/v1', requireAAD);
 
 const TriggerReq = z.object({
   request_id: z.string().uuid(),
@@ -30,7 +33,7 @@ function verifyHmac(req: Request): boolean {
   if (!ts || !sig) return false;
   const body = JSON.stringify(req.body || {});
   const secret = process.env.MAKE_SIGNING_SECRET || '';
-  return verifyHmacSignature(ts, body, String(sig), { secret });
+  return hmacVerify(ts, body, String(sig), { secret });
 }
 
 async function checkIdempotency(key: string) {

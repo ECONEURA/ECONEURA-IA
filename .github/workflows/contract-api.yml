@@ -1,0 +1,25 @@
+name: contract-api
+on:
+  push:
+    branches:
+      - '**'
+  workflow_dispatch: {}
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    env:
+      AUTH_REQUIRED: "true"
+      NODE_ENV: "test"
+      MAKE_SIGNING_SECRET: "test"
+      RATE_LIMIT_DISABLED: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:contract

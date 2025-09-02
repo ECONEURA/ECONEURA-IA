@@ -18,10 +18,24 @@ export const AgentSchema = z.object({
 export const AgentsArray = z.array(AgentSchema);
 
 export function loadAgentsMaster() {
-  const p = path.join(__dirname, '..', '..', 'seed', 'agents_master.json');
-  const raw = fs.readFileSync(p, 'utf8');
-  const parsed = JSON.parse(raw);
-  return AgentsArray.parse(parsed);
+  // Prefer monorepo root seed if available, then fallback to app-local seed
+  const candidates = [
+    path.join(__dirname, '..', '..', '..', '..', 'seed', 'agents_master.json'),
+    path.join(__dirname, '..', '..', 'seed', 'agents_master.json'),
+  ];
+  for (const p of candidates) {
+    try {
+      if (!fs.existsSync(p)) continue;
+      const raw = fs.readFileSync(p, 'utf8');
+      const parsed = JSON.parse(raw);
+      return AgentsArray.parse(parsed);
+    } catch (e) {
+      // try next candidate on parse error or any issue
+      continue;
+    }
+  }
+  // As last resort, return empty list to keep API booting in minimal mode
+  return AgentsArray.parse([]);
 }
 
 // load at module import to fail fast during boot if invalid
