@@ -1,240 +1,201 @@
-# 🚀 ECONEURA — ERP/CRM + IA (Guía Completa · PR‑0 → PR‑85)
+Archivo nuevo/actualizado: README.md
+Aplica con:
 
-> **Estado actual del desarrollo**: avanzando por **PR‑23 / 85**. Este documento explica el proyecto de extremo a extremo y lista **todas** las PR previstas con el objetivo y la definición de hecho (DoD) resumida.
+git checkout -b docs/update-readme
+tee README.md <<'MD'
+# ECONEURA — Ecosistema de Inteligencia Colectiva (ERP/CRM + IA segura)
+
+**Pitch**  
+ECONEURA es un *ecosistema de inteligencia colectiva confiable* para PYMEs europeas. Orquesta **60 agentes** (10 dptos × 5 automatizados + 1 ejecutivo doctor&coach) con **seguridad grado banca** (AAD/HMAC/Idem, RLS, CSP/SRI), **PII→Local** (Mistral on-prem) y **elasticidad** en Azure. Todo gobernado por **FinOps** (80/90/100 + kill-switch) y **observabilidad E2E** (OTel).
+
+> **Estado actual:** ver _badge_ de progreso y panel  
+> ![progress](status/progress-badge.svg)  
+> Panel: `docs/PROGRESS_PANEL_v3.md` (y `docs/PROGRESS_PANEL_SUP_v3.md` para el supervisor)
 
 ---
 
 ## 1) Visión & Propuesta de valor
 
-**ECONEURA** es un **ERP/CRM moderno** con **IA operativa** y **seguridad “grado banca”**. Está diseñado para pymes y áreas de operaciones/ventas que necesitan:
-- CRM robusto (empresas, contactos, deals, interacciones).
-- ERP ligero (productos, inventario/Kardex, facturación, proveedores, conciliación).
-- **IA explicable** que reduce tiempos de trabajo (resúmenes, “next best action”, plantillas aprobadas).
-- Integración con **Microsoft 365/Graph** (Outlook/Teams/SharePoint) y **Stripe/SEPA**.
-- Observabilidad, RLS multitenant, FinOps y despliegues **blue/green** en Azure.
-
-**Resultados esperados tras PR‑85**: p95 API ≤ 350 ms; p95 IA ≤ 2.5 s; conciliación >90 %; inventario >97 % de exactitud; 5xx < 1 %; CI/CD con canary y rollback automático; RLS probado con suite generativa.
+- **Resultados, no “chatbots”**: playbooks por departamento que mueven €/SLA con HIL (aprobación humana) y auditoría.  
+- **Confianza UE-first**: datos sensibles corren en **Mistral local**, orquestación en **Azure EU**, trazas y presupuestos visibles.  
+- **Adopción ejecutiva**: cada directivo inicia sesión (AAD) y conversa con su **agente doctor&coach** entrenado en su dominio **y** en comunicación empática.
 
 ---
 
 ## 2) Arquitectura (monorepo)
 
-```
+
+
 /apps
-  /web         → Next.js 14 (App Router) · BFF Node (chat/tts/images/search/health)
-  /api         → Express + TypeScript + Drizzle/Prisma · OpenAPI
-  /workers     → Jobs/colas (cron, warm‑up, dunning, AV scan)
+/web → Next.js (App Router). BFF sin /v1. Cockpit v3 (gate ≤2%).
+/api → Express + TS. TODO /v1 con AAD+HMAC+Idem, RLS, OpenAPI.
 /packages
-  /shared      → Zod, seguridad (HMAC/Idempotency), analytics tipadas
-  /db          → Esquema, migraciones, políticas RLS
-  /sdk         → Cliente TS para Web/BFF
-/infra         → IaC (Azure), Docker, GitHub Actions
-/docs          → Manuales, runbooks, hitos
-```
+/shared → Zod, HMAC/Idem, analytics, tipos.
+/db → Prisma schema, migraciones, políticas RLS.
+/infra → IaC Azure (Bicep), Docker, GH Actions.
+/docs → Paneles, runbooks, visión.
+/seed → agents_master.json (60 agentes, SLA, make_id, hitl)
 
-### Principios de diseño
-- **BFF UE‑Hardened** en `apps/web` (runtime Node, sin /v1, demo‑mode si faltan claves).
-- **API server‑to‑server** en `apps/api` (rutas `/v1/...`, RLS y OpenAPI).
-- **RLS transaccional**: cada request hace `BEGIN → set_config('app.org_id', $org, true) → ... → COMMIT`.
-- **Nada de secretos en cliente**. Feature flags por `.env*` con **demo por defecto**.
-- **Zod en todos los bordes**. Logs estructurados sin PII (redact). FinOps headers en BFF.
 
----
-
-## 3) Dominios funcionales
-
-### CRM
-- **Companies**: taxonomía/etiquetas, saved views, ingest Outlook a timeline, undo merges.
-- **Contacts**: normalización E.164, dedupe proactivo con merge/auditoría.
-- **Deals**: pipeline Kanban, **NBA explicable** (features + top‑3 razones).
-- **Interactions**: unificador de emails/notas/llamadas/adjuntos (SAS + AV + signed URLs).
-
-### ERP
-- **Invoices (AR)**: numeración segura, PDF, **dunning 3‑toques**, Stripe checkout/webhook/receipt.
-- **Products**: variantes, mapa de impuestos, sugerencias IA.
-- **Inventory**: movimientos/Kardex, reorder point, **conteos cíclicos ABC** con auditoría.
-- **Suppliers**: scorecard OTIF/lead/PPV/SL, alertas a Teams.
-- **Payments/SEPA**: parser CAMT/MT940 (y .053/.054), matching con reglas UI.
-
-### Plataforma (cross‑cutting)
-- **Integraciones**: Graph (Outlook/Teams/SharePoint), Make, Stripe.
-- **Seguridad**: CSP/SRI estrictas, Helmet/CORS, AV global, secret‑scan & rotation.
-- **Operabilidad**: health/live/ready/degraded, Teams alerts con quiet hours.
-- **Observabilidad**: OTel end‑to‑end, Prometheus (counters), k6, chaos‑light.
-- **FinOps**: presupuesto IA por org con barra 80/90/100%, panel de costes.
-- **CI/CD**: blue/green + canary, gates de p95/5xx, rollback automático.
+**Patrones obligatorios**
+- **/v1 sólo en apps/api** (web actúa como BFF).  
+- **PII→Local**: rutas de IA sensibles usan **Mistral** on-prem; Azure sólo para cómputo elástico no PII.  
+- **FinOps headers**: `X-Est-Cost-EUR`, `X-Budget-Pct`, `X-Latency-ms`, `X-Route`, `X-Correlation-Id`.  
+- **OTel**: spans con `org_id`, `agent_key`, `cost_est`.
 
 ---
 
-## 4) Entornos & Deploy
+## 3) Seguridad & Cumplimiento (EU)
 
-- **Local**: Docker para DB/Prometheus/Grafana/Jaeger. `pnpm dev` levanta Web + API.
-- **Staging/Prod (Azure)**: App Services o Container Apps, PostgreSQL flexible, Azure Storage (Blob), Key Vault, Monitor/Log Analytics.
-- **CI/CD** (GitHub Actions): build+test → despliegue a *slot idle* → smokes/gates → swap → post‑deploy smokes. Canary (5%→25%→100%) en PR‑84.
-
-### Azure OIDC Setup
-Para configurar autenticación OIDC (sin secretos de larga duración):
-
-1. **Desde GitHub Actions** (recomendado): Ejecuta el workflow `.github/workflows/setup-azure-oidc.yml` via workflow_dispatch
-2. **Desde local**: Ejecuta `./scripts/setup-azure-oidc.sh` (requiere `az login` previo)
-3. **Guarda los secretos** devueltos en GitHub: `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`
-4. **Usa el workflow** `.github/workflows/deploy-api-oidc.yml` como ejemplo de deploy con OIDC
-
-Más detalles en [infrastructure/azure/oidc-README.md](infrastructure/azure/oidc-README.md).
+- **Autenticación**: Azure AD (OIDC/JWT), `org_id` obligatorio en claims.  
+- **Integridad**: HMAC de cuerpo + ventana temporal + **Idempotency-Key**.  
+- **Autorización**: RBAC por rol/depto (HIL approvals).  
+- **Datos**: RLS Postgres por `org_id`; retención 90 días por defecto; export/erase (GDPR).  
+- **Frontera web**: Helmet (CSP/SRI), CORS allowlist.  
+- **Auditoría**: trail de HIL (eventos), SIEM-friendly (App Insights/Log Analytics).
 
 ---
 
-## 5) Calidad, DoD & Smokes
+## 4) Observabilidad & FinOps
 
-**DoD por PR** (resumen): código + pruebas (unit/integración/E2E), migraciones/RLS, CHANGELOG, `npm run smoke:pr-XX`, sin `console.log`, logs estructurados, Zod en bordes, idempotencia, flags, demo‑mode.
-
-**Gates CI (PR‑60)**: tipos/lint/tests, OpenAPI sincronizado, suite RLS, CSP/SRI presentes, migraciones aplicadas, cobertura ≥ 70 %.
-
-**Smokes globales**: health, IA cache, budget, make dedupe, graph, hitl, stripe, inventory, suppliers, attachments, taxonomy, dedupe, nba, dunning, fiscal, sepa, gdpr, rls, finops, quiet, warmup, secrets, csp, bluegreen, k6, openapi, semantic, reports, rbac, restore, otel, audit, xss, dod … (+ los de la tanda final).
+- **Métricas SLO**: p95, error_rate, costos IA por agente/depto.  
+- **Alertas**: Teams (p95, 5xx, DEGRADED, budget 80/90/100).  
+- **FinOps**: presupuesto mensual por depto, **kill-switch** por agente y proyección EOM.
 
 ---
 
-## 6) Roadmap completo de PR‑0 → PR‑85 (titular + objetivo + DoD breve)
+## 5) Calidad (gates CI) & Paneles
 
-> **Leyenda**: ✅ listo · ⚠️ parcial/demo · ❌ falta.  
-> *El estado real lo llevamos en GitHub Projects; aquí se describen los objetivos y el “hecho” esperado.*
-
-### **Fase 0 — Base del monorepo (PR‑0 → PR‑21)**
-1. **PR‑00 · Bootstrap monorepo** — Turborepo/PNPM, workspaces, scripts base. *DoD*: build pasa y raíz limpia.
-2. **PR‑01 · Lint/Format/Types** — ESLint/Prettier/TSConfig compartidos. *DoD*: `pnpm lint` y `typecheck` verdes.
-3. **PR‑02 · Infra Docker local** — DB/Prometheus/Grafana/Jaeger. *DoD*: `docker:up` operativo.
-4. **PR‑03 · Drizzle + esquema inicial** — tablas core y migraciones. *DoD*: `db:migrate` sin errores.
-5. **PR‑04 · Next 14 (App Router)** — esqueleto web. *DoD*: página /health básica.
-6. **PR‑05 · Express API** — esqueleto `/v1/ping`. *DoD*: supertest OK.
-7. **PR‑06 · Auth minimal** — JWT y guard de org. *DoD*: rutas protegidas.
-8. **PR‑07 · Auth+RLS** — políticas RLS iniciales. *DoD*: lecturas cruzadas fallan.
-9. **PR‑08 · BFF Proxy** — cliente API y proxy seguro. *DoD*: IA/Search pasan por BFF.
-10. **PR‑09 · UI/Iconos** — lucide + estilos base. *DoD*: sin warnings de bundle.
-11. **PR‑10 · Observabilidad base** — OTel + Prometheus counters. *DoD*: métricas visibles.
-12. **PR‑11 · CI/CD pipeline** — build/test en PR, cache, artefactos. *DoD*: badge verde.
-13. **PR‑12 · CRM Interactions v1** — timeline + notas. *DoD*: CRUD con tests.
-14. **PR‑13 · Features avanzadas v1** — analítica simple, IA básica. *DoD*: endpoints cubiertos.
-15. **PR‑14 · Plataforma IA v1** — router IA, TTS, imágenes. *DoD*: demo‑mode listo.
-16. **PR‑15 · Azure OpenAI+BFF** — integración real. *DoD*: headers FinOps.
-17. **PR‑16 · Products v1** — CRUD productos. *DoD*: migraciones y tests.
-18. **PR‑17 · Invoices v1** — CRUD + PDF simple. *DoD*: numeración temporal.
-19. **PR‑18 · Inventory v1** — movimientos y saldos. *DoD*: Kardex básico.
-20. **PR‑19 · Suppliers v1** — CRUD proveedores. *DoD*: relaciones básicas.
-21. **PR‑20 · Payments v1** — link a invoices. *DoD*: estados mínimos.
-22. **PR‑21 · README/Docs base** — guía rápida y contribución. *DoD*: README visible.
-
-### **Fase 1 — Operabilidad & Salud (PR‑22 → PR‑30)**
-23. **PR‑22 · Health & degradación** — endpoints live/ready/degraded (web+api) con `X‑System‑Mode`. *DoD*: smokes ok.
-24. **PR‑23 · Alertas Teams + quiet hours** — servicio `alerts.service` con agrupación y horario. *DoD*: unit tests y smoke.
-25. **PR‑24 · Analytics tipadas** — `packages/shared/analytics.ts`, API `/v1/analytics/events`, métricas controladas. *DoD*: eventos guardados.
-26. **PR‑25 · Biblioteca de prompts (aprobación)** — versión+approve; BFF sólo approved. *DoD*: test negativo/positivo.
-27. **PR‑26 · Caché IA/Search + warm‑up** — Redis/LRU + cron. *DoD*: `X‑Cache` hit/miss.
-28. **PR‑27 · Zod integral en API** — middleware validate + negativos. *DoD*: 400 consistentes.
-29. **PR‑28 · Helmet/CORS + CSP/SRI** — middleware API y CSP en Web. *DoD*: no eval; SRI correcto.
-30. **PR‑29 · Rate‑limit org + Budget guard** — sliding window + barra consumo. *DoD*: umbrales 80/90/100.
-31. **PR‑30 · Make quotas + idempotencia** — HMAC, ventana 5', dedupe y panel stats. *DoD*: replays controlados.
-
-### **Fase 2 — Integraciones & Operación (PR‑31 → PR‑60)**  
-**Bloque A (31–40) Integraciones E2E & HITL**
-32. **PR‑31 · Graph wrappers seguros** — Outlook/Teams server‑to‑server + outbox.  
-33. **PR‑32 · HITL v2** — aprobar/editar/enviar, lote, SLA, ownership, auditoría.  
-34. **PR‑33 · Stripe receipts + conciliación** — checkout→webhook→PDF→paid.  
-35. **PR‑34 · Inventory Kardex + alertas** — saldo por rango y Teams stockOutSoon.  
-36. **PR‑35 · Supplier scorecard** — OTIF/lead/defect y alertas mensuales.  
-37. **PR‑36 · Interactions SAS + AV** — quarantine→scan→clean/signed URL.  
-38. **PR‑37 · Companies taxonomía & vistas** — árbol tags y saved views.  
-39. **PR‑38 · Contacts dedupe proactivo** — E.164/email + trigram + merge audit.  
-40. **PR‑39 · Deals NBA explicable** — features store mínimo + razones top‑3.  
-41. **PR‑40 · Dunning 3‑toques** — 7/14/21, backoff, numeración segura.
-
-**Bloque B (41–45) Fiscalidad, Bancos, GDPR, RLS**
-42. **PR‑41 · Fiscalidad regional** — motor reglas (ES/UE) visible en UI.  
-43. **PR‑42 · SEPA ingest + matching** — CAMT/MT940, reglas, conciliación.  
-44. **PR‑43 · GDPR export/erase** — ZIP export + purge con journal.  
-45. **PR‑44 · Suite RLS generativa (CI)** — negativos por tabla/rol como gate.  
-46. **PR‑45 · Panel FinOps** — coste IA por playbook/org/mes + tendencias.
-
-**Bloque C (46–50) Operaciones 24×7**
-47. **PR‑46 · Quiet hours + on‑call** — rotaciones/escalado.  
-48. **PR‑47 · Warm‑up IA/Search** — franjas pico; ratio hit↑.  
-49. **PR‑48 · Secret rotation + secret‑scan** — gitleaks/secretlint + KV.  
-50. **PR‑49 · CSP/SRI estrictas** — verificación y smoke dedicado.  
-51. **PR‑50 · Blue/green + gates** — swap si p95/5xx ok; rollback auto.
-
-**Bloque D (51–60) Resiliencia & Integrabilidad**
-52. **PR‑51 · k6 + chaos‑light** — carga y fallos simulados.  
-53. **PR‑52 · OpenAPI + Postman** — spec real y colección.  
-54. **PR‑53 · Búsqueda semántica CRM** — embeddings con fallback FTS.  
-55. **PR‑54 · Reportes mensuales PDF** — KPIs a SharePoint + draft Outlook.  
-56. **PR‑55 · RBAC granular** — permissions por módulo/acción.  
-57. **PR‑56 · Backups & Restore runbook** — prueba mensual automatizada.  
-58. **PR‑57 · OpenTelemetry end‑to‑end** — trazas correladas.  
-59. **PR‑58 · UI de auditoría** — “quién/qué/cuándo” navegable.  
-60. **PR‑59 · XSS hardening inputs ricos** — sanitizado server‑side.  
-61. **PR‑60 · DoD automatizado** — gates duros en CI.
-
-### **Fase 3 — Data Mastery & Hardening final (PR‑61 → PR‑85)**
-62. **PR‑61 · Taxonomía Companies v2** — sinónimos/slug/lock + merges auditados.  
-63. **PR‑62 · Dedupe v2 + gating import** — candidatos y auto‑merge seguro.  
-64. **PR‑63 · Explainable NBA v2** — feature store y razones trazables.  
-65. **PR‑64 · AV global** — todos los módulos con quarantine/scan.  
-66. **PR‑65 · Audit Trail CRM + Undo** — diffs y revert 24 h.  
-67. **PR‑66 · Dunning sólido** — segmentos, KPIs y retries DLQ.  
-68. **PR‑67 · Fiscalidad extendida** — IGIC/IRPF/OSS/IOSS/Reverse charge.  
-69. **PR‑68 · Conteos cíclicos ABC** — tareas HITL y ajustes auditados.  
-70. **PR‑69 · Vendor scorecard completo** — OTIF/lead/PPV/SL con alertas.  
-71. **PR‑70 · SEPA robusto (.053/.054)** — excepciones y reglas UI.  
-72. **PR‑71 · HITL ownership & SLA** — turnos/vacaciones/escalado.  
-73. **PR‑72 · DLQ grooming** — causas y reanudar automático.  
-74. **PR‑73 · Panel cuotas Make** — consumo 80/90/100% + alertas.  
-75. **PR‑74 · Graph chaos‑light** — rotación tokens simulada.  
-76. **PR‑75 · CSP/SRI banca + reports** — endpoint report-uri.  
-77. **PR‑76 · UX presupuesto IA** — barra, pre‑alertas, modo lectura.  
-78. **PR‑77 · FinOps negocio** — coste playbook/org/mes (tendencias).  
-79. **PR‑78 · Quiet hours avanzadas** — festivos/calendarios por org.  
-80. **PR‑79 · Prompts CM (aprobación/versionado)** — workflow 2 ojos.  
-81. **PR‑80 · Warm‑up por franjas** — por TZ de la org.  
-82. **PR‑81 · Rotación secretos** — checklist trimestral + KV.  
-83. **PR‑82 · RLS fuzz avanzada** — property‑based en CI.  
-84. **PR‑83 · Retención/TTL** — legal holds y purga trazable.  
-85. **PR‑84 · Blue/green canary** — 5→25→100 % con gates métricos.  
-86. **PR‑85 · Performance & Chaos final** — SLOs firmados + runbooks.
+- **OpenAPI checksum** (`.openapi.checksum`) — bloquea drift.  
+- **/v1-only (route-linter)** — ninguna ruta fuera de API.  
+- **UI visual** (Playwright) — **dif ≤2%** contra Cockpit v3.  
+- **Rendimiento** (k6) — `/v1/progress` **p95 < 2s**.  
+- **Contrato AAD/HMAC/Idem** — 200/202/401/403 + idem 200/202/409.  
+- **Paneles**: `docs/PROGRESS_PANEL_v3.md` (producto) y `docs/PROGRESS_PANEL_SUP_v3.md` (supervisor).
 
 ---
 
-## 7) Seguridad & Cumplimiento (resumen operativo)
-- **RLS** por `org_id` en todas las tablas sensibles; helpers `withTenant()`.
-- **CSP/SRI** sin `eval`, sólo orígenes permitidos; endpoint `csp/report` (PR‑75).
-- **AV/Quarantine** en Interactions/Invoices/Suppliers/Products (PR‑64).
-- **GDPR**: export/erase con auditoría y retención/TTL (PR‑43/83).
-- **Secret‑scan/rotation**: gitleaks+KV y rotación trimestral (PR‑48/81).
+## 6) Quickstart (local)
+
+```bash
+pnpm -w install
+pnpm -w -r build && pnpm -w -r test || true
+pnpm progress              # genera status/progress.json y PROGRESS.md
+pnpm supervisor:check      # panel supervisor con gaps y órdenes
+
+7) Despliegue (Azure · OIDC)
+
+Infra: ACR + App Service/Container Apps + Postgres Flexible + Key Vault + App Insights (EU).
+
+OIDC (sin secretos largos): configurar identidad federada en GH Actions (tenemos scripts/workflows).
+
+Slots: blue/green + smoke post-deploy (Playwright/k6) y swap.
+
+8) Agentes (10 dptos × 5 auto + 1 doctor&coach)
+Dpto	Agentes autom. (ejemplos)	Ejecutivo (doctor&coach)
+CFO	Dunning, Cashflow, Forecast, SEPA match, ROI	CFO-X (finanzas & comunicación)
+COO	Orders, Inventory Reorder, SLA Monitor, Incidents, S&OP	COO-X
+CISO	Audit Logs, CSP/CORS Check, Secret Scan, RBAC Drift, Backup Verify	CISO-X
+CHRO	Onboarding, Payroll Check, Attrition, Training Plan, PTO	CHRO-X
+CMO	Campaign Run, Lead Scoring, SEO Brief, CAC/LTV, Sentiment	CMO-X
+CTO	Deploy Guard, Perf Watch, Error Triage, Cost Guard, Chaos-lite	CTO-X
+Sales	Pipe Hygiene, NBA, Quote, Renewal Risk, Follow-ups	VP-Sales-X
+CS	NPS, Churn Risk, Playbooks, Health Score, SLA	CS-X
+Procurement	OTIF, Supplier Score, Replenishment, Price Tracker, Contracts	Proc-X
+Legal/Compliance	GDPR Export/Erase, Retention, Risk Flags, Clause Check, DPA	Legal-X
+
+(Catalog completo en seed/agents_master.json, 60 entradas con department_key, SLA_minutes, make_scenario_id, hitl).
+
+9) Roadmap PR-0 → PR-85 (resumen operativo)
+
+Fase A — Repo & CI base (PR-0..4): hygiene, .env, Bicep, CI base.
+Fase B — Seguridad & contrato (PR-5..9): HMAC, Idem, RL, OTel, OpenAPI v1.
+Fase C — Endpoint clave (PR-10..13): /v1/agents/:key/trigger, tests contrato, AAD transicional, seed inicial.
+Fase D — FinOps & HIL (PR-14..19): estimador, headers, schema HIL, servicio, endpoints, expirer.
+Fase E — Observabilidad & Docs (PR-20..23): /v1/progress (ETag/304), SwaggerUI, RFC7807.
+Fase F — CI Gates I (PR-24..27): checksum OpenAPI, route-linter, CI strict, badge.
+Fase G — UI v3 (PR-28..31): import HTML/CSS, Playwright config + baseline + gate ≤2%.
+Fase H — Perf & k6 (PR-32..35): smoke p95<2s, dashboards KQL.
+Fase I — Make (PR-36..39): webhooks HMAC, dedupe, health, admin consumo.
+Fase J — Seed 60 (PR-40..43): ensure-sixty + Zod + SLA/hitl.
+Fase K — FinOps avanzado (PR-44..47): budgets depto, guard duro 80/90/100, kill-switch, proyección EOM.
+Fase L — Seguridad avanzada (PR-48..51): RLS, CSP/SRI banca, CORS KV, secrets→KV.
+Fase M — Cockpit (PR-52..55): islands, BFF proxy, panel FinOps, bandeja HIL.
+Fase N/O — ERP/CRM (PR-56..63): Companies/Contacts/Deals/Invoices + Interactions/Products/Inventory/Suppliers.
+Fase P — IA & Orquestación (PR-64..67): router local→cloud, guard prompts, playbooks, tone-pack doctor&coach.
+Fase Q — RBAC & AAD (PR-68..71): login, roles por depto, claims org_id, sesión segura.
+Fase R — Obs++ (PR-72..75): spans enriquecidos, alertas Teams, auditoría HIL, ROI board.
+Fase S — CI Gates II (PR-76..79): gates duros (visual, perf, contrato, rutas).
+Fase T — Infra & CD (PR-80..83): deploy OIDC, slots blue/green, backups, Front Door/SSL.
+Fase U — Cierre v1 (PR-84..85): runbooks/README, GA checklist (SLOs, budgets, DR).
+
+Definición de Hecho (DoD) por PR: código + pruebas (unit/contract/ui/perf), migraciones/RLS, OpenAPI sync, logs estructurados, flags, demo-mode; gates CI verdes.
+
+10) Cómo trabajar (VS Code / CI)
+# progreso y panel
+pnpm progress
+pnpm supervisor:check
+
+# gates locales (si tienes URLs)
+BASE_URL=$PLAYWRIGHT_BASE_URL pnpm test:ui
+BASE_URL=$K6_BASE_URL pnpm perf:k6
+pnpm test:contract
+
+
+Convenciones: Conventional Commits; ramas feature/PR-XX-*; nunca exponer /v1 fuera de apps/api.
+
+11) Licencia & créditos
+
+Licencia MIT. Hecho con ❤️ en España. Infra recomendada: Azure EU + Mistral local (datos PII).
+Contacto: equipo ECONEURA.
+
+MD
+git add README.md
+git commit -m "docs(readme): refresh README with vision, security, gates and PR-0→PR-85 roadmap"
+
 
 ---
 
-## 8) Observabilidad & FinOps
-- **OTel e2e** (PR‑57), **Prometheus** con cardinalidad controlada.
-- **FinOps headers** en BFF: `X‑Request‑Id, X‑Org‑Id, X‑Latency‑ms, X‑AI‑Provider, X‑AI‑Model, X‑Est‑Cost‑EUR`.
-- **Panel FinOps** (PR‑45/77) + **Budget guard** (PR‑29/76).
+## DoD verificable (tests/headers/snapshot con checks exactos)
+- `README.md` existe y contiene: **Visión**, **Arquitectura**, **Seguridad**, **Observabilidad/FinOps**, **Gates**, **Quickstart**, **Despliegue OIDC**, **Agentes (60)**, **Roadmap PR-0→PR-85**, **Cómo trabajar**, **Licencia**.
+- `status/progress-badge.svg` se referencia en cabecera y **renderiza** en repo.
+- No contradice reglas duras: **/v1 sólo en apps/api**, **UI v3 ≤2%**, **EU-first**, **HIL**, **FinOps headers**, **OTel**.
 
 ---
 
-## 9) Operación: SLOs, Kill‑switches y Runbooks
-- SLOs: p95 API ≤ 350 ms; p95 IA ≤ 2.5 s; 5xx < 1 %; conciliación >90 %; inventario >97 %.
-- Kill‑switches: **demo‑mode IA**, **budget guard**, **DLQ visible**; banners de degradación.
-- Runbooks (PR‑85): IA down, Graph throttle, Stripe out, SEPA corrupta, fuga RLS.
+## Resumen (≤5 líneas)
+Incluí un **README** nuevo alineado a tu visión: 60 agentes, seguridad UE, Mistral local + Azure, FinOps/OTel, y **gates CI**. Integra el **roadmap PR-0→PR-85**, quickstart, despliegue OIDC y paneles. Es la guía única para equipo, CI y stakeholders.
 
 ---
 
-## 10) Cómo trabajar las PR en Cursor (resumen práctico)
-1. Rama `feature/PR-XX-slug`.
-2. Cambios mínimos, respetando rutas y estructura.
-3. Migraciones + políticas RLS dentro de transacción.
-4. Tests unit/integración/E2E + `npm run smoke:pr-XX`.
-5. CHANGELOG (3–6 líneas) + OpenAPI si aplica.
-6. Lint/types/tests verdes → abrir PR con plantilla y evidencias.
-7. Merge sólo si **DoD CI (PR‑60)** pasa.
+## Evidencia
+- {source:"status/progress.json", type:"repo_file", doc_id:"status/progress.json", date:"último run"}
+- {source:".github/workflows (openapi/e2e-playwright/k6/contract)", type:"repo_tree", doc_id:".github/workflows", date:"actual"}  
+score:{coverage:0.71,relevance:0.86}
 
 ---
 
-## 11) Créditos & Licencia
-- Licencia MIT. Hecho con ❤️ en España. Infra recomendada: Azure (UE‑West/Spain Central).
+## Riesgos & supuestos
+- Números de avance son dinámicos ⇒ el README apunta al **panel/badge** (no fija %).  
+- Si faltan archivos (seed 60, workflows), los paneles lo señalarán; el README no miente.
+
+---
+
+## Tiempo/Coste (timebox_min, cost_eur)
+**25–40 min** (redacción+commit). **€0** (solo doc).
+
+---
+
+## Decision Log (qué/por qué/fecha/rollback)
+- **Qué**: README unificado (visión→gates→roadmap) para alinear producto/ingeniería.  
+- **Por qué**: cortar ambigüedad, facilitar PR-0→PR-85, vender confianza (UE-first).  
+- **Fecha**: hoy.  
+- **Rollback**: `git revert` del commit `docs(readme): refresh…`.
+
+---
+
+## Siguientes 3 commits (Conventional)
+1) `ci(openapi): record checksum & enable gate`
+2) `test(ui,perf): add Playwright baseline ≤2% & k6 p95<2s`
+3) `chore(seed): ensure 60 agents (10×(5+1)) with zod validation`
+::contentReference[oaicite:0]{index=0}
