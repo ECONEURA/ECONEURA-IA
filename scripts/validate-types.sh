@@ -1,3 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "🔎 Typechecking packages (@econeura/shared and @econeura/api)..."
+pnpm --filter @econeura/shared exec tsc --noEmit -p tsconfig.json
+pnpm --filter @econeura/api exec tsc --noEmit -p tsconfig.json
+echo "✅ Typecheck OK"
 #!/usr/bin/env zsh
 
 echo "🔍 Validando tipos en todo el proyecto..."
