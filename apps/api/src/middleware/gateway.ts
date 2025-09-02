@@ -28,13 +28,11 @@ export function gatewayRoutingMiddleware(req: GatewayRequest, res: Response, nex
     const route = apiGateway.findRoute(path, method, headers, query);
 
     if (!route) {
-      // Si el gateway no tiene una regla para esta petición, delegamos en Express
-      logger.warn('No route found for request', {
+      // Si no hay regla del gateway, dejamos que Express resuelva la ruta normalmente
+      logger.debug('Gateway: no matching route, passing through to Express', {
         path,
         method,
         clientIp,
-        headersCount: Object.keys(headers).length,
-        queryCount: Object.keys(query).length,
       });
       return next();
     }

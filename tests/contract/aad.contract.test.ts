@@ -46,7 +46,6 @@ async function jwt({ exp }: { exp: number }, bad = false) {
 
 beforeAll(async () => {
   process.env.AUTH_REQUIRED = "true";
-  process.env.RATE_LIMIT_DISABLED = "true";
   process.env.MAKE_SIGNING_SECRET = "test";
   await startJwks();
   process.env.JWKS_URI = jwksUrl;
@@ -65,15 +64,14 @@ const AGENT = "cfo_dunning";
 
 function baseHeaders(body: any) {
   const payload = typeof body === "string" ? body : JSON.stringify(body);
-  const ts = String(Math.floor(Date.now() / 1000));
   const sig = crypto
     .createHmac("sha256", process.env.MAKE_SIGNING_SECRET!)
-    .update(`${ts}\n${payload}`)
+    .update(payload)
     .digest("hex");
   return {
     "X-Correlation-Id": crypto.randomUUID(),
     "Idempotency-Key": crypto.randomUUID(),
-    "X-Timestamp": ts,
+    "X-Timestamp": String(Math.floor(Date.now() / 1000)),
     "X-Signature": `sha256=${sig}`,
     "Content-Type": "application/json",
   };

@@ -10,8 +10,8 @@ export interface RateLimitRequest extends Request {
 }
 
 export function rateLimitMiddleware(req: RateLimitRequest, res: Response, next: NextFunction): void {
-  // Allow disabling rate limit in tests/contracts
-  if (process.env.RATE_LIMIT_DISABLED === 'true') {
+  // Disable rate limiting in tests or when explicitly disabled
+  if (process.env.NODE_ENV === 'test' || process.env.RATE_LIMIT_DISABLED === 'true') {
     return next();
   }
   // Extract organization ID from headers or query params
@@ -77,9 +77,6 @@ export function rateLimitMiddleware(req: RateLimitRequest, res: Response, next: 
 }
 
 export function rateLimitByEndpoint(req: RateLimitRequest, res: Response, next: NextFunction): void {
-  if (process.env.RATE_LIMIT_DISABLED === 'true') {
-    return next();
-  }
   const organizationId = req.organizationId || 'default-org';
   const endpoint = req.path;
   const method = req.method;
@@ -120,9 +117,6 @@ export function rateLimitByEndpoint(req: RateLimitRequest, res: Response, next: 
 }
 
 export function rateLimitByUser(req: RateLimitRequest, res: Response, next: NextFunction): void {
-  if (process.env.RATE_LIMIT_DISABLED === 'true') {
-    return next();
-  }
   const userId = req.headers['x-user-id'] as string ||
                  req.query.userId as string ||
                  req.ip; // Fallback to IP
@@ -164,9 +158,6 @@ export function rateLimitByUser(req: RateLimitRequest, res: Response, next: Next
 
 // Middleware for API key rate limiting
 export function rateLimitByApiKey(req: RateLimitRequest, res: Response, next: NextFunction): void {
-  if (process.env.RATE_LIMIT_DISABLED === 'true') {
-    return next();
-  }
   const apiKey = req.headers.authorization?.replace('Bearer ', '') ||
                  req.headers['x-api-key'] as string;
 

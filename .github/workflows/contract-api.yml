@@ -11,7 +11,6 @@ jobs:
       AUTH_REQUIRED: "true"
       NODE_ENV: "test"
       MAKE_SIGNING_SECRET: "test"
-      RATE_LIMIT_DISABLED: "true"
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

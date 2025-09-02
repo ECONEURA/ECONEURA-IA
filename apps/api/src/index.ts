@@ -30,7 +30,7 @@ import { agentsRoutes } from './routes/agents';
 import { makeHealthRouter } from './routes/integrations.make.health';
 import { runAutoCancel } from './jobs/hil-autocancel';
 import { startHilExpirer } from './cron/hil-expirer.js';
-import { latencyHeader } from './middleware/latency.js';
+import { latency } from './middleware/latency.js';
 import { hilApprovals } from './routes/hil.approvals';
 // NOTE: Avoid static import of the DB package to keep tests lightweight.
 // We'll dynamically import and init Prisma only when DB env is present.
@@ -57,7 +57,7 @@ app.use(rateLimitMiddleware);
 // FinOps headers en todas las rutas /v1/*
 app.use('/v1', finopsHeaders());
 // Latency header para todas las rutas
-app.use(latencyHeader);
+app.use(latency());
 
 // Middleware de health check
 app.use(healthCheckMiddleware);
@@ -66,18 +66,19 @@ app.use(healthCheckMiddleware);
 app.use(rlsMiddleware);
 app.use(rlsCleanupMiddleware);
 
-// Inicializar Prisma middleware sólo si hay configuración de BD disponible
-if (process.env.POSTGRES_URL || process.env.DATABASE_URL) {
-  try {
-  // Dynamic import to prevent bundlers/tests from resolving @econeura/db when not needed
-  const mod = await import('@econeura/db');
-  // Some packages may export initPrisma via default or named export; support both defensively
-  const init = (mod as any).initPrisma ?? (mod as any).default?.initPrisma;
-  if (typeof init === 'function') init();
-  } catch (err) {
-    logger.warn('initPrisma failed', { error: (err as Error).message });
+// Inicializar Prisma middleware sólo si hay configuración de BD disponible (sin await de nivel superior)
+(() => {
+  if (process.env.POSTGRES_URL || process.env.DATABASE_URL) {
+    import('@econeura/db')
+      .then((mod: any) => {
+        const init = mod.initPrisma ?? mod.default?.initPrisma;
+        if (typeof init === 'function') init();
+      })
+      .catch((err: any) => {
+        logger.warn('initPrisma failed', { error: (err as Error).message });
+      });
   }
-}
+})();
 
 // Middleware de API Gateway
 app.use(gatewayMetricsMiddleware);
