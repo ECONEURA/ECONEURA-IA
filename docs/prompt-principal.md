@@ -43,27 +43,27 @@ index 0000000..d7b2b7f
 +++ b/docs/CONTEXT_ECONEURA.md
 @@ -0,0 +1,29 @@
 # ECONEURA — Contexto ejecutivo
-**Qué es**  
+**Qué es**
 Ecosistema de inteligencia colectiva **confiable** para PYMEs europeas. Orquesta **60 agentes**
 (10 departamentos × 5 automatizados + 1 ejecutivo doctor&coach) detrás de un **cockpit** pixel-perfect.
-**Cómo funciona (mapa)**  
-- **Cockpit (Next.js)**: UI v3; sólo hidratar islas.  
-- **BFF/API (Express)**: contrato **/v1** con AAD + HMAC + Idempotencia; orquesta **Mistral local** (PII) y **Azure**.  
-- **Make.com**: conectores Outlook/Teams/ERP (webhooks firmados, dedupe).  
+**Cómo funciona (mapa)**
+- **Cockpit (Next.js)**: UI v3; sólo hidratar islas.
+- **BFF/API (Express)**: contrato **/v1** con AAD + HMAC + Idempotencia; orquesta **Mistral local** (PII) y **Azure**.
+- **Make.com**: conectores Outlook/Teams/ERP (webhooks firmados, dedupe).
 - **EU-first**: Azure EU, Key Vault, App Insights; **HIL/FSM**; **FinOps** (80/90/100 + kill-switch); **OTel**.
 **Principios inamovibles**
-- **/v1 sólo en apps/api**.  
-- **Snapshot UI ≤2%** frente a HTML v3.  
-- **Seguridad**: AAD, org_id obligatorio, RLS, CORS estricto.  
-- **PII→Local**: retención 90 días.  
-- **Observabilidad**: X-Correlation-Id, spans OTel, métricas p95/error/coste/HIL.  
+- **/v1 sólo en apps/api**.
+- **Snapshot UI ≤2%** frente a HTML v3.
+- **Seguridad**: AAD, org_id obligatorio, RLS, CORS estricto.
+- **PII→Local**: retención 90 días.
+- **Observabilidad**: X-Correlation-Id, spans OTel, métricas p95/error/coste/HIL.
 - **FinOps**: presupuestos, guard 80/90/100, kill-switch, proyección EOM.
-**Qué entregamos**  
-1) Cockpit v3 en Azure EU.  
-2) **/v1/agents/{agent_key}/trigger** seguro.  
-3) **HIL/FSM** con SLA y auto-cancel.  
-4) **FinOps** visible y gobernado.  
-5) **60 agentes** conectados a Make.com y Mistral local.  
+**Qué entregamos**
+1) Cockpit v3 en Azure EU.
+2) **/v1/agents/{agent_key}/trigger** seguro.
+3) **HIL/FSM** con SLA y auto-cancel.
+4) **FinOps** visible y gobernado.
+5) **60 agentes** conectados a Make.com y Mistral local.
 6) **CI/CD** con gates (OpenAPI/Playwright/k6).
 diff --git a/docs/OBJETIVO_GENERAL.md b/docs/OBJETIVO_GENERAL.md
 new file mode 100644

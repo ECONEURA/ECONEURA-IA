@@ -3,14 +3,14 @@
 **Objetivo:** Desplegar ECONEURA (cockpit pixel-perfect v3 en Azure), /v1 seguro con AAD+HMAC+Idempotencia, HIL/FSM con SLA y auto-cancel, FinOps guard 80/90/100 + kill-switch y observabilidad E2E; CI/CD con gates (OpenAPI, Playwright ≤2%, k6 p95<2s).
 
 
-**Avance global:** **65%**  
-**Entrega (PRs):** 29%  ·  **Funcional:** 89%  ·  **Build:** ✅  **Tests:** ✅
+**Avance global:** **67%**  
+**Entrega (PRs):** 29%  ·  **Funcional:** 91%  ·  **Build:** ✅  **Tests:** ✅
 
 > ⚠️ Bloqueado por: Redis, AAD, Make
 
 | Área | % | Checks OK | Id |
 |---|---:|---:|---|
-| API /v1/agents/{agent_key}/trigger (OpenAPI + headers seguridad/coste) | 60% | 3/5 | api_trigger |
+| API /v1/agents/{agent_key}/trigger (OpenAPI + headers seguridad/coste) | 80% | 4/5 | api_trigger |
 | Seed agents_master.json | 100% | 1/1 | seed |
 | HIL/FSM (modelo + transición + SLA) | 100% | 2/2 | hil |
 | Seguridad (helmet + AAD_REQUIRED) | 100% | 2/2 | security |
@@ -22,4 +22,4 @@
 | UI v3 + snapshot (pendiente) | 0% | 0/2 | ui |
 | Reportes/ROI (costHistory o SLO) | 100% | 1/1 | reports |
 
-_Última actualización:_ 2025-09-02T00:51:16.843Z · _Modelo:_ v3-0.4-0.6 · _Checksum:_ `d99dc3b04d41` 
+_Última actualización:_ 2025-09-02T10:27:26.557Z · _Modelo:_ v3-0.4-0.6 · _Checksum:_ `fc2010a82abc` 
