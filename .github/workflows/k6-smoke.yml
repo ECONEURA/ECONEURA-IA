@@ -1,3 +1,23 @@
+name: k6-smoke
+on:
+  push:
+    branches: ['**']
+  workflow_dispatch: {}
+
+jobs:
+  perf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: grafana/setup-k6@v1
+      - name: Run k6 smoke
+        env:
+          BASE_URL: ${{ secrets.K6_BASE_URL }}
+        run: |
+          if [ -z "$BASE_URL" ]; then
+            echo "K6 BASE_URL not set → skipping smoke"; exit 0;
+          fi
+          npx --yes k6@0.49.0 run tests/perf/e2e.js
 name: k6 smoke
 
 on:
