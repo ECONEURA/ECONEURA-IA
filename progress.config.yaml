@@ -27,6 +27,8 @@ functional_objectives:
       - kind: code_includes
         glob: "apps/api/src/**/*"
         contains: "X-Budget-Dept"
+      - kind: file_exists
+        path: ".openapi.checksum"
 
   - id: seed
     name: Seed agents_master.json
@@ -56,6 +58,9 @@ functional_objectives:
       - kind: code_includes
         glob: "apps/api/src/**/*"
         contains: "AAD_REQUIRED"
+      - kind: code_includes
+        glob: "apps/api/src/**/*"
+        contains: "requireAAD"
 
   - id: observability
     name: Observabilidad (span de negocio presente)

@@ -6,6 +6,7 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
+  "types": ["node"],
   "isolatedModules": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
