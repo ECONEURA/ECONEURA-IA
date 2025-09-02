@@ -7,8 +7,11 @@ on:
 jobs:
   e2e:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # para commitear baseline en bootstrap
+      pull-requests: write
     env:
-      BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
+      BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }} # p.ej. https://econeura-web-dev.azurewebsites.net
       SNAPSHOT_THRESHOLD: '0.02'
     steps:
       - uses: actions/checkout@v4
@@ -34,15 +37,31 @@ jobs:
           fi
       - name: Detect baseline
         id: baseline
-        if: steps.preflight.outputs.skip != 'true'
         shell: bash
         run: |
           shopt -s globstar || true
-          count=$(ls tests/ui/**/__screenshots__/**/*.png 2>/dev/null | wc -l | tr -d ' ')
+          count=$(ls tests/ui/**/__screenshots__/**/*.png 2>/dev/null | wc -l | tr -d ' ' || echo 0)
           if [ "$count" = "0" ]; then echo "mode=bootstrap" >> $GITHUB_OUTPUT; else echo "mode=gating" >> $GITHUB_OUTPUT; fi
+      - name: Guardar baseline (auto-commit) si falta
+        if: steps.baseline.outputs.mode == 'bootstrap'
+        run: |
+          if [ -z "$BASE_URL" ]; then
+            echo "PLAYWRIGHT_BASE_URL no configurado → no se puede bootstrapear"; exit 0;
+          fi
+          pnpm test:ui:update
+          echo "::group::Listado de screenshots"
+          ls -R tests/ui/**/__screenshots__ || true
+          echo "::endgroup::"
+      - name: Commit baseline (solo bootstrap)
+        if: steps.baseline.outputs.mode == 'bootstrap'
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: 'tests/ui/**/__screenshots__'
+          message: 'test(ui): add Playwright baseline (auto-bootstrap)'
+          default_author: github_actions
       - name: Bootstrap snapshots (first run)
         if: steps.preflight.outputs.skip != 'true' && steps.baseline.outputs.mode == 'bootstrap'
-        run: pnpm test:ui:update || true
+        run: echo "Baseline creada y commiteada por CI"
       - name: Gate snapshots (≤2%)
         if: steps.preflight.outputs.skip != 'true' && steps.baseline.outputs.mode == 'gating'
         run: pnpm test:ui
@@ -52,10 +71,12 @@ jobs:
         with:
           name: playwright-report
           path: status/playwright-report
-      - name: Upload snapshots (bootstrap)
-        if: steps.preflight.outputs.skip != 'true' && steps.baseline.outputs.mode == 'bootstrap'
-        uses: actions/upload-artifact@v4
+  close-pr-on-fail:
+    if: failure() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cerrar PR por fallo de gate visual
+        uses: peter-evans/close-pull@v3
         with:
-          name: playwright-snapshots-bootstrap
-          path: tests/ui/**/__screenshots__/
-          if-no-files-found: ignore
+          comment: |
+            ❌ Gate visual (Playwright ≤2%) ha fallado. Revisa el reporte y vuelve a abrir cuando esté verde.

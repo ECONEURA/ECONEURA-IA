@@ -7,6 +7,8 @@ on:
 jobs:
   perf:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
       - uses: grafana/setup-k6@v1
@@ -28,4 +30,13 @@ jobs:
           BASE_URL: ${{ secrets.K6_BASE_URL }}
         run: |
           npx --yes k6@0.49.0 run tests/perf/e2e.js
+  close-pr-on-fail:
+    if: failure() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cerrar PR por fallo de k6 (p95<2s)
+        uses: peter-evans/close-pull@v3
+        with:
+          comment: |
+            ❌ Gate de rendimiento (k6 p95<2s) ha fallado. Ajusta rendimiento y vuelve a abrir el PR.
       # marker: k6-smoke.yml
