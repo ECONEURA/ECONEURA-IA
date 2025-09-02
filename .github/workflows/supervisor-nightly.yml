@@ -1,0 +1,30 @@
+name: supervisor-nightly
+
+on:
+  schedule:
+    - cron: '15 1 * * *' # 01:15 UTC nightly
+  workflow_dispatch: {}
+
+jobs:
+  supervisor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+      - name: Generate Supervisor Panel
+        run: pnpm supervisor:check
+      - name: Commit Supervisor Panel
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/PROGRESS_PANEL_SUP_v3.md || true
+          git commit -m "chore(supervisor): nightly panel refresh" || echo "no changes"
+          git push || echo "push failed"
