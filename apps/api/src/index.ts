@@ -35,6 +35,7 @@ import { latency } from './middleware/latency.js';
 import { hilApprovals } from './routes/hil.approvals';
 import { hilAliasRouter } from './routes/hil.alias.js';
 import { hilApprovalsRouterV2 } from './routes/hil.approvals.v2.js';
+import adminFinopsRouter from './routes/admin.finops.js';
 // NOTE: Avoid static import of the DB package to keep tests lightweight.
 // We'll dynamically import and init Prisma only when DB env is present.
 
@@ -100,6 +101,8 @@ app.use(hilAliasRouter);
 app.use(hilApprovalsRouterV2);
 // HIL endpoints
 app.use(hilRouter);
+// Admin FinOps endpoints
+app.use(adminFinopsRouter);
 // Agents endpoints
 app.use(agentsRoutes);
 // Integrations health endpoints

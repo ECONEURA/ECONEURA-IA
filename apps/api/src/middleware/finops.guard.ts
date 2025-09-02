@@ -15,13 +15,22 @@ const defaultKillPath = path.join(process.cwd(), 'apps/api/src/config/finops.kil
 
 export function finopsGuard(deps: Deps) {
   return (req: Request, res: Response, next: NextFunction) => {
+  const url = (req as any).originalUrl || req.url || '';
+  // No aplicar guard a endpoints de administración para evitar bloqueos al desactivar
+  if (url.startsWith('/v1/admin/finops')) return next();
     const orgId = (req.headers['x-org-id'] as string) || (req.body as any)?.org_id || 'unknown';
-    const agent = (req.headers['x-agent-key'] as string) || (req.params as any)?.agent_key || (req.body as any)?.agent_key || 'unknown';
+  let agent = (req.headers['x-agent-key'] as string) || (req.params as any)?.agent_key || (req.body as any)?.agent_key || 'unknown';
+    if (!agent || agent === 'unknown') {
+      // Extraer del path si viene como /v1/agents/:agent_key/*
+      const p = (req as any).originalUrl || req.url || '';
+      const m = p.match(/\/v1\/agents\/([^/]+)/);
+      if (m && m[1]) agent = m[1];
+    }
     const dept = (agent.split('_')[0] || 'unknown').toLowerCase();
 
   const killFile = process.env.FINOPS_KILL_PATH || defaultKillPath;
   const kill = readJSON<{ version: number; agents_off: string[] }>(killFile, { version: 1, agents_off: [] });
-    if (kill.agents_off.includes(agent)) {
+  if (agent && kill.agents_off.includes(agent)) {
       res.setHeader('X-Budget-Pct', '100');
       return res.status(403).json({ error: 'agent_killed', agent, org_id: orgId });
     }
