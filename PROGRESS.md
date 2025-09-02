@@ -1,25 +1,10 @@
-# ECONEURA — Progreso
+⚠️ Este archivo es generado por el auditor.
 
-**Objetivo:** Desplegar ECONEURA (cockpit pixel-perfect v3 en Azure), /v1 seguro con AAD+HMAC+Idempotencia, HIL/FSM con SLA y auto-cancel, FinOps guard 80/90/100 + kill-switch y observabilidad E2E; CI/CD con gates (OpenAPI, Playwright ≤2%, k6 p95<2s).
+No editar ni versionar.
 
+Cómo regenerar localmente:
 
-**Avance global:** **55%**  
-**Entrega (PRs):** 0%  ·  **Funcional:** 92%  ·  **Build:** ✅  **Tests:** ✅
+1) Ejecuta el auditor de progreso
+	pnpm progress
 
-> ⚠️ Bloqueado por: Redis, AAD, Make
-
-| Área | % | Checks OK | Id |
-|---|---:|---:|---|
-| API /v1/agents/{agent_key}/trigger (OpenAPI + headers seguridad/coste) | 83% | 5/6 | api_trigger |
-| Seed agents_master.json | 100% | 1/1 | seed |
-| HIL/FSM (modelo + transición + SLA) | 100% | 2/2 | hil |
-| Seguridad (helmet + AAD_REQUIRED) | 100% | 3/3 | security |
-| Observabilidad (span de negocio presente) | 100% | 1/1 | observability |
-| CI/CD (workflows e2e y perf mínimos) | 100% | 1/1 | cicd |
-| ERP/CRM núcleo (Invoice model) | 100% | 1/1 | erp |
-| Integración Make (referencias en seed/código) | 100% | 1/1 | make |
-| Mistral local (flag sin PII) | 100% | 1/1 | mistral |
-| UI v3 + snapshot (pendiente) | 0% | 0/2 | ui |
-| Reportes/ROI (costHistory o SLO) | 100% | 1/1 | reports |
-
-_Última actualización:_ 2025-09-03T00:00:00.000Z · _Modelo:_ v3-0.4-0.6 · _Checksum:_ `sync-main` 
+2) Los resultados completos se guardan en status/progress.json y el badge en status/progress-badge.svg
