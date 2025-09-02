@@ -4,16 +4,16 @@
 
 
 **Avance global:** **67%**  
-**Entrega (PRs):** 29%  ·  **Funcional:** 91%  ·  **Build:** ✅  **Tests:** ✅
+**Entrega (PRs):** 29%  ·  **Funcional:** 92%  ·  **Build:** ✅  **Tests:** ✅
 
 > ⚠️ Bloqueado por: Redis, AAD, Make
 
 | Área | % | Checks OK | Id |
 |---|---:|---:|---|
-| API /v1/agents/{agent_key}/trigger (OpenAPI + headers seguridad/coste) | 80% | 4/5 | api_trigger |
+| API /v1/agents/{agent_key}/trigger (OpenAPI + headers seguridad/coste) | 83% | 5/6 | api_trigger |
 | Seed agents_master.json | 100% | 1/1 | seed |
 | HIL/FSM (modelo + transición + SLA) | 100% | 2/2 | hil |
-| Seguridad (helmet + AAD_REQUIRED) | 100% | 2/2 | security |
+| Seguridad (helmet + AAD_REQUIRED) | 100% | 3/3 | security |
 | Observabilidad (span de negocio presente) | 100% | 1/1 | observability |
 | CI/CD (workflows e2e y perf mínimos) | 100% | 1/1 | cicd |
 | ERP/CRM núcleo (Invoice model) | 100% | 1/1 | erp |
@@ -22,4 +22,4 @@
 | UI v3 + snapshot (pendiente) | 0% | 0/2 | ui |
 | Reportes/ROI (costHistory o SLO) | 100% | 1/1 | reports |
 
-_Última actualización:_ 2025-09-02T10:27:26.557Z · _Modelo:_ v3-0.4-0.6 · _Checksum:_ `fc2010a82abc` 
+_Última actualización:_ 2025-09-02T10:57:01.447Z · _Modelo:_ v3-0.4-0.6 · _Checksum:_ `276c2e35ecc4` 
