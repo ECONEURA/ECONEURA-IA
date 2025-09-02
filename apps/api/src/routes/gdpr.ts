@@ -1,4 +1,4 @@
-import { Router, type Router as ExpressRouter } from 'express';
+import { Router, type Router as ExpressRouter, type Request, type Response } from 'express';
 import { BlobServiceClient, StorageSharedKeyCredential, generateBlobSASQueryParameters, ContainerSASPermissions, SASProtocol } from '@azure/storage-blob';
 import archiver from 'archiver';
 import { Readable } from 'stream';
@@ -15,7 +15,7 @@ function bufferToStream(buffer: Buffer) {
   return readable;
 }
 
-router.post('/export', asyncHandler(async (req, res) => {
+router.post('/export', asyncHandler(async (req: Request, res: Response) => {
   const orgId = req.headers['x-org-id'] as string || 'default';
   // For demo: build a small JSON export
   const payload = { orgId, exportedAt: new Date().toISOString(), data: { message: 'sample export' } };
@@ -64,7 +64,7 @@ router.post('/export', asyncHandler(async (req, res) => {
   }
 }));
 
-router.delete('/purge', asyncHandler(async (req, res) => {
+router.delete('/purge', asyncHandler(async (req: Request, res: Response) => {
   const blobName = req.query.blob as string;
   if (!blobName) return res.status(400).json({ error: 'blob query required' });
   const account = process.env.AZURE_STORAGE_ACCOUNT as string;

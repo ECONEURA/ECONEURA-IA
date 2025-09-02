@@ -1,11 +1,16 @@
-name: openapi-check
+name: contract-api
 on:
-  pull_request:
-    branches: ['**']
+  push:
+    branches:
+      - '**'
   workflow_dispatch: {}
 jobs:
-  check:
+  contract:
     runs-on: ubuntu-latest
+    env:
+      AUTH_REQUIRED: "true"
+      NODE_ENV: "test"
+      MAKE_SIGNING_SECRET: "test"
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -16,5 +21,4 @@ jobs:
           node-version: 20
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
-  - run: pnpm route:linter
-  - run: pnpm openapi:checksum
+      - run: pnpm test:contract

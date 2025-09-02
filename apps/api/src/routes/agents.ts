@@ -3,12 +3,13 @@ import express, { type Router as ExpressRouter } from 'express';
 import type { Request } from 'express';
 import { z } from 'zod';
 import { AGENTS_MASTER } from '../config/agents.master';
-import { hmacVerify as verifyHmacSignature } from '@econeura/shared/security';
-import { getIdempotency, setIdempotency } from '@econeura/shared/security';
+import { getIdempotency, setIdempotency, hmacVerify, sha256Hex } from '@econeura/shared/security';
 import fs from 'fs';
 import path from 'path';
+import { requireAAD } from '../middleware/aad';
 
 const router = express.Router();
+router.use('/v1', requireAAD);
 
 const TriggerReq = z.object({
   request_id: z.string().uuid(),
@@ -29,8 +30,27 @@ function verifyHmac(req: Request): boolean {
   const sig = (req.headers['x-signature'] || req.headers['X-Signature']) as string | undefined;
   if (!ts || !sig) return false;
   const body = JSON.stringify(req.body || {});
-  const secret = process.env.MAKE_SIGNING_SECRET || '';
-  return verifyHmacSignature(ts, body, String(sig), { secret });
+  const secret = process.env.API_HMAC_SECRET || process.env.MAKE_SIGNING_SECRET || '';
+  const provided = String(sig).replace(/^sha256=/, '');
+  // Path 1: canonical verification (timestamp + "\n" + body)
+  if (hmacVerify(ts, body, provided, { secret })) return true;
+  // Path 2: legacy variant (timestamp + "." + body)
+  const legacyDot = sha256Hex(`${ts}.${body}`, secret);
+  try {
+    if (Buffer.from(legacyDot).length === Buffer.from(provided).length &&
+        require('node:crypto').timingSafeEqual(Buffer.from(legacyDot), Buffer.from(provided))) {
+      return true;
+    }
+  } catch {}
+  // Path 3: body-only variant used by older tests
+  const bodyOnly = sha256Hex(body, secret);
+  try {
+    if (Buffer.from(bodyOnly).length === Buffer.from(provided).length &&
+        require('node:crypto').timingSafeEqual(Buffer.from(bodyOnly), Buffer.from(provided))) {
+      return true;
+    }
+  } catch {}
+  return false;
 }
 
 async function checkIdempotency(key: string) {

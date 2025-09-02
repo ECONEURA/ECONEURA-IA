@@ -1,5 +1,4 @@
 import { logger } from '../lib/logger.js';
-import { getPrisma } from '@econeura/db';
 
 export async function runAutoCancel() {
   // Guard: do nothing if no DB configured
@@ -7,7 +6,8 @@ export async function runAutoCancel() {
     logger.info('HIL auto-cancel skipped (no DB config)');
     return;
   }
-  const prisma: any = getPrisma() as any;
+  const { getPrisma } = await import('@econeura/db');
+  const prisma: any = (getPrisma as any)() as any;
   if (!prisma?.hitl_task?.findMany) return;
   // best-effort: mark expired tasks as failed
   try {

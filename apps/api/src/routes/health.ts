@@ -1,4 +1,4 @@
-import { Router, type Router as ExpressRouter } from 'express';
+import { Router, type Router as ExpressRouter, type Request, type Response } from 'express';
 import { Redis } from 'ioredis';
 import { prisma } from '@econeura/db';
 import { metrics } from '../lib/metrics';
@@ -46,7 +46,7 @@ const aiService = new AzureOpenAIService();
 const router: ExpressRouter = Router();
 
 // Health check básico (Liveness)
-router.get('/live', asyncHandler(async (req, res) => {
+router.get('/live', asyncHandler(async (req: Request, res: Response) => {
   const uptime = process.uptime();
   const memUsage = process.memoryUsage();
 
@@ -69,7 +69,7 @@ router.get('/live', asyncHandler(async (req, res) => {
 }));
 
 // Readiness check completo
-router.get('/ready', asyncHandler(async (req, res) => {
+router.get('/ready', asyncHandler(async (req: Request, res: Response) => {
   const checks: HealthCheckResult[] = [];
   const startTime = Date.now();
 
@@ -167,7 +167,7 @@ router.get('/ready', asyncHandler(async (req, res) => {
 }));
 
 // Métricas Prometheus
-router.get('/metrics', async (req, res) => {
+router.get('/metrics', async (req: Request, res: Response) => {
   try {
   const metricsData = await metrics.getMetrics();
   res.set('Content-Type', 'text/plain');
@@ -180,7 +180,7 @@ router.get('/metrics', async (req, res) => {
 });
 
 // Estado del sistema
-router.get('/status', async (req, res) => {
+router.get('/status', async (req: Request, res: Response) => {
   const systemStatus: SystemStatus = {
     api: {
       status: 'ok',

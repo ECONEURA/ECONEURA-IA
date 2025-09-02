@@ -15,7 +15,8 @@
     "test:all": "pnpm -r --if-present test --silent",
 
     "build:web": "pnpm --filter @econeura/web build",
-    "build:api": "pnpm --filter @econeura/api build",
+  "build:api": "pnpm exec tsc -p apps/api/tsconfig.json",
+  "typecheck:api": "pnpm exec tsc -p apps/api/tsconfig.json --noEmit",
     "build:packages": "pnpm -r --filter ./packages... build",
     "dev": "concurrently -k -n web,api,db \"pnpm --filter @econeura/web dev\" \"pnpm --filter @econeura/api dev\" \"pnpm db:studio\"",
     "dev:web": "pnpm --filter @econeura/web dev",
@@ -25,9 +26,11 @@
     "lint:fix": "eslint . --fix",
     "test": "vitest --run",
   "progress": "tsx ./scripts/progress-v3.ts",
+  "test:contract": "vitest run --config tests/contract/vitest.config.ts --reporter=default",
+  "seed:ensure60": "tsx scripts/ensure-sixty.ts",
   "openapi:record": "node scripts/openapi-checksum.mjs record",
   "openapi:checksum": "node scripts/openapi-checksum.mjs check",
-  "ci:strict": "pnpm --filter '@econeura/shared...' --filter '@econeura/api' -r --if-present build && pnpm --filter '@econeura/shared...' --filter '@econeura/api' -r --if-present test --silent && pnpm openapi:checksum",
+  "ci:strict": "pnpm -w -r run build:api && pnpm -w -r run test && pnpm openapi:checksum",
     "test:watch": "vitest",
     "test:coverage": "vitest --run --coverage",
     "test:integration": "vitest --run --config vitest.integration.config.ts",
@@ -57,10 +60,15 @@
   "ci:unit": "pnpm --filter \"@econeura/shared...\" --filter \"@econeura/api\" -r --if-present test:unit --silent",
   "test:ui": "playwright test -c tests/ui/playwright.config.ts",
   "test:ui:update": "playwright test -c tests/ui/playwright.config.ts --update-snapshots",
-  "perf:k6": "k6 run tests/perf/e2e.js"
+  "perf:k6": "k6 run tests/perf/e2e.js",
+  "route:linter": "node scripts/route-linter.mjs"
   },
 
   "devDependencies": {
+  "supertest": "^7.1.4",
+  "@types/supertest": "^6.0.3",
+  "jose": "^5.3.0",
+  "undici": "^6.21.3",
   "@playwright/test": "^1.46.0",
     "@apidevtools/swagger-parser": "^12.0.0",
     "@redocly/cli": "^1.34.5",
@@ -84,8 +92,9 @@
     "tsup": "^8.5.0",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
-    "vitest": "^1.0.0",
-    "yaml": "^2.8.1"
+  "vitest": "^1.0.0",
+  "react-is": "^18.2.0",
+  "yaml": "^2.8.1"
   },
   "engines": {
     "node": ">=20.0.0",

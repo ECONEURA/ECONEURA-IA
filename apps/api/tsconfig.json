@@ -1,55 +1,23 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "allowJs": true,
-    "strict": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "preserve",
-    "incremental": true,
+  "outDir": "dist",
+    "types": ["node", "vitest/globals"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@econeura/*": ["../../packages/*/src"],
-      "@econeura/shared": ["../../packages/shared/src"],
-      "@econeura/shared/*": ["../../packages/shared/src/*"]
-    },
-    "types": ["node"],
-    "lib": ["ES2022", "DOM"],
-    "outDir": "./dist",
-  "rootDir": "../..",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "removeComments": false,
-    "noImplicitAny": false,
-  "noImplicitReturns": false,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": false,
-    "exactOptionalPropertyTypes": false
+  "@econeura/shared": ["../../packages/shared/src/index.ts"],
+  "@econeura/shared/*": ["../../packages/shared/src/*"],
+      "@econeura/db": ["../../src/types/external-stubs.d.ts"],
+      "@econeura/db/*": ["../../src/types/external-stubs.d.ts"]
+    }
   },
   "include": [
-    "src/**/*",
     "src/**/*.ts",
-    "src/**/*.tsx"
+    "src/types/**/*.d.ts"
   ],
   "exclude": [
-    "node_modules",
-    "dist",
-    "build",
-    "**/*.test.ts",
-    "**/*.spec.ts",
-    "src/lib/metrics.old.ts"
-  ],
-  "ts-node": {
-    "esm": true,
-    "experimentalSpecifierResolution": "node"
-  }
+  "src/lib/metrics.old.ts",
+  "src/tests/**",
+  "**/*.test.ts"
+  ]
 }

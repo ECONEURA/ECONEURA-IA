@@ -10,6 +10,10 @@ export interface RateLimitRequest extends Request {
 }
 
 export function rateLimitMiddleware(req: RateLimitRequest, res: Response, next: NextFunction): void {
+  // Disable rate limiting in tests or when explicitly disabled
+  if (process.env.NODE_ENV === 'test' || process.env.RATE_LIMIT_DISABLED === 'true') {
+    return next();
+  }
   // Extract organization ID from headers or query params
   const organizationId = req.headers['x-organization-id'] as string ||
                         req.query.organizationId as string ||

@@ -1,4 +1,4 @@
-import { getEnv } from '@econeura/shared/env';
+import { getEnv } from '@econeura/shared';
 let _redis: any;
 export async function getRedis() {
   if (_redis) return _redis;

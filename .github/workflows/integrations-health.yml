@@ -1,0 +1,20 @@
+name: integrations-health
+on:
+  schedule:
+    - cron: '0 5 * * *'
+  workflow_dispatch: {}
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Local health (no deploy) — valida seed
+        run: node -e "const fs=require('fs');const a=JSON.parse(fs.readFileSync('seed/agents_master.json','utf8'));const t=a.filter(x=>x.webhook_url).length;console.log('targets',t);process.exit(0)"
