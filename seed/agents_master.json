@@ -1,12 +1,672 @@
 [
-  {"department":"CEO — Ejecutivo","department_key":"ceo","type":"director","agent_key":"ceo_orquestador","agent_name":"Orquestador Ejecutivo","hitl":false},
-  {"department":"Plataforma IA","department_key":"ia","type":"agent","agent_key":"ia_cost_tracker","agent_name":"Cost Tracker","hitl":false},
-  {"department":"Tecnología (CTO)","department_key":"cto","type":"agent","agent_key":"cto_deploy_report","agent_name":"Informe de Despliegues","hitl":false},
-  {"department":"Seguridad (CISO)","department_key":"ciso","type":"agent","agent_key":"ciso_phishing","agent_name":"Phishing Triage","hitl":true},
-  {"department":"Operaciones (COO)","department_key":"coo","type":"agent","agent_key":"coo_sla_heartbeat","agent_name":"Latido de SLA","hitl":false},
-  {"department":"RRHH (CHRO)","department_key":"chro","type":"agent","agent_key":"chro_onboarding","agent_name":"Paquete de Onboarding","hitl":true},
-  {"department":"Marketing y Ventas","department_key":"mkt","type":"agent","agent_key":"mkt_lead_scoring","agent_name":"Puntuación y Enriquecimiento de Leads","hitl":false},
-  {"department":"Finanzas (CFO)","department_key":"cfo","type":"agent","agent_key":"cfo_dunning","agent_name":"Dunning Inteligente","hitl":true},
-  {"department":"Datos (CDO)","department_key":"cdo","type":"agent","agent_key":"cdo_dq_checks","agent_name":"Controles de Calidad de Datos","hitl":true},
-  {"department":"Organigrama","department_key":"org","type":"agent","agent_key":"org_snapshot","agent_name":"Instantánea Organizativa","hitl":false}
+  {
+    "department": "CEO — Ejecutivo",
+    "department_key": "ceo",
+    "type": "director",
+    "agent_key": "ceo_orquestador",
+    "agent_name": "Orquestador Ejecutivo",
+    "hitl": false
+  },
+  {
+    "department": "Plataforma IA",
+    "department_key": "ia",
+    "type": "agent",
+    "agent_key": "ia_cost_tracker",
+    "agent_name": "Cost Tracker",
+    "hitl": false
+  },
+  {
+    "department": "Tecnología (CTO)",
+    "department_key": "cto",
+    "type": "agent",
+    "agent_key": "cto_deploy_report",
+    "agent_name": "Informe de Despliegues",
+    "hitl": false
+  },
+  {
+    "department": "Seguridad (CISO)",
+    "department_key": "ciso",
+    "type": "agent",
+    "agent_key": "ciso_phishing",
+    "agent_name": "Phishing Triage",
+    "hitl": true
+  },
+  {
+    "department": "Operaciones (COO)",
+    "department_key": "coo",
+    "type": "agent",
+    "agent_key": "coo_sla_heartbeat",
+    "agent_name": "Latido de SLA",
+    "hitl": false
+  },
+  {
+    "department": "RRHH (CHRO)",
+    "department_key": "chro",
+    "type": "agent",
+    "agent_key": "chro_onboarding",
+    "agent_name": "Paquete de Onboarding",
+    "hitl": true
+  },
+  {
+    "department": "Marketing y Ventas",
+    "department_key": "mkt",
+    "type": "agent",
+    "agent_key": "mkt_lead_scoring",
+    "agent_name": "Puntuación y Enriquecimiento de Leads",
+    "hitl": false
+  },
+  {
+    "department": "Finanzas (CFO)",
+    "department_key": "cfo",
+    "type": "agent",
+    "agent_key": "cfo_dunning",
+    "agent_name": "Dunning Inteligente",
+    "hitl": true
+  },
+  {
+    "department": "Datos (CDO)",
+    "department_key": "cdo",
+    "type": "agent",
+    "agent_key": "cdo_dq_checks",
+    "agent_name": "Controles de Calidad de Datos",
+    "hitl": true
+  },
+  {
+    "department": "Organigrama",
+    "department_key": "org",
+    "type": "agent",
+    "agent_key": "org_snapshot",
+    "agent_name": "Instantánea Organizativa",
+    "hitl": false
+  },
+  {
+    "department": "CEO — Ejecutivo",
+    "department_key": "ceo",
+    "type": "agent",
+    "agent_key": "ceo_auto_1",
+    "agent_name": "Agente 01 CEO — Ejecutivo",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-ceo_auto_1"
+  },
+  {
+    "department": "CEO — Ejecutivo",
+    "department_key": "ceo",
+    "type": "agent",
+    "agent_key": "ceo_auto_2",
+    "agent_name": "Agente 02 CEO — Ejecutivo",
+    "hitl": true,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-ceo_auto_2"
+  },
+  {
+    "department": "CEO — Ejecutivo",
+    "department_key": "ceo",
+    "type": "agent",
+    "agent_key": "ceo_auto_3",
+    "agent_name": "Agente 03 CEO — Ejecutivo",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-ceo_auto_3"
+  },
+  {
+    "department": "CEO — Ejecutivo",
+    "department_key": "ceo",
+    "type": "agent",
+    "agent_key": "ceo_auto_4",
+    "agent_name": "Agente 04 CEO — Ejecutivo",
+    "hitl": true,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-ceo_auto_4"
+  },
+  {
+    "department": "CEO — Ejecutivo",
+    "department_key": "ceo",
+    "type": "agent",
+    "agent_key": "ceo_auto_5",
+    "agent_name": "Agente 05 CEO — Ejecutivo",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-ceo_auto_5"
+  },
+  {
+    "department": "Plataforma IA",
+    "department_key": "ia",
+    "type": "director",
+    "agent_key": "ia_orquestador",
+    "agent_name": "Orquestador",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-ia_orquestador"
+  },
+  {
+    "department": "Plataforma IA",
+    "department_key": "ia",
+    "type": "agent",
+    "agent_key": "ia_auto_1",
+    "agent_name": "Agente 01 Plataforma IA",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-ia_auto_1"
+  },
+  {
+    "department": "Plataforma IA",
+    "department_key": "ia",
+    "type": "agent",
+    "agent_key": "ia_auto_2",
+    "agent_name": "Agente 02 Plataforma IA",
+    "hitl": true,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-ia_auto_2"
+  },
+  {
+    "department": "Plataforma IA",
+    "department_key": "ia",
+    "type": "agent",
+    "agent_key": "ia_auto_3",
+    "agent_name": "Agente 03 Plataforma IA",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-ia_auto_3"
+  },
+  {
+    "department": "Plataforma IA",
+    "department_key": "ia",
+    "type": "agent",
+    "agent_key": "ia_auto_4",
+    "agent_name": "Agente 04 Plataforma IA",
+    "hitl": true,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-ia_auto_4"
+  },
+  {
+    "department": "Plataforma IA",
+    "department_key": "ia",
+    "type": "agent",
+    "agent_key": "ia_auto_5",
+    "agent_name": "Agente 05 Plataforma IA",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-ia_auto_5"
+  },
+  {
+    "department": "Estrategia (CSO)",
+    "department_key": "cso",
+    "type": "director",
+    "agent_key": "cso_orquestador",
+    "agent_name": "Orquestador",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cso_orquestador"
+  },
+  {
+    "department": "Estrategia (CSO)",
+    "department_key": "cso",
+    "type": "agent",
+    "agent_key": "cso_auto_1",
+    "agent_name": "Agente 01 Estrategia (CSO)",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cso_auto_1"
+  },
+  {
+    "department": "Estrategia (CSO)",
+    "department_key": "cso",
+    "type": "agent",
+    "agent_key": "cso_auto_2",
+    "agent_name": "Agente 02 Estrategia (CSO)",
+    "hitl": true,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cso_auto_2"
+  },
+  {
+    "department": "Estrategia (CSO)",
+    "department_key": "cso",
+    "type": "agent",
+    "agent_key": "cso_auto_3",
+    "agent_name": "Agente 03 Estrategia (CSO)",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cso_auto_3"
+  },
+  {
+    "department": "Estrategia (CSO)",
+    "department_key": "cso",
+    "type": "agent",
+    "agent_key": "cso_auto_4",
+    "agent_name": "Agente 04 Estrategia (CSO)",
+    "hitl": true,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cso_auto_4"
+  },
+  {
+    "department": "Estrategia (CSO)",
+    "department_key": "cso",
+    "type": "agent",
+    "agent_key": "cso_auto_5",
+    "agent_name": "Agente 05 Estrategia (CSO)",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cso_auto_5"
+  },
+  {
+    "department": "Tecnología (CTO)",
+    "department_key": "cto",
+    "type": "director",
+    "agent_key": "cto_orquestador",
+    "agent_name": "Orquestador",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cto_orquestador"
+  },
+  {
+    "department": "Tecnología (CTO)",
+    "department_key": "cto",
+    "type": "agent",
+    "agent_key": "cto_auto_1",
+    "agent_name": "Agente 01 Tecnología (CTO)",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cto_auto_1"
+  },
+  {
+    "department": "Tecnología (CTO)",
+    "department_key": "cto",
+    "type": "agent",
+    "agent_key": "cto_auto_2",
+    "agent_name": "Agente 02 Tecnología (CTO)",
+    "hitl": true,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cto_auto_2"
+  },
+  {
+    "department": "Tecnología (CTO)",
+    "department_key": "cto",
+    "type": "agent",
+    "agent_key": "cto_auto_3",
+    "agent_name": "Agente 03 Tecnología (CTO)",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cto_auto_3"
+  },
+  {
+    "department": "Tecnología (CTO)",
+    "department_key": "cto",
+    "type": "agent",
+    "agent_key": "cto_auto_4",
+    "agent_name": "Agente 04 Tecnología (CTO)",
+    "hitl": true,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cto_auto_4"
+  },
+  {
+    "department": "Tecnología (CTO)",
+    "department_key": "cto",
+    "type": "agent",
+    "agent_key": "cto_auto_5",
+    "agent_name": "Agente 05 Tecnología (CTO)",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cto_auto_5"
+  },
+  {
+    "department": "Seguridad (CISO)",
+    "department_key": "ciso",
+    "type": "director",
+    "agent_key": "ciso_orquestador",
+    "agent_name": "Orquestador",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-ciso_orquestador"
+  },
+  {
+    "department": "Seguridad (CISO)",
+    "department_key": "ciso",
+    "type": "agent",
+    "agent_key": "ciso_auto_1",
+    "agent_name": "Agente 01 Seguridad (CISO)",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-ciso_auto_1"
+  },
+  {
+    "department": "Seguridad (CISO)",
+    "department_key": "ciso",
+    "type": "agent",
+    "agent_key": "ciso_auto_2",
+    "agent_name": "Agente 02 Seguridad (CISO)",
+    "hitl": true,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-ciso_auto_2"
+  },
+  {
+    "department": "Seguridad (CISO)",
+    "department_key": "ciso",
+    "type": "agent",
+    "agent_key": "ciso_auto_3",
+    "agent_name": "Agente 03 Seguridad (CISO)",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-ciso_auto_3"
+  },
+  {
+    "department": "Seguridad (CISO)",
+    "department_key": "ciso",
+    "type": "agent",
+    "agent_key": "ciso_auto_4",
+    "agent_name": "Agente 04 Seguridad (CISO)",
+    "hitl": true,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-ciso_auto_4"
+  },
+  {
+    "department": "Seguridad (CISO)",
+    "department_key": "ciso",
+    "type": "agent",
+    "agent_key": "ciso_auto_5",
+    "agent_name": "Agente 05 Seguridad (CISO)",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-ciso_auto_5"
+  },
+  {
+    "department": "Operaciones (COO)",
+    "department_key": "coo",
+    "type": "director",
+    "agent_key": "coo_orquestador",
+    "agent_name": "Orquestador",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-coo_orquestador"
+  },
+  {
+    "department": "Operaciones (COO)",
+    "department_key": "coo",
+    "type": "agent",
+    "agent_key": "coo_auto_1",
+    "agent_name": "Agente 01 Operaciones (COO)",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-coo_auto_1"
+  },
+  {
+    "department": "Operaciones (COO)",
+    "department_key": "coo",
+    "type": "agent",
+    "agent_key": "coo_auto_2",
+    "agent_name": "Agente 02 Operaciones (COO)",
+    "hitl": true,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-coo_auto_2"
+  },
+  {
+    "department": "Operaciones (COO)",
+    "department_key": "coo",
+    "type": "agent",
+    "agent_key": "coo_auto_3",
+    "agent_name": "Agente 03 Operaciones (COO)",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-coo_auto_3"
+  },
+  {
+    "department": "Operaciones (COO)",
+    "department_key": "coo",
+    "type": "agent",
+    "agent_key": "coo_auto_4",
+    "agent_name": "Agente 04 Operaciones (COO)",
+    "hitl": true,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-coo_auto_4"
+  },
+  {
+    "department": "Operaciones (COO)",
+    "department_key": "coo",
+    "type": "agent",
+    "agent_key": "coo_auto_5",
+    "agent_name": "Agente 05 Operaciones (COO)",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-coo_auto_5"
+  },
+  {
+    "department": "RRHH (CHRO)",
+    "department_key": "chro",
+    "type": "director",
+    "agent_key": "chro_orquestador",
+    "agent_name": "Orquestador",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-chro_orquestador"
+  },
+  {
+    "department": "RRHH (CHRO)",
+    "department_key": "chro",
+    "type": "agent",
+    "agent_key": "chro_auto_1",
+    "agent_name": "Agente 01 RRHH (CHRO)",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-chro_auto_1"
+  },
+  {
+    "department": "RRHH (CHRO)",
+    "department_key": "chro",
+    "type": "agent",
+    "agent_key": "chro_auto_2",
+    "agent_name": "Agente 02 RRHH (CHRO)",
+    "hitl": true,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-chro_auto_2"
+  },
+  {
+    "department": "RRHH (CHRO)",
+    "department_key": "chro",
+    "type": "agent",
+    "agent_key": "chro_auto_3",
+    "agent_name": "Agente 03 RRHH (CHRO)",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-chro_auto_3"
+  },
+  {
+    "department": "RRHH (CHRO)",
+    "department_key": "chro",
+    "type": "agent",
+    "agent_key": "chro_auto_4",
+    "agent_name": "Agente 04 RRHH (CHRO)",
+    "hitl": true,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-chro_auto_4"
+  },
+  {
+    "department": "RRHH (CHRO)",
+    "department_key": "chro",
+    "type": "agent",
+    "agent_key": "chro_auto_5",
+    "agent_name": "Agente 05 RRHH (CHRO)",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-chro_auto_5"
+  },
+  {
+    "department": "Marketing y Ventas",
+    "department_key": "mkt",
+    "type": "director",
+    "agent_key": "mkt_orquestador",
+    "agent_name": "Orquestador",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-mkt_orquestador"
+  },
+  {
+    "department": "Marketing y Ventas",
+    "department_key": "mkt",
+    "type": "agent",
+    "agent_key": "mkt_auto_1",
+    "agent_name": "Agente 01 Marketing y Ventas",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-mkt_auto_1"
+  },
+  {
+    "department": "Marketing y Ventas",
+    "department_key": "mkt",
+    "type": "agent",
+    "agent_key": "mkt_auto_2",
+    "agent_name": "Agente 02 Marketing y Ventas",
+    "hitl": true,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-mkt_auto_2"
+  },
+  {
+    "department": "Marketing y Ventas",
+    "department_key": "mkt",
+    "type": "agent",
+    "agent_key": "mkt_auto_3",
+    "agent_name": "Agente 03 Marketing y Ventas",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-mkt_auto_3"
+  },
+  {
+    "department": "Marketing y Ventas",
+    "department_key": "mkt",
+    "type": "agent",
+    "agent_key": "mkt_auto_4",
+    "agent_name": "Agente 04 Marketing y Ventas",
+    "hitl": true,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-mkt_auto_4"
+  },
+  {
+    "department": "Marketing y Ventas",
+    "department_key": "mkt",
+    "type": "agent",
+    "agent_key": "mkt_auto_5",
+    "agent_name": "Agente 05 Marketing y Ventas",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-mkt_auto_5"
+  },
+  {
+    "department": "Finanzas (CFO)",
+    "department_key": "cfo",
+    "type": "director",
+    "agent_key": "cfo_orquestador",
+    "agent_name": "Orquestador",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cfo_orquestador"
+  },
+  {
+    "department": "Finanzas (CFO)",
+    "department_key": "cfo",
+    "type": "agent",
+    "agent_key": "cfo_auto_1",
+    "agent_name": "Agente 01 Finanzas (CFO)",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cfo_auto_1"
+  },
+  {
+    "department": "Finanzas (CFO)",
+    "department_key": "cfo",
+    "type": "agent",
+    "agent_key": "cfo_auto_2",
+    "agent_name": "Agente 02 Finanzas (CFO)",
+    "hitl": true,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cfo_auto_2"
+  },
+  {
+    "department": "Finanzas (CFO)",
+    "department_key": "cfo",
+    "type": "agent",
+    "agent_key": "cfo_auto_3",
+    "agent_name": "Agente 03 Finanzas (CFO)",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cfo_auto_3"
+  },
+  {
+    "department": "Finanzas (CFO)",
+    "department_key": "cfo",
+    "type": "agent",
+    "agent_key": "cfo_auto_4",
+    "agent_name": "Agente 04 Finanzas (CFO)",
+    "hitl": true,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cfo_auto_4"
+  },
+  {
+    "department": "Finanzas (CFO)",
+    "department_key": "cfo",
+    "type": "agent",
+    "agent_key": "cfo_auto_5",
+    "agent_name": "Agente 05 Finanzas (CFO)",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cfo_auto_5"
+  },
+  {
+    "department": "Datos (CDO)",
+    "department_key": "cdo",
+    "type": "director",
+    "agent_key": "cdo_orquestador",
+    "agent_name": "Orquestador",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cdo_orquestador"
+  },
+  {
+    "department": "Datos (CDO)",
+    "department_key": "cdo",
+    "type": "agent",
+    "agent_key": "cdo_auto_1",
+    "agent_name": "Agente 01 Datos (CDO)",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cdo_auto_1"
+  },
+  {
+    "department": "Datos (CDO)",
+    "department_key": "cdo",
+    "type": "agent",
+    "agent_key": "cdo_auto_2",
+    "agent_name": "Agente 02 Datos (CDO)",
+    "hitl": true,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cdo_auto_2"
+  },
+  {
+    "department": "Datos (CDO)",
+    "department_key": "cdo",
+    "type": "agent",
+    "agent_key": "cdo_auto_3",
+    "agent_name": "Agente 03 Datos (CDO)",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cdo_auto_3"
+  },
+  {
+    "department": "Datos (CDO)",
+    "department_key": "cdo",
+    "type": "agent",
+    "agent_key": "cdo_auto_4",
+    "agent_name": "Agente 04 Datos (CDO)",
+    "hitl": true,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cdo_auto_4"
+  },
+  {
+    "department": "Datos (CDO)",
+    "department_key": "cdo",
+    "type": "agent",
+    "agent_key": "cdo_auto_5",
+    "agent_name": "Agente 05 Datos (CDO)",
+    "hitl": false,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-cdo_auto_5"
+  }
 ]
