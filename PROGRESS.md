@@ -22,4 +22,4 @@
 | UI v3 + snapshot (pendiente) | 0% | 0/2 | ui |
 | Reportes/ROI (costHistory o SLO) | 100% | 1/1 | reports |
 
-_Última actualización:_ 2025-09-02T17:45:47.890Z · _Modelo:_ v3-0.4-0.6 · _Checksum:_ `48a1076e9867` 
+_Última actualización:_ 2025-09-02T19:25:59.634Z · _Modelo:_ v3-0.4-0.6 · _Checksum:_ `276c2e35ecc4` 

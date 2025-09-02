@@ -63,6 +63,7 @@
   "test:ui": "playwright test -c tests/ui/playwright.config.ts",
   "test:ui:update": "playwright test -c tests/ui/playwright.config.ts --update-snapshots",
   "perf:k6": "k6 run tests/perf/e2e.js",
+  "supervisor:check": "tsx scripts/supervisor-check.ts",
   "route:linter": "node scripts/route-linter.mjs",
   "health:integrations": "node scripts/ci/check-integrations-health.mjs"
   },

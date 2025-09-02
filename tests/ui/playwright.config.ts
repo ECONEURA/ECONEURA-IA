@@ -5,6 +5,7 @@ export default defineConfig({
   forbidOnly: true,
   timeout: 60_000,
   retries: 0,
+  snapshotDir: 'tests/ui/__screenshots__',
   use: {
     baseURL: process.env.BASE_URL || '',
     viewport: { width: 1440, height: 900 }
