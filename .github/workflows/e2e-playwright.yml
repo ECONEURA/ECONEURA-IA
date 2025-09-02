@@ -71,6 +71,9 @@ jobs:
         with:
           name: playwright-report
           path: status/playwright-report
+      - name: Teams alert on FAIL
+        if: failure()
+        run: echo "Playwright gate FAIL" # ver docs/ALERTS.md
   close-pr-on-fail:
     if: failure() && github.event_name == 'pull_request'
     runs-on: ubuntu-latest

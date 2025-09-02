@@ -1,0 +1,21 @@
+// p95 API
+requests
+| where timestamp > ago(24h)
+| where name has "/v1/"
+| summarize p95(duration) by bin(timestamp, 5m)
+
+// error rate
+requests
+| where timestamp > ago(24h)
+| summarize errors = countif(success==false), total = count() by bin(timestamp, 5m)
+| extend error_rate = todouble(errors)/todouble(total)
+
+// costo IA (si emites metricas personalizadas)
+customMetrics
+| where name == "ai_cost_eur"
+| summarize sum(value) by bin(timestamp, 1h), customDimensions.agent_key
+
+// HIL pendientes
+customMetrics
+| where name == "hil_pending"
+| summarize max(value) by bin(timestamp, 5m)

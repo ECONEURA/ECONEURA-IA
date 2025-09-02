@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 // Archivo de configuración de kill-switch (persistencia simple en disco)
-const KILL_PATH = process.env.FINOPS_KILL_PATH || path.join(process.cwd(), 'apps', 'api', 'src', 'config', 'finops.kill.json');
+const KILL_PATH = process.env.FINOPS_KILL_PATH || path.resolve(__dirname, '..', 'config', 'finops.kill.json');
 
 type KillConfigV1 = {
   version: number;
