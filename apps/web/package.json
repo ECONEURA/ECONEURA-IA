@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@econeura/shared": "file:../../packages/shared",
+  "@econeura/shared": "workspace:*",
     "@headlessui/react": "^1.7.18",
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^5.2.1",

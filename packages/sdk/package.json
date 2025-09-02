@@ -19,7 +19,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@econeura/shared": "file:../shared"
+  "@econeura/shared": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

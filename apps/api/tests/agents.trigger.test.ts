@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import request from 'supertest';
 import app from '../src/index';
-import { hmacSign } from '@econeura/shared/src/security/hmac';
+import { hmacSign } from '@econeura/shared/security';
 import crypto from 'node:crypto';
 
 describe('POST /v1/agents/:agent_key/trigger', () => {

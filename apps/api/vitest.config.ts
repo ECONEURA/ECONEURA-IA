@@ -13,9 +13,6 @@ export default defineConfig({
     passWithNoTests: true,
   },
   resolve: {
-    alias: {
-  '@econeura/shared': path.resolve(__dirname, '..', '..', 'packages', 'shared', 'src'),
-  '@econeura/db': path.resolve(__dirname, '..', '..', 'packages', 'db', 'src'),
-    },
+  alias: {},
   },
 });

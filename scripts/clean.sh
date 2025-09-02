@@ -1,12 +1,14 @@
 #!/usr/bin/env zsh
 
+setopt null_glob
+
 echo "🧹 Limpiando archivos generados..."
 
-# Limpiar node_modules
-echo "\n📦 Limpiando node_modules..."
-rm -rf node_modules
-rm -rf apps/*/node_modules
-rm -rf packages/*/node_modules
+# Limpiar node_modules (deshabilitado para no romper entorno de CI/local)
+echo "\n📦 Limpiando node_modules... (omitido)"
+# rm -rf node_modules
+# rm -rf apps/*/node_modules
+# rm -rf packages/*/node_modules
 
 # Limpiar builds
 echo "\n🏗️  Limpiando builds..."

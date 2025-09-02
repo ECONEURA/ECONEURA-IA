@@ -32,6 +32,7 @@ import { runAutoCancel } from './jobs/hil-autocancel';
 import { startHilExpirer } from './cron/hil-expirer.js';
 import { latency } from './middleware/latency.js';
 import { hilApprovals } from './routes/hil.approvals';
+import { hilApprovalsRouterV2 } from './routes/hil.approvals.v2.js';
 // NOTE: Avoid static import of the DB package to keep tests lightweight.
 // We'll dynamically import and init Prisma only when DB env is present.
 
@@ -92,6 +93,7 @@ app.use('/v1/sepa', sepaRouter);
 app.use(progressRouter);
 app.use(hilRouter);
 app.use(hilApprovals);
+app.use(hilApprovalsRouterV2);
 // HIL endpoints
 app.use(hilRouter);
 // Agents endpoints
