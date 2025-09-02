@@ -14,7 +14,8 @@ jobs:
       NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
     steps:
       - uses: actions/checkout@v4
-      - uses: grafana/setup-k6@v1
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
       - name: Preflight secret
         id: preflight
         shell: bash
@@ -29,7 +30,7 @@ jobs:
         if: steps.preflight.outputs.skip != 'true'
         run: |
           export BASE_URL="$K6_BASE_URL"
-          npx --yes k6@0.49.0 run tests/perf/e2e.js
+          k6 run tests/perf/e2e.js
       - name: Teams alert on FAIL
         if: failure()
         run: echo "k6 smoke FAIL" # ver docs/ALERTS.md
