@@ -12,9 +12,9 @@ jobs:
       SNAPSHOT_THRESHOLD: '0.02'
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+    - uses: pnpm/action-setup@v4
         with:
-          version: 9
+      version: 8.15.0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -22,18 +22,29 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright
         run: pnpm dlx playwright install --with-deps
+      - name: Preflight secrets
+        id: preflight
+        shell: bash
+        run: |
+          if [ -z "${BASE_URL}" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "PLAYWRIGHT_BASE_URL not set → skipping visual gate"
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
       - name: Detect baseline
         id: baseline
+        if: steps.preflight.outputs.skip != 'true'
         shell: bash
         run: |
           shopt -s globstar || true
           count=$(ls tests/ui/**/__screenshots__/**/*.png 2>/dev/null | wc -l | tr -d ' ')
           if [ "$count" = "0" ]; then echo "mode=bootstrap" >> $GITHUB_OUTPUT; else echo "mode=gating" >> $GITHUB_OUTPUT; fi
       - name: Bootstrap snapshots (first run)
-        if: steps.baseline.outputs.mode == 'bootstrap'
+        if: steps.preflight.outputs.skip != 'true' && steps.baseline.outputs.mode == 'bootstrap'
         run: pnpm test:ui:update || true
       - name: Gate snapshots (≤2%)
-        if: steps.baseline.outputs.mode == 'gating'
+        if: steps.preflight.outputs.skip != 'true' && steps.baseline.outputs.mode == 'gating'
         run: pnpm test:ui
       - name: Upload Playwright report
         if: always()
@@ -42,32 +53,9 @@ jobs:
           name: playwright-report
           path: status/playwright-report
       - name: Upload snapshots (bootstrap)
-        if: steps.baseline.outputs.mode == 'bootstrap'
+        if: steps.preflight.outputs.skip != 'true' && steps.baseline.outputs.mode == 'bootstrap'
         uses: actions/upload-artifact@v4
         with:
           name: playwright-snapshots-bootstrap
           path: tests/ui/**/__screenshots__/
           if-no-files-found: ignore
-name: E2E Playwright Smoke
-
-on:
-  push:
-    paths:
-      - 'e2e/**'
-  workflow_dispatch: {}
-
-jobs:
-  smoke:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - name: Install deps
-        run: pnpm install
-      - name: Run Playwright smoke
-        if: ${{ always() }}
-        run: pnpm dlx playwright test e2e/playwright.smoke.spec.ts --timeout 60000 || true
-      # marker: e2e-playwright.yml

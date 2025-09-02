@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Brain, Zap, TrendingUp, BarChart3, Clock, Target } from 'lucide-react';
-import { useApiClient } from '@/lib/api-client';
+import { useApiClient } from '@/hooks/useApi';
 
 interface Model {
   id: string;
@@ -164,7 +164,7 @@ export default function AutoMLDashboard() {
               <Label htmlFor="testSize">Test Size</Label>
               <Select
                 value={config.testSize.toString()}
-                onValueChange={(value) => setConfig(prev => ({ ...prev, testSize: parseFloat(value) }))}
+                onValueChange={(value: string) => setConfig(prev => ({ ...prev, testSize: parseFloat(value) }))}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -184,7 +184,7 @@ export default function AutoMLDashboard() {
               id="targetColumn"
               placeholder="Enter target column name"
               value={config.targetColumn}
-              onChange={(e) => setConfig(prev => ({ ...prev, targetColumn: e.target.value }))}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfig(prev => ({ ...prev, targetColumn: e.target.value }))}
             />
           </div>
 
@@ -194,9 +194,9 @@ export default function AutoMLDashboard() {
               id="features"
               placeholder="feature1, feature2, feature3"
               value={config.features.join(', ')}
-              onChange={(e) => setConfig(prev => ({ 
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfig(prev => ({ 
                 ...prev, 
-                features: e.target.value.split(',').map(f => f.trim()).filter(f => f)
+                features: e.target.value.split(',').map((f: string) => f.trim()).filter((f: string) => f)
               }))}
             />
           </div>

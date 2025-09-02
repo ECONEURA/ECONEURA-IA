@@ -129,9 +129,9 @@ class ApiClient {
     // Show error message
     const message = errorData?.detail || errorData?.title || error.message || 'API Error'
     
-    if (status >= 500) {
+  if (typeof status === 'number' && status >= 500) {
       toast.error(`Server Error: ${message}`)
-    } else if (status >= 400) {
+  } else if (typeof status === 'number' && status >= 400) {
       toast.error(message)
     } else {
       toast.error('Network Error')
@@ -312,4 +312,4 @@ class ApiClient {
 export const apiClient = new ApiClient()
 
 // Export types
-export type { ApiError, ApiResponse }
+// Types are already declared above; consumers can import from this module directly

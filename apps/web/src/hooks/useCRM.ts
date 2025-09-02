@@ -1,5 +1,5 @@
 import { useApiQuery, useApiMutation } from './useApi'
-// import { Company, Contact, Deal } from '@econeura/shared/schemas/crm'
+import type { Company, Contact, Deal } from '@econeura/shared'
 
 // ============ COMPANIES ============
 

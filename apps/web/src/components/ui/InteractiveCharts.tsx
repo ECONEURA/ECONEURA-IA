@@ -49,6 +49,7 @@ interface ChartConfig {
     scales?: {
       y?: {
         beginAtZero?: boolean;
+  max?: number;
         grid?: {
           display?: boolean;
         };

@@ -10,35 +10,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: grafana/setup-k6@v1
-      - name: Run k6 smoke
+      - name: Preflight secret
+        id: preflight
+        shell: bash
         env:
           BASE_URL: ${{ secrets.K6_BASE_URL }}
         run: |
           if [ -z "$BASE_URL" ]; then
-            echo "K6 BASE_URL not set → skipping smoke"; exit 0;
-          fi
-          npx --yes k6@0.49.0 run tests/perf/e2e.js
-name: k6 smoke
-
-on:
-  push:
-    paths:
-      - 'e2e/**'
-  workflow_dispatch: {}
-
-jobs:
-  k6:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run k6 smoke
-        run: |
-          if [ -f e2e/k6.smoke.js ]; then
-            sudo apt-get update && sudo apt-get install -y jq
-            curl -s https://dl.k6.io/linux64/k6-latest.deb -o /tmp/k6.deb && sudo dpkg -i /tmp/k6.deb
-            k6 run e2e/k6.smoke.js || true
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "K6_BASE_URL not set → skipping smoke"
           else
-            echo "no k6 script"
+            echo "skip=false" >> $GITHUB_OUTPUT
           fi
-
-# marker: k6-smoke.yml
+      - name: Run k6 smoke
+        if: steps.preflight.outputs.skip != 'true'
+        env:
+          BASE_URL: ${{ secrets.K6_BASE_URL }}
+        run: |
+          npx --yes k6@0.49.0 run tests/perf/e2e.js
+      # marker: k6-smoke.yml

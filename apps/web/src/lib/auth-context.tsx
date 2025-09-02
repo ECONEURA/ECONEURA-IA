@@ -58,21 +58,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize SDK
   const initializeSdk = useCallback((accessToken?: string, refreshToken?: string) => {
-    // const newSdk = new EconeuraSDK({
-    //   baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000',
-    //   accessToken,
-    //   refreshToken,
-    //   onTokenRefresh: (tokens) => {
-    //     // Save new tokens
-    //     localStorage.setItem(TOKEN_KEY, tokens.accessToken);
-    //     localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
-    //   },
-    //   timeout: 30000,
-    //   retries: 3,
-    // });
-    // setSdk(newSdk);
-    // return newSdk;
-    return null;
+    // Minimal stub with required surface
+    const stub = {
+      client: {
+        setAccessToken: (_t: string) => {},
+        setRefreshToken: (_t: string) => {},
+      },
+      auth: {
+        async me(): Promise<MeResponse> {
+          // Try to read cached values if present
+          const cachedUser = localStorage.getItem(USER_KEY);
+          const cachedOrg = localStorage.getItem(ORG_KEY);
+          const cachedRole = localStorage.getItem(ROLE_KEY);
+          const cachedPermissions = localStorage.getItem(PERMISSIONS_KEY);
+          if (cachedUser && cachedOrg && cachedRole && cachedPermissions) {
+            return {
+              user: JSON.parse(cachedUser),
+              organization: JSON.parse(cachedOrg),
+              role: JSON.parse(cachedRole),
+              permissions: JSON.parse(cachedPermissions),
+              tokens: { accessToken: accessToken || '', refreshToken: refreshToken || '' }
+            } as unknown as MeResponse;
+          }
+          throw new Error('Not authenticated');
+        },
+        async login(_credentials: LoginRequest): Promise<LoginResponse> {
+          // This stub should not be used for real auth; throw to surface missing SDK
+          throw new Error('SDK not initialized: login unavailable in stub');
+        },
+        async refresh({ refreshToken }: { refreshToken: string }): Promise<LoginResponse> {
+          // Pass-through stub; in real SDK, this would call API
+          return {
+            user: null as any,
+            organization: null as any,
+            role: null as any,
+            permissions: [],
+            tokens: { accessToken: accessToken || '', refreshToken: refreshToken || '' }
+          } as unknown as LoginResponse;
+        },
+        async logout(_opts?: { allDevices?: boolean }) { /* no-op */ },
+      },
+    };
+    setSdk(stub);
+    return stub;
   }, []);
 
   // Load stored session on mount
@@ -88,6 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
           // Try to get current user info
           try {
+            if (!sdkInstance) throw new Error('SDK not initialized');
             const meData = await sdkInstance.auth.me();
             
             // Update state with user info
@@ -105,6 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.error('Failed to load user session:', error);
             // Token might be expired, try to refresh
             try {
+              if (!sdkInstance) throw new Error('SDK not initialized');
               const refreshResult = await sdkInstance.auth.refresh({ 
                 refreshToken: storedRefreshToken 
               });
@@ -170,8 +200,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Login function
   const login = async (credentials: LoginRequest) => {
     try {
-      const sdkInstance = sdk || initializeSdk();
-      const response = await sdkInstance.auth.login(credentials);
+  const sdkInstance = sdk || initializeSdk();
+  if (!sdkInstance) throw new Error('SDK not initialized');
+  const response = await sdkInstance.auth.login(credentials);
       
       // Store tokens
       localStorage.setItem(TOKEN_KEY, response.tokens.accessToken);
@@ -224,7 +255,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
       if (!refreshToken) throw new Error('No refresh token');
       
-      const response = await sdk.auth.refresh({ refreshToken });
+  const response = await sdk.auth.refresh({ refreshToken });
       
       // Update tokens
       localStorage.setItem(TOKEN_KEY, response.tokens.accessToken);
@@ -235,7 +266,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       sdk.client.setRefreshToken(response.tokens.refreshToken);
       
       // Get updated user info
-      const meData = await sdk.auth.me();
+  const meData = await sdk.auth.me();
       setUser(meData.user as User);
       setOrganization(meData.organization as Organization);
       setRole(meData.role as Role);

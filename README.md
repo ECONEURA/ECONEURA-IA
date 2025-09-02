@@ -82,6 +82,18 @@
 
 **Smokes globales**: health, IA cache, budget, make dedupe, graph, hitl, stripe, inventory, suppliers, attachments, taxonomy, dedupe, nba, dunning, fiscal, sepa, gdpr, rls, finops, quiet, warmup, secrets, csp, bluegreen, k6, openapi, semantic, reports, rbac, restore, otel, audit, xss, dod … (+ los de la tanda final).
 
+### Ejecutar gates visuales y perf
+
+- Visual (Playwright ≤2%): requiere `PLAYWRIGHT_BASE_URL` (GitHub Secret) o exportar `BASE_URL` localmente. El workflow detecta si no hay baseline y hace bootstrap automático.
+- Perf (k6 smoke): requiere `K6_BASE_URL` (GitHub Secret). Si falta, el workflow se salta sin fallar.
+
+Local:
+- Tareas VS Code incluidas: “UI: Playwright (gate)” y “UI: Playwright (bootstrap snapshots)”, “Perf: k6 smoke”.
+- O desde terminal:
+  - BASE_URL=http://localhost:3000 pnpm test:ui
+  - BASE_URL=http://localhost:3000 pnpm test:ui:update
+  - BASE_URL=http://localhost:3000 pnpm perf:k6
+
 ---
 
 ## 6) Roadmap completo de PR‑0 → PR‑85 (titular + objetivo + DoD breve)

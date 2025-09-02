@@ -1,0 +1,30 @@
+name: E2E Playwright Smoke
+
+on:
+  push:
+    paths:
+      - 'e2e/**'
+  workflow_dispatch: {}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8.15.0
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8.15.0
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - name: Install deps
+        run: pnpm install
+      - name: Run Playwright smoke
+        if: ${{ always() }}
+        run: pnpm dlx playwright test e2e/playwright.smoke.spec.ts --timeout 60000 || true
+      # marker: e2e-playwright-smoke.yml

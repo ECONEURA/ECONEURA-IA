@@ -79,17 +79,13 @@ export class IntelligentRateLimiter {
       ...config
     };
 
-      const organization: OrganizationRateLimit = {
-        organizationId,
-        config: {
-          limit: Number(fullConfig.maxRequests),
-          windowMs: Number(fullConfig.windowMs),
-          burst: Number(fullConfig.burstSize ?? 0),
-          refillRate: Number(fullConfig.refillRate ?? 0)
-        } as any,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      } as any;
+    const organization: OrganizationRateLimit = {
+      organizationId,
+      // Store canonical RateLimitConfig without renaming keys
+      config: fullConfig,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
 
     this.organizations.set(organizationId, organization);
 
@@ -125,7 +121,7 @@ export class IntelligentRateLimiter {
     }
 
     const updatedConfig: RateLimitConfig = {
-      ...existing.config,
+  ...existing.config,
       ...config
     };
 
@@ -146,6 +142,17 @@ export class IntelligentRateLimiter {
     });
 
     return true;
+  }
+
+  // Returns the effective config for a given organization key or the default one if not present
+  getEffectiveConfig(organizationId: string): RateLimitConfig {
+    const organization = this.organizations.get(organizationId);
+    return organization?.config ?? this.defaultConfig;
+  }
+
+  // Whether an organization key has an explicit configuration
+  hasOrganization(organizationId: string): boolean {
+    return this.organizations.has(organizationId);
   }
 
   isAllowed(organizationId: string, requestId: string): { allowed: boolean; remaining: number; resetTime: number; retryAfter?: number } {
@@ -305,9 +312,10 @@ export class IntelligentRateLimiter {
     return {
       totalOrganizations: organizations.length,
       totalRequests: states.reduce((sum, state) => sum + state.requestCount, 0),
-      averageUtilization: states.reduce((sum, state) => {
+      averageUtilization: states.length === 0 ? 0 : states.reduce((sum, state) => {
         const org = organizations.find(o => this.states.get(o.organizationId) === state);
-        return sum + (state.requestCount / (org?.config.maxRequests || 1)) * 100;
+        const max = org?.config.maxRequests || this.defaultConfig.maxRequests;
+        return sum + (state.requestCount / Math.max(1, max)) * 100;
       }, 0) / states.length,
       strategies: {
         'token-bucket': organizations.filter(o => o.config.strategy === 'token-bucket').length,

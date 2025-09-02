@@ -288,10 +288,7 @@ export default function AdvancedDashboardPage() {
           )}
 
           {/* Advanced Dashboard */}
-          <AdvancedDashboard 
-            data={dashboardData}
-            className="mb-8"
-          />
+          <AdvancedDashboard className="mb-8" />
 
           {/* Interactive Charts */}
           <InteractiveCharts

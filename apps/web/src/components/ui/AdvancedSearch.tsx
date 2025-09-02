@@ -152,13 +152,17 @@ export default function AdvancedSearch({
   };
 
   const handleFilterChange = (key: keyof SearchFilters, value: any) => {
-    const newFilters = { ...filters, [key]: value };
+    // Enforce allowed union for 'type'
+    const normalized = key === 'type'
+      ? (['all', 'products', 'suppliers'].includes(value) ? value as 'all' | 'products' | 'suppliers' : 'all')
+      : value;
+    const newFilters: SearchFilters = { ...filters, [key]: normalized };
     setFilters(newFilters);
     onFiltersChange(newFilters);
   };
 
   const clearFilters = () => {
-    const newFilters = { type: 'all' };
+    const newFilters: SearchFilters = { type: 'all' };
     setFilters(newFilters);
     onFiltersChange(newFilters);
   };
