@@ -5,6 +5,9 @@ on:
   workflow_dispatch: {}
 
 jobs:
+    env:
+      K6_BASE_URL: ${{ secrets.K6_BASE_URL }}
+      NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
   perf:
     runs-on: ubuntu-latest
     permissions:

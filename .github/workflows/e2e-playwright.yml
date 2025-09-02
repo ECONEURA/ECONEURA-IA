@@ -20,8 +20,10 @@ jobs:
           version: 8.15.0
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'pnpm'
+          env:
+            BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }} # p.ej. https://econeura-web-dev.azurewebsites.net
+            PLAYWRIGHT_BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
+            NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright
         run: pnpm dlx playwright install --with-deps
@@ -34,6 +36,7 @@ jobs:
             echo "PLAYWRIGHT_BASE_URL not set → skipping visual gate"
           else
             echo "skip=false" >> $GITHUB_OUTPUT
+            - run: echo "BASE_URL=$PLAYWRIGHT_BASE_URL" >> $GITHUB_ENV
           fi
       - name: Detect baseline
         id: baseline
