@@ -5,23 +5,21 @@ on:
   workflow_dispatch: {}
 
 jobs:
-    env:
-      K6_BASE_URL: ${{ secrets.K6_BASE_URL }}
-      NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
   perf:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
+    env:
+      K6_BASE_URL: ${{ secrets.K6_BASE_URL }}
+      NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: grafana/setup-k6@v1
       - name: Preflight secret
         id: preflight
         shell: bash
-        env:
-          BASE_URL: ${{ secrets.K6_BASE_URL }}
         run: |
-          if [ -z "$BASE_URL" ]; then
+          if [ -z "$K6_BASE_URL" ]; then
             echo "skip=true" >> $GITHUB_OUTPUT
             echo "K6_BASE_URL not set → skipping smoke"
           else
@@ -29,9 +27,8 @@ jobs:
           fi
       - name: Run k6 smoke
         if: steps.preflight.outputs.skip != 'true'
-        env:
-          BASE_URL: ${{ secrets.K6_BASE_URL }}
         run: |
+          export BASE_URL="$K6_BASE_URL"
           npx --yes k6@0.49.0 run tests/perf/e2e.js
       - name: Teams alert on FAIL
         if: failure()
