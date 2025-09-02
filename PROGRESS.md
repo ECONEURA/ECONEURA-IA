@@ -3,8 +3,8 @@
 **Objetivo:** Desplegar ECONEURA (cockpit pixel-perfect v3 en Azure), /v1 seguro con AAD+HMAC+Idempotencia, HIL/FSM con SLA y auto-cancel, FinOps guard 80/90/100 + kill-switch y observabilidad E2E; CI/CD con gates (OpenAPI, Playwright ≤2%, k6 p95<2s).
 
 
-**Avance global:** **53%**  
-**Entrega (PRs):** 29%  ·  **Funcional:** 92%  ·  **Build:** ✅  **Tests:** ❌
+**Avance global:** **55%**  
+**Entrega (PRs):** 0%  ·  **Funcional:** 92%  ·  **Build:** ✅  **Tests:** ✅
 
 > ⚠️ Bloqueado por: Redis, AAD, Make
 
@@ -22,4 +22,4 @@
 | UI v3 + snapshot (pendiente) | 0% | 0/2 | ui |
 | Reportes/ROI (costHistory o SLO) | 100% | 1/1 | reports |
 
-_Última actualización:_ 2025-09-02T22:30:33.330Z · _Modelo:_ v3-0.4-0.6 · _Checksum:_ `276c2e35ecc4` 
+_Última actualización:_ 2025-09-03T00:00:00.000Z · _Modelo:_ v3-0.4-0.6 · _Checksum:_ `sync-main` 
