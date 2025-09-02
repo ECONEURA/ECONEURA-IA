@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 
-export const interactionRoutes = Router();
+export const interactionRoutes: ExpressRouter = Router();
 interactionRoutes.get('/', (_req, res) => res.json({ interactions: [] }));

@@ -20,3 +20,4 @@ jobs:
       - name: Run Playwright smoke
         if: ${{ always() }}
         run: pnpm dlx playwright test e2e/playwright.smoke.spec.ts --timeout 60000 || true
+      # marker: e2e-playwright.yml

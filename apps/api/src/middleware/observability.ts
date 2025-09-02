@@ -144,8 +144,16 @@ export function healthCheckMiddleware(req: Request, res: Response, next: NextFun
       const duration = Date.now() - startTime;
       const statusCode = res.statusCode;
 
-      // Registrar métricas de health check
-      metrics.recordHealthCheck(req.path, statusCode < 400 ? 'ok' : 'error', duration);
+      // Registrar métricas de health check (usar funciones existentes)
+      try {
+        if (typeof (metrics as any).recordHealthCheck === 'function') {
+          (metrics as any).recordHealthCheck(req.path, statusCode < 400 ? 'ok' : 'error', duration)
+        } else if (typeof (metrics as any).recordHealthCheckDuration === 'function') {
+          (metrics as any).recordHealthCheckDuration(req.path, duration)
+        } else if (typeof (metrics as any).incrementHealthCheck === 'function') {
+          (metrics as any).incrementHealthCheck(req.path)
+        }
+      } catch {}
 
       // Registrar log
       logger.healthCheck(req.path, statusCode < 400 ? 'ok' : 'error', duration, {

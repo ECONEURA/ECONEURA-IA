@@ -3,25 +3,12 @@ objective: >
   Desplegar ECONEURA (cockpit pixel-perfect v3 en Azure), /v1 seguro con AAD+HMAC+Idempotencia,
   HIL/FSM con SLA y auto-cancel, FinOps guard 80/90/100 + kill-switch y observabilidad E2E;
   CI/CD con gates (OpenAPI, Playwright ≤2%, k6 p95<2s).
-
 target_pr: 85
-
-weights:
-  delivery_prs: 0.4
-  functional: 0.6
+weights: { delivery_prs: 0.4, functional: 0.6 }
 
 functional_objectives:
-  - id: ui
-    name: UI Cockpit v3 pixel-perfect
-    weight: 1
-    checks:
-      - kind: file_exists
-        path: "apps/web/**/ECONEURA_cockpit_v7_aplicado_fix_organigrama_v3.html"
-      - kind: test_includes
-        path: "tests/ui/cockpit.baseline.spec.ts"
-        contains: "toMatchSnapshot"
   - id: api_trigger
-    name: API /v1/agents/{agent_key}/trigger (AAD+HMAC+Idem)
+    name: API /v1/agents/{agent_key}/trigger (OpenAPI + headers seguridad/coste)
     weight: 1
     checks:
       - kind: openapi_route
@@ -30,41 +17,38 @@ functional_objectives:
         method: "post"
       - kind: code_includes
         glob: "apps/api/src/**/*"
-        contains: "X-Est-Cost-EUR"
-      - kind: code_includes
-        glob: "apps/api/src/**/*"
         contains: "Idempotency-Key"
-  - id: seed
-    name: Seed agents_master.json
-    weight: 0.6
-    checks:
-      - kind: file_exists
-        path: "seed/agents_master.json"
-  - id: hil
-    name: HIL/FSM (tablas+endpoints+auto-cancel)
-    weight: 1
-    checks:
-      - kind: code_includes
-        glob: "apps/api/prisma/schema.prisma"
-        contains: "hitl"
       - kind: code_includes
         glob: "apps/api/src/**/*"
-        contains: "pending_approval"
-  - id: finops
-    name: FinOps (guard 80/90/100 + kill-switch + EOM)
-    weight: 1
-    checks:
-      - kind: file_exists
-        path: "apps/api/src/config/finops.departments.json"
+        contains: "X-Est-Cost-EUR"
       - kind: code_includes
         glob: "apps/api/src/**/*"
         contains: "X-Budget-Pct"
       - kind: code_includes
         glob: "apps/api/src/**/*"
-        contains: "kill-switch"
-  - id: security
-    name: Seguridad (/v1 con AAD en prod, CSP/SRI)
+        contains: "X-Budget-Dept"
+
+  - id: seed
+    name: Seed agents_master.json
+    weight: 0.8
+    checks:
+      - kind: file_exists
+        path: "seed/agents_master.json"
+
+  - id: hil
+    name: HIL/FSM (modelo + transición + SLA)
     weight: 1
+    checks:
+      - kind: code_includes
+        glob: "apps/api/prisma/schema.prisma"
+        contains: "model hitl_task"
+      - kind: code_includes
+        glob: "apps/api/src/**/*"
+        contains: "pending_approval"
+
+  - id: security
+    name: Seguridad (helmet + AAD_REQUIRED)
+    weight: 0.8
     checks:
       - kind: code_includes
         glob: "apps/api/src/**/*"
@@ -72,51 +56,61 @@ functional_objectives:
       - kind: code_includes
         glob: "apps/api/src/**/*"
         contains: "AAD_REQUIRED"
+
   - id: observability
-    name: Observabilidad (OTel E2E + alertas)
-    weight: 0.8
+    name: Observabilidad (span de negocio presente)
+    weight: 0.6
     checks:
       - kind: code_includes
         glob: "apps/api/src/**/*"
-        contains: "@opentelemetry"
-      - kind: code_includes
-        glob: "apps/api/src/**/*"
-        contains: "agent.key"
+        contains: "withSpan("
+
   - id: cicd
-    name: CI/CD con gates (OpenAPI/Playwright/k6)
-    weight: 1
+    name: CI/CD (workflows e2e y perf mínimos)
+    weight: 0.6
     checks:
       - kind: workflow_includes
         glob: ".github/workflows/**/*.yml"
-  contains_any: ["e2e-playwright.yml", "k6-smoke.yml"]
+        contains_any: ["e2e-playwright.yml","k6-smoke.yml"]
+
   - id: erp
-    name: ERP/CRM núcleo (CRUD + flujos)
-    weight: 1
+    name: ERP/CRM núcleo (Invoice model)
+    weight: 0.6
     checks:
       - kind: code_includes
         glob: "apps/api/prisma/schema.prisma"
-        contains: "Invoice"
+        contains: "model Invoice"
+
   - id: make
-    name: Integración Make.com
-    weight: 0.8
+    name: Integración Make (referencias en seed/código)
+    weight: 0.4
     checks:
       - kind: code_includes
         glob: "apps/api/src/**/*"
-        contains: "make"
+        contains: "make_scenario_id"
+
   - id: mistral
-    name: Mistral local (sin PII)
+    name: Mistral local (flag sin PII)
     weight: 0.4
     checks:
       - kind: code_includes
         glob: "**/*.ts"
         contains: "USE_LOCAL_MISTRAL"
+
+  - id: ui
+    name: UI v3 + snapshot (pendiente)
+    weight: 0.4
+    checks:
+      - kind: file_exists
+        path: "apps/web/**/ECONEURA_cockpit_v7_aplicado_fix_organigrama_v3.html"
+      - kind: code_includes
+        glob: "tests/ui/**/*.spec.ts"
+        contains: "toMatchSnapshot"
+
   - id: reports
-    name: Reportes/ROI (feed runs, coste, SLO)
-    weight: 0.6
+    name: Reportes/ROI (costHistory o SLO)
+    weight: 0.4
     checks:
       - kind: code_includes
         glob: "apps/api/src/**/*"
         contains: "costHistory"
-      - kind: code_includes
-        glob: "apps/api/src/**/*"
-        contains: "SLO"

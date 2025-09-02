@@ -17,8 +17,9 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-  "@econeura/*": ["../../packages/*/src"],
-  "@econeura/shared/*": ["../../packages/shared/src/*"]
+      "@econeura/*": ["../../packages/*/src"],
+      "@econeura/shared": ["../../packages/shared/src"],
+      "@econeura/shared/*": ["../../packages/shared/src/*"]
     },
     "types": ["node"],
     "lib": ["ES2022", "DOM"],
@@ -29,7 +30,7 @@
     "sourceMap": true,
     "removeComments": false,
     "noImplicitAny": false,
-    "noImplicitReturns": true,
+  "noImplicitReturns": false,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": false,
     "exactOptionalPropertyTypes": false
@@ -45,7 +46,7 @@
     "build",
     "**/*.test.ts",
     "**/*.spec.ts",
-    
+    "src/lib/metrics.old.ts"
   ],
   "ts-node": {
     "esm": true,

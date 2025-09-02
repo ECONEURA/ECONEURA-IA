@@ -11,6 +11,9 @@
   "packageManager": "pnpm@8.15.0",
   "scripts": {
     "build": "./scripts/clean.sh && ./scripts/validate-types.sh && pnpm -r --filter ./packages... build && pnpm -r --filter ./apps... build",
+    "build:all": "pnpm -r --if-present build",
+    "test:all": "pnpm -r --if-present test --silent",
+
     "build:web": "pnpm --filter @econeura/web build",
     "build:api": "pnpm --filter @econeura/api build",
     "build:packages": "pnpm -r --filter ./packages... build",
@@ -45,8 +48,12 @@
     "docker:down": "docker-compose down",
     "clean": "rm -rf node_modules && rm -rf apps/*/node_modules && rm -rf packages/*/node_modules && rm -rf apps/*/.next && rm -rf packages/*/dist",
     "setup": "pnpm install && pnpm db:generate && pnpm db:migrate && pnpm db:seed",
-    "postinstall": "echo 'Setup complete'"
+    "postinstall": "echo 'Setup complete'",
+  "ci:build": "pnpm --filter \"@econeura/shared...\" --filter \"@econeura/api\" -r --if-present build",
+  "ci:test": "pnpm --filter \"@econeura/shared...\" --filter \"@econeura/api\" -r --if-present test --silent",
+  "ci:unit": "pnpm --filter \"@econeura/shared...\" --filter \"@econeura/api\" -r --if-present test:unit --silent"
   },
+
   "devDependencies": {
     "@apidevtools/swagger-parser": "^12.0.0",
     "@redocly/cli": "^1.34.5",

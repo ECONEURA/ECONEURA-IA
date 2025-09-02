@@ -34,11 +34,11 @@ model User {
   userOrganizations  UserOrganization[]
   sessions           DeviceSession[]
   auditLogs          AuditLog[]
-  
+
   // CRM Relations
   dealsAssigned      Deal[]               @relation("DealAssignee")
   activitiesAssigned Activity[]           @relation("ActivityAssignee")
-  
+
   // Finance Relations
   invoicesSubmitted  Invoice[]            @relation("InvoiceSubmittedBy")
   invoicesApproved   Invoice[]            @relation("InvoiceApprovedBy")
@@ -63,18 +63,18 @@ model Organization {
   timezone        String               @default("Europe/Madrid")
   locale          String               @default("es-ES")
   currency        String               @default("EUR")
-  
+
   // Billing info
   taxId           String?              @map("tax_id")
   billingEmail    String?              @map("billing_email")
   billingAddress  Json?                @map("billing_address")
-  
+
   // Subscription info
   plan            PlanType             @default(TRIAL)
   planExpiresAt   DateTime?            @map("plan_expires_at")
   maxUsers        Int                  @default(5) @map("max_users")
   maxStorage      BigInt               @default(10737418240) @map("max_storage") // 10GB
-  
+
   status          OrgStatus            @default(ACTIVE)
   createdAt       DateTime             @default(now()) @map("created_at")
   updatedAt       DateTime             @updatedAt @map("updated_at")
@@ -85,7 +85,7 @@ model Organization {
   roles             Role[]
   sessions          DeviceSession[]
   auditLogs         AuditLog[]
-  
+
   // Business data
   companies         Company[]
   contacts          Contact[]
@@ -198,13 +198,13 @@ model DeviceSession {
   userAgent              String?           @map("user_agent")
   ipAddress              String            @map("ip_address")
   location               Json?
-  
+
   accessTokenHash        String            @map("access_token_hash")
   accessTokenExpiresAt   DateTime          @map("access_token_expires_at")
   refreshTokenHash       String            @unique @map("refresh_token_hash")
   refreshTokenExpiresAt  DateTime          @map("refresh_token_expires_at")
   refreshTokenVersion    Int               @default(0) @map("refresh_token_version")
-  
+
   lastActivityAt         DateTime          @default(now()) @map("last_activity_at")
   createdAt              DateTime          @default(now()) @map("created_at")
   revokedAt              DateTime?         @map("revoked_at")
@@ -434,6 +434,43 @@ model Product {
   @@map("products")
 }
 
+// ==================== HIL (Human-in-the-loop) ====================
+
+enum HITLState {
+  draft
+  pending_approval
+  approved
+  rejected
+  dispatched
+  completed
+  failed
+}
+
+model hitl_task {
+  id          String    @id @default(cuid())
+  agent_key   String
+  org_id      String
+  state       HITLState @default(draft)
+  sla_minutes Int       @default(120)
+  expires_at  DateTime?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  audit_events audit_event[]
+
+  @@map("hitl_task")
+}
+
+model audit_event {
+  id         String    @id @default(cuid())
+  task_id    String
+  type       String
+  payload    Json?
+  created_at DateTime  @default(now())
+  task       hitl_task @relation(fields: [task_id], references: [id], onDelete: Cascade)
+
+  @@map("audit_event")
+}
+
 model Supplier {
   id                String            @id @default(uuid())
   orgId             String            @map("org_id")
@@ -635,7 +672,7 @@ model Invoice {
   dueDate             DateTime          @map("due_date")
   paymentTerms        String?           @map("payment_terms")
   currency            String            @default("EUR")
-  
+
   // Amounts
   subtotal            Float             @default(0)
   discountPercentage  Float             @default(0) @map("discount_percentage")
@@ -645,20 +682,20 @@ model Invoice {
   totalAmount         Float             @default(0) @map("total_amount")
   paidAmount          Float             @default(0) @map("paid_amount")
   balanceDue          Float             @default(0) @map("balance_due")
-  
+
   // References
   purchaseOrderId     String?           @map("purchase_order_id")
   projectId           String?           @map("project_id")
-  
+
   // Addresses
   billingAddress      Json              @map("billing_address")
   shippingAddress     Json?             @map("shipping_address")
-  
+
   // Additional fields
   notes               String?
   internalNotes       String?           @map("internal_notes")
   termsAndConditions  String?           @map("terms_and_conditions")
-  
+
   // Workflow
   submittedAt         DateTime?         @map("submitted_at")
   submittedByUserId   String?           @map("submitted_by_user_id")
@@ -669,7 +706,7 @@ model Invoice {
   paidAt              DateTime?         @map("paid_at")
   cancelledAt         DateTime?         @map("cancelled_at")
   cancelledReason     String?           @map("cancelled_reason")
-  
+
   tags                String[]          @default([])
   metadata            Json?
   createdAt           DateTime          @default(now()) @map("created_at")
@@ -731,23 +768,23 @@ model Payment {
   paymentDate         DateTime          @map("payment_date")
   paymentMethod       PaymentMethod     @map("payment_method")
   referenceNumber     String?           @map("reference_number")
-  
+
   // Bank details
   bankAccount         String?           @map("bank_account")
   bankName            String?           @map("bank_name")
-  
+
   // Processing info
   processingFee       Float             @default(0) @map("processing_fee")
   netAmount           Float             @map("net_amount")
-  
+
   status              PaymentStatus     @default(PENDING)
   processedAt         DateTime?         @map("processed_at")
   failureReason       String?           @map("failure_reason")
-  
+
   notes               String?
   reconciledAt        DateTime?         @map("reconciled_at")
   reconciledByUserId  String?           @map("reconciled_by_user_id")
-  
+
   metadata            Json?
   createdAt           DateTime          @default(now()) @map("created_at")
   updatedAt           DateTime          @updatedAt @map("updated_at")
@@ -778,22 +815,22 @@ model Expense {
   amount              Float
   currency            String            @default("EUR")
   expenseDate         DateTime          @map("expense_date")
-  
+
   // Related entities
   employeeId          String?           @map("employee_id")
   projectId           String?           @map("project_id")
   departmentId        String?           @map("department_id")
   supplierId          String?           @map("supplier_id")
-  
+
   // Receipt info
   hasReceipt          Boolean           @default(false) @map("has_receipt")
   receiptUrl          String?           @map("receipt_url")
-  
+
   // Payment info
   paymentMethod       PaymentMethod?    @map("payment_method")
   reimbursable        Boolean           @default(false)
   reimbursedAt        DateTime?         @map("reimbursed_at")
-  
+
   // Approval workflow
   status              ExpenseStatus     @default(DRAFT)
   submittedAt         DateTime?         @map("submitted_at")
@@ -801,10 +838,10 @@ model Expense {
   approvedAt          DateTime?         @map("approved_at")
   approvedByUserId    String?           @map("approved_by_user_id")
   rejectedReason      String?           @map("rejected_reason")
-  
+
   taxDeductible       Boolean           @default(false) @map("tax_deductible")
   taxRate             Float             @default(0) @map("tax_rate")
-  
+
   accountCode         String?           @map("account_code")
   notes               String?
   tags                String[]          @default([])

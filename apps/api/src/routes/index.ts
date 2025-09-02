@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { type Router as ExpressRouter } from 'express';
 let helmet: any;
 try {
   // prefer import at runtime if available
@@ -21,7 +21,7 @@ import { dealRoutes } from './deal';
 import { interactionRoutes } from './interaction';
 import { agentsRoutes } from './agents';
 
-const router = express.Router();
+const router: ExpressRouter = express.Router();
 
 // Configuración de seguridad básica
 router.use(helmet());

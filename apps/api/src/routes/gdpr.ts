@@ -1,11 +1,11 @@
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 import { BlobServiceClient, StorageSharedKeyCredential, generateBlobSASQueryParameters, ContainerSASPermissions, SASProtocol } from '@azure/storage-blob';
 import archiver from 'archiver';
 import { Readable } from 'stream';
 import { logger } from '../lib/logger';
 import { asyncHandler } from '../lib/errors';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 function bufferToStream(buffer: Buffer) {
   const readable = new Readable();

@@ -1,9 +1,9 @@
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 import { asyncHandler } from '../lib/errors';
 import { importAndReconcile } from '../services/sepa';
 import { logger } from '../lib/logger';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 router.post('/import', asyncHandler(async (req, res) => {
   const content = (req.body && typeof req.body === 'string') ? req.body : req.file?.buffer?.toString() || '';

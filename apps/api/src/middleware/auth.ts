@@ -41,7 +41,8 @@ export const withTenant = async (
   const { orgId } = (req as any).user as TokenPayload;
 
     // Verificar que la organización existe
-    const org = await prisma.organization.findUnique({
+  const anyPrisma: any = prisma as any;
+  const org = await anyPrisma.organization?.findUnique({
       where: { id: orgId }
     });
 

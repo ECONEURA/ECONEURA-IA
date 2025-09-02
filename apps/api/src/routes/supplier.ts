@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 
-export const supplierRoutes = Router();
+export const supplierRoutes: ExpressRouter = Router();
 supplierRoutes.get('/', (_req, res) => res.json({ suppliers: [] }));
