@@ -1,3 +1,53 @@
+name: e2e-playwright
+on:
+  push:
+    branches: ['**']
+  workflow_dispatch: {}
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    env:
+      BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
+      SNAPSHOT_THRESHOLD: '0.02'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright
+        run: pnpm dlx playwright install --with-deps
+      - name: Detect baseline
+        id: baseline
+        shell: bash
+        run: |
+          shopt -s globstar || true
+          count=$(ls tests/ui/**/__screenshots__/**/*.png 2>/dev/null | wc -l | tr -d ' ')
+          if [ "$count" = "0" ]; then echo "mode=bootstrap" >> $GITHUB_OUTPUT; else echo "mode=gating" >> $GITHUB_OUTPUT; fi
+      - name: Bootstrap snapshots (first run)
+        if: steps.baseline.outputs.mode == 'bootstrap'
+        run: pnpm test:ui:update || true
+      - name: Gate snapshots (≤2%)
+        if: steps.baseline.outputs.mode == 'gating'
+        run: pnpm test:ui
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: status/playwright-report
+      - name: Upload snapshots (bootstrap)
+        if: steps.baseline.outputs.mode == 'bootstrap'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-snapshots-bootstrap
+          path: tests/ui/**/__screenshots__/
+          if-no-files-found: ignore
 name: E2E Playwright Smoke
 
 on:
