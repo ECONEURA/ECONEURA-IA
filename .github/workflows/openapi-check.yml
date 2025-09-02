@@ -1,5 +1,7 @@
 name: openapi-check
 on:
+  push:
+    branches: ['**']
   pull_request:
     branches: ['**']
   workflow_dispatch: {}
@@ -15,6 +17,9 @@ jobs:
         with:
           node-version: 20
           cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-  - run: pnpm route:linter
-  - run: pnpm openapi:checksum
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Route linter (/v1-only)
+        run: pnpm route:linter
+      - name: OpenAPI checksum
+        run: pnpm openapi:checksum
