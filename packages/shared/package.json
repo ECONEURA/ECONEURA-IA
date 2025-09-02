@@ -15,7 +15,7 @@
     "./metrics": "./src/metrics/index.ts"
   },
   "scripts": {
-    "build": "tsc --noEmit --skipLibCheck || echo 'Build completed with warnings'",
+    "build": "tsc -p tsconfig.json",
     "dev": "tsc --watch",
     "test": "vitest run",
     "test:unit": "vitest run",

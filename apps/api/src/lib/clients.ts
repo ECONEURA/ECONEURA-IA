@@ -1,11 +1,11 @@
-import { Env } from '@econeura/shared/src/env';
+import { getEnv } from '@econeura/shared/env';
 let _redis: any;
 export async function getRedis() {
   if (_redis) return _redis;
-  if (!Env.REDIS_URL) return null;
-  const { createClient } = await import('redis');
-  _redis = createClient({ url: Env.REDIS_URL });
+  const env = getEnv();
+  if (!env.REDIS_URL) return null;
+  const { default: IORedis } = await import('ioredis');
+  _redis = new (IORedis as any)(env.REDIS_URL);
   _redis.on?.('error', ()=>{});
-  await _redis.connect().catch(()=>{});
   return _redis;
 }

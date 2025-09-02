@@ -93,12 +93,17 @@ class CostMeter {
   // @ts-ignore - dynamic import
   const { aiCostUsage } = await import('@econeura/db')
 
-      const execChain = () => {
-        const s = db.select()
-        const f = typeof s.from === 'function' ? s.from(aiCostUsage) : s
-        const w = typeof f.where === 'function' ? f.where() : f
-        return w
-      }
+        const execChain = () => {
+          try {
+            const s: any = (db as any).select ? (db as any).select() : db
+            const f = typeof s.from === 'function' ? s.from(aiCostUsage) : s
+            // Avoid calling where/orderBy unless they exist and accept zero/lenient args
+            const w = typeof f.where === 'function' ? f.where({}) : f
+            return typeof w.execute === 'function' ? w : (typeof f.execute === 'function' ? f : s)
+          } catch {
+            return []
+          }
+        }
       const rows = await this.runDbExecute(execChain)
       if (process.env.NODE_ENV === 'test') {
         // eslint-disable-next-line no-console
@@ -204,13 +209,17 @@ class CostMeter {
         startDate = new Date(0)
       }
 
-      const execChain = () => {
-        const s = db.select()
-        const f = typeof s.from === 'function' ? s.from(aiCostUsage) : s
-        const w = typeof f.where === 'function' ? f.where() : f
-        const ob = typeof w.orderBy === 'function' ? w.orderBy() : w
-        return ob
-      }
+        const execChain = () => {
+          try {
+            const s: any = (db as any).select ? (db as any).select() : db
+            const f = typeof s.from === 'function' ? s.from(aiCostUsage) : s
+            const w = typeof f.where === 'function' ? f.where({}) : f
+            const ob = typeof w.orderBy === 'function' ? w.orderBy({}) : w
+            return typeof ob.execute === 'function' ? ob : (typeof w.execute === 'function' ? w : (typeof f.execute === 'function' ? f : s))
+          } catch {
+            return []
+          }
+        }
       const rows = await this.runDbExecute(execChain)
       const filtered = (rows || []).filter((r: any) => {
         const dateVal = r.createdAt || r.timestamp || r.created_at
@@ -306,10 +315,14 @@ class CostMeter {
       const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
 
     const execChain = () => {
-      const s = db.select()
-      const f = typeof s.from === 'function' ? s.from(aiCostUsage) : s
-      const w = typeof f.where === 'function' ? f.where() : f
-      return w
+      try {
+        const s: any = (db as any).select ? (db as any).select() : db
+        const f = typeof s.from === 'function' ? s.from(aiCostUsage) : s
+        const w = typeof f.where === 'function' ? f.where({}) : f
+        return typeof w.execute === 'function' ? w : (typeof f.execute === 'function' ? f : s)
+      } catch {
+        return []
+      }
     }
     const rows = await this.runDbExecute(execChain)
   const filtered = (rows || []).filter((r: any) => {

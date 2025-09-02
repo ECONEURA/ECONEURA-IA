@@ -3,6 +3,10 @@ import crypto from 'node:crypto';
 export type HmacAlgo = 'sha256';
 export interface HmacOptions { algo?: HmacAlgo; secret: string }
 
+export function sha256Hex(value: string, key: string): string {
+  return crypto.createHmac('sha256', key).update(value, 'utf8').digest('hex');
+}
+
 export function hmacSign(timestampSec: string, rawBody: string, opts: HmacOptions): string {
   const algo = opts.algo ?? 'sha256';
   const toSign = `${timestampSec}\n${rawBody}`;
@@ -21,18 +25,10 @@ export function hmacVerify(timestampSec: string, rawBody: string, signatureHeade
     return false;
   }
 }
-import crypto from 'crypto';
+// single implementation above using node:crypto; helpers exposed if needed
 
-export function sha256Hex(input: string, secret: string) {
-  return crypto.createHmac('sha256', secret).update(input).digest('hex');
-}
-
-export function verifyHmacSignature(timestamp: string, body: string, signature: string, secret: string, windowSeconds = 300) {
-  const now = Math.floor(Date.now() / 1000);
-  const ts = parseInt(timestamp, 10);
-  if (Number.isNaN(ts)) return false;
-  if (Math.abs(now - ts) > windowSeconds) return false;
-  const toSign = `${timestamp}\n${body}`;
-  const expected = sha256Hex(toSign, secret);
-  return signature === `sha256=${expected}`;
+// Backwards compatible alias for tests/imports
+export const verifyHmacSignature = (timestampSec: string, rawBody: string, signatureHeader: string, secretOrOpts: string | HmacOptions, windowSec = 300) => {
+  const opts = typeof secretOrOpts === 'string' ? { secret: secretOrOpts } : secretOrOpts
+  return hmacVerify(timestampSec, rawBody, signatureHeader, opts, windowSec)
 }

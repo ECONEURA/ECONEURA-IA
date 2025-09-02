@@ -2,10 +2,6 @@
 export * as LegacyTypes from './types';
 
 // Schemas - Export all new schemas
-// Types (legacy)
-export * as LegacyTypes from './types';
-
-// Schemas - Export all new schemas
 export * from './schemas/common';
 export * from './schemas/auth';
 export * from './schemas/crm';

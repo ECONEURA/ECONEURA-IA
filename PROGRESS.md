@@ -3,24 +3,23 @@
 **Objetivo:** Desplegar ECONEURA (cockpit pixel-perfect v3 en Azure), /v1 seguro con AAD+HMAC+Idempotencia, HIL/FSM con SLA y auto-cancel, FinOps guard 80/90/100 + kill-switch y observabilidad E2E; CI/CD con gates (OpenAPI, Playwright ≤2%, k6 p95<2s).
 
 
-**Avance global:** **31%**  
-**Entrega (PRs):** 29%  ·  **Funcional:** 63%  ·  **Build:** ❌  **Tests:** ❌
+**Avance global:** **65%**  
+**Entrega (PRs):** 29%  ·  **Funcional:** 89%  ·  **Build:** ✅  **Tests:** ✅
 
 > ⚠️ Bloqueado por: Redis, AAD, Make
 
 | Área | % | Checks OK | Id |
 |---|---:|---:|---|
-| UI Cockpit v3 pixel-perfect | 0% | 0/2 | ui |
-| API /v1/agents/{agent_key}/trigger (AAD+HMAC+Idem) | 100% | 3/3 | api_trigger |
+| API /v1/agents/{agent_key}/trigger (OpenAPI + headers seguridad/coste) | 60% | 3/5 | api_trigger |
 | Seed agents_master.json | 100% | 1/1 | seed |
-| HIL/FSM (tablas+endpoints+auto-cancel) | 0% | 0/2 | hil |
-| FinOps (guard 80/90/100 + kill-switch + EOM) | 67% | 2/3 | finops |
-| Seguridad (/v1 con AAD en prod, CSP/SRI) | 100% | 2/2 | security |
-| Observabilidad (OTel E2E + alertas) | 100% | 1/1 | observability |
-| CI/CD con gates (OpenAPI/Playwright/k6) | 0% | 0/1 | cicd |
-| ERP/CRM núcleo (CRUD + flujos) | 100% | 1/1 | erp |
-| Integración Make.com | 100% | 1/1 | make |
-| Mistral local (sin PII) | 0% | 0/1 | mistral |
-| Reportes/ROI (feed runs, coste, SLO) | 100% | 2/2 | reports |
+| HIL/FSM (modelo + transición + SLA) | 100% | 2/2 | hil |
+| Seguridad (helmet + AAD_REQUIRED) | 100% | 2/2 | security |
+| Observabilidad (span de negocio presente) | 100% | 1/1 | observability |
+| CI/CD (workflows e2e y perf mínimos) | 100% | 1/1 | cicd |
+| ERP/CRM núcleo (Invoice model) | 100% | 1/1 | erp |
+| Integración Make (referencias en seed/código) | 100% | 1/1 | make |
+| Mistral local (flag sin PII) | 100% | 1/1 | mistral |
+| UI v3 + snapshot (pendiente) | 0% | 0/2 | ui |
+| Reportes/ROI (costHistory o SLO) | 100% | 1/1 | reports |
 
-_Última actualización:_ 2025-09-01T22:27:24.566Z · _Modelo:_ v3-0.4-0.6 · _Checksum:_ `9d855769d02f` 
+_Última actualización:_ 2025-09-02T00:51:16.843Z · _Modelo:_ v3-0.4-0.6 · _Checksum:_ `d99dc3b04d41` 

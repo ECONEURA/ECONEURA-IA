@@ -1,8 +1,8 @@
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 import fs from 'fs';
 import path from 'path';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 router.get('/v1/progress', (req, res) => {
   const p = path.join(process.cwd(), 'dist', 'progress.json');
@@ -11,7 +11,7 @@ router.get('/v1/progress', (req, res) => {
   const checksum = require('crypto').createHash('sha256').update(body).digest('hex');
   res.setHeader('X-Progress-Checksum', checksum.slice(0,12));
   res.setHeader('Cache-Control', 'no-cache');
-  res.type('application/json').send(body);
+  return res.type('application/json').send(body);
 });
 
 export default router;

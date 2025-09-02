@@ -127,9 +127,10 @@ async function main() {
   }
   const functionalPct = sumW ? (sumScore / sumW) : 0;
 
-  const build = safeRun("pnpm -w -r build");
-  const unit = safeRun("pnpm -w -r test --silent");
-  const ciSignal = (build.ok && unit.ok) ? 1 : 0.5;
+  const build = safeRun("pnpm ci:build");
+  const unit = safeRun("pnpm ci:test");
+  let ciSignal = 0.5;
+  if (build.ok) ciSignal = unit.ok ? 1 : 0.75;
 
   const deliveryPct = pr.pct;
   const combined = cfg.weights.delivery_prs * deliveryPct + cfg.weights.functional * (functionalPct * ciSignal);

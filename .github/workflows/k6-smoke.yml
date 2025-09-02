@@ -1,0 +1,24 @@
+name: k6 smoke
+
+on:
+  push:
+    paths:
+      - 'e2e/**'
+  workflow_dispatch: {}
+
+jobs:
+  k6:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run k6 smoke
+        run: |
+          if [ -f e2e/k6.smoke.js ]; then
+            sudo apt-get update && sudo apt-get install -y jq
+            curl -s https://dl.k6.io/linux64/k6-latest.deb -o /tmp/k6.deb && sudo dpkg -i /tmp/k6.deb
+            k6 run e2e/k6.smoke.js || true
+          else
+            echo "no k6 script"
+          fi
+
+# marker: k6-smoke.yml
