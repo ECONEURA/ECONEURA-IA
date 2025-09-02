@@ -31,8 +31,7 @@ import { makeHealthRouter } from './routes/integrations.make.health';
 import { runAutoCancel } from './jobs/hil-autocancel';
 import { startHilExpirer } from './cron/hil-expirer.js';
 import { latencyHeader } from './middleware/latency.js';
-// Placeholder import for future HIL approvals router
-// import { hilApprovals } from './routes/hil.approvals';
+import { hilApprovals } from './routes/hil.approvals';
 // NOTE: Avoid static import of the DB package to keep tests lightweight.
 // We'll dynamically import and init Prisma only when DB env is present.
 
@@ -57,6 +56,8 @@ app.use(rateLimitMiddleware);
 
 // FinOps headers en todas las rutas /v1/*
 app.use('/v1', finopsHeaders());
+// Latency header para todas las rutas
+app.use(latencyHeader);
 
 // Middleware de health check
 app.use(healthCheckMiddleware);
@@ -88,6 +89,8 @@ app.use(gatewayProxyMiddleware);
 app.use('/v1/sepa', sepaRouter);
 // Serve generated progress status
 app.use(progressRouter);
+app.use(hilRouter);
+app.use(hilApprovals);
 // HIL endpoints
 app.use(hilRouter);
 // Agents endpoints

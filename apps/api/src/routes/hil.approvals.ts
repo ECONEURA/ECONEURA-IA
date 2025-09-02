@@ -1,0 +1,16 @@
+import { Router, type Router as ExpressRouter } from 'express';
+import { requireAAD } from '../middleware/aad.js';
+
+export const hilApprovals: ExpressRouter = Router();
+
+// Protección AAD si está activada
+hilApprovals.use('/v1/hitl', requireAAD);
+
+// Stubs mínimos: aprobar/rechazar
+hilApprovals.post('/v1/hitl/:taskId/approve', (req, res) => {
+  return res.status(202).json({ taskId: req.params.taskId, state: 'approved' });
+});
+
+hilApprovals.post('/v1/hitl/:taskId/reject', (req, res) => {
+  return res.status(202).json({ taskId: req.params.taskId, state: 'rejected' });
+});
