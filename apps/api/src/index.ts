@@ -3,6 +3,7 @@ import cors from "cors";
 import { logger } from "./lib/logger.js";
 import { metrics } from "./lib/metrics.js";
 import { finopsHeaders } from './middleware/finops.js';
+import { finopsGuardDefault } from './middleware/finops.guard.js';
 import { tracing } from "./lib/tracing.js";
 import { observabilityMiddleware, errorObservabilityMiddleware, healthCheckMiddleware } from "./middleware/observability.js";
 import { rateLimitMiddleware, rateLimitByEndpoint, rateLimitByUser, rateLimitByApiKey } from "./middleware/rate-limiting.js";
@@ -55,7 +56,8 @@ app.use(observabilityMiddleware);
 // Middleware de rate limiting (aplicar antes de las rutas)
 app.use(rateLimitMiddleware);
 
-// FinOps headers en todas las rutas /v1/*
+// FinOps guard + headers en todas las rutas /v1/*
+app.use('/v1', finopsGuardDefault);
 app.use('/v1', finopsHeaders());
 // Latency header para todas las rutas
 app.use(latency());
