@@ -37,7 +37,7 @@
     "test:coverage": "vitest --run --coverage",
     "test:integration": "vitest --run --config vitest.integration.config.ts",
     "test:performance": "vitest --run --config vitest.performance.config.ts",
-  "typecheck": "pnpm --filter @econeura/shared exec tsc -p packages/shared/tsconfig.json --noEmit && pnpm --filter @econeura/api exec tsc -p apps/api/tsconfig.json --noEmit",
+  "typecheck": "pnpm --filter @econeura/shared exec tsc -p tsconfig.json --noEmit && pnpm --filter @econeura/api exec tsc -p tsconfig.json --noEmit",
     "typecheck:watch": "pnpm -r exec tsc --noEmit --watch",
     "format": "prettier --write .",
     "api:openapi": "pnpm --filter @econeura/api openapi:generate",
