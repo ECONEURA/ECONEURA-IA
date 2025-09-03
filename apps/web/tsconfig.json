@@ -20,6 +20,8 @@
     ],
     "baseUrl": ".",
     "paths": {
+  "@econeura/shared": ["../../packages/shared/src/index.ts"],
+  "@econeura/shared/*": ["../../packages/shared/src/*"],
       "@/*": ["./src/*"],
       "@/components/*": ["./src/components/*"],
       "@/lib/*": ["./src/lib/*"],
