@@ -3,13 +3,13 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 // import { EconeuraSDK } from '@econeura/sdk';
-import type { 
-  User, 
-  Organization, 
+import type {
+  User,
+  Organization,
   Role,
   LoginRequest,
   LoginResponse,
-  MeResponse 
+  MeResponse
 } from '@econeura/shared';
 
 interface AuthContextType {
@@ -109,22 +109,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const storedToken = localStorage.getItem(TOKEN_KEY);
         const storedRefreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-        
+
         if (storedToken && storedRefreshToken) {
           // Initialize SDK with stored tokens
           const sdkInstance = initializeSdk(storedToken, storedRefreshToken);
-          
+
           // Try to get current user info
           try {
             if (!sdkInstance) throw new Error('SDK not initialized');
             const meData = await sdkInstance.auth.me();
-            
+
             // Update state with user info
             setUser(meData.user as User);
             setOrganization(meData.organization as Organization);
             setRole(meData.role as Role);
             setPermissions(meData.permissions);
-            
+
             // Store in localStorage for faster next load
             localStorage.setItem(USER_KEY, JSON.stringify(meData.user));
             localStorage.setItem(ORG_KEY, JSON.stringify(meData.organization));
@@ -135,14 +135,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Token might be expired, try to refresh
             try {
               if (!sdkInstance) throw new Error('SDK not initialized');
-              const refreshResult = await sdkInstance.auth.refresh({ 
-                refreshToken: storedRefreshToken 
+              const refreshResult = await sdkInstance.auth.refresh({
+                refreshToken: storedRefreshToken
               });
-              
+
               // Update tokens
               localStorage.setItem(TOKEN_KEY, refreshResult.tokens.accessToken);
               localStorage.setItem(REFRESH_TOKEN_KEY, refreshResult.tokens.refreshToken);
-              
+
               // Retry getting user info
               const meData = await sdkInstance.auth.me();
               setUser(meData.user as User);
@@ -161,14 +161,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const cachedOrg = localStorage.getItem(ORG_KEY);
           const cachedRole = localStorage.getItem(ROLE_KEY);
           const cachedPermissions = localStorage.getItem(PERMISSIONS_KEY);
-          
+
           if (cachedUser && cachedOrg && cachedRole && cachedPermissions) {
             setUser(JSON.parse(cachedUser));
             setOrganization(JSON.parse(cachedOrg));
             setRole(JSON.parse(cachedRole));
             setPermissions(JSON.parse(cachedPermissions));
           }
-          
+
           // Initialize SDK without tokens (for public endpoints)
           initializeSdk();
         }
@@ -203,27 +203,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const sdkInstance = sdk || initializeSdk();
   if (!sdkInstance) throw new Error('SDK not initialized');
   const response = await sdkInstance.auth.login(credentials);
-      
+
       // Store tokens
       localStorage.setItem(TOKEN_KEY, response.tokens.accessToken);
       localStorage.setItem(REFRESH_TOKEN_KEY, response.tokens.refreshToken);
-      
+
       // Update SDK with new tokens
       sdkInstance.client.setAccessToken(response.tokens.accessToken);
       sdkInstance.client.setRefreshToken(response.tokens.refreshToken);
-      
+
       // Update state
       setUser(response.user as User);
       setOrganization(response.organization as Organization);
       setRole(response.role as Role);
       setPermissions(response.permissions);
-      
+
       // Store in localStorage for faster next load
       localStorage.setItem(USER_KEY, JSON.stringify(response.user));
       localStorage.setItem(ORG_KEY, JSON.stringify(response.organization));
       localStorage.setItem(ROLE_KEY, JSON.stringify(response.role));
       localStorage.setItem(PERMISSIONS_KEY, JSON.stringify(response.permissions));
-      
+
       // Redirect to dashboard
       router.push('/dashboard');
     } catch (error) {
@@ -251,20 +251,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshSession = async () => {
     try {
       if (!sdk) return;
-      
+
       const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
       if (!refreshToken) throw new Error('No refresh token');
-      
+
   const response = await sdk.auth.refresh({ refreshToken });
-      
+
       // Update tokens
       localStorage.setItem(TOKEN_KEY, response.tokens.accessToken);
       localStorage.setItem(REFRESH_TOKEN_KEY, response.tokens.refreshToken);
-      
+
       // Update SDK
       sdk.client.setAccessToken(response.tokens.accessToken);
       sdk.client.setRefreshToken(response.tokens.refreshToken);
-      
+
       // Get updated user info
   const meData = await sdk.auth.me();
       setUser(meData.user as User);
@@ -281,19 +281,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Check permission
   const hasPermission = (permission: string, scope: 'organization' | 'own' = 'organization') => {
     if (!permissions.length) return false;
-    
+
     // Check for admin wildcard
-    if (permissions.includes('*') || 
-        permissions.includes('*:*') || 
+    if (permissions.includes('*') ||
+        permissions.includes('*:*') ||
         permissions.includes('*:*:*')) {
       return true;
     }
-    
+
     // Check exact permission
     if (permissions.includes(permission)) {
       return true;
     }
-    
+
     // Check wildcard permission (e.g., crm:contacts:* matches crm:contacts:view)
     const permissionParts = permission.split(':');
     for (const userPerm of permissions) {
@@ -304,7 +304,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     }
-    
+
     return false;
   };
 

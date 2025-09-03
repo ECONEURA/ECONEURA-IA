@@ -38,7 +38,7 @@
     "security/detect-buffer-noassert": "error",
     "security/detect-child-process": "error",
     "security/detect-eval-with-expression": "error",
-    
+
     // Best practices
     "node/no-missing-import": "off",
     "node/no-unsupported-features/es-syntax": "off",

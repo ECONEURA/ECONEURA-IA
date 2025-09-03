@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react';
 import { useApiClient } from '@/hooks/useApi';
 import AdvancedDashboard from '@/components/ui/AdvancedDashboard';
 import InteractiveCharts from '@/components/ui/InteractiveCharts';
-import { 
-  Bell, 
-  Settings, 
-  RefreshCw, 
+import {
+  Bell,
+  Settings,
+  RefreshCw,
   Download,
   Filter,
   Calendar,
@@ -92,10 +92,10 @@ export default function AdvancedDashboardPage() {
         method: 'POST',
         body: JSON.stringify({ period: selectedPeriod })
       });
-      
+
       // Download the exported data
-      const blob = new Blob([JSON.stringify(response.data, null, 2)], { 
-        type: 'application/json' 
+      const blob = new Blob([JSON.stringify(response.data, null, 2)], {
+        type: 'application/json'
       });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -257,8 +257,8 @@ export default function AdvancedDashboardPage() {
                 <button
                   onClick={() => setAutoRefresh(!autoRefresh)}
                   className={`p-2 rounded-lg ${
-                    autoRefresh 
-                      ? 'text-mediterranean-600 bg-mediterranean-50' 
+                    autoRefresh
+                      ? 'text-mediterranean-600 bg-mediterranean-50'
                       : 'text-sand-600 hover:text-mediterranean-600 hover:bg-sand-50'
                   }`}
                   title={autoRefresh ? 'Auto-refresh activado' : 'Auto-refresh desactivado'}
@@ -303,7 +303,7 @@ export default function AdvancedDashboardPage() {
               <h2 className="text-xl font-semibold text-sand-900 mb-4">
                 Insights de IA
               </h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Immediate Actions */}
                 <div>
@@ -363,7 +363,7 @@ export default function AdvancedDashboardPage() {
             <h2 className="text-xl font-semibold text-sand-900 mb-4">
               Estado del Sistema
             </h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg">
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>

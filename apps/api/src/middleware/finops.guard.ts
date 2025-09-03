@@ -10,8 +10,9 @@ function readJSON<T>(p: string, fallback: T): T {
   try { return JSON.parse(fs.readFileSync(p, 'utf8')) as T; } catch { return fallback; }
 }
 
-const defaultCfgPath = path.join(process.cwd(), 'apps/api/src/config/finops.departments.json');
-const defaultKillPath = path.join(process.cwd(), 'apps/api/src/config/finops.kill.json');
+// Usar rutas relativas al archivo para coherencia entre runtime y tests
+const defaultCfgPath = path.resolve(__dirname, '..', 'config', 'finops.departments.json');
+const defaultKillPath = path.resolve(__dirname, '..', 'config', 'finops.kill.json');
 
 export function finopsGuard(deps: Deps) {
   return (req: Request, res: Response, next: NextFunction) => {

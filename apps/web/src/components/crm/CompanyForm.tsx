@@ -61,7 +61,7 @@ export function CompanyForm({ company, onClose, onSuccess }: CompanyFormProps) {
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75" onClick={onClose} />
-        
+
         <div className="relative bg-white rounded-lg max-w-2xl w-full p-6">
           <h2 className="text-2xl font-bold mb-6">
             {isEdit ? 'Editar Empresa' : 'Nueva Empresa'}

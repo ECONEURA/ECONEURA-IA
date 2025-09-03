@@ -12,7 +12,7 @@ export function useApiClient() {
 
   const apiCall = async (endpoint: string, options: ApiOptions = {}) => {
     const { skipAuth = false, ...fetchOptions } = options
-    
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(options.headers as Record<string, string>),
@@ -55,7 +55,7 @@ export function useApiQuery<T = any>(
   options?: ApiOptions & { enabled?: boolean }
 ) {
   const apiCall = useApiClient()
-  
+
   return useQuery<T>({
     queryKey: (Array.isArray(key) ? key : [key]) as QueryKey,
     queryFn: () => apiCall(endpoint, options),
@@ -75,12 +75,12 @@ export function useApiMutation<TData = any, TVariables = any>(
 ) {
   const apiCall = useApiClient()
   const queryClient = useQueryClient()
-  
+
   return useMutation<TData, Error, TVariables>({
     mutationFn: async (variables: TVariables) => {
       const url = typeof endpoint === 'function' ? endpoint(variables) : endpoint
       const method = options?.method || 'POST'
-      
+
       return apiCall(url, {
         method,
         body: method === 'DELETE' ? undefined : JSON.stringify(variables),

@@ -86,7 +86,7 @@ class ApiClient {
    */
   private getOrgId(): string | null {
     if (typeof window === 'undefined') return null
-    
+
     try {
       const user = localStorage.getItem('econeura_user')
       if (user) {
@@ -96,7 +96,7 @@ class ApiClient {
     } catch (error) {
       console.error('Error getting org ID:', error)
     }
-    
+
     return null
   }
 
@@ -105,7 +105,7 @@ class ApiClient {
    */
   private getAuthToken(): string | null {
     if (typeof window === 'undefined') return null
-    
+
     try {
       return localStorage.getItem('econeura_token')
     } catch (error) {
@@ -128,7 +128,7 @@ class ApiClient {
 
     // Show error message
     const message = errorData?.detail || errorData?.title || error.message || 'API Error'
-    
+
   if (typeof status === 'number' && status >= 500) {
       toast.error(`Server Error: ${message}`)
   } else if (typeof status === 'number' && status >= 400) {

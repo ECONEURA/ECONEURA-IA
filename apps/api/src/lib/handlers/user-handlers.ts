@@ -45,9 +45,9 @@ export const activateUserHandler: CommandHandler = async (command: Command): Pro
 // Query Handlers
 export const getUserHandler: QueryHandler<UserState | null> = async (query: Query): Promise<UserState | null> => {
   const { userId } = query.data;
-  
+
   const readModel = await readModelStore.get(userId, 'User');
-  
+
   if (!readModel) {
     return null;
   }
@@ -57,25 +57,25 @@ export const getUserHandler: QueryHandler<UserState | null> = async (query: Quer
 
 export const getUsersByOrganizationHandler: QueryHandler<UserState[]> = async (query: Query): Promise<UserState[]> => {
   const { organizationId } = query.data;
-  
+
   const readModels = await readModelStore.query('User', { organizationId });
-  
+
   return readModels.map(rm => rm.data as UserState);
 };
 
 export const getActiveUsersHandler: QueryHandler<UserState[]> = async (query: Query): Promise<UserState[]> => {
   const { organizationId } = query.data;
-  
+
   const readModels = await readModelStore.query('User', { organizationId, status: 'active' });
-  
+
   return readModels.map(rm => rm.data as UserState);
 };
 
 export const getSuspendedUsersHandler: QueryHandler<UserState[]> = async (query: Query): Promise<UserState[]> => {
   const { organizationId } = query.data;
-  
+
   const readModels = await readModelStore.query('User', { organizationId, status: 'suspended' });
-  
+
   return readModels.map(rm => rm.data as UserState);
 };
 
@@ -102,7 +102,7 @@ export const userCreatedHandler = async (event: any): Promise<void> => {
 
 export const userUpdatedHandler = async (event: any): Promise<void> => {
   const existingReadModel = await readModelStore.get(event.aggregateId, 'User');
-  
+
   if (existingReadModel) {
     const updatedReadModel: ReadModel = {
       ...existingReadModel,
@@ -121,7 +121,7 @@ export const userUpdatedHandler = async (event: any): Promise<void> => {
 
 export const userSuspendedHandler = async (event: any): Promise<void> => {
   const existingReadModel = await readModelStore.get(event.aggregateId, 'User');
-  
+
   if (existingReadModel) {
     const updatedReadModel: ReadModel = {
       ...existingReadModel,
@@ -140,7 +140,7 @@ export const userSuspendedHandler = async (event: any): Promise<void> => {
 
 export const userActivatedHandler = async (event: any): Promise<void> => {
   const existingReadModel = await readModelStore.get(event.aggregateId, 'User');
-  
+
   if (existingReadModel) {
     const updatedReadModel: ReadModel = {
       ...existingReadModel,

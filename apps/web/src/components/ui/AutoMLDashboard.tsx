@@ -194,8 +194,8 @@ export default function AutoMLDashboard() {
               id="features"
               placeholder="feature1, feature2, feature3"
               value={config.features.join(', ')}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfig(prev => ({ 
-                ...prev, 
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfig(prev => ({
+                ...prev,
                 features: e.target.value.split(',').map((f: string) => f.trim()).filter((f: string) => f)
               }))}
             />
@@ -211,8 +211,8 @@ export default function AutoMLDashboard() {
             </div>
           )}
 
-          <Button 
-            onClick={startTraining} 
+          <Button
+            onClick={startTraining}
             disabled={isTraining || !config.targetColumn || config.features.length === 0}
             className="w-full"
           >
@@ -322,7 +322,7 @@ export default function AutoMLDashboard() {
               <Target className="h-5 w-5 text-green-600" />
               <div>
                 <p className="text-2xl font-bold">
-                  {models.length > 0 
+                  {models.length > 0
                     ? (models.reduce((acc, m) => acc + m.accuracy, 0) / models.length * 100).toFixed(1)
                     : '0'
                   }%

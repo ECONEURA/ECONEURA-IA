@@ -7,7 +7,7 @@
     "dev": "next dev",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest",
+  "test": "vitest run",
     "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit"
   },

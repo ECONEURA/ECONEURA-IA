@@ -98,7 +98,7 @@ Local:
 
 ## 6) Roadmap completo de PR‑0 → PR‑85 (titular + objetivo + DoD breve)
 
-> **Leyenda**: ✅ listo · ⚠️ parcial/demo · ❌ falta.  
+> **Leyenda**: ✅ listo · ⚠️ parcial/demo · ❌ falta.
 > *El estado real lo llevamos en GitHub Projects; aquí se describen los objetivos y el “hecho” esperado.*
 
 ### **Fase 0 — Base del monorepo (PR‑0 → PR‑21)**
@@ -136,70 +136,70 @@ Local:
 30. **PR‑29 · Rate‑limit org + Budget guard** — sliding window + barra consumo. *DoD*: umbrales 80/90/100.
 31. **PR‑30 · Make quotas + idempotencia** — HMAC, ventana 5', dedupe y panel stats. *DoD*: replays controlados.
 
-### **Fase 2 — Integraciones & Operación (PR‑31 → PR‑60)**  
+### **Fase 2 — Integraciones & Operación (PR‑31 → PR‑60)**
 **Bloque A (31–40) Integraciones E2E & HITL**
-32. **PR‑31 · Graph wrappers seguros** — Outlook/Teams server‑to‑server + outbox.  
-33. **PR‑32 · HITL v2** — aprobar/editar/enviar, lote, SLA, ownership, auditoría.  
-34. **PR‑33 · Stripe receipts + conciliación** — checkout→webhook→PDF→paid.  
-35. **PR‑34 · Inventory Kardex + alertas** — saldo por rango y Teams stockOutSoon.  
-36. **PR‑35 · Supplier scorecard** — OTIF/lead/defect y alertas mensuales.  
-37. **PR‑36 · Interactions SAS + AV** — quarantine→scan→clean/signed URL.  
-38. **PR‑37 · Companies taxonomía & vistas** — árbol tags y saved views.  
-39. **PR‑38 · Contacts dedupe proactivo** — E.164/email + trigram + merge audit.  
-40. **PR‑39 · Deals NBA explicable** — features store mínimo + razones top‑3.  
+32. **PR‑31 · Graph wrappers seguros** — Outlook/Teams server‑to‑server + outbox.
+33. **PR‑32 · HITL v2** — aprobar/editar/enviar, lote, SLA, ownership, auditoría.
+34. **PR‑33 · Stripe receipts + conciliación** — checkout→webhook→PDF→paid.
+35. **PR‑34 · Inventory Kardex + alertas** — saldo por rango y Teams stockOutSoon.
+36. **PR‑35 · Supplier scorecard** — OTIF/lead/defect y alertas mensuales.
+37. **PR‑36 · Interactions SAS + AV** — quarantine→scan→clean/signed URL.
+38. **PR‑37 · Companies taxonomía & vistas** — árbol tags y saved views.
+39. **PR‑38 · Contacts dedupe proactivo** — E.164/email + trigram + merge audit.
+40. **PR‑39 · Deals NBA explicable** — features store mínimo + razones top‑3.
 41. **PR‑40 · Dunning 3‑toques** — 7/14/21, backoff, numeración segura.
 
 **Bloque B (41–45) Fiscalidad, Bancos, GDPR, RLS**
-42. **PR‑41 · Fiscalidad regional** — motor reglas (ES/UE) visible en UI.  
-43. **PR‑42 · SEPA ingest + matching** — CAMT/MT940, reglas, conciliación.  
-44. **PR‑43 · GDPR export/erase** — ZIP export + purge con journal.  
-45. **PR‑44 · Suite RLS generativa (CI)** — negativos por tabla/rol como gate.  
+42. **PR‑41 · Fiscalidad regional** — motor reglas (ES/UE) visible en UI.
+43. **PR‑42 · SEPA ingest + matching** — CAMT/MT940, reglas, conciliación.
+44. **PR‑43 · GDPR export/erase** — ZIP export + purge con journal.
+45. **PR‑44 · Suite RLS generativa (CI)** — negativos por tabla/rol como gate.
 46. **PR‑45 · Panel FinOps** — coste IA por playbook/org/mes + tendencias.
 
 **Bloque C (46–50) Operaciones 24×7**
-47. **PR‑46 · Quiet hours + on‑call** — rotaciones/escalado.  
-48. **PR‑47 · Warm‑up IA/Search** — franjas pico; ratio hit↑.  
-49. **PR‑48 · Secret rotation + secret‑scan** — gitleaks/secretlint + KV.  
-50. **PR‑49 · CSP/SRI estrictas** — verificación y smoke dedicado.  
+47. **PR‑46 · Quiet hours + on‑call** — rotaciones/escalado.
+48. **PR‑47 · Warm‑up IA/Search** — franjas pico; ratio hit↑.
+49. **PR‑48 · Secret rotation + secret‑scan** — gitleaks/secretlint + KV.
+50. **PR‑49 · CSP/SRI estrictas** — verificación y smoke dedicado.
 51. **PR‑50 · Blue/green + gates** — swap si p95/5xx ok; rollback auto.
 
 **Bloque D (51–60) Resiliencia & Integrabilidad**
-52. **PR‑51 · k6 + chaos‑light** — carga y fallos simulados.  
-53. **PR‑52 · OpenAPI + Postman** — spec real y colección.  
-54. **PR‑53 · Búsqueda semántica CRM** — embeddings con fallback FTS.  
-55. **PR‑54 · Reportes mensuales PDF** — KPIs a SharePoint + draft Outlook.  
-56. **PR‑55 · RBAC granular** — permissions por módulo/acción.  
-57. **PR‑56 · Backups & Restore runbook** — prueba mensual automatizada.  
-58. **PR‑57 · OpenTelemetry end‑to‑end** — trazas correladas.  
-59. **PR‑58 · UI de auditoría** — “quién/qué/cuándo” navegable.  
-60. **PR‑59 · XSS hardening inputs ricos** — sanitizado server‑side.  
+52. **PR‑51 · k6 + chaos‑light** — carga y fallos simulados.
+53. **PR‑52 · OpenAPI + Postman** — spec real y colección.
+54. **PR‑53 · Búsqueda semántica CRM** — embeddings con fallback FTS.
+55. **PR‑54 · Reportes mensuales PDF** — KPIs a SharePoint + draft Outlook.
+56. **PR‑55 · RBAC granular** — permissions por módulo/acción.
+57. **PR‑56 · Backups & Restore runbook** — prueba mensual automatizada.
+58. **PR‑57 · OpenTelemetry end‑to‑end** — trazas correladas.
+59. **PR‑58 · UI de auditoría** — “quién/qué/cuándo” navegable.
+60. **PR‑59 · XSS hardening inputs ricos** — sanitizado server‑side.
 61. **PR‑60 · DoD automatizado** — gates duros en CI.
 
 ### **Fase 3 — Data Mastery & Hardening final (PR‑61 → PR‑85)**
-62. **PR‑61 · Taxonomía Companies v2** — sinónimos/slug/lock + merges auditados.  
-63. **PR‑62 · Dedupe v2 + gating import** — candidatos y auto‑merge seguro.  
-64. **PR‑63 · Explainable NBA v2** — feature store y razones trazables.  
-65. **PR‑64 · AV global** — todos los módulos con quarantine/scan.  
-66. **PR‑65 · Audit Trail CRM + Undo** — diffs y revert 24 h.  
-67. **PR‑66 · Dunning sólido** — segmentos, KPIs y retries DLQ.  
-68. **PR‑67 · Fiscalidad extendida** — IGIC/IRPF/OSS/IOSS/Reverse charge.  
-69. **PR‑68 · Conteos cíclicos ABC** — tareas HITL y ajustes auditados.  
-70. **PR‑69 · Vendor scorecard completo** — OTIF/lead/PPV/SL con alertas.  
-71. **PR‑70 · SEPA robusto (.053/.054)** — excepciones y reglas UI.  
-72. **PR‑71 · HITL ownership & SLA** — turnos/vacaciones/escalado.  
-73. **PR‑72 · DLQ grooming** — causas y reanudar automático.  
-74. **PR‑73 · Panel cuotas Make** — consumo 80/90/100% + alertas.  
-75. **PR‑74 · Graph chaos‑light** — rotación tokens simulada.  
-76. **PR‑75 · CSP/SRI banca + reports** — endpoint report-uri.  
-77. **PR‑76 · UX presupuesto IA** — barra, pre‑alertas, modo lectura.  
-78. **PR‑77 · FinOps negocio** — coste playbook/org/mes (tendencias).  
-79. **PR‑78 · Quiet hours avanzadas** — festivos/calendarios por org.  
-80. **PR‑79 · Prompts CM (aprobación/versionado)** — workflow 2 ojos.  
-81. **PR‑80 · Warm‑up por franjas** — por TZ de la org.  
-82. **PR‑81 · Rotación secretos** — checklist trimestral + KV.  
-83. **PR‑82 · RLS fuzz avanzada** — property‑based en CI.  
-84. **PR‑83 · Retención/TTL** — legal holds y purga trazable.  
-85. **PR‑84 · Blue/green canary** — 5→25→100 % con gates métricos.  
+62. **PR‑61 · Taxonomía Companies v2** — sinónimos/slug/lock + merges auditados.
+63. **PR‑62 · Dedupe v2 + gating import** — candidatos y auto‑merge seguro.
+64. **PR‑63 · Explainable NBA v2** — feature store y razones trazables.
+65. **PR‑64 · AV global** — todos los módulos con quarantine/scan.
+66. **PR‑65 · Audit Trail CRM + Undo** — diffs y revert 24 h.
+67. **PR‑66 · Dunning sólido** — segmentos, KPIs y retries DLQ.
+68. **PR‑67 · Fiscalidad extendida** — IGIC/IRPF/OSS/IOSS/Reverse charge.
+69. **PR‑68 · Conteos cíclicos ABC** — tareas HITL y ajustes auditados.
+70. **PR‑69 · Vendor scorecard completo** — OTIF/lead/PPV/SL con alertas.
+71. **PR‑70 · SEPA robusto (.053/.054)** — excepciones y reglas UI.
+72. **PR‑71 · HITL ownership & SLA** — turnos/vacaciones/escalado.
+73. **PR‑72 · DLQ grooming** — causas y reanudar automático.
+74. **PR‑73 · Panel cuotas Make** — consumo 80/90/100% + alertas.
+75. **PR‑74 · Graph chaos‑light** — rotación tokens simulada.
+76. **PR‑75 · CSP/SRI banca + reports** — endpoint report-uri.
+77. **PR‑76 · UX presupuesto IA** — barra, pre‑alertas, modo lectura.
+78. **PR‑77 · FinOps negocio** — coste playbook/org/mes (tendencias).
+79. **PR‑78 · Quiet hours avanzadas** — festivos/calendarios por org.
+80. **PR‑79 · Prompts CM (aprobación/versionado)** — workflow 2 ojos.
+81. **PR‑80 · Warm‑up por franjas** — por TZ de la org.
+82. **PR‑81 · Rotación secretos** — checklist trimestral + KV.
+83. **PR‑82 · RLS fuzz avanzada** — property‑based en CI.
+84. **PR‑83 · Retención/TTL** — legal holds y purga trazable.
+85. **PR‑84 · Blue/green canary** — 5→25→100 % con gates métricos.
 86. **PR‑85 · Performance & Chaos final** — SLOs firmados + runbooks.
 
 ---

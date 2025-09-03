@@ -44,7 +44,7 @@ md = md.replace('{{ts}}', ts)
   .replace('{{k6_smoke}}', b(k6wf))
   .replace('{{contract_api}}', b(contractWF))
   .replace('{{hil_core}}', b(hil))
-  .replace('{{seed60}}', seedOK ? `PASS (${seedCount}/60)` : `FAIL (${seedCount}/60)`) 
+  .replace('{{seed60}}', seedOK ? `PASS (${seedCount}/60)` : `FAIL (${seedCount}/60)`)
   .replace('{{seed_count}}', String(seedCount))
   .replace('{{otel}}', b(otel));
 

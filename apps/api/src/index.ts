@@ -99,8 +99,6 @@ app.use(hilRouter);
 app.use(hilApprovals);
 app.use(hilAliasRouter);
 app.use(hilApprovalsRouterV2);
-// HIL endpoints
-app.use(hilRouter);
 // Admin FinOps endpoints
 app.use(adminFinopsRouter);
 // Agents endpoints
@@ -822,11 +820,14 @@ app.get("/v1/observability/metrics", (req, res) => {
   }
 });
 
-app.get("/v1/observability/metrics/prometheus", (req, res) => {
+app.get("/v1/observability/metrics/prometheus", async (req, res) => {
   try {
-    const prometheusMetrics = metrics.exportPrometheus();
-  res.set('Content-Type', 'text/plain');
-  return res.send(prometheusMetrics);
+    const [contentType, prometheusMetrics] = await Promise.all([
+      metrics.getMetricsContentType(),
+      metrics.exportPrometheus(),
+    ]);
+    res.set('Content-Type', contentType || 'text/plain');
+    return res.send(prometheusMetrics);
   } catch (error) {
     logger.error('Failed to get Prometheus metrics', { error: (error as Error).message });
     res.status(500).send('# Error generating Prometheus metrics\n');
@@ -3000,16 +3001,7 @@ app.post("/v1/security/roles", async (req, res) => {
 });
 
 // Role and Permission Management
-app.post("/v1/security/roles", async (req, res) => {
-  try {
-    const { name, description, permissions, orgId } = req.body;
-    const role = await securitySystem.createRole(name, description || '', permissions || [], orgId);
-    res.json(role);
-  } catch (error) {
-    logger.error('Failed to create role', { error: (error as Error).message });
-    res.status(500).json({ error: (error as Error).message });
-  }
-});
+// (ruta duplicada eliminada: POST /v1/security/roles)
 
 app.get("/v1/security/roles", async (req, res) => {
   try {
@@ -3128,10 +3120,13 @@ app.get("/v1/security/stats", async (req, res) => {
 });
 
 // Endpoint de métricas para Prometheus
-app.get("/metrics", (req, res) => {
+app.get("/metrics", async (req, res) => {
   try {
-    const prometheusMetrics = metrics.getPrometheusMetrics();
-    res.set('Content-Type', 'text/plain');
+    const [contentType, prometheusMetrics] = await Promise.all([
+      metrics.getMetricsContentType(),
+      metrics.getPrometheusMetrics(),
+    ]);
+    res.set('Content-Type', contentType || 'text/plain');
     res.send(prometheusMetrics);
   } catch (error) {
     logger.error('Failed to get Prometheus metrics', { error: (error as Error).message });
