@@ -47,6 +47,10 @@ import { CostTrackerService } from "./lib/cost-tracker.service.js";
 import { BudgetManagerService } from "./lib/budget-manager.service.js";
 import { CostOptimizerService } from "./lib/cost-optimizer.service.js";
 import { ReportingEngineService } from "./lib/reporting-engine.service.js";
+import { QuietHoursService } from "./lib/quiet-hours.service.js";
+import { OnCallService } from "./lib/oncall.service.js";
+import { EscalationService } from "./lib/escalation.service.js";
+import { NotificationIntelligenceService } from "./lib/notification-intelligence.service.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -76,6 +80,10 @@ const costTracker = new CostTrackerService();
 const budgetManager = new BudgetManagerService();
 const costOptimizer = new CostOptimizerService();
 const reportingEngine = new ReportingEngineService();
+const quietHours = new QuietHoursService();
+const onCall = new OnCallService();
+const escalation = new EscalationService();
+const notificationIntelligence = new NotificationIntelligenceService();
 
 // Middleware básico con mejoras de seguridad
 app.use(SecurityMiddleware.createSecurityHeaders());
@@ -4329,6 +4337,351 @@ app.get("/v1/finops/stats", async (req, res) => {
 });
 
 // ============================================================================
+// QUIET HOURS + ON-CALL SYSTEM ENDPOINTS
+// ============================================================================
+
+// Quiet Hours Management
+app.get("/v1/quiet-hours", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const configs = await quietHours.getQuietHoursConfigs(organizationId);
+    res.json({ success: true, data: configs });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/quiet-hours", async (req, res) => {
+  try {
+    const config = await quietHours.createQuietHoursConfig(req.body);
+    res.status(201).json({ success: true, data: config });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/quiet-hours/:id", async (req, res) => {
+  try {
+    const config = await quietHours.getQuietHoursConfig(req.params.id);
+    if (!config) {
+      return res.status(404).json({ success: false, error: 'Quiet hours configuration not found' });
+    }
+    res.json({ success: true, data: config });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.put("/v1/quiet-hours/:id", async (req, res) => {
+  try {
+    const config = await quietHours.updateQuietHoursConfig(req.params.id, req.body);
+    if (!config) {
+      return res.status(404).json({ success: false, error: 'Quiet hours configuration not found' });
+    }
+    res.json({ success: true, data: config });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.delete("/v1/quiet-hours/:id", async (req, res) => {
+  try {
+    const deleted = await quietHours.deleteQuietHoursConfig(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, error: 'Quiet hours configuration not found' });
+    }
+    res.json({ success: true, message: 'Quiet hours configuration deleted' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/quiet-hours/status", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const serviceName = req.query.service as string;
+    const status = await quietHours.getQuietHoursStatus(organizationId, serviceName);
+    res.json({ success: true, data: status });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/quiet-hours/override", async (req, res) => {
+  try {
+    const { organizationId, serviceName, startTime, endTime, reason, requestedBy } = req.body;
+    const override = await quietHours.createQuietHoursOverride(
+      organizationId, serviceName, new Date(startTime), new Date(endTime), reason, requestedBy
+    );
+    res.status(201).json({ success: true, data: override });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// On-Call Management
+app.get("/v1/oncall/schedules", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const schedules = await onCall.getOnCallSchedules(organizationId);
+    res.json({ success: true, data: schedules });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/oncall/schedules", async (req, res) => {
+  try {
+    const schedule = await onCall.createOnCallSchedule(req.body);
+    res.status(201).json({ success: true, data: schedule });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/oncall/schedules/:id", async (req, res) => {
+  try {
+    const schedule = await onCall.getOnCallSchedule(req.params.id);
+    if (!schedule) {
+      return res.status(404).json({ success: false, error: 'On-call schedule not found' });
+    }
+    res.json({ success: true, data: schedule });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.put("/v1/oncall/schedules/:id", async (req, res) => {
+  try {
+    const schedule = await onCall.updateOnCallSchedule(req.params.id, req.body);
+    if (!schedule) {
+      return res.status(404).json({ success: false, error: 'On-call schedule not found' });
+    }
+    res.json({ success: true, data: schedule });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.delete("/v1/oncall/schedules/:id", async (req, res) => {
+  try {
+    const deleted = await onCall.deleteOnCallSchedule(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, error: 'On-call schedule not found' });
+    }
+    res.json({ success: true, message: 'On-call schedule deleted' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/oncall/current", async (req, res) => {
+  try {
+    const scheduleId = req.query.scheduleId as string;
+    if (!scheduleId) {
+      return res.status(400).json({ success: false, error: 'scheduleId is required' });
+    }
+    const currentOnCall = await onCall.getCurrentOnCall(scheduleId);
+    res.json({ success: true, data: currentOnCall });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/oncall/history", async (req, res) => {
+  try {
+    const scheduleId = req.query.scheduleId as string;
+    const limit = parseInt(req.query.limit as string) || 50;
+    if (!scheduleId) {
+      return res.status(400).json({ success: false, error: 'scheduleId is required' });
+    }
+    const history = await onCall.getOnCallHistory(scheduleId, limit);
+    res.json({ success: true, data: history });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/oncall/override", async (req, res) => {
+  try {
+    const { scheduleId, originalUserId, overrideUserId, startTime, endTime, reason, requestedBy } = req.body;
+    const override = await onCall.createOnCallOverride(
+      scheduleId, originalUserId, overrideUserId, new Date(startTime), new Date(endTime), reason, requestedBy
+    );
+    res.status(201).json({ success: true, data: override });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Escalation Management
+app.get("/v1/escalation/rules", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const rules = await escalation.getEscalationRules(organizationId);
+    res.json({ success: true, data: rules });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/escalation/rules", async (req, res) => {
+  try {
+    const rule = await escalation.createEscalationRule(req.body);
+    res.status(201).json({ success: true, data: rule });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/escalation/rules/:id", async (req, res) => {
+  try {
+    const rule = await escalation.getEscalationRule(req.params.id);
+    if (!rule) {
+      return res.status(404).json({ success: false, error: 'Escalation rule not found' });
+    }
+    res.json({ success: true, data: rule });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.put("/v1/escalation/rules/:id", async (req, res) => {
+  try {
+    const rule = await escalation.updateEscalationRule(req.params.id, req.body);
+    if (!rule) {
+      return res.status(404).json({ success: false, error: 'Escalation rule not found' });
+    }
+    res.json({ success: true, data: rule });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.delete("/v1/escalation/rules/:id", async (req, res) => {
+  try {
+    const deleted = await escalation.deleteEscalationRule(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, error: 'Escalation rule not found' });
+    }
+    res.json({ success: true, message: 'Escalation rule deleted' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/escalation/trigger", async (req, res) => {
+  try {
+    const event = await escalation.triggerEscalation(req.body);
+    if (!event) {
+      return res.status(400).json({ success: false, error: 'No matching escalation rules found' });
+    }
+    res.status(201).json({ success: true, data: event });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/escalation/status", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const status = await escalation.getEscalationStatus(organizationId);
+    res.json({ success: true, data: status });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/escalation/:eventId/acknowledge", async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const event = await escalation.acknowledgeEscalation(req.params.eventId, userId);
+    if (!event) {
+      return res.status(404).json({ success: false, error: 'Escalation event not found' });
+    }
+    res.json({ success: true, data: event });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Notification Intelligence
+app.get("/v1/notifications/preferences", async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'] as string || 'user_1';
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const preferences = await notificationIntelligence.getNotificationPreferences(userId, organizationId);
+    res.json({ success: true, data: preferences });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.put("/v1/notifications/preferences", async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'] as string || 'user_1';
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const preferences = await notificationIntelligence.updateNotificationPreferences(userId, organizationId, req.body);
+    res.json({ success: true, data: preferences });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/notifications/send", async (req, res) => {
+  try {
+    const notification = await notificationIntelligence.sendNotification(req.body);
+    res.status(201).json({ success: true, data: notification });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/notifications/history", async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'] as string || 'user_1';
+    const limit = parseInt(req.query.limit as string) || 50;
+    const history = await notificationIntelligence.getNotificationHistory(userId, limit);
+    res.json({ success: true, data: history });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/notifications/analytics", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const analytics = await notificationIntelligence.getNotificationAnalytics(organizationId);
+    res.json({ success: true, data: analytics });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/notifications/:id/read", async (req, res) => {
+  try {
+    const notification = await notificationIntelligence.markNotificationAsRead(req.params.id);
+    if (!notification) {
+      return res.status(404).json({ success: false, error: 'Notification not found' });
+    }
+    res.json({ success: true, data: notification });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/notifications/digest", async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'] as string || 'user_1';
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const digest = await notificationIntelligence.sendDigestNotification(userId, organizationId);
+    res.status(201).json({ success: true, data: digest });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ============================================================================
 // GDPR SYSTEM ENDPOINTS
 // ============================================================================
 
@@ -5074,6 +5427,7 @@ app.listen(PORT, async () => {
   console.log(`🔒 GDPR system enabled with export/erase and compliance management`);
   console.log(`🛡️ RLS generative suite enabled with CI/CD integration`);
   console.log(`💰 FinOps system enabled with cost tracking, budget management, optimization, and reporting`);
+  console.log(`🔇 Quiet Hours + On-Call system enabled with intelligent scheduling, escalation, and notifications`);
   console.log(`🔧 Advanced improvements enabled: Error handling, Logging, Validation, Rate limiting, Caching, Health monitoring, Security, Process management`);
   
   // Inicializar warmup del caché
