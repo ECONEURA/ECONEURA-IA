@@ -59,6 +59,10 @@ import { AdvancedAnalyticsService } from "./lib/advanced-analytics.service.js";
 import { BusinessIntelligenceService } from "./lib/business-intelligence.service.js";
 import { IntelligentReportingService } from "./lib/intelligent-reporting.service.js";
 import { ExecutiveDashboardService } from "./lib/executive-dashboard.service.js";
+import { AdvancedSecurityService } from "./lib/advanced-security.service.js";
+import { ComplianceManagementService } from "./lib/compliance-management.service.js";
+import { ComprehensiveAuditService } from "./lib/comprehensive-audit.service.js";
+import { ThreatDetectionService } from "./lib/threat-detection.service.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -100,6 +104,10 @@ const advancedAnalytics = new AdvancedAnalyticsService();
 const businessIntelligence = new BusinessIntelligenceService();
 const intelligentReporting = new IntelligentReportingService();
 const executiveDashboard = new ExecutiveDashboardService();
+const advancedSecurity = new AdvancedSecurityService();
+const complianceManagement = new ComplianceManagementService();
+const comprehensiveAudit = new ComprehensiveAuditService();
+const threatDetection = new ThreatDetectionService();
 
 // Middleware básico con mejoras de seguridad
 app.use(SecurityMiddleware.createSecurityHeaders());
@@ -5405,6 +5413,455 @@ app.get("/v1/dashboard/analytics", async (req, res) => {
 });
 
 // ============================================================================
+// ADVANCED SECURITY & COMPLIANCE ENDPOINTS
+// ============================================================================
+
+// Advanced Security Endpoints
+app.get("/v1/security/events", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const filters = req.query;
+    const events = await advancedSecurity.getSecurityEvents(organizationId, filters);
+    res.json({ success: true, data: events });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/security/events", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const userId = req.headers['x-user-id'] as string;
+    const event = await advancedSecurity.createSecurityEvent(req.body, organizationId, userId);
+    res.status(201).json({ success: true, data: event });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/security/events/:id", async (req, res) => {
+  try {
+    const event = await advancedSecurity.getSecurityEvent(req.params.id);
+    if (!event) {
+      return res.status(404).json({ success: false, error: 'Security event not found' });
+    }
+    res.json({ success: true, data: event });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.put("/v1/security/events/:id/status", async (req, res) => {
+  try {
+    const { status } = req.body;
+    const event = await advancedSecurity.updateSecurityEventStatus(req.params.id, status);
+    if (!event) {
+      return res.status(404).json({ success: false, error: 'Security event not found' });
+    }
+    res.json({ success: true, data: event });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/security/vulnerabilities", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const filters = req.query;
+    const vulnerabilities = await advancedSecurity.getVulnerabilities(organizationId, filters);
+    res.json({ success: true, data: vulnerabilities });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/security/vulnerabilities", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const vulnerability = await advancedSecurity.createVulnerability(req.body, organizationId);
+    res.status(201).json({ success: true, data: vulnerability });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/security/vulnerability-scan", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const initiatedBy = req.headers['x-user-id'] as string || 'user_1';
+    const scan = await advancedSecurity.performVulnerabilityScan({
+      ...req.body,
+      organizationId,
+      initiatedBy
+    });
+    res.status(201).json({ success: true, data: scan });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/security/vulnerability-scans", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const scans = await advancedSecurity.getVulnerabilityScans(organizationId);
+    res.json({ success: true, data: scans });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/security/analytics", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const analytics = await advancedSecurity.getSecurityAnalytics(organizationId);
+    res.json({ success: true, data: analytics });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Compliance Management Endpoints
+app.get("/v1/compliance/requirements", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const filters = req.query;
+    const requirements = await complianceManagement.getComplianceRequirements(organizationId, filters);
+    res.json({ success: true, data: requirements });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/compliance/requirements", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const requirement = await complianceManagement.createComplianceRequirement(req.body, organizationId);
+    res.status(201).json({ success: true, data: requirement });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/compliance/requirements/:id", async (req, res) => {
+  try {
+    const requirement = await complianceManagement.getComplianceRequirement(req.params.id);
+    if (!requirement) {
+      return res.status(404).json({ success: false, error: 'Compliance requirement not found' });
+    }
+    res.json({ success: true, data: requirement });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.put("/v1/compliance/requirements/:id", async (req, res) => {
+  try {
+    const requirement = await complianceManagement.updateComplianceRequirement(req.params.id, req.body);
+    if (!requirement) {
+      return res.status(404).json({ success: false, error: 'Compliance requirement not found' });
+    }
+    res.json({ success: true, data: requirement });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.delete("/v1/compliance/requirements/:id", async (req, res) => {
+  try {
+    const deleted = await complianceManagement.deleteComplianceRequirement(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, error: 'Compliance requirement not found' });
+    }
+    res.json({ success: true, message: 'Compliance requirement deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/compliance/requirements/:id/evidence", async (req, res) => {
+  try {
+    const evidence = await complianceManagement.addComplianceEvidence(req.params.id, req.body);
+    if (!evidence) {
+      return res.status(404).json({ success: false, error: 'Compliance requirement not found' });
+    }
+    res.status(201).json({ success: true, data: evidence });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/compliance/requirements/:id/controls", async (req, res) => {
+  try {
+    const control = await complianceManagement.addComplianceControl(req.params.id, req.body);
+    if (!control) {
+      return res.status(404).json({ success: false, error: 'Compliance requirement not found' });
+    }
+    res.status(201).json({ success: true, data: control });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/compliance/assessments", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const assessor = req.headers['x-user-id'] as string || 'user_1';
+    const assessment = await complianceManagement.performComplianceAssessment({
+      ...req.body,
+      organizationId,
+      assessor
+    });
+    res.status(201).json({ success: true, data: assessment });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/compliance/assessments", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const assessments = await complianceManagement.getComplianceAssessments(organizationId);
+    res.json({ success: true, data: assessments });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/compliance/status", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const standard = req.query.standard as string;
+    const status = await complianceManagement.getComplianceStatus(organizationId, standard);
+    res.json({ success: true, data: status });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/compliance/reports", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const standard = req.body.standard;
+    const report = await complianceManagement.generateComplianceReport(organizationId, standard);
+    res.status(201).json({ success: true, data: report });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Comprehensive Audit Endpoints
+app.get("/v1/audit/logs", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const filters = req.query;
+    const logs = await comprehensiveAudit.getAuditLogs(organizationId, filters);
+    res.json({ success: true, data: logs });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/audit/logs", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const userId = req.headers['x-user-id'] as string;
+    const log = await comprehensiveAudit.createAuditLog(req.body, organizationId, userId);
+    res.status(201).json({ success: true, data: log });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/audit/logs/:id", async (req, res) => {
+  try {
+    const log = await comprehensiveAudit.getAuditLog(req.params.id);
+    if (!log) {
+      return res.status(404).json({ success: false, error: 'Audit log not found' });
+    }
+    res.json({ success: true, data: log });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/audit/trails", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const filters = req.query;
+    const trails = await comprehensiveAudit.getAuditTrails(organizationId, filters);
+    res.json({ success: true, data: trails });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/audit/trails/:entityType/:entityId", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const trails = await comprehensiveAudit.getAuditTrail(
+      req.params.entityType,
+      req.params.entityId,
+      organizationId
+    );
+    res.json({ success: true, data: trails });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/audit/reports", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const report = await comprehensiveAudit.createAuditReport({
+      ...req.body,
+      organizationId
+    });
+    res.status(201).json({ success: true, data: report });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/audit/reports/:id/execute", async (req, res) => {
+  try {
+    const report = await comprehensiveAudit.getAuditReport(req.params.id);
+    if (!report) {
+      return res.status(404).json({ success: false, error: 'Audit report not found' });
+    }
+    const executedReport = await comprehensiveAudit.executeAudit(report);
+    res.json({ success: true, data: executedReport });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/audit/reports", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const reports = await comprehensiveAudit.getAuditReports(organizationId);
+    res.json({ success: true, data: reports });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/audit/analytics", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const period = req.query.period ? JSON.parse(req.query.period as string) : undefined;
+    const analytics = await comprehensiveAudit.getAuditAnalytics(organizationId, period);
+    res.json({ success: true, data: analytics });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/audit/forensic", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const analysis = await comprehensiveAudit.performForensicAnalysis(organizationId, req.body);
+    res.status(201).json({ success: true, data: analysis });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Threat Detection Endpoints
+app.get("/v1/threats/detections", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const filters = req.query;
+    const detections = await threatDetection.getThreatDetections(organizationId, filters);
+    res.json({ success: true, data: detections });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/threats/detections", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const detection = await threatDetection.detectThreat({
+      ...req.body,
+      organizationId
+    });
+    res.status(201).json({ success: true, data: detection });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/threats/detections/:id", async (req, res) => {
+  try {
+    const detection = await threatDetection.getThreatDetection(req.params.id);
+    if (!detection) {
+      return res.status(404).json({ success: false, error: 'Threat detection not found' });
+    }
+    res.json({ success: true, data: detection });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/threats/incidents", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const filters = req.query;
+    const incidents = await threatDetection.getSecurityIncidents(organizationId, filters);
+    res.json({ success: true, data: incidents });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/threats/incidents", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const reportedBy = req.headers['x-user-id'] as string || 'user_1';
+    const incident = await threatDetection.createSecurityIncident(req.body, organizationId, reportedBy);
+    res.status(201).json({ success: true, data: incident });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/threats/incidents/:id", async (req, res) => {
+  try {
+    const incident = await threatDetection.getSecurityIncident(req.params.id);
+    if (!incident) {
+      return res.status(404).json({ success: false, error: 'Security incident not found' });
+    }
+    res.json({ success: true, data: incident });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.put("/v1/threats/incidents/:id/status", async (req, res) => {
+  try {
+    const { status } = req.body;
+    const incident = await threatDetection.updateIncidentStatus(req.params.id, status);
+    if (!incident) {
+      return res.status(404).json({ success: false, error: 'Security incident not found' });
+    }
+    res.json({ success: true, data: incident });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/threats/analytics", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const period = req.query.period ? JSON.parse(req.query.period as string) : undefined;
+    const analytics = await threatDetection.getThreatAnalytics(organizationId, period);
+    res.json({ success: true, data: analytics });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ============================================================================
 // GDPR SYSTEM ENDPOINTS
 // ============================================================================
 
@@ -6153,6 +6610,7 @@ app.listen(PORT, async () => {
   console.log(`🔇 Quiet Hours + On-Call system enabled with intelligent scheduling, escalation, and notifications`);
   console.log(`🔥 Warm-up IA/Search system enabled with intelligent caching, search optimization, and performance monitoring`);
   console.log(`📊 Advanced Analytics & BI system enabled with real-time analytics, business intelligence, intelligent reporting, and executive dashboards`);
+console.log(`🛡️ Advanced Security & Compliance system enabled with threat detection, compliance management, comprehensive auditing, and security monitoring`);
   console.log(`🔧 Advanced improvements enabled: Error handling, Logging, Validation, Rate limiting, Caching, Health monitoring, Security, Process management`);
   
   // Inicializar warmup del caché
