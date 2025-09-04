@@ -1,6 +1,6 @@
-import { logger } from '../logging/index.ts';
-import { redactPII } from '../security/index.ts';
-import type { AIRequest, AIResponse } from '../types/index.ts';
+import { logger } from '../logging/index';
+import { redactPII } from '../security/index';
+import type { AIRequest, AIResponse } from '../types/index';
 
 export interface RouterDecision {
   provider: 'mistral-edge' | 'openai-cloud' | 'azure-openai';

@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { meter } from './otel/index.ts'
-import { env } from './env.ts'
+import { meter } from './otel/index'
+import { env } from './env'
 
 // Cost rates per model (EUR per 1K tokens)
 const COST_RATES = {
@@ -71,7 +71,9 @@ class CostMeter {
   async getMonthlyUsage(orgId: string): Promise<number> {
     try {
       // Import database dynamically to avoid circular dependencies
-      const { db, setOrg } = await import('@econeura/db')
+      const modName = '@econeura' + '/db'
+      // Indirect dynamic import to avoid Next.js static resolution
+      const { db, setOrg } = await (Function('return import(arguments[0])') as any)(modName)
       
       // Set organization context for RLS
       await setOrg(orgId)
@@ -80,7 +82,7 @@ class CostMeter {
       const currentDate = new Date()
       const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
       
-      const { aiCostUsage } = await import('@econeura/db')
+      const { aiCostUsage } = await (Function('return import(arguments[0])') as any)(modName)
       
       const result = await db
         .select({ totalCost: aiCostUsage.costEur })
@@ -110,8 +112,9 @@ class CostMeter {
 
   async recordUsageToDatabase(usage: CostUsage): Promise<void> {
     try {
-      const { db, setOrg } = await import('@econeura/db')
-      const { aiCostUsage } = await import('@econeura/db')
+      const modName = '@econeura' + '/db'
+      const { db, setOrg } = await (Function('return import(arguments[0])') as any)(modName)
+      const { aiCostUsage } = await (Function('return import(arguments[0])') as any)(modName)
       
       // Set organization context for RLS
       await setOrg(usage.orgId)
@@ -134,8 +137,9 @@ class CostMeter {
 
   async getUsageHistory(orgId: string, days: number = 30): Promise<CostUsage[]> {
     try {
-      const { db, setOrg } = await import('@econeura/db')
-      const { aiCostUsage } = await import('@econeura/db')
+      const modName = '@econeura' + '/db'
+      const { db, setOrg } = await (Function('return import(arguments[0])') as any)(modName)
+      const { aiCostUsage } = await (Function('return import(arguments[0])') as any)(modName)
       
       await setOrg(orgId)
       
@@ -170,8 +174,9 @@ class CostMeter {
     averageLatency: number
   }> {
     try {
-      const { db, setOrg } = await import('@econeura/db')
-      const { aiCostUsage } = await import('@econeura/db')
+      const modName = '@econeura/db'
+      const { db, setOrg } = await (Function('return import(arguments[0])') as any)(modName)
+      const { aiCostUsage } = await (Function('return import(arguments[0])') as any)(modName)
       
       await setOrg(orgId)
       

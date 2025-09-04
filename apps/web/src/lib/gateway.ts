@@ -178,7 +178,7 @@ export class WebAPIGateway {
   selectService(serviceIds: string[], clientIp?: string): ServiceEndpoint | null {
     const availableServices = serviceIds
       .map(id => this.services.get(id))
-      .filter(service => service && service.isActive && service.health === 'healthy');
+      .filter((service): service is ServiceEndpoint => service !== undefined && service.isActive && service.health === 'healthy');
 
     if (availableServices.length === 0) {
       return null;

@@ -442,7 +442,7 @@ app.get("/v1/rate-limit/organizations/:organizationId", (req, res) => {
       return res.status(404).json({ error: 'Organization not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         organizationId,
@@ -453,7 +453,7 @@ app.get("/v1/rate-limit/organizations/:organizationId", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to get organization stats', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -467,7 +467,7 @@ app.post("/v1/rate-limit/organizations", (req, res) => {
 
     rateLimiter.addOrganization(organizationId, config || {});
     
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       data: {
         organizationId,
@@ -476,7 +476,7 @@ app.post("/v1/rate-limit/organizations", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to add organization', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -491,7 +491,7 @@ app.put("/v1/rate-limit/organizations/:organizationId", (req, res) => {
       return res.status(404).json({ error: 'Organization not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         organizationId,
@@ -500,7 +500,7 @@ app.put("/v1/rate-limit/organizations/:organizationId", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to update organization', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -513,7 +513,7 @@ app.delete("/v1/rate-limit/organizations/:organizationId", (req, res) => {
       return res.status(404).json({ error: 'Organization not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         organizationId,
@@ -522,7 +522,7 @@ app.delete("/v1/rate-limit/organizations/:organizationId", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to remove organization', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -535,7 +535,7 @@ app.post("/v1/rate-limit/organizations/:organizationId/reset", (req, res) => {
       return res.status(404).json({ error: 'Organization not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         organizationId,
@@ -544,7 +544,7 @@ app.post("/v1/rate-limit/organizations/:organizationId/reset", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to reset organization', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -552,7 +552,7 @@ app.get("/v1/rate-limit/stats", (req, res) => {
   try {
     const stats = rateLimiter.getGlobalStats();
     
-    res.json({
+    return res.json({
       success: true,
       data: {
         stats,
@@ -561,7 +561,7 @@ app.get("/v1/rate-limit/stats", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to get rate limit stats', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -569,7 +569,7 @@ app.get("/v1/rate-limit/stats", (req, res) => {
 app.get("/v1/alerts/rules", rateLimitByEndpoint, (req, res) => {
   try {
     const rules = alertSystem.getAllRules();
-    res.json({
+    return res.json({
       success: true,
       data: {
         rules: rules,
@@ -578,14 +578,14 @@ app.get("/v1/alerts/rules", rateLimitByEndpoint, (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to get alert rules', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 app.get("/v1/alerts/active", rateLimitByEndpoint, (req, res) => {
   try {
     const alerts = alertSystem.getActiveAlerts();
-    res.json({
+    return res.json({
       success: true,
       data: {
         alerts: alerts,
@@ -594,20 +594,20 @@ app.get("/v1/alerts/active", rateLimitByEndpoint, (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to get active alerts', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 app.get("/v1/alerts/stats", rateLimitByEndpoint, (req, res) => {
   try {
     const stats = alertSystem.getAlertStats();
-    res.json({
+    return res.json({
       success: true,
       data: stats
     });
   } catch (error) {
     logger.error('Failed to get alert stats', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -616,7 +616,7 @@ app.post("/v1/alerts/rules", rateLimitByEndpoint, (req, res) => {
     const rule = req.body;
     alertSystem.addRule(rule);
     
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       data: {
         rule,
@@ -625,7 +625,7 @@ app.post("/v1/alerts/rules", rateLimitByEndpoint, (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to add alert rule', { error: (error as Error).message });
-    res.status(400).json({ error: (error as Error).message });
+    return res.status(400).json({ error: (error as Error).message });
   }
 });
 
@@ -640,7 +640,7 @@ app.put("/v1/alerts/rules/:ruleId", rateLimitByEndpoint, (req, res) => {
       return res.status(404).json({ error: 'Alert rule not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         ruleId,
@@ -649,7 +649,7 @@ app.put("/v1/alerts/rules/:ruleId", rateLimitByEndpoint, (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to update alert rule', { error: (error as Error).message });
-    res.status(400).json({ error: (error as Error).message });
+    return res.status(400).json({ error: (error as Error).message });
   }
 });
 
@@ -662,7 +662,7 @@ app.delete("/v1/alerts/rules/:ruleId", rateLimitByEndpoint, (req, res) => {
       return res.status(404).json({ error: 'Alert rule not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         ruleId,
@@ -671,7 +671,7 @@ app.delete("/v1/alerts/rules/:ruleId", rateLimitByEndpoint, (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to remove alert rule', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -686,7 +686,7 @@ app.post("/v1/alerts/:alertId/acknowledge", rateLimitByEndpoint, (req, res) => {
       return res.status(404).json({ error: 'Alert not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         alertId,
@@ -695,7 +695,7 @@ app.post("/v1/alerts/:alertId/acknowledge", rateLimitByEndpoint, (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to acknowledge alert', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -710,7 +710,7 @@ app.post("/v1/alerts/:alertId/resolve", rateLimitByEndpoint, (req, res) => {
       return res.status(404).json({ error: 'Alert not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         alertId,
@@ -719,7 +719,7 @@ app.post("/v1/alerts/:alertId/resolve", rateLimitByEndpoint, (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to resolve alert', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -976,7 +976,7 @@ app.put("/v1/finops/budgets/:budgetId", (req, res) => {
       return res.status(404).json({ error: 'Budget not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         budgetId,
@@ -985,7 +985,7 @@ app.put("/v1/finops/budgets/:budgetId", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to update budget', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -998,7 +998,7 @@ app.delete("/v1/finops/budgets/:budgetId", (req, res) => {
       return res.status(404).json({ error: 'Budget not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         budgetId,
@@ -1007,7 +1007,7 @@ app.delete("/v1/finops/budgets/:budgetId", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to delete budget', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1016,7 +1016,7 @@ app.get("/v1/finops/alerts", (req, res) => {
     const { organizationId } = req.query;
     const alerts = finOpsSystem.getActiveAlerts(organizationId as string);
     
-    res.json({
+    return res.json({
       success: true,
       data: {
         alerts,
@@ -1025,7 +1025,7 @@ app.get("/v1/finops/alerts", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to get budget alerts', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1040,7 +1040,7 @@ app.post("/v1/finops/alerts/:alertId/acknowledge", (req, res) => {
       return res.status(404).json({ error: 'Alert not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         alertId,
@@ -1049,7 +1049,7 @@ app.post("/v1/finops/alerts/:alertId/acknowledge", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to acknowledge alert', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1057,13 +1057,13 @@ app.get("/v1/finops/stats", (req, res) => {
   try {
     const stats = finOpsSystem.getStats();
     
-    res.json({
+    return res.json({
       success: true,
       data: stats
     });
   } catch (error) {
     logger.error('Failed to get FinOps stats', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1079,7 +1079,7 @@ app.get("/v1/finops/budgets/:budgetId/usage", (req, res) => {
       return res.status(404).json({ error: 'Budget not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         budgetId,
@@ -1094,7 +1094,7 @@ app.get("/v1/finops/budgets/:budgetId/usage", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to get budget usage', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1103,7 +1103,7 @@ app.get("/v1/finops/budgets/near-limit", (req, res) => {
     const { threshold = 80 } = req.query;
     const budgetsNearLimit = finOpsSystem.getBudgetsNearLimit(Number(threshold));
     
-    res.json({
+    return res.json({
       success: true,
       data: {
         budgets: budgetsNearLimit,
@@ -1113,7 +1113,7 @@ app.get("/v1/finops/budgets/near-limit", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to get budgets near limit', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1123,7 +1123,7 @@ app.get("/v1/finops/organizations/:organizationId/cost", (req, res) => {
     const { period } = req.query;
     const totalCost = finOpsSystem.getOrganizationCost(organizationId, period as string);
     
-    res.json({
+    return res.json({
       success: true,
       data: {
         organizationId,
@@ -1134,7 +1134,7 @@ app.get("/v1/finops/organizations/:organizationId/cost", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to get organization cost', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1226,7 +1226,7 @@ app.put("/v1/rls/rules/:ruleId", rlsAccessControlMiddleware('rls', 'write'), rls
       return res.status(404).json({ error: 'RLS rule not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         ruleId,
@@ -1235,7 +1235,7 @@ app.put("/v1/rls/rules/:ruleId", rlsAccessControlMiddleware('rls', 'write'), rls
     });
   } catch (error) {
     logger.error('Failed to update RLS rule', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1248,7 +1248,7 @@ app.delete("/v1/rls/rules/:ruleId", rlsAccessControlMiddleware('rls', 'write'), 
       return res.status(404).json({ error: 'RLS rule not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         ruleId,
@@ -1257,7 +1257,7 @@ app.delete("/v1/rls/rules/:ruleId", rlsAccessControlMiddleware('rls', 'write'), 
     });
   } catch (error) {
     logger.error('Failed to delete RLS rule', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1354,7 +1354,7 @@ app.delete("/v1/gateway/services/:serviceId", (req, res) => {
       return res.status(404).json({ error: 'Service not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         serviceId,
@@ -1363,7 +1363,7 @@ app.delete("/v1/gateway/services/:serviceId", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to remove service from gateway', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1411,7 +1411,7 @@ app.delete("/v1/gateway/routes/:routeId", (req, res) => {
       return res.status(404).json({ error: 'Route not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         routeId,
@@ -1420,7 +1420,7 @@ app.delete("/v1/gateway/routes/:routeId", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to remove route from gateway', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1428,13 +1428,13 @@ app.get("/v1/gateway/stats", (req, res) => {
   try {
     const stats = apiGateway.getStats();
     
-    res.json({
+    return res.json({
       success: true,
       data: stats
     });
   } catch (error) {
     logger.error('Failed to get gateway stats', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1454,7 +1454,7 @@ app.post("/v1/gateway/test-route", (req, res) => {
 
     const service = apiGateway.getService(route.serviceId);
     
-    res.json({
+    return res.json({
       success: true,
       data: {
         route,
@@ -1464,7 +1464,7 @@ app.post("/v1/gateway/test-route", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to test route', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1536,7 +1536,7 @@ app.get("/v1/events/aggregates/:aggregateId", async (req, res) => {
       const user = await eventSourcingSystem.loadAggregate(aggregateId, UserAggregate);
       const state = user.getState();
 
-      res.json({
+      return res.json({
         success: true,
         data: {
           aggregateId,
@@ -1546,11 +1546,11 @@ app.get("/v1/events/aggregates/:aggregateId", async (req, res) => {
         }
       });
     } else {
-      res.status(400).json({ error: 'Unsupported aggregate type' });
+      return res.status(400).json({ error: 'Unsupported aggregate type' });
     }
   } catch (error) {
     logger.error('Failed to load aggregate', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1639,7 +1639,7 @@ app.delete("/v1/microservices/deregister/:serviceId", (req, res) => {
       return res.status(404).json({ error: 'Service not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         serviceId,
@@ -1648,7 +1648,7 @@ app.delete("/v1/microservices/deregister/:serviceId", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to deregister service', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1777,7 +1777,7 @@ app.post("/v1/microservices/heartbeat/:serviceId", (req, res) => {
       return res.status(404).json({ error: 'Service not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         serviceId,
@@ -1786,7 +1786,7 @@ app.post("/v1/microservices/heartbeat/:serviceId", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to process heartbeat', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1801,7 +1801,7 @@ app.put("/v1/microservices/health/:serviceId", (req, res) => {
       return res.status(404).json({ error: 'Service not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         serviceId,
@@ -1811,7 +1811,7 @@ app.put("/v1/microservices/health/:serviceId", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to update service health', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1824,7 +1824,7 @@ app.post("/v1/microservices/circuit-breaker/reset/:serviceName", (req, res) => {
       return res.status(404).json({ error: 'Circuit breaker not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         serviceName,
@@ -1833,7 +1833,7 @@ app.post("/v1/microservices/circuit-breaker/reset/:serviceName", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to reset circuit breaker', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1889,7 +1889,7 @@ app.put("/v1/config/feature-flags/:flagId", (req, res) => {
       return res.status(404).json({ error: 'Feature flag not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         flagId,
@@ -1898,7 +1898,7 @@ app.put("/v1/config/feature-flags/:flagId", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to update feature flag', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1911,7 +1911,7 @@ app.delete("/v1/config/feature-flags/:flagId", (req, res) => {
       return res.status(404).json({ error: 'Feature flag not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         flagId,
@@ -1920,7 +1920,7 @@ app.delete("/v1/config/feature-flags/:flagId", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to delete feature flag', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1931,7 +1931,7 @@ app.post("/v1/config/feature-flags/:flagId/check", (req, res) => {
     
     const isEnabled = configurationManager.isFeatureEnabled(flagId, context);
     
-    res.json({
+    return res.json({
       success: true,
       data: {
         flagId,
@@ -1941,7 +1941,7 @@ app.post("/v1/config/feature-flags/:flagId/check", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to check feature flag', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1955,13 +1955,13 @@ app.get("/v1/config/environments", (req, res) => {
         return res.status(404).json({ error: 'Environment not found' });
       }
       
-      res.json({
+      return res.json({
         success: true,
         data: config
       });
     } else {
       const stats = configurationManager.getStats();
-      res.json({
+      return res.json({
         success: true,
         data: {
           environments: stats.environments,
@@ -1971,7 +1971,7 @@ app.get("/v1/config/environments", (req, res) => {
     }
   } catch (error) {
     logger.error('Failed to get environments', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1986,7 +1986,7 @@ app.put("/v1/config/environments/:environment", (req, res) => {
       return res.status(400).json({ error: 'Failed to update environment config' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         environment,
@@ -1995,7 +1995,7 @@ app.put("/v1/config/environments/:environment", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to update environment config', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2006,7 +2006,7 @@ app.get("/v1/config/values/:key", (req, res) => {
     
     const value = configurationManager.getConfigValue(key, environment as string, defaultValue);
     
-    res.json({
+    return res.json({
       success: true,
       data: {
         key,
@@ -2016,7 +2016,7 @@ app.get("/v1/config/values/:key", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to get config value', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2031,7 +2031,7 @@ app.put("/v1/config/values/:key", (req, res) => {
       return res.status(400).json({ error: 'Failed to set config value' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         key,
@@ -2042,7 +2042,7 @@ app.put("/v1/config/values/:key", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to set config value', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2057,7 +2057,7 @@ app.get("/v1/config/secrets/:key", (req, res) => {
       return res.status(404).json({ error: 'Secret not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         key,
@@ -2067,7 +2067,7 @@ app.get("/v1/config/secrets/:key", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to get secret', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2082,7 +2082,7 @@ app.put("/v1/config/secrets/:key", (req, res) => {
       return res.status(400).json({ error: 'Failed to set secret' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         key,
@@ -2093,7 +2093,7 @@ app.put("/v1/config/secrets/:key", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to set secret', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2101,13 +2101,13 @@ app.get("/v1/config/stats", (req, res) => {
   try {
     const stats = configurationManager.getStats();
     
-    res.json({
+    return res.json({
       success: true,
       data: stats
     });
   } catch (error) {
     logger.error('Failed to get config stats', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2115,7 +2115,7 @@ app.post("/v1/config/validate", (req, res) => {
   try {
     const isValid = configurationManager.validateConfiguration();
     
-    res.json({
+    return res.json({
       success: true,
       data: {
         isValid,
@@ -2124,7 +2124,7 @@ app.post("/v1/config/validate", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to validate configuration', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2132,7 +2132,7 @@ app.post("/v1/config/reload", (req, res) => {
   try {
     configurationManager.reloadConfiguration();
     
-    res.json({
+    return res.json({
       success: true,
       data: {
         message: 'Configuration reloaded successfully'
@@ -2140,7 +2140,7 @@ app.post("/v1/config/reload", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to reload configuration', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2210,13 +2210,13 @@ app.get("/v1/workflows/:workflowId", async (req, res) => {
       return res.status(404).json({ error: 'Workflow not found' });
     }
 
-    res.json({
+    return res.json({
       data: workflow,
       message: 'Workflow retrieved successfully'
     });
   } catch (error) {
     logger.error('Failed to get workflow', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2298,13 +2298,13 @@ app.get("/v1/workflows/instances/:instanceId", async (req, res) => {
       return res.status(404).json({ error: 'Workflow instance not found' });
     }
 
-    res.json({
+    return res.json({
       data: instance,
       message: 'Workflow instance retrieved successfully'
     });
   } catch (error) {
     logger.error('Failed to get workflow instance', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2446,7 +2446,7 @@ app.get("/v1/demo/ai", rateLimitByEndpoint, async (req: any, res) => {
       requestId: req.requestId 
     });
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         ...demoResponse,
@@ -2458,7 +2458,7 @@ app.get("/v1/demo/ai", rateLimitByEndpoint, async (req: any, res) => {
     });
   } catch (error) {
     logger.error('Failed to process AI request', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2510,7 +2510,7 @@ app.get("/v1/demo/search", rateLimitByEndpoint, async (req: any, res) => {
       requestId: req.requestId 
     });
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         ...demoResults,
@@ -2522,7 +2522,7 @@ app.get("/v1/demo/search", rateLimitByEndpoint, async (req: any, res) => {
     });
   } catch (error) {
     logger.error('Failed to process search request', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2611,10 +2611,10 @@ app.get("/v1/inventory/products/:id", async (req, res) => {
     if (!product) {
       return res.status(404).json({ error: 'Product not found' });
     }
-    res.json(product);
+    return res.json(product);
   } catch (error) {
     logger.error('Failed to get product', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2678,10 +2678,10 @@ app.get("/v1/inventory/transactions/:id", async (req, res) => {
     if (!transaction) {
       return res.status(404).json({ error: 'Transaction not found' });
     }
-    res.json(transaction);
+    return res.json(transaction);
   } catch (error) {
     logger.error('Failed to get transaction', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2723,10 +2723,10 @@ app.get("/v1/inventory/alerts/:id", async (req, res) => {
     if (!alert) {
       return res.status(404).json({ error: 'Alert not found' });
     }
-    res.json(alert);
+    return res.json(alert);
   } catch (error) {
     logger.error('Failed to get alert', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2856,10 +2856,10 @@ app.get("/v1/security/users/:id", async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    res.json(user);
+    return res.json(user);
   } catch (error) {
     logger.error('Failed to get user', { error: (error as Error).message });
-    res.status(500).json({ error: (error as Error).message });
+    return res.status(500).json({ error: (error as Error).message });
   }
 });
 
@@ -2879,10 +2879,10 @@ app.post("/v1/security/auth/login", async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     logger.error('Authentication failed', { error: (error as Error).message });
-    res.status(500).json({ error: (error as Error).message });
+    return res.status(500).json({ error: (error as Error).message });
   }
 });
 
@@ -2895,10 +2895,10 @@ app.post("/v1/security/mfa/setup", async (req, res) => {
     }
     
     const result = await securitySystem.setupMFA(userId, method);
-    res.status(201).json(result);
+    return res.status(201).json(result);
   } catch (error) {
     logger.error('Failed to setup MFA', { error: (error as Error).message });
-    res.status(500).json({ error: (error as Error).message });
+    return res.status(500).json({ error: (error as Error).message });
   }
 });
 
@@ -2910,10 +2910,10 @@ app.post("/v1/security/mfa/verify", async (req, res) => {
     }
     
     const isValid = await securitySystem.verifyMFA(userId, code);
-    res.json({ valid: isValid });
+    return res.json({ valid: isValid });
   } catch (error) {
     logger.error('MFA verification failed', { error: (error as Error).message });
-    res.status(500).json({ error: (error as Error).message });
+    return res.status(500).json({ error: (error as Error).message });
   }
 });
 
@@ -2926,10 +2926,10 @@ app.post("/v1/security/roles", async (req, res) => {
     }
     
     const role = await securitySystem.createRole(name, description || '', permissions || [], orgId);
-    res.status(201).json(role);
+    return res.status(201).json(role);
   } catch (error) {
     logger.error('Failed to create role', { error: (error as Error).message });
-    res.status(500).json({ error: (error as Error).message });
+    return res.status(500).json({ error: (error as Error).message });
   }
 });
 
@@ -2963,10 +2963,10 @@ app.post("/v1/security/permissions", async (req, res) => {
     }
     
     const permission = await securitySystem.createPermission(name, description || '', resource, action, orgId);
-    res.status(201).json(permission);
+    return res.status(201).json(permission);
   } catch (error) {
     logger.error('Failed to create permission', { error: (error as Error).message });
-    res.status(500).json({ error: (error as Error).message });
+    return res.status(500).json({ error: (error as Error).message });
   }
 });
 
@@ -2988,10 +2988,10 @@ app.post("/v1/security/permissions/check", async (req, res) => {
     }
     
     const hasPermission = await securitySystem.checkPermission(userId, resource, action);
-    res.json({ hasPermission });
+    return res.json({ hasPermission });
   } catch (error) {
     logger.error('Permission check failed', { error: (error as Error).message });
-    res.status(500).json({ error: (error as Error).message });
+    return res.status(500).json({ error: (error as Error).message });
   }
 });
 
@@ -3028,10 +3028,10 @@ app.get("/v1/security/threats", async (req, res) => {
     }
     
     const threatIntel = await securitySystem.checkIPReputation(ipAddress);
-    res.json(threatIntel);
+    return res.json(threatIntel);
   } catch (error) {
     logger.error('Failed to get threat intelligence', { error: (error as Error).message });
-    res.status(500).json({ error: (error as Error).message });
+    return res.status(500).json({ error: (error as Error).message });
   }
 });
 
@@ -3043,10 +3043,10 @@ app.post("/v1/security/threats/check", async (req, res) => {
     }
     
     const threatIntel = await securitySystem.checkIPReputation(ipAddress);
-    res.json(threatIntel);
+    return res.json(threatIntel);
   } catch (error) {
     logger.error('IP reputation check failed', { error: (error as Error).message });
-    res.status(500).json({ error: (error as Error).message });
+    return res.status(500).json({ error: (error as Error).message });
   }
 });
 

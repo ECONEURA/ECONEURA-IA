@@ -129,9 +129,9 @@ class ApiClient {
     // Show error message
     const message = errorData?.detail || errorData?.title || error.message || 'API Error'
     
-    if (status >= 500) {
+    if (status && status >= 500) {
       toast.error(`Server Error: ${message}`)
-    } else if (status >= 400) {
+    } else if (status && status >= 400) {
       toast.error(message)
     } else {
       toast.error('Network Error')
@@ -310,6 +310,3 @@ class ApiClient {
 
 // Export singleton instance
 export const apiClient = new ApiClient()
-
-// Export types
-export type { ApiError, ApiResponse }

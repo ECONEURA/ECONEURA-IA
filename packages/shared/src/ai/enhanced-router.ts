@@ -1,12 +1,20 @@
 import { z } from 'zod'
-import { logger } from '../logging/index.ts'
-import { prometheus } from '../metrics/index.ts'
-import { redactPII } from '../security/index.ts'
-import { CostGuardrails, type UsageMetrics } from './cost-guardrails.ts'
-import { LLMProviderManager, type LLMProvider, type LLMModel } from './providers.ts'
-import { costMeter, type CostUsage } from '../cost-meter.ts'
-// import { createTracer } from '../otel/index.ts'
-import { env } from '../env.ts'
+import { logger } from '../logging/index'
+import { prometheus } from '../metrics/index'
+import { redactPII } from '../security/index'
+import { CostGuardrails, type UsageMetrics } from './cost-guardrails'
+import { LLMProviderManager, type LLMProvider, type LLMModel } from './providers'
+// Lazy import costMeter to avoid resolving @econeura/db in Next.js builds
+type CostUsage = any
+let _costMeter: any | null = null
+async function getCostMeter() {
+  if (_costMeter) return _costMeter
+  const mod = await import('../cost-meter')
+  _costMeter = mod.costMeter
+  return _costMeter
+}
+// import { createTracer } from '../otel/index'
+import { env } from '../env'
 
 // Request schemas
 const AIRequestSchema = z.object({
@@ -106,6 +114,7 @@ export class EnhancedAIRouter {
       const validatedRequest = AIRequestSchema.parse(request)
       
       // Check monthly cost cap first
+      const costMeter = await getCostMeter()
       const capCheck = await costMeter.checkMonthlyCap(request.orgId)
       if (!capCheck.withinLimit) {
         throw new Error(`AI cost cap exceeded: ${capCheck.currentUsage}€/${capCheck.limit}€`)
@@ -212,6 +221,7 @@ export class EnhancedAIRouter {
 
       // Estimate cost for primary provider
       const estimatedTokens = this.estimateTokens(request.prompt, request.maxTokens)
+      const costMeter = await getCostMeter()
       const estimatedCost = costMeter.calculateCost(
         model as any,
         estimatedTokens,
@@ -312,6 +322,7 @@ export class EnhancedAIRouter {
       const response = await provider.execute(providerRequest)
       
       // Calculate actual cost
+      const costMeter = await getCostMeter()
       const costUsage = costMeter.recordUsage(
         request.orgId,
         model,
@@ -504,6 +515,7 @@ export class EnhancedAIRouter {
     limit: number
     usagePercent: number
   }> {
+    const costMeter = await getCostMeter()
     const capCheck = await costMeter.checkMonthlyCap(orgId)
     return {
       currentMonthly: capCheck.currentUsage,

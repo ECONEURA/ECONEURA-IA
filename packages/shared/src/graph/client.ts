@@ -2,9 +2,9 @@ import { Client } from '@microsoft/microsoft-graph-client'
 import { ConfidentialClientApplication } from '@azure/msal-node'
 import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials'
 import { ClientSecretCredential } from '@azure/identity'
-// import { createTracer } from '../otel/index.ts'
-import { logger } from '../logging/index.ts'
-import { env } from '../env.ts'
+// import { createTracer } from '../otel/index'
+import { logger } from '../logging/index'
+import { env } from '../env'
 
 export interface GraphConfig {
   tenantId: string

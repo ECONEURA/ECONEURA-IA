@@ -1,4 +1,4 @@
-import { logger } from '../logging/index.ts';
+import { logger } from '../logging/index';
 
 export interface LLMProvider {
   id: string;

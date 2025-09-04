@@ -50,7 +50,7 @@ export default function SystemStatus() {
     } catch (error) {
       console.error('Error fetching system status:', error);
       setSystemStatus({
-        web: { status: 'down', mode: 'down', ai: 'down', search: 'down' },
+        web: { status: 'down', mode: 'degraded', ai: 'down', search: 'down' },
         api: { status: 'down', checks: { database: 'down', queues: 'down', integrations: 'down' } }
       });
     } finally {

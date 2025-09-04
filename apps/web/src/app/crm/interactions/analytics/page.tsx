@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { useApiClient } from '@/hooks/useApi';
+import { apiClient } from '@/lib/api-client';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -57,7 +57,7 @@ interface AnalyticsData {
 
 export default function InteractionsAnalyticsPage() {
   const { user } = useAuth();
-  const apiClient = useApiClient();
+  const api = apiClient;
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('30d');
@@ -79,8 +79,8 @@ export default function InteractionsAnalyticsPage() {
         ...Object.fromEntries(Object.entries(filters).filter(([_, value]) => value))
       });
 
-      const response = await apiClient(`/interactions/analytics?${queryParams.toString()}`);
-      setAnalytics(response.data);
+      const data = await api.request({ url: `/interactions/analytics?${queryParams.toString()}`, method: 'GET' });
+      setAnalytics(data.data ?? data);
     } catch (error) {
       console.error('Error loading analytics:', error);
     } finally {

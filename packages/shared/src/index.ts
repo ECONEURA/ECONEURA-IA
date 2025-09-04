@@ -65,8 +65,8 @@ export { env, getEnv } from './env.ts';
 export * from './otel/index.ts';
 
 // Cost metering
-export { costMeter } from './cost-meter.ts';
-export type { CostUsage, ModelName } from './cost-meter.ts';
+// Avoid exporting cost-meter in Next.js build contexts to prevent resolution of @econeura/db
+// Consumers in server-only contexts can import it directly from './cost-meter.ts'
 
 // Version info
 export const VERSION = '1.0.0';
