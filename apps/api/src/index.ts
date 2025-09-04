@@ -23,12 +23,22 @@ import { featureFlagInfoMiddleware, requireFeatureFlag } from "./middleware/feat
 import { workflowEngine } from "./lib/workflows.js";
 import { inventorySystem } from "./lib/inventory.js";
 import { securitySystem } from "./lib/security.js";
+import { SEPAParserService } from "./lib/sepa-parser.service.js";
+import { MatchingEngineService } from "./lib/matching-engine.service.js";
+import { ReconciliationService } from "./lib/reconciliation.service.js";
+import { RuleEngineService } from "./lib/rule-engine.service.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
 // Inicializar cache manager
 const cacheManager = new CacheManager();
+
+// Inicializar servicios SEPA
+const sepaParser = new SEPAParserService();
+const matchingEngine = new MatchingEngineService();
+const reconciliationService = new ReconciliationService();
+const ruleEngine = new RuleEngineService();
 
 // Middleware básico
 app.use(cors());
@@ -2824,6 +2834,273 @@ app.get("/v1/inventory/products/:id/kardex-report", async (req, res) => {
 });
 
 // ============================================================================
+// SEPA SYSTEM ENDPOINTS
+// ============================================================================
+
+// Upload de archivos SEPA
+app.post("/v1/sepa/upload", async (req, res) => {
+  try {
+    const { fileContent, fileType, fileName } = req.body;
+    
+    if (!fileContent || !fileType) {
+      return res.status(400).json({ 
+        error: "Missing required fields",
+        message: "fileContent and fileType are required"
+      });
+    }
+
+    let result;
+    if (fileType === 'camt') {
+      result = await sepaParser.parseCAMT(fileContent);
+    } else if (fileType === 'mt940') {
+      result = await sepaParser.parseMT940(fileContent);
+    } else {
+      return res.status(400).json({ 
+        error: "Invalid file type",
+        message: "fileType must be 'camt' or 'mt940'"
+      });
+    }
+
+    logger.info("SEPA file uploaded and parsed", {
+      fileName: result.fileName,
+      transactionsCount: result.transactionsCount,
+      status: result.status
+    });
+
+    return res.json({
+      success: true,
+      data: result
+    });
+  } catch (error: any) {
+    logger.error("SEPA upload failed", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "SEPA upload failed",
+      message: (error as Error).message
+    });
+  }
+});
+
+// Lista de transacciones SEPA
+app.get("/v1/sepa/transactions", async (req, res) => {
+  try {
+    const transactions = sepaParser.getTransactions();
+    
+    return res.json({
+      success: true,
+      data: {
+        transactions,
+        count: transactions.length
+      }
+    });
+  } catch (error: any) {
+    logger.error("Failed to get SEPA transactions", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to get SEPA transactions",
+      message: (error as Error).message
+    });
+  }
+});
+
+// Matching de transacciones
+app.post("/v1/sepa/matching", async (req, res) => {
+  try {
+    const { sepaTransactions, existingTransactions } = req.body;
+    
+    if (!sepaTransactions || !existingTransactions) {
+      return res.status(400).json({ 
+        error: "Missing required fields",
+        message: "sepaTransactions and existingTransactions are required"
+      });
+    }
+
+    const results = await matchingEngine.matchTransactions(sepaTransactions, existingTransactions);
+    
+    logger.info("SEPA matching completed", {
+      sepaTransactionsCount: sepaTransactions.length,
+      existingTransactionsCount: existingTransactions.length,
+      matchesFound: results.length
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        results,
+        stats: matchingEngine.getMatchingStats()
+      }
+    });
+  } catch (error: any) {
+    logger.error("SEPA matching failed", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "SEPA matching failed",
+      message: (error as Error).message
+    });
+  }
+});
+
+// Conciliación bancaria
+app.post("/v1/sepa/reconciliation", async (req, res) => {
+  try {
+    const { sepaTransactions, existingTransactions } = req.body;
+    
+    if (!sepaTransactions || !existingTransactions) {
+      return res.status(400).json({ 
+        error: "Missing required fields",
+        message: "sepaTransactions and existingTransactions are required"
+      });
+    }
+
+    const result = await reconciliationService.performReconciliation(sepaTransactions, existingTransactions);
+    
+    logger.info("SEPA reconciliation completed", {
+      totalTransactions: result.summary.total,
+      autoReconciled: result.summary.autoReconciled,
+      successRate: result.summary.successRate
+    });
+
+    return res.json({
+      success: true,
+      data: result
+    });
+  } catch (error: any) {
+    logger.error("SEPA reconciliation failed", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "SEPA reconciliation failed",
+      message: (error as Error).message
+    });
+  }
+});
+
+// Gestión de reglas de matching
+app.get("/v1/sepa/rules", async (req, res) => {
+  try {
+    const rules = ruleEngine.getRules();
+    
+    return res.json({
+      success: true,
+      data: {
+        rules,
+        stats: ruleEngine.getRuleStats()
+      }
+    });
+  } catch (error: any) {
+    logger.error("Failed to get SEPA rules", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to get SEPA rules",
+      message: (error as Error).message
+    });
+  }
+});
+
+app.post("/v1/sepa/rules", async (req, res) => {
+  try {
+    const ruleData = req.body;
+    
+    const validation = ruleEngine.validateRule(ruleData);
+    if (!validation.isValid) {
+      return res.status(400).json({ 
+        error: "Invalid rule",
+        message: "Rule validation failed",
+        details: validation.errors
+      });
+    }
+
+    const rule = ruleEngine.addRule(ruleData);
+    
+    logger.info("SEPA rule created", { ruleId: rule.id, ruleName: rule.name });
+
+    return res.json({
+      success: true,
+      data: rule
+    });
+  } catch (error: any) {
+    logger.error("Failed to create SEPA rule", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to create SEPA rule",
+      message: (error as Error).message
+    });
+  }
+});
+
+app.put("/v1/sepa/rules/:ruleId", async (req, res) => {
+  try {
+    const { ruleId } = req.params;
+    const updates = req.body;
+    
+    const rule = ruleEngine.updateRule(ruleId, updates);
+    if (!rule) {
+      return res.status(404).json({ 
+        error: "Rule not found",
+        message: `Rule with ID ${ruleId} not found`
+      });
+    }
+
+    logger.info("SEPA rule updated", { ruleId, ruleName: rule.name });
+
+    return res.json({
+      success: true,
+      data: rule
+    });
+  } catch (error: any) {
+    logger.error("Failed to update SEPA rule", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to update SEPA rule",
+      message: (error as Error).message
+    });
+  }
+});
+
+app.delete("/v1/sepa/rules/:ruleId", async (req, res) => {
+  try {
+    const { ruleId } = req.params;
+    
+    const deleted = ruleEngine.deleteRule(ruleId);
+    if (!deleted) {
+      return res.status(404).json({ 
+        error: "Rule not found",
+        message: `Rule with ID ${ruleId} not found`
+      });
+    }
+
+    logger.info("SEPA rule deleted", { ruleId });
+
+    return res.json({
+      success: true,
+      message: "Rule deleted successfully"
+    });
+  } catch (error: any) {
+    logger.error("Failed to delete SEPA rule", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to delete SEPA rule",
+      message: (error as Error).message
+    });
+  }
+});
+
+// Estadísticas SEPA
+app.get("/v1/sepa/stats", async (req, res) => {
+  try {
+    const matchingStats = matchingEngine.getMatchingStats();
+    const reconciliationStats = reconciliationService.getReconciliationStats();
+    const ruleStats = ruleEngine.getRuleStats();
+    
+    return res.json({
+      success: true,
+      data: {
+        matching: matchingStats,
+        reconciliation: reconciliationStats,
+        rules: ruleStats
+      }
+    });
+  } catch (error: any) {
+    logger.error("Failed to get SEPA stats", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to get SEPA stats",
+      message: (error as Error).message
+    });
+  }
+});
+
+// ============================================================================
 // ADVANCED SECURITY SYSTEM ENDPOINTS
 // ============================================================================
 
@@ -3102,6 +3379,7 @@ app.listen(PORT, async () => {
   console.log(`⚙️ Configuration system enabled with feature flags and environment management`);
   console.log(`🔄 Workflow system enabled with BPMN and state machines`);
   console.log(`🔐 Advanced Security system enabled with MFA, RBAC, and threat detection`);
+  console.log(`🏦 SEPA system enabled with CAMT/MT940 parsing and intelligent matching`);
   
   // Inicializar warmup del caché
   try {

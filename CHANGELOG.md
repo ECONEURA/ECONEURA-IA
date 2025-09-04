@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **PR-42**: SEPA Ingest + Matching System
+  - Sistema completo de procesamiento de transacciones SEPA
+  - Parser CAMT.053/.054 para extractos bancarios XML
+  - Parser MT940 para extractos bancarios EDIFACT
+  - Motor de matching inteligente con reglas configurables
+  - Sistema de conciliación bancaria automática y manual
+  - Motor de reglas para matching personalizado
+  - API endpoints completos para operaciones SEPA
+  - Estadísticas y métricas de matching y conciliación
+  - Script de smoke test completo para validación
+  - Integración con sistema de observabilidad existente
+
+### Technical Details
+- **SEPA Parser**: Soporte para formatos CAMT y MT940
+- **Matching Engine**: Algoritmos de matching exacto, fuzzy y pattern
+- **Reconciliation System**: Conciliación automática y manual
+- **Rule Engine**: Reglas configurables con validación
+- **API Endpoints**: CRUD completo para gestión SEPA
+- **Performance**: Procesamiento eficiente de grandes volúmenes
+- **Error Handling**: Manejo robusto de errores y excepciones
+- **Audit Trail**: Trazabilidad completa de operaciones
+
+### Files Added/Modified
+- `apps/api/src/lib/sepa-types.ts`: Tipos TypeScript para SEPA
+- `apps/api/src/lib/sepa-parser.service.ts`: Parser CAMT/MT940
+- `apps/api/src/lib/matching-engine.service.ts`: Motor de matching
+- `apps/api/src/lib/reconciliation.service.ts`: Sistema de conciliación
+- `apps/api/src/lib/rule-engine.service.ts`: Motor de reglas
+- `apps/api/src/index.ts`: Endpoints SEPA integrados
+- `scripts/smoke-pr-42.sh`: Script de pruebas completo
+
+### Testing
+- ✅ SEPA parser CAMT/MT940 functional
+- ✅ Matching engine with intelligent algorithms working
+- ✅ Reconciliation system operational
+- ✅ Rule engine with validation working
+- ✅ API endpoints with proper error handling
+- ✅ Performance acceptable for large volumes
+- ✅ Integration with observability functional
+- ✅ All smoke tests passing
+
 - **PR-41**: Advanced Security System
   - Sistema completo de seguridad empresarial con autenticación avanzada
   - Gestión de usuarios con roles y permisos (RBAC)
