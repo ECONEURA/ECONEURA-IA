@@ -63,6 +63,10 @@ import { AdvancedSecurityService } from "./lib/advanced-security.service.js";
 import { ComplianceManagementService } from "./lib/compliance-management.service.js";
 import { ComprehensiveAuditService } from "./lib/comprehensive-audit.service.js";
 import { ThreatDetectionService } from "./lib/threat-detection.service.js";
+import { MachineLearningService } from "./lib/machine-learning.service.js";
+import { IntelligentAutomationService } from "./lib/intelligent-automation.service.js";
+import { PredictiveAnalyticsService } from "./lib/predictive-analytics.service.js";
+import { AIOrchestrationService } from "./lib/ai-orchestration.service.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -108,6 +112,10 @@ const advancedSecurity = new AdvancedSecurityService();
 const complianceManagement = new ComplianceManagementService();
 const comprehensiveAudit = new ComprehensiveAuditService();
 const threatDetection = new ThreatDetectionService();
+const machineLearning = new MachineLearningService();
+const intelligentAutomation = new IntelligentAutomationService();
+const predictiveAnalytics = new PredictiveAnalyticsService();
+const aiOrchestration = new AIOrchestrationService();
 
 // Middleware básico con mejoras de seguridad
 app.use(SecurityMiddleware.createSecurityHeaders());
@@ -5862,6 +5870,651 @@ app.get("/v1/threats/analytics", async (req, res) => {
 });
 
 // ============================================================================
+// ADVANCED AI/ML & AUTOMATION ENDPOINTS
+// ============================================================================
+
+// Machine Learning Endpoints
+app.get("/v1/ml/models", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const filters = req.query;
+    const models = await machineLearning.getModels(organizationId, filters);
+    res.json({ success: true, data: models });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/ml/models", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const createdBy = req.headers['x-user-id'] as string || 'user_1';
+    const model = await machineLearning.createModel(req.body, organizationId, createdBy);
+    res.status(201).json({ success: true, data: model });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/ml/models/:id", async (req, res) => {
+  try {
+    const model = await machineLearning.getModel(req.params.id);
+    if (!model) {
+      return res.status(404).json({ success: false, error: 'Model not found' });
+    }
+    res.json({ success: true, data: model });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.put("/v1/ml/models/:id", async (req, res) => {
+  try {
+    const model = await machineLearning.updateModel(req.params.id, req.body);
+    if (!model) {
+      return res.status(404).json({ success: false, error: 'Model not found' });
+    }
+    res.json({ success: true, data: model });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.delete("/v1/ml/models/:id", async (req, res) => {
+  try {
+    const deleted = await machineLearning.deleteModel(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, error: 'Model not found' });
+    }
+    res.json({ success: true, message: 'Model deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/ml/models/:id/train", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const createdBy = req.headers['x-user-id'] as string || 'user_1';
+    const { trainingData, validationData, testData } = req.body;
+    const trainingJob = await machineLearning.startTraining(
+      req.params.id,
+      trainingData,
+      validationData,
+      testData,
+      organizationId,
+      createdBy
+    );
+    res.status(201).json({ success: true, data: trainingJob });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/ml/models/:id/performance", async (req, res) => {
+  try {
+    const performance = await machineLearning.getModelPerformance(req.params.id);
+    if (!performance) {
+      return res.status(404).json({ success: false, error: 'Model not found' });
+    }
+    res.json({ success: true, data: performance });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/ml/models/:id/deploy", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const deployedBy = req.headers['x-user-id'] as string || 'user_1';
+    const { environment } = req.body;
+    const deployment = await machineLearning.deployModel(
+      req.params.id,
+      environment,
+      organizationId,
+      deployedBy
+    );
+    res.status(201).json({ success: true, data: deployment });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/ml/models/:id/predict", async (req, res) => {
+  try {
+    const { inputData } = req.body;
+    const prediction = await machineLearning.predict(req.params.id, inputData);
+    res.json({ success: true, data: prediction });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/ml/training-jobs", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const modelId = req.query.modelId as string;
+    const jobs = await machineLearning.getTrainingJobs(organizationId, modelId);
+    res.json({ success: true, data: jobs });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/ml/training-jobs/:id", async (req, res) => {
+  try {
+    const job = await machineLearning.getTrainingJob(req.params.id);
+    if (!job) {
+      return res.status(404).json({ success: false, error: 'Training job not found' });
+    }
+    res.json({ success: true, data: job });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/ml/training-jobs/:id/cancel", async (req, res) => {
+  try {
+    const cancelled = await machineLearning.cancelTraining(req.params.id);
+    if (!cancelled) {
+      return res.status(404).json({ success: false, error: 'Training job not found or not running' });
+    }
+    res.json({ success: true, message: 'Training job cancelled successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/ml/deployments", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const modelId = req.query.modelId as string;
+    const deployments = await machineLearning.getDeployments(organizationId, modelId);
+    res.json({ success: true, data: deployments });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/ml/deployments/:id", async (req, res) => {
+  try {
+    const deployment = await machineLearning.getDeployment(req.params.id);
+    if (!deployment) {
+      return res.status(404).json({ success: false, error: 'Deployment not found' });
+    }
+    res.json({ success: true, data: deployment });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/ml/deployments/:id/stop", async (req, res) => {
+  try {
+    const stopped = await machineLearning.stopDeployment(req.params.id);
+    if (!stopped) {
+      return res.status(404).json({ success: false, error: 'Deployment not found' });
+    }
+    res.json({ success: true, message: 'Deployment stopped successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/ml/analytics", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const analytics = await machineLearning.getModelAnalytics(organizationId);
+    res.json({ success: true, data: analytics });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Intelligent Automation Endpoints
+app.get("/v1/automation/workflows", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const filters = req.query;
+    const workflows = await intelligentAutomation.getWorkflows(organizationId, filters);
+    res.json({ success: true, data: workflows });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/automation/workflows", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const createdBy = req.headers['x-user-id'] as string || 'user_1';
+    const workflow = await intelligentAutomation.createWorkflow(req.body, organizationId, createdBy);
+    res.status(201).json({ success: true, data: workflow });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/automation/workflows/:id", async (req, res) => {
+  try {
+    const workflow = await intelligentAutomation.getWorkflow(req.params.id);
+    if (!workflow) {
+      return res.status(404).json({ success: false, error: 'Workflow not found' });
+    }
+    res.json({ success: true, data: workflow });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.put("/v1/automation/workflows/:id", async (req, res) => {
+  try {
+    const workflow = await intelligentAutomation.updateWorkflow(req.params.id, req.body);
+    if (!workflow) {
+      return res.status(404).json({ success: false, error: 'Workflow not found' });
+    }
+    res.json({ success: true, data: workflow });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.delete("/v1/automation/workflows/:id", async (req, res) => {
+  try {
+    const deleted = await intelligentAutomation.deleteWorkflow(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, error: 'Workflow not found' });
+    }
+    res.json({ success: true, message: 'Workflow deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/automation/workflows/:id/activate", async (req, res) => {
+  try {
+    const workflow = await intelligentAutomation.activateWorkflow(req.params.id);
+    if (!workflow) {
+      return res.status(404).json({ success: false, error: 'Workflow not found' });
+    }
+    res.json({ success: true, data: workflow });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/automation/workflows/:id/deactivate", async (req, res) => {
+  try {
+    const workflow = await intelligentAutomation.deactivateWorkflow(req.params.id);
+    if (!workflow) {
+      return res.status(404).json({ success: false, error: 'Workflow not found' });
+    }
+    res.json({ success: true, data: workflow });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/automation/workflows/:id/execute", async (req, res) => {
+  try {
+    const executedBy = req.headers['x-user-id'] as string || 'user_1';
+    const { inputs } = req.body;
+    const execution = await intelligentAutomation.executeWorkflow(req.params.id, inputs, executedBy);
+    res.status(201).json({ success: true, data: execution });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/automation/workflows/:id/executions", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const executions = await intelligentAutomation.getExecutions(organizationId, req.params.id);
+    res.json({ success: true, data: executions });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/automation/executions/:id", async (req, res) => {
+  try {
+    const execution = await intelligentAutomation.getExecution(req.params.id);
+    if (!execution) {
+      return res.status(404).json({ success: false, error: 'Execution not found' });
+    }
+    res.json({ success: true, data: execution });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/automation/executions/:id/cancel", async (req, res) => {
+  try {
+    const cancelled = await intelligentAutomation.cancelExecution(req.params.id);
+    if (!cancelled) {
+      return res.status(404).json({ success: false, error: 'Execution not found or not running' });
+    }
+    res.json({ success: true, message: 'Execution cancelled successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/automation/analytics", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const analytics = await intelligentAutomation.getAutomationAnalytics(organizationId);
+    res.json({ success: true, data: analytics });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Predictive Analytics Endpoints
+app.get("/v1/predictions", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const filters = req.query;
+    const predictions = await predictiveAnalytics.getPredictions(organizationId, filters);
+    res.json({ success: true, data: predictions });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/predictions", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const createdBy = req.headers['x-user-id'] as string || 'user_1';
+    const prediction = await predictiveAnalytics.createPrediction(req.body, organizationId, createdBy);
+    res.status(201).json({ success: true, data: prediction });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/predictions/:id", async (req, res) => {
+  try {
+    const prediction = await predictiveAnalytics.getPrediction(req.params.id);
+    if (!prediction) {
+      return res.status(404).json({ success: false, error: 'Prediction not found' });
+    }
+    res.json({ success: true, data: prediction });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/predictions/forecast", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const createdBy = req.headers['x-user-id'] as string || 'user_1';
+    const forecast = await predictiveAnalytics.generateForecast({
+      ...req.body,
+      organizationId,
+      createdBy
+    });
+    res.status(201).json({ success: true, data: forecast });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/predictions/forecasts", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const filters = req.query;
+    const forecasts = await predictiveAnalytics.getForecasts(organizationId, filters);
+    res.json({ success: true, data: forecasts });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/predictions/forecasts/:id", async (req, res) => {
+  try {
+    const forecast = await predictiveAnalytics.getForecast(req.params.id);
+    if (!forecast) {
+      return res.status(404).json({ success: false, error: 'Forecast not found' });
+    }
+    res.json({ success: true, data: forecast });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/predictions/anomaly", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const anomaly = await predictiveAnalytics.detectAnomaly({
+      ...req.body,
+      organizationId
+    });
+    res.status(201).json({ success: true, data: anomaly });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/predictions/anomalies", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const filters = req.query;
+    const anomalies = await predictiveAnalytics.getAnomalies(organizationId, filters);
+    res.json({ success: true, data: anomalies });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/predictions/anomalies/:id", async (req, res) => {
+  try {
+    const anomaly = await predictiveAnalytics.getAnomaly(req.params.id);
+    if (!anomaly) {
+      return res.status(404).json({ success: false, error: 'Anomaly not found' });
+    }
+    res.json({ success: true, data: anomaly });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/predictions/analytics", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const analytics = await predictiveAnalytics.getPredictiveAnalytics(organizationId);
+    res.json({ success: true, data: analytics });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// AI Orchestration Endpoints
+app.get("/v1/ai/orchestrations", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const filters = req.query;
+    const orchestrations = await aiOrchestration.getOrchestrations(organizationId, filters);
+    res.json({ success: true, data: orchestrations });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/ai/orchestrations", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const createdBy = req.headers['x-user-id'] as string || 'user_1';
+    const orchestration = await aiOrchestration.createOrchestration(req.body, organizationId, createdBy);
+    res.status(201).json({ success: true, data: orchestration });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/ai/orchestrations/:id", async (req, res) => {
+  try {
+    const orchestration = await aiOrchestration.getOrchestration(req.params.id);
+    if (!orchestration) {
+      return res.status(404).json({ success: false, error: 'Orchestration not found' });
+    }
+    res.json({ success: true, data: orchestration });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.put("/v1/ai/orchestrations/:id", async (req, res) => {
+  try {
+    const orchestration = await aiOrchestration.updateOrchestration(req.params.id, req.body);
+    if (!orchestration) {
+      return res.status(404).json({ success: false, error: 'Orchestration not found' });
+    }
+    res.json({ success: true, data: orchestration });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.delete("/v1/ai/orchestrations/:id", async (req, res) => {
+  try {
+    const deleted = await aiOrchestration.deleteOrchestration(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, error: 'Orchestration not found' });
+    }
+    res.json({ success: true, message: 'Orchestration deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/ai/orchestrations/:id/start", async (req, res) => {
+  try {
+    const orchestration = await aiOrchestration.startOrchestration(req.params.id);
+    if (!orchestration) {
+      return res.status(404).json({ success: false, error: 'Orchestration not found' });
+    }
+    res.json({ success: true, data: orchestration });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/ai/orchestrations/:id/stop", async (req, res) => {
+  try {
+    const orchestration = await aiOrchestration.stopOrchestration(req.params.id);
+    if (!orchestration) {
+      return res.status(404).json({ success: false, error: 'Orchestration not found' });
+    }
+    res.json({ success: true, data: orchestration });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/ai/orchestrations/:id/pause", async (req, res) => {
+  try {
+    const orchestration = await aiOrchestration.pauseOrchestration(req.params.id);
+    if (!orchestration) {
+      return res.status(404).json({ success: false, error: 'Orchestration not found' });
+    }
+    res.json({ success: true, data: orchestration });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/ai/orchestrations/:id/metrics", async (req, res) => {
+  try {
+    const metrics = await aiOrchestration.getOrchestrationMetrics(req.params.id);
+    if (!metrics) {
+      return res.status(404).json({ success: false, error: 'Orchestration not found' });
+    }
+    res.json({ success: true, data: metrics });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/ai/orchestrations/:id/scale", async (req, res) => {
+  try {
+    const { scaleFactor } = req.body;
+    const orchestration = await aiOrchestration.scaleOrchestration(req.params.id, scaleFactor);
+    if (!orchestration) {
+      return res.status(404).json({ success: false, error: 'Orchestration not found' });
+    }
+    res.json({ success: true, data: orchestration });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/ai/pipelines", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const filters = req.query;
+    const pipelines = await aiOrchestration.getPipelines(organizationId, filters);
+    res.json({ success: true, data: pipelines });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/ai/pipelines", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const createdBy = req.headers['x-user-id'] as string || 'user_1';
+    const pipeline = await aiOrchestration.createPipeline({
+      ...req.body,
+      organizationId,
+      createdBy
+    });
+    res.status(201).json({ success: true, data: pipeline });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/ai/pipelines/:id", async (req, res) => {
+  try {
+    const pipeline = await aiOrchestration.getPipeline(req.params.id);
+    if (!pipeline) {
+      return res.status(404).json({ success: false, error: 'Pipeline not found' });
+    }
+    res.json({ success: true, data: pipeline });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/ai/pipelines/:id/execute", async (req, res) => {
+  try {
+    const { inputs } = req.body;
+    const execution = await aiOrchestration.executePipeline(req.params.id, inputs);
+    res.status(201).json({ success: true, data: execution });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/ai/system-metrics", async (req, res) => {
+  try {
+    const metrics = await aiOrchestration.getSystemMetrics();
+    res.json({ success: true, data: metrics });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/ai/analytics", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const analytics = await aiOrchestration.getOrchestrationAnalytics(organizationId);
+    res.json({ success: true, data: analytics });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ============================================================================
 // GDPR SYSTEM ENDPOINTS
 // ============================================================================
 
@@ -6611,6 +7264,7 @@ app.listen(PORT, async () => {
   console.log(`🔥 Warm-up IA/Search system enabled with intelligent caching, search optimization, and performance monitoring`);
   console.log(`📊 Advanced Analytics & BI system enabled with real-time analytics, business intelligence, intelligent reporting, and executive dashboards`);
 console.log(`🛡️ Advanced Security & Compliance system enabled with threat detection, compliance management, comprehensive auditing, and security monitoring`);
+console.log(`🤖 Advanced AI/ML & Automation system enabled with machine learning, intelligent automation, predictive analytics, and AI orchestration`);
   console.log(`🔧 Advanced improvements enabled: Error handling, Logging, Validation, Rate limiting, Caching, Health monitoring, Security, Process management`);
   
   // Inicializar warmup del caché
