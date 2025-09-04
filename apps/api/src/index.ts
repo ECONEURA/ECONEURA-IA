@@ -34,6 +34,15 @@ import { RLSPolicyGeneratorService } from "./lib/rls-policy-generator.service.js
 import { RLSPolicyValidatorService } from "./lib/rls-policy-validator.service.js";
 import { RLSPolicyDeployerService } from "./lib/rls-policy-deployer.service.js";
 import { RLSCICDService } from "./lib/rls-cicd.service.js";
+import { ErrorHandler, ValidationError, NotFoundError } from "./lib/error-handler.js";
+import { structuredLogger } from "./lib/structured-logger.js";
+import { ValidationMiddleware } from "./middleware/validation.js";
+import { RateLimitMiddleware } from "./middleware/rate-limiter.js";
+import { SecurityMiddleware } from "./middleware/security.js";
+import { advancedCache, cacheManager } from "./lib/advanced-cache.js";
+import { healthMonitor } from "./lib/health-monitor.js";
+import { databasePool } from "./lib/database-pool.js";
+import { processManager } from "./lib/process-manager.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -58,9 +67,44 @@ const rlsValidator = new RLSPolicyValidatorService();
 const rlsDeployer = new RLSPolicyDeployerService();
 const rlsCICD = new RLSCICDService();
 
-// Middleware básico
-app.use(cors());
-app.use(express.json());
+// Middleware básico con mejoras de seguridad
+app.use(SecurityMiddleware.createSecurityHeaders());
+app.use(SecurityMiddleware.createCORS());
+app.use(SecurityMiddleware.createRequestSanitization());
+app.use(SecurityMiddleware.createRequestSizeLimit('10mb'));
+
+// Rate limiting
+app.use('/v1/auth', RateLimitMiddleware.configs.auth);
+app.use('/v1/api', RateLimitMiddleware.configs.api);
+app.use('/v1/gdpr', RateLimitMiddleware.configs.gdpr);
+app.use('/v1/rls', RateLimitMiddleware.configs.rls);
+app.use('/v1/sepa', RateLimitMiddleware.configs.sepa);
+
+// Request logging
+app.use((req, res, next) => {
+  const startTime = Date.now();
+  const requestId = req.headers['x-request-id'] as string || `req_${Date.now()}`;
+  
+  structuredLogger.setRequestId(requestId);
+  structuredLogger.requestStart(req.method, req.path, {
+    requestId,
+    userAgent: req.headers['user-agent'],
+    ip: req.ip
+  });
+
+  res.on('finish', () => {
+    const duration = Date.now() - startTime;
+    structuredLogger.requestEnd(req.method, req.path, res.statusCode, duration, {
+      requestId
+    });
+    healthMonitor.recordRequest(duration, res.statusCode >= 400);
+  });
+
+  next();
+});
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Middleware de Feature Flags (agregar información a todas las respuestas)
 app.use(featureFlagInfoMiddleware());
@@ -431,13 +475,127 @@ registerDefaultServices();
 
 initializeExampleWorkflows();
 
-// Endpoints de health
-app.get("/health/live", (req, res) => {
-  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+// Enhanced Health check endpoints
+app.get("/health/live", async (req, res) => {
+  try {
+    const result = await healthMonitor.getLivenessProbe();
+    res.json(result);
+  } catch (error) {
+    res.status(503).json({
+      status: "unhealthy",
+      timestamp: new Date().toISOString(),
+      error: (error as Error).message
+    });
+  }
 });
 
-app.get("/health/ready", (req, res) => {
-  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+app.get("/health/ready", async (req, res) => {
+  try {
+    const result = await healthMonitor.getReadinessProbe();
+    const statusCode = result.status === 'healthy' ? 200 : 503;
+    res.status(statusCode).json(result);
+  } catch (error) {
+    res.status(503).json({
+      status: "unhealthy",
+      timestamp: new Date().toISOString(),
+      error: (error as Error).message
+    });
+  }
+});
+
+app.get("/health", async (req, res) => {
+  try {
+    const result = await healthMonitor.getHealthCheck();
+    const statusCode = result.status === 'healthy' ? 200 : 
+                      result.status === 'degraded' ? 200 : 503;
+    res.status(statusCode).json(result);
+  } catch (error) {
+    res.status(503).json({
+      status: "unhealthy",
+      timestamp: new Date().toISOString(),
+      error: (error as Error).message
+    });
+  }
+});
+
+app.get("/health/detailed", async (req, res) => {
+  try {
+    const result = await healthMonitor.getDetailedHealth();
+    res.json(result);
+  } catch (error) {
+    res.status(503).json({
+      status: "unhealthy",
+      timestamp: new Date().toISOString(),
+      error: (error as Error).message
+    });
+  }
+});
+
+// Process information endpoint
+app.get("/process/info", (req, res) => {
+  try {
+    const info = processManager.getProcessInfo();
+    res.json({
+      success: true,
+      data: info
+    });
+  } catch (error) {
+    res.status(500).json(ErrorHandler.createErrorResponse(error as Error, 500));
+  }
+});
+
+app.get("/process/health", (req, res) => {
+  try {
+    const health = processManager.getProcessHealth();
+    const statusCode = health.status === 'healthy' ? 200 : 
+                      health.status === 'degraded' ? 200 : 503;
+    res.status(statusCode).json({
+      success: true,
+      data: health
+    });
+  } catch (error) {
+    res.status(500).json(ErrorHandler.createErrorResponse(error as Error, 500));
+  }
+});
+
+app.get("/process/stats", (req, res) => {
+  try {
+    const stats = processManager.getProcessStats();
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    res.status(500).json(ErrorHandler.createErrorResponse(error as Error, 500));
+  }
+});
+
+// Cache statistics endpoint
+app.get("/cache/stats", (req, res) => {
+  try {
+    const stats = cacheManager.getAllStats();
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    res.status(500).json(ErrorHandler.createErrorResponse(error as Error, 500));
+  }
+});
+
+// Database health endpoint
+app.get("/database/health", async (req, res) => {
+  try {
+    const health = await databasePool.healthCheck();
+    const statusCode = health.status === 'healthy' ? 200 : 
+                      health.status === 'degraded' ? 200 : 503;
+    res.status(statusCode).json({
+      success: true,
+      data: health
+    });
+  } catch (error) {
+    res.status(500).json(ErrorHandler.createErrorResponse(error as Error, 500));
+  }
 });
 
 // Endpoints de rate limiting
@@ -4288,6 +4446,47 @@ app.get("/metrics", (req, res) => {
 // Middleware de manejo de errores
 app.use(errorObservabilityMiddleware);
 
+// Global error handling middleware
+app.use((err: any, req: any, res: any, next: any) => {
+  const requestId = req.headers['x-request-id'] as string || 'unknown';
+  
+  structuredLogger.error('Unhandled error', err, {
+    requestId,
+    operation: 'error_handler',
+    path: req.path,
+    method: req.method,
+    userAgent: req.headers['user-agent'],
+    ip: req.ip
+  });
+
+  // Determine error response
+  let statusCode = 500;
+  let message = 'Internal server error';
+  let context: Record<string, unknown> = {};
+
+  if (err instanceof ValidationError) {
+    statusCode = 400;
+    message = err.message;
+    context = err.context || {};
+  } else if (err instanceof NotFoundError) {
+    statusCode = 404;
+    message = err.message;
+    context = err.context || {};
+  } else if (err.statusCode) {
+    statusCode = err.statusCode;
+    message = err.message;
+  }
+
+  const errorResponse = ErrorHandler.createErrorResponse(err, statusCode, {
+    requestId,
+    path: req.path,
+    method: req.method,
+    ...context
+  });
+
+  res.status(statusCode).json(errorResponse);
+});
+
 // Middleware para rutas no encontradas
 app.use("*", (req, res) => {
   res.status(404).json({
@@ -4317,6 +4516,7 @@ app.listen(PORT, async () => {
   console.log(`🏦 SEPA system enabled with CAMT/MT940 parsing and intelligent matching`);
   console.log(`🔒 GDPR system enabled with export/erase and compliance management`);
   console.log(`🛡️ RLS generative suite enabled with CI/CD integration`);
+  console.log(`🔧 Advanced improvements enabled: Error handling, Logging, Validation, Rate limiting, Caching, Health monitoring, Security, Process management`);
   
   // Inicializar warmup del caché
   try {
