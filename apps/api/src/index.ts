@@ -55,6 +55,10 @@ import { WarmupService } from "./lib/warmup.service.js";
 import { IntelligentSearchService } from "./lib/intelligent-search.service.js";
 import { SmartCacheService } from "./lib/smart-cache.service.js";
 import { PerformanceOptimizationService } from "./lib/performance-optimization.service.js";
+import { AdvancedAnalyticsService } from "./lib/advanced-analytics.service.js";
+import { BusinessIntelligenceService } from "./lib/business-intelligence.service.js";
+import { IntelligentReportingService } from "./lib/intelligent-reporting.service.js";
+import { ExecutiveDashboardService } from "./lib/executive-dashboard.service.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -92,6 +96,10 @@ const warmup = new WarmupService();
 const intelligentSearch = new IntelligentSearchService();
 const smartCache = new SmartCacheService();
 const performanceOptimization = new PerformanceOptimizationService();
+const advancedAnalytics = new AdvancedAnalyticsService();
+const businessIntelligence = new BusinessIntelligenceService();
+const intelligentReporting = new IntelligentReportingService();
+const executiveDashboard = new ExecutiveDashboardService();
 
 // Middleware básico con mejoras de seguridad
 app.use(SecurityMiddleware.createSecurityHeaders());
@@ -4895,6 +4903,508 @@ app.post("/v1/performance/optimize", async (req, res) => {
 });
 
 // ============================================================================
+// ADVANCED ANALYTICS & BUSINESS INTELLIGENCE ENDPOINTS
+// ============================================================================
+
+// Advanced Analytics Endpoints
+app.get("/v1/analytics/metrics", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const filters = req.query;
+    const metrics = await advancedAnalytics.getMetrics(organizationId, filters);
+    res.json({ success: true, data: metrics });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/analytics/metrics", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const metric = await advancedAnalytics.createMetric(req.body, organizationId);
+    res.status(201).json({ success: true, data: metric });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/analytics/metrics/:id", async (req, res) => {
+  try {
+    const metric = await advancedAnalytics.getMetric(req.params.id);
+    if (!metric) {
+      return res.status(404).json({ success: false, error: 'Metric not found' });
+    }
+    res.json({ success: true, data: metric });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.put("/v1/analytics/metrics/:id", async (req, res) => {
+  try {
+    const metric = await advancedAnalytics.updateMetric(req.params.id, req.body);
+    if (!metric) {
+      return res.status(404).json({ success: false, error: 'Metric not found' });
+    }
+    res.json({ success: true, data: metric });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.delete("/v1/analytics/metrics/:id", async (req, res) => {
+  try {
+    const deleted = await advancedAnalytics.deleteMetric(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, error: 'Metric not found' });
+    }
+    res.json({ success: true, message: 'Metric deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/analytics/metrics/:id/record", async (req, res) => {
+  try {
+    const { value, metadata } = req.body;
+    await advancedAnalytics.recordMetric(req.params.id, value, metadata);
+    res.json({ success: true, message: 'Metric recorded successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/analytics/trends/:metricId", async (req, res) => {
+  try {
+    const period = req.query.period as string || 'daily';
+    const trend = await advancedAnalytics.analyzeTrends(req.params.metricId, period as any);
+    res.json({ success: true, data: trend });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/analytics/anomalies", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const metricId = req.query.metricId as string;
+    const anomalies = metricId 
+      ? await advancedAnalytics.getAnomalies(metricId)
+      : await advancedAnalytics.getAllAnomalies(organizationId);
+    res.json({ success: true, data: anomalies });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/analytics/query", async (req, res) => {
+  try {
+    const result = await advancedAnalytics.executeQuery(req.body);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Business Intelligence Endpoints
+app.get("/v1/bi/kpis", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const filters = req.query;
+    const kpis = await businessIntelligence.getKPIs(organizationId, filters);
+    res.json({ success: true, data: kpis });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/bi/kpis", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const kpi = await businessIntelligence.createKPI(req.body, organizationId);
+    res.status(201).json({ success: true, data: kpi });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/bi/kpis/:id", async (req, res) => {
+  try {
+    const kpi = await businessIntelligence.getKPI(req.params.id);
+    if (!kpi) {
+      return res.status(404).json({ success: false, error: 'KPI not found' });
+    }
+    res.json({ success: true, data: kpi });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.put("/v1/bi/kpis/:id", async (req, res) => {
+  try {
+    const kpi = await businessIntelligence.updateKPI(req.params.id, req.body);
+    if (!kpi) {
+      return res.status(404).json({ success: false, error: 'KPI not found' });
+    }
+    res.json({ success: true, data: kpi });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.delete("/v1/bi/kpis/:id", async (req, res) => {
+  try {
+    const deleted = await businessIntelligence.deleteKPI(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, error: 'KPI not found' });
+    }
+    res.json({ success: true, message: 'KPI deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/bi/kpis/:id/update-value", async (req, res) => {
+  try {
+    const { value } = req.body;
+    const kpi = await businessIntelligence.updateKPIValue(req.params.id, value);
+    if (!kpi) {
+      return res.status(404).json({ success: false, error: 'KPI not found' });
+    }
+    res.json({ success: true, data: kpi });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/bi/insights", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const kpiId = req.query.kpiId as string;
+    const insights = kpiId 
+      ? await businessIntelligence.getBusinessIntelligence(kpiId)
+      : await businessIntelligence.getAllBusinessIntelligence(organizationId);
+    res.json({ success: true, data: insights });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/bi/risks", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const kpiId = req.query.kpiId as string;
+    const risks = kpiId 
+      ? await businessIntelligence.getRiskFactors(kpiId)
+      : await businessIntelligence.getAllRiskFactors(organizationId);
+    res.json({ success: true, data: risks });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/bi/opportunities", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const kpiId = req.query.kpiId as string;
+    const opportunities = kpiId 
+      ? await businessIntelligence.getOpportunities(kpiId)
+      : await businessIntelligence.getAllOpportunities(organizationId);
+    res.json({ success: true, data: opportunities });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/bi/competitive-analysis", async (req, res) => {
+  try {
+    const { organizationId, competitors } = req.body;
+    const analysis = await businessIntelligence.performCompetitiveAnalysis(organizationId, competitors);
+    res.status(201).json({ success: true, data: analysis });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/bi/competitive-analyses", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const analyses = await businessIntelligence.getCompetitiveAnalyses(organizationId);
+    res.json({ success: true, data: analyses });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/bi/roi-analysis", async (req, res) => {
+  try {
+    const { organizationId, initiatives } = req.body;
+    const analysis = await businessIntelligence.performROIAnalysis(organizationId, initiatives);
+    res.status(201).json({ success: true, data: analysis });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/bi/roi-analyses", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const analyses = await businessIntelligence.getROIAnalyses(organizationId);
+    res.json({ success: true, data: analyses });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/bi/benchmarking", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const benchmarking = await businessIntelligence.performBenchmarking(organizationId);
+    res.json({ success: true, data: benchmarking });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/bi/strategic-insights", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const insights = await businessIntelligence.generateStrategicInsights(organizationId);
+    res.json({ success: true, data: insights });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Intelligent Reporting Endpoints
+app.get("/v1/reports", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const filters = req.query;
+    const reports = await intelligentReporting.getReports(organizationId, filters);
+    res.json({ success: true, data: reports });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/reports", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const createdBy = req.headers['x-user-id'] as string || 'user_1';
+    const report = await intelligentReporting.createReport(req.body, organizationId, createdBy);
+    res.status(201).json({ success: true, data: report });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/reports/:id", async (req, res) => {
+  try {
+    const report = await intelligentReporting.getReport(req.params.id);
+    if (!report) {
+      return res.status(404).json({ success: false, error: 'Report not found' });
+    }
+    res.json({ success: true, data: report });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.put("/v1/reports/:id", async (req, res) => {
+  try {
+    const report = await intelligentReporting.updateReport(req.params.id, req.body);
+    if (!report) {
+      return res.status(404).json({ success: false, error: 'Report not found' });
+    }
+    res.json({ success: true, data: report });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.delete("/v1/reports/:id", async (req, res) => {
+  try {
+    const deleted = await intelligentReporting.deleteReport(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, error: 'Report not found' });
+    }
+    res.json({ success: true, message: 'Report deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/reports/:id/generate", async (req, res) => {
+  try {
+    const generatedBy = req.headers['x-user-id'] as string || 'user_1';
+    const parameters = req.body;
+    const generation = await intelligentReporting.generateReport(req.params.id, generatedBy, parameters);
+    res.status(201).json({ success: true, data: generation });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/reports/:id/export", async (req, res) => {
+  try {
+    const report = await intelligentReporting.getReport(req.params.id);
+    if (!report) {
+      return res.status(404).json({ success: false, error: 'Report not found' });
+    }
+    // In a real implementation, this would return the actual file
+    res.json({ success: true, data: { fileUrl: `/reports/${report.id}.${report.format}` } });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/reports/templates", async (req, res) => {
+  try {
+    const templates = await intelligentReporting.getReportTemplates();
+    res.json({ success: true, data: templates });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/reports/:id/generations", async (req, res) => {
+  try {
+    const generations = await intelligentReporting.getReportGenerations(req.params.id);
+    res.json({ success: true, data: generations });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/reports/analytics", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const analytics = await intelligentReporting.getReportAnalytics(organizationId);
+    res.json({ success: true, data: analytics });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Executive Dashboard Endpoints
+app.get("/v1/dashboard/executive", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const dashboard = await executiveDashboard.getExecutiveDashboard(organizationId);
+    res.json({ success: true, data: dashboard });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/dashboards", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const filters = req.query;
+    const dashboards = await executiveDashboard.getDashboards(organizationId, filters);
+    res.json({ success: true, data: dashboards });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/dashboards", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const createdBy = req.headers['x-user-id'] as string || 'user_1';
+    const dashboard = await executiveDashboard.createDashboard(req.body, organizationId, createdBy);
+    res.status(201).json({ success: true, data: dashboard });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/dashboards/:id", async (req, res) => {
+  try {
+    const dashboard = await executiveDashboard.getDashboard(req.params.id);
+    if (!dashboard) {
+      return res.status(404).json({ success: false, error: 'Dashboard not found' });
+    }
+    res.json({ success: true, data: dashboard });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.put("/v1/dashboards/:id", async (req, res) => {
+  try {
+    const dashboard = await executiveDashboard.updateDashboard(req.params.id, req.body);
+    if (!dashboard) {
+      return res.status(404).json({ success: false, error: 'Dashboard not found' });
+    }
+    res.json({ success: true, data: dashboard });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.delete("/v1/dashboards/:id", async (req, res) => {
+  try {
+    const deleted = await executiveDashboard.deleteDashboard(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, error: 'Dashboard not found' });
+    }
+    res.json({ success: true, message: 'Dashboard deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/dashboards/:id/alerts", async (req, res) => {
+  try {
+    const alerts = await executiveDashboard.getDashboardAlerts(req.params.id);
+    res.json({ success: true, data: alerts });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/dashboard/alerts/critical", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const alerts = await executiveDashboard.getCriticalAlerts(organizationId);
+    res.json({ success: true, data: alerts });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/dashboard/alerts/:id/trigger", async (req, res) => {
+  try {
+    await executiveDashboard.triggerAlert(req.params.id);
+    res.json({ success: true, message: 'Alert triggered successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/dashboard/performance", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const performance = await executiveDashboard.getPerformanceMetrics(organizationId);
+    res.json({ success: true, data: performance });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/dashboard/analytics", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const analytics = await executiveDashboard.getDashboardAnalytics(organizationId);
+    res.json({ success: true, data: analytics });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ============================================================================
 // GDPR SYSTEM ENDPOINTS
 // ============================================================================
 
@@ -5642,6 +6152,7 @@ app.listen(PORT, async () => {
   console.log(`💰 FinOps system enabled with cost tracking, budget management, optimization, and reporting`);
   console.log(`🔇 Quiet Hours + On-Call system enabled with intelligent scheduling, escalation, and notifications`);
   console.log(`🔥 Warm-up IA/Search system enabled with intelligent caching, search optimization, and performance monitoring`);
+  console.log(`📊 Advanced Analytics & BI system enabled with real-time analytics, business intelligence, intelligent reporting, and executive dashboards`);
   console.log(`🔧 Advanced improvements enabled: Error handling, Logging, Validation, Rate limiting, Caching, Health monitoring, Security, Process management`);
   
   // Inicializar warmup del caché
