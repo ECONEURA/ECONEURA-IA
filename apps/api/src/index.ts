@@ -43,6 +43,10 @@ import { advancedCache, cacheManager } from "./lib/advanced-cache.js";
 import { healthMonitor } from "./lib/health-monitor.js";
 import { databasePool } from "./lib/database-pool.js";
 import { processManager } from "./lib/process-manager.js";
+import { CostTrackerService } from "./lib/cost-tracker.service.js";
+import { BudgetManagerService } from "./lib/budget-manager.service.js";
+import { CostOptimizerService } from "./lib/cost-optimizer.service.js";
+import { ReportingEngineService } from "./lib/reporting-engine.service.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -66,6 +70,12 @@ const rlsGenerator = new RLSPolicyGeneratorService();
 const rlsValidator = new RLSPolicyValidatorService();
 const rlsDeployer = new RLSPolicyDeployerService();
 const rlsCICD = new RLSCICDService();
+
+// Inicializar servicios FinOps
+const costTracker = new CostTrackerService();
+const budgetManager = new BudgetManagerService();
+const costOptimizer = new CostOptimizerService();
+const reportingEngine = new ReportingEngineService();
 
 // Middleware básico con mejoras de seguridad
 app.use(SecurityMiddleware.createSecurityHeaders());
@@ -3772,6 +3782,553 @@ app.get("/v1/rls/stats", async (req, res) => {
 });
 
 // ============================================================================
+// FINOPS SYSTEM ENDPOINTS
+// ============================================================================
+
+// Cost Tracking
+app.get("/v1/finops/costs", async (req, res) => {
+  try {
+    const { organizationId, service, category, startDate, endDate, userId, projectId, departmentId } = req.query;
+    const filters: any = {};
+    
+    if (organizationId) filters.organizationId = organizationId as string;
+    if (service) filters.service = service as string;
+    if (category) filters.category = category as string;
+    if (startDate) filters.startDate = new Date(startDate as string);
+    if (endDate) filters.endDate = new Date(endDate as string);
+    if (userId) filters.userId = userId as string;
+    if (projectId) filters.projectId = projectId as string;
+    if (departmentId) filters.departmentId = departmentId as string;
+
+    const costs = costTracker.getCosts(filters);
+    res.json({
+      success: true,
+      data: {
+        costs,
+        count: costs.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get costs', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.post("/v1/finops/costs", async (req, res) => {
+  try {
+    const costData = req.body;
+    const cost = await costTracker.recordCost(costData);
+    res.status(201).json({
+      success: true,
+      data: cost
+    });
+  } catch (error) {
+    logger.error('Failed to record cost', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/finops/costs/:costId", async (req, res) => {
+  try {
+    const { costId } = req.params;
+    const cost = costTracker.getCostById(costId);
+    
+    if (!cost) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Cost not found' }
+      });
+    }
+
+    res.json({
+      success: true,
+      data: cost
+    });
+  } catch (error) {
+    logger.error('Failed to get cost', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/finops/costs/trends", async (req, res) => {
+  try {
+    const { organizationId, service, startDate, endDate } = req.query;
+    const filters: any = {};
+    
+    if (organizationId) filters.organizationId = organizationId as string;
+    if (service) filters.service = service as string;
+    if (startDate) filters.startDate = new Date(startDate as string);
+    if (endDate) filters.endDate = new Date(endDate as string);
+
+    const trends = costTracker.getCostTrends(filters);
+    res.json({
+      success: true,
+      data: {
+        trends,
+        count: trends.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get cost trends', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/finops/costs/stats", async (req, res) => {
+  try {
+    const { organizationId } = req.query;
+    const stats = costTracker.getCostStats(organizationId as string);
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    logger.error('Failed to get cost stats', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+// Budget Management
+app.get("/v1/finops/budgets", async (req, res) => {
+  try {
+    const { organizationId } = req.query;
+    const budgets = budgetManager.getBudgets(organizationId as string);
+    res.json({
+      success: true,
+      data: {
+        budgets,
+        count: budgets.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get budgets', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.post("/v1/finops/budgets", async (req, res) => {
+  try {
+    const budgetData = req.body;
+    const budget = await budgetManager.createBudget(budgetData);
+    res.status(201).json({
+      success: true,
+      data: budget
+    });
+  } catch (error) {
+    logger.error('Failed to create budget', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/finops/budgets/:budgetId", async (req, res) => {
+  try {
+    const { budgetId } = req.params;
+    const budget = budgetManager.getBudget(budgetId);
+    
+    if (!budget) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Budget not found' }
+      });
+    }
+
+    res.json({
+      success: true,
+      data: budget
+    });
+  } catch (error) {
+    logger.error('Failed to get budget', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.put("/v1/finops/budgets/:budgetId", async (req, res) => {
+  try {
+    const { budgetId } = req.params;
+    const updates = req.body;
+    const budget = await budgetManager.updateBudget(budgetId, updates);
+    
+    if (!budget) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Budget not found' }
+      });
+    }
+
+    res.json({
+      success: true,
+      data: budget
+    });
+  } catch (error) {
+    logger.error('Failed to update budget', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.delete("/v1/finops/budgets/:budgetId", async (req, res) => {
+  try {
+    const { budgetId } = req.params;
+    const deleted = await budgetManager.deleteBudget(budgetId);
+    
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Budget not found' }
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Budget deleted successfully'
+    });
+  } catch (error) {
+    logger.error('Failed to delete budget', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/finops/budgets/status", async (req, res) => {
+  try {
+    const { organizationId } = req.query;
+    const status = budgetManager.getBudgetStatus(organizationId as string);
+    res.json({
+      success: true,
+      data: status
+    });
+  } catch (error) {
+    logger.error('Failed to get budget status', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/finops/budgets/alerts", async (req, res) => {
+  try {
+    const { organizationId, budgetId } = req.query;
+    const alerts = budgetManager.getBudgetAlerts(organizationId as string, budgetId as string);
+    res.json({
+      success: true,
+      data: {
+        alerts,
+        count: alerts.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get budget alerts', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.post("/v1/finops/budgets/alerts/:alertId/acknowledge", async (req, res) => {
+  try {
+    const { alertId } = req.params;
+    const { acknowledgedBy } = req.body;
+    const alert = await budgetManager.acknowledgeAlert(alertId, acknowledgedBy);
+    
+    if (!alert) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Alert not found' }
+      });
+    }
+
+    res.json({
+      success: true,
+      data: alert
+    });
+  } catch (error) {
+    logger.error('Failed to acknowledge alert', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+// Cost Optimization
+app.get("/v1/finops/optimization/recommendations", async (req, res) => {
+  try {
+    const { status, type, priority, effort, impact } = req.query;
+    const filters: any = {};
+    
+    if (status) filters.status = status as string;
+    if (type) filters.type = type as string;
+    if (priority) filters.priority = priority as string;
+    if (effort) filters.effort = effort as string;
+    if (impact) filters.impact = impact as string;
+
+    const recommendations = costOptimizer.getRecommendations(filters);
+    res.json({
+      success: true,
+      data: {
+        recommendations,
+        count: recommendations.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get optimization recommendations', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/finops/optimization/recommendations/:recommendationId", async (req, res) => {
+  try {
+    const { recommendationId } = req.params;
+    const recommendation = costOptimizer.getRecommendation(recommendationId);
+    
+    if (!recommendation) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Recommendation not found' }
+      });
+    }
+
+    res.json({
+      success: true,
+      data: recommendation
+    });
+  } catch (error) {
+    logger.error('Failed to get recommendation', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.post("/v1/finops/optimization/recommendations/:recommendationId/approve", async (req, res) => {
+  try {
+    const { recommendationId } = req.params;
+    const { approvedBy } = req.body;
+    const recommendation = await costOptimizer.approveRecommendation(recommendationId, approvedBy);
+    
+    if (!recommendation) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Recommendation not found' }
+      });
+    }
+
+    res.json({
+      success: true,
+      data: recommendation
+    });
+  } catch (error) {
+    logger.error('Failed to approve recommendation', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.post("/v1/finops/optimization/recommendations/:recommendationId/reject", async (req, res) => {
+  try {
+    const { recommendationId } = req.params;
+    const { rejectedBy, reason } = req.body;
+    const recommendation = await costOptimizer.rejectRecommendation(recommendationId, rejectedBy, reason);
+    
+    if (!recommendation) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Recommendation not found' }
+      });
+    }
+
+    res.json({
+      success: true,
+      data: recommendation
+    });
+  } catch (error) {
+    logger.error('Failed to reject recommendation', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.post("/v1/finops/optimization/recommendations/:recommendationId/implement", async (req, res) => {
+  try {
+    const { recommendationId } = req.params;
+    const { implementedBy } = req.body;
+    const optimization = await costOptimizer.implementRecommendation(recommendationId, implementedBy);
+    
+    if (!optimization) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Recommendation not found' }
+      });
+    }
+
+    res.json({
+      success: true,
+      data: optimization
+    });
+  } catch (error) {
+    logger.error('Failed to implement recommendation', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/finops/optimization/optimizations", async (req, res) => {
+  try {
+    const { status, type } = req.query;
+    const filters: any = {};
+    
+    if (status) filters.status = status as string;
+    if (type) filters.type = type as string;
+
+    const optimizations = costOptimizer.getOptimizations(filters);
+    res.json({
+      success: true,
+      data: {
+        optimizations,
+        count: optimizations.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get optimizations', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/finops/optimization/stats", async (req, res) => {
+  try {
+    const stats = costOptimizer.getOptimizationStats();
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    logger.error('Failed to get optimization stats', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+// Reporting
+app.get("/v1/finops/reports", async (req, res) => {
+  try {
+    const { organizationId, type, status, startDate, endDate } = req.query;
+    const filters: any = {};
+    
+    if (organizationId) filters.organizationId = organizationId as string;
+    if (type) filters.type = type as string;
+    if (status) filters.status = status as string;
+    if (startDate) filters.startDate = new Date(startDate as string);
+    if (endDate) filters.endDate = new Date(endDate as string);
+
+    const reports = reportingEngine.getReports(filters);
+    res.json({
+      success: true,
+      data: {
+        reports,
+        count: reports.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get reports', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.post("/v1/finops/reports", async (req, res) => {
+  try {
+    const { name, type, organizationId, period, format, generatedBy } = req.body;
+    const report = await reportingEngine.generateReport(
+      name,
+      type,
+      organizationId,
+      period,
+      format,
+      generatedBy
+    );
+    res.status(201).json({
+      success: true,
+      data: report
+    });
+  } catch (error) {
+    logger.error('Failed to generate report', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/finops/reports/:reportId", async (req, res) => {
+  try {
+    const { reportId } = req.params;
+    const report = reportingEngine.getReport(reportId);
+    
+    if (!report) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Report not found' }
+      });
+    }
+
+    res.json({
+      success: true,
+      data: report
+    });
+  } catch (error) {
+    logger.error('Failed to get report', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/finops/forecasts", async (req, res) => {
+  try {
+    const { organizationId } = req.query;
+    const forecasts = reportingEngine.getCostForecasts(organizationId as string);
+    res.json({
+      success: true,
+      data: {
+        forecasts,
+        count: forecasts.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get forecasts', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.post("/v1/finops/forecasts", async (req, res) => {
+  try {
+    const { organizationId, period, model } = req.body;
+    const forecasts = await reportingEngine.generateCostForecast(organizationId, period, model);
+    res.json({
+      success: true,
+      data: {
+        forecasts,
+        count: forecasts.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to generate forecast', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/finops/metrics", async (req, res) => {
+  try {
+    const { organizationId } = req.query;
+    const metrics = await reportingEngine.generateFinOpsMetrics(organizationId as string);
+    res.json({
+      success: true,
+      data: metrics
+    });
+  } catch (error) {
+    logger.error('Failed to get FinOps metrics', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.get("/v1/finops/stats", async (req, res) => {
+  try {
+    const stats = {
+      costTracker: costTracker.getCostStats('org_1'),
+      budgetManager: budgetManager.getBudgetStats('org_1'),
+      costOptimizer: costOptimizer.getOptimizationStats(),
+      reportingEngine: reportingEngine.getReportingStats()
+    };
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    logger.error('Failed to get FinOps stats', { error: (error as Error).message });
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+// ============================================================================
 // GDPR SYSTEM ENDPOINTS
 // ============================================================================
 
@@ -4516,6 +5073,7 @@ app.listen(PORT, async () => {
   console.log(`🏦 SEPA system enabled with CAMT/MT940 parsing and intelligent matching`);
   console.log(`🔒 GDPR system enabled with export/erase and compliance management`);
   console.log(`🛡️ RLS generative suite enabled with CI/CD integration`);
+  console.log(`💰 FinOps system enabled with cost tracking, budget management, optimization, and reporting`);
   console.log(`🔧 Advanced improvements enabled: Error handling, Logging, Validation, Rate limiting, Caching, Health monitoring, Security, Process management`);
   
   // Inicializar warmup del caché
