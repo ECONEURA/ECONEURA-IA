@@ -30,6 +30,10 @@ import { RuleEngineService } from "./lib/rule-engine.service.js";
 import { GDPRExportService } from "./lib/gdpr-export.service.js";
 import { GDPREraseService } from "./lib/gdpr-erase.service.js";
 import { GDPRAuditService } from "./lib/gdpr-audit.service.js";
+import { RLSPolicyGeneratorService } from "./lib/rls-policy-generator.service.js";
+import { RLSPolicyValidatorService } from "./lib/rls-policy-validator.service.js";
+import { RLSPolicyDeployerService } from "./lib/rls-policy-deployer.service.js";
+import { RLSCICDService } from "./lib/rls-cicd.service.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -47,6 +51,12 @@ const ruleEngine = new RuleEngineService();
 const gdprExport = new GDPRExportService();
 const gdprErase = new GDPREraseService();
 const gdprAudit = new GDPRAuditService();
+
+// Inicializar servicios RLS
+const rlsGenerator = new RLSPolicyGeneratorService();
+const rlsValidator = new RLSPolicyValidatorService();
+const rlsDeployer = new RLSPolicyDeployerService();
+const rlsCICD = new RLSCICDService();
 
 // Middleware básico
 app.use(cors());
@@ -3109,6 +3119,501 @@ app.get("/v1/sepa/stats", async (req, res) => {
 });
 
 // ============================================================================
+// RLS GENERATIVE SUITE ENDPOINTS
+// ============================================================================
+
+// RLS Policy Generator
+app.post("/v1/rls/generate", async (req, res) => {
+  try {
+    const { schemaId, tableName, policyType, templateId, variables, rules, options } = req.body;
+    
+    if (!schemaId || !tableName || !policyType || !templateId) {
+      return res.status(400).json({ 
+        error: "Missing required fields",
+        message: "schemaId, tableName, policyType, and templateId are required"
+      });
+    }
+
+    const policy = await rlsGenerator.generatePolicy(
+      schemaId,
+      tableName,
+      policyType,
+      templateId,
+      variables || {},
+      rules || [],
+      options || {},
+      req.headers['x-user-id'] as string || 'system'
+    );
+
+    logger.info("RLS policy generated", {
+      policyId: policy.id,
+      tableName,
+      policyType,
+      templateId
+    });
+
+    return res.json({
+      success: true,
+      data: policy
+    });
+  } catch (error: any) {
+    logger.error("Failed to generate RLS policy", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to generate RLS policy",
+      message: (error as Error).message
+    });
+  }
+});
+
+app.get("/v1/rls/policies", async (req, res) => {
+  try {
+    const { tableName, schemaName } = req.query;
+    let policies = rlsGenerator.getPolicies();
+    
+    if (tableName) {
+      policies = policies.filter(p => p.tableName === tableName);
+    }
+    
+    if (schemaName) {
+      policies = policies.filter(p => p.schemaName === schemaName);
+    }
+    
+    return res.json({
+      success: true,
+      data: {
+        policies,
+        count: policies.length
+      }
+    });
+  } catch (error: any) {
+    logger.error("Failed to get RLS policies", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to get RLS policies",
+      message: (error as Error).message
+    });
+  }
+});
+
+app.get("/v1/rls/policies/:policyId", async (req, res) => {
+  try {
+    const { policyId } = req.params;
+    const policy = rlsGenerator.getPolicy(policyId);
+    
+    if (!policy) {
+      return res.status(404).json({ 
+        error: "Policy not found",
+        message: `RLS policy with ID ${policyId} not found`
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: policy
+    });
+  } catch (error: any) {
+    logger.error("Failed to get RLS policy", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to get RLS policy",
+      message: (error as Error).message
+    });
+  }
+});
+
+// RLS Policy Templates
+app.get("/v1/rls/templates", async (req, res) => {
+  try {
+    const { category } = req.query;
+    let templates = rlsGenerator.getTemplates();
+    
+    if (category) {
+      templates = templates.filter(t => t.category === category);
+    }
+    
+    return res.json({
+      success: true,
+      data: {
+        templates,
+        count: templates.length
+      }
+    });
+  } catch (error: any) {
+    logger.error("Failed to get RLS templates", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to get RLS templates",
+      message: (error as Error).message
+    });
+  }
+});
+
+app.get("/v1/rls/templates/:templateId", async (req, res) => {
+  try {
+    const { templateId } = req.params;
+    const template = rlsGenerator.getTemplate(templateId);
+    
+    if (!template) {
+      return res.status(404).json({ 
+        error: "Template not found",
+        message: `RLS template with ID ${templateId} not found`
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: template
+    });
+  } catch (error: any) {
+    logger.error("Failed to get RLS template", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to get RLS template",
+      message: (error as Error).message
+    });
+  }
+});
+
+// RLS Policy Validator
+app.post("/v1/rls/validate", async (req, res) => {
+  try {
+    const { policyId, validationTypes } = req.body;
+    
+    if (!policyId) {
+      return res.status(400).json({ 
+        error: "Missing required fields",
+        message: "policyId is required"
+      });
+    }
+
+    const policy = rlsGenerator.getPolicy(policyId);
+    if (!policy) {
+      return res.status(404).json({ 
+        error: "Policy not found",
+        message: `RLS policy with ID ${policyId} not found`
+      });
+    }
+
+    const results = await rlsValidator.validatePolicy(
+      policy,
+      validationTypes || ['syntax', 'semantic', 'performance', 'security', 'compliance'],
+      req.headers['x-user-id'] as string || 'system'
+    );
+
+    logger.info("RLS policy validated", {
+      policyId,
+      validationTypes,
+      results: results.map(r => ({ type: r.validationType, status: r.status, score: r.score }))
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        policyId,
+        results,
+        count: results.length
+      }
+    });
+  } catch (error: any) {
+    logger.error("Failed to validate RLS policy", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to validate RLS policy",
+      message: (error as Error).message
+    });
+  }
+});
+
+app.get("/v1/rls/validation-results", async (req, res) => {
+  try {
+    const { policyId } = req.query;
+    const results = rlsValidator.getValidationResults(policyId as string);
+    
+    return res.json({
+      success: true,
+      data: {
+        results,
+        count: results.length
+      }
+    });
+  } catch (error: any) {
+    logger.error("Failed to get validation results", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to get validation results",
+      message: (error as Error).message
+    });
+  }
+});
+
+// RLS Policy Deployer
+app.post("/v1/rls/deploy", async (req, res) => {
+  try {
+    const { policyId, environment, strategy, options } = req.body;
+    
+    if (!policyId || !environment || !strategy) {
+      return res.status(400).json({ 
+        error: "Missing required fields",
+        message: "policyId, environment, and strategy are required"
+      });
+    }
+
+    const policy = rlsGenerator.getPolicy(policyId);
+    if (!policy) {
+      return res.status(404).json({ 
+        error: "Policy not found",
+        message: `RLS policy with ID ${policyId} not found`
+      });
+    }
+
+    const deployment = await rlsDeployer.deployPolicy(
+      policy,
+      environment,
+      strategy,
+      req.headers['x-user-id'] as string || 'system',
+      options || {}
+    );
+
+    logger.info("RLS policy deployment initiated", {
+      deploymentId: deployment.id,
+      policyId,
+      environment,
+      strategy
+    });
+
+    return res.json({
+      success: true,
+      data: deployment
+    });
+  } catch (error: any) {
+    logger.error("Failed to deploy RLS policy", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to deploy RLS policy",
+      message: (error as Error).message
+    });
+  }
+});
+
+app.get("/v1/rls/deployments", async (req, res) => {
+  try {
+    const { policyId, environment, strategy } = req.query;
+    let deployments = rlsDeployer.getDeployments(policyId as string);
+    
+    if (environment) {
+      deployments = deployments.filter(d => d.environment === environment);
+    }
+    
+    if (strategy) {
+      deployments = deployments.filter(d => d.strategy === strategy);
+    }
+    
+    return res.json({
+      success: true,
+      data: {
+        deployments,
+        count: deployments.length
+      }
+    });
+  } catch (error: any) {
+    logger.error("Failed to get deployments", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to get deployments",
+      message: (error as Error).message
+    });
+  }
+});
+
+app.post("/v1/rls/deployments/:deploymentId/rollback", async (req, res) => {
+  try {
+    const { deploymentId } = req.params;
+    const { reason } = req.body;
+    
+    const deployment = await rlsDeployer.rollbackDeployment(
+      deploymentId,
+      req.headers['x-user-id'] as string || 'system',
+      reason
+    );
+
+    if (!deployment) {
+      return res.status(404).json({ 
+        error: "Deployment not found",
+        message: `Deployment with ID ${deploymentId} not found`
+      });
+    }
+
+    logger.info("RLS policy deployment rollback initiated", {
+      deploymentId,
+      reason
+    });
+
+    return res.json({
+      success: true,
+      data: deployment
+    });
+  } catch (error: any) {
+    logger.error("Failed to rollback deployment", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to rollback deployment",
+      message: (error as Error).message
+    });
+  }
+});
+
+// RLS CI/CD Integration
+app.get("/v1/rls/cicd/integrations", async (req, res) => {
+  try {
+    const { provider } = req.query;
+    let integrations = rlsCICD.getIntegrations();
+    
+    if (provider) {
+      integrations = integrations.filter(i => i.provider === provider);
+    }
+    
+    return res.json({
+      success: true,
+      data: {
+        integrations,
+        count: integrations.length
+      }
+    });
+  } catch (error: any) {
+    logger.error("Failed to get CI/CD integrations", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to get CI/CD integrations",
+      message: (error as Error).message
+    });
+  }
+});
+
+app.post("/v1/rls/cicd/integrations", async (req, res) => {
+  try {
+    const { name, provider, repository, branch, pipeline, webhookUrl, secret, events } = req.body;
+    
+    if (!name || !provider || !repository || !branch || !pipeline) {
+      return res.status(400).json({ 
+        error: "Missing required fields",
+        message: "name, provider, repository, branch, and pipeline are required"
+      });
+    }
+
+    const integration = await rlsCICD.createIntegration(
+      name,
+      provider,
+      repository,
+      branch,
+      pipeline,
+      webhookUrl || '',
+      secret || '',
+      events || []
+    );
+
+    logger.info("CI/CD integration created", {
+      integrationId: integration.id,
+      name,
+      provider,
+      repository
+    });
+
+    return res.json({
+      success: true,
+      data: integration
+    });
+  } catch (error: any) {
+    logger.error("Failed to create CI/CD integration", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to create CI/CD integration",
+      message: (error as Error).message
+    });
+  }
+});
+
+app.post("/v1/rls/cicd/webhook/:integrationId", async (req, res) => {
+  try {
+    const { integrationId } = req.params;
+    const { eventType, payload } = req.body;
+    
+    if (!eventType || !payload) {
+      return res.status(400).json({ 
+        error: "Missing required fields",
+        message: "eventType and payload are required"
+      });
+    }
+
+    await rlsCICD.handleWebhookEvent(integrationId, eventType, payload);
+
+    logger.info("Webhook event processed", {
+      integrationId,
+      eventType
+    });
+
+    return res.json({
+      success: true,
+      message: "Webhook event processed successfully"
+    });
+  } catch (error: any) {
+    logger.error("Failed to process webhook event", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to process webhook event",
+      message: (error as Error).message
+    });
+  }
+});
+
+app.get("/v1/rls/cicd/pipeline-config/:integrationId", async (req, res) => {
+  try {
+    const { integrationId } = req.params;
+    const { type } = req.query;
+    
+    if (!type) {
+      return res.status(400).json({ 
+        error: "Missing required parameter",
+        message: "type parameter is required"
+      });
+    }
+
+    const config = await rlsCICD.generatePipelineConfig(
+      integrationId,
+      type as any
+    );
+
+    return res.json({
+      success: true,
+      data: {
+        integrationId,
+        type,
+        config
+      }
+    });
+  } catch (error: any) {
+    logger.error("Failed to generate pipeline config", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to generate pipeline config",
+      message: (error as Error).message
+    });
+  }
+});
+
+// RLS Statistics
+app.get("/v1/rls/stats", async (req, res) => {
+  try {
+    const policyStats = rlsGenerator.getPolicyStats();
+    const validationStats = rlsValidator.getValidationStats();
+    const deploymentStats = rlsDeployer.getDeploymentStats();
+    const cicdStats = rlsCICD.getCICDStats();
+    
+    return res.json({
+      success: true,
+      data: {
+        policies: policyStats,
+        validations: validationStats,
+        deployments: deploymentStats,
+        cicd: cicdStats
+      }
+    });
+  } catch (error: any) {
+    logger.error("Failed to get RLS stats", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to get RLS stats",
+      message: (error as Error).message
+    });
+  }
+});
+
+// ============================================================================
 // GDPR SYSTEM ENDPOINTS
 // ============================================================================
 
@@ -3811,6 +4316,7 @@ app.listen(PORT, async () => {
   console.log(`🔐 Advanced Security system enabled with MFA, RBAC, and threat detection`);
   console.log(`🏦 SEPA system enabled with CAMT/MT940 parsing and intelligent matching`);
   console.log(`🔒 GDPR system enabled with export/erase and compliance management`);
+  console.log(`🛡️ RLS generative suite enabled with CI/CD integration`);
   
   // Inicializar warmup del caché
   try {
