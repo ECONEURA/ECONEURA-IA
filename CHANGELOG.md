@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **PR-43**: GDPR Export/Erase System
+  - Sistema completo de cumplimiento GDPR
+  - Exportación de datos personales en múltiples formatos (ZIP, JSON, CSV, PDF)
+  - Eliminación segura de datos con journal de auditoría
+  - Sistema de auditoría GDPR con trazabilidad completa
+  - Gestión de legal holds para retención de datos
+  - API endpoints completos para operaciones GDPR
+  - Registro y gestión de violaciones de datos
+  - Reportes de cumplimiento y estadísticas
+  - Integración con sistema SEPA para datos bancarios
+  - Script de smoke test completo para validación
+
+### Technical Details
+- **GDPR Export**: Exportación completa con múltiples formatos
+- **GDPR Erase**: Eliminación segura con backup y verificación
+- **GDPR Audit**: Auditoría completa con firma digital
+- **Legal Holds**: Gestión de retención legal de datos
+- **API Endpoints**: CRUD completo para gestión GDPR
+- **Compliance**: Cumplimiento con regulaciones GDPR
+- **Security**: Cifrado y validación de identidad
+- **Performance**: Procesamiento eficiente de grandes volúmenes
+
+### Files Added/Modified
+- `apps/api/src/lib/gdpr-types.ts`: Tipos TypeScript para GDPR
+- `apps/api/src/lib/gdpr-export.service.ts`: Servicio de exportación GDPR
+- `apps/api/src/lib/gdpr-erase.service.ts`: Servicio de eliminación GDPR
+- `apps/api/src/lib/gdpr-audit.service.ts`: Servicio de auditoría GDPR
+- `apps/api/src/index.ts`: Endpoints GDPR integrados
+- `scripts/smoke-pr-43.sh`: Script de pruebas completo
+
+### Testing
+- ✅ GDPR export system functional
+- ✅ GDPR erase system operational
+- ✅ GDPR audit system working
+- ✅ Legal holds management functional
+- ✅ API endpoints with proper validation
+- ✅ Data breach recording working
+- ✅ Compliance reporting operational
+- ✅ Integration with SEPA system
+- ✅ All smoke tests passing
+
 - **PR-42**: SEPA Ingest + Matching System
   - Sistema completo de procesamiento de transacciones SEPA
   - Parser CAMT.053/.054 para extractos bancarios XML

@@ -27,6 +27,9 @@ import { SEPAParserService } from "./lib/sepa-parser.service.js";
 import { MatchingEngineService } from "./lib/matching-engine.service.js";
 import { ReconciliationService } from "./lib/reconciliation.service.js";
 import { RuleEngineService } from "./lib/rule-engine.service.js";
+import { GDPRExportService } from "./lib/gdpr-export.service.js";
+import { GDPREraseService } from "./lib/gdpr-erase.service.js";
+import { GDPRAuditService } from "./lib/gdpr-audit.service.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -39,6 +42,11 @@ const sepaParser = new SEPAParserService();
 const matchingEngine = new MatchingEngineService();
 const reconciliationService = new ReconciliationService();
 const ruleEngine = new RuleEngineService();
+
+// Inicializar servicios GDPR
+const gdprExport = new GDPRExportService();
+const gdprErase = new GDPREraseService();
+const gdprAudit = new GDPRAuditService();
 
 // Middleware básico
 app.use(cors());
@@ -3101,6 +3109,428 @@ app.get("/v1/sepa/stats", async (req, res) => {
 });
 
 // ============================================================================
+// GDPR SYSTEM ENDPOINTS
+// ============================================================================
+
+// GDPR Requests Management
+app.post("/v1/gdpr/requests", async (req, res) => {
+  try {
+    const { userId, type, dataCategories, scope, priority, reason } = req.body;
+    
+    if (!userId || !type || !dataCategories) {
+      return res.status(400).json({ 
+        error: "Missing required fields",
+        message: "userId, type, and dataCategories are required"
+      });
+    }
+
+    const gdprRequest = await gdprAudit.createGDPRRequest(
+      userId,
+      type,
+      req.headers['x-user-id'] as string || 'system',
+      dataCategories,
+      scope || 'user',
+      priority || 'medium',
+      reason
+    );
+
+    logger.info("GDPR request created", {
+      requestId: gdprRequest.id,
+      userId,
+      type,
+      dataCategories
+    });
+
+    return res.json({
+      success: true,
+      data: gdprRequest
+    });
+  } catch (error: any) {
+    logger.error("Failed to create GDPR request", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to create GDPR request",
+      message: (error as Error).message
+    });
+  }
+});
+
+app.get("/v1/gdpr/requests", async (req, res) => {
+  try {
+    const { userId } = req.query;
+    const requests = gdprAudit.getGDPRRequests(userId as string);
+    
+    return res.json({
+      success: true,
+      data: {
+        requests,
+        count: requests.length
+      }
+    });
+  } catch (error: any) {
+    logger.error("Failed to get GDPR requests", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to get GDPR requests",
+      message: (error as Error).message
+    });
+  }
+});
+
+app.get("/v1/gdpr/requests/:requestId", async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    const request = gdprAudit.getGDPRRequest(requestId);
+    
+    if (!request) {
+      return res.status(404).json({ 
+        error: "Request not found",
+        message: `GDPR request with ID ${requestId} not found`
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: request
+    });
+  } catch (error: any) {
+    logger.error("Failed to get GDPR request", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to get GDPR request",
+      message: (error as Error).message
+    });
+  }
+});
+
+// GDPR Data Export
+app.post("/v1/gdpr/export", async (req, res) => {
+  try {
+    const { userId, dataCategories, format, scope } = req.body;
+    
+    if (!userId || !dataCategories) {
+      return res.status(400).json({ 
+        error: "Missing required fields",
+        message: "userId and dataCategories are required"
+      });
+    }
+
+    const dataExport = await gdprExport.createExportRequest(
+      userId,
+      req.headers['x-user-id'] as string || 'system',
+      dataCategories,
+      format || 'zip',
+      scope || 'user'
+    );
+
+    logger.info("GDPR export request created", {
+      exportId: dataExport.id,
+      userId,
+      dataCategories,
+      format
+    });
+
+    return res.json({
+      success: true,
+      data: dataExport
+    });
+  } catch (error: any) {
+    logger.error("Failed to create export request", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to create export request",
+      message: (error as Error).message
+    });
+  }
+});
+
+app.get("/v1/gdpr/export/:exportId", async (req, res) => {
+  try {
+    const { exportId } = req.params;
+    const dataExport = gdprExport.getExport(exportId);
+    
+    if (!dataExport) {
+      return res.status(404).json({ 
+        error: "Export not found",
+        message: `Export with ID ${exportId} not found`
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: dataExport
+    });
+  } catch (error: any) {
+    logger.error("Failed to get export", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to get export",
+      message: (error as Error).message
+    });
+  }
+});
+
+// GDPR Data Erase
+app.post("/v1/gdpr/erase", async (req, res) => {
+  try {
+    const { userId, dataCategories, type, reason } = req.body;
+    
+    if (!userId || !dataCategories) {
+      return res.status(400).json({ 
+        error: "Missing required fields",
+        message: "userId and dataCategories are required"
+      });
+    }
+
+    const dataErase = await gdprErase.createEraseRequest(
+      userId,
+      req.headers['x-user-id'] as string || 'system',
+      dataCategories,
+      type || 'soft',
+      reason
+    );
+
+    logger.info("GDPR erase request created", {
+      eraseId: dataErase.id,
+      userId,
+      dataCategories,
+      type
+    });
+
+    return res.json({
+      success: true,
+      data: dataErase
+    });
+  } catch (error: any) {
+    logger.error("Failed to create erase request", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to create erase request",
+      message: (error as Error).message
+    });
+  }
+});
+
+app.get("/v1/gdpr/erase/:eraseId", async (req, res) => {
+  try {
+    const { eraseId } = req.params;
+    const dataErase = gdprErase.getErase(eraseId);
+    
+    if (!dataErase) {
+      return res.status(404).json({ 
+        error: "Erase not found",
+        message: `Erase with ID ${eraseId} not found`
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: dataErase
+    });
+  } catch (error: any) {
+    logger.error("Failed to get erase", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to get erase",
+      message: (error as Error).message
+    });
+  }
+});
+
+// GDPR Legal Holds
+app.get("/v1/gdpr/legal-holds", async (req, res) => {
+  try {
+    const legalHolds = gdprErase.getLegalHolds();
+    
+    return res.json({
+      success: true,
+      data: {
+        legalHolds,
+        count: legalHolds.length
+      }
+    });
+  } catch (error: any) {
+    logger.error("Failed to get legal holds", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to get legal holds",
+      message: (error as Error).message
+    });
+  }
+});
+
+app.post("/v1/gdpr/legal-holds", async (req, res) => {
+  try {
+    const legalHoldData = req.body;
+    
+    const legalHold = gdprErase.addLegalHold(legalHoldData);
+    
+    logger.info("Legal hold created", { holdId: legalHold.id, name: legalHold.name });
+
+    return res.json({
+      success: true,
+      data: legalHold
+    });
+  } catch (error: any) {
+    logger.error("Failed to create legal hold", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to create legal hold",
+      message: (error as Error).message
+    });
+  }
+});
+
+// GDPR Audit and Compliance
+app.get("/v1/gdpr/audit", async (req, res) => {
+  try {
+    const { requestId } = req.query;
+    const auditEntries = gdprAudit.getAuditEntries(requestId as string);
+    
+    return res.json({
+      success: true,
+      data: {
+        auditEntries,
+        count: auditEntries.length
+      }
+    });
+  } catch (error: any) {
+    logger.error("Failed to get audit entries", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to get audit entries",
+      message: (error as Error).message
+    });
+  }
+});
+
+app.get("/v1/gdpr/breaches", async (req, res) => {
+  try {
+    const breaches = gdprAudit.getBreaches();
+    
+    return res.json({
+      success: true,
+      data: {
+        breaches,
+        count: breaches.length
+      }
+    });
+  } catch (error: any) {
+    logger.error("Failed to get breaches", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to get breaches",
+      message: (error as Error).message
+    });
+  }
+});
+
+app.post("/v1/gdpr/breaches", async (req, res) => {
+  try {
+    const { type, severity, description, affectedDataCategories, affectedDataSubjects } = req.body;
+    
+    if (!type || !severity || !description || !affectedDataCategories || !affectedDataSubjects) {
+      return res.status(400).json({ 
+        error: "Missing required fields",
+        message: "type, severity, description, affectedDataCategories, and affectedDataSubjects are required"
+      });
+    }
+
+    const breach = await gdprAudit.recordBreach(
+      type,
+      severity,
+      description,
+      affectedDataCategories,
+      affectedDataSubjects,
+      req.headers['x-user-id'] as string || 'system'
+    );
+
+    logger.warn("Data breach recorded", {
+      breachId: breach.id,
+      type,
+      severity,
+      affectedDataSubjects
+    });
+
+    return res.json({
+      success: true,
+      data: breach
+    });
+  } catch (error: any) {
+    logger.error("Failed to record breach", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to record breach",
+      message: (error as Error).message
+    });
+  }
+});
+
+// GDPR Statistics and Reports
+app.get("/v1/gdpr/stats", async (req, res) => {
+  try {
+    const gdprStats = gdprAudit.getGDPRStats();
+    const exportStats = gdprExport.getExportStats();
+    const eraseStats = gdprErase.getEraseStats();
+    
+    return res.json({
+      success: true,
+      data: {
+        gdpr: gdprStats,
+        exports: exportStats,
+        erasures: eraseStats
+      }
+    });
+  } catch (error: any) {
+    logger.error("Failed to get GDPR stats", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to get GDPR stats",
+      message: (error as Error).message
+    });
+  }
+});
+
+app.get("/v1/gdpr/compliance-report", async (req, res) => {
+  try {
+    const { start, end } = req.query;
+    
+    if (!start || !end) {
+      return res.status(400).json({ 
+        error: "Missing required parameters",
+        message: "start and end dates are required"
+      });
+    }
+
+    const period = {
+      start: new Date(start as string),
+      end: new Date(end as string)
+    };
+
+    const report = gdprAudit.getComplianceReport(period);
+    
+    return res.json({
+      success: true,
+      data: report
+    });
+  } catch (error: any) {
+    logger.error("Failed to get compliance report", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to get compliance report",
+      message: (error as Error).message
+    });
+  }
+});
+
+// GDPR Data Categories
+app.get("/v1/gdpr/data-categories", async (req, res) => {
+  try {
+    const dataCategories = gdprExport.getDataCategories();
+    
+    return res.json({
+      success: true,
+      data: {
+        dataCategories,
+        count: dataCategories.length
+      }
+    });
+  } catch (error: any) {
+    logger.error("Failed to get data categories", { error: (error as Error).message });
+    return res.status(500).json({ 
+      error: "Failed to get data categories",
+      message: (error as Error).message
+    });
+  }
+});
+
+// ============================================================================
 // ADVANCED SECURITY SYSTEM ENDPOINTS
 // ============================================================================
 
@@ -3380,6 +3810,7 @@ app.listen(PORT, async () => {
   console.log(`🔄 Workflow system enabled with BPMN and state machines`);
   console.log(`🔐 Advanced Security system enabled with MFA, RBAC, and threat detection`);
   console.log(`🏦 SEPA system enabled with CAMT/MT940 parsing and intelligent matching`);
+  console.log(`🔒 GDPR system enabled with export/erase and compliance management`);
   
   // Inicializar warmup del caché
   try {
