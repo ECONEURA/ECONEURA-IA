@@ -51,6 +51,10 @@ import { QuietHoursService } from "./lib/quiet-hours.service.js";
 import { OnCallService } from "./lib/oncall.service.js";
 import { EscalationService } from "./lib/escalation.service.js";
 import { NotificationIntelligenceService } from "./lib/notification-intelligence.service.js";
+import { WarmupService } from "./lib/warmup.service.js";
+import { IntelligentSearchService } from "./lib/intelligent-search.service.js";
+import { SmartCacheService } from "./lib/smart-cache.service.js";
+import { PerformanceOptimizationService } from "./lib/performance-optimization.service.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -84,6 +88,10 @@ const quietHours = new QuietHoursService();
 const onCall = new OnCallService();
 const escalation = new EscalationService();
 const notificationIntelligence = new NotificationIntelligenceService();
+const warmup = new WarmupService();
+const intelligentSearch = new IntelligentSearchService();
+const smartCache = new SmartCacheService();
+const performanceOptimization = new PerformanceOptimizationService();
 
 // Middleware básico con mejoras de seguridad
 app.use(SecurityMiddleware.createSecurityHeaders());
@@ -4682,6 +4690,211 @@ app.post("/v1/notifications/digest", async (req, res) => {
 });
 
 // ============================================================================
+// WARM-UP IA/SEARCH SYSTEM ENDPOINTS
+// ============================================================================
+
+// Warm-up Management
+app.get("/v1/warmup/configs", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const configs = await warmup.getWarmupConfigs(organizationId);
+    res.json({ success: true, data: configs });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/warmup/configs", async (req, res) => {
+  try {
+    const config = await warmup.createWarmupConfig(req.body);
+    res.status(201).json({ success: true, data: config });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/warmup/configs/:id", async (req, res) => {
+  try {
+    const config = await warmup.getWarmupConfig(req.params.id);
+    if (!config) {
+      return res.status(404).json({ success: false, error: 'Warm-up configuration not found' });
+    }
+    res.json({ success: true, data: config });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.put("/v1/warmup/configs/:id", async (req, res) => {
+  try {
+    const config = await warmup.updateWarmupConfig(req.params.id, req.body);
+    if (!config) {
+      return res.status(404).json({ success: false, error: 'Warm-up configuration not found' });
+    }
+    res.json({ success: true, data: config });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.delete("/v1/warmup/configs/:id", async (req, res) => {
+  try {
+    const deleted = await warmup.deleteWarmupConfig(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, error: 'Warm-up configuration not found' });
+    }
+    res.json({ success: true, message: 'Warm-up configuration deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Warm-up Execution
+app.post("/v1/warmup/execute", async (req, res) => {
+  try {
+    const { configId, organizationId, serviceName } = req.body;
+    const result = await warmup.executeWarmup(configId, organizationId, serviceName);
+    res.status(201).json({ success: true, data: result });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/warmup/status", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const serviceName = req.query.service as string;
+    const status = await warmup.getWarmupStatus(organizationId, serviceName);
+    res.json({ success: true, data: status });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/warmup/metrics", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const serviceName = req.query.service as string;
+    const metrics = await warmup.getWarmupMetrics(organizationId, serviceName);
+    res.json({ success: true, data: metrics });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Intelligent Search
+app.post("/v1/search/query", async (req, res) => {
+  try {
+    const { query, filters, organizationId, userId } = req.body;
+    const results = await intelligentSearch.search(query, filters, organizationId, userId);
+    res.json({ success: true, data: results });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/search/suggestions", async (req, res) => {
+  try {
+    const { q: query, organizationId } = req.query;
+    const suggestions = await intelligentSearch.getSuggestions(query as string, organizationId as string);
+    res.json({ success: true, data: suggestions });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/search/index", async (req, res) => {
+  try {
+    const { documents, organizationId } = req.body;
+    const result = await intelligentSearch.indexDocuments(documents, organizationId);
+    res.status(201).json({ success: true, data: result });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/search/analytics", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const analytics = await intelligentSearch.getSearchAnalytics(organizationId);
+    res.json({ success: true, data: analytics });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Smart Cache Management
+app.get("/v1/cache/smart/configs", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const configs = await smartCache.getCacheConfigs(organizationId);
+    res.json({ success: true, data: configs });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/cache/smart/configs", async (req, res) => {
+  try {
+    const config = await smartCache.createCacheConfig(req.body);
+    res.status(201).json({ success: true, data: config });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/cache/smart/stats", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const stats = await smartCache.getCacheStats(organizationId);
+    res.json({ success: true, data: stats });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/cache/smart/invalidate", async (req, res) => {
+  try {
+    const { patterns, organizationId } = req.body;
+    const result = await smartCache.invalidateCache(patterns, organizationId);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Performance Optimization
+app.get("/v1/performance/metrics", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const metrics = await performanceOptimization.getPerformanceMetrics(organizationId);
+    res.json({ success: true, data: metrics });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/v1/performance/recommendations", async (req, res) => {
+  try {
+    const organizationId = req.headers['x-organization-id'] as string || 'org_1';
+    const recommendations = await performanceOptimization.getOptimizationRecommendations(organizationId);
+    res.json({ success: true, data: recommendations });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/v1/performance/optimize", async (req, res) => {
+  try {
+    const { optimizationType, organizationId, parameters } = req.body;
+    const result = await performanceOptimization.executeOptimization(optimizationType, organizationId, parameters);
+    res.status(201).json({ success: true, data: result });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ============================================================================
 // GDPR SYSTEM ENDPOINTS
 // ============================================================================
 
@@ -5428,6 +5641,7 @@ app.listen(PORT, async () => {
   console.log(`🛡️ RLS generative suite enabled with CI/CD integration`);
   console.log(`💰 FinOps system enabled with cost tracking, budget management, optimization, and reporting`);
   console.log(`🔇 Quiet Hours + On-Call system enabled with intelligent scheduling, escalation, and notifications`);
+  console.log(`🔥 Warm-up IA/Search system enabled with intelligent caching, search optimization, and performance monitoring`);
   console.log(`🔧 Advanced improvements enabled: Error handling, Logging, Validation, Rate limiting, Caching, Health monitoring, Security, Process management`);
   
   // Inicializar warmup del caché
