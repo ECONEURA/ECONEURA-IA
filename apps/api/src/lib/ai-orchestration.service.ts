@@ -2,89 +2,83 @@
  * AI Orchestration Service
  * 
  * This service provides comprehensive AI orchestration capabilities including
- * model registry, pipeline management, resource orchestration, and model serving.
+ * model orchestration, pipeline orchestration, and resource management.
  */
 
 import {
   AIOrchestration,
-  OrchestrationConfig,
-  PerformanceMetrics,
-  ResourceAllocation,
+  AIOrchestrationConfig,
+  AIOrchestrationPerformance,
   MLPipeline,
-  PipelineStage,
-  CreateOrchestrationRequest,
-  AIOrchestrationConfig
+  MLPipelineStage,
+  MLPipelineExecution,
+  MLPipelineStageExecution,
+  AIOrchestrationConfig as OrchestrationConfig
 } from './ai-ml-types.js';
 
 export class AIOrchestrationService {
-  private config: AIOrchestrationConfig;
+  private config: OrchestrationConfig;
   private orchestrations: Map<string, AIOrchestration> = new Map();
   private pipelines: Map<string, MLPipeline> = new Map();
-  private activeOrchestrations: Map<string, NodeJS.Timeout> = new Map();
+  private pipelineExecutions: Map<string, MLPipelineExecution> = new Map();
+  private performanceMetrics: Map<string, AIOrchestrationPerformance> = new Map();
 
-  constructor(config: Partial<AIOrchestrationConfig> = {}) {
+  constructor(config: Partial<OrchestrationConfig> = {}) {
     this.config = {
-      pipelineManagement: true,
+      modelOrchestration: true,
+      pipelineOrchestration: true,
+      resourceManagement: true,
       modelServing: true,
-      resourceOrchestration: true,
       monitoring: true,
+      costOptimization: true,
       governance: true,
-      integration: true,
+      scaling: true,
       ...config
     };
   }
 
   // ============================================================================
-  // ORCHESTRATION MANAGEMENT
+  // AI ORCHESTRATION MANAGEMENT
   // ============================================================================
 
-  async createOrchestration(request: CreateOrchestrationRequest, organizationId: string, createdBy: string): Promise<AIOrchestration> {
-    const orchestration: AIOrchestration = {
+  async createAIOrchestration(orchestration: Omit<AIOrchestration, 'id' | 'createdAt' | 'updatedAt'>): Promise<AIOrchestration> {
+    const newOrchestration: AIOrchestration = {
       id: this.generateId(),
-      name: request.name,
-      description: request.description,
-      type: request.type,
-      models: request.models,
-      resources: request.resources,
-      status: 'scheduled',
+      ...orchestration,
+      status: 'active',
       performance: {
+        totalRequests: 0,
+        successfulRequests: 0,
+        failedRequests: 0,
+        averageResponseTime: 0,
+        p95ResponseTime: 0,
+        p99ResponseTime: 0,
         throughput: 0,
-        latency: 0,
         errorRate: 0,
         resourceUtilization: {
           cpu: 0,
           memory: 0,
-          storage: 0,
-          network: 0
+          gpu: 0
         },
         lastUpdated: new Date()
       },
-      configuration: request.configuration,
-      organizationId,
-      createdBy,
-      tags: request.tags,
-      metadata: request.metadata,
       createdAt: new Date(),
       updatedAt: new Date()
     };
 
-    this.orchestrations.set(orchestration.id, orchestration);
+    this.orchestrations.set(newOrchestration.id, newOrchestration);
+    this.performanceMetrics.set(newOrchestration.id, newOrchestration.performance);
 
-    // Validate orchestration
-    await this.validateOrchestration(orchestration);
-
-    return orchestration;
+    return newOrchestration;
   }
 
-  async getOrchestration(orchestrationId: string): Promise<AIOrchestration | null> {
+  async getAIOrchestration(orchestrationId: string): Promise<AIOrchestration | null> {
     return this.orchestrations.get(orchestrationId) || null;
   }
 
-  async getOrchestrations(organizationId: string, filters?: {
+  async getAIOrchestrations(organizationId: string, filters?: {
     type?: string;
     status?: string;
-    createdBy?: string;
-    tags?: string[];
   }): Promise<AIOrchestration[]> {
     let orchestrations = Array.from(this.orchestrations.values())
       .filter(o => o.organizationId === organizationId);
@@ -96,20 +90,12 @@ export class AIOrchestrationService {
       if (filters.status) {
         orchestrations = orchestrations.filter(o => o.status === filters.status);
       }
-      if (filters.createdBy) {
-        orchestrations = orchestrations.filter(o => o.createdBy === filters.createdBy);
-      }
-      if (filters.tags && filters.tags.length > 0) {
-        orchestrations = orchestrations.filter(o => 
-          filters.tags!.some(tag => o.tags.includes(tag))
-        );
-      }
     }
 
     return orchestrations.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
-  async updateOrchestration(orchestrationId: string, updates: Partial<CreateOrchestrationRequest>): Promise<AIOrchestration | null> {
+  async updateAIOrchestration(orchestrationId: string, updates: Partial<AIOrchestration>): Promise<AIOrchestration | null> {
     const orchestration = this.orchestrations.get(orchestrationId);
     if (!orchestration) return null;
 
@@ -119,274 +105,132 @@ export class AIOrchestrationService {
       updatedAt: new Date()
     };
 
-    // Validate updated orchestration
-    await this.validateOrchestration(updatedOrchestration);
-
     this.orchestrations.set(orchestrationId, updatedOrchestration);
     return updatedOrchestration;
   }
 
-  async deleteOrchestration(orchestrationId: string): Promise<boolean> {
+  async deleteAIOrchestration(orchestrationId: string): Promise<boolean> {
     const orchestration = this.orchestrations.get(orchestrationId);
     if (!orchestration) return false;
 
-    // Stop if running
-    if (orchestration.status === 'running') {
-      await this.stopOrchestration(orchestrationId);
-    }
+    // Clean up related resources
+    this.performanceMetrics.delete(orchestrationId);
 
     return this.orchestrations.delete(orchestrationId);
   }
 
   // ============================================================================
-  // ORCHESTRATION EXECUTION
+  // MODEL ORCHESTRATION
   // ============================================================================
 
-  async startOrchestration(orchestrationId: string): Promise<AIOrchestration | null> {
-    const orchestration = this.orchestrations.get(orchestrationId);
-    if (!orchestration) return null;
-
-    if (orchestration.status === 'running') {
-      throw new Error('Orchestration is already running');
+  async orchestrateModel(modelId: string, orchestrationConfig: Partial<AIOrchestrationConfig>, organizationId: string, createdBy: string): Promise<AIOrchestration> {
+    if (!this.config.modelOrchestration) {
+      throw new Error('Model orchestration is not enabled');
     }
 
-    const startedOrchestration: AIOrchestration = {
-      ...orchestration,
-      status: 'running',
-      startedAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    this.orchestrations.set(orchestrationId, startedOrchestration);
-
-    // Start orchestration based on type
-    await this.executeOrchestration(startedOrchestration);
-
-    return startedOrchestration;
-  }
-
-  async stopOrchestration(orchestrationId: string): Promise<AIOrchestration | null> {
-    const orchestration = this.orchestrations.get(orchestrationId);
-    if (!orchestration) return null;
-
-    const stoppedOrchestration: AIOrchestration = {
-      ...orchestration,
-      status: 'stopped',
-      stoppedAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    this.orchestrations.set(orchestrationId, stoppedOrchestration);
-
-    // Stop active orchestration
-    const activeOrchestration = this.activeOrchestrations.get(orchestrationId);
-    if (activeOrchestration) {
-      clearInterval(activeOrchestration);
-      this.activeOrchestrations.delete(orchestrationId);
-    }
-
-    return stoppedOrchestration;
-  }
-
-  async pauseOrchestration(orchestrationId: string): Promise<AIOrchestration | null> {
-    const orchestration = this.orchestrations.get(orchestrationId);
-    if (!orchestration) return null;
-
-    if (orchestration.status !== 'running') {
-      throw new Error('Orchestration is not running');
-    }
-
-    const pausedOrchestration: AIOrchestration = {
-      ...orchestration,
-      status: 'paused',
-      updatedAt: new Date()
-    };
-
-    this.orchestrations.set(orchestrationId, pausedOrchestration);
-
-    // Pause active orchestration
-    const activeOrchestration = this.activeOrchestrations.get(orchestrationId);
-    if (activeOrchestration) {
-      clearInterval(activeOrchestration);
-      this.activeOrchestrations.delete(orchestrationId);
-    }
-
-    return pausedOrchestration;
-  }
-
-  private async executeOrchestration(orchestration: AIOrchestration): Promise<void> {
-    switch (orchestration.type) {
-      case 'pipeline':
-        await this.executePipelineOrchestration(orchestration);
-        break;
-      case 'model_serving':
-        await this.executeModelServingOrchestration(orchestration);
-        break;
-      case 'batch_processing':
-        await this.executeBatchProcessingOrchestration(orchestration);
-        break;
-      case 'real_time':
-        await this.executeRealTimeOrchestration(orchestration);
-        break;
-      case 'streaming':
-        await this.executeStreamingOrchestration(orchestration);
-        break;
-      default:
-        throw new Error(`Unknown orchestration type: ${orchestration.type}`);
-    }
-  }
-
-  private async executePipelineOrchestration(orchestration: AIOrchestration): Promise<void> {
-    // Simulate pipeline execution
-    const interval = setInterval(async () => {
-      await this.updateOrchestrationPerformance(orchestration.id);
-    }, 5000);
-
-    this.activeOrchestrations.set(orchestration.id, interval);
-
-    // Simulate pipeline completion after some time
-    setTimeout(async () => {
-      await this.completeOrchestration(orchestration.id);
-    }, 60000); // 1 minute
-  }
-
-  private async executeModelServingOrchestration(orchestration: AIOrchestration): Promise<void> {
-    // Simulate model serving
-    const interval = setInterval(async () => {
-      await this.updateOrchestrationPerformance(orchestration.id);
-    }, 2000);
-
-    this.activeOrchestrations.set(orchestration.id, interval);
-  }
-
-  private async executeBatchProcessingOrchestration(orchestration: AIOrchestration): Promise<void> {
-    // Simulate batch processing
-    const interval = setInterval(async () => {
-      await this.updateOrchestrationPerformance(orchestration.id);
-    }, 10000);
-
-    this.activeOrchestrations.set(orchestration.id, interval);
-
-    // Simulate batch completion
-    setTimeout(async () => {
-      await this.completeOrchestration(orchestration.id);
-    }, 300000); // 5 minutes
-  }
-
-  private async executeRealTimeOrchestration(orchestration: AIOrchestration): Promise<void> {
-    // Simulate real-time processing
-    const interval = setInterval(async () => {
-      await this.updateOrchestrationPerformance(orchestration.id);
-    }, 1000);
-
-    this.activeOrchestrations.set(orchestration.id, interval);
-  }
-
-  private async executeStreamingOrchestration(orchestration: AIOrchestration): Promise<void> {
-    // Simulate streaming processing
-    const interval = setInterval(async () => {
-      await this.updateOrchestrationPerformance(orchestration.id);
-    }, 500);
-
-    this.activeOrchestrations.set(orchestration.id, interval);
-  }
-
-  private async updateOrchestrationPerformance(orchestrationId: string): Promise<void> {
-    const orchestration = this.orchestrations.get(orchestrationId);
-    if (!orchestration) return;
-
-    const updatedPerformance: PerformanceMetrics = {
-      throughput: Math.random() * 1000 + 100, // 100-1100 requests/second
-      latency: Math.random() * 100 + 10, // 10-110ms
-      errorRate: Math.random() * 0.05, // 0-5% error rate
-      resourceUtilization: {
-        cpu: Math.random() * 100, // 0-100% CPU
-        memory: Math.random() * 100, // 0-100% Memory
-        storage: Math.random() * 100, // 0-100% Storage
-        network: Math.random() * 100 // 0-100% Network
+    const orchestration = await this.createAIOrchestration({
+      name: `Model Orchestration - ${modelId}`,
+      description: `Orchestration for model ${modelId}`,
+      type: 'model_serving',
+      status: 'active',
+      models: [modelId],
+      pipelines: [],
+      configuration: {
+        scaling: {
+          minInstances: 1,
+          maxInstances: 10,
+          targetUtilization: 70,
+          autoScaling: true,
+          ...orchestrationConfig.scaling
+        },
+        loadBalancing: {
+          strategy: 'round_robin',
+          ...orchestrationConfig.loadBalancing
+        },
+        monitoring: {
+          enabled: true,
+          metricsInterval: 60,
+          alertThresholds: {
+            responseTime: 1000,
+            errorRate: 0.05,
+            cpuUtilization: 0.8,
+            memoryUtilization: 0.8
+          },
+          loggingLevel: 'info',
+          ...orchestrationConfig.monitoring
+        },
+        security: {
+          authentication: true,
+          authorization: true,
+          encryption: true,
+          rateLimit: 1000,
+          ...orchestrationConfig.security
+        }
       },
-      lastUpdated: new Date()
-    };
+      organizationId,
+      createdBy,
+      tags: ['model', 'serving'],
+      metadata: { modelId }
+    });
 
-    const updatedOrchestration: AIOrchestration = {
-      ...orchestration,
-      performance: updatedPerformance,
-      updatedAt: new Date()
-    };
-
-    this.orchestrations.set(orchestrationId, updatedOrchestration);
+    return orchestration;
   }
 
-  private async completeOrchestration(orchestrationId: string): Promise<void> {
+  async deployOrchestration(orchestrationId: string): Promise<AIOrchestration | null> {
     const orchestration = this.orchestrations.get(orchestrationId);
-    if (!orchestration) return;
+    if (!orchestration) return null;
 
-    const completedOrchestration: AIOrchestration = {
-      ...orchestration,
-      status: 'stopped',
-      stoppedAt: new Date(),
-      updatedAt: new Date()
-    };
+    orchestration.status = 'active';
+    orchestration.deployedAt = new Date();
+    orchestration.updatedAt = new Date();
 
-    this.orchestrations.set(orchestrationId, completedOrchestration);
+    this.orchestrations.set(orchestrationId, orchestration);
+    return orchestration;
+  }
 
-    // Clear active orchestration
-    const activeOrchestration = this.activeOrchestrations.get(orchestrationId);
-    if (activeOrchestration) {
-      clearInterval(activeOrchestration);
-      this.activeOrchestrations.delete(orchestrationId);
-    }
+  async undeployOrchestration(orchestrationId: string): Promise<AIOrchestration | null> {
+    const orchestration = this.orchestrations.get(orchestrationId);
+    if (!orchestration) return null;
+
+    orchestration.status = 'inactive';
+    orchestration.updatedAt = new Date();
+    delete orchestration.deployedAt;
+
+    this.orchestrations.set(orchestrationId, orchestration);
+    return orchestration;
   }
 
   // ============================================================================
-  // PIPELINE MANAGEMENT
+  // PIPELINE ORCHESTRATION
   // ============================================================================
 
-  async createPipeline(pipelineData: {
-    name: string;
-    description: string;
-    stages: Omit<PipelineStage, 'id'>[];
-    organizationId: string;
-    createdBy: string;
-    tags: string[];
-    metadata: Record<string, any>;
-  }): Promise<MLPipeline> {
-    const pipeline: MLPipeline = {
+  async createMLPipeline(pipeline: Omit<MLPipeline, 'id' | 'createdAt' | 'updatedAt'>): Promise<MLPipeline> {
+    if (!this.config.pipelineOrchestration) {
+      throw new Error('Pipeline orchestration is not enabled');
+    }
+
+    const newPipeline: MLPipeline = {
       id: this.generateId(),
-      name: pipelineData.name,
-      description: pipelineData.description,
-      stages: pipelineData.stages.map(stage => ({
-        id: this.generateId(),
-        ...stage
-      })),
-      status: 'inactive',
+      ...pipeline,
+      status: 'active',
       executionCount: 0,
-      successRate: 0,
-      averageExecutionTime: 0,
-      organizationId: pipelineData.organizationId,
-      createdBy: pipelineData.createdBy,
-      tags: pipelineData.tags,
-      metadata: pipelineData.metadata,
+      successCount: 0,
+      failureCount: 0,
       createdAt: new Date(),
       updatedAt: new Date()
     };
 
-    this.pipelines.set(pipeline.id, pipeline);
-
-    // Validate pipeline
-    await this.validatePipeline(pipeline);
-
-    return pipeline;
+    this.pipelines.set(newPipeline.id, newPipeline);
+    return newPipeline;
   }
 
-  async getPipeline(pipelineId: string): Promise<MLPipeline | null> {
+  async getMLPipeline(pipelineId: string): Promise<MLPipeline | null> {
     return this.pipelines.get(pipelineId) || null;
   }
 
-  async getPipelines(organizationId: string, filters?: {
+  async getMLPipelines(organizationId: string, filters?: {
     status?: string;
     createdBy?: string;
-    tags?: string[];
   }): Promise<MLPipeline[]> {
     let pipelines = Array.from(this.pipelines.values())
       .filter(p => p.organizationId === organizationId);
@@ -398,332 +242,493 @@ export class AIOrchestrationService {
       if (filters.createdBy) {
         pipelines = pipelines.filter(p => p.createdBy === filters.createdBy);
       }
-      if (filters.tags && filters.tags.length > 0) {
-        pipelines = pipelines.filter(p => 
-          filters.tags!.some(tag => p.tags.includes(tag))
-        );
-      }
     }
 
     return pipelines.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
-  async executePipeline(pipelineId: string, inputs: Record<string, any> = {}): Promise<{
-    executionId: string;
-    status: string;
-    startTime: Date;
-  }> {
+  async executeMLPipeline(pipelineId: string, trigger: 'manual' | 'schedule' | 'webhook' | 'event', organizationId: string, executedBy: string): Promise<MLPipelineExecution> {
     const pipeline = this.pipelines.get(pipelineId);
     if (!pipeline) {
       throw new Error('Pipeline not found');
     }
 
-    const executionId = this.generateId();
-    const startTime = new Date();
-
-    // Simulate pipeline execution
-    setTimeout(async () => {
-      await this.completePipelineExecution(pipelineId, executionId);
-    }, 30000); // 30 seconds
-
-    return {
-      executionId,
-      status: 'running',
-      startTime
-    };
-  }
-
-  private async completePipelineExecution(pipelineId: string, executionId: string): Promise<void> {
-    const pipeline = this.pipelines.get(pipelineId);
-    if (!pipeline) return;
-
-    const updatedPipeline: MLPipeline = {
-      ...pipeline,
-      executionCount: pipeline.executionCount + 1,
-      lastExecuted: new Date(),
-      updatedAt: new Date()
-    };
-
-    // Calculate success rate
-    const successRate = Math.random() * 0.2 + 0.8; // 80-100% success rate
-    updatedPipeline.successRate = successRate;
-
-    // Calculate average execution time
-    const executionTime = Math.random() * 10000 + 20000; // 20-30 seconds
-    updatedPipeline.averageExecutionTime = executionTime;
-
-    this.pipelines.set(pipelineId, updatedPipeline);
-  }
-
-  // ============================================================================
-  // RESOURCE ORCHESTRATION
-  // ============================================================================
-
-  async allocateResources(orchestrationId: string, resources: ResourceAllocation): Promise<boolean> {
-    const orchestration = this.orchestrations.get(orchestrationId);
-    if (!orchestration) return false;
-
-    const updatedOrchestration: AIOrchestration = {
-      ...orchestration,
-      resources,
-      updatedAt: new Date()
-    };
-
-    this.orchestrations.set(orchestrationId, updatedOrchestration);
-    return true;
-  }
-
-  async scaleOrchestration(orchestrationId: string, scaleFactor: number): Promise<AIOrchestration | null> {
-    const orchestration = this.orchestrations.get(orchestrationId);
-    if (!orchestration) return null;
-
-    // Scale resources
-    const scaledResources: ResourceAllocation = {
-      cpu: this.scaleResource(orchestration.resources.cpu, scaleFactor),
-      memory: this.scaleResource(orchestration.resources.memory, scaleFactor),
-      storage: this.scaleResource(orchestration.resources.storage, scaleFactor),
-      network: this.scaleResource(orchestration.resources.network, scaleFactor)
-    };
-
-    const scaledOrchestration: AIOrchestration = {
-      ...orchestration,
-      resources: scaledResources,
-      updatedAt: new Date()
-    };
-
-    this.orchestrations.set(orchestrationId, scaledOrchestration);
-    return scaledOrchestration;
-  }
-
-  private scaleResource(resource: string, scaleFactor: number): string {
-    // Simple resource scaling - in real implementation, use proper resource parsing
-    const numericValue = parseFloat(resource);
-    if (isNaN(numericValue)) return resource;
-
-    const scaledValue = numericValue * scaleFactor;
-    return scaledValue.toString();
-  }
-
-  // ============================================================================
-  // MODEL SERVING
-  // ============================================================================
-
-  async serveModel(modelId: string, orchestrationId: string): Promise<{
-    endpoint: string;
-    status: string;
-    replicas: number;
-  }> {
-    const orchestration = this.orchestrations.get(orchestrationId);
-    if (!orchestration) {
-      throw new Error('Orchestration not found');
+    if (pipeline.status !== 'active') {
+      throw new Error('Pipeline is not active');
     }
 
-    const endpoint = `https://api.example.com/v1/ml/models/${modelId}/serve`;
-    const replicas = Math.floor(Math.random() * 5) + 1; // 1-5 replicas
+    const execution: MLPipelineExecution = {
+      id: this.generateId(),
+      pipelineId,
+      status: 'running',
+      trigger,
+      startedAt: new Date(),
+      stages: [],
+      organizationId,
+      executedBy,
+      metadata: {}
+    };
 
-    return {
-      endpoint,
-      status: 'active',
-      replicas
+    this.pipelineExecutions.set(execution.id, execution);
+
+    // Update pipeline statistics
+    pipeline.executionCount++;
+    pipeline.updatedAt = new Date();
+    this.pipelines.set(pipelineId, pipeline);
+
+    // Execute pipeline stages
+    await this.executePipelineStages(execution, pipeline);
+
+    return execution;
+  }
+
+  private async executePipelineStages(execution: MLPipelineExecution, pipeline: MLPipeline): Promise<void> {
+    const startTime = Date.now();
+    const executedStages = new Set<string>();
+
+    // Execute stages in dependency order
+    for (const stage of pipeline.stages) {
+      if (executedStages.has(stage.id)) continue;
+
+      // Check if all dependencies are completed
+      const dependenciesMet = stage.dependencies.every(depId => executedStages.has(depId));
+      if (!dependenciesMet) continue;
+
+      const stageExecution = await this.executePipelineStage(execution, stage);
+      execution.stages.push(stageExecution);
+      executedStages.add(stage.id);
+
+      // If stage failed and no retry, stop execution
+      if (stageExecution.status === 'failed' && stageExecution.retryCount >= (stage.retryConfig?.maxRetries || 0)) {
+        execution.status = 'failed';
+        break;
+      }
+    }
+
+    // Update execution status
+    const allStagesCompleted = execution.stages.every(s => s.status === 'completed');
+    const anyStageFailed = execution.stages.some(s => s.status === 'failed');
+
+    if (allStagesCompleted) {
+      execution.status = 'completed';
+      execution.completedAt = new Date();
+      execution.duration = Date.now() - startTime;
+      
+      // Update pipeline success statistics
+      pipeline.successCount++;
+    } else if (anyStageFailed) {
+      execution.status = 'failed';
+      execution.completedAt = new Date();
+      execution.duration = Date.now() - startTime;
+      
+      // Update pipeline failure statistics
+      pipeline.failureCount++;
+    }
+
+    pipeline.lastRun = new Date();
+    pipeline.updatedAt = new Date();
+
+    this.pipelineExecutions.set(execution.id, execution);
+    this.pipelines.set(pipeline.id, pipeline);
+  }
+
+  private async executePipelineStage(execution: MLPipelineExecution, stage: MLPipelineStage): Promise<MLPipelineStageExecution> {
+    const stageExecution: MLPipelineStageExecution = {
+      id: this.generateId(),
+      stageId: stage.id,
+      status: 'running',
+      startedAt: new Date(),
+      retryCount: 0,
+      metadata: {}
+    };
+
+    try {
+      // Execute stage based on type
+      await this.executeStageByType(stageExecution, stage);
+      
+      stageExecution.status = 'completed';
+      stageExecution.completedAt = new Date();
+      stageExecution.duration = stageExecution.completedAt.getTime() - stageExecution.startedAt.getTime();
+
+    } catch (error) {
+      stageExecution.status = 'failed';
+      stageExecution.errorMessage = (error as Error).message;
+      stageExecution.completedAt = new Date();
+      stageExecution.duration = stageExecution.completedAt.getTime() - stageExecution.startedAt.getTime();
+    }
+
+    return stageExecution;
+  }
+
+  private async executeStageByType(stageExecution: MLPipelineStageExecution, stage: MLPipelineStage): Promise<void> {
+    // Simulate stage execution based on type
+    switch (stage.type) {
+      case 'data_ingestion':
+        await this.simulateDataIngestion(stage);
+        break;
+      case 'data_preprocessing':
+        await this.simulateDataPreprocessing(stage);
+        break;
+      case 'feature_engineering':
+        await this.simulateFeatureEngineering(stage);
+        break;
+      case 'model_training':
+        await this.simulateModelTraining(stage);
+        break;
+      case 'model_validation':
+        await this.simulateModelValidation(stage);
+        break;
+      case 'model_deployment':
+        await this.simulateModelDeployment(stage);
+        break;
+      case 'monitoring':
+        await this.simulateMonitoring(stage);
+        break;
+      default:
+        throw new Error(`Unknown stage type: ${stage.type}`);
+    }
+
+    stageExecution.output = {
+      stageType: stage.type,
+      status: 'completed',
+      timestamp: new Date()
     };
   }
 
-  async getModelServingStatus(modelId: string): Promise<{
-    status: string;
-    replicas: number;
-    requestsPerSecond: number;
-    averageLatency: number;
-    errorRate: number;
+  // ============================================================================
+  // STAGE SIMULATORS
+  // ============================================================================
+
+  private async simulateDataIngestion(stage: MLPipelineStage): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 2000 + 1000));
+  }
+
+  private async simulateDataPreprocessing(stage: MLPipelineStage): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 3000 + 1500));
+  }
+
+  private async simulateFeatureEngineering(stage: MLPipelineStage): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 4000 + 2000));
+  }
+
+  private async simulateModelTraining(stage: MLPipelineStage): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 10000 + 5000));
+  }
+
+  private async simulateModelValidation(stage: MLPipelineStage): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 2000 + 1000));
+  }
+
+  private async simulateModelDeployment(stage: MLPipelineStage): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 3000 + 1500));
+  }
+
+  private async simulateMonitoring(stage: MLPipelineStage): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500));
+  }
+
+  // ============================================================================
+  // RESOURCE MANAGEMENT
+  // ============================================================================
+
+  async getAIResources(organizationId: string): Promise<{
+    totalInstances: number;
+    activeInstances: number;
+    totalCPU: number;
+    totalMemory: number;
+    totalGPU: number;
+    utilization: {
+      cpu: number;
+      memory: number;
+      gpu: number;
+    };
+    costs: {
+      hourly: number;
+      daily: number;
+      monthly: number;
+    };
   }> {
+    if (!this.config.resourceManagement) {
+      throw new Error('Resource management is not enabled');
+    }
+
+    const orchestrations = await this.getAIOrchestrations(organizationId);
+    const activeOrchestrations = orchestrations.filter(o => o.status === 'active');
+
+    const totalInstances = activeOrchestrations.reduce((sum, o) => 
+      sum + o.configuration.scaling.maxInstances, 0
+    );
+
+    const activeInstances = Math.floor(totalInstances * 0.7); // 70% utilization
+
     return {
-      status: 'active',
-      replicas: Math.floor(Math.random() * 5) + 1,
-      requestsPerSecond: Math.random() * 1000 + 100,
-      averageLatency: Math.random() * 100 + 10,
-      errorRate: Math.random() * 0.05
+      totalInstances,
+      activeInstances,
+      totalCPU: totalInstances * 4, // 4 CPU cores per instance
+      totalMemory: totalInstances * 8, // 8GB RAM per instance
+      totalGPU: Math.floor(totalInstances * 0.3), // 30% have GPU
+      utilization: {
+        cpu: Math.random() * 0.3 + 0.5, // 50-80%
+        memory: Math.random() * 0.2 + 0.6, // 60-80%
+        gpu: Math.random() * 0.4 + 0.4 // 40-80%
+      },
+      costs: {
+        hourly: totalInstances * 0.1, // $0.10 per instance per hour
+        daily: totalInstances * 2.4, // $2.40 per instance per day
+        monthly: totalInstances * 72 // $72 per instance per month
+      }
+    };
+  }
+
+  async optimizeAIResources(organizationId: string): Promise<{
+    recommendations: string[];
+    potentialSavings: number;
+    optimizationActions: Array<{
+      action: string;
+      description: string;
+      impact: string;
+      effort: 'low' | 'medium' | 'high';
+    }>;
+  }> {
+    if (!this.config.costOptimization) {
+      throw new Error('Cost optimization is not enabled');
+    }
+
+    const resources = await this.getAIResources(organizationId);
+    const recommendations: string[] = [];
+    const optimizationActions: Array<{
+      action: string;
+      description: string;
+      impact: string;
+      effort: 'low' | 'medium' | 'high';
+    }> = [];
+
+    // Analyze resource utilization
+    if (resources.utilization.cpu < 0.5) {
+      recommendations.push('Consider reducing CPU allocation - current utilization is low');
+      optimizationActions.push({
+        action: 'scale_down_cpu',
+        description: 'Reduce CPU allocation for underutilized instances',
+        impact: '20-30% cost reduction',
+        effort: 'low'
+      });
+    }
+
+    if (resources.utilization.memory < 0.6) {
+      recommendations.push('Memory utilization is low - consider optimizing memory allocation');
+      optimizationActions.push({
+        action: 'optimize_memory',
+        description: 'Optimize memory allocation based on actual usage',
+        impact: '15-25% cost reduction',
+        effort: 'medium'
+      });
+    }
+
+    if (resources.utilization.gpu < 0.4) {
+      recommendations.push('GPU utilization is very low - consider removing unused GPU instances');
+      optimizationActions.push({
+        action: 'remove_unused_gpu',
+        description: 'Remove or scale down GPU instances with low utilization',
+        impact: '40-60% cost reduction',
+        effort: 'high'
+      });
+    }
+
+    // Calculate potential savings
+    const potentialSavings = resources.costs.monthly * 0.25; // 25% potential savings
+
+    return {
+      recommendations,
+      potentialSavings,
+      optimizationActions
     };
   }
 
   // ============================================================================
-  // MONITORING AND GOVERNANCE
+  // PERFORMANCE MONITORING
   // ============================================================================
 
-  async getOrchestrationMetrics(orchestrationId: string): Promise<PerformanceMetrics | null> {
+  async updateOrchestrationPerformance(orchestrationId: string, metrics: Partial<AIOrchestrationPerformance>): Promise<void> {
+    if (!this.config.monitoring) {
+      return;
+    }
+
     const orchestration = this.orchestrations.get(orchestrationId);
-    return orchestration ? orchestration.performance : null;
-  }
+    if (!orchestration) return;
 
-  async getSystemMetrics(): Promise<{
-    totalOrchestrations: number;
-    activeOrchestrations: number;
-    totalPipelines: number;
-    activePipelines: number;
-    resourceUtilization: ResourceUtilization;
-    performanceMetrics: PerformanceMetrics;
-  }> {
-    const orchestrations = Array.from(this.orchestrations.values());
-    const pipelines = Array.from(this.pipelines.values());
-
-    const activeOrchestrations = orchestrations.filter(o => o.status === 'running').length;
-    const activePipelines = pipelines.filter(p => p.status === 'active').length;
-
-    const resourceUtilization: ResourceUtilization = {
-      cpu: Math.random() * 100,
-      memory: Math.random() * 100,
-      storage: Math.random() * 100,
-      network: Math.random() * 100
-    };
-
-    const performanceMetrics: PerformanceMetrics = {
-      throughput: orchestrations.reduce((sum, o) => sum + o.performance.throughput, 0),
-      latency: orchestrations.reduce((sum, o) => sum + o.performance.latency, 0) / orchestrations.length,
-      errorRate: orchestrations.reduce((sum, o) => sum + o.performance.errorRate, 0) / orchestrations.length,
-      resourceUtilization,
+    const currentPerformance = this.performanceMetrics.get(orchestrationId) || orchestration.performance;
+    
+    const updatedPerformance: AIOrchestrationPerformance = {
+      ...currentPerformance,
+      ...metrics,
       lastUpdated: new Date()
     };
 
-    return {
-      totalOrchestrations: orchestrations.length,
-      activeOrchestrations,
-      totalPipelines: pipelines.length,
-      activePipelines,
-      resourceUtilization,
-      performanceMetrics
-    };
+    this.performanceMetrics.set(orchestrationId, updatedPerformance);
+    orchestration.performance = updatedPerformance;
+    orchestration.updatedAt = new Date();
+
+    this.orchestrations.set(orchestrationId, orchestration);
   }
 
-  // ============================================================================
-  // VALIDATION
-  // ============================================================================
-
-  private async validateOrchestration(orchestration: AIOrchestration): Promise<void> {
-    // Validate models
-    if (orchestration.models.length === 0) {
-      throw new Error('Orchestration must have at least one model');
-    }
-
-    // Validate resources
-    if (!orchestration.resources.cpu || !orchestration.resources.memory) {
-      throw new Error('Orchestration must have CPU and memory resources defined');
-    }
-
-    // Validate configuration
-    if (!orchestration.configuration) {
-      throw new Error('Orchestration must have configuration defined');
-    }
+  async getOrchestrationPerformance(orchestrationId: string): Promise<AIOrchestrationPerformance | null> {
+    return this.performanceMetrics.get(orchestrationId) || null;
   }
 
-  private async validatePipeline(pipeline: MLPipeline): Promise<void> {
-    // Validate stages
-    if (pipeline.stages.length === 0) {
-      throw new Error('Pipeline must have at least one stage');
-    }
+  async getPerformanceAlerts(organizationId: string): Promise<Array<{
+    orchestrationId: string;
+    alertType: string;
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    message: string;
+    timestamp: Date;
+    resolved: boolean;
+  }>> {
+    const orchestrations = await this.getAIOrchestrations(organizationId);
+    const alerts: Array<{
+      orchestrationId: string;
+      alertType: string;
+      severity: 'low' | 'medium' | 'high' | 'critical';
+      message: string;
+      timestamp: Date;
+      resolved: boolean;
+    }> = [];
 
-    // Check for circular dependencies
-    this.checkPipelineCircularDependencies(pipeline.stages);
+    for (const orchestration of orchestrations) {
+      const performance = this.performanceMetrics.get(orchestration.id);
+      if (!performance) continue;
 
-    // Validate stage configurations
-    for (const stage of pipeline.stages) {
-      if (!stage.name || !stage.type) {
-        throw new Error('Invalid stage configuration');
+      // Check for performance alerts
+      if (performance.errorRate > 0.1) {
+        alerts.push({
+          orchestrationId: orchestration.id,
+          alertType: 'high_error_rate',
+          severity: 'high',
+          message: `High error rate detected: ${(performance.errorRate * 100).toFixed(1)}%`,
+          timestamp: new Date(),
+          resolved: false
+        });
+      }
+
+      if (performance.averageResponseTime > 2000) {
+        alerts.push({
+          orchestrationId: orchestration.id,
+          alertType: 'slow_response',
+          severity: 'medium',
+          message: `Slow response time: ${performance.averageResponseTime}ms`,
+          timestamp: new Date(),
+          resolved: false
+        });
+      }
+
+      if (performance.resourceUtilization.cpu > 0.9) {
+        alerts.push({
+          orchestrationId: orchestration.id,
+          alertType: 'high_cpu_usage',
+          severity: 'high',
+          message: `High CPU utilization: ${(performance.resourceUtilization.cpu * 100).toFixed(1)}%`,
+          timestamp: new Date(),
+          resolved: false
+        });
       }
     }
-  }
 
-  private checkPipelineCircularDependencies(stages: PipelineStage[]): void {
-    const visited = new Set<string>();
-    const recursionStack = new Set<string>();
-
-    const hasCycle = (stageId: string): boolean => {
-      if (recursionStack.has(stageId)) return true;
-      if (visited.has(stageId)) return false;
-
-      visited.add(stageId);
-      recursionStack.add(stageId);
-
-      const stage = stages.find(s => s.id === stageId);
-      if (stage) {
-        for (const dependency of stage.dependencies) {
-          if (hasCycle(dependency)) return true;
-        }
-      }
-
-      recursionStack.delete(stageId);
-      return false;
-    };
-
-    for (const stage of stages) {
-      if (hasCycle(stage.id)) {
-        throw new Error('Circular dependency detected in pipeline stages');
-      }
-    }
+    return alerts;
   }
 
   // ============================================================================
   // ANALYTICS
   // ============================================================================
 
-  async getOrchestrationAnalytics(organizationId: string): Promise<{
+  async getAIOrchestrationAnalytics(organizationId: string): Promise<{
     totalOrchestrations: number;
+    activeOrchestrations: number;
+    totalPipelines: number;
+    totalExecutions: number;
     orchestrationsByType: Record<string, number>;
     orchestrationsByStatus: Record<string, number>;
-    averagePerformance: PerformanceMetrics;
-    totalPipelines: number;
-    pipelineSuccessRate: number;
-    resourceUtilization: ResourceUtilization;
-    performanceTrend: Array<{ date: string; throughput: number; latency: number }>;
+    averagePerformance: {
+      responseTime: number;
+      throughput: number;
+      errorRate: number;
+    };
+    resourceUtilization: {
+      cpu: number;
+      memory: number;
+      gpu: number;
+    };
+    costAnalysis: {
+      current: number;
+      projected: number;
+      optimization: number;
+    };
+    performanceTrend: Array<{ date: string; responseTime: number; throughput: number }>;
   }> {
-    const orchestrations = await this.getOrchestrations(organizationId);
-    const pipelines = await this.getPipelines(organizationId);
+    const orchestrations = await this.getAIOrchestrations(organizationId);
+    const pipelines = await this.getMLPipelines(organizationId);
+    const executions = Array.from(this.pipelineExecutions.values())
+      .filter(e => e.organizationId === organizationId);
 
     const orchestrationsByType: Record<string, number> = {};
     const orchestrationsByStatus: Record<string, number> = {};
 
-    orchestrations.forEach(orchestration => {
-      orchestrationsByType[orchestration.type] = (orchestrationsByType[orchestration.type] || 0) + 1;
-      orchestrationsByStatus[orchestration.status] = (orchestrationsByStatus[orchestration.status] || 0) + 1;
+    orchestrations.forEach(o => {
+      orchestrationsByType[o.type] = (orchestrationsByType[o.type] || 0) + 1;
+      orchestrationsByStatus[o.status] = (orchestrationsByStatus[o.status] || 0) + 1;
     });
 
-    const averagePerformance: PerformanceMetrics = {
-      throughput: orchestrations.reduce((sum, o) => sum + o.performance.throughput, 0) / orchestrations.length,
-      latency: orchestrations.reduce((sum, o) => sum + o.performance.latency, 0) / orchestrations.length,
-      errorRate: orchestrations.reduce((sum, o) => sum + o.performance.errorRate, 0) / orchestrations.length,
-      resourceUtilization: {
-        cpu: orchestrations.reduce((sum, o) => sum + o.performance.resourceUtilization.cpu, 0) / orchestrations.length,
-        memory: orchestrations.reduce((sum, o) => sum + o.performance.resourceUtilization.memory, 0) / orchestrations.length,
-        storage: orchestrations.reduce((sum, o) => sum + o.performance.resourceUtilization.storage, 0) / orchestrations.length,
-        network: orchestrations.reduce((sum, o) => sum + o.performance.resourceUtilization.network, 0) / orchestrations.length
-      },
-      lastUpdated: new Date()
+    // Calculate average performance
+    const performanceMetrics = Array.from(this.performanceMetrics.values());
+    const averagePerformance = {
+      responseTime: performanceMetrics.length > 0 
+        ? performanceMetrics.reduce((sum, p) => sum + p.averageResponseTime, 0) / performanceMetrics.length
+        : 0,
+      throughput: performanceMetrics.length > 0
+        ? performanceMetrics.reduce((sum, p) => sum + p.throughput, 0) / performanceMetrics.length
+        : 0,
+      errorRate: performanceMetrics.length > 0
+        ? performanceMetrics.reduce((sum, p) => sum + p.errorRate, 0) / performanceMetrics.length
+        : 0
     };
 
-    const pipelineSuccessRate = pipelines.length > 0
-      ? pipelines.reduce((sum, p) => sum + p.successRate, 0) / pipelines.length
-      : 0;
-
-    const resourceUtilization: ResourceUtilization = {
-      cpu: Math.random() * 100,
-      memory: Math.random() * 100,
-      storage: Math.random() * 100,
-      network: Math.random() * 100
+    // Calculate resource utilization
+    const resourceUtilization = {
+      cpu: performanceMetrics.length > 0
+        ? performanceMetrics.reduce((sum, p) => sum + p.resourceUtilization.cpu, 0) / performanceMetrics.length
+        : 0,
+      memory: performanceMetrics.length > 0
+        ? performanceMetrics.reduce((sum, p) => sum + p.resourceUtilization.memory, 0) / performanceMetrics.length
+        : 0,
+      gpu: performanceMetrics.length > 0
+        ? performanceMetrics.reduce((sum, p) => sum + p.resourceUtilization.gpu, 0) / performanceMetrics.length
+        : 0
     };
 
-    const performanceTrend = this.calculatePerformanceTrend(orchestrations);
+    // Cost analysis
+    const resources = await this.getAIResources(organizationId);
+    const optimization = await this.optimizeAIResources(organizationId);
+
+    const performanceTrend = this.generatePerformanceTrend(performanceMetrics);
 
     return {
       totalOrchestrations: orchestrations.length,
+      activeOrchestrations: orchestrations.filter(o => o.status === 'active').length,
+      totalPipelines: pipelines.length,
+      totalExecutions: executions.length,
       orchestrationsByType,
       orchestrationsByStatus,
       averagePerformance,
-      totalPipelines: pipelines.length,
-      pipelineSuccessRate: Math.round(pipelineSuccessRate * 100) / 100,
       resourceUtilization,
+      costAnalysis: {
+        current: resources.costs.monthly,
+        projected: resources.costs.monthly * 1.1, // 10% growth
+        optimization: optimization.potentialSavings
+      },
       performanceTrend
     };
   }
 
-  private calculatePerformanceTrend(orchestrations: AIOrchestration[]): Array<{ date: string; throughput: number; latency: number }> {
-    const trend: Array<{ date: string; throughput: number; latency: number }> = [];
+  private generatePerformanceTrend(performanceMetrics: AIOrchestrationPerformance[]): Array<{ date: string; responseTime: number; throughput: number }> {
+    const trend: Array<{ date: string; responseTime: number; throughput: number }> = [];
     const now = new Date();
     
     for (let i = 29; i >= 0; i--) {
@@ -731,23 +736,11 @@ export class AIOrchestrationService {
       date.setDate(date.getDate() - i);
       const dateStr = date.toISOString().split('T')[0];
       
-      const dayOrchestrations = orchestrations.filter(o => 
-        o.createdAt.toISOString().split('T')[0] === dateStr
-      );
+      // Simulate daily performance metrics
+      const responseTime = Math.random() * 500 + 100; // 100-600ms
+      const throughput = Math.random() * 1000 + 500; // 500-1500 requests/hour
       
-      const avgThroughput = dayOrchestrations.length > 0 
-        ? dayOrchestrations.reduce((sum, o) => sum + o.performance.throughput, 0) / dayOrchestrations.length
-        : 0;
-      
-      const avgLatency = dayOrchestrations.length > 0 
-        ? dayOrchestrations.reduce((sum, o) => sum + o.performance.latency, 0) / dayOrchestrations.length
-        : 0;
-      
-      trend.push({ 
-        date: dateStr, 
-        throughput: Math.round(avgThroughput * 100) / 100,
-        latency: Math.round(avgLatency * 100) / 100
-      });
+      trend.push({ date: dateStr, responseTime, throughput });
     }
     
     return trend;
@@ -758,28 +751,20 @@ export class AIOrchestrationService {
   // ============================================================================
 
   private generateId(): string {
-    return `orchestration_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `ai_orchestration_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   async getServiceStats(): Promise<{
     totalOrchestrations: number;
     totalPipelines: number;
-    activeOrchestrations: number;
-    config: AIOrchestrationConfig;
+    totalExecutions: number;
+    config: OrchestrationConfig;
   }> {
     return {
       totalOrchestrations: this.orchestrations.size,
       totalPipelines: this.pipelines.size,
-      activeOrchestrations: this.activeOrchestrations.size,
+      totalExecutions: this.pipelineExecutions.size,
       config: this.config
     };
   }
-}
-
-// Additional types for resource utilization
-interface ResourceUtilization {
-  cpu: number;
-  memory: number;
-  storage: number;
-  network: number;
 }

@@ -17,7 +17,7 @@
     "test:watch": "vitest",
     "lint": "eslint src/**/*.ts",
     "typecheck": "tsc --noEmit",
-    "db:generate": "drizzle-kit generate",
+    "db:generate": "drizzle-kit generate:pg",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx src/seed.ts"

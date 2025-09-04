@@ -2,16 +2,16 @@
  * Machine Learning Service
  * 
  * This service provides comprehensive machine learning capabilities including
- * model training, management, deployment, and performance monitoring.
+ * model training, validation, deployment, and management.
  */
 
 import {
   MLModel,
-  ModelPerformance,
-  TrainingJob,
-  ModelDeployment,
-  ResourceAllocation,
-  DeploymentConfig,
+  MLTrainingJob,
+  MLTrainingMetrics,
+  MLValidationMetrics,
+  MLDeploymentConfig,
+  MLTrainingConfig,
   CreateMLModelRequest,
   MLConfig
 } from './ai-ml-types.js';
@@ -19,18 +19,19 @@ import {
 export class MachineLearningService {
   private config: MLConfig;
   private models: Map<string, MLModel> = new Map();
-  private trainingJobs: Map<string, TrainingJob> = new Map();
-  private deployments: Map<string, ModelDeployment> = new Map();
+  private trainingJobs: Map<string, MLTrainingJob> = new Map();
+  private deployedModels: Map<string, MLModel> = new Map();
 
   constructor(config: Partial<MLConfig> = {}) {
     this.config = {
       trainingEnabled: true,
-      servingEnabled: true,
-      autoOptimization: true,
+      autoDeployment: true,
       abTesting: true,
-      modelRegistry: true,
-      versionControl: true,
-      monitoring: true,
+      performanceMonitoring: true,
+      modelVersioning: true,
+      featureEngineering: true,
+      hyperparameterOptimization: true,
+      crossValidation: true,
       ...config
     };
   }
@@ -39,48 +40,95 @@ export class MachineLearningService {
   // MODEL MANAGEMENT
   // ============================================================================
 
-  async createModel(request: CreateMLModelRequest, organizationId: string, createdBy: string): Promise<MLModel> {
+  async createMLModel(request: CreateMLModelRequest, organizationId: string, createdBy: string): Promise<MLModel> {
     const model: MLModel = {
       id: this.generateId(),
       name: request.name,
       description: request.description,
       type: request.type,
       algorithm: request.algorithm,
+      framework: request.framework,
       version: '1.0.0',
       status: 'training',
       accuracy: 0,
       precision: 0,
       recall: 0,
       f1Score: 0,
+      auc: 0,
       trainingData: [],
       features: request.features,
+      targetVariable: request.targetVariable,
       hyperparameters: request.hyperparameters,
-      metadata: request.metadata,
+      modelPath: '',
+      trainingMetrics: {
+        trainingAccuracy: 0,
+        validationAccuracy: 0,
+        trainingLoss: 0,
+        validationLoss: 0,
+        epochs: 0,
+        batchSize: 0,
+        learningRate: 0,
+        trainingTime: 0,
+        overfittingDetected: false,
+        metrics: {}
+      },
+      validationMetrics: {
+        crossValidationScore: 0,
+        testAccuracy: 0,
+        testPrecision: 0,
+        testRecall: 0,
+        testF1Score: 0,
+        confusionMatrix: [],
+        rocCurve: [],
+        precisionRecallCurve: [],
+        featureImportance: [],
+        validationTime: 0
+      },
+      deploymentConfig: {
+        environment: 'development',
+        instanceType: 'small',
+        scalingConfig: {
+          minInstances: 1,
+          maxInstances: 5,
+          targetUtilization: 70
+        },
+        monitoringConfig: {
+          enabled: true,
+          metricsInterval: 60,
+          alertThresholds: {
+            accuracy: 0.8,
+            responseTime: 1000,
+            errorRate: 0.05
+          }
+        },
+        apiConfig: {
+          endpoint: '',
+          authentication: true,
+          rateLimit: 1000,
+          timeout: 30
+        }
+      },
       organizationId,
       createdBy,
       createdAt: new Date(),
       updatedAt: new Date(),
-      performance: {
-        accuracy: 0,
-        precision: 0,
-        recall: 0,
-        f1Score: 0
-      }
+      tags: request.tags,
+      metadata: request.metadata
     };
 
     this.models.set(model.id, model);
     return model;
   }
 
-  async getModel(modelId: string): Promise<MLModel | null> {
+  async getMLModel(modelId: string): Promise<MLModel | null> {
     return this.models.get(modelId) || null;
   }
 
-  async getModels(organizationId: string, filters?: {
+  async getMLModels(organizationId: string, filters?: {
     type?: string;
     status?: string;
     algorithm?: string;
-    createdBy?: string;
+    framework?: string;
   }): Promise<MLModel[]> {
     let models = Array.from(this.models.values())
       .filter(m => m.organizationId === organizationId);
@@ -95,15 +143,15 @@ export class MachineLearningService {
       if (filters.algorithm) {
         models = models.filter(m => m.algorithm === filters.algorithm);
       }
-      if (filters.createdBy) {
-        models = models.filter(m => m.createdBy === filters.createdBy);
+      if (filters.framework) {
+        models = models.filter(m => m.framework === filters.framework);
       }
     }
 
     return models.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
-  async updateModel(modelId: string, updates: Partial<CreateMLModelRequest>): Promise<MLModel | null> {
+  async updateMLModel(modelId: string, updates: Partial<CreateMLModelRequest>): Promise<MLModel | null> {
     const model = this.models.get(modelId);
     if (!model) return null;
 
@@ -117,7 +165,15 @@ export class MachineLearningService {
     return updatedModel;
   }
 
-  async deleteModel(modelId: string): Promise<boolean> {
+  async deleteMLModel(modelId: string): Promise<boolean> {
+    const model = this.models.get(modelId);
+    if (!model) return false;
+
+    // Remove from deployed models if deployed
+    if (model.status === 'deployed') {
+      this.deployedModels.delete(modelId);
+    }
+
     return this.models.delete(modelId);
   }
 
@@ -125,21 +181,33 @@ export class MachineLearningService {
   // MODEL TRAINING
   // ============================================================================
 
-  async startTraining(modelId: string, trainingData: string[], validationData: string[], testData: string[], organizationId: string, createdBy: string): Promise<TrainingJob> {
+  async trainModel(modelId: string, trainingData: string, trainingConfig: MLTrainingConfig, organizationId: string, createdBy: string): Promise<MLTrainingJob> {
     const model = this.models.get(modelId);
     if (!model) {
       throw new Error('Model not found');
     }
 
-    const trainingJob: TrainingJob = {
+    const trainingJob: MLTrainingJob = {
       id: this.generateId(),
       modelId,
-      status: 'pending',
+      status: 'queued',
       trainingData,
-      validationData,
-      testData,
-      hyperparameters: model.hyperparameters,
+      trainingConfig,
       progress: 0,
+      hyperparameters: model.hyperparameters,
+      estimatedCompletion: new Date(Date.now() + this.estimateTrainingTime(trainingConfig)),
+      metrics: {
+        trainingAccuracy: 0,
+        validationAccuracy: 0,
+        trainingLoss: 0,
+        validationLoss: 0,
+        epochs: 0,
+        batchSize: trainingConfig.batchSize,
+        learningRate: trainingConfig.learningRate,
+        trainingTime: 0,
+        overfittingDetected: false,
+        metrics: {}
+      },
       organizationId,
       createdBy,
       createdAt: new Date(),
@@ -147,15 +215,6 @@ export class MachineLearningService {
     };
 
     this.trainingJobs.set(trainingJob.id, trainingJob);
-
-    // Update model status
-    const updatedModel: MLModel = {
-      ...model,
-      status: 'training',
-      trainingData,
-      updatedAt: new Date()
-    };
-    this.models.set(modelId, updatedModel);
 
     // Start training process
     if (this.config.trainingEnabled) {
@@ -165,428 +224,411 @@ export class MachineLearningService {
     return trainingJob;
   }
 
-  private async executeTraining(trainingJob: TrainingJob): Promise<void> {
+  private async executeTraining(trainingJob: MLTrainingJob): Promise<void> {
     const model = this.models.get(trainingJob.modelId);
     if (!model) return;
 
+    // Update job status
+    trainingJob.status = 'running';
+    trainingJob.startedAt = new Date();
+    this.trainingJobs.set(trainingJob.id, trainingJob);
+
+    // Update model status
+    model.status = 'training';
+    model.updatedAt = new Date();
+    this.models.set(model.id, model);
+
     // Simulate training process
-    const updatedJob: TrainingJob = {
-      ...trainingJob,
-      status: 'running',
-      startTime: new Date(),
-      totalEpochs: 100,
-      currentEpoch: 0,
-      updatedAt: new Date()
-    };
+    const totalEpochs = trainingJob.trainingConfig.epochs;
+    const startTime = Date.now();
 
-    this.trainingJobs.set(trainingJob.id, updatedJob);
+    for (let epoch = 1; epoch <= totalEpochs; epoch++) {
+      // Simulate epoch training
+      await this.simulateEpochTraining(trainingJob, epoch, totalEpochs);
+      
+      // Update progress
+      trainingJob.progress = (epoch / totalEpochs) * 100;
+      trainingJob.currentEpoch = epoch;
+      trainingJob.totalEpochs = totalEpochs;
+      this.trainingJobs.set(trainingJob.id, trainingJob);
 
-    // Simulate training progress
-    for (let epoch = 0; epoch < 100; epoch++) {
-      await new Promise(resolve => setTimeout(resolve, 100)); // Simulate training time
-
-      const progress = (epoch + 1) / 100 * 100;
-      const loss = Math.max(0.1, 1.0 - progress / 100 + Math.random() * 0.1);
-      const accuracy = Math.min(0.95, progress / 100 + Math.random() * 0.05);
-
-      const updatedTrainingJob: TrainingJob = {
-        ...updatedJob,
-        progress,
-        currentEpoch: epoch + 1,
-        loss,
-        accuracy,
-        updatedAt: new Date()
-      };
-
-      this.trainingJobs.set(trainingJob.id, updatedTrainingJob);
+      // Simulate training delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     // Complete training
-    const finalJob: TrainingJob = {
-      ...updatedJob,
-      status: 'completed',
-      endTime: new Date(),
-      duration: Date.now() - updatedJob.startTime!.getTime(),
-      progress: 100,
-      currentEpoch: 100,
-      loss: 0.1,
-      accuracy: 0.95,
-      updatedAt: new Date()
-    };
-
-    this.trainingJobs.set(trainingJob.id, finalJob);
+    const endTime = Date.now();
+    trainingJob.status = 'completed';
+    trainingJob.completedAt = new Date();
+    trainingJob.metrics.trainingTime = endTime - startTime;
+    trainingJob.metrics.epochs = totalEpochs;
+    this.trainingJobs.set(trainingJob.id, trainingJob);
 
     // Update model with training results
-    const performance: ModelPerformance = {
-      accuracy: 0.95,
-      precision: 0.93,
-      recall: 0.94,
-      f1Score: 0.935,
-      auc: 0.97,
-      rmse: 0.15,
-      mae: 0.12,
-      r2Score: 0.89,
-      confusionMatrix: [[85, 5], [3, 87]],
-      featureImportance: model.features.map(feature => ({
-        feature,
-        importance: Math.random()
-      })),
-      trainingHistory: Array.from({ length: 100 }, (_, i) => ({
-        epoch: i + 1,
-        loss: Math.max(0.1, 1.0 - (i + 1) / 100 + Math.random() * 0.1),
-        accuracy: Math.min(0.95, (i + 1) / 100 + Math.random() * 0.05)
-      })),
-      validationHistory: Array.from({ length: 100 }, (_, i) => ({
-        epoch: i + 1,
-        loss: Math.max(0.1, 1.0 - (i + 1) / 100 + Math.random() * 0.1),
-        accuracy: Math.min(0.95, (i + 1) / 100 + Math.random() * 0.05)
-      }))
-    };
-
-    const trainedModel: MLModel = {
-      ...model,
-      status: 'trained',
-      accuracy: performance.accuracy,
-      precision: performance.precision,
-      recall: performance.recall,
-      f1Score: performance.f1Score,
-      performance,
-      lastTrained: new Date(),
-      trainingDuration: finalJob.duration,
-      modelSize: Math.floor(Math.random() * 1000000) + 100000, // Simulate model size
-      updatedAt: new Date()
-    };
-
-    this.models.set(model.id, trainedModel);
+    await this.updateModelWithTrainingResults(model, trainingJob);
   }
 
-  async getTrainingJob(jobId: string): Promise<TrainingJob | null> {
-    return this.trainingJobs.get(jobId) || null;
+  private async simulateEpochTraining(trainingJob: MLTrainingJob, epoch: number, totalEpochs: number): Promise<void> {
+    // Simulate training metrics improvement
+    const progress = epoch / totalEpochs;
+    
+    // Simulate accuracy improvement
+    trainingJob.metrics.trainingAccuracy = Math.min(0.95, 0.5 + (progress * 0.45));
+    trainingJob.metrics.validationAccuracy = Math.min(0.92, 0.48 + (progress * 0.44));
+    
+    // Simulate loss decrease
+    trainingJob.metrics.trainingLoss = Math.max(0.05, 2.0 - (progress * 1.95));
+    trainingJob.metrics.validationLoss = Math.max(0.08, 2.1 - (progress * 2.02));
+    
+    // Check for overfitting
+    const overfittingThreshold = 0.1;
+    trainingJob.metrics.overfittingDetected = 
+      (trainingJob.metrics.trainingAccuracy - trainingJob.metrics.validationAccuracy) > overfittingThreshold;
+    
+    // Update additional metrics
+    trainingJob.metrics.metrics = {
+      precision: Math.min(0.94, 0.52 + (progress * 0.42)),
+      recall: Math.min(0.93, 0.51 + (progress * 0.42)),
+      f1Score: Math.min(0.935, 0.515 + (progress * 0.42))
+    };
   }
 
-  async getTrainingJobs(organizationId: string, modelId?: string): Promise<TrainingJob[]> {
-    let jobs = Array.from(this.trainingJobs.values())
-      .filter(j => j.organizationId === organizationId);
+  private async updateModelWithTrainingResults(model: MLModel, trainingJob: MLTrainingJob): Promise<void> {
+    // Update model with training results
+    model.status = 'trained';
+    model.accuracy = trainingJob.metrics.trainingAccuracy;
+    model.precision = trainingJob.metrics.metrics.precision;
+    model.recall = trainingJob.metrics.metrics.recall;
+    model.f1Score = trainingJob.metrics.metrics.f1Score;
+    model.trainingMetrics = trainingJob.metrics;
+    model.lastTrainedAt = new Date();
+    model.updatedAt = new Date();
+    model.modelPath = `/models/${model.id}/v${model.version}`;
 
-    if (modelId) {
-      jobs = jobs.filter(j => j.modelId === modelId);
+    // Perform validation if enabled
+    if (this.config.crossValidation) {
+      await this.performModelValidation(model);
     }
 
-    return jobs.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    this.models.set(model.id, model);
   }
 
-  async cancelTraining(jobId: string): Promise<boolean> {
-    const job = this.trainingJobs.get(jobId);
-    if (!job || job.status !== 'running') return false;
-
-    const cancelledJob: TrainingJob = {
-      ...job,
-      status: 'cancelled',
-      endTime: new Date(),
-      duration: Date.now() - job.startTime!.getTime(),
-      updatedAt: new Date()
+  private async performModelValidation(model: MLModel): Promise<void> {
+    // Simulate cross-validation
+    const validationMetrics: MLValidationMetrics = {
+      crossValidationScore: model.accuracy * 0.95, // Slightly lower than training
+      testAccuracy: model.accuracy * 0.92,
+      testPrecision: model.precision * 0.93,
+      testRecall: model.recall * 0.94,
+      testF1Score: model.f1Score * 0.935,
+      confusionMatrix: this.generateConfusionMatrix(model.type),
+      rocCurve: this.generateROCCurve(),
+      precisionRecallCurve: this.generatePrecisionRecallCurve(),
+      featureImportance: this.generateFeatureImportance(model.features),
+      validationTime: 5000 // 5 seconds
     };
 
-    this.trainingJobs.set(jobId, cancelledJob);
+    model.validationMetrics = validationMetrics;
+    model.auc = this.calculateAUC(validationMetrics.rocCurve);
+  }
 
-    // Update model status
-    const model = this.models.get(job.modelId);
-    if (model) {
-      const updatedModel: MLModel = {
-        ...model,
-        status: 'error',
-        updatedAt: new Date()
-      };
-      this.models.set(job.modelId, updatedModel);
+  private generateConfusionMatrix(type: MLModel['type']): number[][] {
+    // Generate mock confusion matrix based on model type
+    if (type === 'classification') {
+      return [
+        [85, 5],   // True Negatives, False Positives
+        [8, 102]   // False Negatives, True Positives
+      ];
+    } else if (type === 'binary_classification') {
+      return [
+        [120, 15],
+        [12, 153]
+      ];
     }
+    return [[100]]; // For regression models
+  }
 
-    return true;
+  private generateROCCurve(): Array<{ threshold: number; tpr: number; fpr: number }> {
+    const points = [];
+    for (let i = 0; i <= 10; i++) {
+      const threshold = i / 10;
+      const tpr = Math.min(1, threshold * 1.2);
+      const fpr = Math.min(1, threshold * 0.8);
+      points.push({ threshold, tpr, fpr });
+    }
+    return points;
+  }
+
+  private generatePrecisionRecallCurve(): Array<{ threshold: number; precision: number; recall: number }> {
+    const points = [];
+    for (let i = 0; i <= 10; i++) {
+      const threshold = i / 10;
+      const precision = Math.min(1, 0.5 + threshold * 0.5);
+      const recall = Math.min(1, 0.3 + threshold * 0.7);
+      points.push({ threshold, precision, recall });
+    }
+    return points;
+  }
+
+  private generateFeatureImportance(features: string[]): Array<{ feature: string; importance: number }> {
+    return features.map(feature => ({
+      feature,
+      importance: Math.random() * 0.3 + 0.1 // Random importance between 0.1 and 0.4
+    })).sort((a, b) => b.importance - a.importance);
+  }
+
+  private calculateAUC(rocCurve: Array<{ threshold: number; tpr: number; fpr: number }>): number {
+    // Simple trapezoidal rule for AUC calculation
+    let auc = 0;
+    for (let i = 1; i < rocCurve.length; i++) {
+      const prev = rocCurve[i - 1];
+      const curr = rocCurve[i];
+      auc += (curr.fpr - prev.fpr) * (curr.tpr + prev.tpr) / 2;
+    }
+    return Math.min(1, Math.max(0, auc));
+  }
+
+  private estimateTrainingTime(config: MLTrainingConfig): number {
+    // Estimate training time based on configuration
+    const baseTime = 300000; // 5 minutes base
+    const epochTime = 30000; // 30 seconds per epoch
+    return baseTime + (config.epochs * epochTime);
   }
 
   // ============================================================================
   // MODEL DEPLOYMENT
   // ============================================================================
 
-  async deployModel(modelId: string, environment: ModelDeployment['environment'], organizationId: string, deployedBy: string): Promise<ModelDeployment> {
+  async deployModel(modelId: string, deploymentConfig: Partial<MLDeploymentConfig>): Promise<MLModel | null> {
     const model = this.models.get(modelId);
-    if (!model) {
-      throw new Error('Model not found');
-    }
+    if (!model) return null;
 
     if (model.status !== 'trained') {
       throw new Error('Model must be trained before deployment');
     }
 
-    const deployment: ModelDeployment = {
-      id: this.generateId(),
-      modelId,
-      environment,
-      status: 'deploying',
-      endpoint: this.generateEndpoint(modelId, environment),
-      version: model.version,
-      replicas: 1,
-      resources: {
-        cpu: '1',
-        memory: '2Gi',
-        storage: '10Gi'
-      },
-      configuration: {
-        batchSize: 32,
-        timeout: 30000,
-        retries: 3,
-        scaling: {
-          minReplicas: 1,
-          maxReplicas: 10,
-          targetUtilization: 70,
-          scaleUpThreshold: 80,
-          scaleDownThreshold: 30
-        },
-        monitoring: {
-          enabled: true,
-          metrics: ['requests_per_second', 'response_time', 'error_rate'],
-          alerts: [],
-          logging: {
-            level: 'info',
-            retention: 30,
-            format: 'json'
-          }
-        }
-      },
-      healthCheck: {
-        enabled: true,
-        path: '/health',
-        interval: 30,
-        timeout: 5,
-        retries: 3,
-        status: 'unknown'
-      },
-      metrics: {
-        requestsPerSecond: 0,
-        averageResponseTime: 0,
-        errorRate: 0,
-        cpuUtilization: 0,
-        memoryUtilization: 0,
-        lastUpdated: new Date()
-      },
-      organizationId,
-      deployedBy,
-      deployedAt: new Date(),
-      updatedAt: new Date()
+    // Update deployment configuration
+    model.deploymentConfig = {
+      ...model.deploymentConfig,
+      ...deploymentConfig
     };
-
-    this.deployments.set(deployment.id, deployment);
-
-    // Simulate deployment process
-    setTimeout(async () => {
-      await this.completeDeployment(deployment.id);
-    }, 5000);
-
-    return deployment;
-  }
-
-  private async completeDeployment(deploymentId: string): Promise<void> {
-    const deployment = this.deployments.get(deploymentId);
-    if (!deployment) return;
-
-    const completedDeployment: ModelDeployment = {
-      ...deployment,
-      status: 'active',
-      healthCheck: {
-        ...deployment.healthCheck,
-        status: 'healthy',
-        lastCheck: new Date(),
-        responseTime: 50
-      },
-      updatedAt: new Date()
-    };
-
-    this.deployments.set(deploymentId, completedDeployment);
 
     // Update model status
-    const model = this.models.get(deployment.modelId);
-    if (model) {
-      const deployedModel: MLModel = {
-        ...model,
-        status: 'deployed',
-        deployedAt: new Date(),
-        updatedAt: new Date()
-      };
-      this.models.set(model.id, deployedModel);
-    }
+    model.status = 'deployed';
+    model.deployedAt = new Date();
+    model.updatedAt = new Date();
+    model.deploymentConfig.apiConfig.endpoint = `/api/v1/ml/models/${modelId}/predict`;
+
+    this.models.set(modelId, model);
+    this.deployedModels.set(modelId, model);
+
+    return model;
   }
 
-  async getDeployment(deploymentId: string): Promise<ModelDeployment | null> {
-    return this.deployments.get(deploymentId) || null;
-  }
-
-  async getDeployments(organizationId: string, modelId?: string): Promise<ModelDeployment[]> {
-    let deployments = Array.from(this.deployments.values())
-      .filter(d => d.organizationId === organizationId);
-
-    if (modelId) {
-      deployments = deployments.filter(d => d.modelId === modelId);
-    }
-
-    return deployments.sort((a, b) => b.deployedAt.getTime() - a.deployedAt.getTime());
-  }
-
-  async updateDeployment(deploymentId: string, updates: Partial<ModelDeployment>): Promise<ModelDeployment | null> {
-    const deployment = this.deployments.get(deploymentId);
-    if (!deployment) return null;
-
-    const updatedDeployment: ModelDeployment = {
-      ...deployment,
-      ...updates,
-      updatedAt: new Date()
-    };
-
-    this.deployments.set(deploymentId, updatedDeployment);
-    return updatedDeployment;
-  }
-
-  async stopDeployment(deploymentId: string): Promise<boolean> {
-    const deployment = this.deployments.get(deploymentId);
-    if (!deployment) return false;
-
-    const stoppedDeployment: ModelDeployment = {
-      ...deployment,
-      status: 'inactive',
-      updatedAt: new Date()
-    };
-
-    this.deployments.set(deploymentId, stoppedDeployment);
-
-    // Update model status
-    const model = this.models.get(deployment.modelId);
-    if (model) {
-      const updatedModel: MLModel = {
-        ...model,
-        status: 'trained',
-        updatedAt: new Date()
-      };
-      this.models.set(model.id, updatedModel);
-    }
-
-    return true;
-  }
-
-  // ============================================================================
-  // MODEL PERFORMANCE
-  // ============================================================================
-
-  async getModelPerformance(modelId: string): Promise<ModelPerformance | null> {
-    const model = this.models.get(modelId);
-    return model ? model.performance : null;
-  }
-
-  async updateModelPerformance(modelId: string, performance: Partial<ModelPerformance>): Promise<ModelPerformance | null> {
+  async undeployModel(modelId: string): Promise<MLModel | null> {
     const model = this.models.get(modelId);
     if (!model) return null;
 
-    const updatedPerformance: ModelPerformance = {
-      ...model.performance,
-      ...performance
-    };
+    model.status = 'trained';
+    model.updatedAt = new Date();
+    delete model.deployedAt;
 
-    const updatedModel: MLModel = {
-      ...model,
-      performance: updatedPerformance,
-      accuracy: updatedPerformance.accuracy,
-      precision: updatedPerformance.precision,
-      recall: updatedPerformance.recall,
-      f1Score: updatedPerformance.f1Score,
-      updatedAt: new Date()
-    };
+    this.models.set(modelId, model);
+    this.deployedModels.delete(modelId);
 
-    this.models.set(modelId, updatedModel);
-    return updatedPerformance;
+    return model;
+  }
+
+  async getDeployedModels(organizationId: string): Promise<MLModel[]> {
+    return Array.from(this.deployedModels.values())
+      .filter(m => m.organizationId === organizationId);
   }
 
   // ============================================================================
-  // MODEL INFERENCE
+  // MODEL PREDICTION
   // ============================================================================
 
-  async predict(modelId: string, inputData: Record<string, any>): Promise<{
+  async predict(modelId: string, input: Record<string, any>): Promise<{
     prediction: any;
     confidence: number;
-    processingTime: number;
+    modelVersion: string;
+    executionTime: number;
+  }> {
+    const model = this.deployedModels.get(modelId);
+    if (!model) {
+      throw new Error('Model not deployed or not found');
+    }
+
+    const startTime = Date.now();
+
+    // Simulate prediction based on model type
+    const prediction = await this.simulatePrediction(model, input);
+    const confidence = this.calculateConfidence(model, input);
+
+    const executionTime = Date.now() - startTime;
+
+    return {
+      prediction,
+      confidence,
+      modelVersion: model.version,
+      executionTime
+    };
+  }
+
+  private async simulatePrediction(model: MLModel, input: Record<string, any>): Promise<any> {
+    // Simulate prediction based on model type
+    switch (model.type) {
+      case 'classification':
+        const classes = ['class_a', 'class_b', 'class_c'];
+        return {
+          class: classes[Math.floor(Math.random() * classes.length)],
+          probabilities: classes.map(c => ({ class: c, probability: Math.random() }))
+        };
+      
+      case 'regression':
+        return {
+          value: Math.random() * 100,
+          range: { min: 0, max: 100 }
+        };
+      
+      case 'clustering':
+        return {
+          cluster: Math.floor(Math.random() * 5),
+          distance: Math.random()
+        };
+      
+      case 'anomaly_detection':
+        return {
+          isAnomaly: Math.random() > 0.9,
+          anomalyScore: Math.random()
+        };
+      
+      default:
+        return { result: 'unknown' };
+    }
+  }
+
+  private calculateConfidence(model: MLModel, input: Record<string, any>): number {
+    // Calculate confidence based on model accuracy and input quality
+    const baseConfidence = model.accuracy;
+    const inputQuality = this.assessInputQuality(input, model.features);
+    return Math.min(1, baseConfidence * inputQuality);
+  }
+
+  private assessInputQuality(input: Record<string, any>, features: string[]): number {
+    // Assess input quality based on feature completeness
+    const providedFeatures = Object.keys(input).length;
+    const totalFeatures = features.length;
+    return providedFeatures / totalFeatures;
+  }
+
+  // ============================================================================
+  // MODEL PERFORMANCE MONITORING
+  // ============================================================================
+
+  async getModelPerformance(modelId: string): Promise<{
+    accuracy: number;
+    precision: number;
+    recall: number;
+    f1Score: number;
+    auc: number;
+    totalPredictions: number;
+    averageResponseTime: number;
+    errorRate: number;
+    lastUpdated: Date;
   }> {
     const model = this.models.get(modelId);
     if (!model) {
       throw new Error('Model not found');
     }
 
-    if (model.status !== 'deployed') {
-      throw new Error('Model must be deployed for inference');
-    }
-
-    const startTime = Date.now();
-
-    // Simulate prediction
-    const prediction = this.simulatePrediction(model, inputData);
-    const confidence = Math.random() * 0.3 + 0.7; // 70-100% confidence
-    const processingTime = Date.now() - startTime;
-
+    // Simulate performance metrics
     return {
-      prediction,
-      confidence,
-      processingTime
+      accuracy: model.accuracy,
+      precision: model.precision,
+      recall: model.recall,
+      f1Score: model.f1Score,
+      auc: model.auc,
+      totalPredictions: Math.floor(Math.random() * 10000) + 1000,
+      averageResponseTime: Math.random() * 100 + 50, // 50-150ms
+      errorRate: Math.random() * 0.05, // 0-5%
+      lastUpdated: new Date()
     };
   }
 
-  private simulatePrediction(model: MLModel, inputData: Record<string, any>): any {
-    switch (model.type) {
-      case 'classification':
-        return {
-          class: 'class_' + Math.floor(Math.random() * 5),
-          probabilities: Array.from({ length: 5 }, () => Math.random())
-        };
-      case 'regression':
-        return Math.random() * 100;
-      case 'clustering':
-        return {
-          cluster: Math.floor(Math.random() * 3),
-          distance: Math.random()
-        };
-      case 'nlp':
-        return {
-          sentiment: ['positive', 'negative', 'neutral'][Math.floor(Math.random() * 3)],
-          confidence: Math.random()
-        };
-      case 'computer_vision':
-        return {
-          objects: Array.from({ length: Math.floor(Math.random() * 5) }, () => ({
-            label: 'object_' + Math.floor(Math.random() * 10),
-            confidence: Math.random(),
-            boundingBox: {
-              x: Math.random() * 100,
-              y: Math.random() * 100,
-              width: Math.random() * 50,
-              height: Math.random() * 50
-            }
-          }))
-        };
-      default:
-        return { result: 'unknown' };
+  async getTrainingJob(trainingJobId: string): Promise<MLTrainingJob | null> {
+    return this.trainingJobs.get(trainingJobId) || null;
+  }
+
+  async getTrainingJobs(organizationId: string, filters?: {
+    status?: string;
+    modelId?: string;
+  }): Promise<MLTrainingJob[]> {
+    let jobs = Array.from(this.trainingJobs.values())
+      .filter(j => j.organizationId === organizationId);
+
+    if (filters) {
+      if (filters.status) {
+        jobs = jobs.filter(j => j.status === filters.status);
+      }
+      if (filters.modelId) {
+        jobs = jobs.filter(j => j.modelId === filters.modelId);
+      }
     }
+
+    return jobs.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
   // ============================================================================
-  // MODEL ANALYTICS
+  // A/B TESTING
   // ============================================================================
 
-  async getModelAnalytics(organizationId: string): Promise<{
+  async createABTest(modelAId: string, modelBId: string, config: {
+    name: string;
+    description: string;
+    trafficSplit: number; // Percentage for model A (0-100)
+    duration: number; // Days
+    successMetric: string;
+  }): Promise<{
+    testId: string;
+    status: string;
+    results?: any;
+  }> {
+    if (!this.config.abTesting) {
+      throw new Error('A/B testing is not enabled');
+    }
+
+    const testId = this.generateId();
+    
+    // Simulate A/B test creation
+    return {
+      testId,
+      status: 'active',
+      results: {
+        modelA: { id: modelAId, performance: 0.85 },
+        modelB: { id: modelBId, performance: 0.87 },
+        winner: modelBId,
+        confidence: 0.95
+      }
+    };
+  }
+
+  // ============================================================================
+  // ANALYTICS
+  // ============================================================================
+
+  async getMLAnalytics(organizationId: string): Promise<{
     totalModels: number;
+    deployedModels: number;
+    trainingJobs: number;
+    averageAccuracy: number;
     modelsByType: Record<string, number>;
     modelsByStatus: Record<string, number>;
-    averageAccuracy: number;
-    totalTrainingJobs: number;
-    activeDeployments: number;
+    trainingTrend: Array<{ date: string; count: number }>;
     performanceTrend: Array<{ date: string; accuracy: number }>;
   }> {
-    const models = await this.getModels(organizationId);
+    const models = await this.getMLModels(organizationId);
     const trainingJobs = await this.getTrainingJobs(organizationId);
-    const deployments = await this.getDeployments(organizationId);
 
     const modelsByType: Record<string, number> = {};
     const modelsByStatus: Record<string, number> = {};
@@ -597,26 +639,47 @@ export class MachineLearningService {
     });
 
     const averageAccuracy = models.length > 0 
-      ? models.reduce((sum, m) => sum + m.accuracy, 0) / models.length 
+      ? models.reduce((sum, m) => sum + m.accuracy, 0) / models.length
       : 0;
 
-    const activeDeployments = deployments.filter(d => d.status === 'active').length;
+    const deployedModels = models.filter(m => m.status === 'deployed').length;
 
-    // Calculate performance trend (last 30 days)
-    const performanceTrend = this.calculatePerformanceTrend(models);
+    // Generate trends
+    const trainingTrend = this.generateTrainingTrend(trainingJobs);
+    const performanceTrend = this.generatePerformanceTrend(models);
 
     return {
       totalModels: models.length,
+      deployedModels,
+      trainingJobs: trainingJobs.length,
+      averageAccuracy,
       modelsByType,
       modelsByStatus,
-      averageAccuracy: Math.round(averageAccuracy * 100) / 100,
-      totalTrainingJobs: trainingJobs.length,
-      activeDeployments,
+      trainingTrend,
       performanceTrend
     };
   }
 
-  private calculatePerformanceTrend(models: MLModel[]): Array<{ date: string; accuracy: number }> {
+  private generateTrainingTrend(trainingJobs: MLTrainingJob[]): Array<{ date: string; count: number }> {
+    const trend: Array<{ date: string; count: number }> = [];
+    const now = new Date();
+    
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      
+      const dayJobs = trainingJobs.filter(j => 
+        j.createdAt.toISOString().split('T')[0] === dateStr
+      );
+      
+      trend.push({ date: dateStr, count: dayJobs.length });
+    }
+    
+    return trend;
+  }
+
+  private generatePerformanceTrend(models: MLModel[]): Array<{ date: string; accuracy: number }> {
     const trend: Array<{ date: string; accuracy: number }> = [];
     const now = new Date();
     
@@ -626,14 +689,14 @@ export class MachineLearningService {
       const dateStr = date.toISOString().split('T')[0];
       
       const dayModels = models.filter(m => 
-        m.lastTrained && m.lastTrained.toISOString().split('T')[0] === dateStr
+        m.lastTrainedAt && m.lastTrainedAt.toISOString().split('T')[0] === dateStr
       );
       
       const avgAccuracy = dayModels.length > 0 
         ? dayModels.reduce((sum, m) => sum + m.accuracy, 0) / dayModels.length
         : 0;
       
-      trend.push({ date: dateStr, accuracy: Math.round(avgAccuracy * 100) / 100 });
+      trend.push({ date: dateStr, accuracy: avgAccuracy });
     }
     
     return trend;
@@ -647,20 +710,16 @@ export class MachineLearningService {
     return `ml_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
-  private generateEndpoint(modelId: string, environment: string): string {
-    return `https://api.example.com/v1/ml/models/${modelId}/predict?env=${environment}`;
-  }
-
   async getServiceStats(): Promise<{
     totalModels: number;
-    totalTrainingJobs: number;
-    totalDeployments: number;
+    deployedModels: number;
+    trainingJobs: number;
     config: MLConfig;
   }> {
     return {
       totalModels: this.models.size,
-      totalTrainingJobs: this.trainingJobs.size,
-      totalDeployments: this.deployments.size,
+      deployedModels: this.deployedModels.size,
+      trainingJobs: this.trainingJobs.size,
       config: this.config
     };
   }

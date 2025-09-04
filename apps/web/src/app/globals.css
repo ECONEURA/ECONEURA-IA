@@ -2,49 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom animations */
-@keyframes shimmer {
-  0% {
-    background-position: -200px 0;
-  }
-  100% {
-    background-position: calc(200px + 100%) 0;
-  }
-}
-
-.animate-shimmer {
-  animation: shimmer 2s infinite linear;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  background-size: 200px 100%;
-}
-
-/* Focus indicators for accessibility */
-.focus-visible:focus {
-  @apply outline-2 outline-offset-2 outline-blue-600;
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .bg-gray-100 {
-    @apply bg-white;
-  }
-  .text-gray-600 {
-    @apply text-black;
-  }
-  .border-gray-200 {
-    @apply border-black;
-  }
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  .animate-shimmer {
-    animation: none;
-  }
+@layer base {
   * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
   }
 }

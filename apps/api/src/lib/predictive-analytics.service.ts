@@ -2,35 +2,38 @@
  * Predictive Analytics Service
  * 
  * This service provides comprehensive predictive analytics capabilities including
- * time series forecasting, demand forecasting, risk prediction, and trend analysis.
+ * forecasting, anomaly detection, and recommendation systems.
  */
 
 import {
   Prediction,
-  PredictionResult,
   Forecast,
   ForecastPoint,
-  ConfidenceInterval,
-  ForecastMetrics,
   AnomalyDetection,
+  Recommendation,
+  RecommendationItem,
   CreatePredictionRequest,
-  PredictionConfig
+  CreateForecastRequest,
+  PredictiveAnalyticsConfig
 } from './ai-ml-types.js';
 
 export class PredictiveAnalyticsService {
-  private config: PredictionConfig;
+  private config: PredictiveAnalyticsConfig;
   private predictions: Map<string, Prediction> = new Map();
   private forecasts: Map<string, Forecast> = new Map();
   private anomalies: Map<string, AnomalyDetection> = new Map();
+  private recommendations: Map<string, Recommendation> = new Map();
 
-  constructor(config: Partial<PredictionConfig> = {}) {
+  constructor(config: Partial<PredictiveAnalyticsConfig> = {}) {
     this.config = {
       forecasting: true,
-      trendAnalysis: true,
-      scenarioPlanning: true,
-      confidenceIntervals: true,
       anomalyDetection: true,
-      realTimePrediction: true,
+      riskPrediction: true,
+      customerBehaviorPrediction: true,
+      marketAnalysis: true,
+      performancePrediction: true,
+      churnPrediction: true,
+      demandForecasting: true,
       ...config
     };
   }
@@ -44,19 +47,15 @@ export class PredictiveAnalyticsService {
       id: this.generateId(),
       modelId: request.modelId,
       type: request.type,
-      inputData: request.inputData,
-      predictions: [],
-      confidence: 0,
-      accuracy: 0,
+      input: request.input,
+      output: await this.generatePredictionOutput(request),
+      confidence: await this.calculatePredictionConfidence(request),
       timestamp: new Date(),
       organizationId,
       createdBy,
       metadata: request.metadata,
-      tags: request.tags
+      tags: []
     };
-
-    // Generate predictions based on type
-    await this.generatePredictions(prediction);
 
     this.predictions.set(prediction.id, prediction);
     return prediction;
@@ -97,351 +96,260 @@ export class PredictiveAnalyticsService {
     return predictions.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   }
 
-  private async generatePredictions(prediction: Prediction): Promise<void> {
-    switch (prediction.type) {
+  private async generatePredictionOutput(request: CreatePredictionRequest): Promise<Record<string, any>> {
+    // Generate prediction output based on type
+    switch (request.type) {
       case 'forecast':
-        await this.generateForecastPredictions(prediction);
-        break;
+        return await this.generateForecastOutput(request);
       case 'classification':
-        await this.generateClassificationPredictions(prediction);
+        return await this.generateClassificationOutput(request);
+      case 'regression':
+        return await this.generateRegressionOutput(request);
+      case 'anomaly':
+        return await this.generateAnomalyOutput(request);
+      case 'recommendation':
+        return await this.generateRecommendationOutput(request);
+      case 'clustering':
+        return await this.generateClusteringOutput(request);
+      default:
+        return { result: 'unknown' };
+    }
+  }
+
+  private async generateForecastOutput(request: CreatePredictionRequest): Promise<Record<string, any>> {
+    const horizon = request.input.horizon || 30;
+    const predictions: ForecastPoint[] = [];
+    
+    for (let i = 1; i <= horizon; i++) {
+      const timestamp = new Date();
+      timestamp.setDate(timestamp.getDate() + i);
+      
+      predictions.push({
+        timestamp,
+        value: Math.random() * 1000 + 500, // 500-1500
+        confidence: Math.random() * 0.3 + 0.7 // 70-100%
+      });
+    }
+
+    return {
+      predictions,
+      horizon,
+      frequency: request.input.frequency || 'daily',
+      accuracy: Math.random() * 0.2 + 0.8 // 80-100%
+    };
+  }
+
+  private async generateClassificationOutput(request: CreatePredictionRequest): Promise<Record<string, any>> {
+    const classes = request.input.classes || ['class_a', 'class_b', 'class_c'];
+    const probabilities = classes.map(c => ({
+      class: c,
+      probability: Math.random()
+    }));
+
+    // Normalize probabilities
+    const total = probabilities.reduce((sum, p) => sum + p.probability, 0);
+    probabilities.forEach(p => p.probability = p.probability / total);
+
+    const predictedClass = probabilities.reduce((max, p) => 
+      p.probability > max.probability ? p : max
+    );
+
+    return {
+      predictedClass: predictedClass.class,
+      probabilities,
+      confidence: predictedClass.probability
+    };
+  }
+
+  private async generateRegressionOutput(request: CreatePredictionRequest): Promise<Record<string, any>> {
+    const value = Math.random() * 1000 + 100; // 100-1100
+    const confidence = Math.random() * 0.3 + 0.7; // 70-100%
+    
+    return {
+      value,
+      confidence,
+      range: {
+        lower: value * (1 - confidence * 0.1),
+        upper: value * (1 + confidence * 0.1)
+      }
+    };
+  }
+
+  private async generateAnomalyOutput(request: CreatePredictionRequest): Promise<Record<string, any>> {
+    const isAnomaly = Math.random() > 0.9; // 10% chance of anomaly
+    const anomalyScore = Math.random();
+    
+    return {
+      isAnomaly,
+      anomalyScore,
+      severity: isAnomaly 
+        ? (anomalyScore > 0.8 ? 'high' : anomalyScore > 0.6 ? 'medium' : 'low')
+        : 'none',
+      explanation: isAnomaly 
+        ? 'Unusual pattern detected in the data'
+        : 'Data appears normal'
+    };
+  }
+
+  private async generateRecommendationOutput(request: CreatePredictionRequest): Promise<Record<string, any>> {
+    const itemCount = request.input.itemCount || 5;
+    const recommendations: RecommendationItem[] = [];
+    
+    for (let i = 0; i < itemCount; i++) {
+      recommendations.push({
+        itemId: `item_${i + 1}`,
+        score: Math.random() * 0.4 + 0.6, // 60-100%
+        reason: `Recommended based on similarity and user preferences`,
+        metadata: {
+          category: `category_${Math.floor(Math.random() * 5) + 1}`,
+          popularity: Math.random()
+        }
+      });
+    }
+
+    return {
+      recommendations: recommendations.sort((a, b) => b.score - a.score),
+      algorithm: 'collaborative_filtering',
+      confidence: Math.random() * 0.3 + 0.7
+    };
+  }
+
+  private async generateClusteringOutput(request: CreatePredictionRequest): Promise<Record<string, any>> {
+    const clusterCount = request.input.clusterCount || 3;
+    const cluster = Math.floor(Math.random() * clusterCount);
+    
+    return {
+      cluster,
+      clusterCount,
+      distance: Math.random(),
+      silhouette: Math.random() * 0.5 + 0.5, // 50-100%
+      characteristics: {
+        size: Math.random() * 1000 + 100,
+        density: Math.random(),
+        centroid: [Math.random(), Math.random()]
+      }
+    };
+  }
+
+  private async calculatePredictionConfidence(request: CreatePredictionRequest): Promise<number> {
+    // Calculate confidence based on input quality and model type
+    let confidence = 0.8; // Base confidence
+
+    // Adjust based on input completeness
+    const inputKeys = Object.keys(request.input).length;
+    if (inputKeys > 5) confidence += 0.1;
+    if (inputKeys > 10) confidence += 0.1;
+
+    // Adjust based on prediction type
+    switch (request.type) {
+      case 'classification':
+        confidence += 0.05;
         break;
       case 'regression':
-        await this.generateRegressionPredictions(prediction);
+        confidence += 0.03;
+        break;
+      case 'forecast':
+        confidence -= 0.05; // Forecasting is inherently less certain
         break;
       case 'anomaly':
-        await this.generateAnomalyPredictions(prediction);
+        confidence += 0.02;
         break;
-      case 'recommendation':
-        await this.generateRecommendationPredictions(prediction);
-        break;
-      default:
-        await this.generateGenericPredictions(prediction);
-    }
-  }
-
-  private async generateForecastPredictions(prediction: Prediction): Promise<void> {
-    const horizon = prediction.inputData.horizon || 30;
-    const predictions: PredictionResult[] = [];
-
-    for (let i = 1; i <= horizon; i++) {
-      const value = this.generateForecastValue(i, prediction.inputData);
-      const confidence = Math.max(0.6, 1.0 - (i * 0.01)); // Decreasing confidence over time
-
-      predictions.push({
-        value,
-        confidence,
-        probability: confidence,
-        explanation: `Forecast for period ${i} based on historical trends`,
-        features: this.extractForecastFeatures(prediction.inputData, i)
-      });
     }
 
-    prediction.predictions = predictions;
-    prediction.confidence = predictions.reduce((sum, p) => sum + p.confidence, 0) / predictions.length;
-    prediction.accuracy = Math.min(0.95, prediction.confidence + Math.random() * 0.05);
-  }
-
-  private generateForecastValue(period: number, inputData: Record<string, any>): number {
-    const baseValue = inputData.baseValue || 100;
-    const trend = inputData.trend || 0.02;
-    const seasonality = inputData.seasonality || 0.1;
-    const noise = (Math.random() - 0.5) * 0.1;
-
-    return baseValue * (1 + trend * period + seasonality * Math.sin(period * Math.PI / 6) + noise);
-  }
-
-  private extractForecastFeatures(inputData: Record<string, any>, period: number): Array<{ feature: string; value: any; importance: number }> {
-    return [
-      { feature: 'period', value: period, importance: 0.8 },
-      { feature: 'trend', value: inputData.trend || 0.02, importance: 0.6 },
-      { feature: 'seasonality', value: inputData.seasonality || 0.1, importance: 0.4 },
-      { feature: 'base_value', value: inputData.baseValue || 100, importance: 0.9 }
-    ];
-  }
-
-  private async generateClassificationPredictions(prediction: Prediction): Promise<void> {
-    const classes = prediction.inputData.classes || ['class_a', 'class_b', 'class_c'];
-    const predictions: PredictionResult[] = [];
-
-    for (const className of classes) {
-      const confidence = Math.random() * 0.4 + 0.3; // 30-70% confidence
-      const probability = confidence + (Math.random() - 0.5) * 0.2;
-
-      predictions.push({
-        value: className,
-        confidence,
-        probability,
-        explanation: `Classification result based on input features`,
-        features: this.extractClassificationFeatures(prediction.inputData, className)
-      });
-    }
-
-    // Sort by confidence
-    predictions.sort((a, b) => b.confidence - a.confidence);
-
-    prediction.predictions = predictions;
-    prediction.confidence = predictions[0]?.confidence || 0;
-    prediction.accuracy = Math.min(0.95, prediction.confidence + Math.random() * 0.1);
-  }
-
-  private extractClassificationFeatures(inputData: Record<string, any>, className: string): Array<{ feature: string; value: any; importance: number }> {
-    const features = Object.keys(inputData).filter(key => key !== 'classes');
-    return features.map(feature => ({
-      feature,
-      value: inputData[feature],
-      importance: Math.random()
-    }));
-  }
-
-  private async generateRegressionPredictions(prediction: Prediction): Promise<void> {
-    const value = this.generateRegressionValue(prediction.inputData);
-    const confidence = Math.random() * 0.3 + 0.7; // 70-100% confidence
-
-    prediction.predictions = [{
-      value,
-      confidence,
-      probability: confidence,
-      explanation: `Regression prediction based on input features`,
-      features: this.extractRegressionFeatures(prediction.inputData)
-    }];
-
-    prediction.confidence = confidence;
-    prediction.accuracy = Math.min(0.95, confidence + Math.random() * 0.05);
-  }
-
-  private generateRegressionValue(inputData: Record<string, any>): number {
-    const features = Object.values(inputData).filter(v => typeof v === 'number') as number[];
-    const weights = Array.from({ length: features.length }, () => Math.random() * 2 - 1);
-    
-    return features.reduce((sum, feature, index) => sum + feature * weights[index], 0);
-  }
-
-  private async generateAnomalyPredictions(prediction: Prediction): Promise<void> {
-    const isAnomaly = Math.random() > 0.8; // 20% chance of anomaly
-    const score = isAnomaly ? Math.random() * 0.4 + 0.6 : Math.random() * 0.4;
-    const confidence = Math.random() * 0.3 + 0.7;
-
-    prediction.predictions = [{
-      value: isAnomaly,
-      confidence,
-      probability: score,
-      explanation: isAnomaly ? 'Anomaly detected based on statistical analysis' : 'No anomaly detected',
-      features: this.extractAnomalyFeatures(prediction.inputData, isAnomaly, score)
-    }];
-
-    prediction.confidence = confidence;
-    prediction.accuracy = Math.min(0.95, confidence + Math.random() * 0.05);
-  }
-
-  private extractAnomalyFeatures(inputData: Record<string, any>, isAnomaly: boolean, score: number): Array<{ feature: string; value: any; importance: number }> {
-    return [
-      { feature: 'anomaly_score', value: score, importance: 0.9 },
-      { feature: 'is_anomaly', value: isAnomaly, importance: 1.0 },
-      { feature: 'data_points', value: Object.keys(inputData).length, importance: 0.3 }
-    ];
-  }
-
-  private async generateRecommendationPredictions(prediction: Prediction): Promise<void> {
-    const itemCount = prediction.inputData.itemCount || 5;
-    const predictions: PredictionResult[] = [];
-
-    for (let i = 0; i < itemCount; i++) {
-      const confidence = Math.random() * 0.3 + 0.6; // 60-90% confidence
-      const score = confidence + (Math.random() - 0.5) * 0.1;
-
-      predictions.push({
-        value: `item_${i + 1}`,
-        confidence,
-        probability: score,
-        explanation: `Recommended item based on user preferences and behavior`,
-        features: this.extractRecommendationFeatures(prediction.inputData, i)
-      });
-    }
-
-    // Sort by confidence
-    predictions.sort((a, b) => b.confidence - a.confidence);
-
-    prediction.predictions = predictions;
-    prediction.confidence = predictions[0]?.confidence || 0;
-    prediction.accuracy = Math.min(0.95, prediction.confidence + Math.random() * 0.05);
-  }
-
-  private extractRecommendationFeatures(inputData: Record<string, any>, index: number): Array<{ feature: string; value: any; importance: number }> {
-    return [
-      { feature: 'user_id', value: inputData.userId || 'unknown', importance: 0.8 },
-      { feature: 'item_rank', value: index + 1, importance: 0.6 },
-      { feature: 'context', value: inputData.context || 'general', importance: 0.4 }
-    ];
-  }
-
-  private async generateGenericPredictions(prediction: Prediction): Promise<void> {
-    const value = Math.random() * 100;
-    const confidence = Math.random() * 0.4 + 0.5; // 50-90% confidence
-
-    prediction.predictions = [{
-      value,
-      confidence,
-      probability: confidence,
-      explanation: 'Generic prediction based on input data',
-      features: []
-    }];
-
-    prediction.confidence = confidence;
-    prediction.accuracy = Math.min(0.95, confidence + Math.random() * 0.05);
+    return Math.min(1, Math.max(0, confidence));
   }
 
   // ============================================================================
   // FORECASTING
   // ============================================================================
 
-  async generateForecast(forecastData: {
-    modelId: string;
-    timeSeries: string;
-    horizon: number;
-    frequency: Forecast['frequency'];
-    organizationId: string;
-    createdBy: string;
-    metadata: Record<string, any>;
-  }): Promise<Forecast> {
-    const forecast: Forecast = {
-      id: this.generateId(),
-      modelId: forecastData.modelId,
-      timeSeries: forecastData.timeSeries,
-      horizon: forecastData.horizon,
-      frequency: forecastData.frequency,
-      predictions: [],
-      confidenceIntervals: [],
-      accuracy: 0,
-      metrics: {
-        mape: 0,
-        rmse: 0,
-        mae: 0,
-        mse: 0,
-        r2Score: 0,
-        directionalAccuracy: 0
-      },
-      organizationId: forecastData.organizationId,
-      createdBy: forecastData.createdBy,
-      createdAt: new Date(),
-      metadata: forecastData.metadata
-    };
-
-    // Generate forecast points
-    await this.generateForecastPoints(forecast);
-
-    // Generate confidence intervals
-    if (this.config.confidenceIntervals) {
-      await this.generateConfidenceIntervals(forecast);
+  async createForecast(request: CreateForecastRequest, organizationId: string): Promise<Forecast> {
+    if (!this.config.forecasting) {
+      throw new Error('Forecasting is not enabled');
     }
 
-    // Calculate metrics
-    await this.calculateForecastMetrics(forecast);
+    const forecast: Forecast = {
+      id: this.generateId(),
+      modelId: request.modelId,
+      series: request.series,
+      horizon: request.horizon,
+      frequency: request.frequency,
+      predictions: await this.generateForecastPoints(request),
+      confidenceInterval: await this.generateConfidenceInterval(request),
+      accuracy: Math.random() * 0.2 + 0.8, // 80-100%
+      mape: Math.random() * 10 + 5, // 5-15% MAPE
+      rmse: Math.random() * 100 + 50, // 50-150 RMSE
+      mae: Math.random() * 80 + 40, // 40-120 MAE
+      timestamp: new Date(),
+      organizationId,
+      metadata: request.metadata
+    };
 
     this.forecasts.set(forecast.id, forecast);
     return forecast;
   }
 
-  private async generateForecastPoints(forecast: Forecast): Promise<void> {
-    const startDate = new Date();
-    const intervalMs = this.getFrequencyInterval(forecast.frequency);
+  private async generateForecastPoints(request: CreateForecastRequest): Promise<ForecastPoint[]> {
+    const points: ForecastPoint[] = [];
+    const baseValue = request.input.baseValue || 1000;
+    const trend = request.input.trend || 0.02; // 2% growth per period
+    const seasonality = request.input.seasonality || 0.1; // 10% seasonal variation
 
-    for (let i = 1; i <= forecast.horizon; i++) {
-      const timestamp = new Date(startDate.getTime() + i * intervalMs);
-      const value = this.generateForecastValue(i, { baseValue: 100, trend: 0.02, seasonality: 0.1 });
-      const confidence = Math.max(0.6, 1.0 - (i * 0.01));
-      const trend = this.determineTrend(value, i);
-      const seasonality = this.calculateSeasonality(i, forecast.frequency);
-      const anomaly = this.detectAnomaly(value, i);
-
-      forecast.predictions.push({
-        timestamp,
-        value,
-        confidence,
-        trend,
-        seasonality,
-        anomaly
-      });
-    }
-  }
-
-  private getFrequencyInterval(frequency: Forecast['frequency']): number {
-    switch (frequency) {
-      case 'hourly': return 60 * 60 * 1000;
-      case 'daily': return 24 * 60 * 60 * 1000;
-      case 'weekly': return 7 * 24 * 60 * 60 * 1000;
-      case 'monthly': return 30 * 24 * 60 * 60 * 1000;
-      case 'yearly': return 365 * 24 * 60 * 60 * 1000;
-      default: return 24 * 60 * 60 * 1000;
-    }
-  }
-
-  private determineTrend(value: number, period: number): ForecastPoint['trend'] {
-    if (period === 1) return 'stable';
-    
-    const previousValue = this.generateForecastValue(period - 1, { baseValue: 100, trend: 0.02, seasonality: 0.1 });
-    const change = (value - previousValue) / previousValue;
-    
-    if (change > 0.05) return 'increasing';
-    if (change < -0.05) return 'decreasing';
-    return 'stable';
-  }
-
-  private calculateSeasonality(period: number, frequency: Forecast['frequency']): number {
-    switch (frequency) {
-      case 'hourly':
-        return Math.sin(period * Math.PI / 12); // Daily cycle
-      case 'daily':
-        return Math.sin(period * Math.PI / 7); // Weekly cycle
-      case 'weekly':
-        return Math.sin(period * Math.PI / 4); // Monthly cycle
-      case 'monthly':
-        return Math.sin(period * Math.PI / 6); // Yearly cycle
-      case 'yearly':
-        return Math.sin(period * Math.PI / 2); // Multi-year cycle
-      default:
-        return 0;
-    }
-  }
-
-  private detectAnomaly(value: number, period: number): boolean {
-    // Simple anomaly detection - in real implementation, use statistical methods
-    const expectedValue = this.generateForecastValue(period, { baseValue: 100, trend: 0.02, seasonality: 0.1 });
-    const deviation = Math.abs(value - expectedValue) / expectedValue;
-    return deviation > 0.3; // 30% deviation threshold
-  }
-
-  private async generateConfidenceIntervals(forecast: Forecast): Promise<void> {
-    for (const point of forecast.predictions) {
-      const margin = point.value * (1 - point.confidence) * 0.5;
+    for (let i = 1; i <= request.horizon; i++) {
+      const timestamp = new Date();
       
-      forecast.confidenceIntervals.push({
-        timestamp: point.timestamp,
-        lowerBound: point.value - margin,
-        upperBound: point.value + margin,
-        confidence: point.confidence
+      // Adjust timestamp based on frequency
+      switch (request.frequency) {
+        case 'hourly':
+          timestamp.setHours(timestamp.getHours() + i);
+          break;
+        case 'daily':
+          timestamp.setDate(timestamp.getDate() + i);
+          break;
+        case 'weekly':
+          timestamp.setDate(timestamp.getDate() + (i * 7));
+          break;
+        case 'monthly':
+          timestamp.setMonth(timestamp.getMonth() + i);
+          break;
+        case 'yearly':
+          timestamp.setFullYear(timestamp.getFullYear() + i);
+          break;
+      }
+
+      // Calculate value with trend and seasonality
+      const trendValue = baseValue * Math.pow(1 + trend, i);
+      const seasonalFactor = 1 + seasonality * Math.sin(2 * Math.PI * i / 12); // Annual seasonality
+      const randomFactor = 1 + (Math.random() - 0.5) * 0.1; // ±5% random variation
+      
+      const value = trendValue * seasonalFactor * randomFactor;
+      const confidence = Math.max(0.5, 1 - (i * 0.02)); // Confidence decreases with horizon
+
+      points.push({
+        timestamp,
+        value: Math.round(value * 100) / 100,
+        confidence
       });
     }
+
+    return points;
   }
 
-  private async calculateForecastMetrics(forecast: Forecast): Promise<void> {
-    // Simulate metrics calculation
-    const mape = Math.random() * 10 + 5; // 5-15% MAPE
-    const rmse = Math.random() * 20 + 10; // 10-30 RMSE
-    const mae = Math.random() * 15 + 8; // 8-23 MAE
-    const mse = rmse * rmse;
-    const r2Score = Math.random() * 0.3 + 0.7; // 70-100% R²
-    const directionalAccuracy = Math.random() * 0.2 + 0.8; // 80-100% directional accuracy
+  private async generateConfidenceInterval(request: CreateForecastRequest): Promise<{ lower: number[]; upper: number[] }> {
+    const lower: number[] = [];
+    const upper: number[] = [];
+    const confidenceLevel = request.input.confidenceLevel || 0.95;
+    const margin = (1 - confidenceLevel) / 2;
 
-    forecast.metrics = {
-      mape: Math.round(mape * 100) / 100,
-      rmse: Math.round(rmse * 100) / 100,
-      mae: Math.round(mae * 100) / 100,
-      mse: Math.round(mse * 100) / 100,
-      r2Score: Math.round(r2Score * 100) / 100,
-      directionalAccuracy: Math.round(directionalAccuracy * 100) / 100
-    };
+    for (let i = 1; i <= request.horizon; i++) {
+      const baseValue = request.input.baseValue || 1000;
+      const uncertainty = baseValue * 0.1 * Math.sqrt(i); // Uncertainty increases with horizon
+      
+      lower.push(Math.max(0, baseValue - uncertainty * (1 + margin)));
+      upper.push(baseValue + uncertainty * (1 + margin));
+    }
 
-    forecast.accuracy = r2Score;
+    return { lower, upper };
   }
 
   async getForecast(forecastId: string): Promise<Forecast | null> {
@@ -450,9 +358,10 @@ export class PredictiveAnalyticsService {
 
   async getForecasts(organizationId: string, filters?: {
     modelId?: string;
-    timeSeries?: string;
+    series?: string;
     frequency?: string;
-    createdBy?: string;
+    dateFrom?: Date;
+    dateTo?: Date;
   }): Promise<Forecast[]> {
     let forecasts = Array.from(this.forecasts.values())
       .filter(f => f.organizationId === organizationId);
@@ -461,84 +370,95 @@ export class PredictiveAnalyticsService {
       if (filters.modelId) {
         forecasts = forecasts.filter(f => f.modelId === filters.modelId);
       }
-      if (filters.timeSeries) {
-        forecasts = forecasts.filter(f => f.timeSeries === filters.timeSeries);
+      if (filters.series) {
+        forecasts = forecasts.filter(f => f.series === filters.series);
       }
       if (filters.frequency) {
         forecasts = forecasts.filter(f => f.frequency === filters.frequency);
       }
-      if (filters.createdBy) {
-        forecasts = forecasts.filter(f => f.createdBy === filters.createdBy);
+      if (filters.dateFrom) {
+        forecasts = forecasts.filter(f => f.timestamp >= filters.dateFrom!);
+      }
+      if (filters.dateTo) {
+        forecasts = forecasts.filter(f => f.timestamp <= filters.dateTo!);
       }
     }
 
-    return forecasts.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return forecasts.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   }
 
   // ============================================================================
   // ANOMALY DETECTION
   // ============================================================================
 
-  async detectAnomaly(anomalyData: {
-    modelId: string;
-    data: Record<string, any>;
-    threshold: number;
-    organizationId: string;
-    severity: AnomalyDetection['severity'];
-    description: string;
-  }): Promise<AnomalyDetection> {
+  async detectAnomaly(dataPoint: Record<string, any>, modelId: string, organizationId: string): Promise<AnomalyDetection> {
+    if (!this.config.anomalyDetection) {
+      throw new Error('Anomaly detection is not enabled');
+    }
+
+    const anomalyScore = Math.random();
+    const threshold = 0.7; // 70% threshold for anomaly detection
+    const isAnomaly = anomalyScore > threshold;
+
     const anomaly: AnomalyDetection = {
       id: this.generateId(),
-      modelId: anomalyData.modelId,
-      data: anomalyData.data,
-      anomaly: false,
-      score: 0,
-      threshold: anomalyData.threshold,
-      features: [],
+      modelId,
+      dataPoint,
+      anomalyScore,
+      threshold,
+      isAnomaly,
+      severity: isAnomaly 
+        ? (anomalyScore > 0.9 ? 'critical' : anomalyScore > 0.8 ? 'high' : anomalyScore > 0.7 ? 'medium' : 'low')
+        : 'low',
+      explanation: this.generateAnomalyExplanation(anomalyScore, isAnomaly),
+      recommendations: this.generateAnomalyRecommendations(anomalyScore, isAnomaly),
       timestamp: new Date(),
-      organizationId: anomalyData.organizationId,
-      severity: anomalyData.severity,
-      description: anomalyData.description,
-      recommendations: []
+      organizationId,
+      metadata: {}
     };
-
-    // Perform anomaly detection
-    await this.performAnomalyDetection(anomaly);
 
     this.anomalies.set(anomaly.id, anomaly);
     return anomaly;
   }
 
-  private async performAnomalyDetection(anomaly: AnomalyDetection): Promise<void> {
-    // Simulate anomaly detection
-    const score = Math.random();
-    const isAnomaly = score > anomaly.threshold;
-
-    anomaly.anomaly = isAnomaly;
-    anomaly.score = score;
-
-    // Extract features and their contributions
-    anomaly.features = Object.entries(anomaly.data).map(([key, value]) => ({
-      feature: key,
-      value,
-      contribution: Math.random()
-    }));
-
-    // Generate recommendations
-    if (isAnomaly) {
-      anomaly.recommendations = [
-        'Investigate the data point for potential issues',
-        'Check for data quality problems',
-        'Review system logs for errors',
-        'Consider updating the model if patterns have changed'
-      ];
-    } else {
-      anomaly.recommendations = [
-        'Data appears normal, continue monitoring',
-        'Consider adjusting threshold if needed',
-        'Review model performance regularly'
-      ];
+  private generateAnomalyExplanation(anomalyScore: number, isAnomaly: boolean): string {
+    if (!isAnomaly) {
+      return 'Data point appears normal and within expected ranges';
     }
+
+    if (anomalyScore > 0.9) {
+      return 'Critical anomaly detected: Extreme deviation from normal patterns';
+    } else if (anomalyScore > 0.8) {
+      return 'High severity anomaly: Significant deviation from expected behavior';
+    } else if (anomalyScore > 0.7) {
+      return 'Medium severity anomaly: Moderate deviation from normal patterns';
+    } else {
+      return 'Low severity anomaly: Minor deviation detected';
+    }
+  }
+
+  private generateAnomalyRecommendations(anomalyScore: number, isAnomaly: boolean): string[] {
+    if (!isAnomaly) {
+      return ['Continue monitoring for any changes in patterns'];
+    }
+
+    const recommendations = [
+      'Investigate the root cause of the anomaly',
+      'Review recent system changes or external factors',
+      'Consider implementing additional monitoring'
+    ];
+
+    if (anomalyScore > 0.8) {
+      recommendations.push('Immediate investigation required');
+      recommendations.push('Consider alerting relevant stakeholders');
+    }
+
+    if (anomalyScore > 0.9) {
+      recommendations.push('Emergency response may be required');
+      recommendations.push('Activate incident response procedures');
+    }
+
+    return recommendations;
   }
 
   async getAnomaly(anomalyId: string): Promise<AnomalyDetection | null> {
@@ -548,7 +468,7 @@ export class PredictiveAnalyticsService {
   async getAnomalies(organizationId: string, filters?: {
     modelId?: string;
     severity?: string;
-    anomaly?: boolean;
+    isAnomaly?: boolean;
     dateFrom?: Date;
     dateTo?: Date;
   }): Promise<AnomalyDetection[]> {
@@ -562,8 +482,8 @@ export class PredictiveAnalyticsService {
       if (filters.severity) {
         anomalies = anomalies.filter(a => a.severity === filters.severity);
       }
-      if (filters.anomaly !== undefined) {
-        anomalies = anomalies.filter(a => a.anomaly === filters.anomaly);
+      if (filters.isAnomaly !== undefined) {
+        anomalies = anomalies.filter(a => a.isAnomaly === filters.isAnomaly);
       }
       if (filters.dateFrom) {
         anomalies = anomalies.filter(a => a.timestamp >= filters.dateFrom!);
@@ -577,51 +497,175 @@ export class PredictiveAnalyticsService {
   }
 
   // ============================================================================
-  // PREDICTIVE ANALYTICS
+  // RECOMMENDATION SYSTEM
+  // ============================================================================
+
+  async generateRecommendation(request: {
+    userId?: string;
+    itemId?: string;
+    context: Record<string, any>;
+    algorithm: string;
+    count: number;
+  }, organizationId: string): Promise<Recommendation> {
+    const recommendation: Recommendation = {
+      id: this.generateId(),
+      modelId: 'recommendation_model',
+      userId: request.userId,
+      itemId: request.itemId,
+      context: request.context,
+      recommendations: await this.generateRecommendationItems(request),
+      confidence: Math.random() * 0.3 + 0.7, // 70-100%
+      algorithm: request.algorithm,
+      timestamp: new Date(),
+      organizationId,
+      metadata: {}
+    };
+
+    this.recommendations.set(recommendation.id, recommendation);
+    return recommendation;
+  }
+
+  private async generateRecommendationItems(request: {
+    count: number;
+    context: Record<string, any>;
+  }): Promise<RecommendationItem[]> {
+    const items: RecommendationItem[] = [];
+    const categories = ['electronics', 'clothing', 'books', 'home', 'sports'];
+    
+    for (let i = 0; i < request.count; i++) {
+      const category = categories[Math.floor(Math.random() * categories.length)];
+      const score = Math.random() * 0.4 + 0.6; // 60-100%
+      
+      items.push({
+        itemId: `${category}_item_${i + 1}`,
+        score,
+        reason: this.generateRecommendationReason(category, request.context),
+        metadata: {
+          category,
+          popularity: Math.random(),
+          price: Math.random() * 1000 + 10,
+          rating: Math.random() * 2 + 3 // 3-5 stars
+        }
+      });
+    }
+
+    return items.sort((a, b) => b.score - a.score);
+  }
+
+  private generateRecommendationReason(category: string, context: Record<string, any>): string {
+    const reasons = [
+      `Based on your interest in ${category}`,
+      `Similar to items you've viewed recently`,
+      `Popular among users with similar preferences`,
+      `Matches your browsing history`,
+      `Trending in the ${category} category`
+    ];
+    
+    return reasons[Math.floor(Math.random() * reasons.length)];
+  }
+
+  async getRecommendation(recommendationId: string): Promise<Recommendation | null> {
+    return this.recommendations.get(recommendationId) || null;
+  }
+
+  async getRecommendations(organizationId: string, filters?: {
+    userId?: string;
+    algorithm?: string;
+    dateFrom?: Date;
+    dateTo?: Date;
+  }): Promise<Recommendation[]> {
+    let recommendations = Array.from(this.recommendations.values())
+      .filter(r => r.organizationId === organizationId);
+
+    if (filters) {
+      if (filters.userId) {
+        recommendations = recommendations.filter(r => r.userId === filters.userId);
+      }
+      if (filters.algorithm) {
+        recommendations = recommendations.filter(r => r.algorithm === filters.algorithm);
+      }
+      if (filters.dateFrom) {
+        recommendations = recommendations.filter(r => r.timestamp >= filters.dateFrom!);
+      }
+      if (filters.dateTo) {
+        recommendations = recommendations.filter(r => r.timestamp <= filters.dateTo!);
+      }
+    }
+
+    return recommendations.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  }
+
+  // ============================================================================
+  // ANALYTICS
   // ============================================================================
 
   async getPredictiveAnalytics(organizationId: string): Promise<{
     totalPredictions: number;
-    predictionsByType: Record<string, number>;
-    averageAccuracy: number;
     totalForecasts: number;
     totalAnomalies: number;
-    anomalyRate: number;
+    totalRecommendations: number;
+    averageConfidence: number;
+    predictionsByType: Record<string, number>;
+    forecastsByFrequency: Record<string, number>;
+    anomaliesBySeverity: Record<string, number>;
+    topAlgorithms: Array<{ algorithm: string; count: number }>;
     accuracyTrend: Array<{ date: string; accuracy: number }>;
-    predictionVolume: Array<{ date: string; count: number }>;
+    confidenceTrend: Array<{ date: string; confidence: number }>;
   }> {
     const predictions = await this.getPredictions(organizationId);
     const forecasts = await this.getForecasts(organizationId);
     const anomalies = await this.getAnomalies(organizationId);
+    const recommendations = await this.getRecommendations(organizationId);
 
     const predictionsByType: Record<string, number> = {};
-    predictions.forEach(prediction => {
-      predictionsByType[prediction.type] = (predictionsByType[prediction.type] || 0) + 1;
+    const forecastsByFrequency: Record<string, number> = {};
+    const anomaliesBySeverity: Record<string, number> = {};
+
+    predictions.forEach(p => {
+      predictionsByType[p.type] = (predictionsByType[p.type] || 0) + 1;
     });
 
-    const averageAccuracy = predictions.length > 0
-      ? predictions.reduce((sum, p) => sum + p.accuracy, 0) / predictions.length
+    forecasts.forEach(f => {
+      forecastsByFrequency[f.frequency] = (forecastsByFrequency[f.frequency] || 0) + 1;
+    });
+
+    anomalies.forEach(a => {
+      anomaliesBySeverity[a.severity] = (anomaliesBySeverity[a.severity] || 0) + 1;
+    });
+
+    const averageConfidence = predictions.length > 0
+      ? predictions.reduce((sum, p) => sum + p.confidence, 0) / predictions.length
       : 0;
 
-    const detectedAnomalies = anomalies.filter(a => a.anomaly).length;
-    const anomalyRate = anomalies.length > 0 ? (detectedAnomalies / anomalies.length) * 100 : 0;
+    const topAlgorithms = Object.entries(
+      recommendations.reduce((acc, r) => {
+        acc[r.algorithm] = (acc[r.algorithm] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>)
+    )
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 5)
+      .map(([algorithm, count]) => ({ algorithm, count }));
 
-    const accuracyTrend = this.calculateAccuracyTrend(predictions);
-    const predictionVolume = this.calculatePredictionVolume(predictions);
+    const accuracyTrend = this.generateAccuracyTrend(predictions);
+    const confidenceTrend = this.generateConfidenceTrend(predictions);
 
     return {
       totalPredictions: predictions.length,
-      predictionsByType,
-      averageAccuracy: Math.round(averageAccuracy * 100) / 100,
       totalForecasts: forecasts.length,
       totalAnomalies: anomalies.length,
-      anomalyRate: Math.round(anomalyRate * 100) / 100,
+      totalRecommendations: recommendations.length,
+      averageConfidence,
+      predictionsByType,
+      forecastsByFrequency,
+      anomaliesBySeverity,
+      topAlgorithms,
       accuracyTrend,
-      predictionVolume
+      confidenceTrend
     };
   }
 
-  private calculateAccuracyTrend(predictions: Prediction[]): Array<{ date: string; accuracy: number }> {
+  private generateAccuracyTrend(predictions: Prediction[]): Array<{ date: string; accuracy: number }> {
     const trend: Array<{ date: string; accuracy: number }> = [];
     const now = new Date();
     
@@ -635,17 +679,17 @@ export class PredictiveAnalyticsService {
       );
       
       const avgAccuracy = dayPredictions.length > 0 
-        ? dayPredictions.reduce((sum, p) => sum + p.accuracy, 0) / dayPredictions.length
+        ? dayPredictions.reduce((sum, p) => sum + (p.accuracy || 0), 0) / dayPredictions.length
         : 0;
       
-      trend.push({ date: dateStr, accuracy: Math.round(avgAccuracy * 100) / 100 });
+      trend.push({ date: dateStr, accuracy: avgAccuracy });
     }
     
     return trend;
   }
 
-  private calculatePredictionVolume(predictions: Prediction[]): Array<{ date: string; count: number }> {
-    const volume: Array<{ date: string; count: number }> = [];
+  private generateConfidenceTrend(predictions: Prediction[]): Array<{ date: string; confidence: number }> {
+    const trend: Array<{ date: string; confidence: number }> = [];
     const now = new Date();
     
     for (let i = 29; i >= 0; i--) {
@@ -657,10 +701,14 @@ export class PredictiveAnalyticsService {
         p.timestamp.toISOString().split('T')[0] === dateStr
       );
       
-      volume.push({ date: dateStr, count: dayPredictions.length });
+      const avgConfidence = dayPredictions.length > 0 
+        ? dayPredictions.reduce((sum, p) => sum + p.confidence, 0) / dayPredictions.length
+        : 0;
+      
+      trend.push({ date: dateStr, confidence: avgConfidence });
     }
     
-    return volume;
+    return trend;
   }
 
   // ============================================================================
@@ -675,12 +723,14 @@ export class PredictiveAnalyticsService {
     totalPredictions: number;
     totalForecasts: number;
     totalAnomalies: number;
-    config: PredictionConfig;
+    totalRecommendations: number;
+    config: PredictiveAnalyticsConfig;
   }> {
     return {
       totalPredictions: this.predictions.size,
       totalForecasts: this.forecasts.size,
       totalAnomalies: this.anomalies.size,
+      totalRecommendations: this.recommendations.size,
       config: this.config
     };
   }

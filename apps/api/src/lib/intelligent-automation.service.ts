@@ -2,17 +2,22 @@
  * Intelligent Automation Service
  * 
  * This service provides comprehensive intelligent automation capabilities including
- * workflow automation, decision automation, process optimization, and task orchestration.
+ * workflow orchestration, process mining, and intelligent decision automation.
  */
 
 import {
   AutomationWorkflow,
+  WorkflowExecution,
+  WorkflowStepExecution,
   WorkflowTrigger,
   WorkflowStep,
+  WorkflowAction,
   WorkflowCondition,
-  WorkflowExecution,
-  ExecutionStep,
-  CreateWorkflowRequest,
+  WorkflowLoop,
+  WorkflowParallel,
+  WorkflowDelay,
+  WorkflowAIDecision,
+  CreateAutomationWorkflowRequest,
   AutomationConfig
 } from './ai-ml-types.js';
 
@@ -20,16 +25,18 @@ export class IntelligentAutomationService {
   private config: AutomationConfig;
   private workflows: Map<string, AutomationWorkflow> = new Map();
   private executions: Map<string, WorkflowExecution> = new Map();
-  private scheduledExecutions: Map<string, NodeJS.Timeout> = new Map();
+  private stepExecutions: Map<string, WorkflowStepExecution> = new Map();
 
   constructor(config: Partial<AutomationConfig> = {}) {
     this.config = {
       workflowAutomation: true,
-      intelligentDecisions: true,
-      processOptimization: true,
-      resourceManagement: true,
-      errorHandling: true,
-      performanceMonitoring: true,
+      processMining: true,
+      intelligentRouting: true,
+      businessProcessAutomation: true,
+      decisionAutomation: true,
+      taskAutomation: true,
+      integrationAutomation: true,
+      schedulingAutomation: true,
       ...config
     };
   }
@@ -38,51 +45,42 @@ export class IntelligentAutomationService {
   // WORKFLOW MANAGEMENT
   // ============================================================================
 
-  async createWorkflow(request: CreateWorkflowRequest, organizationId: string, createdBy: string): Promise<AutomationWorkflow> {
+  async createAutomationWorkflow(request: CreateAutomationWorkflowRequest, organizationId: string, createdBy: string): Promise<AutomationWorkflow> {
     const workflow: AutomationWorkflow = {
       id: this.generateId(),
       name: request.name,
       description: request.description,
-      triggers: request.triggers.map(trigger => ({
-        id: this.generateId(),
-        ...trigger
-      })),
+      trigger: request.trigger,
       steps: request.steps.map(step => ({
         id: this.generateId(),
         ...step
       })),
-      conditions: request.conditions.map(condition => ({
-        id: this.generateId(),
-        ...condition
-      })),
       status: 'draft',
       executionCount: 0,
+      successCount: 0,
+      failureCount: 0,
       successRate: 0,
       averageExecutionTime: 0,
       organizationId,
       createdBy,
-      tags: request.tags,
-      metadata: request.metadata,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      tags: request.tags,
+      metadata: request.metadata
     };
 
     this.workflows.set(workflow.id, workflow);
-
-    // Validate workflow
-    await this.validateWorkflow(workflow);
-
     return workflow;
   }
 
-  async getWorkflow(workflowId: string): Promise<AutomationWorkflow | null> {
+  async getAutomationWorkflow(workflowId: string): Promise<AutomationWorkflow | null> {
     return this.workflows.get(workflowId) || null;
   }
 
-  async getWorkflows(organizationId: string, filters?: {
+  async getAutomationWorkflows(organizationId: string, filters?: {
     status?: string;
+    trigger?: string;
     createdBy?: string;
-    tags?: string[];
   }): Promise<AutomationWorkflow[]> {
     let workflows = Array.from(this.workflows.values())
       .filter(w => w.organizationId === organizationId);
@@ -91,20 +89,18 @@ export class IntelligentAutomationService {
       if (filters.status) {
         workflows = workflows.filter(w => w.status === filters.status);
       }
+      if (filters.trigger) {
+        workflows = workflows.filter(w => w.trigger.type === filters.trigger);
+      }
       if (filters.createdBy) {
         workflows = workflows.filter(w => w.createdBy === filters.createdBy);
-      }
-      if (filters.tags && filters.tags.length > 0) {
-        workflows = workflows.filter(w => 
-          filters.tags!.some(tag => w.tags.includes(tag))
-        );
       }
     }
 
     return workflows.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
-  async updateWorkflow(workflowId: string, updates: Partial<CreateWorkflowRequest>): Promise<AutomationWorkflow | null> {
+  async updateAutomationWorkflow(workflowId: string, updates: Partial<CreateAutomationWorkflowRequest>): Promise<AutomationWorkflow | null> {
     const workflow = this.workflows.get(workflowId);
     if (!workflow) return null;
 
@@ -114,24 +110,11 @@ export class IntelligentAutomationService {
       updatedAt: new Date()
     };
 
-    // Validate updated workflow
-    await this.validateWorkflow(updatedWorkflow);
-
     this.workflows.set(workflowId, updatedWorkflow);
     return updatedWorkflow;
   }
 
-  async deleteWorkflow(workflowId: string): Promise<boolean> {
-    const workflow = this.workflows.get(workflowId);
-    if (!workflow) return false;
-
-    // Cancel any scheduled executions
-    const scheduledExecution = this.scheduledExecutions.get(workflowId);
-    if (scheduledExecution) {
-      clearTimeout(scheduledExecution);
-      this.scheduledExecutions.delete(workflowId);
-    }
-
+  async deleteAutomationWorkflow(workflowId: string): Promise<boolean> {
     return this.workflows.delete(workflowId);
   }
 
@@ -139,47 +122,29 @@ export class IntelligentAutomationService {
     const workflow = this.workflows.get(workflowId);
     if (!workflow) return null;
 
-    const activatedWorkflow: AutomationWorkflow = {
-      ...workflow,
-      status: 'active',
-      updatedAt: new Date()
-    };
+    workflow.status = 'active';
+    workflow.updatedAt = new Date();
 
-    this.workflows.set(workflowId, activatedWorkflow);
-
-    // Setup triggers
-    await this.setupWorkflowTriggers(activatedWorkflow);
-
-    return activatedWorkflow;
+    this.workflows.set(workflowId, workflow);
+    return workflow;
   }
 
   async deactivateWorkflow(workflowId: string): Promise<AutomationWorkflow | null> {
     const workflow = this.workflows.get(workflowId);
     if (!workflow) return null;
 
-    const deactivatedWorkflow: AutomationWorkflow = {
-      ...workflow,
-      status: 'inactive',
-      updatedAt: new Date()
-    };
+    workflow.status = 'inactive';
+    workflow.updatedAt = new Date();
 
-    this.workflows.set(workflowId, deactivatedWorkflow);
-
-    // Cancel scheduled executions
-    const scheduledExecution = this.scheduledExecutions.get(workflowId);
-    if (scheduledExecution) {
-      clearTimeout(scheduledExecution);
-      this.scheduledExecutions.delete(workflowId);
-    }
-
-    return deactivatedWorkflow;
+    this.workflows.set(workflowId, workflow);
+    return workflow;
   }
 
   // ============================================================================
   // WORKFLOW EXECUTION
   // ============================================================================
 
-  async executeWorkflow(workflowId: string, inputs: Record<string, any> = {}, executedBy: string = 'system'): Promise<WorkflowExecution> {
+  async executeWorkflow(workflowId: string, input: Record<string, any>, organizationId: string, executedBy: string): Promise<WorkflowExecution> {
     const workflow = this.workflows.get(workflowId);
     if (!workflow) {
       throw new Error('Workflow not found');
@@ -192,417 +157,477 @@ export class IntelligentAutomationService {
     const execution: WorkflowExecution = {
       id: this.generateId(),
       workflowId,
-      status: 'pending',
-      triggerId: 'manual',
-      startTime: new Date(),
-      steps: workflow.steps.map(step => ({
-        id: this.generateId(),
-        stepId: step.id,
-        status: 'pending',
-        startTime: new Date(),
-        inputs: {},
-        outputs: {},
-        retries: 0,
-        logs: []
-      })),
-      inputs,
-      outputs: {},
-      organizationId: workflow.organizationId,
+      status: 'running',
+      trigger: 'manual',
+      input,
+      startedAt: new Date(),
+      steps: [],
+      organizationId,
       executedBy,
       metadata: {}
     };
 
     this.executions.set(execution.id, execution);
 
-    // Start execution
-    if (this.config.workflowAutomation) {
-      await this.executeWorkflowSteps(execution);
+    // Update workflow statistics
+    workflow.executionCount++;
+    workflow.updatedAt = new Date();
+    this.workflows.set(workflowId, workflow);
+
+    // Execute workflow steps
+    await this.executeWorkflowSteps(execution, workflow);
+
+    return execution;
+  }
+
+  private async executeWorkflowSteps(execution: WorkflowExecution, workflow: AutomationWorkflow): Promise<void> {
+    const startTime = Date.now();
+    let currentStepId: string | null = workflow.steps[0]?.id || null;
+
+    while (currentStepId) {
+      const step = workflow.steps.find(s => s.id === currentStepId);
+      if (!step) break;
+
+      const stepExecution = await this.executeWorkflowStep(execution, step);
+      execution.steps.push(stepExecution);
+
+      // Determine next step
+      if (stepExecution.status === 'completed') {
+        currentStepId = step.onSuccess || null;
+      } else if (stepExecution.status === 'failed') {
+        currentStepId = step.onFailure || null;
+      } else {
+        break; // Step is still running or skipped
+      }
+    }
+
+    // Update execution status
+    const allStepsCompleted = execution.steps.every(s => s.status === 'completed');
+    const anyStepFailed = execution.steps.some(s => s.status === 'failed');
+
+    if (allStepsCompleted) {
+      execution.status = 'completed';
+      execution.completedAt = new Date();
+      execution.duration = Date.now() - startTime;
+      
+      // Update workflow success statistics
+      workflow.successCount++;
+    } else if (anyStepFailed) {
+      execution.status = 'failed';
+      execution.completedAt = new Date();
+      execution.duration = Date.now() - startTime;
+      
+      // Update workflow failure statistics
+      workflow.failureCount++;
+    }
+
+    // Update workflow success rate
+    workflow.successRate = workflow.executionCount > 0 
+      ? (workflow.successCount / workflow.executionCount) * 100 
+      : 0;
+
+    // Update average execution time
+    const totalTime = execution.duration || 0;
+    workflow.averageExecutionTime = workflow.executionCount > 0
+      ? ((workflow.averageExecutionTime * (workflow.executionCount - 1)) + totalTime) / workflow.executionCount
+      : totalTime;
+
+    workflow.lastExecuted = new Date();
+    workflow.updatedAt = new Date();
+
+    this.executions.set(execution.id, execution);
+    this.workflows.set(workflow.id, workflow);
+  }
+
+  private async executeWorkflowStep(execution: WorkflowExecution, step: WorkflowStep): Promise<WorkflowStepExecution> {
+    const stepExecution: WorkflowStepExecution = {
+      id: this.generateId(),
+      stepId: step.id,
+      status: 'running',
+      input: execution.input,
+      startedAt: new Date(),
+      retryCount: 0,
+      metadata: {}
+    };
+
+    this.stepExecutions.set(stepExecution.id, stepExecution);
+
+    try {
+      // Execute step based on type
+      switch (step.type) {
+        case 'action':
+          await this.executeAction(stepExecution, step.action!);
+          break;
+        case 'condition':
+          await this.executeCondition(stepExecution, step.condition!);
+          break;
+        case 'loop':
+          await this.executeLoop(stepExecution, step.loop!);
+          break;
+        case 'parallel':
+          await this.executeParallel(stepExecution, step.parallel!);
+          break;
+        case 'delay':
+          await this.executeDelay(stepExecution, step.delay!);
+          break;
+        case 'ai_decision':
+          await this.executeAIDecision(stepExecution, step.aiDecision!);
+          break;
+        default:
+          throw new Error(`Unknown step type: ${step.type}`);
+      }
+
+      stepExecution.status = 'completed';
+      stepExecution.completedAt = new Date();
+      stepExecution.duration = stepExecution.completedAt.getTime() - stepExecution.startedAt.getTime();
+
+    } catch (error) {
+      stepExecution.status = 'failed';
+      stepExecution.errorMessage = (error as Error).message;
+      stepExecution.completedAt = new Date();
+      stepExecution.duration = stepExecution.completedAt.getTime() - stepExecution.startedAt.getTime();
+    }
+
+    this.stepExecutions.set(stepExecution.id, stepExecution);
+    return stepExecution;
+  }
+
+  private async executeAction(stepExecution: WorkflowStepExecution, action: WorkflowAction): Promise<void> {
+    // Simulate action execution based on type
+    switch (action.type) {
+      case 'api_call':
+        await this.simulateAPICall(action);
+        break;
+      case 'data_transformation':
+        await this.simulateDataTransformation(action);
+        break;
+      case 'notification':
+        await this.simulateNotification(action);
+        break;
+      case 'file_operation':
+        await this.simulateFileOperation(action);
+        break;
+      case 'database_operation':
+        await this.simulateDatabaseOperation(action);
+        break;
+      case 'ai_inference':
+        await this.simulateAIInference(action);
+        break;
+      default:
+        throw new Error(`Unknown action type: ${action.type}`);
+    }
+
+    // Simulate output mapping
+    stepExecution.output = this.mapActionOutput(action);
+  }
+
+  private async executeCondition(stepExecution: WorkflowStepExecution, condition: WorkflowCondition): Promise<void> {
+    // Simulate condition evaluation
+    const result = this.evaluateCondition(condition, stepExecution.input);
+    stepExecution.output = { conditionResult: result };
+  }
+
+  private async executeLoop(stepExecution: WorkflowStepExecution, loop: WorkflowLoop): Promise<void> {
+    // Simulate loop execution
+    const iterations = Math.floor(Math.random() * 5) + 1; // 1-5 iterations
+    const results = [];
+
+    for (let i = 0; i < iterations; i++) {
+      results.push({
+        iteration: i + 1,
+        result: `Loop iteration ${i + 1} completed`
+      });
+    }
+
+    stepExecution.output = { iterations: results };
+  }
+
+  private async executeParallel(stepExecution: WorkflowStepExecution, parallel: WorkflowParallel): Promise<void> {
+    // Simulate parallel execution
+    const results = await Promise.all(
+      parallel.branches.map(async (branch, index) => {
+        return {
+          branch: index + 1,
+          result: `Branch ${index + 1} completed`,
+          duration: Math.random() * 1000 + 500
+        };
+      })
+    );
+
+    stepExecution.output = { parallelResults: results };
+  }
+
+  private async executeDelay(stepExecution: WorkflowStepExecution, delay: WorkflowDelay): Promise<void> {
+    // Simulate delay
+    const actualDelay = delay.type === 'random' 
+      ? Math.random() * delay.duration 
+      : delay.duration;
+
+    await new Promise(resolve => setTimeout(resolve, Math.min(actualDelay, 1000))); // Cap at 1 second for testing
+    stepExecution.output = { delayExecuted: actualDelay };
+  }
+
+  private async executeAIDecision(stepExecution: WorkflowStepExecution, aiDecision: WorkflowAIDecision): Promise<void> {
+    // Simulate AI decision
+    const confidence = Math.random() * 0.4 + 0.6; // 60-100% confidence
+    
+    if (confidence >= aiDecision.confidenceThreshold) {
+      stepExecution.output = {
+        decision: 'approved',
+        confidence,
+        reasoning: 'AI model determined this meets the criteria'
+      };
+    } else {
+      stepExecution.output = {
+        decision: 'rejected',
+        confidence,
+        reasoning: 'AI model determined this does not meet the criteria',
+        fallbackAction: aiDecision.fallbackAction
+      };
+    }
+  }
+
+  // ============================================================================
+  // ACTION SIMULATORS
+  // ============================================================================
+
+  private async simulateAPICall(action: WorkflowAction): Promise<void> {
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 500 + 100));
+  }
+
+  private async simulateDataTransformation(action: WorkflowAction): Promise<void> {
+    // Simulate data transformation
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 300 + 50));
+  }
+
+  private async simulateNotification(action: WorkflowAction): Promise<void> {
+    // Simulate notification sending
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 200 + 100));
+  }
+
+  private async simulateFileOperation(action: WorkflowAction): Promise<void> {
+    // Simulate file operation
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 400 + 100));
+  }
+
+  private async simulateDatabaseOperation(action: WorkflowAction): Promise<void> {
+    // Simulate database operation
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 600 + 200));
+  }
+
+  private async simulateAIInference(action: WorkflowAction): Promise<void> {
+    // Simulate AI inference
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 800 + 300));
+  }
+
+  private mapActionOutput(action: WorkflowAction): Record<string, any> {
+    if (!action.outputMapping) {
+      return { success: true, timestamp: new Date() };
+    }
+
+    const output: Record<string, any> = {};
+    for (const [key, value] of Object.entries(action.outputMapping)) {
+      output[key] = value;
+    }
+    return output;
+  }
+
+  private evaluateCondition(condition: WorkflowCondition, input: Record<string, any>): boolean {
+    // Simple condition evaluation - in real implementation, use proper expression evaluator
+    try {
+      // This is a simplified evaluation - real implementation would use a proper expression engine
+      return Math.random() > 0.5; // Random result for simulation
+    } catch {
+      return false;
+    }
+  }
+
+  // ============================================================================
+  // WORKFLOW EXECUTION MANAGEMENT
+  // ============================================================================
+
+  async getWorkflowExecution(executionId: string): Promise<WorkflowExecution | null> {
+    return this.executions.get(executionId) || null;
+  }
+
+  async getWorkflowExecutions(organizationId: string, filters?: {
+    workflowId?: string;
+    status?: string;
+    executedBy?: string;
+    dateFrom?: Date;
+    dateTo?: Date;
+  }): Promise<WorkflowExecution[]> {
+    let executions = Array.from(this.executions.values())
+      .filter(e => e.organizationId === organizationId);
+
+    if (filters) {
+      if (filters.workflowId) {
+        executions = executions.filter(e => e.workflowId === filters.workflowId);
+      }
+      if (filters.status) {
+        executions = executions.filter(e => e.status === filters.status);
+      }
+      if (filters.executedBy) {
+        executions = executions.filter(e => e.executedBy === filters.executedBy);
+      }
+      if (filters.dateFrom) {
+        executions = executions.filter(e => e.startedAt >= filters.dateFrom!);
+      }
+      if (filters.dateTo) {
+        executions = executions.filter(e => e.startedAt <= filters.dateTo!);
+      }
+    }
+
+    return executions.sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime());
+  }
+
+  async cancelWorkflowExecution(executionId: string): Promise<WorkflowExecution | null> {
+    const execution = this.executions.get(executionId);
+    if (!execution) return null;
+
+    if (execution.status === 'running') {
+      execution.status = 'cancelled';
+      execution.completedAt = new Date();
+      execution.duration = execution.completedAt.getTime() - execution.startedAt.getTime();
+
+      this.executions.set(executionId, execution);
     }
 
     return execution;
   }
 
-  private async executeWorkflowSteps(execution: WorkflowExecution): Promise<void> {
-    const workflow = this.workflows.get(execution.workflowId);
-    if (!workflow) return;
+  // ============================================================================
+  // PROCESS MINING
+  // ============================================================================
 
-    const updatedExecution: WorkflowExecution = {
-      ...execution,
-      status: 'running',
-      updatedAt: new Date()
+  async analyzeProcess(organizationId: string, processData: {
+    events: Array<{
+      caseId: string;
+      activity: string;
+      timestamp: Date;
+      resource: string;
+      attributes: Record<string, any>;
+    }>;
+  }): Promise<{
+    processModel: any;
+    bottlenecks: string[];
+    inefficiencies: string[];
+    recommendations: string[];
+    metrics: {
+      averageDuration: number;
+      throughput: number;
+      resourceUtilization: Record<string, number>;
     };
-
-    this.executions.set(execution.id, updatedExecution);
-
-    try {
-      // Execute steps in order
-      for (const executionStep of updatedExecution.steps) {
-        const workflowStep = workflow.steps.find(s => s.id === executionStep.stepId);
-        if (!workflowStep) continue;
-
-        // Check conditions
-        if (!await this.evaluateConditions(workflow, executionStep, updatedExecution)) {
-          executionStep.status = 'skipped';
-          executionStep.logs.push('Step skipped due to conditions not met');
-          continue;
-        }
-
-        // Execute step
-        await this.executeStep(workflowStep, executionStep, updatedExecution);
-
-        // Check for errors
-        if (executionStep.status === 'failed') {
-          if (executionStep.retries < (workflowStep.retries || 0)) {
-            executionStep.retries++;
-            executionStep.status = 'pending';
-            await this.executeStep(workflowStep, executionStep, updatedExecution);
-          } else {
-            updatedExecution.status = 'failed';
-            updatedExecution.error = `Step ${workflowStep.name} failed after ${executionStep.retries} retries`;
-            break;
-          }
-        }
-      }
-
-      // Complete execution
-      if (updatedExecution.status === 'running') {
-        updatedExecution.status = 'completed';
-        updatedExecution.endTime = new Date();
-        updatedExecution.duration = updatedExecution.endTime.getTime() - updatedExecution.startTime.getTime();
-
-        // Update workflow statistics
-        await this.updateWorkflowStatistics(workflow, updatedExecution);
-      }
-
-    } catch (error) {
-      updatedExecution.status = 'failed';
-      updatedExecution.error = (error as Error).message;
-      updatedExecution.endTime = new Date();
-      updatedExecution.duration = updatedExecution.endTime.getTime() - updatedExecution.startTime.getTime();
-    }
-
-    this.executions.set(execution.id, updatedExecution);
-  }
-
-  private async executeStep(workflowStep: WorkflowStep, executionStep: ExecutionStep, execution: WorkflowExecution): Promise<void> {
-    executionStep.status = 'running';
-    executionStep.startTime = new Date();
-
-    try {
-      // Simulate step execution based on type
-      const result = await this.simulateStepExecution(workflowStep, executionStep, execution);
-
-      executionStep.status = 'completed';
-      executionStep.endTime = new Date();
-      executionStep.duration = executionStep.endTime.getTime() - executionStep.startTime.getTime();
-      executionStep.outputs = result.outputs;
-      executionStep.logs.push(`Step completed successfully: ${result.message}`);
-
-      // Update execution outputs
-      execution.outputs = { ...execution.outputs, ...result.outputs };
-
-    } catch (error) {
-      executionStep.status = 'failed';
-      executionStep.endTime = new Date();
-      executionStep.duration = executionStep.endTime.getTime() - executionStep.startTime.getTime();
-      executionStep.error = (error as Error).message;
-      executionStep.logs.push(`Step failed: ${(error as Error).message}`);
-    }
-  }
-
-  private async simulateStepExecution(workflowStep: WorkflowStep, executionStep: ExecutionStep, execution: WorkflowExecution): Promise<{
-    outputs: Record<string, any>;
-    message: string;
   }> {
-    // Simulate different step types
-    switch (workflowStep.type) {
-      case 'action':
-        return {
-          outputs: { result: 'action_completed', timestamp: new Date().toISOString() },
-          message: `Action ${workflowStep.name} executed successfully`
-        };
-
-      case 'condition':
-        const conditionResult = Math.random() > 0.2; // 80% success rate
-        return {
-          outputs: { condition_met: conditionResult },
-          message: `Condition ${workflowStep.name} evaluated to ${conditionResult}`
-        };
-
-      case 'loop':
-        const iterations = Math.floor(Math.random() * 5) + 1;
-        return {
-          outputs: { iterations, items: Array.from({ length: iterations }, (_, i) => `item_${i}`) },
-          message: `Loop ${workflowStep.name} completed with ${iterations} iterations`
-        };
-
-      case 'parallel':
-        const parallelTasks = Math.floor(Math.random() * 3) + 2;
-        return {
-          outputs: { parallel_tasks: parallelTasks, results: Array.from({ length: parallelTasks }, (_, i) => `task_${i}_result`) },
-          message: `Parallel execution ${workflowStep.name} completed with ${parallelTasks} tasks`
-        };
-
-      case 'delay':
-        const delayMs = workflowStep.configuration.delay || 1000;
-        await new Promise(resolve => setTimeout(resolve, delayMs));
-        return {
-          outputs: { delay_completed: true, delay_ms: delayMs },
-          message: `Delay ${workflowStep.name} completed after ${delayMs}ms`
-        };
-
-      case 'ai_decision':
-        const decision = Math.random() > 0.3 ? 'approve' : 'reject';
-        const confidence = Math.random() * 0.3 + 0.7;
-        return {
-          outputs: { decision, confidence, reasoning: `AI decision based on input data` },
-          message: `AI decision ${workflowStep.name} resulted in ${decision} with ${Math.round(confidence * 100)}% confidence`
-        };
-
-      default:
-        return {
-          outputs: { result: 'unknown_step_type' },
-          message: `Unknown step type ${workflowStep.type} executed`
-        };
+    if (!this.config.processMining) {
+      throw new Error('Process mining is not enabled');
     }
-  }
 
-  private async evaluateConditions(workflow: AutomationWorkflow, executionStep: ExecutionStep, execution: WorkflowExecution): Promise<boolean> {
-    // Simple condition evaluation - in real implementation, this would be more sophisticated
-    const relevantConditions = workflow.conditions.filter(c => 
-      c.actions.includes(executionStep.stepId)
-    );
+    // Simulate process mining analysis
+    const bottlenecks = [
+      'Manual approval step causing delays',
+      'Resource contention in data processing',
+      'Inefficient handoff between departments'
+    ];
 
-    for (const condition of relevantConditions) {
-      // Simulate condition evaluation
-      const result = Math.random() > 0.3; // 70% success rate
-      if (!result) {
-        return false;
+    const inefficiencies = [
+      'Redundant data validation steps',
+      'Unnecessary waiting times',
+      'Poor resource allocation'
+    ];
+
+    const recommendations = [
+      'Automate approval process for standard cases',
+      'Implement parallel processing for data operations',
+      'Optimize resource scheduling and allocation',
+      'Reduce handoff delays between process steps'
+    ];
+
+    const metrics = {
+      averageDuration: Math.random() * 10000 + 5000, // 5-15 seconds
+      throughput: Math.random() * 100 + 50, // 50-150 cases per hour
+      resourceUtilization: {
+        'Resource A': Math.random() * 0.3 + 0.7, // 70-100%
+        'Resource B': Math.random() * 0.4 + 0.6, // 60-100%
+        'Resource C': Math.random() * 0.5 + 0.5  // 50-100%
       }
-    }
-
-    return true;
-  }
-
-  private async updateWorkflowStatistics(workflow: AutomationWorkflow, execution: WorkflowExecution): Promise<void> {
-    const updatedWorkflow: AutomationWorkflow = {
-      ...workflow,
-      executionCount: workflow.executionCount + 1,
-      lastExecuted: new Date(),
-      updatedAt: new Date()
     };
 
-    // Calculate success rate
-    const allExecutions = Array.from(this.executions.values())
-      .filter(e => e.workflowId === workflow.id);
+    return {
+      processModel: {
+        activities: ['Start', 'Process', 'Review', 'Approve', 'End'],
+        transitions: [
+          { from: 'Start', to: 'Process' },
+          { from: 'Process', to: 'Review' },
+          { from: 'Review', to: 'Approve' },
+          { from: 'Approve', to: 'End' }
+        ]
+      },
+      bottlenecks,
+      inefficiencies,
+      recommendations,
+      metrics
+    };
+  }
+
+  // ============================================================================
+  // INTELLIGENT ROUTING
+  // ============================================================================
+
+  async routeRequest(request: {
+    type: string;
+    priority: 'low' | 'medium' | 'high' | 'critical';
+    attributes: Record<string, any>;
+    organizationId: string;
+  }): Promise<{
+    route: string;
+    estimatedProcessingTime: number;
+    confidence: number;
+    reasoning: string;
+  }> {
+    if (!this.config.intelligentRouting) {
+      throw new Error('Intelligent routing is not enabled');
+    }
+
+    // Simulate intelligent routing based on request attributes
+    const routes = ['Route A', 'Route B', 'Route C', 'Route D'];
+    const selectedRoute = routes[Math.floor(Math.random() * routes.length)];
     
-    const successfulExecutions = allExecutions.filter(e => e.status === 'completed').length;
-    updatedWorkflow.successRate = allExecutions.length > 0 
-      ? (successfulExecutions / allExecutions.length) * 100 
-      : 0;
+    const estimatedTime = request.priority === 'critical' 
+      ? Math.random() * 1000 + 500  // 500-1500ms
+      : Math.random() * 2000 + 1000; // 1000-3000ms
 
-    // Calculate average execution time
-    const completedExecutions = allExecutions.filter(e => e.duration);
-    if (completedExecutions.length > 0) {
-      const totalDuration = completedExecutions.reduce((sum, e) => sum + e.duration!, 0);
-      updatedWorkflow.averageExecutionTime = totalDuration / completedExecutions.length;
-    }
+    const confidence = Math.random() * 0.3 + 0.7; // 70-100%
 
-    this.workflows.set(workflow.id, updatedWorkflow);
-  }
+    const reasoning = `Request routed to ${selectedRoute} based on type "${request.type}" and priority "${request.priority}"`;
 
-  // ============================================================================
-  // WORKFLOW TRIGGERS
-  // ============================================================================
-
-  private async setupWorkflowTriggers(workflow: AutomationWorkflow): Promise<void> {
-    for (const trigger of workflow.triggers) {
-      if (!trigger.enabled) continue;
-
-      switch (trigger.type) {
-        case 'schedule':
-          await this.setupScheduleTrigger(workflow, trigger);
-          break;
-        case 'event':
-          await this.setupEventTrigger(workflow, trigger);
-          break;
-        case 'webhook':
-          await this.setupWebhookTrigger(workflow, trigger);
-          break;
-        case 'api':
-          await this.setupApiTrigger(workflow, trigger);
-          break;
-        case 'data_change':
-          await this.setupDataChangeTrigger(workflow, trigger);
-          break;
-        case 'condition':
-          await this.setupConditionTrigger(workflow, trigger);
-          break;
-      }
-    }
-  }
-
-  private async setupScheduleTrigger(workflow: AutomationWorkflow, trigger: WorkflowTrigger): Promise<void> {
-    const schedule = trigger.configuration.schedule || '0 */1 * * *'; // Default: every hour
-    const interval = this.parseSchedule(schedule);
-
-    const timeout = setTimeout(async () => {
-      await this.executeWorkflow(workflow.id, {}, 'scheduled_trigger');
-      this.setupScheduleTrigger(workflow, trigger); // Reschedule
-    }, interval);
-
-    this.scheduledExecutions.set(workflow.id, timeout);
-  }
-
-  private parseSchedule(schedule: string): number {
-    // Simple schedule parser - in real implementation, use a proper cron parser
-    if (schedule.includes('*/1')) return 60 * 1000; // 1 minute
-    if (schedule.includes('*/5')) return 5 * 60 * 1000; // 5 minutes
-    if (schedule.includes('*/15')) return 15 * 60 * 1000; // 15 minutes
-    if (schedule.includes('*/30')) return 30 * 60 * 1000; // 30 minutes
-    return 60 * 60 * 1000; // Default: 1 hour
-  }
-
-  private async setupEventTrigger(workflow: AutomationWorkflow, trigger: WorkflowTrigger): Promise<void> {
-    // In real implementation, this would register with an event system
-    console.log(`Setting up event trigger for workflow ${workflow.id}: ${trigger.name}`);
-  }
-
-  private async setupWebhookTrigger(workflow: AutomationWorkflow, trigger: WorkflowTrigger): Promise<void> {
-    // In real implementation, this would register a webhook endpoint
-    console.log(`Setting up webhook trigger for workflow ${workflow.id}: ${trigger.name}`);
-  }
-
-  private async setupApiTrigger(workflow: AutomationWorkflow, trigger: WorkflowTrigger): Promise<void> {
-    // In real implementation, this would register an API endpoint
-    console.log(`Setting up API trigger for workflow ${workflow.id}: ${trigger.name}`);
-  }
-
-  private async setupDataChangeTrigger(workflow: AutomationWorkflow, trigger: WorkflowTrigger): Promise<void> {
-    // In real implementation, this would register with a data change monitoring system
-    console.log(`Setting up data change trigger for workflow ${workflow.id}: ${trigger.name}`);
-  }
-
-  private async setupConditionTrigger(workflow: AutomationWorkflow, trigger: WorkflowTrigger): Promise<void> {
-    // In real implementation, this would register with a condition monitoring system
-    console.log(`Setting up condition trigger for workflow ${workflow.id}: ${trigger.name}`);
-  }
-
-  // ============================================================================
-  // EXECUTION MANAGEMENT
-  // ============================================================================
-
-  async getExecution(executionId: string): Promise<WorkflowExecution | null> {
-    return this.executions.get(executionId) || null;
-  }
-
-  async getExecutions(organizationId: string, workflowId?: string): Promise<WorkflowExecution[]> {
-    let executions = Array.from(this.executions.values())
-      .filter(e => e.organizationId === organizationId);
-
-    if (workflowId) {
-      executions = executions.filter(e => e.workflowId === workflowId);
-    }
-
-    return executions.sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
-  }
-
-  async cancelExecution(executionId: string): Promise<boolean> {
-    const execution = this.executions.get(executionId);
-    if (!execution || execution.status !== 'running') return false;
-
-    const cancelledExecution: WorkflowExecution = {
-      ...execution,
-      status: 'cancelled',
-      endTime: new Date(),
-      duration: execution.endTime ? execution.endTime.getTime() - execution.startTime.getTime() : 0,
-      error: 'Execution cancelled by user'
+    return {
+      route: selectedRoute,
+      estimatedProcessingTime: estimatedTime,
+      confidence,
+      reasoning
     };
-
-    this.executions.set(executionId, cancelledExecution);
-    return true;
   }
 
   // ============================================================================
-  // WORKFLOW VALIDATION
-  // ============================================================================
-
-  private async validateWorkflow(workflow: AutomationWorkflow): Promise<void> {
-    // Validate triggers
-    for (const trigger of workflow.triggers) {
-      if (!trigger.name || !trigger.type) {
-        throw new Error('Invalid trigger configuration');
-      }
-    }
-
-    // Validate steps
-    for (const step of workflow.steps) {
-      if (!step.name || !step.type) {
-        throw new Error('Invalid step configuration');
-      }
-    }
-
-    // Validate conditions
-    for (const condition of workflow.conditions) {
-      if (!condition.name || !condition.expression) {
-        throw new Error('Invalid condition configuration');
-      }
-    }
-
-    // Check for circular dependencies
-    this.checkCircularDependencies(workflow.steps);
-  }
-
-  private checkCircularDependencies(steps: WorkflowStep[]): void {
-    const visited = new Set<string>();
-    const recursionStack = new Set<string>();
-
-    const hasCycle = (stepId: string): boolean => {
-      if (recursionStack.has(stepId)) return true;
-      if (visited.has(stepId)) return false;
-
-      visited.add(stepId);
-      recursionStack.add(stepId);
-
-      const step = steps.find(s => s.id === stepId);
-      if (step) {
-        for (const dependency of step.dependencies) {
-          if (hasCycle(dependency)) return true;
-        }
-      }
-
-      recursionStack.delete(stepId);
-      return false;
-    };
-
-    for (const step of steps) {
-      if (hasCycle(step.id)) {
-        throw new Error('Circular dependency detected in workflow steps');
-      }
-    }
-  }
-
-  // ============================================================================
-  // AUTOMATION ANALYTICS
+  // ANALYTICS
   // ============================================================================
 
   async getAutomationAnalytics(organizationId: string): Promise<{
     totalWorkflows: number;
     activeWorkflows: number;
     totalExecutions: number;
-    successfulExecutions: number;
-    failedExecutions: number;
+    successRate: number;
     averageExecutionTime: number;
     workflowsByStatus: Record<string, number>;
     executionsByStatus: Record<string, number>;
-    performanceTrend: Array<{ date: string; executions: number; successRate: number }>;
+    topWorkflows: Array<{ id: string; name: string; executions: number }>;
+    executionTrend: Array<{ date: string; count: number }>;
+    performanceTrend: Array<{ date: string; successRate: number }>;
   }> {
-    const workflows = await this.getWorkflows(organizationId);
-    const executions = await this.getExecutions(organizationId);
-
-    const activeWorkflows = workflows.filter(w => w.status === 'active').length;
-    const successfulExecutions = executions.filter(e => e.status === 'completed').length;
-    const failedExecutions = executions.filter(e => e.status === 'failed').length;
+    const workflows = await this.getAutomationWorkflows(organizationId);
+    const executions = await this.getWorkflowExecutions(organizationId);
 
     const workflowsByStatus: Record<string, number> = {};
     const executionsByStatus: Record<string, number> = {};
@@ -615,28 +640,46 @@ export class IntelligentAutomationService {
       executionsByStatus[execution.status] = (executionsByStatus[execution.status] || 0) + 1;
     });
 
-    const completedExecutions = executions.filter(e => e.duration);
-    const averageExecutionTime = completedExecutions.length > 0
-      ? completedExecutions.reduce((sum, e) => sum + e.duration!, 0) / completedExecutions.length
+    const totalExecutions = executions.length;
+    const successfulExecutions = executions.filter(e => e.status === 'completed').length;
+    const successRate = totalExecutions > 0 ? (successfulExecutions / totalExecutions) * 100 : 0;
+
+    const averageExecutionTime = executions.length > 0
+      ? executions.reduce((sum, e) => sum + (e.duration || 0), 0) / executions.length
       : 0;
 
-    const performanceTrend = this.calculatePerformanceTrend(executions);
+    const activeWorkflows = workflows.filter(w => w.status === 'active').length;
+
+    // Top workflows by execution count
+    const topWorkflows = workflows
+      .sort((a, b) => b.executionCount - a.executionCount)
+      .slice(0, 5)
+      .map(w => ({
+        id: w.id,
+        name: w.name,
+        executions: w.executionCount
+      }));
+
+    // Generate trends
+    const executionTrend = this.generateExecutionTrend(executions);
+    const performanceTrend = this.generatePerformanceTrend(executions);
 
     return {
       totalWorkflows: workflows.length,
       activeWorkflows,
-      totalExecutions: executions.length,
-      successfulExecutions,
-      failedExecutions,
-      averageExecutionTime: Math.round(averageExecutionTime),
+      totalExecutions,
+      successRate,
+      averageExecutionTime,
       workflowsByStatus,
       executionsByStatus,
+      topWorkflows,
+      executionTrend,
       performanceTrend
     };
   }
 
-  private calculatePerformanceTrend(executions: WorkflowExecution[]): Array<{ date: string; executions: number; successRate: number }> {
-    const trend: Array<{ date: string; executions: number; successRate: number }> = [];
+  private generateExecutionTrend(executions: WorkflowExecution[]): Array<{ date: string; count: number }> {
+    const trend: Array<{ date: string; count: number }> = [];
     const now = new Date();
     
     for (let i = 29; i >= 0; i--) {
@@ -645,19 +688,32 @@ export class IntelligentAutomationService {
       const dateStr = date.toISOString().split('T')[0];
       
       const dayExecutions = executions.filter(e => 
-        e.startTime.toISOString().split('T')[0] === dateStr
+        e.startedAt.toISOString().split('T')[0] === dateStr
       );
       
-      const successfulDayExecutions = dayExecutions.filter(e => e.status === 'completed').length;
-      const successRate = dayExecutions.length > 0 
-        ? (successfulDayExecutions / dayExecutions.length) * 100
-        : 0;
+      trend.push({ date: dateStr, count: dayExecutions.length });
+    }
+    
+    return trend;
+  }
+
+  private generatePerformanceTrend(executions: WorkflowExecution[]): Array<{ date: string; successRate: number }> {
+    const trend: Array<{ date: string; successRate: number }> = [];
+    const now = new Date();
+    
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
       
-      trend.push({ 
-        date: dateStr, 
-        executions: dayExecutions.length,
-        successRate: Math.round(successRate * 100) / 100
-      });
+      const dayExecutions = executions.filter(e => 
+        e.startedAt.toISOString().split('T')[0] === dateStr
+      );
+      
+      const successfulExecutions = dayExecutions.filter(e => e.status === 'completed').length;
+      const successRate = dayExecutions.length > 0 ? (successfulExecutions / dayExecutions.length) * 100 : 0;
+      
+      trend.push({ date: dateStr, successRate });
     }
     
     return trend;
@@ -674,13 +730,13 @@ export class IntelligentAutomationService {
   async getServiceStats(): Promise<{
     totalWorkflows: number;
     totalExecutions: number;
-    activeSchedules: number;
+    totalStepExecutions: number;
     config: AutomationConfig;
   }> {
     return {
       totalWorkflows: this.workflows.size,
       totalExecutions: this.executions.size,
-      activeSchedules: this.scheduledExecutions.size,
+      totalStepExecutions: this.stepExecutions.size,
       config: this.config
     };
   }

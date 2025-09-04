@@ -13,149 +13,126 @@ export interface MLModel {
   id: string;
   name: string;
   description: string;
-  type: 'classification' | 'regression' | 'clustering' | 'nlp' | 'computer_vision' | 'recommendation' | 'anomaly_detection';
+  type: 'classification' | 'regression' | 'clustering' | 'nlp' | 'computer_vision' | 'time_series' | 'anomaly_detection';
   algorithm: string;
+  framework: 'tensorflow' | 'pytorch' | 'scikit-learn' | 'xgboost' | 'lightgbm' | 'custom';
   version: string;
-  status: 'training' | 'trained' | 'deployed' | 'retired' | 'error';
+  status: 'training' | 'trained' | 'validating' | 'deployed' | 'retired' | 'failed';
   accuracy: number;
   precision: number;
   recall: number;
   f1Score: number;
+  auc: number;
   trainingData: string[];
   features: string[];
+  targetVariable: string;
   hyperparameters: Record<string, any>;
-  metadata: Record<string, any>;
+  modelPath: string;
+  trainingMetrics: MLTrainingMetrics;
+  validationMetrics: MLValidationMetrics;
+  deploymentConfig: MLDeploymentConfig;
   organizationId: string;
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
   deployedAt?: Date;
-  lastTrained?: Date;
-  trainingDuration?: number;
-  modelSize?: number;
-  performance: ModelPerformance;
+  lastTrainedAt?: Date;
+  tags: string[];
+  metadata: Record<string, any>;
 }
 
-export interface ModelPerformance {
-  accuracy: number;
-  precision: number;
-  recall: number;
-  f1Score: number;
-  auc?: number;
-  rmse?: number;
-  mae?: number;
-  r2Score?: number;
-  confusionMatrix?: number[][];
-  featureImportance?: Array<{ feature: string; importance: number }>;
-  trainingHistory?: Array<{ epoch: number; loss: number; accuracy: number }>;
-  validationHistory?: Array<{ epoch: number; loss: number; accuracy: number }>;
+export interface MLTrainingMetrics {
+  trainingAccuracy: number;
+  validationAccuracy: number;
+  trainingLoss: number;
+  validationLoss: number;
+  epochs: number;
+  batchSize: number;
+  learningRate: number;
+  trainingTime: number;
+  convergenceEpoch?: number;
+  overfittingDetected: boolean;
+  metrics: Record<string, number>;
 }
 
-export interface TrainingJob {
+export interface MLValidationMetrics {
+  crossValidationScore: number;
+  testAccuracy: number;
+  testPrecision: number;
+  testRecall: number;
+  testF1Score: number;
+  confusionMatrix: number[][];
+  rocCurve: Array<{ threshold: number; tpr: number; fpr: number }>;
+  precisionRecallCurve: Array<{ threshold: number; precision: number; recall: number }>;
+  featureImportance: Array<{ feature: string; importance: number }>;
+  validationTime: number;
+}
+
+export interface MLDeploymentConfig {
+  environment: 'development' | 'staging' | 'production';
+  instanceType: string;
+  scalingConfig: {
+    minInstances: number;
+    maxInstances: number;
+    targetUtilization: number;
+  };
+  monitoringConfig: {
+    enabled: boolean;
+    metricsInterval: number;
+    alertThresholds: Record<string, number>;
+  };
+  apiConfig: {
+    endpoint: string;
+    authentication: boolean;
+    rateLimit: number;
+    timeout: number;
+  };
+}
+
+export interface MLTrainingJob {
   id: string;
   modelId: string;
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
-  trainingData: string[];
-  validationData: string[];
-  testData: string[];
+  status: 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
+  trainingData: string;
+  validationData?: string;
+  testData?: string;
   hyperparameters: Record<string, any>;
-  startTime?: Date;
-  endTime?: Date;
-  duration?: number;
+  trainingConfig: MLTrainingConfig;
   progress: number;
   currentEpoch?: number;
   totalEpochs?: number;
-  loss?: number;
-  accuracy?: number;
-  error?: string;
+  estimatedCompletion?: Date;
+  startedAt?: Date;
+  completedAt?: Date;
+  errorMessage?: string;
+  metrics: MLTrainingMetrics;
   organizationId: string;
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface ModelDeployment {
-  id: string;
-  modelId: string;
-  environment: 'development' | 'staging' | 'production';
-  status: 'deploying' | 'active' | 'inactive' | 'error';
-  endpoint: string;
-  version: string;
-  replicas: number;
-  resources: ResourceAllocation;
-  configuration: DeploymentConfig;
-  healthCheck: HealthCheck;
-  metrics: DeploymentMetrics;
-  organizationId: string;
-  deployedBy: string;
-  deployedAt: Date;
-  updatedAt: Date;
-}
-
-export interface ResourceAllocation {
-  cpu: string;
-  memory: string;
-  gpu?: string;
-  storage?: string;
-  network?: string;
-}
-
-export interface DeploymentConfig {
+export interface MLTrainingConfig {
+  epochs: number;
   batchSize: number;
-  timeout: number;
-  retries: number;
-  scaling: ScalingConfig;
-  monitoring: MonitoringConfig;
-}
-
-export interface ScalingConfig {
-  minReplicas: number;
-  maxReplicas: number;
-  targetUtilization: number;
-  scaleUpThreshold: number;
-  scaleDownThreshold: number;
-}
-
-export interface MonitoringConfig {
-  enabled: boolean;
-  metrics: string[];
-  alerts: AlertConfig[];
-  logging: LoggingConfig;
-}
-
-export interface AlertConfig {
-  metric: string;
-  threshold: number;
-  operator: 'greater_than' | 'less_than' | 'equals';
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  action: string;
-}
-
-export interface LoggingConfig {
-  level: 'debug' | 'info' | 'warn' | 'error';
-  retention: number;
-  format: 'json' | 'text';
-}
-
-export interface HealthCheck {
-  enabled: boolean;
-  path: string;
-  interval: number;
-  timeout: number;
-  retries: number;
-  status: 'healthy' | 'unhealthy' | 'unknown';
-  lastCheck?: Date;
-  responseTime?: number;
-}
-
-export interface DeploymentMetrics {
-  requestsPerSecond: number;
-  averageResponseTime: number;
-  errorRate: number;
-  cpuUtilization: number;
-  memoryUtilization: number;
-  gpuUtilization?: number;
-  lastUpdated: Date;
+  learningRate: number;
+  optimizer: string;
+  lossFunction: string;
+  validationSplit: number;
+  earlyStopping: {
+    enabled: boolean;
+    patience: number;
+    minDelta: number;
+  };
+  dataAugmentation?: {
+    enabled: boolean;
+    techniques: string[];
+  };
+  regularization?: {
+    l1: number;
+    l2: number;
+    dropout: number;
+  };
 }
 
 // ============================================================================
@@ -166,86 +143,126 @@ export interface AutomationWorkflow {
   id: string;
   name: string;
   description: string;
-  triggers: WorkflowTrigger[];
+  trigger: WorkflowTrigger;
   steps: WorkflowStep[];
-  conditions: WorkflowCondition[];
-  status: 'active' | 'inactive' | 'draft' | 'error';
+  status: 'active' | 'inactive' | 'paused' | 'error' | 'draft';
   executionCount: number;
+  successCount: number;
+  failureCount: number;
   successRate: number;
   averageExecutionTime: number;
   lastExecuted?: Date;
   nextExecution?: Date;
+  errorMessage?: string;
   organizationId: string;
   createdBy: string;
-  tags: string[];
-  metadata: Record<string, any>;
   createdAt: Date;
   updatedAt: Date;
+  tags: string[];
+  metadata: Record<string, any>;
 }
 
 export interface WorkflowTrigger {
-  id: string;
-  type: 'schedule' | 'event' | 'webhook' | 'api' | 'data_change' | 'condition';
-  name: string;
-  description: string;
-  configuration: Record<string, any>;
+  type: 'schedule' | 'event' | 'webhook' | 'manual' | 'condition';
+  config: {
+    schedule?: string; // Cron expression
+    event?: string;
+    webhook?: string;
+    condition?: string;
+    parameters?: Record<string, any>;
+  };
   enabled: boolean;
-  priority: number;
 }
 
 export interface WorkflowStep {
   id: string;
   name: string;
   type: 'action' | 'condition' | 'loop' | 'parallel' | 'delay' | 'ai_decision';
-  description: string;
-  configuration: Record<string, any>;
-  inputs: string[];
-  outputs: string[];
-  dependencies: string[];
+  action?: WorkflowAction;
+  condition?: WorkflowCondition;
+  loop?: WorkflowLoop;
+  parallel?: WorkflowParallel;
+  delay?: WorkflowDelay;
+  aiDecision?: WorkflowAIDecision;
+  onSuccess?: string; // Next step ID
+  onFailure?: string; // Next step ID
+  retryConfig?: {
+    maxRetries: number;
+    retryDelay: number;
+    backoffMultiplier: number;
+  };
   timeout?: number;
-  retries?: number;
-  onError?: 'continue' | 'stop' | 'retry';
+  metadata: Record<string, any>;
+}
+
+export interface WorkflowAction {
+  type: 'api_call' | 'data_transformation' | 'notification' | 'file_operation' | 'database_operation' | 'ai_inference';
+  config: Record<string, any>;
+  parameters: Record<string, any>;
+  outputMapping?: Record<string, string>;
 }
 
 export interface WorkflowCondition {
-  id: string;
-  name: string;
   expression: string;
-  description: string;
-  operator: 'and' | 'or' | 'not';
-  conditions: string[];
-  actions: string[];
+  variables: string[];
+  operators: string[];
+}
+
+export interface WorkflowLoop {
+  type: 'for' | 'while' | 'foreach';
+  condition: string;
+  maxIterations?: number;
+  steps: WorkflowStep[];
+}
+
+export interface WorkflowParallel {
+  branches: WorkflowStep[][];
+  waitForAll: boolean;
+  timeout?: number;
+}
+
+export interface WorkflowDelay {
+  duration: number; // milliseconds
+  type: 'fixed' | 'random' | 'exponential';
+}
+
+export interface WorkflowAIDecision {
+  modelId: string;
+  inputMapping: Record<string, string>;
+  outputMapping: Record<string, string>;
+  confidenceThreshold: number;
+  fallbackAction?: string;
 }
 
 export interface WorkflowExecution {
   id: string;
   workflowId: string;
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
-  triggerId: string;
-  startTime: Date;
-  endTime?: Date;
+  status: 'running' | 'completed' | 'failed' | 'cancelled' | 'timeout';
+  trigger: string;
+  input: Record<string, any>;
+  output?: Record<string, any>;
+  errorMessage?: string;
+  startedAt: Date;
+  completedAt?: Date;
   duration?: number;
-  steps: ExecutionStep[];
-  inputs: Record<string, any>;
-  outputs: Record<string, any>;
-  error?: string;
+  steps: WorkflowStepExecution[];
   organizationId: string;
   executedBy: string;
   metadata: Record<string, any>;
 }
 
-export interface ExecutionStep {
+export interface WorkflowStepExecution {
   id: string;
   stepId: string;
   status: 'pending' | 'running' | 'completed' | 'failed' | 'skipped';
-  startTime: Date;
-  endTime?: Date;
+  input: Record<string, any>;
+  output?: Record<string, any>;
+  errorMessage?: string;
+  startedAt: Date;
+  completedAt?: Date;
   duration?: number;
-  inputs: Record<string, any>;
-  outputs: Record<string, any>;
-  error?: string;
-  retries: number;
-  logs: string[];
+  retryCount: number;
+  metadata: Record<string, any>;
 }
 
 // ============================================================================
@@ -255,11 +272,11 @@ export interface ExecutionStep {
 export interface Prediction {
   id: string;
   modelId: string;
-  type: 'forecast' | 'classification' | 'regression' | 'anomaly' | 'recommendation';
-  inputData: Record<string, any>;
-  predictions: PredictionResult[];
+  type: 'forecast' | 'classification' | 'regression' | 'anomaly' | 'recommendation' | 'clustering';
+  input: Record<string, any>;
+  output: Record<string, any>;
   confidence: number;
-  accuracy: number;
+  accuracy?: number;
   timestamp: Date;
   organizationId: string;
   createdBy: string;
@@ -267,27 +284,23 @@ export interface Prediction {
   tags: string[];
 }
 
-export interface PredictionResult {
-  value: any;
-  confidence: number;
-  probability?: number;
-  explanation?: string;
-  features?: Array<{ feature: string; value: any; importance: number }>;
-}
-
 export interface Forecast {
   id: string;
   modelId: string;
-  timeSeries: string;
-  horizon: number;
+  series: string;
+  horizon: number; // days
   frequency: 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly';
   predictions: ForecastPoint[];
-  confidenceIntervals: ConfidenceInterval[];
+  confidenceInterval: {
+    lower: number[];
+    upper: number[];
+  };
   accuracy: number;
-  metrics: ForecastMetrics;
+  mape: number; // Mean Absolute Percentage Error
+  rmse: number; // Root Mean Square Error
+  mae: number; // Mean Absolute Error
+  timestamp: Date;
   organizationId: string;
-  createdBy: string;
-  createdAt: Date;
   metadata: Record<string, any>;
 }
 
@@ -295,40 +308,42 @@ export interface ForecastPoint {
   timestamp: Date;
   value: number;
   confidence: number;
-  trend: 'increasing' | 'decreasing' | 'stable';
-  seasonality?: number;
-  anomaly?: boolean;
-}
-
-export interface ConfidenceInterval {
-  timestamp: Date;
-  lowerBound: number;
-  upperBound: number;
-  confidence: number;
-}
-
-export interface ForecastMetrics {
-  mape: number;
-  rmse: number;
-  mae: number;
-  mse: number;
-  r2Score: number;
-  directionalAccuracy: number;
 }
 
 export interface AnomalyDetection {
   id: string;
   modelId: string;
-  data: Record<string, any>;
-  anomaly: boolean;
-  score: number;
+  dataPoint: Record<string, any>;
+  anomalyScore: number;
   threshold: number;
-  features: Array<{ feature: string; value: any; contribution: number }>;
+  isAnomaly: boolean;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  explanation: string;
+  recommendations: string[];
   timestamp: Date;
   organizationId: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  description: string;
-  recommendations: string[];
+  metadata: Record<string, any>;
+}
+
+export interface Recommendation {
+  id: string;
+  modelId: string;
+  userId?: string;
+  itemId?: string;
+  context: Record<string, any>;
+  recommendations: RecommendationItem[];
+  confidence: number;
+  algorithm: string;
+  timestamp: Date;
+  organizationId: string;
+  metadata: Record<string, any>;
+}
+
+export interface RecommendationItem {
+  itemId: string;
+  score: number;
+  reason: string;
+  metadata: Record<string, any>;
 }
 
 // ============================================================================
@@ -339,285 +354,259 @@ export interface AIOrchestration {
   id: string;
   name: string;
   description: string;
-  type: 'pipeline' | 'model_serving' | 'batch_processing' | 'real_time' | 'streaming';
+  type: 'model_serving' | 'pipeline' | 'ensemble' | 'workflow';
+  status: 'active' | 'inactive' | 'deploying' | 'error';
   models: string[];
-  resources: ResourceAllocation;
-  status: 'running' | 'stopped' | 'error' | 'scheduled' | 'paused';
-  performance: PerformanceMetrics;
-  configuration: OrchestrationConfig;
+  pipelines: string[];
+  configuration: AIOrchestrationConfig;
+  performance: AIOrchestrationPerformance;
   organizationId: string;
   createdBy: string;
-  tags: string[];
-  metadata: Record<string, any>;
   createdAt: Date;
   updatedAt: Date;
-  startedAt?: Date;
-  stoppedAt?: Date;
+  deployedAt?: Date;
+  tags: string[];
+  metadata: Record<string, any>;
 }
 
-export interface OrchestrationConfig {
-  parallelism: number;
-  timeout: number;
-  retries: number;
-  scheduling: SchedulingConfig;
-  monitoring: MonitoringConfig;
-  scaling: ScalingConfig;
-  dependencies: string[];
+export interface AIOrchestrationConfig {
+  scaling: {
+    minInstances: number;
+    maxInstances: number;
+    targetUtilization: number;
+    autoScaling: boolean;
+  };
+  loadBalancing: {
+    strategy: 'round_robin' | 'weighted' | 'least_connections' | 'ai_based';
+    weights?: Record<string, number>;
+  };
+  monitoring: {
+    enabled: boolean;
+    metricsInterval: number;
+    alertThresholds: Record<string, number>;
+    loggingLevel: 'debug' | 'info' | 'warn' | 'error';
+  };
+  security: {
+    authentication: boolean;
+    authorization: boolean;
+    encryption: boolean;
+    rateLimit: number;
+  };
 }
 
-export interface SchedulingConfig {
-  enabled: boolean;
-  schedule: string;
-  timezone: string;
-  maxConcurrency: number;
-  priority: number;
-}
-
-export interface PerformanceMetrics {
+export interface AIOrchestrationPerformance {
+  totalRequests: number;
+  successfulRequests: number;
+  failedRequests: number;
+  averageResponseTime: number;
+  p95ResponseTime: number;
+  p99ResponseTime: number;
   throughput: number;
-  latency: number;
   errorRate: number;
-  resourceUtilization: ResourceUtilization;
+  resourceUtilization: {
+    cpu: number;
+    memory: number;
+    gpu?: number;
+  };
   lastUpdated: Date;
-}
-
-export interface ResourceUtilization {
-  cpu: number;
-  memory: number;
-  gpu?: number;
-  storage: number;
-  network: number;
 }
 
 export interface MLPipeline {
   id: string;
   name: string;
   description: string;
-  stages: PipelineStage[];
-  status: 'active' | 'inactive' | 'error';
+  stages: MLPipelineStage[];
+  status: 'active' | 'inactive' | 'running' | 'failed';
+  schedule?: string; // Cron expression
+  lastRun?: Date;
+  nextRun?: Date;
   executionCount: number;
-  successRate: number;
-  averageExecutionTime: number;
-  lastExecuted?: Date;
-  nextExecution?: Date;
+  successCount: number;
+  failureCount: number;
   organizationId: string;
   createdBy: string;
-  tags: string[];
-  metadata: Record<string, any>;
   createdAt: Date;
   updatedAt: Date;
+  tags: string[];
+  metadata: Record<string, any>;
 }
 
-export interface PipelineStage {
+export interface MLPipelineStage {
   id: string;
   name: string;
-  type: 'data_ingestion' | 'preprocessing' | 'training' | 'validation' | 'deployment' | 'monitoring';
-  description: string;
-  configuration: Record<string, any>;
-  inputs: string[];
-  outputs: string[];
+  type: 'data_ingestion' | 'data_preprocessing' | 'feature_engineering' | 'model_training' | 'model_validation' | 'model_deployment' | 'monitoring';
+  config: Record<string, any>;
   dependencies: string[];
   timeout?: number;
-  retries?: number;
-  resources: ResourceAllocation;
+  retryConfig?: {
+    maxRetries: number;
+    retryDelay: number;
+  };
+  metadata: Record<string, any>;
+}
+
+export interface MLPipelineExecution {
+  id: string;
+  pipelineId: string;
+  status: 'running' | 'completed' | 'failed' | 'cancelled';
+  trigger: 'manual' | 'schedule' | 'webhook' | 'event';
+  startedAt: Date;
+  completedAt?: Date;
+  duration?: number;
+  stages: MLPipelineStageExecution[];
+  organizationId: string;
+  executedBy: string;
+  metadata: Record<string, any>;
+}
+
+export interface MLPipelineStageExecution {
+  id: string;
+  stageId: string;
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'skipped';
+  startedAt: Date;
+  completedAt?: Date;
+  duration?: number;
+  retryCount: number;
+  errorMessage?: string;
+  output?: Record<string, any>;
+  metadata: Record<string, any>;
 }
 
 // ============================================================================
 // NATURAL LANGUAGE PROCESSING TYPES
 // ============================================================================
 
-export interface NLPRequest {
+export interface NLPAnalysis {
   id: string;
-  type: 'sentiment' | 'classification' | 'extraction' | 'translation' | 'summarization' | 'generation';
   text: string;
-  language?: string;
-  model?: string;
-  parameters: Record<string, any>;
-  organizationId: string;
-  createdBy: string;
-  createdAt: Date;
-}
-
-export interface NLPResponse {
-  id: string;
-  requestId: string;
-  results: NLPResult[];
-  confidence: number;
-  processingTime: number;
-  model: string;
+  language: string;
+  analysis: {
+    sentiment: {
+      score: number;
+      label: 'positive' | 'negative' | 'neutral';
+      confidence: number;
+    };
+    entities: NLPEntity[];
+    keywords: string[];
+    topics: NLPTopic[];
+    summary?: string;
+    classification?: {
+      category: string;
+      confidence: number;
+    };
+  };
   timestamp: Date;
+  organizationId: string;
   metadata: Record<string, any>;
 }
 
-export interface NLPResult {
-  type: string;
-  value: any;
+export interface NLPEntity {
+  text: string;
+  type: 'person' | 'organization' | 'location' | 'date' | 'money' | 'percentage' | 'other';
   confidence: number;
-  startIndex?: number;
-  endIndex?: number;
-  explanation?: string;
+  startIndex: number;
+  endIndex: number;
 }
 
-export interface SentimentAnalysis {
-  sentiment: 'positive' | 'negative' | 'neutral';
-  confidence: number;
-  emotions: Array<{ emotion: string; score: number }>;
-  aspects: Array<{ aspect: string; sentiment: string; confidence: number }>;
+export interface NLPTopic {
+  name: string;
+  score: number;
+  keywords: string[];
 }
 
-export interface TextClassification {
-  category: string;
-  confidence: number;
-  categories: Array<{ category: string; confidence: number }>;
-  explanation?: string;
-}
-
-export interface EntityExtraction {
-  entities: Array<{
-    text: string;
-    type: string;
-    confidence: number;
-    startIndex: number;
-    endIndex: number;
-  }>;
-  relations: Array<{
-    entity1: string;
-    entity2: string;
-    relation: string;
-    confidence: number;
-  }>;
+export interface NLPDocument {
+  id: string;
+  title: string;
+  content: string;
+  language: string;
+  analysis: NLPAnalysis;
+  classification: string;
+  summary: string;
+  keywords: string[];
+  entities: NLPEntity[];
+  topics: NLPTopic[];
+  createdAt: Date;
+  organizationId: string;
+  metadata: Record<string, any>;
 }
 
 // ============================================================================
 // COMPUTER VISION TYPES
 // ============================================================================
 
-export interface VisionRequest {
+export interface ComputerVisionAnalysis {
   id: string;
-  type: 'classification' | 'detection' | 'segmentation' | 'ocr' | 'analysis';
-  image: string; // Base64 encoded image
-  model?: string;
-  parameters: Record<string, any>;
-  organizationId: string;
-  createdBy: string;
-  createdAt: Date;
-}
-
-export interface VisionResponse {
-  id: string;
-  requestId: string;
-  results: VisionResult[];
-  confidence: number;
-  processingTime: number;
-  model: string;
+  imageUrl: string;
+  imageHash: string;
+  analysis: {
+    objects: CVObject[];
+    faces: CVFace[];
+    text: CVText[];
+    labels: CVLabel[];
+    colors: CVColor[];
+    quality: {
+      brightness: number;
+      contrast: number;
+      sharpness: number;
+      blur: number;
+    };
+  };
   timestamp: Date;
+  organizationId: string;
   metadata: Record<string, any>;
 }
 
-export interface VisionResult {
-  type: string;
-  value: any;
+export interface CVObject {
+  name: string;
   confidence: number;
-  boundingBox?: BoundingBox;
-  explanation?: string;
+  boundingBox: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  attributes?: Record<string, any>;
 }
 
-export interface BoundingBox {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-export interface ObjectDetection {
-  objects: Array<{
-    label: string;
-    confidence: number;
-    boundingBox: BoundingBox;
-    attributes?: Record<string, any>;
-  }>;
-  scene: string;
-  sceneConfidence: number;
-}
-
-export interface ImageClassification {
-  category: string;
+export interface CVFace {
   confidence: number;
-  categories: Array<{ category: string; confidence: number }>;
-  attributes: Record<string, any>;
+  boundingBox: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  attributes?: {
+    age?: number;
+    gender?: string;
+    emotion?: string;
+    landmarks?: Array<{ x: number; y: number }>;
+  };
 }
 
-export interface OCRResult {
+export interface CVText {
   text: string;
   confidence: number;
-  words: Array<{
-    text: string;
-    confidence: number;
-    boundingBox: BoundingBox;
-  }>;
-  lines: Array<{
-    text: string;
-    confidence: number;
-    boundingBox: BoundingBox;
-  }>;
+  boundingBox: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  language?: string;
 }
 
-// ============================================================================
-// RECOMMENDATION SYSTEM TYPES
-// ============================================================================
-
-export interface RecommendationRequest {
-  id: string;
-  userId: string;
-  type: 'collaborative' | 'content_based' | 'hybrid' | 'contextual';
-  context: Record<string, any>;
-  limit: number;
-  filters?: Record<string, any>;
-  organizationId: string;
-  createdAt: Date;
-}
-
-export interface RecommendationResponse {
-  id: string;
-  requestId: string;
-  recommendations: Recommendation[];
-  confidence: number;
-  processingTime: number;
-  model: string;
-  timestamp: Date;
-  metadata: Record<string, any>;
-}
-
-export interface Recommendation {
-  itemId: string;
-  score: number;
-  confidence: number;
-  reason: string;
-  explanation?: string;
-  metadata?: Record<string, any>;
-}
-
-export interface RecommendationModel {
-  id: string;
+export interface CVLabel {
   name: string;
-  type: 'collaborative' | 'content_based' | 'hybrid' | 'contextual';
-  algorithm: string;
-  status: 'training' | 'trained' | 'deployed' | 'retired';
-  performance: RecommendationMetrics;
-  organizationId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  confidence: number;
+  category: string;
 }
 
-export interface RecommendationMetrics {
-  precision: number;
-  recall: number;
-  f1Score: number;
-  ndcg: number;
-  map: number;
-  diversity: number;
-  novelty: number;
-  coverage: number;
+export interface CVColor {
+  color: string;
+  hex: string;
+  rgb: { r: number; g: number; b: number };
+  percentage: number;
 }
 
 // ============================================================================
@@ -629,18 +618,20 @@ export interface CreateMLModelRequest {
   description: string;
   type: MLModel['type'];
   algorithm: string;
+  framework: MLModel['framework'];
   features: string[];
+  targetVariable: string;
   hyperparameters: Record<string, any>;
-  metadata: Record<string, any>;
+  trainingConfig: MLTrainingConfig;
   tags: string[];
+  metadata: Record<string, any>;
 }
 
-export interface CreateWorkflowRequest {
+export interface CreateAutomationWorkflowRequest {
   name: string;
   description: string;
-  triggers: Omit<WorkflowTrigger, 'id'>[];
+  trigger: WorkflowTrigger;
   steps: Omit<WorkflowStep, 'id'>[];
-  conditions: Omit<WorkflowCondition, 'id'>[];
   tags: string[];
   metadata: Record<string, any>;
 }
@@ -648,19 +639,16 @@ export interface CreateWorkflowRequest {
 export interface CreatePredictionRequest {
   modelId: string;
   type: Prediction['type'];
-  inputData: Record<string, any>;
+  input: Record<string, any>;
   metadata: Record<string, any>;
-  tags: string[];
 }
 
-export interface CreateOrchestrationRequest {
-  name: string;
-  description: string;
-  type: AIOrchestration['type'];
-  models: string[];
-  resources: ResourceAllocation;
-  configuration: OrchestrationConfig;
-  tags: string[];
+export interface CreateForecastRequest {
+  modelId: string;
+  series: string;
+  horizon: number;
+  frequency: Forecast['frequency'];
+  input: Record<string, any>;
   metadata: Record<string, any>;
 }
 
@@ -672,7 +660,7 @@ export interface AIResponse<T = any> {
   metadata?: {
     timestamp: Date;
     executionTime: number;
-    model: string;
+    modelVersion: string;
     confidence: number;
   };
 }
@@ -681,41 +669,59 @@ export interface AIResponse<T = any> {
 // CONFIGURATION TYPES
 // ============================================================================
 
+export interface AIMLConfig {
+  machineLearning: boolean;
+  automation: boolean;
+  predictiveAnalytics: boolean;
+  aiOrchestration: boolean;
+  naturalLanguageProcessing: boolean;
+  computerVision: boolean;
+  recommendationEngine: boolean;
+  anomalyDetection: boolean;
+}
+
 export interface MLConfig {
   trainingEnabled: boolean;
-  servingEnabled: boolean;
-  autoOptimization: boolean;
+  autoDeployment: boolean;
   abTesting: boolean;
-  modelRegistry: boolean;
-  versionControl: boolean;
-  monitoring: boolean;
+  performanceMonitoring: boolean;
+  modelVersioning: boolean;
+  featureEngineering: boolean;
+  hyperparameterOptimization: boolean;
+  crossValidation: boolean;
 }
 
 export interface AutomationConfig {
   workflowAutomation: boolean;
-  intelligentDecisions: boolean;
-  processOptimization: boolean;
-  resourceManagement: boolean;
-  errorHandling: boolean;
-  performanceMonitoring: boolean;
+  processMining: boolean;
+  intelligentRouting: boolean;
+  businessProcessAutomation: boolean;
+  decisionAutomation: boolean;
+  taskAutomation: boolean;
+  integrationAutomation: boolean;
+  schedulingAutomation: boolean;
 }
 
-export interface PredictionConfig {
+export interface PredictiveAnalyticsConfig {
   forecasting: boolean;
-  trendAnalysis: boolean;
-  scenarioPlanning: boolean;
-  confidenceIntervals: boolean;
   anomalyDetection: boolean;
-  realTimePrediction: boolean;
+  riskPrediction: boolean;
+  customerBehaviorPrediction: boolean;
+  marketAnalysis: boolean;
+  performancePrediction: boolean;
+  churnPrediction: boolean;
+  demandForecasting: boolean;
 }
 
 export interface AIOrchestrationConfig {
-  pipelineManagement: boolean;
+  modelOrchestration: boolean;
+  pipelineOrchestration: boolean;
+  resourceManagement: boolean;
   modelServing: boolean;
-  resourceOrchestration: boolean;
   monitoring: boolean;
+  costOptimization: boolean;
   governance: boolean;
-  integration: boolean;
+  scaling: boolean;
 }
 
 // ============================================================================
@@ -724,62 +730,53 @@ export interface AIOrchestrationConfig {
 
 export type {
   MLModel,
-  ModelPerformance,
-  TrainingJob,
-  ModelDeployment,
-  ResourceAllocation,
-  DeploymentConfig,
-  ScalingConfig,
-  MonitoringConfig,
-  AlertConfig,
-  LoggingConfig,
-  HealthCheck,
-  DeploymentMetrics,
+  MLTrainingMetrics,
+  MLValidationMetrics,
+  MLDeploymentConfig,
+  MLTrainingJob,
+  MLTrainingConfig,
   AutomationWorkflow,
   WorkflowTrigger,
   WorkflowStep,
+  WorkflowAction,
   WorkflowCondition,
+  WorkflowLoop,
+  WorkflowParallel,
+  WorkflowDelay,
+  WorkflowAIDecision,
   WorkflowExecution,
-  ExecutionStep,
+  WorkflowStepExecution,
   Prediction,
-  PredictionResult,
   Forecast,
   ForecastPoint,
-  ConfidenceInterval,
-  ForecastMetrics,
   AnomalyDetection,
-  AIOrchestration,
-  OrchestrationConfig,
-  SchedulingConfig,
-  PerformanceMetrics,
-  ResourceUtilization,
-  MLPipeline,
-  PipelineStage,
-  NLPRequest,
-  NLPResponse,
-  NLPResult,
-  SentimentAnalysis,
-  TextClassification,
-  EntityExtraction,
-  VisionRequest,
-  VisionResponse,
-  VisionResult,
-  BoundingBox,
-  ObjectDetection,
-  ImageClassification,
-  OCRResult,
-  RecommendationRequest,
-  RecommendationResponse,
   Recommendation,
-  RecommendationModel,
-  RecommendationMetrics,
+  RecommendationItem,
+  AIOrchestration,
+  AIOrchestrationConfig,
+  AIOrchestrationPerformance,
+  MLPipeline,
+  MLPipelineStage,
+  MLPipelineExecution,
+  MLPipelineStageExecution,
+  NLPAnalysis,
+  NLPEntity,
+  NLPTopic,
+  NLPDocument,
+  ComputerVisionAnalysis,
+  CVObject,
+  CVFace,
+  CVText,
+  CVLabel,
+  CVColor,
   CreateMLModelRequest,
-  CreateWorkflowRequest,
+  CreateAutomationWorkflowRequest,
   CreatePredictionRequest,
-  CreateOrchestrationRequest,
+  CreateForecastRequest,
   AIResponse,
+  AIMLConfig,
   MLConfig,
   AutomationConfig,
-  PredictionConfig,
+  PredictiveAnalyticsConfig,
   AIOrchestrationConfig
 };
