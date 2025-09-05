@@ -33,6 +33,7 @@
     "@opentelemetry/sdk-metrics": "^1.21.0",
     "@opentelemetry/sdk-node": "^0.48.0",
     "@opentelemetry/semantic-conventions": "^1.21.0",
+    "axios": "^1.11.0",
     "crypto": "^1.0.1",
     "pino": "^8.17.2",
     "prom-client": "^15.1.0",

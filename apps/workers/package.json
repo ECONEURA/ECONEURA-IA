@@ -7,7 +7,16 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
-    "test": "echo \"No tests yet\""
+    "lint": "eslint src --ext .ts,.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "vitest run src/__tests__/integration.test.ts",
+    "load-test": "k6 run tests/load-test.js",
+    "stress-test": "k6 run tests/stress-test.js",
+    "optimize": "node scripts/optimize.js",
+    "monitor": "node scripts/monitor.js",
+    "health": "curl -f http://localhost:3001/health || echo 'Workers not running'"
   },
   "dependencies": {
     "express": "^4.19.2",
@@ -33,6 +42,12 @@
     "@types/node": "^20.11.0",
     "@types/bull": "^4.10.0",
     "@types/node-cron": "^3.0.11",
-    "@types/winston": "^2.4.4"
+    "@types/winston": "^2.4.4",
+    "vitest": "^1.0.0",
+    "supertest": "^6.3.3",
+    "@types/supertest": "^2.0.16",
+    "eslint": "^8.57.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0"
   }
 }

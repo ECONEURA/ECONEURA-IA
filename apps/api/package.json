@@ -9,8 +9,11 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "clean": "rm -rf dist",
-    "test": "tsx src/test-all-endpoints.ts",
-    "test:e2e": "tsx src/test-e2e-advanced.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "vitest run src/__tests__/workers-integration.test.ts",
+    "test:e2e": "vitest run src/__tests__/end-to-end.test.ts",
     "test:load": "k6 run ../../tests/k6/load-test.js",
     "test:chaos": "k6 run ../../tests/k6/chaos-test.js",
     "test:k6": "../../scripts/run-k6-tests.sh",
@@ -63,7 +66,10 @@
     "concurrently": "^9.2.1",
     "drizzle-kit": "^0.20.18",
     "tsx": "^4.6.0",
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0",
+    "supertest": "^6.3.3",
+    "@types/supertest": "^2.0.16"
   },
   "engines": {
     "node": ">=20.0.0"

@@ -50,6 +50,7 @@ import { semanticSearchCRMRouter } from './routes/semantic-search-crm.js';
 import { performanceRouter } from './routes/performance.js';
 import { statusRouter } from './routes/status.js';
 import { reportesMensualesRouter } from './routes/reportes-mensuales.js';
+import workersIntegrationRouter from './routes/workers-integration.js';
 import { performanceOptimizerService } from './lib/performance-optimizer.service.js';
 import { errorManagerService } from './lib/error-manager.service.js';
 import { securityManagerService } from './lib/security-manager.service.js';
@@ -946,6 +947,7 @@ app.get("/", (req, res) => {
       "MEJORA-3: Consolidación de endpoints",
       "MEJORA-4: Seguridad avanzada",
       "PR-54: Reportes mensuales PDF",
+      "FASE-5: Integración completa API-Workers",
       "SSE: Real-time events and notifications",
       "Cockpit: Operational dashboard endpoints",
       "Cache: Advanced caching with statistics",
@@ -1115,7 +1117,13 @@ app.get("/", (req, res) => {
         "POST /v1/reportes/generar - Generate report (PR-54)",
         "GET /v1/reportes/plantillas - Get report templates (PR-54)",
         "POST /v1/reportes/programar - Schedule report (PR-54)",
-        "GET /v1/reportes/stats - Get report statistics (PR-54)"
+        "GET /v1/reportes/stats - Get report statistics (PR-54)",
+        "POST /v1/workers/emails/process - Process email through workers (FASE-5)",
+        "POST /v1/workers/emails/process/bulk - Process bulk emails through workers (FASE-5)",
+        "POST /v1/workers/cron/manage - Manage cron jobs through workers (FASE-5)",
+        "GET /v1/workers/health - Get workers health status (FASE-5)",
+        "GET /v1/workers/stats - Get integration statistics (FASE-5)",
+        "POST /v1/workers/webhooks/workers - Webhook endpoint for workers events (FASE-5)"
       ],
       events: [
         "GET /v1/events - Server-Sent Events for real-time updates",
@@ -1211,6 +1219,7 @@ app.use('/v1/status', statusRouter);
 
 // PR-54: Reportes mensuales PDF
 app.use('/v1/reportes', reportesMensualesRouter);
+app.use('/v1/workers', workersIntegrationRouter);
 
 // Mount Events (SSE) routes
 app.use('/v1/events', eventsRouter);
