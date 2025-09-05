@@ -1,17 +1,19 @@
 import { defineConfig } from 'drizzle-kit'
-import { env } from '@econeura/shared'
+
+// Use environment variables with fallbacks for development
+const dbConfig = {
+  host: process.env.PGHOST || 'localhost',
+  user: process.env.PGUSER || 'postgres',
+  password: process.env.PGPASSWORD || 'password',
+  database: process.env.PGDATABASE || 'econeura',
+  port: parseInt(process.env.PGPORT || '5432'),
+}
 
 export default defineConfig({
   schema: './src/schema.ts',
   out: './migrations',
   dialect: 'postgresql',
-  dbCredentials: {
-    host: env().PGHOST,
-    user: env().PGUSER,
-    password: env().PGPASSWORD,
-    database: env().PGDATABASE,
-    port: env().PGPORT,
-  },
+  dbCredentials: dbConfig,
   verbose: true,
   strict: true,
 })

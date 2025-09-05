@@ -1,10 +1,23 @@
 import { register, Counter, Histogram, Gauge, collectDefaultMetrics } from 'prom-client';
 
-// Initialize default metrics collection
-collectDefaultMetrics({
-  register,
-  prefix: 'econeura_',
-});
+// Initialize default metrics collection only once using global flag
+declare global {
+  var __econeura_metrics_initialized: boolean | undefined;
+}
+
+if (!global.__econeura_metrics_initialized) {
+  try {
+    collectDefaultMetrics({
+      register,
+      prefix: 'econeura_',
+    });
+    global.__econeura_metrics_initialized = true;
+  } catch (error) {
+    // Metrics already initialized, ignore error
+    console.warn('Default metrics already initialized:', error.message);
+    global.__econeura_metrics_initialized = true;
+  }
+}
 
 // Enhanced AI Router Metrics
 export const aiRequestsTotal = new Counter({
