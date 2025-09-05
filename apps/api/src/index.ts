@@ -153,6 +153,10 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 import { companiesRouter } from './routes/companies-simple.js';
 import { contactsRouter } from './routes/contacts-simple.js';
 import { agentsRouter } from './routes/agents-simple.js';
+import { analyticsRouter } from './routes/analytics.js';
+import { eventsRouter } from './routes/events.js';
+import { cockpitRouter } from './routes/cockpit.js';
+import { aiRouter as aiRoutesRouter } from './routes/ai.js';
 
 // Mount CRM routes
 app.use('/v1/companies', companiesRouter);
@@ -160,6 +164,18 @@ app.use('/v1/contacts', contactsRouter);
 
 // Mount Agent routes  
 app.use('/v1/agents', agentsRouter);
+
+// Mount Analytics routes
+app.use('/v1/analytics', analyticsRouter);
+
+// Mount Events (SSE) routes
+app.use('/v1/events', eventsRouter);
+
+// Mount Cockpit routes
+app.use('/v1/cockpit', cockpitRouter);
+
+// Mount AI routes
+app.use('/v1/ai', aiRoutesRouter);
 
 // Middleware de Feature Flags (agregar información a todas las respuestas)
 app.use(featureFlagInfoMiddleware());
@@ -533,15 +549,24 @@ registerDefaultServices();
 
 initializeExampleWorkflows();
 
+// Import health modes
+import { healthModeManager } from './lib/health-modes.js';
+
 // Enhanced Health check endpoints
 app.get("/health/live", async (req, res) => {
   try {
-    const result = await healthMonitor.getLivenessProbe();
-    res.json(result);
+    const result = await healthModeManager.getLivenessProbe();
+    const statusCode = result.status === 'ok' ? 200 : 503;
+    
+    // Add X-System-Mode header
+    res.set('X-System-Mode', result.mode);
+    res.status(statusCode).json(result);
   } catch (error) {
     res.status(503).json({
-      status: "unhealthy",
+      status: "error",
+      mode: "degraded",
       timestamp: new Date().toISOString(),
+      version: process.env.npm_package_version || '1.0.0',
       error: (error as Error).message
     });
   }
@@ -552,13 +577,18 @@ createChaosToggleEndpoints(app);
 
 app.get("/health/ready", async (req, res) => {
   try {
-    const result = await healthMonitor.getReadinessProbe();
-    const statusCode = result.status === 'healthy' ? 200 : 503;
+    const result = await healthModeManager.getReadinessProbe();
+    const statusCode = result.status === 'ok' ? 200 : 503;
+    
+    // Add X-System-Mode header
+    res.set('X-System-Mode', result.mode);
     res.status(statusCode).json(result);
   } catch (error) {
     res.status(503).json({
-      status: "unhealthy",
+      status: "error",
+      mode: "degraded", 
       timestamp: new Date().toISOString(),
+      version: process.env.npm_package_version || '1.0.0',
       error: (error as Error).message
     });
   }
@@ -568,11 +598,16 @@ app.get("/health", (req, res) => {
   // ECONEURA spec: /health MUST NOT touch DB/externals and respond <200ms
   const ts = new Date().toISOString();
   const version = process.env.npm_package_version || "1.0.0";
+  const currentMode = healthModeManager.getCurrentMode();
+  
+  // Add X-System-Mode header
+  res.set('X-System-Mode', currentMode);
   
   res.status(200).json({
     status: "ok",
     ts,
-    version
+    version,
+    mode: currentMode
   });
 });
 
