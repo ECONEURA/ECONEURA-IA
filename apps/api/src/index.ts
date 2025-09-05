@@ -37,11 +37,38 @@ import { graphWrappersRouter } from './routes/graph-wrappers.js';
 import { hitlV2Router } from './routes/hitl-v2.js';
 import { stripeReceiptsRouter } from './routes/stripe-receipts.js';
 import { inventoryKardexRouter } from './routes/inventory-kardex.js';
+import { supplierScorecardRouter } from './routes/supplier-scorecard.js';
+import { interactionsSasAvRouter } from './routes/interactions-sas-av.js';
+import { companiesTaxonomyRouter } from './routes/companies-taxonomy.js';
+import { contactsDedupeRouter } from './routes/contacts-dedupe.js';
+import { dealsNBARouter } from './routes/deals-nba.js';
+import { dunning3ToquesRouter } from './routes/dunning-3-toques.js';
+import { fiscalidadRegionalRouter } from './routes/fiscalidad-regional.js';
+import { rlsGenerativaRouter } from './routes/rls-generativa.js';
+import { blueGreenDeploymentRouter } from './routes/blue-green-deployment.js';
+import { semanticSearchCRMRouter } from './routes/semantic-search-crm.js';
+import { performanceRouter } from './routes/performance.js';
+import { statusRouter } from './routes/status.js';
+import { reportesMensualesRouter } from './routes/reportes-mensuales.js';
+import { performanceOptimizerService } from './lib/performance-optimizer.service.js';
+import { errorManagerService } from './lib/error-manager.service.js';
+import { securityManagerService } from './lib/security-manager.service.js';
+import { errorHandler as errorHandlerMiddleware, notFoundHandler, asyncHandler } from './middleware/error-handler.js';
+import { 
+  rateLimitMiddleware, 
+  jwtAuthMiddleware, 
+  csrfMiddleware, 
+  sanitizeMiddleware, 
+  securityHeadersMiddleware,
+  suspiciousActivityMiddleware,
+  securityLoggingMiddleware
+} from './middleware/security.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Initialize services
+structuredLogger.info('Initializing ECONEURA API services...');
 const errorHandler = new ErrorHandler();
 const budgetManager = new BudgetManagerService();
 const costTracker = new CostTrackerService();
@@ -49,7 +76,7 @@ const costOptimizer = new CostOptimizerService();
 const sepaParser = new SEPAParserService();
 // PR-25 & PR-47: Biblioteca de prompts + Warmup (simplified)
 
-// Security middleware (PR-28)
+// Security middleware (PR-28) + MEJORA 4
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -66,6 +93,13 @@ app.use(helmet({
     preload: true
   }
 }));
+
+// Aplicar middleware de seguridad avanzada - MEJORA 4
+app.use(securityHeadersMiddleware);
+app.use(sanitizeMiddleware);
+app.use(suspiciousActivityMiddleware);
+app.use(securityLoggingMiddleware);
+app.use(rateLimitMiddleware(100)); // 100 requests per 15 minutes
 
 // CORS configuration (PR-28)
 app.use(cors({
@@ -897,6 +931,21 @@ app.get("/", (req, res) => {
       "PR-32: HITL v2",
       "PR-33: Stripe receipts + conciliación",
       "PR-34: Inventory Kardex + alertas",
+      "PR-35: Supplier scorecard",
+      "PR-36: Interactions SAS + AV",
+      "PR-37: Companies taxonomía & vistas",
+      "PR-38: Contacts dedupe proactivo",
+      "PR-39: Deals NBA explicable",
+      "PR-40: Dunning 3-toques",
+      "PR-41: Fiscalidad regional",
+      "PR-44: Suite RLS generativa",
+      "PR-50: Blue/green + gates",
+      "PR-53: Búsqueda semántica CRM",
+      "MEJORA-1: Optimización de rendimiento y memoria",
+      "MEJORA-2: Gestión de errores centralizada",
+      "MEJORA-3: Consolidación de endpoints",
+      "MEJORA-4: Seguridad avanzada",
+      "PR-54: Reportes mensuales PDF",
       "SSE: Real-time events and notifications",
       "Cockpit: Operational dashboard endpoints",
       "Cache: Advanced caching with statistics",
@@ -983,7 +1032,90 @@ app.get("/", (req, res) => {
         "GET /v1/inventory/alerts - Get inventory alerts (PR-34)",
         "POST /v1/inventory/cycle-counts - Create cycle count (PR-34)",
         "POST /v1/inventory/reports - Generate inventory reports (PR-34)",
-        "GET /v1/inventory/stats - Get inventory statistics (PR-34)"
+        "GET /v1/inventory/stats - Get inventory statistics (PR-34)",
+        "GET /v1/suppliers/suppliers - Get suppliers with filters (PR-35)",
+        "POST /v1/suppliers/suppliers - Create new supplier (PR-35)",
+        "GET /v1/suppliers/evaluations - Get supplier evaluations (PR-35)",
+        "POST /v1/suppliers/evaluations - Create supplier evaluation (PR-35)",
+        "GET /v1/suppliers/performance - Get supplier performance (PR-35)",
+        "POST /v1/suppliers/comparisons - Create supplier comparison (PR-35)",
+        "POST /v1/suppliers/reports - Generate supplier reports (PR-35)",
+        "GET /v1/suppliers/stats - Get supplier statistics (PR-35)",
+        "GET /v1/interactions/interactions - Get interactions with filters (PR-36)",
+        "POST /v1/interactions/interactions - Create new interaction (PR-36)",
+        "POST /v1/interactions/analyze/sentiment - Analyze sentiment (PR-36)",
+        "POST /v1/interactions/analyze/voice - Analyze voice (PR-36)",
+        "GET /v1/interactions/insights/sentiment - Get sentiment insights (PR-36)",
+        "GET /v1/interactions/insights/voice - Get voice insights (PR-36)",
+        "POST /v1/interactions/reports - Generate interaction reports (PR-36)",
+        "GET /v1/interactions/stats - Get interaction statistics (PR-36)",
+        "GET /v1/companies/companies - Get companies with filters (PR-37)",
+        "POST /v1/companies/companies - Create new company (PR-37)",
+        "GET /v1/companies/views - Get company views (PR-37)",
+        "POST /v1/companies/views - Create company view (PR-37)",
+        "GET /v1/companies/taxonomies - Get taxonomies (PR-37)",
+        "POST /v1/companies/taxonomies - Create taxonomy (PR-37)",
+        "POST /v1/companies/reports - Generate company reports (PR-37)",
+        "GET /v1/companies/stats - Get company statistics (PR-37)",
+        "GET /v1/contacts/contacts - Get contacts with filters (PR-38)",
+        "POST /v1/contacts/contacts - Create new contact (PR-38)",
+        "POST /v1/contacts/contacts/:id/check-duplicates - Check for duplicates (PR-38)",
+        "POST /v1/contacts/dedupe/scan - Run dedupe scan (PR-38)",
+        "GET /v1/contacts/dedupe/jobs - Get dedupe jobs (PR-38)",
+        "GET /v1/contacts/stats - Get dedupe statistics (PR-38)",
+        "GET /v1/deals/deals - Get deals with filters (PR-39)",
+        "GET /v1/deals/deals/:id - Get deal details (PR-39)",
+        "POST /v1/deals/deals/:id/analyze - Analyze deal with NBA (PR-39)",
+        "GET /v1/deals/insights - Get NBA insights (PR-39)",
+        "GET /v1/deals/stats - Get NBA statistics (PR-39)",
+        "GET /v1/dunning/invoices - Get invoices with filters (PR-40)",
+        "GET /v1/dunning/invoices/:id - Get invoice details (PR-40)",
+        "POST /v1/dunning/dunning/start - Start dunning process (PR-40)",
+        "POST /v1/dunning/campaigns - Create dunning campaign (PR-40)",
+        "POST /v1/dunning/campaigns/:id/execute - Execute campaign (PR-40)",
+        "GET /v1/dunning/stats - Get dunning statistics (PR-40)",
+        "GET /v1/fiscalidad/regions - Get tax regions (PR-41)",
+        "POST /v1/fiscalidad/regions - Create tax region (PR-41)",
+        "GET /v1/fiscalidad/vat-transactions - Get VAT transactions (PR-41)",
+        "POST /v1/fiscalidad/vat-transactions - Create VAT transaction (PR-41)",
+        "GET /v1/fiscalidad/vat-returns - Get VAT returns (PR-41)",
+        "POST /v1/fiscalidad/vat-returns - Create VAT return (PR-41)",
+        "GET /v1/fiscalidad/withholding-taxes - Get withholding taxes (PR-41)",
+        "POST /v1/fiscalidad/calculate-vat - Calculate VAT (PR-41)",
+        "POST /v1/fiscalidad/validate-vat-number - Validate VAT number (PR-41)",
+        "GET /v1/fiscalidad/stats - Get tax statistics (PR-41)",
+        "GET /v1/rls/policies - Get RLS policies (PR-44)",
+        "POST /v1/rls/policies - Create RLS policy (PR-44)",
+        "GET /v1/rls/rules - Get RLS rules (PR-44)",
+        "POST /v1/rls/rules - Create RLS rule (PR-44)",
+        "POST /v1/rls/evaluate-access - Evaluate access (PR-44)",
+        "POST /v1/rls/generate-policy - Generate RLS policy (PR-44)",
+        "GET /v1/rls/stats - Get RLS statistics (PR-44)",
+        "GET /v1/deployments/environments - Get deployment environments (PR-50)",
+        "GET /v1/deployments/gates - Get deployment gates (PR-50)",
+        "POST /v1/deployments/gates - Create deployment gate (PR-50)",
+        "GET /v1/deployments/pipelines - Get deployment pipelines (PR-50)",
+        "POST /v1/deployments/pipelines - Create deployment pipeline (PR-50)",
+        "POST /v1/deployments/rollback - Trigger rollback (PR-50)",
+        "GET /v1/deployments/stats - Get deployment statistics (PR-50)",
+        "POST /v1/semantic-search/documents - Index document (PR-53)",
+        "GET /v1/semantic-search/documents/:id - Get document (PR-53)",
+        "POST /v1/semantic-search/search - Semantic search (PR-53)",
+        "GET /v1/semantic-search/indexes - Get search indexes (PR-53)",
+        "POST /v1/semantic-search/indexes - Create search index (PR-53)",
+        "POST /v1/semantic-search/suggestions - Get search suggestions (PR-53)",
+        "GET /v1/semantic-search/stats - Get search statistics (PR-53)",
+        "GET /v1/performance/metrics - Get performance metrics (MEJORA-1)",
+        "GET /v1/performance/stats - Get performance statistics (MEJORA-1)",
+        "GET /v1/status - Get system status (MEJORA-3)",
+        "GET /v1/status/summary - Get system summary (MEJORA-3)",
+        "GET /v1/status/health - Get consolidated health check (MEJORA-3)",
+        "POST /v1/reportes - Create monthly report (PR-54)",
+        "GET /v1/reportes - Get all reports (PR-54)",
+        "POST /v1/reportes/generar - Generate report (PR-54)",
+        "GET /v1/reportes/plantillas - Get report templates (PR-54)",
+        "POST /v1/reportes/programar - Schedule report (PR-54)",
+        "GET /v1/reportes/stats - Get report statistics (PR-54)"
       ],
       events: [
         "GET /v1/events - Server-Sent Events for real-time updates",
@@ -1062,6 +1194,23 @@ app.use('/v1/graph', graphWrappersRouter);
 app.use('/v1/hitl', hitlV2Router);
 app.use('/v1/stripe', stripeReceiptsRouter);
 app.use('/v1/inventory', inventoryKardexRouter);
+app.use('/v1/suppliers', supplierScorecardRouter);
+app.use('/v1/interactions', interactionsSasAvRouter);
+app.use('/v1/companies', companiesTaxonomyRouter);
+app.use('/v1/contacts', contactsDedupeRouter);
+app.use('/v1/deals', dealsNBARouter);
+app.use('/v1/dunning', dunning3ToquesRouter);
+app.use('/v1/fiscalidad', fiscalidadRegionalRouter);
+app.use('/v1/rls', rlsGenerativaRouter);
+app.use('/v1/deployments', blueGreenDeploymentRouter);
+app.use('/v1/semantic-search', semanticSearchCRMRouter);
+
+// MEJORAS CRÍTICAS - Nuevos endpoints consolidados
+app.use('/v1/performance', performanceRouter);
+app.use('/v1/status', statusRouter);
+
+// PR-54: Reportes mensuales PDF
+app.use('/v1/reportes', reportesMensualesRouter);
 
 // Mount Events (SSE) routes
 app.use('/v1/events', eventsRouter);
@@ -1178,5 +1327,9 @@ process.on('SIGINT', () => {
     process.exit(0);
   });
 });
+
+// Error handling middleware - MEJORA 2
+app.use(errorHandlerMiddleware);
+app.use(notFoundHandler);
 
 export default app;
