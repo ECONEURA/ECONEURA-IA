@@ -6,11 +6,17 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "dev:minimal": "tsx watch src/index-minimal.ts",
     "build": "tsc",
+    "build:minimal": "npx esbuild src/index-minimal.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/index.js --external:express --external:cors",
     "start": "node dist/index.js",
-    "clean": "rm -rf dist"
+    "start:minimal": "node -r ./dist/index.js",
+    "clean": "rm -rf dist",
+    "deploy:build": "npm run clean && npm run build:minimal",
+    "health:check": "curl -f http://localhost:${PORT:-4000}/health || exit 1"
   },
   "dependencies": {
+    "@econeura/agents": "file:../../packages/agents",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/ws": "^8.18.1",
     "cors": "^2.8.5",
