@@ -63,6 +63,7 @@ import { AdvancedSecurityService } from "./lib/advanced-security.service.js";
 import { ComplianceManagementService } from "./lib/compliance-management.service.js";
 import { ComprehensiveAuditService } from "./lib/comprehensive-audit.service.js";
 import { ThreatDetectionService } from "./lib/threat-detection.service.js";
+import { chaosMiddleware, createChaosToggleEndpoints } from "./middleware/chaos.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -153,6 +154,9 @@ app.use(featureFlagInfoMiddleware());
 
 // Middleware de observabilidad
 app.use(observabilityMiddleware);
+
+// Chaos engineering (light) - enable via env CHAOS_ENABLED=true
+app.use(chaosMiddleware());
 
 // Middleware de rate limiting (aplicar antes de las rutas)
 app.use(rateLimitMiddleware);
@@ -530,6 +534,9 @@ app.get("/health/live", async (req, res) => {
     });
   }
 });
+
+// Chaos toggle/control endpoints
+createChaosToggleEndpoints(app);
 
 app.get("/health/ready", async (req, res) => {
   try {
