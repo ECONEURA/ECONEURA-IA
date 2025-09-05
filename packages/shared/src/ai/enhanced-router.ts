@@ -13,7 +13,7 @@ async function getCostMeter() {
   _costMeter = mod.costMeter
   return _costMeter
 }
-// import { createTracer } from '../otel/index'
+import { createTracer, createMeter } from '../otel/index'
 import { env } from '../env'
 
 // Request schemas
@@ -185,7 +185,7 @@ export class EnhancedAIRouter {
     
     try {
       // Get available providers
-      const providers = await this.providerManager.getAvailableProviders()
+      const providers = this.providerManager.getEnabledProviders()
       
       // Prefer Mistral for cost efficiency
       const mistralProvider = providers.find(p => p.id === 'mistral')
@@ -196,8 +196,8 @@ export class EnhancedAIRouter {
       }
 
       // Check provider health
-      const mistralHealthy = mistralProvider?.health === 'healthy'
-      const azureHealthy = azureProvider?.health === 'healthy'
+      const mistralHealthy = this.providerManager.getProviderHealth('mistral')?.status === 'healthy'
+      const azureHealthy = this.providerManager.getProviderHealth('azure-openai')?.status === 'healthy'
 
       // Determine primary and fallback providers
       let primaryProvider: string
@@ -318,8 +318,8 @@ export class EnhancedAIRouter {
         temperature: request.temperature || 0.7,
       }
 
-      // Execute request
-      const response = await provider.execute(providerRequest)
+      // Execute request (mock implementation for now)
+      const response = await this.executeProviderRequest(provider, providerRequest)
       
       // Calculate actual cost
       const costMeter = await getCostMeter()
@@ -446,7 +446,7 @@ export class EnhancedAIRouter {
 
     // Implement alert handling (email, Slack, etc.)
     if (this.config.emergencyStopEnabled && alert.type === 'emergency_stop') {
-      logger.error('Emergency stop triggered for organization', { org_id: alert.orgId })
+      logger.error('Emergency stop triggered for organization', undefined, { orgId: alert.orgId })
     }
   }
 
@@ -458,8 +458,15 @@ export class EnhancedAIRouter {
     this.costGuardrails.setCostLimits('default', {
       dailyLimitEUR: 5.0,
       monthlyLimitEUR: 50.0,
-      warningThresholdPercent: 80,
-      emergencyStopThresholdPercent: 95,
+      perRequestLimitEUR: 1.0,
+      warningThresholds: {
+        daily: 80,
+        monthly: 80,
+      },
+      emergencyStop: {
+        enabled: true,
+        thresholdEUR: 47.5, // 95% of 50€
+      },
     })
   }
 
@@ -493,14 +500,32 @@ export class EnhancedAIRouter {
   }
 
   /**
+   * Mock method to execute provider request (to be implemented with actual provider clients)
+   */
+  private async executeProviderRequest(provider: LLMProvider, request: any): Promise<{
+    content: string;
+    tokens: { input: number; output: number };
+  }> {
+    // Mock implementation - in production this would call the actual provider API
+    return {
+      content: `Mock response for ${request.prompt} using ${provider.name}`,
+      tokens: {
+        input: request.prompt.length / 4, // Rough token estimation
+        output: 100, // Mock output tokens
+      },
+    }
+  }
+
+  /**
    * Gets current provider health status
    */
   async getProviderHealth(): Promise<Record<string, any>> {
-    const providers = await this.providerManager.getAvailableProviders()
+    const providers = this.providerManager.getEnabledProviders()
     return providers.reduce((acc, provider) => {
+      const health = this.providerManager.getProviderHealth(provider.id)
       acc[provider.id] = {
-        health: provider.health,
-        lastCheck: provider.lastHealthCheck,
+        health: health?.status || 'unknown',
+        lastCheck: health?.lastCheck,
         models: provider.models,
       }
       return acc

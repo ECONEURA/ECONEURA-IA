@@ -153,7 +153,7 @@ class CostMeter {
         .orderBy(aiCostUsage.timestamp)
         .execute()
       
-      return result.map(row => ({
+      return result.map((row: any) => ({
         orgId: row.orgId,
         model: row.model,
         inputTokens: row.inputTokens,
@@ -195,8 +195,8 @@ class CostMeter {
         )
         .execute()
       
-      const totalCost = result.reduce((sum, row) => sum + Number(row.totalCost), 0)
-      const totalRequests = result.reduce((sum, row) => sum + Number(row.count), 0)
+      const totalCost = result.reduce((sum: number, row: any) => sum + Number(row.totalCost), 0)
+      const totalRequests = result.reduce((sum: number, row: any) => sum + Number(row.count), 0)
       
       return {
         totalCost,

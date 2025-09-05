@@ -1,12 +1,12 @@
 // Types (legacy)
-export * as LegacyTypes from './types/index.ts';
+export * as LegacyTypes from './types/index';
 
 // Schemas - Export all new schemas
-export * from './schemas/common.ts';
-export * from './schemas/auth.ts';
-export * from './schemas/crm.ts';
-export * from './schemas/erp.ts';
-export * from './schemas/finance.ts';
+export * from './schemas/common';
+export * from './schemas/auth';
+export * from './schemas/crm';
+export * from './schemas/erp';
+export * from './schemas/finance';
 
 // Re-export legacy schemas from index for backward compatibility
 export {
@@ -41,28 +41,28 @@ export {
   type SendMessage,
   type UpdateOrgLimits,
   type MetricsQuery,
-} from './schemas/index.ts';
+} from './schemas/index';
 
 // Security utilities
-export * from './security/index.ts';
+export * from './security/index';
 
 // Logging
-export * from './logging/index.ts';
+export * from './logging/index';
 
 // Metrics
-export * from './metrics/index.ts';
+export * from './metrics/index';
 
 // AI Router
-export { AIRouter, createAIRouter, type RouterDecision, type RouterConfig } from './ai/router.ts';
-export { EnhancedAIRouter, type EnhancedAIRequest, type EnhancedRouterDecision, type AIRouterConfig } from './ai/enhanced-router.ts';
-export { CostGuardrails, type CostLimits, type CostAlert, type UsageMetrics } from './ai/cost-guardrails.ts';
-export { LLMProviderManager, type LLMProvider, type LLMModel, type ProviderHealth } from './ai/providers.ts';
+export { AIRouter, createAIRouter, type RouterDecision, type RouterConfig } from './ai/router';
+export { EnhancedAIRouter, type AIRequest, type AIResponse } from './ai/enhanced-router';
+export { CostGuardrails, type CostLimits, type CostAlert, type UsageMetrics } from './ai/cost-guardrails';
+export { LLMProviderManager, type LLMProvider, type LLMModel, type ProviderHealth } from './ai/providers';
 
 // Environment and configuration
-export { env, getEnv } from './env.ts';
+export { env, getEnv } from './env';
 
 // OpenTelemetry
-export * from './otel/index.ts';
+export * from './otel/index';
 
 // Cost metering
 // Avoid exporting cost-meter in Next.js build contexts to prevent resolution of @econeura/db
