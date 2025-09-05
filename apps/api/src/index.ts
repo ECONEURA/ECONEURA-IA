@@ -50,6 +50,10 @@ import dealsNBARouter from './routes/deals-nba.js';
 import { dunning3ToquesService } from './lib/dunning-3-toques.service.js';
 import dunning3ToquesRouter from './routes/dunning-3-toques.js';
 
+// PR-55: Fiscalidad Regional UE
+import { fiscalidadRegionalUEService } from './lib/fiscalidad-regional-ue.service.js';
+import fiscalidadRegionalUERouter from './routes/fiscalidad-regional-ue.js';
+
 // Import middlewares (PR-27, PR-28, PR-29)
 import { observabilityMiddleware } from './middleware/observability.js';
 import { finOpsMiddleware } from './middleware/finops.js';
@@ -1275,6 +1279,9 @@ app.use('/v1/deals-nba', dealsNBARouter);
 // PR-54: Dunning 3-toques Routes
 app.use('/v1/dunning-3-toques', dunning3ToquesRouter);
 
+// PR-55: Fiscalidad Regional UE Routes
+app.use('/v1/fiscalidad-regional-ue', fiscalidadRegionalUERouter);
+
 // Mount Events (SSE) routes
 app.use('/v1/events', eventsRouter);
 
@@ -1529,6 +1536,24 @@ const server = app.listen(PORT, async () => {
     });
   } catch (error) {
     structuredLogger.error('Failed to initialize dunning 3-toques service', {
+      error: error instanceof Error ? error.message : String(error),
+      requestId: ''
+    });
+  }
+
+  // PR-55: Initialize Fiscalidad Regional UE Service
+  try {
+    structuredLogger.info('Initializing fiscalidad regional UE service...', {
+      requestId: ''
+    });
+    const stats = fiscalidadRegionalUEService.getStats();
+    structuredLogger.info('Fiscalidad regional UE service initialized', {
+      totalRegions: stats.totalRegions,
+      activeRegions: stats.activeRegions,
+      requestId: ''
+    });
+  } catch (error) {
+    structuredLogger.error('Failed to initialize fiscalidad regional UE service', {
       error: error instanceof Error ? error.message : String(error),
       requestId: ''
     });

@@ -506,6 +506,44 @@ export const dunningEffectivenessScore = new Histogram({
   registers: [register],
 });
 
+// Fiscalidad Regional UE Metrics (PR-55)
+export const fiscalidadTaxCalculations = new Counter({
+  name: 'econeura_fiscalidad_tax_calculations_total',
+  help: 'Total number of tax calculations performed',
+  labelNames: ['organization_id', 'region', 'tax_type'],
+  registers: [register],
+});
+
+export const fiscalidadComplianceChecks = new Counter({
+  name: 'econeura_fiscalidad_compliance_checks_total',
+  help: 'Total number of compliance checks performed',
+  labelNames: ['organization_id', 'region', 'status'],
+  registers: [register],
+});
+
+export const fiscalidadTaxCollected = new Counter({
+  name: 'econeura_fiscalidad_tax_collected_total',
+  help: 'Total amount of tax collected',
+  labelNames: ['organization_id', 'region', 'currency'],
+  registers: [register],
+});
+
+export const fiscalidadProcessingDuration = new Histogram({
+  name: 'econeura_fiscalidad_processing_duration_seconds',
+  help: 'Duration of fiscalidad processing in seconds',
+  labelNames: ['organization_id'],
+  buckets: [0.1, 0.5, 1, 2, 5, 10, 30, 60, 120, 300],
+  registers: [register],
+});
+
+export const fiscalidadComplianceRate = new Histogram({
+  name: 'econeura_fiscalidad_compliance_rate',
+  help: 'Compliance rate for fiscalidad operations',
+  labelNames: ['organization_id', 'region'],
+  buckets: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+  registers: [register],
+});
+
 // Helper functions for recording metrics
 export function recordAIRequest(
   org: string,
@@ -655,6 +693,13 @@ dunningStepsExecuted,
 dunningInvoicesPaid,
 dunningProcessingDuration,
 dunningEffectivenessScore,
+
+// Fiscalidad Regional UE metrics (PR-55)
+fiscalidadTaxCalculations,
+fiscalidadComplianceChecks,
+fiscalidadTaxCollected,
+fiscalidadProcessingDuration,
+fiscalidadComplianceRate,
 };
 
 // Export the register for /metrics endpoint
