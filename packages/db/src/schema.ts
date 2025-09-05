@@ -1,6 +1,17 @@
-// import { Pool, PoolClient, QueryResult } from 'pg'
-// import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
-import { z } from 'zod'
+import { z } from 'zod';
+import { 
+  pgTable, 
+  uuid, 
+  text, 
+  timestamp, 
+  jsonb, 
+  boolean, 
+  integer, 
+  decimal, 
+  index, 
+  uniqueIndex 
+} from 'drizzle-orm/pg-core';
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 
 // Organizations table
 export const organizations = pgTable('organizations', {
@@ -343,6 +354,177 @@ export const selectDealSchema = createSelectSchema(deals)
 export const insertInvoiceSchema = createInsertSchema(invoices)
 export const selectInvoiceSchema = createSelectSchema(invoices)
 
+// Agent runs table
+export const agentRuns = pgTable('agent_runs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orgId: text('org_id').notNull(), // RLS key
+  agentId: text('agent_id').notNull(),
+  status: text('status').notNull().default('pending'), // pending, running, completed, failed, cancelled
+  inputs: jsonb('inputs'),
+  outputs: jsonb('outputs'),
+  context: jsonb('context').notNull(),
+  startedAt: timestamp('started_at').defaultNow().notNull(),
+  completedAt: timestamp('completed_at'),
+  costEur: decimal('cost_eur', { precision: 10, scale: 4 }),
+  executionTimeMs: integer('execution_time_ms'),
+  error: text('error'),
+  retryCount: integer('retry_count').default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  orgIdIdx: index('agent_runs_org_id_idx').on(table.orgId),
+  agentIdIdx: index('agent_runs_agent_id_idx').on(table.agentId),
+  statusIdx: index('agent_runs_status_idx').on(table.status),
+  startedAtIdx: index('agent_runs_started_at_idx').on(table.startedAt),
+}))
+
+// Agent tasks table (for queued/scheduled agent executions)
+export const agentTasks = pgTable('agent_tasks', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orgId: text('org_id').notNull(), // RLS key
+  agentId: text('agent_id').notNull(),
+  status: text('status').notNull().default('queued'), // queued, processing, completed, failed
+  priority: integer('priority').default(5), // 1-10, lower is higher priority
+  inputs: jsonb('inputs'),
+  context: jsonb('context').notNull(),
+  scheduledFor: timestamp('scheduled_for'),
+  processedAt: timestamp('processed_at'),
+  completedAt: timestamp('completed_at'),
+  runId: uuid('run_id').references(() => agentRuns.id),
+  error: text('error'),
+  retryCount: integer('retry_count').default(0),
+  maxRetries: integer('max_retries').default(3),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  orgIdIdx: index('agent_tasks_org_id_idx').on(table.orgId),
+  agentIdIdx: index('agent_tasks_agent_id_idx').on(table.agentId),
+  statusIdx: index('agent_tasks_status_idx').on(table.status),
+  scheduledForIdx: index('agent_tasks_scheduled_for_idx').on(table.scheduledFor),
+  priorityIdx: index('agent_tasks_priority_idx').on(table.priority),
+}))
+
+// Agent key-value store (for agent state/cache)
+export const agentKv = pgTable('agent_kv', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orgId: text('org_id').notNull(), // RLS key
+  agentId: text('agent_id').notNull(),
+  key: text('key').notNull(),
+  value: jsonb('value'),
+  expiresAt: timestamp('expires_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  orgAgentKeyIdx: uniqueIndex('agent_kv_org_agent_key_idx').on(table.orgId, table.agentId, table.key),
+  expiresAtIdx: index('agent_kv_expires_at_idx').on(table.expiresAt),
+}))
+
+// Budgets table (for cost control)
+export const budgets = pgTable('budgets', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orgId: text('org_id').notNull(), // RLS key
+  name: text('name').notNull(),
+  type: text('type').notNull().default('monthly'), // monthly, weekly, daily
+  limitEur: decimal('limit_eur', { precision: 10, scale: 2 }).notNull(),
+  spentEur: decimal('spent_eur', { precision: 10, scale: 2 }).default('0'),
+  alertThresholds: jsonb('alert_thresholds').$type<number[]>().default([80, 90, 100]), // percentage thresholds
+  isActive: boolean('is_active').default(true),
+  startsAt: timestamp('starts_at').defaultNow().notNull(),
+  endsAt: timestamp('ends_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  orgIdIdx: index('budgets_org_id_idx').on(table.orgId),
+  typeIdx: index('budgets_type_idx').on(table.type),
+  isActiveIdx: index('budgets_is_active_idx').on(table.isActive),
+}))
+
+// Cost ledger table (for detailed cost tracking)
+export const costLedger = pgTable('cost_ledger', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orgId: text('org_id').notNull(), // RLS key
+  agentId: text('agent_id'),
+  runId: uuid('run_id').references(() => agentRuns.id),
+  provider: text('provider').notNull(), // mistral-local, azure-openai
+  model: text('model').notNull(),
+  inputTokens: integer('input_tokens').default(0),
+  outputTokens: integer('output_tokens').default(0),
+  costEur: decimal('cost_eur', { precision: 10, scale: 4 }).notNull(),
+  requestId: text('request_id'),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  orgIdIdx: index('cost_ledger_org_id_idx').on(table.orgId),
+  agentIdIdx: index('cost_ledger_agent_id_idx').on(table.agentId),
+  providerIdx: index('cost_ledger_provider_idx').on(table.provider),
+  createdAtIdx: index('cost_ledger_created_at_idx').on(table.createdAt),
+}))
+
+// Prompts table (for approved prompts)
+export const prompts = pgTable('prompts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orgId: text('org_id').notNull(), // RLS key
+  name: text('name').notNull(),
+  description: text('description'),
+  template: text('template').notNull(),
+  variables: jsonb('variables').$type<string[]>().default([]),
+  category: text('category'),
+  status: text('status').notNull().default('draft'), // draft, approved, deprecated
+  approvedBy: uuid('approved_by').references(() => users.id),
+  approvedAt: timestamp('approved_at'),
+  version: text('version').default('1.0.0'),
+  createdBy: uuid('created_by').references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  orgIdIdx: index('prompts_org_id_idx').on(table.orgId),
+  statusIdx: index('prompts_status_idx').on(table.status),
+  categoryIdx: index('prompts_category_idx').on(table.category),
+  nameIdx: index('prompts_name_idx').on(table.name),
+}))
+
+// Prompt approvals table (for approval workflow)
+export const promptApprovals = pgTable('prompt_approvals', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orgId: text('org_id').notNull(), // RLS key
+  promptId: uuid('prompt_id').references(() => prompts.id).notNull(),
+  requestedBy: uuid('requested_by').references(() => users.id).notNull(),
+  reviewedBy: uuid('reviewed_by').references(() => users.id),
+  status: text('status').notNull().default('pending'), // pending, approved, rejected
+  comments: text('comments'),
+  requestedAt: timestamp('requested_at').defaultNow().notNull(),
+  reviewedAt: timestamp('reviewed_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  orgIdIdx: index('prompt_approvals_org_id_idx').on(table.orgId),
+  promptIdIdx: index('prompt_approvals_prompt_id_idx').on(table.promptId),
+  statusIdx: index('prompt_approvals_status_idx').on(table.status),
+  requestedByIdx: index('prompt_approvals_requested_by_idx').on(table.requestedBy),
+}))
+
+// Zod schemas for new tables
+export const insertAgentRunSchema = createInsertSchema(agentRuns)
+export const selectAgentRunSchema = createSelectSchema(agentRuns)
+
+export const insertAgentTaskSchema = createInsertSchema(agentTasks)
+export const selectAgentTaskSchema = createSelectSchema(agentTasks)
+
+export const insertAgentKvSchema = createInsertSchema(agentKv)
+export const selectAgentKvSchema = createSelectSchema(agentKv)
+
+export const insertBudgetSchema = createInsertSchema(budgets)
+export const selectBudgetSchema = createSelectSchema(budgets)
+
+export const insertCostLedgerSchema = createInsertSchema(costLedger)
+export const selectCostLedgerSchema = createSelectSchema(costLedger)
+
+export const insertPromptSchema = createInsertSchema(prompts)
+export const selectPromptSchema = createSelectSchema(prompts)
+
+export const insertPromptApprovalSchema = createInsertSchema(promptApprovals)
+export const selectPromptApprovalSchema = createSelectSchema(promptApprovals)
+
 // Types
 export type Organization = z.infer<typeof selectOrganizationSchema>
 export type User = z.infer<typeof selectUserSchema>
@@ -350,6 +532,13 @@ export type Company = z.infer<typeof selectCompanySchema>
 export type Contact = z.infer<typeof selectContactSchema>
 export type Deal = z.infer<typeof selectDealSchema>
 export type Invoice = z.infer<typeof selectInvoiceSchema>
+export type AgentRun = z.infer<typeof selectAgentRunSchema>
+export type AgentTask = z.infer<typeof selectAgentTaskSchema>
+export type AgentKv = z.infer<typeof selectAgentKvSchema>
+export type Budget = z.infer<typeof selectBudgetSchema>
+export type CostLedger = z.infer<typeof selectCostLedgerSchema>
+export type Prompt = z.infer<typeof selectPromptSchema>
+export type PromptApproval = z.infer<typeof selectPromptApprovalSchema>
 
 
 

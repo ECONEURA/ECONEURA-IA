@@ -88,6 +88,10 @@ const rlsValidator = new RLSPolicyValidatorService();
 const rlsDeployer = new RLSPolicyDeployerService();
 const rlsCICD = new RLSCICDService();
 
+// Import route modules
+import agentRoutes from './routes/agents.js';
+import cockpitRoutes from './routes/cockpit.js';
+
 // Inicializar servicios FinOps
 const costTracker = new CostTrackerService();
 const budgetManager = new BudgetManagerService();
@@ -572,6 +576,12 @@ app.get("/v1/ping", (req, res) => {
     message: "pong"
   });
 });
+
+// Agent routes
+app.use('/v1/agents', agentRoutes);
+
+// Cockpit routes
+app.use('/v1/cockpit', cockpitRoutes);
 
 app.get("/health/detailed", async (req, res) => {
   try {

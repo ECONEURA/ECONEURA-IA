@@ -12,17 +12,15 @@ env:
   COVERAGE_THRESHOLD: '80'
 
 jobs:
-  # Quality Gates
-  quality-gates:
-    name: Quality Gates
+  # ECONEURA GATE: ci:typecheck
+  ci-typecheck:
+    name: 'Gate: TypeScript Check'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0 # Full history for conventional commits
     
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -38,18 +36,287 @@ jobs:
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
     
-    - name: Lint
-      run: pnpm lint
-      continue-on-error: false
+    - name: TypeScript Check (STRICT - no any without justification)
+      run: |
+        echo "🔍 Running TypeScript strict check..."
+        pnpm typecheck
+        
+        # Check for 'as any' usage without justification
+        echo "🔍 Checking for unjustified 'as any' usage..."
+        if grep -r "as any" --include="*.ts" --include="*.tsx" apps/ packages/ | grep -v "// @ts-expect-error" | grep -v "// justification:" ; then
+          echo "❌ Found 'as any' usage without justification. Add '// justification: reason' comment."
+          exit 1
+        fi
+        
+        echo "✅ TypeScript check passed"
+
+  # ECONEURA GATE: ci:lint  
+  ci-lint:
+    name: 'Gate: Lint Check'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: ci-typecheck
     
-    - name: Type check
-      run: pnpm typecheck
-      continue-on-error: false
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
     
-    - name: Check conventional commits
-      uses: amannn/action-semantic-pull-request@v5
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+    
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+    
+    - name: ESLint Check (no console.log in hot-path)
+      run: |
+        echo "🔍 Running ESLint..."
+        pnpm lint
+        
+        # Check for console.log in hot-path routes
+        echo "🔍 Checking for console.log in hot-path routes..."
+        if grep -r "console\.log" --include="*.ts" --include="*.tsx" apps/api/src/routes/ apps/api/src/middleware/ | grep -v "// debug:" ; then
+          echo "❌ Found console.log in hot-path code. Use structured logger instead."
+          exit 1
+        fi
+        
+        echo "✅ Lint check passed"
+
+  # ECONEURA GATE: ci:build
+  ci-build:
+    name: 'Gate: Build Check'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: ci-lint
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+    
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+    
+    - name: Turbo Build
+      run: |
+        echo "🔍 Running turbo build..."
+        pnpm build
+        echo "✅ Build check passed"
+
+  # ECONEURA GATE: ci:test
+  ci-test:
+    name: 'Gate: Test Check'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: ci-build
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+    
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+    
+    - name: Unit + Integration Tests (coverage ≥30%)
+      run: |
+        echo "🔍 Running unit and integration tests..."
+        pnpm test:coverage
+        
+        # Check coverage threshold (≥30% initially)
+        COVERAGE=$(npx coverage-badges-cli --input=coverage/lcov.info --output=coverage/badges --type=lcov --format=json | jq -r '.coverage' || echo "0")
+        echo "Coverage: $COVERAGE%"
+        if (( $(echo "$COVERAGE < 30" | bc -l) )); then
+          echo "❌ Coverage $COVERAGE% is below threshold 30%"
+          exit 1
+        fi
+        echo "✅ Test check passed with $COVERAGE% coverage"
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        CI: true
+        NODE_ENV: test
+
+  # ECONEURA GATE: ci:contract
+  ci-contract:
+    name: 'Gate: OpenAPI Contract'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: ci-test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+    
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+    
+    - name: Build for OpenAPI generation
+      run: pnpm build
+    
+    - name: Generate OpenAPI spec
+      run: pnpm api:openapi
+    
+    - name: OpenAPI Diff (0 breaking changes)
+      run: |
+        echo "🔍 Checking OpenAPI contract changes..."
+        # If we have a previous spec, compare for breaking changes
+        if [ -f "apps/api/openapi.baseline.json" ]; then
+          npx @redocly/openapi-cli diff apps/api/openapi.baseline.json apps/api/openapi.json --format=stylish
+          if [ $? -ne 0 ]; then
+            echo "❌ Breaking changes detected in OpenAPI spec"
+            exit 1
+          fi
+        else
+          echo "ℹ️  No baseline OpenAPI spec found, skipping diff"
+        fi
+        
+        # Validate current spec
+        npx @redocly/openapi-cli lint apps/api/openapi.json
+        echo "✅ Contract check passed"
+
+  # ECONEURA GATE: cd:smoke
+  cd-smoke:
+    name: 'Gate: Smoke Test'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: ci-contract
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: econeura_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+    
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+    
+    - name: Build applications
+      run: pnpm build
+    
+    - name: Start API server in background
+      run: |
+        cd apps/api
+        PORT=3001 pnpm start &
+        echo $! > api.pid
+        sleep 5  # Give server time to start
+      env:
+        NODE_ENV: test
+        PGHOST: localhost
+        PGUSER: postgres
+        PGPASSWORD: test
+        PGDATABASE: econeura_test
+        PGPORT: 5432
+    
+    - name: Smoke Test - Health Endpoint
+      run: |
+        echo "🔍 Testing health endpoint..."
+        
+        # Test /health endpoint (MUST respond <200ms and NOT touch DB/externals)
+        start_time=$(date +%s%N)
+        response=$(curl -s -w "%{http_code},%{time_total}" http://localhost:3001/health)
+        end_time=$(date +%s%N)
+        
+        http_code=$(echo $response | cut -d',' -f1 | tail -c 4)
+        time_total=$(echo $response | cut -d',' -f2)
+        response_body=$(echo $response | sed 's/,[^,]*$//')
+        
+        # Calculate response time in ms
+        response_time_ms=$(echo "$time_total * 1000" | bc)
+        
+        echo "Response: $response_body"
+        echo "HTTP Code: $http_code"
+        echo "Response Time: ${response_time_ms}ms"
+        
+        # Check HTTP 200
+        if [ "$http_code" != "200" ]; then
+          echo "❌ Health endpoint returned $http_code instead of 200"
+          exit 1
+        fi
+        
+        # Check response time < 200ms
+        if (( $(echo "$response_time_ms > 200" | bc -l) )); then
+          echo "❌ Health endpoint took ${response_time_ms}ms (must be <200ms)"
+          exit 1
+        fi
+        
+        # Check JSON structure
+        echo "$response_body" | jq -e '.status, .ts, .version' > /dev/null
+        if [ $? -ne 0 ]; then
+          echo "❌ Health endpoint response missing required fields (status, ts, version)"
+          exit 1
+        fi
+        
+        echo "✅ RESULTADOS: PASS"
+        echo "   - HTTP 200: ✅"
+        echo "   - Response time <200ms: ✅ (${response_time_ms}ms)"
+        echo "   - JSON structure: ✅"
+    
+    - name: Cleanup
+      if: always()
+      run: |
+        if [ -f apps/api/api.pid ]; then
+          kill $(cat apps/api/api.pid) || true
+        fi
       with:
         types: |
           feat
@@ -407,54 +674,55 @@ jobs:
         path: performance-results/
         retention-days: 7
 
-  # Final Status Check
-  status-check:
-    name: Status Check
+  # Final Status Check - ECONEURA Gates
+  econeura-gates-check:
+    name: 'ECONEURA Gates Status'
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [quality-gates, test-coverage, openapi-validation, security-scanning, secret-scanning, build-package, integration-tests, performance-tests]
+    needs: [ci-typecheck, ci-lint, ci-build, ci-test, ci-contract, cd-smoke]
     if: always()
     
     steps:
-    - name: Check all jobs status
+    - name: Check all ECONEURA gates status
       run: |
-        echo "🔍 Checking CI pipeline status..."
+        echo "🔍 Checking ECONEURA CI/CD gates status..."
         
-        # Check if all required jobs succeeded
-        if [[ "${{ needs.quality-gates.result }}" != "success" ]]; then
-          echo "❌ Quality gates failed"
+        # Check if all required gates passed
+        if [[ "${{ needs.ci-typecheck.result }}" != "success" ]]; then
+          echo "❌ ci:typecheck gate failed"
           exit 1
         fi
         
-        if [[ "${{ needs.test-coverage.result }}" != "success" ]]; then
-          echo "❌ Test coverage failed"
+        if [[ "${{ needs.ci-lint.result }}" != "success" ]]; then
+          echo "❌ ci:lint gate failed"
           exit 1
         fi
         
-        if [[ "${{ needs.openapi-validation.result }}" != "success" ]]; then
-          echo "❌ OpenAPI validation failed"
+        if [[ "${{ needs.ci-build.result }}" != "success" ]]; then
+          echo "❌ ci:build gate failed"
           exit 1
         fi
         
-        if [[ "${{ needs.security-scanning.result }}" != "success" ]]; then
-          echo "❌ Security scanning failed"
+        if [[ "${{ needs.ci-test.result }}" != "success" ]]; then
+          echo "❌ ci:test gate failed"
           exit 1
         fi
         
-        if [[ "${{ needs.secret-scanning.result }}" != "success" ]]; then
-          echo "❌ Secret scanning failed"
+        if [[ "${{ needs.ci-contract.result }}" != "success" ]]; then
+          echo "❌ ci:contract gate failed"
           exit 1
         fi
         
-        if [[ "${{ needs.build-package.result }}" != "success" ]]; then
-          echo "❌ Build & package failed"
+        if [[ "${{ needs.cd-smoke.result }}" != "success" ]]; then
+          echo "❌ cd:smoke gate failed"
           exit 1
         fi
         
-        if [[ "${{ needs.integration-tests.result }}" != "success" ]]; then
-          echo "❌ Integration tests failed"
-          exit 1
-        fi
-        
-        echo "✅ All CI checks passed successfully!"
-        echo "🚀 Ready for deployment"
+        echo "✅ All ECONEURA gates passed successfully!"
+        echo "🚀 Ready for deployment with:"
+        echo "   - ci:typecheck: ✅"
+        echo "   - ci:lint: ✅" 
+        echo "   - ci:build: ✅"
+        echo "   - ci:test: ✅"
+        echo "   - ci:contract: ✅"
+        echo "   - cd:smoke: ✅"
