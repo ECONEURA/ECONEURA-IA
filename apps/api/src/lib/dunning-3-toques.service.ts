@@ -1,974 +1,565 @@
+/**
+ * PR-54: Dunning 3-toques Service
+ * 
+ * Sistema de gestión de cobranza con 3 toques automáticos
+ */
+
 import { structuredLogger } from './structured-logger.js';
 
-// Dunning 3-Toques Service - PR-40
-// Sistema automatizado de gestión de cobros con escalación inteligente
-
-interface Invoice {
+export interface Invoice {
   id: string;
-  organizationId: string;
   invoiceNumber: string;
   customerId: string;
   customerName: string;
-  customerEmail: string;
-  customerPhone?: string;
-  
-  // Financial Information
-  financial: {
-    amount: number;
-    currency: string;
-    taxAmount: number;
-    totalAmount: number;
-    paidAmount: number;
-    outstandingAmount: number;
-    discountAmount?: number;
-  };
-  
-  // Dates
-  dates: {
-    issueDate: string;
-    dueDate: string;
-    paymentDate?: string;
-    lastReminderDate?: string;
-    nextReminderDate?: string;
-  };
-  
-  // Status
-  status: 'draft' | 'sent' | 'viewed' | 'paid' | 'overdue' | 'cancelled' | 'disputed';
-  paymentStatus: 'pending' | 'partial' | 'paid' | 'overdue' | 'cancelled';
-  
-  // Dunning Information
-  dunning: {
-    isActive: boolean;
-    level: 0 | 1 | 2 | 3; // 0 = no dunning, 1-3 = dunning levels
-    attempts: number;
-    lastAttemptDate?: string;
-    nextAttemptDate?: string;
-    escalationReason?: string;
-    notes?: string;
-  };
-  
-  // Payment Information
-  payment: {
-    method?: 'bank_transfer' | 'credit_card' | 'paypal' | 'cash' | 'check';
-    reference?: string;
-    bankDetails?: {
-      accountNumber: string;
-      sortCode: string;
-      iban?: string;
-      swift?: string;
-    };
-  };
-  
-  // Items
-  items: Array<{
-    id: string;
-    description: string;
-    quantity: number;
-    unitPrice: number;
-    totalPrice: number;
-    taxRate: number;
-  }>;
-  
-  // Metadata
-  metadata: {
-    source: string;
-    createdBy: string;
-    lastUpdated: string;
-    customFields?: Record<string, any>;
-  };
-  
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface DunningRule {
-  id: string;
+  amount: number;
+  currency: string;
+  dueDate: string;
+  status: 'pending' | 'overdue' | 'paid' | 'cancelled';
   organizationId: string;
-  name: string;
-  description?: string;
-  isActive: boolean;
-  priority: number; // 1-10, higher = more important
-  
-  // Trigger Conditions
-  conditions: {
-    daysOverdue: number;
-    minAmount?: number;
-    maxAmount?: number;
-    customerTypes?: string[];
-    excludeCustomers?: string[];
-    paymentMethods?: string[];
-  };
-  
-  // Dunning Levels
-  levels: Array<{
-    level: 1 | 2 | 3;
-    daysAfterPrevious: number;
-    action: 'email' | 'phone' | 'letter' | 'legal_notice' | 'collection_agency';
-    template: string;
-    subject: string;
-    content: string;
-    attachments?: string[];
-    escalationActions?: string[];
-  }>;
-  
-  // Escalation Rules
-  escalation: {
-    maxAttempts: number;
-    escalationDelay: number; // days
-    finalAction: 'suspend_service' | 'legal_action' | 'collection_agency' | 'write_off';
-    notificationRecipients: string[];
-  };
-  
   createdAt: string;
   updatedAt: string;
+  metadata?: Record<string, any>;
 }
 
-interface DunningAttempt {
+export interface DunningStep {
   id: string;
   invoiceId: string;
-  organizationId: string;
-  level: 1 | 2 | 3;
-  attemptNumber: number;
-  
-  // Action Details
-  action: {
-    type: 'email' | 'phone' | 'letter' | 'legal_notice' | 'collection_agency';
-    status: 'pending' | 'sent' | 'delivered' | 'opened' | 'clicked' | 'failed' | 'cancelled';
-    scheduledDate: string;
-    executedDate?: string;
-    responseDate?: string;
-  };
-  
-  // Communication Details
-  communication: {
-    template: string;
-    subject: string;
-    content: string;
-    recipient: string;
-    channel: 'email' | 'phone' | 'postal' | 'sms';
-    trackingId?: string;
-  };
-  
-  // Response
-  response?: {
-    type: 'payment_promise' | 'payment_made' | 'dispute' | 'no_response' | 'unreachable';
-    notes: string;
-    nextAction?: string;
-    followUpDate?: string;
-  };
-  
-  // Results
-  results: {
-    paymentReceived: boolean;
-    paymentAmount?: number;
-    paymentDate?: string;
-    customerResponse?: string;
-    escalationRequired: boolean;
-    nextLevel?: 1 | 2 | 3;
-  };
-  
+  stepNumber: number;
+  stepType: 'email' | 'call' | 'letter' | 'legal';
+  status: 'pending' | 'sent' | 'delivered' | 'failed' | 'cancelled';
+  scheduledDate: string;
+  sentDate?: string;
+  deliveryDate?: string;
+  content: string;
+  recipient: string;
+  channel: string;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  escalationLevel: number;
   createdAt: string;
   updatedAt: string;
 }
 
-interface DunningCampaign {
+export interface DunningCampaign {
   id: string;
-  organizationId: string;
-  name: string;
-  description?: string;
-  status: 'draft' | 'active' | 'paused' | 'completed' | 'cancelled';
-  
-  // Configuration
-  configuration: {
-    ruleId: string;
-    targetInvoices: string[];
-    startDate: string;
-    endDate?: string;
-    batchSize: number;
-    maxConcurrency: number;
-    respectQuietHours: boolean;
-    quietHoursStart?: string; // HH:MM
-    quietHoursEnd?: string; // HH:MM
-  };
-  
-  // Progress
-  progress: {
-    totalInvoices: number;
-    processedInvoices: number;
-    successfulAttempts: number;
-    failedAttempts: number;
-    paymentsReceived: number;
-    totalAmountCollected: number;
-    startTime?: string;
-    endTime?: string;
-  };
-  
-  // Results
-  results?: {
-    invoices: Array<{
-      invoiceId: string;
-      attempts: number;
-      paymentsReceived: number;
-      finalStatus: string;
-    }>;
-    summary: {
-      totalAttempts: number;
-      successRate: number;
-      averageDaysToPayment: number;
-      totalCollected: number;
-    };
-  };
-  
-  createdBy: string;
+  invoiceId: string;
+  customerId: string;
+  status: 'active' | 'completed' | 'cancelled' | 'paused';
+  currentStep: number;
+  totalSteps: number;
+  startDate: string;
+  endDate?: string;
+  steps: DunningStep[];
+  paymentReceived?: boolean;
+  paymentDate?: string;
+  notes: string[];
   createdAt: string;
   updatedAt: string;
 }
 
-interface DunningReport {
-  id: string;
-  organizationId: string;
-  type: 'summary' | 'detailed' | 'performance' | 'compliance';
-  period: {
-    startDate: string;
-    endDate: string;
+export interface DunningConfig {
+  enabled: boolean;
+  maxSteps: number;
+  stepIntervals: number[]; // días entre pasos
+  escalationThresholds: {
+    email: number;
+    call: number;
+    letter: number;
+    legal: number;
   };
-  
-  // Report Data
-  data: {
-    totalInvoices: number;
-    overdueInvoices: number;
-    totalOutstanding: number;
-    totalCollected: number;
-    collectionRate: number;
-    
-    byLevel: {
-      level1: { attempts: number; success: number; amount: number };
-      level2: { attempts: number; success: number; amount: number };
-      level3: { attempts: number; success: number; amount: number };
-    };
-    
-    byCustomer: Array<{
-      customerId: string;
-      customerName: string;
-      totalOutstanding: number;
-      totalCollected: number;
-      collectionRate: number;
-      averageDaysToPayment: number;
-    }>;
-    
-    trends: Array<{
-      date: string;
-      newOverdue: number;
-      paymentsReceived: number;
-      collectionRate: number;
-    }>;
+  channels: {
+    email: { enabled: boolean; template: string };
+    call: { enabled: boolean; script: string };
+    letter: { enabled: boolean; template: string };
+    legal: { enabled: boolean; template: string };
   };
-  
-  generatedAt: string;
-  generatedBy: string;
+  autoEscalation: boolean;
+  gracePeriod: number; // días de gracia
+  maxOverdueDays: number;
+  notificationEnabled: boolean;
 }
 
-class Dunning3ToquesService {
+export interface DunningStats {
+  totalInvoices: number;
+  overdueInvoices: number;
+  activeCampaigns: number;
+  completedCampaigns: number;
+  successfulCollections: number;
+  collectionRate: number;
+  averageDaysToPayment: number;
+  stepEffectiveness: Record<string, number>;
+  lastRun: string;
+}
+
+export class Dunning3ToquesService {
+  private config: DunningConfig;
   private invoices: Map<string, Invoice> = new Map();
-  private dunningRules: Map<string, DunningRule> = new Map();
-  private dunningAttempts: Map<string, DunningAttempt> = new Map();
-  private dunningCampaigns: Map<string, DunningCampaign> = new Map();
-  private dunningReports: Map<string, DunningReport> = new Map();
+  private campaigns: Map<string, DunningCampaign> = new Map();
+  private steps: Map<string, DunningStep[]> = new Map();
+  private stats: DunningStats;
+  private isProcessing = false;
+  private processingInterval: NodeJS.Timeout | null = null;
 
-  constructor() {
-    this.init();
+  constructor(config: Partial<DunningConfig> = {}) {
+    this.config = {
+      enabled: true,
+      maxSteps: 3,
+      stepIntervals: [7, 14, 30], // 7, 14, 30 días
+      escalationThresholds: {
+        email: 0,
+        call: 1,
+        letter: 2,
+        legal: 3
+      },
+      channels: {
+        email: { enabled: true, template: 'dunning_email_template' },
+        call: { enabled: true, script: 'dunning_call_script' },
+        letter: { enabled: true, template: 'dunning_letter_template' },
+        legal: { enabled: true, template: 'dunning_legal_template' }
+      },
+      autoEscalation: true,
+      gracePeriod: 3,
+      maxOverdueDays: 90,
+      notificationEnabled: true,
+      ...config
+    };
+
+    this.stats = {
+      totalInvoices: 0,
+      overdueInvoices: 0,
+      activeCampaigns: 0,
+      completedCampaigns: 0,
+      successfulCollections: 0,
+      collectionRate: 0,
+      averageDaysToPayment: 0,
+      stepEffectiveness: {},
+      lastRun: new Date().toISOString()
+    };
+
+    this.startPeriodicProcessing();
+    structuredLogger.info('Dunning 3-toques service initialized', {
+      config: this.config,
+      requestId: ''
+    });
   }
 
-  init() {
-    this.createDemoData();
-    structuredLogger.info('Dunning 3-Toques Service initialized');
+  private startPeriodicProcessing(): void {
+    if (!this.config.enabled) return;
+
+    this.processingInterval = setInterval(() => {
+      this.processDunningCampaigns();
+    }, 24 * 60 * 60 * 1000); // Cada 24 horas
+
+    structuredLogger.info('Periodic dunning processing started', {
+      interval: '24 hours',
+      requestId: ''
+    });
   }
 
-  private createDemoData() {
+  async processDunningCampaigns(): Promise<DunningStats> {
+    if (this.isProcessing) {
+      return this.stats;
+    }
+
+    this.isProcessing = true;
+    const startTime = Date.now();
+
+    try {
+      structuredLogger.info('Starting dunning campaigns processing', {
+        totalInvoices: this.invoices.size,
+        requestId: ''
+      });
+
+      // 1. Identificar facturas vencidas
+      const overdueInvoices = this.getOverdueInvoices();
+      
+      // 2. Crear campañas para facturas sin campaña activa
+      const newCampaigns = await this.createNewCampaigns(overdueInvoices);
+      
+      // 3. Procesar campañas activas
+      const processedCampaigns = await this.processActiveCampaigns();
+      
+      // 4. Actualizar estadísticas
+      this.stats = this.calculateStats(startTime);
+
+      structuredLogger.info('Dunning campaigns processing completed', {
+        overdueInvoices: overdueInvoices.length,
+        newCampaigns: newCampaigns.length,
+        processedCampaigns: processedCampaigns.length,
+        processingTime: Date.now() - startTime,
+        requestId: ''
+      });
+
+      return this.stats;
+
+    } catch (error) {
+      structuredLogger.error('Dunning campaigns processing failed', {
+        error: error instanceof Error ? error.message : String(error),
+        requestId: ''
+      });
+      throw error;
+    } finally {
+      this.isProcessing = false;
+    }
+  }
+
+  private getOverdueInvoices(): Invoice[] {
     const now = new Date();
-    const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const gracePeriodMs = this.config.gracePeriod * 24 * 60 * 60 * 1000;
+    
+    return Array.from(this.invoices.values()).filter(invoice => {
+      if (invoice.status === 'paid' || invoice.status === 'cancelled') {
+        return false;
+      }
 
-    // Demo invoices
-    const invoice1: Invoice = {
-      id: 'invoice_1',
-      organizationId: 'demo-org-1',
-      invoiceNumber: 'INV-2024-001',
-      customerId: 'customer_1',
-      customerName: 'TechCorp Solutions',
-      customerEmail: 'billing@techcorp.com',
-      customerPhone: '+34 91 123 4567',
-      financial: {
-        amount: 5000,
-        currency: 'EUR',
-        taxAmount: 1050,
-        totalAmount: 6050,
-        paidAmount: 0,
-        outstandingAmount: 6050,
-        discountAmount: 0
-      },
-      dates: {
-        issueDate: oneMonthAgo.toISOString(),
-        dueDate: twoWeeksAgo.toISOString(),
-        lastReminderDate: oneWeekAgo.toISOString(),
-        nextReminderDate: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString()
-      },
-      status: 'overdue',
-      paymentStatus: 'overdue',
-      dunning: {
-        isActive: true,
-        level: 2,
-        attempts: 2,
-        lastAttemptDate: oneWeekAgo.toISOString(),
-        nextAttemptDate: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-        escalationReason: 'No response to first reminder',
-        notes: 'Customer has not responded to previous attempts'
-      },
-      payment: {
-        method: 'bank_transfer',
-        bankDetails: {
-          accountNumber: 'ES1234567890123456789012',
-          sortCode: '1234',
-          iban: 'ES1234567890123456789012',
-          swift: 'BBVAESMM'
-        }
-      },
-      items: [
-        {
-          id: 'item_1',
-          description: 'Software License - Annual',
-          quantity: 1,
-          unitPrice: 5000,
-          totalPrice: 5000,
-          taxRate: 21
-        }
-      ],
-      metadata: {
-        source: 'CRM',
-        createdBy: 'admin@demo.com',
-        lastUpdated: oneWeekAgo.toISOString()
-      },
-      createdAt: oneMonthAgo.toISOString(),
-      updatedAt: oneWeekAgo.toISOString()
-    };
-
-    const invoice2: Invoice = {
-      id: 'invoice_2',
-      organizationId: 'demo-org-1',
-      invoiceNumber: 'INV-2024-002',
-      customerId: 'customer_2',
-      customerName: 'GreenTech Innovations',
-      customerEmail: 'finance@greentech.com',
-      customerPhone: '+34 93 987 6543',
-      financial: {
-        amount: 2500,
-        currency: 'EUR',
-        taxAmount: 525,
-        totalAmount: 3025,
-        paidAmount: 0,
-        outstandingAmount: 3025,
-        discountAmount: 0
-      },
-      dates: {
-        issueDate: twoWeeksAgo.toISOString(),
-        dueDate: oneWeekAgo.toISOString(),
-        lastReminderDate: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        nextReminderDate: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString()
-      },
-      status: 'overdue',
-      paymentStatus: 'overdue',
-      dunning: {
-        isActive: true,
-        level: 1,
-        attempts: 1,
-        lastAttemptDate: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        nextAttemptDate: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-        escalationReason: 'Payment overdue',
-        notes: 'First reminder sent'
-      },
-      payment: {
-        method: 'bank_transfer',
-        bankDetails: {
-          accountNumber: 'ES9876543210987654321098',
-          sortCode: '5678',
-          iban: 'ES9876543210987654321098',
-          swift: 'SABNESMM'
-        }
-      },
-      items: [
-        {
-          id: 'item_2',
-          description: 'Consulting Services - 20 hours',
-          quantity: 20,
-          unitPrice: 125,
-          totalPrice: 2500,
-          taxRate: 21
-        }
-      ],
-      metadata: {
-        source: 'CRM',
-        createdBy: 'admin@demo.com',
-        lastUpdated: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString()
-      },
-      createdAt: twoWeeksAgo.toISOString(),
-      updatedAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString()
-    };
-
-    this.invoices.set(invoice1.id, invoice1);
-    this.invoices.set(invoice2.id, invoice2);
-
-    // Demo dunning rule
-    const rule1: DunningRule = {
-      id: 'rule_1',
-      organizationId: 'demo-org-1',
-      name: 'Standard Dunning Process',
-      description: 'Proceso estándar de gestión de cobros con 3 niveles',
-      isActive: true,
-      priority: 10,
-      conditions: {
-        daysOverdue: 1,
-        minAmount: 100,
-        maxAmount: 10000,
-        customerTypes: ['standard', 'premium'],
-        excludeCustomers: ['vip_customer'],
-        paymentMethods: ['bank_transfer', 'credit_card']
-      },
-      levels: [
-        {
-          level: 1,
-          daysAfterPrevious: 7,
-          action: 'email',
-          template: 'dunning_level_1',
-          subject: 'Recordatorio de pago - Factura {{invoiceNumber}}',
-          content: 'Estimado cliente, le recordamos que la factura {{invoiceNumber}} por importe de {{amount}} está pendiente de pago desde {{dueDate}}. Por favor, proceda al pago lo antes posible.',
-          attachments: ['invoice_pdf'],
-          escalationActions: ['schedule_phone_call']
-        },
-        {
-          level: 2,
-          daysAfterPrevious: 14,
-          action: 'phone',
-          template: 'dunning_level_2',
-          subject: 'Llamada de seguimiento - Factura {{invoiceNumber}}',
-          content: 'Llamada telefónica para recordar el pago de la factura {{invoiceNumber}}. Se registrará la respuesta del cliente.',
-          escalationActions: ['send_legal_notice']
-        },
-        {
-          level: 3,
-          daysAfterPrevious: 21,
-          action: 'legal_notice',
-          template: 'dunning_level_3',
-          subject: 'Aviso legal - Factura {{invoiceNumber}}',
-          content: 'Aviso legal formal por impago de la factura {{invoiceNumber}}. Se procederá a las acciones legales correspondientes si no se recibe el pago en 10 días.',
-          attachments: ['legal_notice_pdf'],
-          escalationActions: ['suspend_service', 'collection_agency']
-        }
-      ],
-      escalation: {
-        maxAttempts: 3,
-        escalationDelay: 7,
-        finalAction: 'collection_agency',
-        notificationRecipients: ['finance@demo.com', 'legal@demo.com']
-      },
-      createdAt: oneMonthAgo.toISOString(),
-      updatedAt: oneMonthAgo.toISOString()
-    };
-
-    this.dunningRules.set(rule1.id, rule1);
-
-    // Demo dunning attempts
-    const attempt1: DunningAttempt = {
-      id: 'attempt_1',
-      invoiceId: 'invoice_1',
-      organizationId: 'demo-org-1',
-      level: 1,
-      attemptNumber: 1,
-      action: {
-        type: 'email',
-        status: 'delivered',
-        scheduledDate: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-        executedDate: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-        responseDate: new Date(now.getTime() - 13 * 24 * 60 * 60 * 1000).toISOString()
-      },
-      communication: {
-        template: 'dunning_level_1',
-        subject: 'Recordatorio de pago - Factura INV-2024-001',
-        content: 'Estimado cliente, le recordamos que la factura INV-2024-001 por importe de €6.050 está pendiente de pago desde 2024-08-22. Por favor, proceda al pago lo antes posible.',
-        recipient: 'billing@techcorp.com',
-        channel: 'email',
-        trackingId: 'track_001'
-      },
-      response: {
-        type: 'no_response',
-        notes: 'Email delivered but no response received',
-        nextAction: 'Schedule phone call',
-        followUpDate: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString()
-      },
-      results: {
-        paymentReceived: false,
-        customerResponse: 'No response',
-        escalationRequired: true,
-        nextLevel: 2
-      },
-      createdAt: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-      updatedAt: new Date(now.getTime() - 13 * 24 * 60 * 60 * 1000).toISOString()
-    };
-
-    const attempt2: DunningAttempt = {
-      id: 'attempt_2',
-      invoiceId: 'invoice_1',
-      organizationId: 'demo-org-1',
-      level: 2,
-      attemptNumber: 2,
-      action: {
-        type: 'phone',
-        status: 'sent',
-        scheduledDate: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-        executedDate: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
-      },
-      communication: {
-        template: 'dunning_level_2',
-        subject: 'Llamada de seguimiento - Factura INV-2024-001',
-        content: 'Llamada telefónica para recordar el pago de la factura INV-2024-001. Se registrará la respuesta del cliente.',
-        recipient: '+34 91 123 4567',
-        channel: 'phone',
-        trackingId: 'call_001'
-      },
-      response: {
-        type: 'payment_promise',
-        notes: 'Customer promised payment within 5 days',
-        nextAction: 'Wait for payment',
-        followUpDate: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString()
-      },
-      results: {
-        paymentReceived: false,
-        customerResponse: 'Payment promise - 5 days',
-        escalationRequired: false,
-        nextLevel: undefined
-      },
-      createdAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      updatedAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
-    };
-
-    this.dunningAttempts.set(attempt1.id, attempt1);
-    this.dunningAttempts.set(attempt2.id, attempt2);
+      const dueDate = new Date(invoice.dueDate);
+      const overdueDate = new Date(dueDate.getTime() + gracePeriodMs);
+      
+      return now > overdueDate;
+    });
   }
 
-  // Invoice Management
-  async getInvoices(organizationId: string, filters: {
-    status?: string;
-    paymentStatus?: string;
-    minAmount?: number;
-    maxAmount?: number;
-    daysOverdue?: number;
-    hasDunning?: boolean;
-    dunningLevel?: number;
-    search?: string;
-    limit?: number;
-  } = {}): Promise<Invoice[]> {
-    let invoices = Array.from(this.invoices.values())
-      .filter(i => i.organizationId === organizationId);
+  private async createNewCampaigns(overdueInvoices: Invoice[]): Promise<DunningCampaign[]> {
+    const newCampaigns: DunningCampaign[] = [];
 
-    if (filters.status) {
-      invoices = invoices.filter(i => i.status === filters.status);
-    }
-
-    if (filters.paymentStatus) {
-      invoices = invoices.filter(i => i.paymentStatus === filters.paymentStatus);
-    }
-
-    if (filters.minAmount !== undefined) {
-      invoices = invoices.filter(i => i.financial.outstandingAmount >= filters.minAmount!);
-    }
-
-    if (filters.maxAmount !== undefined) {
-      invoices = invoices.filter(i => i.financial.outstandingAmount <= filters.maxAmount!);
-    }
-
-    if (filters.daysOverdue !== undefined) {
-      const cutoffDate = new Date(Date.now() - filters.daysOverdue! * 24 * 60 * 60 * 1000);
-      invoices = invoices.filter(i => new Date(i.dates.dueDate) <= cutoffDate);
-    }
-
-    if (filters.hasDunning !== undefined) {
-      invoices = invoices.filter(i => filters.hasDunning ? i.dunning.isActive : !i.dunning.isActive);
-    }
-
-    if (filters.dunningLevel !== undefined) {
-      invoices = invoices.filter(i => i.dunning.level === filters.dunningLevel);
-    }
-
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      invoices = invoices.filter(i => 
-        i.invoiceNumber.toLowerCase().includes(searchLower) ||
-        i.customerName.toLowerCase().includes(searchLower) ||
-        i.customerEmail.toLowerCase().includes(searchLower)
+    for (const invoice of overdueInvoices) {
+      // Verificar si ya existe una campaña activa
+      const existingCampaign = Array.from(this.campaigns.values()).find(
+        campaign => campaign.invoiceId === invoice.id && campaign.status === 'active'
       );
+
+      if (existingCampaign) {
+        continue;
+      }
+
+      const campaign = await this.createDunningCampaign(invoice);
+      this.campaigns.set(campaign.id, campaign);
+      newCampaigns.push(campaign);
+
+      structuredLogger.info('New dunning campaign created', {
+        campaignId: campaign.id,
+        invoiceId: invoice.id,
+        customerId: invoice.customerId,
+        amount: invoice.amount,
+        requestId: ''
+      });
     }
 
-    if (filters.limit) {
-      invoices = invoices.slice(0, filters.limit);
-    }
-
-    return invoices.sort((a, b) => new Date(b.dates.dueDate).getTime() - new Date(a.dates.dueDate).getTime());
+    return newCampaigns;
   }
 
-  async getInvoice(invoiceId: string): Promise<Invoice | undefined> {
-    return this.invoices.get(invoiceId);
-  }
+  private async createDunningCampaign(invoice: Invoice): Promise<DunningCampaign> {
+    const campaignId = `dunning_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const steps: DunningStep[] = [];
 
-  // Dunning Management
-  async startDunningProcess(invoiceId: string, ruleId?: string): Promise<DunningAttempt> {
-    const invoice = this.invoices.get(invoiceId);
-    if (!invoice) {
-      throw new Error('Invoice not found');
-    }
-
-    const rule = ruleId ? this.dunningRules.get(ruleId) : 
-      Array.from(this.dunningRules.values())
-        .find(r => r.organizationId === invoice.organizationId && r.isActive);
-
-    if (!rule) {
-      throw new Error('No active dunning rule found');
-    }
-
-    // Check if invoice meets conditions
-    if (!this.checkDunningConditions(invoice, rule)) {
-      throw new Error('Invoice does not meet dunning conditions');
-    }
-
-    // Determine next level
-    const nextLevel = this.getNextDunningLevel(invoice, rule);
-    if (!nextLevel) {
-      throw new Error('Maximum dunning level reached');
-    }
-
-    // Create dunning attempt
-    const attempt = await this.createDunningAttempt(invoice, rule, nextLevel);
-    
-    // Update invoice
-    invoice.dunning.level = nextLevel;
-    invoice.dunning.attempts += 1;
-    invoice.dunning.lastAttemptDate = new Date().toISOString();
-    invoice.dunning.nextAttemptDate = this.calculateNextAttemptDate(invoice, rule, nextLevel);
-    invoice.updatedAt = new Date().toISOString();
-
-    structuredLogger.info('Dunning process started', { 
-      invoiceId, 
-      organizationId: invoice.organizationId,
-      level: nextLevel,
-      attemptId: attempt.id
-    });
-
-    return attempt;
-  }
-
-  private checkDunningConditions(invoice: Invoice, rule: DunningRule): boolean {
-    const conditions = rule.conditions;
-    
-    // Check days overdue
-    const daysOverdue = Math.ceil((Date.now() - new Date(invoice.dates.dueDate).getTime()) / (1000 * 60 * 60 * 24));
-    if (daysOverdue < conditions.daysOverdue) {
-      return false;
-    }
-
-    // Check amount range
-    if (conditions.minAmount && invoice.financial.outstandingAmount < conditions.minAmount) {
-      return false;
-    }
-    if (conditions.maxAmount && invoice.financial.outstandingAmount > conditions.maxAmount) {
-      return false;
-    }
-
-    // Check customer type (simplified)
-    if (conditions.customerTypes && !conditions.customerTypes.includes('standard')) {
-      return false;
-    }
-
-    // Check excluded customers
-    if (conditions.excludeCustomers && conditions.excludeCustomers.includes(invoice.customerId)) {
-      return false;
-    }
-
-    return true;
-  }
-
-  private getNextDunningLevel(invoice: Invoice, rule: DunningRule): 1 | 2 | 3 | null {
-    const currentLevel = invoice.dunning.level;
-    const attempts = invoice.dunning.attempts;
-
-    if (currentLevel === 0) {
-      return 1;
-    }
-
-    if (currentLevel === 1 && attempts >= 1) {
-      return 2;
-    }
-
-    if (currentLevel === 2 && attempts >= 2) {
-      return 3;
-    }
-
-    if (currentLevel === 3 && attempts >= 3) {
-      return null; // Maximum level reached
-    }
-
-    return currentLevel as 1 | 2 | 3;
-  }
-
-  private async createDunningAttempt(invoice: Invoice, rule: DunningRule, level: 1 | 2 | 3): Promise<DunningAttempt> {
-    const levelConfig = rule.levels.find(l => l.level === level);
-    if (!levelConfig) {
-      throw new Error(`Dunning level ${level} not configured`);
-    }
-
-    const now = new Date().toISOString();
-    const attemptId = `attempt_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-
-    const attempt: DunningAttempt = {
-      id: attemptId,
-      invoiceId: invoice.id,
-      organizationId: invoice.organizationId,
-      level,
-      attemptNumber: invoice.dunning.attempts + 1,
-      action: {
-        type: levelConfig.action,
+    // Crear los 3 pasos del dunning
+    for (let i = 0; i < this.config.maxSteps; i++) {
+      const stepType = this.getStepType(i);
+      const scheduledDate = this.getScheduledDate(i);
+      
+      const step: DunningStep = {
+        id: `${campaignId}_step_${i + 1}`,
+        invoiceId: invoice.id,
+        stepNumber: i + 1,
+        stepType,
         status: 'pending',
-        scheduledDate: now
-      },
-      communication: {
-        template: levelConfig.template,
-        subject: this.processTemplate(levelConfig.subject, invoice),
-        content: this.processTemplate(levelConfig.content, invoice),
-        recipient: this.getRecipient(levelConfig.action, invoice),
-        channel: this.getChannel(levelConfig.action)
-      },
-      results: {
-        paymentReceived: false,
-        escalationRequired: false
-      },
-      createdAt: now,
-      updatedAt: now
-    };
+        scheduledDate: scheduledDate.toISOString(),
+        content: this.generateStepContent(stepType, invoice, i + 1),
+        recipient: invoice.customerName,
+        channel: this.getChannel(stepType),
+        priority: this.getPriority(i + 1),
+        escalationLevel: i + 1,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
 
-    this.dunningAttempts.set(attempt.id, attempt);
-    return attempt;
-  }
-
-  private processTemplate(template: string, invoice: Invoice): string {
-    return template
-      .replace(/\{\{invoiceNumber\}\}/g, invoice.invoiceNumber)
-      .replace(/\{\{amount\}\}/g, `€${invoice.financial.outstandingAmount.toLocaleString()}`)
-      .replace(/\{\{dueDate\}\}/g, new Date(invoice.dates.dueDate).toLocaleDateString())
-      .replace(/\{\{customerName\}\}/g, invoice.customerName);
-  }
-
-  private getRecipient(action: string, invoice: Invoice): string {
-    switch (action) {
-      case 'email':
-        return invoice.customerEmail;
-      case 'phone':
-        return invoice.customerPhone || '';
-      case 'letter':
-        return invoice.customerName;
-      default:
-        return invoice.customerEmail;
-    }
-  }
-
-  private getChannel(action: string): 'email' | 'phone' | 'postal' | 'sms' {
-    switch (action) {
-      case 'email':
-        return 'email';
-      case 'phone':
-        return 'phone';
-      case 'letter':
-        return 'postal';
-      case 'sms':
-        return 'sms';
-      default:
-        return 'email';
-    }
-  }
-
-  private calculateNextAttemptDate(invoice: Invoice, rule: DunningRule, level: 1 | 2 | 3): string {
-    const levelConfig = rule.levels.find(l => l.level === level);
-    if (!levelConfig) {
-      return new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      steps.push(step);
     }
 
-    const nextDate = new Date(Date.now() + levelConfig.daysAfterPrevious * 24 * 60 * 60 * 1000);
-    return nextDate.toISOString();
-  }
-
-  // Campaign Management
-  async createDunningCampaign(campaignData: Omit<DunningCampaign, 'id' | 'createdAt' | 'updatedAt'>): Promise<DunningCampaign> {
-    const now = new Date().toISOString();
     const campaign: DunningCampaign = {
-      id: `campaign_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-      ...campaignData,
-      createdAt: now,
-      updatedAt: now
+      id: campaignId,
+      invoiceId: invoice.id,
+      customerId: invoice.customerId,
+      status: 'active',
+      currentStep: 1,
+      totalSteps: this.config.maxSteps,
+      startDate: new Date().toISOString(),
+      steps,
+      notes: [`Campaign started for invoice ${invoice.invoiceNumber}`],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
-    this.dunningCampaigns.set(campaign.id, campaign);
-    
-    structuredLogger.info('Dunning campaign created', { 
-      campaignId: campaign.id, 
-      organizationId: campaign.organizationId,
-      totalInvoices: campaign.configuration.targetInvoices.length
-    });
-
+    this.steps.set(campaignId, steps);
     return campaign;
   }
 
-  async executeDunningCampaign(campaignId: string): Promise<void> {
-    const campaign = this.dunningCampaigns.get(campaignId);
-    if (!campaign) {
-      throw new Error('Campaign not found');
-    }
+  private getStepType(stepIndex: number): 'email' | 'call' | 'letter' | 'legal' {
+    if (stepIndex === 0) return 'email';
+    if (stepIndex === 1) return 'call';
+    if (stepIndex === 2) return 'letter';
+    return 'legal';
+  }
 
-    if (campaign.status !== 'draft') {
-      throw new Error('Campaign is not in draft status');
-    }
+  private getScheduledDate(stepIndex: number): Date {
+    const now = new Date();
+    const intervalDays = this.config.stepIntervals[stepIndex] || 30;
+    return new Date(now.getTime() + intervalDays * 24 * 60 * 60 * 1000);
+  }
 
-    campaign.status = 'active';
-    campaign.progress.startTime = new Date().toISOString();
-
-    // Process invoices in batches
-    const invoices = campaign.configuration.targetInvoices;
-    const batchSize = campaign.configuration.batchSize;
-    
-    for (let i = 0; i < invoices.length; i += batchSize) {
-      const batch = invoices.slice(i, i + batchSize);
+  private generateStepContent(stepType: string, invoice: Invoice, stepNumber: number): string {
+    const templates = {
+      email: `Estimado/a ${invoice.customerName},\n\nLe recordamos que tiene una factura pendiente de pago:\n\nFactura: ${invoice.invoiceNumber}\nMonto: ${invoice.amount} ${invoice.currency}\nVencimiento: ${invoice.dueDate}\n\nPor favor, proceda con el pago lo antes posible para evitar cargos adicionales.\n\nSaludos cordiales,\nEquipo de Cobranza`,
       
-      for (const invoiceId of batch) {
-        try {
-          await this.startDunningProcess(invoiceId, campaign.configuration.ruleId);
-          campaign.progress.successfulAttempts++;
-        } catch (error) {
-          campaign.progress.failedAttempts++;
-          structuredLogger.error('Dunning attempt failed', { invoiceId, error });
-        }
-        
-        campaign.progress.processedInvoices++;
+      call: `Llamada de seguimiento para factura ${invoice.invoiceNumber} por ${invoice.amount} ${invoice.currency}. Verificar estado de pago y ofrecer opciones de pago.`,
+      
+      letter: `Carta formal de cobranza para factura ${invoice.invoiceNumber} por ${invoice.amount} ${invoice.currency}. Incluir advertencia de acciones legales.`,
+      
+      legal: `Notificación legal para factura ${invoice.invoiceNumber} por ${invoice.amount} ${invoice.currency}. Iniciar proceso de cobranza legal.`
+    };
+
+    return templates[stepType as keyof typeof templates] || templates.email;
+  }
+
+  private getChannel(stepType: string): string {
+    const channels = {
+      email: 'email',
+      call: 'phone',
+      letter: 'postal',
+      legal: 'legal_notice'
+    };
+    return channels[stepType as keyof typeof channels] || 'email';
+  }
+
+  private getPriority(stepNumber: number): 'low' | 'medium' | 'high' | 'urgent' {
+    if (stepNumber === 1) return 'medium';
+    if (stepNumber === 2) return 'high';
+    if (stepNumber === 3) return 'urgent';
+    return 'low';
+  }
+
+  private async processActiveCampaigns(): Promise<DunningCampaign[]> {
+    const activeCampaigns = Array.from(this.campaigns.values()).filter(
+      campaign => campaign.status === 'active'
+    );
+
+    const processedCampaigns: DunningCampaign[] = [];
+
+    for (const campaign of activeCampaigns) {
+      const processedCampaign = await this.processCampaign(campaign);
+      if (processedCampaign) {
+        processedCampaigns.push(processedCampaign);
       }
     }
 
-    campaign.status = 'completed';
-    campaign.progress.endTime = new Date().toISOString();
-    campaign.updatedAt = new Date().toISOString();
-
-    structuredLogger.info('Dunning campaign completed', { 
-      campaignId, 
-      organizationId: campaign.organizationId,
-      processedInvoices: campaign.progress.processedInvoices,
-      successfulAttempts: campaign.progress.successfulAttempts,
-      failedAttempts: campaign.progress.failedAttempts
-    });
+    return processedCampaigns;
   }
 
-  // Statistics
-  async getDunningStats(organizationId: string) {
-    const invoices = Array.from(this.invoices.values()).filter(i => i.organizationId === organizationId);
-    const attempts = Array.from(this.dunningAttempts.values()).filter(a => a.organizationId === organizationId);
-    const campaigns = Array.from(this.dunningCampaigns.values()).filter(c => c.organizationId === organizationId);
-
+  private async processCampaign(campaign: DunningCampaign): Promise<DunningCampaign | null> {
     const now = new Date();
-    const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const currentStep = campaign.steps.find(step => step.stepNumber === campaign.currentStep);
 
-    const overdueInvoices = invoices.filter(i => i.status === 'overdue');
-    const activeDunning = invoices.filter(i => i.dunning.isActive);
+    if (!currentStep) {
+      return null;
+    }
+
+    const scheduledDate = new Date(currentStep.scheduledDate);
+
+    // Verificar si es hora de ejecutar el paso
+    if (now >= scheduledDate && currentStep.status === 'pending') {
+      await this.executeStep(currentStep);
+      
+      // Actualizar campaña
+      campaign.currentStep++;
+      campaign.updatedAt = new Date().toISOString();
+
+      // Si se completaron todos los pasos
+      if (campaign.currentStep > campaign.totalSteps) {
+        campaign.status = 'completed';
+        campaign.endDate = new Date().toISOString();
+        campaign.notes.push('Campaign completed - all steps executed');
+      }
+
+      this.campaigns.set(campaign.id, campaign);
+      return campaign;
+    }
+
+    return null;
+  }
+
+  private async executeStep(step: DunningStep): Promise<void> {
+    try {
+      step.status = 'sent';
+      step.sentDate = new Date().toISOString();
+      step.updatedAt = new Date().toISOString();
+
+      // Simular envío
+      await this.sendStep(step);
+
+      step.status = 'delivered';
+      step.deliveryDate = new Date().toISOString();
+      step.updatedAt = new Date().toISOString();
+
+      structuredLogger.info('Dunning step executed', {
+        stepId: step.id,
+        invoiceId: step.invoiceId,
+        stepType: step.stepType,
+        stepNumber: step.stepNumber,
+        requestId: ''
+      });
+
+    } catch (error) {
+      step.status = 'failed';
+      step.updatedAt = new Date().toISOString();
+
+      structuredLogger.error('Dunning step execution failed', {
+        stepId: step.id,
+        error: error instanceof Error ? error.message : String(error),
+        requestId: ''
+      });
+    }
+  }
+
+  private async sendStep(step: DunningStep): Promise<void> {
+    // En un sistema real, esto enviaría el paso a través del canal correspondiente
+    // Por ahora, solo simulamos el envío
+    
+    switch (step.stepType) {
+      case 'email':
+        // Enviar email
+        break;
+      case 'call':
+        // Programar llamada
+        break;
+      case 'letter':
+        // Enviar carta
+        break;
+      case 'legal':
+        // Enviar notificación legal
+        break;
+    }
+
+    // Simular delay de envío
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+
+  private calculateStats(startTime: number): DunningStats {
+    const totalInvoices = this.invoices.size;
+    const overdueInvoices = this.getOverdueInvoices().length;
+    const activeCampaigns = Array.from(this.campaigns.values()).filter(
+      c => c.status === 'active'
+    ).length;
+    const completedCampaigns = Array.from(this.campaigns.values()).filter(
+      c => c.status === 'completed'
+    ).length;
+    const successfulCollections = Array.from(this.campaigns.values()).filter(
+      c => c.paymentReceived
+    ).length;
+
+    const collectionRate = totalInvoices > 0 ? (successfulCollections / totalInvoices) * 100 : 0;
+
+    // Calcular efectividad por paso
+    const stepEffectiveness: Record<string, number> = {};
+    for (const campaign of this.campaigns.values()) {
+      for (const step of campaign.steps) {
+        if (step.status === 'delivered') {
+          stepEffectiveness[step.stepType] = (stepEffectiveness[step.stepType] || 0) + 1;
+        }
+      }
+    }
 
     return {
-      totalInvoices: invoices.length,
-      overdueInvoices: overdueInvoices.length,
-      activeDunning: activeDunning.length,
-      totalOutstanding: invoices.reduce((sum, i) => sum + i.financial.outstandingAmount, 0),
-      totalCollected: invoices.reduce((sum, i) => sum + i.financial.paidAmount, 0),
-      collectionRate: invoices.length > 0 ? 
-        (invoices.reduce((sum, i) => sum + i.financial.paidAmount, 0) / 
-         invoices.reduce((sum, i) => sum + i.financial.totalAmount, 0)) * 100 : 0,
-      totalAttempts: attempts.length,
-      successfulAttempts: attempts.filter(a => a.results.paymentReceived).length,
-      successRate: attempts.length > 0 ? 
-        (attempts.filter(a => a.results.paymentReceived).length / attempts.length) * 100 : 0,
-      activeCampaigns: campaigns.filter(c => c.status === 'active').length,
-      completedCampaigns: campaigns.filter(c => c.status === 'completed').length,
-      last30Days: {
-        newOverdue: invoices.filter(i => 
-          i.status === 'overdue' && new Date(i.updatedAt) >= last30Days
-        ).length,
-        paymentsReceived: invoices.filter(i => 
-          i.paymentStatus === 'paid' && new Date(i.dates.paymentDate || '') >= last30Days
-        ).length,
-        attemptsMade: attempts.filter(a => 
-          new Date(a.createdAt) >= last30Days
-        ).length
-      },
-      byLevel: {
-        level1: attempts.filter(a => a.level === 1).length,
-        level2: attempts.filter(a => a.level === 2).length,
-        level3: attempts.filter(a => a.level === 3).length
-      },
-      byStatus: {
-        pending: attempts.filter(a => a.action.status === 'pending').length,
-        sent: attempts.filter(a => a.action.status === 'sent').length,
-        delivered: attempts.filter(a => a.action.status === 'delivered').length,
-        failed: attempts.filter(a => a.action.status === 'failed').length
-      },
-      averageDaysToPayment: this.calculateAverageDaysToPayment(invoices),
-      topCustomers: this.getTopCustomers(invoices)
+      totalInvoices,
+      overdueInvoices,
+      activeCampaigns,
+      completedCampaigns,
+      successfulCollections,
+      collectionRate,
+      averageDaysToPayment: 0, // Se calcularía basado en datos reales
+      stepEffectiveness,
+      lastRun: new Date().toISOString()
     };
   }
 
-  private calculateAverageDaysToPayment(invoices: Invoice[]): number {
-    const paidInvoices = invoices.filter(i => i.paymentStatus === 'paid' && i.dates.paymentDate);
-    
-    if (paidInvoices.length === 0) return 0;
-    
-    const totalDays = paidInvoices.reduce((sum, i) => {
-      const dueDate = new Date(i.dates.dueDate);
-      const paymentDate = new Date(i.dates.paymentDate!);
-      return sum + Math.ceil((paymentDate.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
-    }, 0);
-    
-    return Math.round(totalDays / paidInvoices.length);
+  /**
+   * Obtiene campañas activas
+   */
+  getActiveCampaigns(): DunningCampaign[] {
+    return Array.from(this.campaigns.values()).filter(
+      campaign => campaign.status === 'active'
+    );
   }
 
-  private getTopCustomers(invoices: Invoice[]): Array<{
-    customerId: string;
-    customerName: string;
-    totalOutstanding: number;
-    invoiceCount: number;
-  }> {
-    const customerMap = new Map<string, {
-      customerId: string;
-      customerName: string;
-      totalOutstanding: number;
-      invoiceCount: number;
-    }>();
+  /**
+   * Obtiene campaña por ID
+   */
+  getCampaign(campaignId: string): DunningCampaign | null {
+    return this.campaigns.get(campaignId) || null;
+  }
 
-    invoices.forEach(invoice => {
-      const existing = customerMap.get(invoice.customerId);
-      if (existing) {
-        existing.totalOutstanding += invoice.financial.outstandingAmount;
-        existing.invoiceCount += 1;
-      } else {
-        customerMap.set(invoice.customerId, {
-          customerId: invoice.customerId,
-          customerName: invoice.customerName,
-          totalOutstanding: invoice.financial.outstandingAmount,
-          invoiceCount: 1
-        });
+  /**
+   * Obtiene pasos de una campaña
+   */
+  getCampaignSteps(campaignId: string): DunningStep[] {
+    return this.steps.get(campaignId) || [];
+  }
+
+  /**
+   * Marca una factura como pagada
+   */
+  async markInvoiceAsPaid(invoiceId: string, paymentDate: string): Promise<void> {
+    const invoice = this.invoices.get(invoiceId);
+    if (invoice) {
+      invoice.status = 'paid';
+      invoice.updatedAt = new Date().toISOString();
+      this.invoices.set(invoiceId, invoice);
+    }
+
+    // Cancelar campañas activas para esta factura
+    for (const campaign of this.campaigns.values()) {
+      if (campaign.invoiceId === invoiceId && campaign.status === 'active') {
+        campaign.status = 'cancelled';
+        campaign.paymentReceived = true;
+        campaign.paymentDate = paymentDate;
+        campaign.endDate = new Date().toISOString();
+        campaign.notes.push(`Payment received on ${paymentDate}`);
+        this.campaigns.set(campaign.id, campaign);
       }
-    });
+    }
 
-    return Array.from(customerMap.values())
-      .sort((a, b) => b.totalOutstanding - a.totalOutstanding)
-      .slice(0, 10);
+    structuredLogger.info('Invoice marked as paid', {
+      invoiceId,
+      paymentDate,
+      requestId: ''
+    });
+  }
+
+  /**
+   * Obtiene estadísticas del servicio
+   */
+  getStats(): DunningStats {
+    return this.stats;
+  }
+
+  /**
+   * Actualiza la configuración
+   */
+  updateConfig(newConfig: Partial<DunningConfig>): void {
+    this.config = { ...this.config, ...newConfig };
+    structuredLogger.info('Dunning configuration updated', {
+      config: this.config,
+      requestId: ''
+    });
+  }
+
+  /**
+   * Detiene el servicio
+   */
+  stop(): void {
+    if (this.processingInterval) {
+      clearInterval(this.processingInterval);
+      this.processingInterval = null;
+    }
+    structuredLogger.info('Dunning 3-toques service stopped', { requestId: '' });
   }
 }
 

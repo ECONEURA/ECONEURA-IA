@@ -46,6 +46,10 @@ import contactsDedupeRouter from './routes/contacts-dedupe.js';
 import { dealsNBAService } from './lib/deals-nba.service.js';
 import dealsNBARouter from './routes/deals-nba.js';
 
+// PR-54: Dunning 3-toques
+import { dunning3ToquesService } from './lib/dunning-3-toques.service.js';
+import dunning3ToquesRouter from './routes/dunning-3-toques.js';
+
 // Import middlewares (PR-27, PR-28, PR-29)
 import { observabilityMiddleware } from './middleware/observability.js';
 import { finOpsMiddleware } from './middleware/finops.js';
@@ -1268,6 +1272,9 @@ app.use('/v1/contacts-dedupe', contactsDedupeRouter);
 // PR-53: Deals NBA Routes
 app.use('/v1/deals-nba', dealsNBARouter);
 
+// PR-54: Dunning 3-toques Routes
+app.use('/v1/dunning-3-toques', dunning3ToquesRouter);
+
 // Mount Events (SSE) routes
 app.use('/v1/events', eventsRouter);
 
@@ -1504,6 +1511,24 @@ const server = app.listen(PORT, async () => {
     });
   } catch (error) {
     structuredLogger.error('Failed to initialize deals NBA service', {
+      error: error instanceof Error ? error.message : String(error),
+      requestId: ''
+    });
+  }
+
+  // PR-54: Initialize Dunning 3-toques Service
+  try {
+    structuredLogger.info('Initializing dunning 3-toques service...', {
+      requestId: ''
+    });
+    const stats = dunning3ToquesService.getStats();
+    structuredLogger.info('Dunning 3-toques service initialized', {
+      totalInvoices: stats.totalInvoices,
+      overdueInvoices: stats.overdueInvoices,
+      requestId: ''
+    });
+  } catch (error) {
+    structuredLogger.error('Failed to initialize dunning 3-toques service', {
       error: error instanceof Error ? error.message : String(error),
       requestId: ''
     });

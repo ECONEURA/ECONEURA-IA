@@ -468,6 +468,44 @@ export const dealsNBAFactorsAnalyzed = new Counter({
   registers: [register],
 });
 
+// Dunning 3-toques Metrics (PR-54)
+export const dunningCampaignsCreated = new Counter({
+  name: 'econeura_dunning_campaigns_created_total',
+  help: 'Total number of dunning campaigns created',
+  labelNames: ['organization_id', 'campaign_type'],
+  registers: [register],
+});
+
+export const dunningStepsExecuted = new Counter({
+  name: 'econeura_dunning_steps_executed_total',
+  help: 'Total number of dunning steps executed',
+  labelNames: ['organization_id', 'step_type', 'status'],
+  registers: [register],
+});
+
+export const dunningInvoicesPaid = new Counter({
+  name: 'econeura_dunning_invoices_paid_total',
+  help: 'Total number of invoices paid through dunning campaigns',
+  labelNames: ['organization_id', 'payment_method'],
+  registers: [register],
+});
+
+export const dunningProcessingDuration = new Histogram({
+  name: 'econeura_dunning_processing_duration_seconds',
+  help: 'Duration of dunning processing in seconds',
+  labelNames: ['organization_id'],
+  buckets: [0.1, 0.5, 1, 2, 5, 10, 30, 60, 120, 300],
+  registers: [register],
+});
+
+export const dunningEffectivenessScore = new Histogram({
+  name: 'econeura_dunning_effectiveness_score',
+  help: 'Effectiveness score of dunning campaigns',
+  labelNames: ['organization_id', 'step_type'],
+  buckets: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+  registers: [register],
+});
+
 // Helper functions for recording metrics
 export function recordAIRequest(
   org: string,
@@ -610,6 +648,13 @@ dealsNBARecommendationsExecuted,
 dealsNBAConfidenceScore,
 dealsNBAProcessingDuration,
 dealsNBAFactorsAnalyzed,
+
+// Dunning 3-toques metrics (PR-54)
+dunningCampaignsCreated,
+dunningStepsExecuted,
+dunningInvoicesPaid,
+dunningProcessingDuration,
+dunningEffectivenessScore,
 };
 
 // Export the register for /metrics endpoint
