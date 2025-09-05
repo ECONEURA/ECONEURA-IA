@@ -149,6 +149,18 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Import and mount API routes
+import { companiesRouter } from './routes/companies-simple.js';
+import { contactsRouter } from './routes/contacts-simple.js';
+import { agentsRouter } from './routes/agents-simple.js';
+
+// Mount CRM routes
+app.use('/v1/companies', companiesRouter);
+app.use('/v1/contacts', contactsRouter);
+
+// Mount Agent routes  
+app.use('/v1/agents', agentsRouter);
+
 // Middleware de Feature Flags (agregar información a todas las respuestas)
 app.use(featureFlagInfoMiddleware());
 
