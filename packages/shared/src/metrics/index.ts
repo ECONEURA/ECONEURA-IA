@@ -430,6 +430,44 @@ export const contactsDedupeProcessingDuration = new Histogram({
   registers: [register],
 });
 
+// Deals NBA Metrics (PR-53)
+export const dealsNBARecommendationsGenerated = new Counter({
+  name: 'econeura_deals_nba_recommendations_generated_total',
+  help: 'Total number of NBA recommendations generated',
+  labelNames: ['organization_id', 'action_type', 'priority'],
+  registers: [register],
+});
+
+export const dealsNBARecommendationsExecuted = new Counter({
+  name: 'econeura_deals_nba_recommendations_executed_total',
+  help: 'Total number of NBA recommendations executed',
+  labelNames: ['organization_id', 'action_type', 'status'],
+  registers: [register],
+});
+
+export const dealsNBAConfidenceScore = new Histogram({
+  name: 'econeura_deals_nba_confidence_score',
+  help: 'Confidence score distribution for NBA recommendations',
+  labelNames: ['organization_id', 'action_type'],
+  buckets: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+  registers: [register],
+});
+
+export const dealsNBAProcessingDuration = new Histogram({
+  name: 'econeura_deals_nba_processing_duration_seconds',
+  help: 'Duration of NBA processing in seconds',
+  labelNames: ['organization_id'],
+  buckets: [0.1, 0.5, 1, 2, 5, 10, 30, 60, 120, 300],
+  registers: [register],
+});
+
+export const dealsNBAFactorsAnalyzed = new Counter({
+  name: 'econeura_deals_nba_factors_analyzed_total',
+  help: 'Total number of factors analyzed for NBA recommendations',
+  labelNames: ['organization_id', 'factor_type', 'impact'],
+  registers: [register],
+});
+
 // Helper functions for recording metrics
 export function recordAIRequest(
   org: string,
@@ -565,6 +603,13 @@ contactsDedupeDuplicatesFound,
 contactsDedupeMergesExecuted,
 contactsDedupeConfidenceScore,
 contactsDedupeProcessingDuration,
+
+// Deals NBA metrics (PR-53)
+dealsNBARecommendationsGenerated,
+dealsNBARecommendationsExecuted,
+dealsNBAConfidenceScore,
+dealsNBAProcessingDuration,
+dealsNBAFactorsAnalyzed,
 };
 
 // Export the register for /metrics endpoint

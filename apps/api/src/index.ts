@@ -42,6 +42,10 @@ import companiesTaxonomyRouter from './routes/companies-taxonomy.js';
 import { contactsDedupeService } from './lib/contacts-dedupe.service.js';
 import contactsDedupeRouter from './routes/contacts-dedupe.js';
 
+// PR-53: Deals NBA Explicable
+import { dealsNBAService } from './lib/deals-nba.service.js';
+import dealsNBARouter from './routes/deals-nba.js';
+
 // Import middlewares (PR-27, PR-28, PR-29)
 import { observabilityMiddleware } from './middleware/observability.js';
 import { finOpsMiddleware } from './middleware/finops.js';
@@ -1261,6 +1265,9 @@ app.use('/v1/companies-taxonomy', companiesTaxonomyRouter);
 // PR-52: Contacts Dedupe Routes
 app.use('/v1/contacts-dedupe', contactsDedupeRouter);
 
+// PR-53: Deals NBA Routes
+app.use('/v1/deals-nba', dealsNBARouter);
+
 // Mount Events (SSE) routes
 app.use('/v1/events', eventsRouter);
 
@@ -1479,6 +1486,24 @@ const server = app.listen(PORT, async () => {
     });
   } catch (error) {
     structuredLogger.error('Failed to initialize contacts dedupe service', {
+      error: error instanceof Error ? error.message : String(error),
+      requestId: ''
+    });
+  }
+
+  // PR-53: Initialize Deals NBA Service
+  try {
+    structuredLogger.info('Initializing deals NBA service...', {
+      requestId: ''
+    });
+    const stats = dealsNBAService.getStats();
+    structuredLogger.info('Deals NBA service initialized', {
+      totalDeals: stats.totalDeals,
+      recommendationsGenerated: stats.recommendationsGenerated,
+      requestId: ''
+    });
+  } catch (error) {
+    structuredLogger.error('Failed to initialize deals NBA service', {
       error: error instanceof Error ? error.message : String(error),
       requestId: ''
     });
