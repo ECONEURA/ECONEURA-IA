@@ -289,6 +289,109 @@ export const tenantViolations = new Counter({
   registers: [register],
 });
 
+// Warmup System Metrics (PR-47)
+export const warmupDuration = new Histogram({
+  name: 'econeura_warmup_duration_ms',
+  help: 'System warmup duration in milliseconds',
+  labelNames: ['status'], // status: completed, failed, timeout
+  buckets: [100, 500, 1000, 2000, 5000, 10000, 20000, 30000],
+  registers: [register],
+});
+
+export const warmupSuccessRate = new Gauge({
+  name: 'econeura_warmup_success_rate_percent',
+  help: 'Warmup success rate percentage',
+  registers: [register],
+});
+
+export const warmupErrors = new Counter({
+  name: 'econeura_warmup_errors_total',
+  help: 'Total warmup errors',
+  labelNames: ['service', 'error_type'],
+  registers: [register],
+});
+
+export const warmupServiceDuration = new Histogram({
+  name: 'econeura_warmup_service_duration_ms',
+  help: 'Individual service warmup duration in milliseconds',
+  labelNames: ['service', 'status'],
+  buckets: [10, 50, 100, 250, 500, 1000, 2000, 5000],
+  registers: [register],
+});
+
+// Performance Optimization Metrics (PR-48)
+export const memoryUsage = new Gauge({
+  name: 'econeura_memory_usage_mb',
+  help: 'Memory usage in MB',
+  labelNames: ['type'], // type: rss, heapTotal, heapUsed, external, arrayBuffers
+  registers: [register],
+});
+
+export const cpuUsage = new Gauge({
+  name: 'econeura_cpu_usage_seconds',
+  help: 'CPU usage in seconds',
+  labelNames: ['type'], // type: user, system
+  registers: [register],
+});
+
+export const eventLoopLag = new Gauge({
+  name: 'econeura_event_loop_lag_ms',
+  help: 'Event loop lag in milliseconds',
+  registers: [register],
+});
+
+export const performanceOptimizations = new Counter({
+  name: 'econeura_performance_optimizations_total',
+  help: 'Total performance optimizations performed',
+  labelNames: ['type', 'impact', 'success'], // type: memory, cpu, latency, cache, query, connection
+  registers: [register],
+});
+
+export const optimizationDuration = new Histogram({
+  name: 'econeura_optimization_duration_ms',
+  help: 'Performance optimization duration in milliseconds',
+  labelNames: ['type', 'success'],
+  buckets: [10, 50, 100, 250, 500, 1000, 2000, 5000],
+  registers: [register],
+});
+
+// Connection Pool Metrics (PR-50)
+export const connectionPoolSize = new Gauge({
+  name: 'econeura_connection_pool_size',
+  help: 'Number of connections in pool',
+  labelNames: ['pool_name', 'status'],
+  registers: [register],
+});
+
+export const connectionPoolAcquisitions = new Counter({
+  name: 'econeura_connection_pool_acquisitions_total',
+  help: 'Total number of connection acquisitions',
+  labelNames: ['pool_name', 'status'],
+  registers: [register],
+});
+
+export const connectionPoolAcquisitionDuration = new Histogram({
+  name: 'econeura_connection_pool_acquisition_duration_seconds',
+  help: 'Duration of connection acquisitions in seconds',
+  labelNames: ['pool_name'],
+  buckets: [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5],
+  registers: [register],
+});
+
+export const connectionPoolHealthChecks = new Counter({
+  name: 'econeura_connection_pool_health_checks_total',
+  help: 'Total number of health checks performed',
+  labelNames: ['pool_name', 'status'],
+  registers: [register],
+});
+
+export const connectionPoolCircuitBreaker = new Gauge({
+  name: 'econeura_connection_pool_circuit_breaker_state',
+  help: 'Circuit breaker state (0=closed, 1=open, 2=half-open)',
+  labelNames: ['pool_name'],
+  registers: [register],
+});
+
 // Helper functions for recording metrics
 export function recordAIRequest(
   org: string,
@@ -397,6 +500,26 @@ export const prometheus = {
   orgCostBudget,
   authFailures,
   tenantViolations,
+  
+  // Warmup metrics
+  warmupDuration,
+  warmupSuccessRate,
+  warmupErrors,
+  warmupServiceDuration,
+  
+  // Performance optimization metrics
+  memoryUsage,
+  cpuUsage,
+  eventLoopLag,
+  performanceOptimizations,
+  optimizationDuration,
+  
+  // Connection Pool metrics
+  connectionPoolSize,
+  connectionPoolAcquisitions,
+  connectionPoolAcquisitionDuration,
+  connectionPoolHealthChecks,
+  connectionPoolCircuitBreaker,
 };
 
 // Export the register for /metrics endpoint

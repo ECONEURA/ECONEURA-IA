@@ -19,6 +19,24 @@ import { CostOptimizerService } from './lib/cost-optimizer.service.js';
 import { SEPAParserService } from './lib/sepa-parser.service.js';
 
 // PR-25: Biblioteca de prompts + PR-47: Warmup (simplified)
+import { warmupSystem } from './lib/warmup-system.service.js';
+import warmupRouter from './routes/warmup.js';
+
+// PR-48: Performance Optimization V2
+import { performanceOptimizerV2 } from './lib/performance-optimizer-v2.service.js';
+import performanceV2Router from './routes/performance-v2.js';
+
+// PR-49: Memory Management
+import { memoryManager } from './lib/memory-manager.service.js';
+import memoryManagementRouter from './routes/memory-management.js';
+
+// PR-50: Connection Pooling
+import { connectionPoolService } from './lib/connection-pool.service.js';
+import connectionPoolRouter from './routes/connection-pool.js';
+
+// PR-51: Companies Taxonomy & Views
+import { companiesTaxonomyService } from './lib/companies-taxonomy.service.js';
+import companiesTaxonomyRouter from './routes/companies-taxonomy.js';
 
 // Import middlewares (PR-27, PR-28, PR-29)
 import { observabilityMiddleware } from './middleware/observability.js';
@@ -1221,6 +1239,21 @@ app.use('/v1/status', statusRouter);
 app.use('/v1/reportes', reportesMensualesRouter);
 app.use('/v1/workers', workersIntegrationRouter);
 
+// PR-47: Warmup System Routes
+app.use('/v1/warmup', warmupRouter);
+
+// PR-48: Performance Optimization V2 Routes
+app.use('/v1/performance-v2', performanceV2Router);
+
+// PR-49: Memory Management Routes
+app.use('/v1/memory', memoryManagementRouter);
+
+// PR-50: Connection Pool Routes
+app.use('/v1/connection-pool', connectionPoolRouter);
+
+// PR-51: Companies Taxonomy Routes
+app.use('/v1/companies-taxonomy', companiesTaxonomyRouter);
+
 // Mount Events (SSE) routes
 app.use('/v1/events', eventsRouter);
 
@@ -1269,7 +1302,7 @@ app.use((req: express.Request, res: express.Response) => {
 // SERVER STARTUP
 // =============================================================================
 
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, async () => {
   structuredLogger.info(`ECONEURA API Server running on port ${PORT}`, {
     port: PORT,
     environment: process.env.NODE_ENV || 'development',
@@ -1315,6 +1348,116 @@ const server = app.listen(PORT, () => {
       compliance: 'GDPR + Audit trails'
     }
   });
+
+  // PR-47: Initialize Warmup System
+  try {
+    structuredLogger.info('Initializing warmup system...', {
+      requestId: ''
+    });
+    
+    // Start warmup in background (non-blocking)
+    warmupSystem.startWarmup().then((results) => {
+      const status = warmupSystem.getWarmupStatus();
+      structuredLogger.info('Warmup system initialized', {
+        resultsCount: results.size,
+        successRate: status.successRate,
+        totalDuration: status.totalDuration,
+        requestId: ''
+      });
+    }).catch((error) => {
+      structuredLogger.error('Warmup system initialization failed', {
+        error: error instanceof Error ? error.message : String(error),
+        requestId: ''
+      });
+    });
+    
+  } catch (error) {
+    structuredLogger.error('Failed to start warmup system', {
+      error: error instanceof Error ? error.message : String(error),
+      requestId: ''
+    });
+  }
+
+  // PR-48: Initialize Performance Optimizer V2
+  try {
+    structuredLogger.info('Initializing performance optimizer V2...', {
+      requestId: ''
+    });
+    
+    const status = performanceOptimizerV2.getStatus();
+    structuredLogger.info('Performance optimizer V2 initialized', {
+      enabled: status.enabled,
+      config: status.config,
+      requestId: ''
+    });
+    
+  } catch (error) {
+    structuredLogger.error('Failed to initialize performance optimizer V2', {
+      error: error instanceof Error ? error.message : String(error),
+      requestId: ''
+    });
+  }
+
+  // PR-49: Initialize Memory Manager
+  try {
+    structuredLogger.info('Initializing memory manager...', {
+      requestId: ''
+    });
+    
+    const status = memoryManager.getStatus();
+    structuredLogger.info('Memory manager initialized', {
+      enabled: status.enabled,
+      config: status.config,
+      requestId: ''
+    });
+    
+  } catch (error) {
+    structuredLogger.error('Failed to initialize memory manager', {
+      error: error instanceof Error ? error.message : String(error),
+      requestId: ''
+    });
+  }
+
+  // PR-50: Initialize Connection Pool Service
+  try {
+    structuredLogger.info('Initializing connection pool service...', {
+      requestId: ''
+    });
+    
+    const stats = connectionPoolService.getStats();
+    structuredLogger.info('Connection pool service initialized', {
+      poolsCount: stats.size,
+      pools: Array.from(stats.keys()),
+      requestId: ''
+    });
+    
+  } catch (error) {
+    structuredLogger.error('Failed to initialize connection pool service', {
+      error: error instanceof Error ? error.message : String(error),
+      requestId: ''
+    });
+  }
+
+  // PR-51: Initialize Companies Taxonomy Service
+  try {
+    structuredLogger.info('Initializing companies taxonomy service...', {
+      requestId: ''
+    });
+    
+    const taxonomies = companiesTaxonomyService.getTaxonomies();
+    const views = companiesTaxonomyService.getViews('default');
+    structuredLogger.info('Companies taxonomy service initialized', {
+      taxonomiesCount: taxonomies.length,
+      viewsCount: views.length,
+      requestId: ''
+    });
+    
+  } catch (error) {
+    structuredLogger.error('Failed to initialize companies taxonomy service', {
+      error: error instanceof Error ? error.message : String(error),
+      requestId: ''
+    });
+  }
 });
 
 // =============================================================================
