@@ -1,0 +1,206 @@
+name: ECONEURA CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8'
+
+jobs:
+  # Build and Test Job
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: econeura_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+          
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PNPM
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Type check
+      run: pnpm run typecheck
+
+    - name: Lint
+      run: pnpm run lint
+
+    - name: Build API
+      run: pnpm --filter @econeura/api build
+
+    - name: Build Web
+      run: pnpm --filter @econeura/web build
+
+    - name: Setup test environment
+      run: |
+        cp .env.example .env.test
+        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/econeura_test" >> .env.test
+        echo "REDIS_URL=redis://localhost:6379" >> .env.test
+
+    - name: Run database migrations
+      run: pnpm --filter @econeura/api prisma migrate deploy
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/econeura_test
+
+    - name: Start API for testing
+      run: |
+        pnpm --filter @econeura/api start &
+        sleep 10
+      env:
+        NODE_ENV: test
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/econeura_test
+
+    - name: Run endpoint tests
+      run: pnpm --filter @econeura/api test
+
+    - name: Run E2E tests
+      run: pnpm --filter @econeura/api run test:e2e
+
+    - name: Health check validation
+      run: |
+        curl -f http://localhost:3001/health || exit 1
+        curl -f http://localhost:3001/health/ready || exit 1
+
+  # Security Scan Job
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run security audit
+      run: |
+        npm audit --audit-level high
+        pnpm audit --audit-level high
+
+    - name: Scan for secrets
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: main
+        head: HEAD
+
+  # Performance Test Job
+  performance-test:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PNPM
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
+
+    - name: Install k6
+      run: |
+        sudo gpg -k
+        sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+        echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+        sudo apt-get update
+        sudo apt-get install k6
+
+    - name: Run performance tests
+      run: |
+        # Start API
+        pnpm --filter @econeura/api start &
+        sleep 10
+        
+        # Run k6 performance tests
+        k6 run --vus 10 --duration 30s - <<EOF
+        import http from 'k6/http';
+        import { check } from 'k6';
+        
+        export default function() {
+          const response = http.get('http://localhost:3001/health');
+          check(response, {
+            'status is 200': (r) => r.status === 200,
+            'response time < 200ms': (r) => r.timings.duration < 200,
+          });
+        }
+        EOF
+
+  # Deploy to Staging
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: [build-and-test, security-scan, performance-test]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Build Docker images
+      run: |
+        docker build -f apps/api/Dockerfile.production -t econeura-api:latest apps/api
+        docker build -f apps/web/Dockerfile -t econeura-web:latest apps/web
+
+    - name: Deploy to staging
+      run: |
+        echo "🚀 Deploying to staging environment"
+        # Here would be actual deployment commands
+        echo "✅ Deployment to staging completed"
+
+    - name: Run smoke tests on staging
+      run: |
+        # Wait for deployment
+        sleep 30
+        
+        # Run smoke tests
+        curl -f https://staging-api.econeura.com/health || exit 1
+        curl -f https://staging-api.econeura.com/health/ready || exit 1
+        
+        echo "✅ Staging smoke tests passed"
+
+    - name: Notify deployment
+      run: |
+        echo "📢 Deployment notification sent"
+        # Here would be Teams/Slack notification

@@ -10,6 +10,10 @@
     "start": "node dist/index.js",
     "clean": "rm -rf dist",
     "test": "tsx src/test-all-endpoints.ts",
+    "test:e2e": "tsx src/test-e2e-advanced.ts",
+    "test:load": "k6 run ../../tests/k6/load-test.js",
+    "test:chaos": "k6 run ../../tests/k6/chaos-test.js",
+    "test:k6": "../../scripts/run-k6-tests.sh",
     "test:endpoints": "npm run test",
     "test:health": "curl -s http://localhost:3001/health | jq .",
     "test:metrics": "curl -s http://localhost:3001/metrics | head -10",
@@ -17,8 +21,17 @@
     "typecheck": "tsc --noEmit",
     "validate": "npm run typecheck && npm run lint",
     "smoke": "npm run test:health && npm run test:metrics",
-    "docker:build": "docker build -t econeura-api .",
+    "migrate": "prisma migrate deploy",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:reset": "prisma migrate reset --force",
+    "seed": "tsx src/db/seed.ts",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "docker:build": "docker build -f Dockerfile.production -t econeura-api .",
     "docker:run": "docker run -p 3001:3001 econeura-api",
+    "staging:up": "docker-compose -f ../../docker-compose.staging.yml up -d",
+    "staging:down": "docker-compose -f ../../docker-compose.staging.yml down",
+    "staging:logs": "docker-compose -f ../../docker-compose.staging.yml logs -f",
     "prod:build": "npm run clean && npm run build",
     "prod:start": "NODE_ENV=production npm run start"
   },
@@ -28,10 +41,17 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/uuid": "^10.0.0",
     "@types/ws": "^8.18.1",
+    "axios": "^1.11.0",
+    "bcryptjs": "^3.0.2",
+    "bull": "^4.16.5",
     "cors": "^2.8.5",
+    "drizzle-orm": "^0.29.5",
     "express": "^4.18.2",
     "helmet": "^7.1.0",
+    "ioredis": "^5.7.0",
+    "joi": "^18.0.1",
     "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^7.0.6",
     "prisma": "^6.15.0",
     "uuid": "^11.1.0",
     "ws": "^8.18.3"
@@ -41,10 +61,11 @@
     "@types/express": "^4.17.21",
     "@types/node": "^20.10.0",
     "concurrently": "^9.2.1",
+    "drizzle-kit": "^0.20.18",
     "tsx": "^4.6.0",
     "typescript": "^5.3.0"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }
