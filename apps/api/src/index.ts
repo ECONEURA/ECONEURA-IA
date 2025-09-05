@@ -552,19 +552,25 @@ app.get("/health/ready", async (req, res) => {
   }
 });
 
-app.get("/health", async (req, res) => {
-  try {
-    const result = await healthMonitor.getHealthCheck();
-    const statusCode = result.status === 'healthy' ? 200 : 
-                      result.status === 'degraded' ? 200 : 503;
-    res.status(statusCode).json(result);
-  } catch (error) {
-    res.status(503).json({
-      status: "unhealthy",
-      timestamp: new Date().toISOString(),
-      error: (error as Error).message
-    });
-  }
+app.get("/health", (req, res) => {
+  // ECONEURA spec: /health MUST NOT touch DB/externals and respond <200ms
+  const ts = new Date().toISOString();
+  const version = process.env.npm_package_version || "1.0.0";
+  
+  res.status(200).json({
+    status: "ok",
+    ts,
+    version
+  });
+});
+
+// ECONEURA spec: /v1/ping endpoint
+app.get("/v1/ping", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    ts: new Date().toISOString(),
+    message: "pong"
+  });
 });
 
 app.get("/health/detailed", async (req, res) => {
