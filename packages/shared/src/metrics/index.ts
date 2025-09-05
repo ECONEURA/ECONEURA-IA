@@ -544,6 +544,396 @@ export const fiscalidadComplianceRate = new Histogram({
   registers: [register],
 });
 
+// Error Handling Metrics (MEJORA 1)
+export const errorCounter = new Counter({
+  name: 'econeura_errors_total',
+  help: 'Total number of errors by category and severity',
+  labelNames: ['category', 'severity', 'organization_id'],
+  registers: [register],
+});
+
+export const errorResponseTime = new Histogram({
+  name: 'econeura_error_response_time_seconds',
+  help: 'Response time for error handling',
+  labelNames: ['category', 'severity'],
+  buckets: [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5],
+  registers: [register],
+});
+
+export const circuitBreakerState = new Gauge({
+  name: 'econeura_circuit_breaker_state',
+  help: 'Circuit breaker state (0=closed, 1=open, 2=half-open)',
+  labelNames: ['service'],
+  registers: [register],
+});
+
+// Cache Manager Metrics (MEJORA 2)
+export const cacheHits = new Counter({
+  name: 'econeura_cache_hits_total',
+  help: 'Total number of cache hits',
+  labelNames: ['namespace'],
+  registers: [register],
+});
+
+export const cacheMisses = new Counter({
+  name: 'econeura_cache_misses_total',
+  help: 'Total number of cache misses',
+  labelNames: ['namespace'],
+  registers: [register],
+});
+
+export const cacheSets = new Counter({
+  name: 'econeura_cache_sets_total',
+  help: 'Total number of cache sets',
+  labelNames: ['namespace'],
+  registers: [register],
+});
+
+export const cacheEvictions = new Counter({
+  name: 'econeura_cache_evictions_total',
+  help: 'Total number of cache evictions',
+  labelNames: ['namespace'],
+  registers: [register],
+});
+
+export const cacheSize = new Gauge({
+  name: 'econeura_cache_size',
+  help: 'Current cache size',
+  labelNames: ['namespace'],
+  registers: [register],
+});
+
+export const cacheHitRate = new Gauge({
+  name: 'econeura_cache_hit_rate',
+  help: 'Cache hit rate',
+  labelNames: ['namespace'],
+  registers: [register],
+});
+
+export const cacheAccessTime = new Histogram({
+  name: 'econeura_cache_access_time_seconds',
+  help: 'Cache access time',
+  labelNames: ['namespace'],
+  buckets: [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1],
+  registers: [register],
+});
+
+export const cacheSetTime = new Histogram({
+  name: 'econeura_cache_set_time_seconds',
+  help: 'Cache set time',
+  labelNames: ['namespace'],
+  buckets: [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1],
+  registers: [register],
+});
+
+// Validation Manager Metrics (MEJORA 3)
+export const validationAttempts = new Counter({
+  name: 'econeura_validation_attempts_total',
+  help: 'Total number of validation attempts',
+  labelNames: ['schema', 'success'],
+  registers: [register],
+});
+
+export const validationDuration = new Histogram({
+  name: 'econeura_validation_duration_seconds',
+  help: 'Validation processing duration',
+  labelNames: ['schema'],
+  buckets: [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 2],
+  registers: [register],
+});
+
+export const validationErrors = new Counter({
+  name: 'econeura_validation_errors_total',
+  help: 'Total number of validation errors',
+  labelNames: ['schema', 'error_type'],
+  registers: [register],
+});
+
+// Monitoring & Alerts Metrics (MEJORA 4)
+export const monitoringMetrics = new Counter({
+  name: 'econeura_monitoring_metrics_total',
+  help: 'Total number of monitoring metrics recorded',
+  labelNames: ['metric'],
+  registers: [register],
+});
+
+export const alertTriggered = new Counter({
+  name: 'econeura_alerts_triggered_total',
+  help: 'Total number of alerts triggered',
+  labelNames: ['rule', 'severity', 'organization_id'],
+  registers: [register],
+});
+
+export const alertResolved = new Counter({
+  name: 'econeura_alerts_resolved_total',
+  help: 'Total number of alerts resolved',
+  labelNames: ['rule', 'severity', 'organization_id'],
+  registers: [register],
+});
+
+export const notificationsSent = new Counter({
+  name: 'econeura_notifications_sent_total',
+  help: 'Total number of notifications sent',
+  labelNames: ['channel', 'severity', 'organization_id'],
+  registers: [register],
+});
+
+export const alertDuration = new Histogram({
+  name: 'econeura_alert_duration_seconds',
+  help: 'Duration of alerts from trigger to resolution',
+  labelNames: ['rule', 'severity'],
+  buckets: [60, 300, 900, 1800, 3600, 7200, 14400, 28800, 86400],
+  registers: [register],
+});
+
+// Performance Optimizer Metrics (MEJORA 5)
+export const responseOptimizations = new Counter({
+  name: 'econeura_response_optimizations_total',
+  help: 'Total number of response optimizations',
+  registers: [register],
+});
+
+export const responseOptimizationTime = new Histogram({
+  name: 'econeura_response_optimization_time_seconds',
+  help: 'Time spent on response optimization',
+  buckets: [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1],
+  registers: [register],
+});
+
+export const compressionRatio = new Histogram({
+  name: 'econeura_compression_ratio',
+  help: 'Compression ratio achieved',
+  buckets: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+  registers: [register],
+});
+
+export const compressedResponses = new Counter({
+  name: 'econeura_compressed_responses_total',
+  help: 'Total number of compressed responses',
+  registers: [register],
+});
+
+export const queryOptimizations = new Counter({
+  name: 'econeura_query_optimizations_total',
+  help: 'Total number of query optimizations',
+  registers: [register],
+});
+
+export const queryOptimizationTime = new Histogram({
+  name: 'econeura_query_optimization_time_seconds',
+  help: 'Time spent on query optimization',
+  buckets: [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1],
+  registers: [register],
+});
+
+export const queryImprovement = new Histogram({
+  name: 'econeura_query_improvement_percent',
+  help: 'Query improvement percentage',
+  buckets: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+  registers: [register],
+});
+
+export const slowQueries = new Counter({
+  name: 'econeura_slow_queries_total',
+  help: 'Total number of slow queries detected',
+  registers: [register],
+});
+
+// Database Optimization Metrics (PR-56)
+export const databaseIndexesCreated = new Counter({
+  name: 'econeura_database_indexes_created_total',
+  help: 'Total number of database indexes created',
+  labelNames: ['table', 'type'],
+  registers: [register],
+});
+
+export const databaseIndexesDropped = new Counter({
+  name: 'econeura_database_indexes_dropped_total',
+  help: 'Total number of database indexes dropped',
+  labelNames: ['index'],
+  registers: [register],
+});
+
+export const databaseIndexMaintenance = new Counter({
+  name: 'econeura_database_index_maintenance_total',
+  help: 'Total number of database index maintenance operations',
+  labelNames: ['index'],
+  registers: [register],
+});
+
+export const databasePartitionsCreated = new Counter({
+  name: 'econeura_database_partitions_created_total',
+  help: 'Total number of database partitions created',
+  labelNames: ['table', 'partition_type'],
+  registers: [register],
+});
+
+export const databasePartitionsDropped = new Counter({
+  name: 'econeura_database_partitions_dropped_total',
+  help: 'Total number of database partitions dropped',
+  labelNames: ['table'],
+  registers: [register],
+});
+
+export const databasePartitionMaintenance = new Counter({
+  name: 'econeura_database_partition_maintenance_total',
+  help: 'Total number of database partition maintenance operations',
+  labelNames: ['partition'],
+  registers: [register],
+});
+
+export const databaseVacuumPerformed = new Counter({
+  name: 'econeura_database_vacuum_performed_total',
+  help: 'Total number of database vacuum operations',
+  labelNames: ['table'],
+  registers: [register],
+});
+
+export const databaseAnalyzePerformed = new Counter({
+  name: 'econeura_database_analyze_performed_total',
+  help: 'Total number of database analyze operations',
+  labelNames: ['table'],
+  registers: [register],
+});
+
+export const databaseConnectionCount = new Gauge({
+  name: 'econeura_database_connections',
+  help: 'Current number of database connections',
+  registers: [register],
+});
+
+export const databaseQueryDuration = new Histogram({
+  name: 'econeura_database_query_duration_seconds',
+  help: 'Database query execution duration',
+  buckets: [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5, 10],
+  registers: [register],
+});
+
+// Security Framework Metrics (PR-57)
+export const securityMfaSecretsGenerated = new Counter({
+  name: 'econeura_security_mfa_secrets_generated_total',
+  help: 'Total number of MFA secrets generated',
+  labelNames: ['userId'],
+  registers: [register],
+});
+
+export const securityMfaVerifications = new Counter({
+  name: 'econeura_security_mfa_verifications_total',
+  help: 'Total number of MFA verifications',
+  labelNames: ['userId', 'method', 'result'],
+  registers: [register],
+});
+
+export const securityMfaCodesSent = new Counter({
+  name: 'econeura_security_mfa_codes_sent_total',
+  help: 'Total number of MFA codes sent',
+  labelNames: ['userId', 'method'],
+  registers: [register],
+});
+
+export const securityMfaSessionsCreated = new Counter({
+  name: 'econeura_security_mfa_sessions_created_total',
+  help: 'Total number of MFA sessions created',
+  labelNames: ['userId'],
+  registers: [register],
+});
+
+export const securityMfaMethodsCompleted = new Counter({
+  name: 'econeura_security_mfa_methods_completed_total',
+  help: 'Total number of MFA methods completed',
+  labelNames: ['sessionId', 'method'],
+  registers: [register],
+});
+
+export const securityMfaNotificationsCreated = new Counter({
+  name: 'econeura_security_mfa_notifications_created_total',
+  help: 'Total number of MFA notifications created',
+  labelNames: ['userId', 'type'],
+  registers: [register],
+});
+
+export const securityMfaInitialized = new Counter({
+  name: 'econeura_security_mfa_initialized_total',
+  help: 'Total number of MFA initializations',
+  labelNames: ['userId'],
+  registers: [register],
+});
+
+export const securityCsrfAttacks = new Counter({
+  name: 'econeura_security_csrf_attacks_total',
+  help: 'Total number of CSRF attacks detected',
+  registers: [register],
+});
+
+export const securityInputSanitizations = new Counter({
+  name: 'econeura_security_input_sanitizations_total',
+  help: 'Total number of input sanitizations performed',
+  registers: [register],
+});
+
+export const securityThreatsDetected = new Counter({
+  name: 'econeura_security_threats_detected_total',
+  help: 'Total number of security threats detected',
+  labelNames: ['threatLevel', 'attackType'],
+  registers: [register],
+});
+
+export const securityPermissionDenied = new Counter({
+  name: 'econeura_security_permission_denied_total',
+  help: 'Total number of permission denials',
+  labelNames: ['userId', 'permission'],
+  registers: [register],
+});
+
+export const securityEvents = new Counter({
+  name: 'econeura_security_events_total',
+  help: 'Total number of security events',
+  labelNames: ['type', 'severity'],
+  registers: [register],
+});
+
+export const securityPermissionChecks = new Counter({
+  name: 'econeura_security_permission_checks_total',
+  help: 'Total number of permission checks',
+  labelNames: ['userId', 'permission', 'result'],
+  registers: [register],
+});
+
+export const securityRolesAssigned = new Counter({
+  name: 'econeura_security_roles_assigned_total',
+  help: 'Total number of roles assigned',
+  labelNames: ['userId', 'roleId', 'organizationId'],
+  registers: [register],
+});
+
+export const securityRolesRevoked = new Counter({
+  name: 'econeura_security_roles_revoked_total',
+  help: 'Total number of roles revoked',
+  labelNames: ['userId', 'roleId', 'organizationId'],
+  registers: [register],
+});
+
+export const securityRolesCreated = new Counter({
+  name: 'econeura_security_roles_created_total',
+  help: 'Total number of roles created',
+  labelNames: ['organizationId'],
+  registers: [register],
+});
+
+export const securityAccessPoliciesCreated = new Counter({
+  name: 'econeura_security_access_policies_created_total',
+  help: 'Total number of access policies created',
+  labelNames: ['organizationId'],
+  registers: [register],
+});
+
+export const securityAuditLogs = new Counter({
+  name: 'econeura_security_audit_logs_total',
+  help: 'Total number of audit logs recorded',
+  labelNames: ['action', 'result'],
+  registers: [register],
+});
+
 // Helper functions for recording metrics
 export function recordAIRequest(
   org: string,
@@ -700,6 +1090,75 @@ fiscalidadComplianceChecks,
 fiscalidadTaxCollected,
 fiscalidadProcessingDuration,
 fiscalidadComplianceRate,
+
+// Error Handling metrics (MEJORA 1)
+errorCounter,
+errorResponseTime,
+circuitBreakerState,
+
+// Cache Manager metrics (MEJORA 2)
+cacheHits,
+cacheMisses,
+cacheSets,
+cacheEvictions,
+cacheSize,
+cacheHitRate,
+cacheAccessTime,
+cacheSetTime,
+
+// Validation Manager metrics (MEJORA 3)
+validationAttempts,
+validationDuration,
+validationErrors,
+
+// Monitoring & Alerts metrics (MEJORA 4)
+monitoringMetrics,
+alertTriggered,
+alertResolved,
+notificationsSent,
+alertDuration,
+
+// Performance Optimizer metrics (MEJORA 5)
+responseOptimizations,
+responseOptimizationTime,
+compressionRatio,
+compressedResponses,
+queryOptimizations,
+queryOptimizationTime,
+queryImprovement,
+slowQueries,
+
+// Database Optimization metrics (PR-56)
+databaseIndexesCreated,
+databaseIndexesDropped,
+databaseIndexMaintenance,
+databasePartitionsCreated,
+databasePartitionsDropped,
+databasePartitionMaintenance,
+databaseVacuumPerformed,
+databaseAnalyzePerformed,
+databaseConnectionCount,
+databaseQueryDuration,
+
+// Security Framework metrics (PR-57)
+securityMfaSecretsGenerated,
+securityMfaVerifications,
+securityMfaCodesSent,
+securityMfaSessionsCreated,
+securityMfaMethodsCompleted,
+securityMfaNotificationsCreated,
+securityMfaInitialized,
+securityCsrfAttacks,
+securityInputSanitizations,
+securityThreatsDetected,
+securityPermissionDenied,
+securityEvents,
+securityPermissionChecks,
+securityRolesAssigned,
+securityRolesRevoked,
+securityRolesCreated,
+securityAccessPoliciesCreated,
+securityAuditLogs,
 };
 
 // Export the register for /metrics endpoint
