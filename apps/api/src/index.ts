@@ -36,6 +36,7 @@ import { makeQuotasRouter } from './routes/make-quotas.js';
 import { graphWrappersRouter } from './routes/graph-wrappers.js';
 import { hitlV2Router } from './routes/hitl-v2.js';
 import { stripeReceiptsRouter } from './routes/stripe-receipts.js';
+import { inventoryKardexRouter } from './routes/inventory-kardex.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -895,6 +896,7 @@ app.get("/", (req, res) => {
       "PR-31: Graph wrappers seguros",
       "PR-32: HITL v2",
       "PR-33: Stripe receipts + conciliación",
+      "PR-34: Inventory Kardex + alertas",
       "SSE: Real-time events and notifications",
       "Cockpit: Operational dashboard endpoints",
       "Cache: Advanced caching with statistics",
@@ -972,7 +974,16 @@ app.get("/", (req, res) => {
         "POST /v1/stripe/receipts/:id/reconcile - Manually reconcile receipt (PR-33)",
         "GET /v1/stripe/reconciliation-rules - Get reconciliation rules (PR-33)",
         "POST /v1/stripe/reports/reconciliation - Generate reconciliation report (PR-33)",
-        "GET /v1/stripe/stats - Get Stripe reconciliation statistics (PR-33)"
+        "GET /v1/stripe/stats - Get Stripe reconciliation statistics (PR-33)",
+        "GET /v1/inventory/products - Get products with filters (PR-34)",
+        "POST /v1/inventory/products - Create new product (PR-34)",
+        "GET /v1/inventory/kardex - Get kardex entries (PR-34)",
+        "POST /v1/inventory/kardex - Create kardex entry (PR-34)",
+        "GET /v1/inventory/stock-levels - Get stock levels (PR-34)",
+        "GET /v1/inventory/alerts - Get inventory alerts (PR-34)",
+        "POST /v1/inventory/cycle-counts - Create cycle count (PR-34)",
+        "POST /v1/inventory/reports - Generate inventory reports (PR-34)",
+        "GET /v1/inventory/stats - Get inventory statistics (PR-34)"
       ],
       events: [
         "GET /v1/events - Server-Sent Events for real-time updates",
@@ -1050,6 +1061,7 @@ app.use('/v1/make-quotas', makeQuotasRouter);
 app.use('/v1/graph', graphWrappersRouter);
 app.use('/v1/hitl', hitlV2Router);
 app.use('/v1/stripe', stripeReceiptsRouter);
+app.use('/v1/inventory', inventoryKardexRouter);
 
 // Mount Events (SSE) routes
 app.use('/v1/events', eventsRouter);
