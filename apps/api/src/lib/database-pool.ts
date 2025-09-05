@@ -465,9 +465,9 @@ export class QueryBuilder {
   private table: string = '';
   private conditions: string[] = [];
   private joins: string[] = [];
-  private orderBy: string[] = [];
-  private groupBy: string[] = [];
-  private having: string[] = [];
+  private orderByClauses: string[] = [];
+  private groupByClauses: string[] = [];
+  private havingClauses: string[] = [];
   private limitValue?: number;
   private offsetValue?: number;
 
@@ -505,17 +505,17 @@ export class QueryBuilder {
   }
 
   orderBy(column: string, direction: 'ASC' | 'DESC' = 'ASC'): QueryBuilder {
-    this.orderBy.push(`${column} ${direction}`);
+    this.orderByClauses.push(`${column} ${direction}`);
     return this;
   }
 
   groupBy(column: string): QueryBuilder {
-    this.groupBy.push(column);
+    this.groupByClauses.push(column);
     return this;
   }
 
   having(condition: string, ...params: any[]): QueryBuilder {
-    this.having.push(condition);
+    this.havingClauses.push(condition);
     this.params.push(...params);
     return this;
   }
@@ -544,18 +544,18 @@ export class QueryBuilder {
     }
 
     // Add group by
-    if (this.groupBy.length > 0) {
-      query += ' GROUP BY ' + this.groupBy.join(', ');
+    if (this.groupByClauses.length > 0) {
+      query += ' GROUP BY ' + this.groupByClauses.join(', ');
     }
 
     // Add having
-    if (this.having.length > 0) {
-      query += ' HAVING ' + this.having.join(' AND ');
+    if (this.havingClauses.length > 0) {
+      query += ' HAVING ' + this.havingClauses.join(' AND ');
     }
 
     // Add order by
-    if (this.orderBy.length > 0) {
-      query += ' ORDER BY ' + this.orderBy.join(', ');
+    if (this.orderByClauses.length > 0) {
+      query += ' ORDER BY ' + this.orderByClauses.join(', ');
     }
 
     // Add limit

@@ -445,6 +445,10 @@ export class HealthMonitor {
 
     // Calculate response time percentiles
     const sortedResponseTimes = [...this.metrics.responseTimes].sort((a, b) => a - b);
+    const averageResponseTime = sortedResponseTimes.length > 0 
+      ? sortedResponseTimes.reduce((sum, time) => sum + time, 0) / sortedResponseTimes.length 
+      : 0;
+      
     const responseTimeStats = {
       min: sortedResponseTimes[0] || 0,
       max: sortedResponseTimes[sortedResponseTimes.length - 1] || 0,

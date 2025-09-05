@@ -285,7 +285,7 @@ app.get("/v1/finops/budgets", async (req, res) => {
       count: budgets.length,
       summary: {
         totalBudgets: budgets.length,
-        activeBudgets: budgets.length,
+        activeBudgets: budgets.filter(b => b.isActive).length,
         totalAmount: budgets.reduce((sum, b) => sum + b.amount, 0)
       }
     });
@@ -494,8 +494,8 @@ app.get("/v1/sepa/transactions", async (req, res) => {
         totalAmount: transactions.reduce((sum, t) => sum + (t.amount || 0), 0),
         currencies: [...new Set(transactions.map(t => t.currency))],
         dateRange: {
-          from: transactions.length > 0 ? Math.min(...transactions.map(t => new Date(t.valueDate || t.createdAt).getTime())) : null,
-          to: transactions.length > 0 ? Math.max(...transactions.map(t => new Date(t.valueDate || t.createdAt).getTime())) : null
+          from: transactions.length > 0 ? Math.min(...transactions.map(t => new Date(t.valueDate || t.bookingDate).getTime())) : null,
+          to: transactions.length > 0 ? Math.max(...transactions.map(t => new Date(t.valueDate || t.bookingDate).getTime())) : null
         }
       }
     });

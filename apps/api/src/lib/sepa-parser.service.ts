@@ -16,7 +16,8 @@ export class SEPAParserService {
       // Extract transactions from CAMT structure
       const entries = xmlDoc.querySelectorAll('Ntry');
       
-      for (const entry of entries) {
+      for (let i = 0; i < entries.length; i++) {
+        const entry = entries[i];
         try {
           const transaction = this.parseCAMTEntry(entry);
           if (transaction) {

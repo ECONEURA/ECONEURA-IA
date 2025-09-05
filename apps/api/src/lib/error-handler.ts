@@ -1,5 +1,6 @@
 // Error Handler and Retry Logic for ECONEURA
 import { logger } from './logger.js';
+import { LogContext } from './structured-logger.js';
 
 export interface RetryOptions {
   maxRetries: number;
@@ -51,12 +52,12 @@ export class ErrorHandler {
             attempts: attempt + 1,
             maxRetries: config.maxRetries,
             error: lastError.message
-          });
+          } as LogContext);
           break;
         }
 
         if (config.retryCondition && !config.retryCondition(lastError)) {
-          logger.warn('Error not retryable', { error: lastError.message });
+          logger.warn('Error not retryable', { error: lastError.message } as LogContext);
           break;
         }
 
@@ -70,7 +71,7 @@ export class ErrorHandler {
           maxRetries: config.maxRetries,
           delay,
           error: lastError.message
-        });
+        } as LogContext);
 
         await this.sleep(delay);
       }
@@ -127,7 +128,7 @@ export class ErrorHandler {
       message: error.message,
       stack: error.stack,
       context
-    });
+    } as LogContext);
 
     return {
       success: false,

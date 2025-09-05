@@ -452,6 +452,3 @@ export class ProcessManager {
 
 // Global process manager instance
 export const processManager = ProcessManager.getInstance();
-
-// Export for easy access
-export { ProcessManager };
