@@ -38,6 +38,10 @@ import connectionPoolRouter from './routes/connection-pool.js';
 import { companiesTaxonomyService } from './lib/companies-taxonomy.service.js';
 import companiesTaxonomyRouter from './routes/companies-taxonomy.js';
 
+// PR-52: Contacts Dedupe Proactivo
+import { contactsDedupeService } from './lib/contacts-dedupe.service.js';
+import contactsDedupeRouter from './routes/contacts-dedupe.js';
+
 // Import middlewares (PR-27, PR-28, PR-29)
 import { observabilityMiddleware } from './middleware/observability.js';
 import { finOpsMiddleware } from './middleware/finops.js';
@@ -1254,6 +1258,9 @@ app.use('/v1/connection-pool', connectionPoolRouter);
 // PR-51: Companies Taxonomy Routes
 app.use('/v1/companies-taxonomy', companiesTaxonomyRouter);
 
+// PR-52: Contacts Dedupe Routes
+app.use('/v1/contacts-dedupe', contactsDedupeRouter);
+
 // Mount Events (SSE) routes
 app.use('/v1/events', eventsRouter);
 
@@ -1454,6 +1461,24 @@ const server = app.listen(PORT, async () => {
     
   } catch (error) {
     structuredLogger.error('Failed to initialize companies taxonomy service', {
+      error: error instanceof Error ? error.message : String(error),
+      requestId: ''
+    });
+  }
+
+  // PR-52: Initialize Contacts Dedupe Service
+  try {
+    structuredLogger.info('Initializing contacts dedupe service...', {
+      requestId: ''
+    });
+    const stats = contactsDedupeService.getStats();
+    structuredLogger.info('Contacts dedupe service initialized', {
+      totalContacts: stats.totalContacts,
+      duplicatesFound: stats.duplicatesFound,
+      requestId: ''
+    });
+  } catch (error) {
+    structuredLogger.error('Failed to initialize contacts dedupe service', {
       error: error instanceof Error ? error.message : String(error),
       requestId: ''
     });

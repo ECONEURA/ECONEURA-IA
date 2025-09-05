@@ -8,7 +8,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { warmupSystem } from '../lib/warmup-system.service.js';
-import { structuredLogger } from '../lib/structured-structuredLogger.js';
+import { structuredLogger } from '../lib/structured-logger.js';
 
 const router = Router();
 

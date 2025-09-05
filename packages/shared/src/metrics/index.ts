@@ -392,6 +392,44 @@ export const connectionPoolCircuitBreaker = new Gauge({
   registers: [register],
 });
 
+// Contacts Dedupe Metrics (PR-52)
+export const contactsDedupeProcessed = new Counter({
+  name: 'econeura_contacts_dedupe_processed_total',
+  help: 'Total number of contacts processed for deduplication',
+  labelNames: ['organization_id', 'status'],
+  registers: [register],
+});
+
+export const contactsDedupeDuplicatesFound = new Counter({
+  name: 'econeura_contacts_dedupe_duplicates_found_total',
+  help: 'Total number of duplicate contacts found',
+  labelNames: ['organization_id', 'match_type'],
+  registers: [register],
+});
+
+export const contactsDedupeMergesExecuted = new Counter({
+  name: 'econeura_contacts_dedupe_merges_executed_total',
+  help: 'Total number of contact merges executed',
+  labelNames: ['organization_id', 'status'],
+  registers: [register],
+});
+
+export const contactsDedupeConfidenceScore = new Histogram({
+  name: 'econeura_contacts_dedupe_confidence_score',
+  help: 'Confidence score distribution for duplicate matches',
+  labelNames: ['organization_id', 'match_type'],
+  buckets: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+  registers: [register],
+});
+
+export const contactsDedupeProcessingDuration = new Histogram({
+  name: 'econeura_contacts_dedupe_processing_duration_seconds',
+  help: 'Duration of deduplication processing in seconds',
+  labelNames: ['organization_id'],
+  buckets: [0.1, 0.5, 1, 2, 5, 10, 30, 60, 120, 300],
+  registers: [register],
+});
+
 // Helper functions for recording metrics
 export function recordAIRequest(
   org: string,
@@ -515,11 +553,18 @@ export const prometheus = {
   optimizationDuration,
   
   // Connection Pool metrics
-  connectionPoolSize,
-  connectionPoolAcquisitions,
-  connectionPoolAcquisitionDuration,
-  connectionPoolHealthChecks,
-  connectionPoolCircuitBreaker,
+connectionPoolSize,
+connectionPoolAcquisitions,
+connectionPoolAcquisitionDuration,
+connectionPoolHealthChecks,
+connectionPoolCircuitBreaker,
+
+// Contacts Dedupe metrics (PR-52)
+contactsDedupeProcessed,
+contactsDedupeDuplicatesFound,
+contactsDedupeMergesExecuted,
+contactsDedupeConfidenceScore,
+contactsDedupeProcessingDuration,
 };
 
 // Export the register for /metrics endpoint
