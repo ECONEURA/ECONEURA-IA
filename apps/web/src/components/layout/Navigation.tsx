@@ -19,6 +19,7 @@ import {
   ClipboardList,
   Calculator,
   PieChart,
+  Activity,
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -68,6 +69,13 @@ const navigation = [
       { name: 'Contabilidad', href: '/finance/accounting', permission: 'finance:accounting:view' },
       { name: 'Reportes', href: '/finance/reports', permission: 'finance:reports:view' },
     ]
+  },
+  {
+    name: 'Cockpit',
+    href: '/cockpit',
+    icon: Activity,
+    permission: 'cockpit:view',
+    category: 'operations'
   },
   {
     name: 'AI Suite',

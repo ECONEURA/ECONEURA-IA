@@ -45,7 +45,10 @@
     "postinstall": "echo 'Setup complete'",
     "k6:smoke": "k6 run e2e/k6/smoke-chaos.js",
     "chaos:on": "cross-env CHAOS_ENABLED=true pnpm --filter @econeura/api dev",
-    "chaos:off": "cross-env CHAOS_ENABLED=false pnpm --filter @econeura/api dev"
+    "chaos:off": "cross-env CHAOS_ENABLED=false pnpm --filter @econeura/api dev",
+    "smoke": "scripts/smoke-test.sh",
+    "smoke:verbose": "scripts/smoke-test.sh --verbose",
+    "smoke:production": "scripts/smoke-test.sh --api-url https://econeura-api-dev.azurewebsites.net --web-url https://econeura-web-dev-dpehcua9augngbcb.northeurope-01.azurewebsites.net"
   },
   "devDependencies": {
     "@redocly/cli": "^1.34.5",

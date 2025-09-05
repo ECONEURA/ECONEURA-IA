@@ -6534,6 +6534,323 @@ app.get("/v1/security/stats", async (req, res) => {
   }
 });
 
+// ============================
+// AGENT EXECUTION ENDPOINTS
+// ============================
+
+// Import agent registry
+import { agentRegistry, AgentExecutionRequestSchema, type AgentContext, type AgentResult } from '@econeura/agents';
+
+// Get all agents
+app.get("/v1/agents", (req, res) => {
+  try {
+    const { category } = req.query;
+    
+    let agents = agentRegistry.getAllAgents();
+    if (category) {
+      agents = agentRegistry.getAgentsByCategory(category as any);
+    }
+    
+    const agentsInfo = agents.map(agent => ({
+      id: agent.id,
+      name: agent.name,
+      description: agent.description,
+      category: agent.category,
+      version: agent.version,
+      costHint: agent.costHint,
+      tags: agent.tags,
+      deprecated: agent.deprecated,
+      policy: {
+        maxExecutionTimeMs: agent.policy.maxExecutionTimeMs,
+        maxRetries: agent.policy.maxRetries,
+        requiresApproval: agent.policy.requiresApproval,
+        costCategory: agent.policy.costCategory,
+      },
+    }));
+    
+    res.json({
+      success: true,
+      data: {
+        agents: agentsInfo,
+        total: agentsInfo.length,
+        categories: agentRegistry.getCategoryCounts(),
+      },
+    });
+  } catch (error) {
+    logger.error('Failed to get agents', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get specific agent details
+app.get("/v1/agents/:agentId", (req, res) => {
+  try {
+    const { agentId } = req.params;
+    const agent = agentRegistry.getAgent(agentId);
+    
+    if (!agent) {
+      return res.status(404).json({
+        error: 'Agent not found',
+        message: `Agent with ID '${agentId}' does not exist`,
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        id: agent.id,
+        name: agent.name,
+        description: agent.description,
+        category: agent.category,
+        version: agent.version,
+        costHint: agent.costHint,
+        tags: agent.tags,
+        deprecated: agent.deprecated,
+        policy: agent.policy,
+        // Note: inputs/outputs schemas are not serialized for security
+      },
+    });
+  } catch (error) {
+    logger.error('Failed to get agent details', { 
+      agentId: req.params.agentId,
+      error: (error as Error).message 
+    });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Execute agent
+app.post("/v1/agents/run", rateLimitByEndpoint, async (req, res) => {
+  const requestId = req.headers['x-request-id'] as string || 'unknown';
+  const orgId = req.headers['x-org-id'] as string || 'unknown';
+  const userId = req.headers['x-user-id'] as string || 'unknown';
+  
+  try {
+    // Validate request body
+    const executionRequest = AgentExecutionRequestSchema.parse(req.body);
+    
+    const context: AgentContext = {
+      orgId,
+      userId,
+      correlationId: requestId,
+      idempotencyKey: req.headers['x-idempotency-key'] as string,
+      metadata: {
+        userAgent: req.headers['user-agent'],
+        ip: req.ip,
+        timestamp: new Date().toISOString(),
+      },
+    };
+    
+    logger.info('Agent execution requested', {
+      agentId: executionRequest.agentId,
+      orgId,
+      userId,
+      requestId,
+    });
+    
+    // Execute agent
+    const result: AgentResult = await agentRegistry.executeAgent(
+      executionRequest.agentId,
+      executionRequest.inputs,
+      context
+    );
+    
+    // Add FinOps headers
+    res.set('X-Est-Cost-EUR', (result.costEur || 0).toString());
+    res.set('X-Execution-Time-ms', (result.executionTimeMs || 0).toString());
+    res.set('X-Request-Id', requestId);
+    res.set('X-Org-Id', orgId);
+    
+    if (result.success) {
+      logger.info('Agent execution completed successfully', {
+        agentId: executionRequest.agentId,
+        orgId,
+        userId,
+        requestId,
+        executionTimeMs: result.executionTimeMs,
+        costEur: result.costEur,
+      });
+      
+      res.json({
+        success: true,
+        data: {
+          agentId: executionRequest.agentId,
+          result: result.data,
+          executionTimeMs: result.executionTimeMs,
+          costEur: result.costEur,
+          metadata: result.metadata,
+        },
+      });
+    } else {
+      logger.warn('Agent execution failed', {
+        agentId: executionRequest.agentId,
+        orgId,
+        userId,
+        requestId,
+        error: result.error,
+      });
+      
+      res.status(400).json({
+        success: false,
+        error: result.error,
+        agentId: executionRequest.agentId,
+        executionTimeMs: result.executionTimeMs,
+      });
+    }
+  } catch (error) {
+    logger.error('Agent execution request failed', {
+      requestId,
+      orgId,
+      userId,
+      error: (error as Error).message,
+    });
+    
+    if (error instanceof Error && error.message.includes('not found')) {
+      return res.status(404).json({
+        error: 'Agent not found',
+        message: error.message,
+      });
+    }
+    
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to execute agent',
+    });
+  }
+});
+
+// Get agent execution status (for long-running agents)
+app.get("/v1/agents/runs/:runId", (req, res) => {
+  try {
+    const { runId } = req.params;
+    
+    // This would typically fetch from a database
+    // For now, return a mock response
+    res.json({
+      success: true,
+      data: {
+        id: runId,
+        status: 'completed',
+        agentId: 'example-agent',
+        startedAt: new Date().toISOString(),
+        completedAt: new Date().toISOString(),
+        result: { message: 'Mock execution result' },
+        costEur: 0.05,
+        executionTimeMs: 1500,
+      },
+    });
+  } catch (error) {
+    logger.error('Failed to get agent run status', { 
+      runId: req.params.runId,
+      error: (error as Error).message 
+    });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ============================
+// COCKPIT ENDPOINTS
+// ============================
+
+// Get cockpit overview
+app.get("/v1/cockpit/overview", async (req, res) => {
+  try {
+    const overview = {
+      agents: {
+        total: agentRegistry.getAllAgents().length,
+        running: 0, // Would be fetched from execution tracker
+        failed: 0,
+        categories: agentRegistry.getCategoryCounts(),
+      },
+      costs: {
+        totalSpent: 0, // Would be fetched from cost tracker
+        budgetUsed: 0,
+        topSpenders: [],
+      },
+      performance: {
+        p95ResponseTime: 0, // Would be fetched from metrics
+        errorRate: 0,
+        availability: 100,
+      },
+      queues: {
+        pending: 0,
+        processing: 0,
+        failed: 0,
+      },
+    };
+    
+    res.json({
+      success: true,
+      data: overview,
+    });
+  } catch (error) {
+    logger.error('Failed to get cockpit overview', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get agent statistics
+app.get("/v1/cockpit/agents", (req, res) => {
+  try {
+    const agents = agentRegistry.getAllAgents().map(agent => ({
+      id: agent.id,
+      name: agent.name,
+      category: agent.category,
+      executions: 0, // Would be fetched from execution tracker
+      successRate: 100,
+      avgExecutionTime: 0,
+      avgCost: 0,
+      lastExecution: null,
+    }));
+    
+    res.json({
+      success: true,
+      data: {
+        agents,
+        summary: {
+          totalAgents: agents.length,
+          activeAgents: agents.length,
+          categories: agentRegistry.getCategoryCounts(),
+        },
+      },
+    });
+  } catch (error) {
+    logger.error('Failed to get agent statistics', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get cost breakdown
+app.get("/v1/cockpit/costs", (req, res) => {
+  try {
+    const costs = {
+      byOrganization: [],
+      byAgent: [],
+      byCategory: Object.keys(agentRegistry.getCategoryCounts()).map(category => ({
+        category,
+        totalCost: 0,
+        executions: 0,
+        avgCostPerExecution: 0,
+      })),
+      timeline: [],
+      budget: {
+        total: 50, // €50 per month default
+        used: 0,
+        remaining: 50,
+        percentage: 0,
+      },
+    };
+    
+    res.json({
+      success: true,
+      data: costs,
+    });
+  } catch (error) {
+    logger.error('Failed to get cost breakdown', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Endpoint de métricas para Prometheus
 app.get("/metrics", (req, res) => {
   try {
