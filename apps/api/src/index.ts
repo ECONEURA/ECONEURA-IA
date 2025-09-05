@@ -20,8 +20,13 @@ import { serviceRegistry, serviceDiscovery } from "./lib/service-discovery.js";
 import { serviceMesh } from "./lib/service-mesh.js";
 import { configurationManager } from "./lib/configuration.js";
 import { featureFlagInfoMiddleware, requireFeatureFlag } from "./middleware/feature-flags.js";
+import { notificationSystem } from "./lib/notifications.js";
 import { workflowEngine } from "./lib/workflows.js";
 import { inventorySystem } from "./lib/inventory.js";
+import { advancedAIChatSystem } from "./lib/ai-chat.js";
+import { analyticsSystem } from "./lib/analytics.js";
+import { advancedSearchEngine } from "./lib/advanced-search.js";
+import { realTimeCollaborationSystem } from "./lib/real-time-collaboration.js";
 import { securitySystem } from "./lib/security.js";
 import { SEPAParserService } from "./lib/sepa-parser.service.js";
 import { MatchingEngineService } from "./lib/matching-engine.service.js";
@@ -6534,6 +6539,246 @@ app.get("/v1/security/stats", async (req, res) => {
   }
 });
 
+// ============================================================================
+// ENDPOINTS DEL SISTEMA DE NOTIFICACIONES
+// ============================================================================
+
+// GET /v1/notifications - Listar notificaciones
+app.get("/v1/notifications", async (req, res) => {
+  try {
+    const { userId, orgId, status, type, priority, limit, offset } = req.query;
+    
+    if (!userId || !orgId) {
+      return res.status(400).json({ error: 'userId and orgId are required' });
+    }
+
+    const filters: any = {};
+    if (status) filters.status = status;
+    if (type) filters.type = type;
+    if (priority) filters.priority = priority;
+    if (limit) filters.limit = parseInt(limit as string);
+    if (offset) filters.offset = parseInt(offset as string);
+
+    const notifications = await notificationSystem.getNotifications(userId as string, orgId as string, filters);
+    res.json(notifications);
+  } catch (error) {
+    logger.error('Failed to get notifications', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /v1/notifications - Crear notificación
+app.post("/v1/notifications", async (req, res) => {
+  try {
+    const notification = await notificationSystem.createNotification(req.body);
+    res.status(201).json(notification);
+  } catch (error) {
+    logger.error('Failed to create notification', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// GET /v1/notifications/:id - Obtener notificación específica
+app.get("/v1/notifications/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const notification = await notificationSystem.getNotification(id);
+    
+    if (!notification) {
+      return res.status(404).json({ error: 'Notification not found' });
+    }
+    
+    res.json(notification);
+  } catch (error) {
+    logger.error('Failed to get notification', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PUT /v1/notifications/:id - Actualizar notificación
+app.put("/v1/notifications/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const notification = await notificationSystem.updateNotification(id, updates);
+    res.json(notification);
+  } catch (error) {
+    logger.error('Failed to update notification', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// DELETE /v1/notifications/:id - Eliminar notificación
+app.delete("/v1/notifications/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await notificationSystem.deleteNotification(id);
+    res.status(204).send();
+  } catch (error) {
+    logger.error('Failed to delete notification', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// POST /v1/notifications/:id/read - Marcar como leída
+app.post("/v1/notifications/:id/read", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const notification = await notificationSystem.markAsRead(id);
+    res.json(notification);
+  } catch (error) {
+    logger.error('Failed to mark notification as read', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// POST /v1/notifications/read-all - Marcar todas como leídas
+app.post("/v1/notifications/read-all", async (req, res) => {
+  try {
+    const { userId, orgId } = req.body;
+    
+    if (!userId || !orgId) {
+      return res.status(400).json({ error: 'userId and orgId are required' });
+    }
+
+    const result = await notificationSystem.markAllAsRead(userId, orgId);
+    res.json(result);
+  } catch (error) {
+    logger.error('Failed to mark all notifications as read', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// GET /v1/notifications/unread-count - Contar no leídas
+app.get("/v1/notifications/unread-count", async (req, res) => {
+  try {
+    const { userId, orgId } = req.query;
+    
+    if (!userId || !orgId) {
+      return res.status(400).json({ error: 'userId and orgId are required' });
+    }
+
+    const count = await notificationSystem.getUnreadCount(userId as string, orgId as string);
+    res.json({ count });
+  } catch (error) {
+    logger.error('Failed to get unread count', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ============================================================================
+// ADVANCED SEARCH ENDPOINTS
+// ============================================================================
+
+// POST /v1/search - Búsqueda avanzada
+app.post("/v1/search", async (req, res) => {
+  try {
+    const searchParams = req.body;
+    const result = await advancedSearchEngine.search(searchParams);
+    
+    // Add FinOps headers
+    res.set('X-Cost-Tracked', 'true');
+    res.set('X-Search-Type', searchParams.searchType || 'keyword');
+    res.set('X-Results-Count', result.results.length.toString());
+    res.set('X-Response-Time', result.analytics.responseTime.toString());
+    
+    res.json(result);
+  } catch (error) {
+    logger.error('Failed to process search request', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// GET /v1/search/suggestions - Obtener sugerencias de búsqueda
+app.get("/v1/search/suggestions", async (req, res) => {
+  try {
+    const { query } = req.query;
+    
+    if (!query) {
+      return res.status(400).json({ error: 'query parameter is required' });
+    }
+
+    const suggestions = await advancedSearchEngine.generateSuggestions(query as string, []);
+    res.json({ suggestions });
+  } catch (error) {
+    logger.error('Failed to get search suggestions', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /v1/search/history - Obtener historial de búsquedas
+app.get("/v1/search/history", async (req, res) => {
+  try {
+    const { userId } = req.query;
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'userId parameter is required' });
+    }
+
+    const history = advancedSearchEngine.getSearchHistory(userId as string);
+    res.json({ history });
+  } catch (error) {
+    logger.error('Failed to get search history', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ============================================================================
+// REAL-TIME COLLABORATION ENDPOINTS
+// ============================================================================
+
+// GET /v1/collaboration/rooms - Obtener salas de colaboración
+app.get("/v1/collaboration/rooms", async (req, res) => {
+  try {
+    const { userId } = req.query;
+    const rooms = realTimeCollaborationSystem.listRooms(userId as string);
+    
+    // Add FinOps headers
+    res.set('X-Cost-Tracked', 'true');
+    res.set('X-Rooms-Count', rooms.length.toString());
+    
+    res.json({ rooms });
+  } catch (error) {
+    logger.error('Failed to get collaboration rooms', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /v1/collaboration/rooms - Crear sala de colaboración
+app.post("/v1/collaboration/rooms", async (req, res) => {
+  try {
+    const roomData = req.body;
+    const room = realTimeCollaborationSystem.createRoom(roomData);
+    
+    // Add FinOps headers
+    res.set('X-Cost-Tracked', 'true');
+    res.set('X-Room-Type', room.type);
+    res.set('X-Participants-Count', room.participants.length.toString());
+    
+    res.status(201).json(room);
+  } catch (error) {
+    logger.error('Failed to create collaboration room', { error: (error as Error).message });
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// GET /v1/collaboration/rooms/:roomId - Obtener información de sala
+app.get("/v1/collaboration/rooms/:roomId", async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const room = realTimeCollaborationSystem.getRoom(roomId);
+    
+    if (!room) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    
+    res.json({ room });
+  } catch (error) {
+    logger.error('Failed to get collaboration room', { error: (error as Error).message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Endpoint de métricas para Prometheus
 app.get("/metrics", (req, res) => {
   try {
@@ -6615,6 +6860,10 @@ app.listen(PORT, async () => {
   console.log(`🔗 Microservices system enabled with service mesh and discovery`);
   console.log(`⚙️ Configuration system enabled with feature flags and environment management`);
   console.log(`🔄 Workflow system enabled with BPMN and state machines`);
+  console.log(`📦 Inventory system enabled with product management, transactions, alerts, and reporting`);
+  console.log(`📧 Notification system enabled with templates and multi-channel delivery`);
+  console.log(`🔍 Advanced Search Engine enabled with semantic, fuzzy, and federated search`);
+  console.log(`🤝 Real-time Collaboration System enabled with WebSockets and document sharing`);
   console.log(`🔐 Advanced Security system enabled with MFA, RBAC, and threat detection`);
   console.log(`🏦 SEPA system enabled with CAMT/MT940 parsing and intelligent matching`);
   console.log(`🔒 GDPR system enabled with export/erase and compliance management`);
