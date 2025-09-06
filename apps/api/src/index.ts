@@ -4,6 +4,13 @@ import helmet from "helmet";
 import { structuredLogger } from "./lib/structured-logger.js";
 import { ErrorHandler } from "./lib/error-handler.js";
 
+// PR-2: API Gateway + Auth
+import { apiGatewayService } from './lib/api-gateway.service.js';
+import { authService } from './lib/auth.service.js';
+import { rbacService } from './lib/rbac.service.js';
+import { apiVersioningService } from './lib/api-versioning.service.js';
+import { authRouter } from './routes/auth.js';
+
 // Import health modes (PR-22)
 import { healthModeManager } from './lib/health-modes.js';
 import { healthMonitor } from './lib/health-monitor.js';
@@ -225,6 +232,10 @@ app.use(finOpsMiddleware);
 app.use(standardRateLimit);
 app.use(rateLimitOrg);
 app.use(budgetGuard);
+
+// PR-2: API Gateway + Auth middleware
+app.use(apiVersioningService.versionMiddleware);
+app.use(apiGatewayService.gatewayMiddleware);
 
 // Rate limiting middleware (PR-29)
 const rateLimitStore = new Map();
@@ -1287,6 +1298,9 @@ app.get("/", (req, res) => {
 // =============================================================================
 // MOUNT ROUTERS
 // =============================================================================
+
+// PR-2: API Gateway + Auth routes
+app.use('/v1/auth', authRouter);
 
 // PR-5: Express API (Esqueleto /v1/ping)
 app.use('/v1', pingRouter);
