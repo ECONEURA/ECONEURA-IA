@@ -25,6 +25,8 @@ export { CreatePredictiveAnalyticsUseCase } from './use-cases/predictive-analyti
 export { UpdatePredictiveAnalyticsUseCase } from './use-cases/predictive-analytics/update-predictive-analytics.use-case.js';
 export { GeneratePredictionUseCase } from './use-cases/predictive-analytics/generate-prediction.use-case.js';
 export { TrainModelUseCase } from './use-cases/predictive-analytics/train-model.use-case.js';
+export { CreateArchitectureUseCase } from './use-cases/architecture/create-architecture.use-case.js';
+export { AnalyzeArchitectureUseCase } from './use-cases/architecture/analyze-architecture.use-case.js';
 
 // Application Services
 export { UserApplicationService } from './services/user.application.service.js';
@@ -48,6 +50,8 @@ export type { CreatePredictiveAnalyticsRequest, CreatePredictiveAnalyticsRespons
 export type { UpdatePredictiveAnalyticsRequest, UpdatePredictiveAnalyticsResponse } from './use-cases/predictive-analytics/update-predictive-analytics.use-case.js';
 export type { GeneratePredictionRequest, GeneratePredictionResponse } from './use-cases/predictive-analytics/generate-prediction.use-case.js';
 export type { TrainModelRequest, TrainModelResponse } from './use-cases/predictive-analytics/train-model.use-case.js';
+export type { CreateArchitectureRequest, CreateArchitectureResponse } from './use-cases/architecture/create-architecture.use-case.js';
+export type { AnalyzeArchitectureRequest, AnalyzeArchitectureResponse } from './use-cases/architecture/analyze-architecture.use-case.js';
 export type { UserSearchOptions, UserListResponse, UserStatsResponse } from './services/user.application.service.js';
 
 // Re-export shared utilities for convenience

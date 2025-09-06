@@ -15,6 +15,7 @@ export { Product } from './entities/product.entity.js';
 export { Invoice } from './entities/invoice.entity.js';
 export { InventoryKardex } from './entities/inventory-kardex.entity.js';
 export { PredictiveAnalytics } from './entities/predictive-analytics.entity.js';
+export { Architecture } from './entities/architecture.entity.js';
 
 // Value Objects
 export { Email } from './value-objects/email.vo.js';
@@ -33,6 +34,7 @@ export { ProductRepository } from './repositories/product.repository.js';
 export { InvoiceRepository } from './repositories/invoice.repository.js';
 export { InventoryKardexRepository } from './repositories/inventory-kardex.repository.js';
 export { PredictiveAnalyticsRepository } from './repositories/predictive-analytics.repository.js';
+export { ArchitectureRepository } from './repositories/architecture.repository.js';
 
 // Domain Services
 export { UserDomainService } from './services/user.domain.service.js';
@@ -46,6 +48,7 @@ export type { ProductId, ProductType, ProductStatus, ProductCategory, ProductBra
 export type { InvoiceId, InvoiceNumber, InvoiceType, InvoiceStatus, InvoicePaymentStatus, InvoicePaymentMethod, InvoiceItem, InvoiceSettings } from './entities/invoice.entity.js';
 export type { InventoryKardexId, MovementType, MovementStatus, MovementReason, InventoryMovement, InventorySettings } from './entities/inventory-kardex.entity.js';
 export type { PredictiveAnalyticsId, AnalyticsType, AnalyticsStatus, AnalyticsModel, AnalyticsAccuracy, PredictionData, AnalyticsSettings, AnalyticsMetrics } from './entities/predictive-analytics.entity.js';
+export type { ArchitectureId, ArchitectureType, ArchitectureStatus, LayerType, ComponentType, ArchitectureComponent, ArchitectureLayer, ArchitectureSettings, ArchitectureMetrics } from './entities/architecture.entity.js';
 export type { Currency } from './value-objects/money.vo.js';
 export type { AddressProps } from './value-objects/address.vo.js';
 export type { UserFilters, PaginatedResult, UserSearchOptions } from './repositories/user.repository.js';
@@ -56,6 +59,7 @@ export type { ProductStats, InventoryStats, PricingStats, CategoryStats, BrandSt
 export type { InvoiceFilters, InvoiceSearchOptions, InvoiceStats } from './repositories/invoice.repository.js';
 export type { InventoryKardexFilters, InventoryKardexSearchOptions, InventoryKardexStats } from './repositories/inventory-kardex.repository.js';
 export type { PredictiveAnalyticsFilters, PredictiveAnalyticsSearchOptions, PredictiveAnalyticsStats } from './repositories/predictive-analytics.repository.js';
+export type { ArchitectureFilters, ArchitectureSearchOptions, ArchitectureStats } from './repositories/architecture.repository.js';
 
 // Re-export shared utilities for convenience
 export * from '../shared/index.js';

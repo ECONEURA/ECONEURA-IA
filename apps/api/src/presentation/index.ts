@@ -14,6 +14,7 @@ export * from './dto/product.dto.js';
 export * from './dto/invoice.dto.js';
 export * from './dto/inventory-kardex.dto.js';
 export * from './dto/predictive-analytics.dto.js';
+export * from './dto/architecture.dto.js';
 
 // Base Controller
 export { BaseController } from './controllers/base.controller.js';
@@ -26,6 +27,7 @@ export { ProductController } from './controllers/product.controller.js';
 export { InvoiceController } from './controllers/invoice.controller.js';
 export { InventoryKardexController } from './controllers/inventory-kardex.controller.js';
 export { PredictiveAnalyticsController } from './controllers/predictive-analytics.controller.js';
+export { ArchitectureController } from './controllers/architecture.controller.js';
 
 // Base Middleware
 export * from './middleware/base.middleware.js';
@@ -43,6 +45,7 @@ export { createProductRoutes } from './routes/product.routes.js';
 export { createInvoiceRoutes } from './routes/invoice.routes.js';
 export { createInventoryKardexRoutes } from './routes/inventory-kardex.routes.js';
 export { createPredictiveAnalyticsRoutes } from './routes/predictive-analytics.routes.js';
+export { createArchitectureRoutes } from './routes/architecture.routes.js';
 
 // Types
 export type { ValidationSchema } from './middleware/validation.middleware.js';
