@@ -57,7 +57,7 @@ module.exports = {
       memberSyntaxSortOrder: ['none', 'all', 'multiple', 'single'],
       allowSeparatedGroups: true
     }],
-    'sort-keys': ['error', 'asc', { caseSensitive: false, natural: true }],
+    'sort-keys': 'off',
     'sort-vars': 'error',
     'spaced-comment': ['error', 'always'],
     'strict': ['error', 'never'],
