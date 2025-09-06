@@ -16,6 +16,8 @@ export { CreateContactUseCase } from './use-cases/contact/create-contact.use-cas
 export { UpdateContactUseCase } from './use-cases/contact/update-contact.use-case.js';
 export { CreateProductUseCase } from './use-cases/product/create-product.use-case.js';
 export { UpdateProductUseCase } from './use-cases/product/update-product.use-case.js';
+export { CreateInvoiceUseCase } from './use-cases/invoice/create-invoice.use-case.js';
+export { UpdateInvoiceUseCase } from './use-cases/invoice/update-invoice.use-case.js';
 
 // Application Services
 export { UserApplicationService } from './services/user.application.service.js';
@@ -30,6 +32,8 @@ export type { CreateContactRequest, CreateContactResponse } from './use-cases/co
 export type { UpdateContactRequest, UpdateContactResponse } from './use-cases/contact/update-contact.use-case.js';
 export type { CreateProductRequest, CreateProductResponse } from './use-cases/product/create-product.use-case.js';
 export type { UpdateProductRequest, UpdateProductResponse } from './use-cases/product/update-product.use-case.js';
+export type { CreateInvoiceRequest, CreateInvoiceResponse } from './use-cases/invoice/create-invoice.use-case.js';
+export type { UpdateInvoiceRequest, UpdateInvoiceResponse } from './use-cases/invoice/update-invoice.use-case.js';
 export type { UserSearchOptions, UserListResponse, UserStatsResponse } from './services/user.application.service.js';
 
 // Re-export shared utilities for convenience

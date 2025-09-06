@@ -11,6 +11,7 @@ export * from './dto/organization.dto.js';
 export * from './dto/company.dto.js';
 export * from './dto/contact.dto.js';
 export * from './dto/product.dto.js';
+export * from './dto/invoice.dto.js';
 
 // Base Controller
 export { BaseController } from './controllers/base.controller.js';
@@ -20,6 +21,7 @@ export { UserController } from './controllers/user.controller.js';
 export { CompanyController } from './controllers/company.controller.js';
 export { ContactController } from './controllers/contact.controller.js';
 export { ProductController } from './controllers/product.controller.js';
+export { InvoiceController } from './controllers/invoice.controller.js';
 
 // Base Middleware
 export * from './middleware/base.middleware.js';
@@ -34,6 +36,7 @@ export { createUserRoutes } from './routes/user.routes.js';
 export { createCompanyRoutes } from './routes/company.routes.js';
 export { createContactRoutes } from './routes/contact.routes.js';
 export { createProductRoutes } from './routes/product.routes.js';
+export { createInvoiceRoutes } from './routes/invoice.routes.js';
 
 // Types
 export type { ValidationSchema } from './middleware/validation.middleware.js';

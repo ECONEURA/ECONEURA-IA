@@ -12,6 +12,7 @@ export { Organization } from './entities/organization.entity.js';
 export { Company } from './entities/company.entity.js';
 export { Contact } from './entities/contact.entity.js';
 export { Product } from './entities/product.entity.js';
+export { Invoice } from './entities/invoice.entity.js';
 
 // Value Objects
 export { Email } from './value-objects/email.vo.js';
@@ -27,6 +28,7 @@ export { OrganizationRepository } from './repositories/organization.repository.j
 export { CompanyRepository } from './repositories/company.repository.js';
 export { ContactRepository } from './repositories/contact.repository.js';
 export { ProductRepository } from './repositories/product.repository.js';
+export { InvoiceRepository } from './repositories/invoice.repository.js';
 
 // Domain Services
 export { UserDomainService } from './services/user.domain.service.js';
@@ -37,6 +39,7 @@ export type { OrganizationSlug, SubscriptionTier, OrganizationStatus, Organizati
 export type { CompanyId, CompanyType, CompanyStatus, CompanySize, CompanyIndustry, CompanySource, CompanySettings } from './entities/company.entity.js';
 export type { ContactId, ContactType, ContactStatus, ContactSource, ContactPriority, ContactSettings } from './entities/contact.entity.js';
 export type { ProductId, ProductType, ProductStatus, ProductCategory, ProductBrand, ProductSupplier, ProductSettings, ProductVariant } from './entities/product.entity.js';
+export type { InvoiceId, InvoiceNumber, InvoiceType, InvoiceStatus, InvoicePaymentStatus, InvoicePaymentMethod, InvoiceItem, InvoiceSettings } from './entities/invoice.entity.js';
 export type { Currency } from './value-objects/money.vo.js';
 export type { AddressProps } from './value-objects/address.vo.js';
 export type { UserFilters, PaginatedResult, UserSearchOptions } from './repositories/user.repository.js';
@@ -44,6 +47,7 @@ export type { OrganizationFilters, OrganizationSearchOptions } from './repositor
 export type { CompanyFilters, CompanySearchOptions, CompanyStats } from './repositories/company.repository.js';
 export type { ContactFilters, ContactSearchOptions, ContactStats } from './repositories/contact.repository.js';
 export type { ProductStats, InventoryStats, PricingStats, CategoryStats, BrandStats, SupplierStats } from './repositories/product.repository.js';
+export type { InvoiceFilters, InvoiceSearchOptions, InvoiceStats } from './repositories/invoice.repository.js';
 
 // Re-export shared utilities for convenience
 export * from '../shared/index.js';
