@@ -71,7 +71,7 @@ Se ha completado exitosamente la implementación de **5 PRs críticos** (PR-25 a
 - **Starter**: 100 requests/15min, €100/mes
 - **Demo**: 50 requests/15min, €10/mes
 
-### ✅ **PR-30: Make Quotas + Idempotencia**
+### ✅ **PR-30: Make cuotas + Idempotencia**
 **Archivos Creados:**
 - `apps/api/src/lib/make-quotas.service.ts` - Servicio de cuotas e idempotencia
 - `apps/api/src/routes/make-quotas.ts` - Endpoints de API
