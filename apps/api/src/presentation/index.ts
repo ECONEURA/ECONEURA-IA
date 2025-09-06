@@ -27,3 +27,6 @@ export { createContactRoutes } from './routes/contact.routes.js';
 export type { ValidationSchema } from './middleware/validation.middleware.js';
 export type { ApiResponse } from './middleware/response.middleware.js';
 export type { ApiError } from './middleware/error.middleware.js';
+
+// Re-export shared utilities for convenience
+export * from '../shared/index.js';

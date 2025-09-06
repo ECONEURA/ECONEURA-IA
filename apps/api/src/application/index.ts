@@ -23,3 +23,6 @@ export type { UpdateCompanyRequest, UpdateCompanyResponse } from './use-cases/co
 export type { CreateContactRequest, CreateContactResponse } from './use-cases/contact/create-contact.use-case.js';
 export type { UpdateContactRequest, UpdateContactResponse } from './use-cases/contact/update-contact.use-case.js';
 export type { UserSearchOptions, UserListResponse, UserStatsResponse } from './services/user.application.service.js';
+
+// Re-export shared utilities for convenience
+export * from '../shared/index.js';
