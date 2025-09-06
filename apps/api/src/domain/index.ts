@@ -6,6 +6,7 @@
 export { User } from './entities/user.entity.js';
 export { Organization } from './entities/organization.entity.js';
 export { Company } from './entities/company.entity.js';
+export { Contact } from './entities/contact.entity.js';
 
 // Value Objects
 export { Email } from './value-objects/email.vo.js';
@@ -16,6 +17,7 @@ export { Address } from './value-objects/address.vo.js';
 export { UserRepository } from './repositories/user.repository.js';
 export { OrganizationRepository } from './repositories/organization.repository.js';
 export { CompanyRepository } from './repositories/company.repository.js';
+export { ContactRepository } from './repositories/contact.repository.js';
 
 // Domain Services
 export { UserDomainService } from './services/user.domain.service.js';
@@ -29,3 +31,4 @@ export type { AddressProps } from './value-objects/address.vo.js';
 export type { UserFilters, PaginatedResult, UserSearchOptions } from './repositories/user.repository.js';
 export type { OrganizationFilters, OrganizationSearchOptions } from './repositories/organization.repository.js';
 export type { CompanyFilters, CompanySearchOptions, CompanyStats } from './repositories/company.repository.js';
+export type { ContactFilters, ContactSearchOptions, ContactStats } from './repositories/contact.repository.js';
