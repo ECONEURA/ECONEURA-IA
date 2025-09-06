@@ -2,6 +2,9 @@
 // PRESENTATION LAYER EXPORTS
 // ============================================================================
 
+// Base DTOs
+export * from './dto/base.dto.js';
+
 // DTOs
 export * from './dto/user.dto.js';
 export * from './dto/organization.dto.js';
@@ -9,11 +12,17 @@ export * from './dto/company.dto.js';
 export * from './dto/contact.dto.js';
 export * from './dto/product.dto.js';
 
+// Base Controller
+export { BaseController } from './controllers/base.controller.js';
+
 // Controllers
 export { UserController } from './controllers/user.controller.js';
 export { CompanyController } from './controllers/company.controller.js';
 export { ContactController } from './controllers/contact.controller.js';
 export { ProductController } from './controllers/product.controller.js';
+
+// Base Middleware
+export * from './middleware/base.middleware.js';
 
 // Middleware
 export { validateRequest } from './middleware/validation.middleware.js';

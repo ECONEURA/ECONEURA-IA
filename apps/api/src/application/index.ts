@@ -2,6 +2,10 @@
 // APPLICATION LAYER EXPORTS
 // ============================================================================
 
+// Base Use Case
+export { BaseUseCase } from './use-cases/base.use-case.js';
+export type { BaseRequest, BaseResponse, BaseError } from './use-cases/base.use-case.js';
+
 // Use Cases
 export { CreateUserUseCase } from './use-cases/user/create-user.use-case.js';
 export { UpdateUserUseCase } from './use-cases/user/update-user.use-case.js';

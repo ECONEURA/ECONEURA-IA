@@ -2,6 +2,10 @@
 // DOMAIN LAYER EXPORTS
 // ============================================================================
 
+// Base Entity
+export { BaseEntity } from './entities/base.entity.js';
+export type { BaseEntityId, BaseEntityProps } from './entities/base.entity.js';
+
 // Entities
 export { User } from './entities/user.entity.js';
 export { Organization } from './entities/organization.entity.js';
@@ -13,6 +17,9 @@ export { Product } from './entities/product.entity.js';
 export { Email } from './value-objects/email.vo.js';
 export { Money } from './value-objects/money.vo.js';
 export { Address } from './value-objects/address.vo.js';
+
+// Base Repository
+export type { BaseRepository, BaseEntity, BaseFilters, BaseSearchOptions, PaginatedResult, BaseStats } from './repositories/base.repository.js';
 
 // Repositories
 export { UserRepository } from './repositories/user.repository.js';
