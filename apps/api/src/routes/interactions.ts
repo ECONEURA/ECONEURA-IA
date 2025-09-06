@@ -1,40 +1,97 @@
 import { Router } from 'express';
 import { z } from 'zod';
+import { interactionsService, InteractionFiltersSchema, CreateInteractionSchema, UpdateInteractionSchema } from '../lib/interactions.service.js';
+import { logger } from '../lib/logger.js';
 
 const router = Router();
 
-const InteractionSchema = z.object({
-  type: z.enum(['note', 'call', 'email', 'meeting']),
-  content: z.string().min(1),
-  contactId: z.string().uuid(),
-  companyId: z.string().uuid().optional(),
-});
-
-// GET /v1/interactions - List interactions
+// GET /v1/interactions - List interactions with filters
 router.get('/', async (req, res) => {
   try {
-    const { contactId, companyId } = req.query;
+    const orgId = req.headers['x-org-id'] as string || 'demo-org-1';
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
     
-    // Simulated interactions
-    const interactions = [
-      {
-        id: '1',
-        type: 'note',
-        content: 'Initial contact made',
-        contactId: contactId as string,
-        companyId: companyId as string,
-        createdAt: new Date().toISOString(),
-      }
-    ];
+    const filters = InteractionFiltersSchema.parse({
+      ...req.query,
+      limit: req.query.limit ? parseInt(req.query.limit as string) : 50,
+      offset: req.query.offset ? parseInt(req.query.offset as string) : 0,
+    });
+    
+    const result = await interactionsService.getInteractions(orgId, filters);
+    
+    res.set({
+      'X-Est-Cost-EUR': '0.0010',
+      'X-Budget-Pct': '0.1',
+      'X-Latency-ms': '25',
+      'X-Route': 'local',
+      'X-Correlation-Id': `req_${Date.now()}`
+    });
     
     res.json({
       success: true,
-      data: interactions,
-      count: interactions.length
+      data: result.interactions,
+      count: result.interactions.length,
+      total: result.total,
+      filters: filters
     });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation error',
+        details: error.errors
+      });
+    }
+    
+    logger.error('Failed to get interactions', {
+      error: (error as Error).message,
+      query: req.query
+    });
+    
     res.status(500).json({
+      success: false,
       error: 'Failed to get interactions',
+      message: (error as Error).message
+    });
+  }
+});
+
+// GET /v1/interactions/:id - Get interaction by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const orgId = req.headers['x-org-id'] as string || 'demo-org-1';
+    const { id } = req.params;
+    
+    const interaction = await interactionsService.getInteractionById(orgId, id);
+    
+    if (!interaction) {
+      return res.status(404).json({
+        success: false,
+        error: 'Interaction not found'
+      });
+    }
+    
+    res.set({
+      'X-Est-Cost-EUR': '0.0005',
+      'X-Budget-Pct': '0.05',
+      'X-Latency-ms': '15',
+      'X-Route': 'local',
+      'X-Correlation-Id': `req_${Date.now()}`
+    });
+    
+    res.json({
+      success: true,
+      data: interaction
+    });
+  } catch (error) {
+    logger.error('Failed to get interaction by ID', {
+      error: (error as Error).message,
+      interactionId: req.params.id
+    });
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get interaction',
       message: (error as Error).message
     });
   }
@@ -43,13 +100,19 @@ router.get('/', async (req, res) => {
 // POST /v1/interactions - Create interaction
 router.post('/', async (req, res) => {
   try {
-    const data = InteractionSchema.parse(req.body);
+    const orgId = req.headers['x-org-id'] as string || 'demo-org-1';
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
     
-    const interaction = {
-      id: Date.now().toString(),
-      ...data,
-      createdAt: new Date().toISOString(),
-    };
+    const data = CreateInteractionSchema.parse(req.body);
+    const interaction = await interactionsService.createInteraction(orgId, userId, data);
+    
+    res.set({
+      'X-Est-Cost-EUR': '0.0020',
+      'X-Budget-Pct': '0.2',
+      'X-Latency-ms': '45',
+      'X-Route': 'local',
+      'X-Correlation-Id': `req_${Date.now()}`
+    });
     
     res.status(201).json({
       success: true,
@@ -58,13 +121,221 @@ router.post('/', async (req, res) => {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
+        success: false,
         error: 'Validation error',
         details: error.errors
       });
     }
     
+    logger.error('Failed to create interaction', {
+      error: (error as Error).message,
+      body: req.body
+    });
+    
     res.status(500).json({
+      success: false,
       error: 'Failed to create interaction',
+      message: (error as Error).message
+    });
+  }
+});
+
+// PUT /v1/interactions/:id - Update interaction
+router.put('/:id', async (req, res) => {
+  try {
+    const orgId = req.headers['x-org-id'] as string || 'demo-org-1';
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const { id } = req.params;
+    
+    const data = UpdateInteractionSchema.parse(req.body);
+    const interaction = await interactionsService.updateInteraction(orgId, id, userId, data);
+    
+    if (!interaction) {
+      return res.status(404).json({
+        success: false,
+        error: 'Interaction not found'
+      });
+    }
+    
+    res.set({
+      'X-Est-Cost-EUR': '0.0015',
+      'X-Budget-Pct': '0.15',
+      'X-Latency-ms': '35',
+      'X-Route': 'local',
+      'X-Correlation-Id': `req_${Date.now()}`
+    });
+    
+    res.json({
+      success: true,
+      data: interaction
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation error',
+        details: error.errors
+      });
+    }
+    
+    logger.error('Failed to update interaction', {
+      error: (error as Error).message,
+      interactionId: req.params.id,
+      body: req.body
+    });
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update interaction',
+      message: (error as Error).message
+    });
+  }
+});
+
+// DELETE /v1/interactions/:id - Delete interaction
+router.delete('/:id', async (req, res) => {
+  try {
+    const orgId = req.headers['x-org-id'] as string || 'demo-org-1';
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const { id } = req.params;
+    
+    const deleted = await interactionsService.deleteInteraction(orgId, id, userId);
+    
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        error: 'Interaction not found'
+      });
+    }
+    
+    res.set({
+      'X-Est-Cost-EUR': '0.0005',
+      'X-Budget-Pct': '0.05',
+      'X-Latency-ms': '20',
+      'X-Route': 'local',
+      'X-Correlation-Id': `req_${Date.now()}`
+    });
+    
+    res.json({
+      success: true,
+      message: 'Interaction deleted successfully'
+    });
+  } catch (error) {
+    logger.error('Failed to delete interaction', {
+      error: (error as Error).message,
+      interactionId: req.params.id
+    });
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete interaction',
+      message: (error as Error).message
+    });
+  }
+});
+
+// GET /v1/interactions/summary - Get interaction summary
+router.get('/summary', async (req, res) => {
+  try {
+    const orgId = req.headers['x-org-id'] as string || 'demo-org-1';
+    
+    const summary = await interactionsService.getInteractionSummary(orgId);
+    
+    res.set({
+      'X-Est-Cost-EUR': '0.0020',
+      'X-Budget-Pct': '0.2',
+      'X-Latency-ms': '40',
+      'X-Route': 'local',
+      'X-Correlation-Id': `req_${Date.now()}`
+    });
+    
+    res.json({
+      success: true,
+      data: summary
+    });
+  } catch (error) {
+    logger.error('Failed to get interaction summary', {
+      error: (error as Error).message
+    });
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get interaction summary',
+      message: (error as Error).message
+    });
+  }
+});
+
+// GET /v1/interactions/analytics - Get interaction analytics
+router.get('/analytics', async (req, res) => {
+  try {
+    const orgId = req.headers['x-org-id'] as string || 'demo-org-1';
+    
+    const analytics = await interactionsService.getInteractionAnalytics(orgId);
+    
+    res.set({
+      'X-Est-Cost-EUR': '0.0030',
+      'X-Budget-Pct': '0.3',
+      'X-Latency-ms': '60',
+      'X-Route': 'local',
+      'X-Correlation-Id': `req_${Date.now()}`
+    });
+    
+    res.json({
+      success: true,
+      data: analytics
+    });
+  } catch (error) {
+    logger.error('Failed to get interaction analytics', {
+      error: (error as Error).message
+    });
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get interaction analytics',
+      message: (error as Error).message
+    });
+  }
+});
+
+// POST /v1/interactions/bulk-update - Bulk update interactions
+router.post('/bulk-update', async (req, res) => {
+  try {
+    const orgId = req.headers['x-org-id'] as string || 'demo-org-1';
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    
+    const { updates } = req.body;
+    
+    if (!Array.isArray(updates) || updates.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Updates array is required and must not be empty'
+      });
+    }
+    
+    const result = await interactionsService.bulkUpdateInteractions(orgId, userId, updates);
+    
+    res.set({
+      'X-Est-Cost-EUR': '0.0050',
+      'X-Budget-Pct': '0.5',
+      'X-Latency-ms': '100',
+      'X-Route': 'local',
+      'X-Correlation-Id': `req_${Date.now()}`
+    });
+    
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    logger.error('Failed to bulk update interactions', {
+      error: (error as Error).message,
+      body: req.body
+    });
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to bulk update interactions',
       message: (error as Error).message
     });
   }

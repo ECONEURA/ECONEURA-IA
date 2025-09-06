@@ -70,6 +70,56 @@ export const DealSchema = z.object({
 export const CreateDealSchema = DealSchema.omit({ id: true, createdAt: true, updatedAt: true });
 export const UpdateDealSchema = DealSchema.partial().omit({ id: true, orgId: true });
 
+// Deal filter schema
+export const DealFilterSchema = z.object({
+  q: z.string().optional(),
+  companyId: z.string().uuid().optional(),
+  contactId: z.string().uuid().optional(),
+  stage: z.enum(['lead', 'qualified', 'proposal', 'negotiation', 'closed_won', 'closed_lost']).optional(),
+  status: z.enum(['active', 'inactive', 'archived']).optional(),
+  minAmount: z.number().positive().optional(),
+  maxAmount: z.number().positive().optional(),
+  assignedTo: z.string().uuid().optional(),
+  expectedCloseDateFrom: z.string().datetime().optional(),
+  expectedCloseDateTo: z.string().datetime().optional(),
+  tags: z.array(z.string()).optional()
+});
+
+// Move deal stage schema
+export const MoveDealStageSchema = z.object({
+  stage: z.enum(['lead', 'qualified', 'proposal', 'negotiation', 'closed_won', 'closed_lost']),
+  reason: z.string().optional(),
+  notes: z.string().optional()
+});
+
+// Deal analytics schema
+export const DealAnalyticsSchema = z.object({
+  totalDeals: z.number(),
+  totalValue: z.number(),
+  averageDealSize: z.number(),
+  winRate: z.number(),
+  averageSalesCycle: z.number(),
+  dealsByStage: z.record(z.number()),
+  dealsByStatus: z.record(z.number()),
+  dealsByMonth: z.array(z.object({
+    month: z.string(),
+    count: z.number(),
+    value: z.number()
+  })),
+  topPerformers: z.array(z.object({
+    userId: z.string(),
+    name: z.string(),
+    dealsCount: z.number(),
+    totalValue: z.number(),
+    winRate: z.number()
+  })),
+  pipelineHealth: z.object({
+    healthy: z.boolean(),
+    score: z.number(),
+    issues: z.array(z.string())
+  })
+});
+
 // Interaction schemas
 export const InteractionSchema = z.object({
   id: z.string().uuid().optional(),
@@ -106,6 +156,9 @@ export type UpdateContact = z.infer<typeof UpdateContactSchema>;
 export type Deal = z.infer<typeof DealSchema>;
 export type CreateDeal = z.infer<typeof CreateDealSchema>;
 export type UpdateDeal = z.infer<typeof UpdateDealSchema>;
+export type DealFilter = z.infer<typeof DealFilterSchema>;
+export type MoveDealStage = z.infer<typeof MoveDealStageSchema>;
+export type DealAnalytics = z.infer<typeof DealAnalyticsSchema>;
 
 export type Interaction = z.infer<typeof InteractionSchema>;
 export type CreateInteraction = z.infer<typeof CreateInteractionSchema>;

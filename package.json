@@ -45,7 +45,10 @@
     "postinstall": "echo 'Setup complete'",
     "k6:smoke": "k6 run e2e/k6/smoke-chaos.js",
     "chaos:on": "cross-env CHAOS_ENABLED=true pnpm --filter @econeura/api dev",
-    "chaos:off": "cross-env CHAOS_ENABLED=false pnpm --filter @econeura/api dev"
+    "chaos:off": "cross-env CHAOS_ENABLED=false pnpm --filter @econeura/api dev",
+    "optimize": "node --max-old-space-size=4096 scripts/optimize.js",
+    "build:optimized": "npm run optimize && npm run build",
+    "start:optimized": "NODE_ENV=production node --max-old-space-size=4096 dist/index.js"
   },
   "devDependencies": {
     "@redocly/cli": "^1.34.5",

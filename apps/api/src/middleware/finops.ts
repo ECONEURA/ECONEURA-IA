@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { finOpsSystem } from '../lib/finops.js';
+import { finOpsConsolidatedService } from '../lib/finops-consolidated.service.js';
 import { logger } from '../lib/logger.js';
 
 export interface FinOpsRequest extends Request {
@@ -13,7 +13,7 @@ export function finOpsMiddleware(req: FinOpsRequest, res: Response, next: NextFu
   
   try {
     // Generar headers FinOps
-    const finOpsHeaders = finOpsSystem.generateFinOpsHeaders(organizationId, operation);
+    const finOpsHeaders = finOpsConsolidatedService.generateFinOpsHeaders(organizationId, operation);
     req.finOpsHeaders = finOpsHeaders;
     
     // Agregar headers a la respuesta
@@ -67,7 +67,7 @@ export function finOpsCostTrackingMiddleware(req: FinOpsRequest, res: Response, 
       }
       
       if (cost > 0) {
-        finOpsSystem.trackCost({
+        finOpsConsolidatedService.trackCost({
           service,
           operation,
           resource: req.path,
@@ -155,7 +155,7 @@ function calculateOperationCost(operation: string, service: string, responseData
 
 // Función para validar si una operación puede proceder basada en presupuestos
 function validateBudgetForOperation(organizationId: string, operation: string, estimatedCost: number): { allowed: boolean; reason?: string; budgetInfo?: any } {
-  const budgets = finOpsSystem.getBudgetsByOrganization(organizationId);
+  const budgets = finOpsConsolidatedService.getBudgetsByOrganization(organizationId);
   const relevantBudgets = budgets.filter(budget => 
     budget.categories.includes(operation) || budget.categories.includes('all')
   );
@@ -165,7 +165,7 @@ function validateBudgetForOperation(organizationId: string, operation: string, e
   }
 
   for (const budget of relevantBudgets) {
-    const currentSpend = finOpsSystem.getCurrentBudgetSpend(budget.id);
+    const currentSpend = finOpsConsolidatedService.getCurrentBudgetSpend(budget.id);
     const remainingBudget = budget.amount - currentSpend;
     
     if (estimatedCost > remainingBudget) {
@@ -191,8 +191,8 @@ export function finOpsBudgetCheckMiddleware(req: FinOpsRequest, res: Response, n
   
   try {
     // Verificar si hay alertas de presupuesto activas
-    const activeAlerts = finOpsSystem.getActiveAlerts(organizationId);
-    const criticalAlerts = activeAlerts.filter(alert => alert.type === 'critical' || alert.type === 'exceeded');
+    const activeAlerts = finOpsConsolidatedService.getActiveAlerts(organizationId);
+    const criticalAlerts = activeAlerts.filter(alert => alert.severity === 'critical' || alert.type === 'exceeded');
     
     if (criticalAlerts.length > 0) {
       // Si hay alertas críticas, agregar header de advertencia
