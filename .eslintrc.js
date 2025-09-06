@@ -1,12 +1,165 @@
 module.exports = {
   root: true,
+  env: {
+    node: true,
+    es2022: true,
+    browser: true,
+  },
   extends: [
-    '@econeura/eslint-config'
+    'eslint:recommended',
+    '@typescript-eslint/recommended',
+    '@typescript-eslint/recommended-requiring-type-checking',
   ],
+  parser: '@typescript-eslint/parser',
+  parserOptions: {
+    ecmaVersion: 2022,
+    sourceType: 'module',
+    project: './tsconfig.json',
+  },
+  plugins: ['@typescript-eslint', 'import', 'security'],
+  rules: {
+    // TypeScript specific rules
+    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    '@typescript-eslint/no-explicit-any': 'error',
+    '@typescript-eslint/explicit-function-return-type': 'warn',
+    '@typescript-eslint/no-non-null-assertion': 'error',
+    '@typescript-eslint/prefer-nullish-coalescing': 'error',
+    '@typescript-eslint/prefer-optional-chain': 'error',
+    '@typescript-eslint/no-floating-promises': 'error',
+    '@typescript-eslint/await-thenable': 'error',
+    '@typescript-eslint/no-misused-promises': 'error',
+    '@typescript-eslint/require-await': 'error',
+    '@typescript-eslint/no-unsafe-assignment': 'error',
+    '@typescript-eslint/no-unsafe-call': 'error',
+    '@typescript-eslint/no-unsafe-member-access': 'error',
+    '@typescript-eslint/no-unsafe-return': 'error',
+    
+    // Import rules
+    'import/order': ['error', {
+      groups: [
+        'builtin',
+        'external',
+        'internal',
+        'parent',
+        'sibling',
+        'index'
+      ],
+      'newlines-between': 'always',
+      alphabetize: {
+        order: 'asc',
+        caseInsensitive: true
+      }
+    }],
+    'import/no-unresolved': 'error',
+    'import/no-cycle': 'error',
+    'import/no-self-import': 'error',
+    'import/no-duplicates': 'error',
+    
+    // Security rules
+    'security/detect-object-injection': 'warn',
+    'security/detect-non-literal-regexp': 'warn',
+    'security/detect-unsafe-regex': 'error',
+    'security/detect-buffer-noassert': 'error',
+    'security/detect-child-process': 'warn',
+    'security/detect-disable-mustache-escape': 'error',
+    'security/detect-eval-with-expression': 'error',
+    'security/detect-no-csrf-before-method-override': 'error',
+    'security/detect-non-literal-fs-filename': 'warn',
+    'security/detect-non-literal-require': 'warn',
+    'security/detect-possible-timing-attacks': 'warn',
+    'security/detect-pseudoRandomBytes': 'error',
+    
+    // General rules
+    'no-console': 'warn',
+    'no-debugger': 'error',
+    'no-alert': 'error',
+    'no-var': 'error',
+    'prefer-const': 'error',
+    'prefer-arrow-callback': 'error',
+    'prefer-template': 'error',
+    'no-duplicate-imports': 'error',
+    'no-unused-expressions': 'error',
+    'no-useless-return': 'error',
+    'no-useless-constructor': 'error',
+    'no-useless-catch': 'error',
+    'no-throw-literal': 'error',
+    'no-return-await': 'error',
+    'no-await-in-loop': 'warn',
+    'no-promise-executor-return': 'error',
+    'no-unreachable-loop': 'error',
+    'no-unsafe-finally': 'error',
+    'no-unsafe-negation': 'error',
+    'no-unsafe-optional-chaining': 'error',
+    'no-useless-backreference': 'error',
+    'no-useless-catch': 'error',
+    'no-useless-computed-key': 'error',
+    'no-useless-concat': 'error',
+    'no-useless-constructor': 'error',
+    'no-useless-escape': 'error',
+    'no-useless-rename': 'error',
+    'no-useless-return': 'error',
+    'no-void': 'error',
+    'no-warning-comments': 'warn',
+    'no-with': 'error',
+    'prefer-const': 'error',
+    'prefer-promise-reject-errors': 'error',
+    'prefer-regex-literals': 'error',
+    'prefer-rest-params': 'error',
+    'prefer-spread': 'error',
+    'prefer-template': 'error',
+    'require-atomic-updates': 'error',
+    'require-await': 'error',
+    'require-unicode-regexp': 'error',
+    'require-yield': 'error',
+    'sort-imports': ['error', {
+      ignoreCase: true,
+      ignoreDeclarationSort: true,
+      ignoreMemberSort: false,
+      memberSyntaxSortOrder: ['none', 'all', 'multiple', 'single'],
+      allowSeparatedGroups: true
+    }],
+    'sort-keys': ['error', 'asc', { caseSensitive: false, natural: true }],
+    'sort-vars': 'error',
+    'spaced-comment': ['error', 'always'],
+    'strict': ['error', 'never'],
+    'symbol-description': 'error',
+    'use-isnan': 'error',
+    'valid-typeof': 'error',
+    'vars-on-top': 'error',
+    'wrap-iife': 'error',
+    'wrap-regex': 'error',
+    'yield-star-spacing': 'error',
+    'yoda': 'error'
+  },
   ignorePatterns: [
     'node_modules/',
     'dist/',
+    'build/',
     '.next/',
-    'coverage/'
-  ]
+    'coverage/',
+    'test-results/',
+    'performance-results/',
+    '*.config.js',
+    '*.config.ts'
+  ],
+  overrides: [
+    {
+      files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx'],
+      env: {
+        jest: true,
+      },
+      rules: {
+        '@typescript-eslint/no-explicit-any': 'off',
+        '@typescript-eslint/no-non-null-assertion': 'off',
+        'no-console': 'off',
+      },
+    },
+    {
+      files: ['**/*.js'],
+      rules: {
+        '@typescript-eslint/no-var-requires': 'off',
+        '@typescript-eslint/explicit-function-return-type': 'off',
+      },
+    },
+  ],
 };

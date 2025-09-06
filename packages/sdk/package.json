@@ -1,31 +1,48 @@
 {
   "name": "@econeura/sdk",
   "version": "1.0.0",
-  "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "description": "SDK for ECONEURA API integration",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./api": {
+      "types": "./dist/api/index.d.ts",
+      "import": "./dist/api/index.js",
+      "require": "./dist/api/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.js",
+      "require": "./dist/types/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils/index.js",
+      "require": "./dist/utils/index.js"
+    }
   },
   "scripts": {
-    "build": "tsc --noEmit --skipLibCheck || echo 'Build completed with warnings'",
+    "build": "tsc",
     "dev": "tsc --watch",
-    "generate": "npm run generate:types && npm run generate:client",
-    "generate:types": "npx openapi-typescript ../../apps/api/openapi.json -o src/types.ts",
-    "generate:client": "node scripts/generate-client.js",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "lint": "eslint src/**/*.ts",
-    "typecheck": "tsc --noEmit"
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix"
   },
   "dependencies": {
-    "@econeura/shared": "file:../shared"
+    "axios": "^1.6.0",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@types/node": "^20.11.0",
-    "eslint": "^8.56.0",
-    "openapi-typescript": "^6.7.3",
-    "typescript": "^5.3.0",
-    "vitest": "^1.2.0"
+    "@types/node": "^20.19.11",
+    "typescript": "^5.3.0"
+  },
+  "publishConfig": {
+    "access": "restricted"
   }
 }

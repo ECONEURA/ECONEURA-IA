@@ -3,22 +3,81 @@
   "globalDependencies": ["**/.env.*local"],
   "pipeline": {
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "dependsOn": ["^build", "typecheck", "lint"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"],
+      "env": ["NODE_ENV", "DATABASE_URL", "AZURE_OPENAI_API_KEY"]
     },
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "env": ["NODE_ENV", "DATABASE_URL", "AZURE_OPENAI_API_KEY"]
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": ["^lint"],
+      "outputs": []
+    },
+    "lint:fix": {
+      "dependsOn": ["^lint:fix"],
+      "outputs": []
     },
     "typecheck": {
-      "dependsOn": ["^typecheck"]
+      "dependsOn": ["^typecheck"],
+      "outputs": []
     },
     "test": {
       "dependsOn": ["^build"],
-      "outputs": ["coverage/**"]
+      "outputs": ["coverage/**", "test-results/**"],
+      "env": ["NODE_ENV", "DATABASE_URL", "AZURE_OPENAI_API_KEY"]
+    },
+    "test:watch": {
+      "cache": false,
+      "persistent": true,
+      "env": ["NODE_ENV", "DATABASE_URL", "AZURE_OPENAI_API_KEY"]
+    },
+    "test:coverage": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"],
+      "env": ["NODE_ENV", "DATABASE_URL", "AZURE_OPENAI_API_KEY"]
+    },
+    "test:integration": {
+      "dependsOn": ["^build"],
+      "outputs": ["test-results/**"],
+      "env": ["NODE_ENV", "DATABASE_URL", "AZURE_OPENAI_API_KEY"]
+    },
+    "test:performance": {
+      "dependsOn": ["^build"],
+      "outputs": ["performance-results/**"],
+      "env": ["NODE_ENV", "DATABASE_URL", "AZURE_OPENAI_API_KEY"]
+    },
+    "format": {
+      "outputs": []
+    },
+    "db:generate": {
+      "outputs": ["drizzle/**"]
+    },
+    "db:migrate": {
+      "dependsOn": ["db:generate"],
+      "outputs": []
+    },
+    "db:seed": {
+      "dependsOn": ["db:migrate"],
+      "outputs": []
+    },
+    "security:audit": {
+      "outputs": []
+    },
+    "security:scan": {
+      "outputs": []
+    },
+    "secrets:scan": {
+      "outputs": []
+    },
+    "secrets:audit": {
+      "outputs": []
+    },
+    "clean": {
+      "cache": false,
+      "outputs": []
     }
   }
 }

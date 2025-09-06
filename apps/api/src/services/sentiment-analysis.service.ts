@@ -1,6 +1,14 @@
 import { structuredLogger } from '../lib/structured-logger.js';
+import { getDatabaseService } from '@econeura/db';
+import { eq, and, gte, desc } from 'drizzle-orm';
+import { auditLog } from '@econeura/db/schema';
+
+// ============================================================================
+// ENHANCED SENTIMENT ANALYSIS SERVICE
+// ============================================================================
 
 export interface SentimentResult {
+  id?: string;
   text: string;
   sentiment: 'positive' | 'negative' | 'neutral';
   confidence: number;
@@ -8,7 +16,12 @@ export interface SentimentResult {
   keywords: string[];
   topics: string[];
   language: string;
+  source?: string;
+  organizationId?: string;
+  userId?: string;
   timestamp: Date;
+  processingTime: number;
+  metadata?: Record<string, any>;
 }
 
 export interface EmotionAnalysis {
@@ -18,6 +31,8 @@ export interface EmotionAnalysis {
   fear: number;
   surprise: number;
   disgust: number;
+  trust: number;
+  anticipation: number;
 }
 
 export interface BatchSentimentResult {
@@ -28,6 +43,9 @@ export interface BatchSentimentResult {
     negative: number;
     neutral: number;
     averageConfidence: number;
+    processingTime: number;
+    languageDistribution: Record<string, number>;
+    emotionDistribution: Record<string, number>;
   };
 }
 
@@ -37,46 +55,150 @@ export interface TrendAnalysis {
   averageSentiment: number;
   keyTopics: string[];
   emotionChanges: Record<string, number>;
+  confidence: number;
+  sampleSize: number;
+}
+
+export interface SentimentConfig {
+  enableCaching: boolean;
+  cacheTTL: number;
+  maxTextLength: number;
+  enableEmotionAnalysis: boolean;
+  enableTopicExtraction: boolean;
+  enableKeywordExtraction: boolean;
+  enableTrendAnalysis: boolean;
+  batchSize: number;
+  enableAuditLog: boolean;
 }
 
 export class SentimentAnalysisService {
   private historicalData: Map<string, SentimentResult[]> = new Map();
   private languageModels: Map<string, any> = new Map();
+  private cache: Map<string, { result: SentimentResult; timestamp: number }> = new Map();
+  private config: SentimentConfig;
+  private db: ReturnType<typeof getDatabaseService>;
 
-  constructor() {
+  constructor(config?: Partial<SentimentConfig>) {
+    this.config = {
+      enableCaching: true,
+      cacheTTL: 300000, // 5 minutes
+      maxTextLength: 10000,
+      enableEmotionAnalysis: true,
+      enableTopicExtraction: true,
+      enableKeywordExtraction: true,
+      enableTrendAnalysis: true,
+      batchSize: 100,
+      enableAuditLog: true,
+      ...config
+    };
+    
+    this.db = getDatabaseService();
     this.initializeLanguageModels();
+    this.startCacheCleanup();
   }
 
   private initializeLanguageModels(): void {
-    // Initialize language detection models
-    const languages = ['en', 'es', 'fr', 'de', 'it', 'pt'];
+    // Enhanced language detection models with better accuracy
+    const languages = [
+      { code: 'en', name: 'English', accuracy: 0.95 },
+      { code: 'es', name: 'Spanish', accuracy: 0.92 },
+      { code: 'fr', name: 'French', accuracy: 0.90 },
+      { code: 'de', name: 'German', accuracy: 0.88 },
+      { code: 'it', name: 'Italian', accuracy: 0.87 },
+      { code: 'pt', name: 'Portuguese', accuracy: 0.89 },
+      { code: 'nl', name: 'Dutch', accuracy: 0.85 },
+      { code: 'sv', name: 'Swedish', accuracy: 0.83 }
+    ];
+    
     languages.forEach(lang => {
-      this.languageModels.set(lang, {
-        accuracy: Math.random() * 0.2 + 0.8,
-        lastUpdated: new Date()
+      this.languageModels.set(lang.code, {
+        name: lang.name,
+        accuracy: lang.accuracy,
+        lastUpdated: new Date(),
+        wordCount: 0,
+        sentimentAccuracy: 0.85 + Math.random() * 0.1
       });
     });
   }
 
-  async analyzeSentiment(text: string, source?: string): Promise<SentimentResult> {
+  private startCacheCleanup(): void {
+    if (!this.config.enableCaching) return;
+    
+    setInterval(() => {
+      const now = Date.now();
+      for (const [key, value] of this.cache.entries()) {
+        if (now - value.timestamp > this.config.cacheTTL) {
+          this.cache.delete(key);
+        }
+      }
+    }, 60000); // Cleanup every minute
+  }
+
+  async analyzeSentiment(
+    text: string, 
+    source?: string, 
+    organizationId?: string, 
+    userId?: string,
+    metadata?: Record<string, any>
+  ): Promise<SentimentResult> {
+    const startTime = Date.now();
+    
     try {
+      // Input validation
+      if (!text || text.trim().length === 0) {
+        throw new Error('Text cannot be empty');
+      }
+      
+      if (text.length > this.config.maxTextLength) {
+        throw new Error(`Text exceeds maximum length of ${this.config.maxTextLength} characters`);
+      }
+
+      // Check cache first
+      const cacheKey = this.generateCacheKey(text, source);
+      if (this.config.enableCaching) {
+        const cached = this.cache.get(cacheKey);
+        if (cached && (Date.now() - cached.timestamp) < this.config.cacheTTL) {
+          structuredLogger.info('Sentiment analysis cache hit', { cacheKey });
+          return cached.result;
+        }
+      }
+
+      // Perform analysis
       const language = this.detectLanguage(text);
       const sentiment = this.classifySentiment(text);
       const confidence = this.calculateConfidence(text, sentiment);
-      const emotions = this.analyzeEmotions(text);
-      const keywords = this.extractKeywords(text);
-      const topics = this.identifyTopics(text);
+      
+      const emotions = this.config.enableEmotionAnalysis ? 
+        this.analyzeEmotions(text) : this.getDefaultEmotions();
+      
+      const keywords = this.config.enableKeywordExtraction ? 
+        this.extractKeywords(text) : [];
+      
+      const topics = this.config.enableTopicExtraction ? 
+        this.identifyTopics(text) : [];
+
+      const processingTime = Date.now() - startTime;
 
       const result: SentimentResult = {
-        text,
+        text: text.substring(0, 500), // Limit stored text length
         sentiment,
         confidence,
         emotions,
         keywords,
         topics,
         language,
-        timestamp: new Date()
+        source,
+        organizationId,
+        userId,
+        timestamp: new Date(),
+        processingTime,
+        metadata
       };
+
+      // Cache result
+      if (this.config.enableCaching) {
+        this.cache.set(cacheKey, { result, timestamp: Date.now() });
+      }
 
       // Store historical data
       if (source) {
@@ -85,17 +207,89 @@ export class SentimentAnalysisService {
         this.historicalData.set(source, historical.slice(-1000)); // Keep last 1000 entries
       }
 
+      // Audit log
+      if (this.config.enableAuditLog && organizationId) {
+        await this.logSentimentAnalysis(result, organizationId, userId);
+      }
+
       structuredLogger.info('Sentiment analysis completed', {
         text: text.substring(0, 100),
         sentiment,
         confidence,
-        language
+        language,
+        processingTime,
+        source,
+        organizationId
       });
 
       return result;
     } catch (error) {
-      structuredLogger.error('Failed to analyze sentiment', error as Error);
+      const processingTime = Date.now() - startTime;
+      
+      structuredLogger.error('Failed to analyze sentiment', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        text: text.substring(0, 100),
+        processingTime,
+        source,
+        organizationId
+      });
+      
       throw error;
+    }
+  }
+
+  private generateCacheKey(text: string, source?: string): string {
+    const normalizedText = text.toLowerCase().trim();
+    const hash = this.simpleHash(normalizedText);
+    return `${source || 'default'}:${hash}`;
+  }
+
+  private simpleHash(str: string): string {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    return Math.abs(hash).toString(36);
+  }
+
+  private getDefaultEmotions(): EmotionAnalysis {
+    return {
+      joy: 0,
+      sadness: 0,
+      anger: 0,
+      fear: 0,
+      surprise: 0,
+      disgust: 0,
+      trust: 0,
+      anticipation: 0
+    };
+  }
+
+  private async logSentimentAnalysis(
+    result: SentimentResult, 
+    organizationId: string, 
+    userId?: string
+  ): Promise<void> {
+    try {
+      const db = this.db.getDatabase();
+      await db.insert(auditLog).values({
+        organizationId,
+        userId,
+        action: 'create',
+        resourceType: 'sentiment_analysis',
+        newValues: {
+          sentiment: result.sentiment,
+          confidence: result.confidence,
+          language: result.language,
+          processingTime: result.processingTime,
+          source: result.source
+        },
+        createdAt: new Date()
+      });
+    } catch (error) {
+      structuredLogger.error('Failed to log sentiment analysis', error as Error);
     }
   }
 

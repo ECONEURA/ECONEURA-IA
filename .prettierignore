@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Coverage
+coverage/
+test-results/
+performance-results/
+
+# Logs
+logs/
+*.log
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated files
+*.tsbuildinfo
+.turbo/
+
+# Database
+*.db
+*.sqlite
+
+# Docker
+Dockerfile
+docker-compose*.yml
+
+# Documentation
+docs/
+*.md

@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { z } from 'zod';
 import { structuredLogger } from '../lib/structured-logger.js';
 import { predictiveAI } from '../services/predictive-ai.service.js';
 import { metricsService } from '../services/metrics.service.js';
@@ -6,27 +7,207 @@ import { autoML } from '../services/automl.service.js';
 import { sentimentAnalysis } from '../services/sentiment-analysis.service.js';
 import { azureOpenAI } from '../services/azure-openai.service.js';
 import { webSearch } from '../services/web-search.service.js';
+import { getDatabaseService } from '@econeura/db';
+
+// ============================================================================
+// ENHANCED ADVANCED FEATURES CONTROLLER
+// ============================================================================
+
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    organizationId: string;
+    role: string;
+    permissions: string[];
+  };
+}
+
+interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  timestamp: string;
+  requestId: string;
+  processingTime: number;
+}
+
+// Validation schemas
+const predictDemandSchema = z.object({
+  productId: z.string().uuid('Invalid product ID format'),
+  days: z.number().min(1).max(365).default(30),
+  includeConfidence: z.boolean().default(true),
+  includeTrends: z.boolean().default(false)
+});
+
+const optimizeInventorySchema = z.object({
+  productId: z.string().uuid('Invalid product ID format'),
+  optimizationType: z.enum(['cost', 'service_level', 'balanced']).default('balanced'),
+  constraints: z.object({
+    maxCost: z.number().optional(),
+    minServiceLevel: z.number().min(0).max(1).optional(),
+    maxStock: z.number().optional()
+  }).optional()
+});
+
+const sentimentAnalysisSchema = z.object({
+  text: z.string().min(1).max(10000, 'Text too long'),
+  source: z.string().optional(),
+  includeEmotions: z.boolean().default(true),
+  includeTopics: z.boolean().default(true),
+  includeKeywords: z.boolean().default(true)
+});
+
+const batchSentimentSchema = z.object({
+  texts: z.array(z.string().min(1).max(10000)).min(1).max(100, 'Too many texts'),
+  source: z.string().optional(),
+  includeEmotions: z.boolean().default(true),
+  includeTopics: z.boolean().default(true),
+  includeKeywords: z.boolean().default(true)
+});
 
 export class AdvancedFeaturesController {
-  // PR-13: Predictive AI endpoints
-  async predictDemand(req: Request, res: Response): Promise<void> {
+  private db: ReturnType<typeof getDatabaseService>;
+  private requestMetrics: Map<string, { count: number; totalTime: number }> = new Map();
+
+  constructor() {
+    this.db = getDatabaseService();
+    this.startMetricsCleanup();
+  }
+
+  private startMetricsCleanup(): void {
+    setInterval(() => {
+      this.requestMetrics.clear();
+    }, 300000); // Clear metrics every 5 minutes
+  }
+
+  private generateRequestId(): string {
+    return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  private async logRequest(
+    requestId: string,
+    endpoint: string,
+    userId: string,
+    organizationId: string,
+    processingTime: number,
+    success: boolean,
+    error?: string
+  ): Promise<void> {
     try {
-      const { productId, days = 30 } = req.body;
-      
-      if (!productId) {
-        res.status(400).json({ error: 'Product ID is required' });
+      const db = this.db.getDatabase();
+      await db.insert(auditLog).values({
+        organizationId,
+        userId,
+        action: 'create',
+        resourceType: 'api_request',
+        newValues: {
+          requestId,
+          endpoint,
+          processingTime,
+          success,
+          error
+        },
+        createdAt: new Date()
+      });
+    } catch (error) {
+      structuredLogger.error('Failed to log request', error as Error);
+    }
+  }
+
+  private updateMetrics(endpoint: string, processingTime: number): void {
+    const current = this.requestMetrics.get(endpoint) || { count: 0, totalTime: 0 };
+    this.requestMetrics.set(endpoint, {
+      count: current.count + 1,
+      totalTime: current.totalTime + processingTime
+    });
+  }
+
+  private sendResponse<T>(
+    res: Response,
+    requestId: string,
+    startTime: number,
+    data?: T,
+    error?: string,
+    statusCode: number = 200
+  ): void {
+    const processingTime = Date.now() - startTime;
+    const response: ApiResponse<T> = {
+      success: !error,
+      data,
+      error,
+      timestamp: new Date().toISOString(),
+      requestId,
+      processingTime
+    };
+
+    res.status(statusCode).json(response);
+  }
+
+  // ========================================================================
+  // PREDICTIVE AI ENDPOINTS
+  // ========================================================================
+
+  async predictDemand(req: AuthenticatedRequest, res: Response): Promise<void> {
+    const startTime = Date.now();
+    const requestId = this.generateRequestId();
+    
+    try {
+      // Validate request
+      const validation = predictDemandSchema.safeParse(req.body);
+      if (!validation.success) {
+        this.sendResponse(res, requestId, startTime, undefined, 
+          `Validation error: ${validation.error.errors.map(e => e.message).join(', ')}`, 400);
         return;
       }
 
-      const prediction = await predictiveAI.predictDemand(productId, days);
-      
-      res.json({
-        success: true,
-        data: prediction
+      const { productId, days, includeConfidence, includeTrends } = validation.data;
+      const userId = req.user?.id;
+      const organizationId = req.user?.organizationId;
+
+      if (!userId || !organizationId) {
+        this.sendResponse(res, requestId, startTime, undefined, 'Authentication required', 401);
+        return;
+      }
+
+      // Check permissions
+      if (!req.user?.permissions.includes('predictive:read')) {
+        this.sendResponse(res, requestId, startTime, undefined, 'Insufficient permissions', 403);
+        return;
+      }
+
+      // Perform prediction
+      const prediction = await predictiveAI.predictDemand(productId, days, {
+        includeConfidence,
+        includeTrends,
+        organizationId,
+        userId
       });
+
+      // Log successful request
+      await this.logRequest(requestId, 'predictDemand', userId, organizationId, 
+        Date.now() - startTime, true);
+
+      this.sendResponse(res, requestId, startTime, prediction);
+      
     } catch (error) {
-      structuredLogger.error('Failed to predict demand', error as Error);
-      res.status(500).json({ error: 'Failed to predict demand' });
+      const processingTime = Date.now() - startTime;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      structuredLogger.error('Failed to predict demand', {
+        error: errorMessage,
+        requestId,
+        userId: req.user?.id,
+        organizationId: req.user?.organizationId,
+        processingTime
+      });
+
+      // Log failed request
+      if (req.user?.id && req.user?.organizationId) {
+        await this.logRequest(requestId, 'predictDemand', req.user.id, 
+          req.user.organizationId, processingTime, false, errorMessage);
+      }
+
+      this.sendResponse(res, requestId, startTime, undefined, 'Failed to predict demand', 500);
     }
   }
 

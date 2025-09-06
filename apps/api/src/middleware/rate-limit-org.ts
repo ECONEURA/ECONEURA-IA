@@ -1,75 +1,277 @@
 import rateLimit from 'express-rate-limit';
 import { Request, Response, NextFunction } from 'express';
 import { structuredLogger } from '../lib/structured-logger.js';
+import { getDatabaseService } from '@econeura/db';
+import { eq, and, gte } from 'drizzle-orm';
+import { organizations } from '@econeura/db/schema';
 
-// Rate limits por organización
-const orgRateLimits = new Map<string, { requests: number; resetTime: number }>();
+// ============================================================================
+// ENHANCED RATE LIMITING MIDDLEWARE
+// ============================================================================
 
-// Función para obtener rate limit por organización
-function getOrgRateLimit(orgId: string): number {
-  // Rate limits por tipo de organización
-  const limits = {
-    'enterprise': 1000,    // 1000 requests per 15 minutes
-    'business': 500,       // 500 requests per 15 minutes
-    'starter': 100,        // 100 requests per 15 minutes
-    'demo': 50             // 50 requests per 15 minutes
-  };
-  
-  // Por defecto, usar límite de starter
-  return limits[orgId as keyof typeof limits] || limits.starter;
+interface RateLimitConfig {
+  windowMs: number;
+  maxRequests: number;
+  skipSuccessfulRequests?: boolean;
+  skipFailedRequests?: boolean;
+  keyGenerator?: (req: Request) => string;
+  onLimitReached?: (req: Request, res: Response) => void;
 }
 
-// Función para verificar rate limit personalizado
-function checkOrgRateLimit(orgId: string): boolean {
+interface OrganizationRateLimit {
+  organizationId: string;
+  subscriptionTier: string;
+  requests: number;
+  resetTime: number;
+  lastRequest: number;
+  blockedRequests: number;
+  totalRequests: number;
+}
+
+interface RateLimitMetrics {
+  totalRequests: number;
+  blockedRequests: number;
+  averageResponseTime: number;
+  peakRequestsPerMinute: number;
+  lastReset: number;
+}
+
+// Enhanced rate limits with better memory management
+const orgRateLimits = new Map<string, OrganizationRateLimit>();
+const rateLimitMetrics = new Map<string, RateLimitMetrics>();
+
+// Cleanup interval for memory management
+setInterval(() => {
   const now = Date.now();
-  const limit = getOrgRateLimit(orgId);
+  for (const [key, limit] of orgRateLimits.entries()) {
+    if (limit.resetTime < now) {
+      orgRateLimits.delete(key);
+    }
+  }
+}, 60000); // Cleanup every minute
+
+// Enhanced rate limits by subscription tier
+const SUBSCRIPTION_LIMITS = {
+  'enterprise': {
+    requests: 10000,      // 10,000 requests per 15 minutes
+    windowMs: 15 * 60 * 1000,
+    burstLimit: 100,      // 100 requests per minute
+    aiRequests: 1000,     // 1,000 AI requests per hour
+    priority: 1
+  },
+  'pro': {
+    requests: 5000,       // 5,000 requests per 15 minutes
+    windowMs: 15 * 60 * 1000,
+    burstLimit: 50,       // 50 requests per minute
+    aiRequests: 500,      // 500 AI requests per hour
+    priority: 2
+  },
+  'basic': {
+    requests: 1000,       // 1,000 requests per 15 minutes
+    windowMs: 15 * 60 * 1000,
+    burstLimit: 20,       // 20 requests per minute
+    aiRequests: 100,      // 100 AI requests per hour
+    priority: 3
+  },
+  'free': {
+    requests: 100,        // 100 requests per 15 minutes
+    windowMs: 15 * 60 * 1000,
+    burstLimit: 5,        // 5 requests per minute
+    aiRequests: 10,       // 10 AI requests per hour
+    priority: 4
+  },
+  'demo': {
+    requests: 50,         // 50 requests per 15 minutes
+    windowMs: 15 * 60 * 1000,
+    burstLimit: 3,        // 3 requests per minute
+    aiRequests: 5,        // 5 AI requests per hour
+    priority: 5
+  }
+} as const;
+
+// Function to get organization rate limit configuration
+async function getOrgRateLimitConfig(orgId: string): Promise<typeof SUBSCRIPTION_LIMITS[keyof typeof SUBSCRIPTION_LIMITS]> {
+  try {
+    const db = getDatabaseService().getDatabase();
+    const org = await db.select().from(organizations).where(eq(organizations.id, orgId)).limit(1);
+    
+    if (org.length === 0) {
+      return SUBSCRIPTION_LIMITS.free;
+    }
+    
+    const subscriptionTier = org[0].subscriptionTier as keyof typeof SUBSCRIPTION_LIMITS;
+    return SUBSCRIPTION_LIMITS[subscriptionTier] || SUBSCRIPTION_LIMITS.free;
+  } catch (error) {
+    structuredLogger.error('Failed to get organization rate limit config', error as Error);
+    return SUBSCRIPTION_LIMITS.free;
+  }
+}
+
+// Enhanced function to check organization rate limit
+async function checkOrgRateLimit(orgId: string, endpoint?: string): Promise<{
+  allowed: boolean;
+  remaining: number;
+  resetTime: number;
+  tier: string;
+  burstAllowed: boolean;
+}> {
+  const now = Date.now();
+  const config = await getOrgRateLimitConfig(orgId);
   const orgLimit = orgRateLimits.get(orgId);
   
+  // Initialize or reset rate limit
   if (!orgLimit || orgLimit.resetTime < now) {
-    // Reset rate limit
-    orgRateLimits.set(orgId, {
+    const newLimit: OrganizationRateLimit = {
+      organizationId: orgId,
+      subscriptionTier: config.priority.toString(),
       requests: 1,
-      resetTime: now + 15 * 60 * 1000 // 15 minutes
-    });
-    return true;
+      resetTime: now + config.windowMs,
+      lastRequest: now,
+      blockedRequests: 0,
+      totalRequests: 1
+    };
+    orgRateLimits.set(orgId, newLimit);
+    
+    return {
+      allowed: true,
+      remaining: config.requests - 1,
+      resetTime: newLimit.resetTime,
+      tier: config.priority.toString(),
+      burstAllowed: true
+    };
   }
   
-  if (orgLimit.requests >= limit) {
-    return false;
+  // Check burst limit (requests per minute)
+  const timeSinceLastRequest = now - orgLimit.lastRequest;
+  const burstAllowed = timeSinceLastRequest > (60000 / config.burstLimit);
+  
+  // Check main rate limit
+  if (orgLimit.requests >= config.requests) {
+    orgLimit.blockedRequests++;
+    orgLimit.totalRequests++;
+    
+    return {
+      allowed: false,
+      remaining: 0,
+      resetTime: orgLimit.resetTime,
+      tier: config.priority.toString(),
+      burstAllowed: false
+    };
   }
   
+  // Update counters
   orgLimit.requests++;
-  return true;
+  orgLimit.lastRequest = now;
+  orgLimit.totalRequests++;
+  
+  return {
+    allowed: true,
+    remaining: config.requests - orgLimit.requests,
+    resetTime: orgLimit.resetTime,
+    tier: config.priority.toString(),
+    burstAllowed
+  };
 }
 
-// Middleware de rate limiting por organización
-export const rateLimitOrg = (req: Request, res: Response, next: NextFunction) => {
+// Function to get rate limit metrics
+function getRateLimitMetrics(orgId: string): RateLimitMetrics | null {
+  const orgLimit = orgRateLimits.get(orgId);
+  if (!orgLimit) return null;
+  
+  const metrics = rateLimitMetrics.get(orgId) || {
+    totalRequests: 0,
+    blockedRequests: 0,
+    averageResponseTime: 0,
+    peakRequestsPerMinute: 0,
+    lastReset: Date.now()
+  };
+  
+  return {
+    ...metrics,
+    totalRequests: orgLimit.totalRequests,
+    blockedRequests: orgLimit.blockedRequests
+  };
+}
+
+// Enhanced middleware for organization rate limiting
+export const rateLimitOrg = async (req: Request, res: Response, next: NextFunction) => {
+  const startTime = Date.now();
   const orgId = req.headers['x-org-id'] as string;
+  const endpoint = req.path;
+  const method = req.method;
   
   if (!orgId) {
     return res.status(400).json({
-      error: 'Missing x-org-id header'
+      error: 'Missing x-org-id header',
+      timestamp: new Date().toISOString()
     });
   }
   
-  if (!checkOrgRateLimit(orgId)) {
-    const limit = getOrgRateLimit(orgId);
+  try {
+    const rateLimitResult = await checkOrgRateLimit(orgId, endpoint);
     
-    structuredLogger.warn('Rate limit exceeded', {
+    // Add rate limit headers
+    res.set({
+      'X-RateLimit-Limit': rateLimitResult.remaining + rateLimitResult.remaining,
+      'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+      'X-RateLimit-Reset': new Date(rateLimitResult.resetTime).toISOString(),
+      'X-RateLimit-Tier': rateLimitResult.tier,
+      'X-RateLimit-Burst-Allowed': rateLimitResult.burstAllowed.toString()
+    });
+    
+    if (!rateLimitResult.allowed) {
+      const processingTime = Date.now() - startTime;
+      
+      structuredLogger.warn('Rate limit exceeded', {
+        orgId,
+        endpoint,
+        method,
+        tier: rateLimitResult.tier,
+        remaining: rateLimitResult.remaining,
+        resetTime: rateLimitResult.resetTime,
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        processingTime
+      });
+      
+      return res.status(429).json({
+        error: 'Rate limit exceeded',
+        message: `Organization ${orgId} has exceeded the rate limit`,
+        tier: rateLimitResult.tier,
+        remaining: rateLimitResult.remaining,
+        resetTime: new Date(rateLimitResult.resetTime).toISOString(),
+        retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000),
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    // Log successful request
+    const processingTime = Date.now() - startTime;
+    structuredLogger.info('Rate limit check passed', {
       orgId,
-      limit,
-      ip: req.ip,
-      userAgent: req.get('User-Agent')
+      endpoint,
+      method,
+      tier: rateLimitResult.tier,
+      remaining: rateLimitResult.remaining,
+      burstAllowed: rateLimitResult.burstAllowed,
+      processingTime
     });
     
-    return res.status(429).json({
-      error: 'Rate limit exceeded',
-      message: `Organization ${orgId} has exceeded the rate limit of ${limit} requests per 15 minutes`,
-      retryAfter: 15 * 60 // 15 minutes in seconds
+    next();
+  } catch (error) {
+    const processingTime = Date.now() - startTime;
+    
+    structuredLogger.error('Rate limit check failed', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      orgId,
+      endpoint,
+      method,
+      processingTime
     });
+    
+    // Allow request to proceed if rate limit check fails
+    next();
   }
-  
-  next();
 };
 
 // Rate limiter estándar con configuración personalizada
