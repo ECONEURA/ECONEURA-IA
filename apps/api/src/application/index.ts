@@ -10,6 +10,10 @@ export { CreateCompanyUseCase } from './use-cases/company/create-company.use-cas
 export { UpdateCompanyUseCase } from './use-cases/company/update-company.use-case.js';
 export { CreateContactUseCase } from './use-cases/contact/create-contact.use-case.js';
 export { UpdateContactUseCase } from './use-cases/contact/update-contact.use-case.js';
+export { CreateInteractionUseCase } from './use-cases/interaction/create-interaction.use-case.js';
+export { UpdateInteractionUseCase } from './use-cases/interaction/update-interaction.use-case.js';
+export { CreateDealUseCase } from './use-cases/deal/create-deal.use-case.js';
+export { UpdateDealUseCase } from './use-cases/deal/update-deal.use-case.js';
 
 // Application Services
 export { UserApplicationService } from './services/user.application.service.js';
@@ -22,6 +26,10 @@ export type { CreateCompanyRequest, CreateCompanyResponse } from './use-cases/co
 export type { UpdateCompanyRequest, UpdateCompanyResponse } from './use-cases/company/update-company.use-case.js';
 export type { CreateContactRequest, CreateContactResponse } from './use-cases/contact/create-contact.use-case.js';
 export type { UpdateContactRequest, UpdateContactResponse } from './use-cases/contact/update-contact.use-case.js';
+export type { CreateInteractionRequest, CreateInteractionResponse } from './use-cases/interaction/create-interaction.use-case.js';
+export type { UpdateInteractionRequest, UpdateInteractionResponse } from './use-cases/interaction/update-interaction.use-case.js';
+export type { CreateDealRequest, CreateDealResponse } from './use-cases/deal/create-deal.use-case.js';
+export type { UpdateDealRequest, UpdateDealResponse } from './use-cases/deal/update-deal.use-case.js';
 export type { UserSearchOptions, UserListResponse, UserStatsResponse } from './services/user.application.service.js';
 
 // Re-export shared utilities for convenience
