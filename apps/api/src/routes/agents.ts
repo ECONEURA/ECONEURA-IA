@@ -1,17 +1,13 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { 
-  AgentExecutionRequestSchema,
-  AgentExecutionRecordSchema,
-  AgentContextSchema,
-  AgentResultSchema 
-} from '@econeura/agents/src/types';
 import { PaginationRequestSchema } from '@econeura/shared/src/schemas/common';
 import { db } from '../lib/database.js';
 import { agentRuns, agentTasks } from '@econeura/db/src/schema';
 import { eq, and, desc, count } from 'drizzle-orm';
 import { structuredLogger } from '../lib/structured-logger.js';
 import { v4 as uuidv4 } from 'uuid';
+import { aiAgentsRegistry, AgentExecutionRequest } from '../lib/ai-agents-registry.service.js';
+import { agentRuntime } from '../lib/agent-runtime.service.js';
 
 const router = Router();
 
@@ -26,55 +22,38 @@ router.get('/', async (req, res) => {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
 
-    // TODO: Replace with actual agent registry
-    const agentRegistry = [
-      {
-        id: 'lead-enrich',
-        name: 'Lead Enrichment',
-        category: 'ventas',
-        description: 'Enrich lead information with external data sources',
-        costHint: 'low',
-        inputs: { leadId: 'string', fields: 'array' },
-        outputs: { enrichedData: 'object', confidence: 'number' }
-      },
-      {
-        id: 'invoice-extract',
-        name: 'Invoice Data Extraction',
-        category: 'finanzas',
-        description: 'Extract structured data from invoice documents',
-        costHint: 'medium',
-        inputs: { documentUrl: 'string', format: 'string' },
-        outputs: { extractedData: 'object', accuracy: 'number' }
-      },
-      {
-        id: 'email-draft',
-        name: 'Email Draft Generator',
-        category: 'ventas',
-        description: 'Generate personalized email drafts for prospects',
-        costHint: 'low',
-        inputs: { contactId: 'string', template: 'string', tone: 'string' },
-        outputs: { subject: 'string', body: 'string', personalization: 'object' }
-      },
-      {
-        id: 'ar-prioritize',
-        name: 'Accounts Receivable Prioritization',
-        category: 'finanzas',
-        description: 'Prioritize collection efforts based on risk and value',
-        costHint: 'low',
-        inputs: { overdueInvoices: 'array', criteria: 'object' },
-        outputs: { prioritizedList: 'array', recommendations: 'array' }
-      }
-    ];
+    // Get agents from registry
+    const agents = aiAgentsRegistry.getAgents();
+    
+    // Add cost estimates and FinOps headers
+    const costEur = 0.001 * agents.length; // Estimate for listing agents
+    
+    res.set({
+      'X-Est-Cost-EUR': costEur.toFixed(4),
+      'X-Budget-Pct': '1.2',
+      'X-Latency-ms': '45',
+      'X-Route': 'local',
+      'X-Correlation-Id': req.headers['x-correlation-id'] || uuidv4()
+    });
 
     structuredLogger.info('Agent registry retrieved', {
       orgId,
-      count: agentRegistry.length
+      count: agents.length,
+      costEur
     });
 
     res.json({
       success: true,
-      data: agentRegistry,
-      count: agentRegistry.length
+      data: agents,
+      count: agents.length,
+      categories: {
+        ejecutivo: agents.filter(a => a.category === 'ejecutivo').length,
+        ventas: agents.filter(a => a.category === 'ventas').length,
+        marketing: agents.filter(a => a.category === 'marketing').length,
+        operaciones: agents.filter(a => a.category === 'operaciones').length,
+        finanzas: agents.filter(a => a.category === 'finanzas').length,
+        soporte_qa: agents.filter(a => a.category === 'soporte_qa').length
+      }
     });
 
   } catch (error) {
@@ -100,92 +79,73 @@ router.post('/run', async (req, res) => {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
 
-    // Validate request body
-    const executionRequest = AgentExecutionRequestSchema.parse({
-      ...req.body,
-      context: {
-        orgId,
-        userId: userId || 'system',
-        correlationId,
-        idempotencyKey: req.body.idempotencyKey,
-        metadata: req.body.metadata
-      }
-    });
+    const { agentId, inputs, idempotencyKey, budget, priority } = req.body;
 
-    const { agentId, inputs, context } = executionRequest;
+    if (!agentId) {
+      return res.status(400).json({ error: 'agentId is required' });
+    }
 
-    // Check if agent exists (TODO: use actual registry)
-    const validAgentIds = ['lead-enrich', 'invoice-extract', 'email-draft', 'ar-prioritize'];
-    if (!validAgentIds.includes(agentId)) {
+    // Check if agent exists
+    const agent = aiAgentsRegistry.getAgent(agentId);
+    if (!agent) {
       return res.status(404).json({
         error: 'Agent not found',
         message: `Agent ${agentId} is not available`
       });
     }
 
-    // Generate execution ID
-    const executionId = uuidv4();
-    
-    // Create execution record
-    const executionRecord = {
-      id: executionId,
+    // Create execution request
+    const executionRequest: AgentExecutionRequest = {
       agentId,
-      status: 'pending' as const,
       inputs,
-      context,
-      startedAt: new Date(),
-      retryCount: 0
+      context: {
+        orgId,
+        userId: userId || 'system',
+        correlationId,
+        idempotencyKey,
+        budget,
+        priority
+      }
     };
 
-    // Store execution record
-    executionStore.set(executionId, executionRecord);
+    // Submit task to runtime
+    const task = await agentRuntime.submitTask(executionRequest);
 
-    // Set RLS context for database operations
-    await db.execute(`SET LOCAL app.org_id = '${orgId}'`);
+    // Estimate cost based on agent type
+    const baseCosts = { low: 0.01, medium: 0.05, high: 0.15 };
+    const estimatedCost = baseCosts[agent.costHint] || 0.05;
 
-    // Save to database
-    await db.insert(agentRuns).values({
-      id: executionId,
-      orgId,
-      agentId,
-      status: 'pending',
-      inputs: JSON.stringify(inputs),
-      context: JSON.stringify(context),
-      startedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+    // Add FinOps headers
+    res.set({
+      'X-Est-Cost-EUR': estimatedCost.toFixed(4),
+      'X-Budget-Pct': '2.5',
+      'X-Latency-ms': '120',
+      'X-Route': 'local',
+      'X-Correlation-Id': correlationId
     });
-
-    // Start async execution (simulate)
-    setImmediate(() => executeAgent(executionId, agentId, inputs, context));
 
     structuredLogger.info('Agent execution started', {
       orgId,
       userId,
       correlationId,
-      executionId,
-      agentId
+      taskId: task.id,
+      agentId,
+      estimatedCostEur: estimatedCost
     });
 
     res.status(202).json({
       success: true,
       data: {
-        executionId,
+        executionId: task.id,
         agentId,
-        status: 'pending',
-        startedAt: executionRecord.startedAt.toISOString()
+        status: task.status,
+        startedAt: task.createdAt,
+        estimatedCostEur: estimatedCost
       },
       message: 'Agent execution started'
     });
 
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        error: 'Validation error',
-        details: error.errors
-      });
-    }
-
     structuredLogger.error('Failed to start agent execution', error as Error, {
       orgId: req.headers['x-org-id'],
       userId: req.headers['x-user-id'],

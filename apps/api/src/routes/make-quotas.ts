@@ -1,376 +1,274 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { makeQuotasService } from '../lib/make-quotas.service.js';
+import { makeQuotas } from '../lib/make-quotas.service.js';
 import { structuredLogger } from '../lib/structured-logger.js';
 
 const router = Router();
 
-// Validation schemas
-const CheckQuotaSchema = z.object({
-  organizationId: z.string().min(1),
-  quotaType: z.enum(['api_calls', 'data_processing', 'webhook_calls'])
+// GET /v1/make-quotas/:orgId - Get quota for organization
+router.get('/:orgId', async (req, res) => {
+  try {
+    const { orgId } = req.params;
+    const quota = await makeQuotas.getQuota(orgId);
+    
+    if (!quota) {
+      return res.status(404).json({
+        error: 'Quota not found',
+        message: `No quota found for organization ${orgId}`
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: quota
+    });
+  } catch (error) {
+    structuredLogger.error('Failed to get quota', error as Error, {
+      orgId: req.params.orgId
+    });
+    res.status(500).json({ 
+      error: 'Failed to get quota',
+      message: (error as Error).message 
+    });
+  }
 });
 
-const ConsumeQuotaSchema = z.object({
-  organizationId: z.string().min(1),
-  quotaType: z.enum(['api_calls', 'data_processing', 'webhook_calls']),
-  amount: z.number().int().positive().default(1)
+// GET /v1/make-quotas/:orgId/usage - Get usage for organization
+router.get('/:orgId/usage', async (req, res) => {
+  try {
+    const { orgId } = req.params;
+    const usage = await makeQuotas.getOrgUsage(orgId);
+    
+    res.json({
+      success: true,
+      data: usage
+    });
+  } catch (error) {
+    structuredLogger.error('Failed to get org usage', error as Error, {
+      orgId: req.params.orgId
+    });
+    res.status(500).json({ 
+      error: 'Failed to get org usage',
+      message: (error as Error).message 
+    });
+  }
 });
 
-const CreateIdempotencyKeySchema = z.object({
-  key: z.string().min(1),
-  organizationId: z.string().min(1),
-  requestHash: z.string().min(1),
-  ttlMinutes: z.number().int().positive().max(60).default(5)
+// POST /v1/make-quotas/:orgId/check - Check quota
+router.post('/:orgId/check', async (req, res) => {
+  try {
+    const { orgId } = req.params;
+    const { amount = 1 } = req.body;
+    
+    const { allowed, quota } = await makeQuotas.checkQuota(orgId);
+    
+    res.json({
+      success: true,
+      data: {
+        allowed,
+        quota,
+        requestedAmount: amount
+      }
+    });
+  } catch (error) {
+    structuredLogger.error('Failed to check quota', error as Error, {
+      orgId: req.params.orgId
+    });
+    res.status(500).json({ 
+      error: 'Failed to check quota',
+      message: (error as Error).message 
+    });
+  }
 });
 
-const CompleteIdempotencyKeySchema = z.object({
-  responseHash: z.string().min(1)
+// POST /v1/make-quotas/:orgId/consume - Consume quota
+router.post('/:orgId/consume', async (req, res) => {
+  try {
+    const { orgId } = req.params;
+    const { amount = 1 } = req.body;
+    
+    const success = await makeQuotas.consumeQuota(orgId, amount);
+    
+    if (!success) {
+      return res.status(429).json({
+        error: 'Quota exceeded',
+        message: `Organization ${orgId} has exceeded its quota`
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Quota consumed successfully'
+    });
+  } catch (error) {
+    structuredLogger.error('Failed to consume quota', error as Error, {
+      orgId: req.params.orgId
+    });
+    res.status(500).json({ 
+      error: 'Failed to consume quota',
+      message: (error as Error).message 
+    });
+  }
+});
+
+// POST /v1/make-quotas/:orgId/reset - Reset quota
+router.post('/:orgId/reset', async (req, res) => {
+  try {
+    const { orgId } = req.params;
+    await makeQuotas.resetQuota(orgId);
+    
+    res.json({
+      success: true,
+      message: 'Quota reset successfully'
+    });
+  } catch (error) {
+    structuredLogger.error('Failed to reset quota', error as Error, {
+      orgId: req.params.orgId
+    });
+    res.status(500).json({ 
+      error: 'Failed to reset quota',
+      message: (error as Error).message 
+    });
+  }
+});
+
+// POST /v1/make-quotas/idempotency - Check idempotency
+router.post('/idempotency', async (req, res) => {
+  try {
+    const { key, orgId, data } = req.body;
+    
+    if (!key || !orgId) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        message: 'key and orgId are required'
+      });
+    }
+    
+    const existingResponse = await makeQuotas.checkIdempotency(key, orgId);
+    
+    if (existingResponse) {
+      return res.json({
+        success: true,
+        data: existingResponse,
+        cached: true
+      });
+    }
+    
+    // Generate new idempotency key if not provided
+    const idempotencyKey = key || makeQuotas.generateIdempotencyKey(orgId, data);
+    
+    res.json({
+      success: true,
+      data: {
+        idempotencyKey,
+        cached: false
+      }
+    });
+  } catch (error) {
+    structuredLogger.error('Failed to check idempotency', error as Error);
+    res.status(500).json({ 
+      error: 'Failed to check idempotency',
+      message: (error as Error).message 
+    });
+  }
+});
+
+// POST /v1/make-quotas/idempotency/store - Store idempotency response
+router.post('/idempotency/store', async (req, res) => {
+  try {
+    const { key, orgId, response, ttl } = req.body;
+    
+    if (!key || !orgId || !response) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        message: 'key, orgId, and response are required'
+      });
+    }
+    
+    const ttlMinutes = ttl || 5;
+    await makeQuotas.storeIdempotency(key, orgId, response, ttlMinutes);
+    
+    res.json({
+      success: true,
+      message: 'Idempotency response stored successfully'
+    });
+  } catch (error) {
+    structuredLogger.error('Failed to store idempotency response', error as Error);
+    res.status(500).json({ 
+      error: 'Failed to store idempotency response',
+      message: (error as Error).message 
+    });
+  }
+});
+
+// POST /v1/make-quotas/webhook/verify - Verify webhook signature
+router.post('/webhook/verify', async (req, res) => {
+  try {
+    const signature = req.headers['x-make-signature'] as string;
+    const payload = JSON.stringify(req.body);
+    
+    if (!signature) {
+      return res.status(400).json({
+        error: 'Missing signature',
+        message: 'x-make-signature header is required'
+      });
+    }
+    
+    const isValid = await makeQuotas.verifyWebhookSignature(payload, signature);
+    
+    if (!isValid) {
+      return res.status(401).json({
+        error: 'Invalid signature',
+        message: 'Webhook signature verification failed'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Webhook signature verified'
+    });
+  } catch (error) {
+    structuredLogger.error('Failed to verify webhook signature', error as Error);
+    res.status(500).json({ 
+      error: 'Failed to verify webhook signature',
+      message: (error as Error).message 
+    });
+  }
 });
 
 // GET /v1/make-quotas/stats - Get quota statistics
 router.get('/stats', async (req, res) => {
   try {
-    const { organizationId } = req.query;
+    const stats = await makeQuotas.getQuotaStats();
     
-    const stats = await makeQuotasService.getQuotaStats(
-      organizationId as string | undefined
-    );
-
     res.json({
       success: true,
-      data: stats,
-      timestamp: new Date().toISOString()
+      data: stats
     });
   } catch (error) {
-    structuredLogger.error('Failed to get quota stats', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      requestId: req.headers['x-request-id'] as string || ''
-    });
-
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get quota statistics',
-      timestamp: new Date().toISOString()
+    structuredLogger.error('Failed to get quota stats', error as Error);
+    res.status(500).json({ 
+      error: 'Failed to get quota stats',
+      message: (error as Error).message 
     });
   }
 });
 
-// GET /v1/make-quotas/organization/:orgId - Get organization quotas
-router.get('/organization/:orgId', async (req, res) => {
+// GET /v1/make-quotas - Get all quotas
+router.get('/', async (req, res) => {
   try {
-    const { orgId } = req.params;
+    const quotas = await makeQuotas.getAllQuotas();
     
-    const quotas = await makeQuotasService.getOrganizationQuotas(orgId);
-
     res.json({
       success: true,
-      data: {
-        organizationId: orgId,
-        quotas,
-        totalQuotas: quotas.length,
-        exceededQuotas: quotas.filter(q => q.isExceeded).length,
-        warningQuotas: quotas.filter(q => q.isWarning).length
-      },
-      timestamp: new Date().toISOString()
+      data: quotas,
+      count: quotas.length
     });
   } catch (error) {
-    structuredLogger.error('Failed to get organization quotas', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      organizationId: req.params.orgId,
-      requestId: req.headers['x-request-id'] as string || ''
-    });
-
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get organization quotas',
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
-// POST /v1/make-quotas/check - Check quota usage
-router.post('/check', async (req, res) => {
-  try {
-    const validatedData = CheckQuotaSchema.parse(req.body);
-    
-    const usage = await makeQuotasService.checkQuota(
-      validatedData.organizationId,
-      validatedData.quotaType
-    );
-
-    res.json({
-      success: true,
-      data: usage,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      res.status(400).json({
-        success: false,
-        error: 'Invalid request data',
-        details: error.errors,
-        timestamp: new Date().toISOString()
-      });
-      return;
-    }
-
-    structuredLogger.error('Failed to check quota', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      requestId: req.headers['x-request-id'] as string || ''
-    });
-
-    res.status(500).json({
-      success: false,
-      error: 'Failed to check quota',
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
-// POST /v1/make-quotas/consume - Consume quota
-router.post('/consume', async (req, res) => {
-  try {
-    const validatedData = ConsumeQuotaSchema.parse(req.body);
-    
-    const usage = await makeQuotasService.consumeQuota(
-      validatedData.organizationId,
-      validatedData.quotaType,
-      validatedData.amount
-    );
-
-    res.json({
-      success: true,
-      data: usage,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      res.status(400).json({
-        success: false,
-        error: 'Invalid request data',
-        details: error.errors,
-        timestamp: new Date().toISOString()
-      });
-      return;
-    }
-
-    if (error instanceof Error && error.message.includes('Quota exceeded')) {
-      res.status(429).json({
-        success: false,
-        error: 'Quota exceeded',
-        message: error.message,
-        timestamp: new Date().toISOString()
-      });
-      return;
-    }
-
-    structuredLogger.error('Failed to consume quota', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      requestId: req.headers['x-request-id'] as string || ''
-    });
-
-    res.status(500).json({
-      success: false,
-      error: 'Failed to consume quota',
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
-// POST /v1/make-quotas/idempotency/create - Create idempotency key
-router.post('/idempotency/create', async (req, res) => {
-  try {
-    const validatedData = CreateIdempotencyKeySchema.parse(req.body);
-    
-    const idempotencyKey = await makeQuotasService.createIdempotencyKey(
-      validatedData.key,
-      validatedData.organizationId,
-      validatedData.requestHash,
-      validatedData.ttlMinutes
-    );
-
-    res.json({
-      success: true,
-      data: idempotencyKey,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      res.status(400).json({
-        success: false,
-        error: 'Invalid request data',
-        details: error.errors,
-        timestamp: new Date().toISOString()
-      });
-      return;
-    }
-
-    structuredLogger.error('Failed to create idempotency key', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      requestId: req.headers['x-request-id'] as string || ''
-    });
-
-    res.status(500).json({
-      success: false,
-      error: 'Failed to create idempotency key',
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
-// GET /v1/make-quotas/idempotency/:key - Get idempotency key
-router.get('/idempotency/:key', async (req, res) => {
-  try {
-    const { key } = req.params;
-    
-    const idempotencyKey = await makeQuotasService.getIdempotencyKey(key);
-
-    if (!idempotencyKey) {
-      res.status(404).json({
-        success: false,
-        error: 'Idempotency key not found or expired',
-        timestamp: new Date().toISOString()
-      });
-      return;
-    }
-
-    res.json({
-      success: true,
-      data: idempotencyKey,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    structuredLogger.error('Failed to get idempotency key', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      key: req.params.key,
-      requestId: req.headers['x-request-id'] as string || ''
-    });
-
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get idempotency key',
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
-// POST /v1/make-quotas/idempotency/:key/complete - Complete idempotency key
-router.post('/idempotency/:key/complete', async (req, res) => {
-  try {
-    const { key } = req.params;
-    const validatedData = CompleteIdempotencyKeySchema.parse(req.body);
-    
-    await makeQuotasService.completeIdempotencyKey(key, validatedData.responseHash);
-
-    res.json({
-      success: true,
-      message: 'Idempotency key completed successfully',
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      res.status(400).json({
-        success: false,
-        error: 'Invalid request data',
-        details: error.errors,
-        timestamp: new Date().toISOString()
-      });
-      return;
-    }
-
-    if (error instanceof Error && error.message.includes('not found')) {
-      res.status(404).json({
-        success: false,
-        error: 'Idempotency key not found',
-        timestamp: new Date().toISOString()
-      });
-      return;
-    }
-
-    structuredLogger.error('Failed to complete idempotency key', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      key: req.params.key,
-      requestId: req.headers['x-request-id'] as string || ''
-    });
-
-    res.status(500).json({
-      success: false,
-      error: 'Failed to complete idempotency key',
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
-// POST /v1/make-quotas/idempotency/:key/fail - Fail idempotency key
-router.post('/idempotency/:key/fail', async (req, res) => {
-  try {
-    const { key } = req.params;
-    
-    await makeQuotasService.failIdempotencyKey(key);
-
-    res.json({
-      success: true,
-      message: 'Idempotency key marked as failed',
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('not found')) {
-      res.status(404).json({
-        success: false,
-        error: 'Idempotency key not found',
-        timestamp: new Date().toISOString()
-      });
-      return;
-    }
-
-    structuredLogger.error('Failed to fail idempotency key', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      key: req.params.key,
-      requestId: req.headers['x-request-id'] as string || ''
-    });
-
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fail idempotency key',
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
-// GET /v1/make-quotas/health - Health check
-router.get('/health', async (req, res) => {
-  try {
-    const stats = await makeQuotasService.getQuotaStats();
-    
-    const health = {
-      status: 'ok',
-      quotas: {
-        total: stats.totalQuotas,
-        exceeded: stats.exceededQuotas,
-        warning: stats.warningQuotas
-      },
-      idempotency: {
-        activeKeys: 0 // This would need to be tracked separately
-      },
-      timestamp: new Date().toISOString()
-    };
-
-    res.json({
-      success: true,
-      data: health,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    structuredLogger.error('Failed to get quota health', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      requestId: req.headers['x-request-id'] as string || ''
-    });
-
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get quota health',
-      timestamp: new Date().toISOString()
+    structuredLogger.error('Failed to get all quotas', error as Error);
+    res.status(500).json({ 
+      error: 'Failed to get all quotas',
+      message: (error as Error).message 
     });
   }
 });
