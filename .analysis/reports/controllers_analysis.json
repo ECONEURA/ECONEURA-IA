@@ -1,0 +1,110 @@
+{
+  "controllers": [
+    {
+      "name": "contact",
+      "methods": [
+        "bulkDeleteContacts",
+        "bulkUpdateContacts",
+        "createContact",
+        "deleteContact",
+        "getContactById",
+        "getContactsByAssignedUser",
+        "getContactsByCompany",
+        "getContactsByDepartment",
+        "getContactsByIndustry",
+        "getContactsByOrganization",
+        "getContactsByStatus",
+        "getContactsByType",
+        "getContactStats",
+        "getContactsWithAnniversaryThisMonth",
+        "getContactsWithAnniversaryThisWeek",
+        "getContactsWithAnniversaryToday",
+        "getContactsWithBirthdayThisMonth",
+        "getContactsWithBirthdayThisWeek",
+        "getContactsWithBirthdayToday",
+        "getHighlyEngagedContacts",
+        "getHighScoreLeads",
+        "getLowEngagedContacts",
+        "getLowScoreLeads",
+        "getMediumScoreLeads",
+        "getModeratelyEngagedContacts",
+        "getOverdueForFollowUp",
+        "getScheduledForFollowUp",
+        "searchContacts",
+        "updateContact"
+      ]
+    },
+    {
+      "name": "user",
+      "methods": [
+        "bulkDeleteUsers",
+        "bulkUpdateUsers",
+        "canOrganizationAddUser",
+        "createUser",
+        "deleteUser",
+        "getOrganizationUserCount",
+        "getOrganizationUserLimit",
+        "getUserByEmail",
+        "getUserById",
+        "getUsersByOrganization",
+        "getUserStats",
+        "recordUserLogin",
+        "searchUsers",
+        "updateUser",
+        "updateUserLastActivity"
+      ]
+    },
+    {
+      "name": "deal",
+      "methods": [
+        "createDeal",
+        "createLead",
+        "createNegotiation",
+        "createProposal",
+        "createQualified",
+        "deleteDeal",
+        "getConversionRates",
+        "getDashboardData",
+        "getDealById",
+        "getDealsByCompany",
+        "getDealsByContact",
+        "getDealsByOrganization",
+        "getDealStats",
+        "getPipelineData",
+        "getSalesForecast",
+        "updateDeal"
+      ]
+    },
+    {
+      "name": "company",
+      "methods": [
+        "bulkDeleteCompanies",
+        "bulkUpdateCompanies",
+        "createCompany",
+        "deleteCompany",
+        "getCompaniesByAssignedUser",
+        "getCompaniesByIndustry",
+        "getCompaniesByOrganization",
+        "getCompaniesByStatus",
+        "getCompaniesByType",
+        "getCompanyById",
+        "getCompanyStats",
+        "getHighScoreLeads",
+        "getLowScoreLeads",
+        "getMediumScoreLeads",
+        "getOverdueForFollowUp",
+        "getScheduledForFollowUp",
+        "searchCompanies",
+        "updateCompany"
+      ]
+    }
+  ],
+  "patterns": {
+    "common_methods": [],
+    "common_responses": [],
+    "common_error_handling": [],
+    "common_validation": []
+  },
+  "duplicates": [],
+  "recommendations": []
+}

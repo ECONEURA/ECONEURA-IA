@@ -1,0 +1,33 @@
+{
+  "strategy_type": "adaptive",
+  "approach": "extend_and_consolidate",
+  "actions": {
+    "extend_existing": [],
+    "modify_existing": [],
+    "create_new": [],
+    "consolidate": [],
+    "remove_duplicates": []
+  },
+  "implementation_steps": [
+    "1. Analizar código existente similar",
+    "2. Identificar patrones y convenciones",
+    "3. Extender código existente cuando sea posible",
+    "4. Crear nuevo código siguiendo patrones establecidos",
+    "5. Consolidar duplicados encontrados",
+    "6. Validar consistencia con arquitectura existente",
+    "7. Actualizar documentación y exports"
+  ],
+  "risk_assessment": {
+    "low_risk": [],
+    "medium_risk": [],
+    "high_risk": []
+  },
+  "benefits": [
+    "Mantiene consistencia en el código",
+    "Reduce duplicación",
+    "Aprovecha patrones establecidos",
+    "Facilita mantenimiento futuro",
+    "Mejora la calidad del código"
+  ],
+  "estimated_effort": "medium"
+}

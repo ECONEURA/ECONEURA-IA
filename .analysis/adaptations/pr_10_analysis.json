@@ -1,0 +1,16 @@
+{
+  "pr_number": "10",
+  "description": "Products Management",
+  "requested_features": [],
+  "existing_similar_code": [],
+  "adaptation_strategy": {
+    "extend_existing": [],
+    "modify_existing": [],
+    "create_new": [],
+    "consolidate": []
+  },
+  "implementation_plan": [],
+  "files_to_modify": [],
+  "files_to_create": [],
+  "files_to_remove": []
+}
