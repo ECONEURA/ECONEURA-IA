@@ -1,0 +1,39 @@
+{
+  "report_timestamp": "2025-09-06T12:50:30Z",
+  "summary": {
+    "total_duplicates_found": 0,
+    "entity_duplicates": 0,
+    "repository_duplicates": 0,
+    "usecase_duplicates": 0,
+    "dto_duplicates": 0,
+    "consolidation_opportunities": 0
+  },
+  "duplicates": {
+    "entities": [],
+    "repositories": [],
+    "use_cases": [],
+    "dtos": []
+  },
+  "recommendations": {
+    "high_priority": [],
+    "medium_priority": [],
+    "low_priority": []
+  },
+  "implementation_plan": [],
+  "benefits": [
+    "Reduce la complejidad del código",
+    "Mejora la mantenibilidad",
+    "Elimina inconsistencias",
+    "Facilita la comprensión del código",
+    "Reduce el tiempo de desarrollo",
+    "Mejora la calidad del código"
+  ],
+  "next_steps": [
+    "Revisar duplicados identificados",
+    "Priorizar consolidaciones por impacto",
+    "Implementar consolidaciones en fases",
+    "Validar cambios con tests",
+    "Documentar mejoras implementadas",
+    "Establecer patrones para evitar futuros duplicados"
+  ]
+}

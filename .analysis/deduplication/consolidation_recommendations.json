@@ -1,0 +1,52 @@
+{
+  "entity_recommendations": [],
+  "repository_recommendations": [],
+  "usecase_recommendations": [],
+  "dto_recommendations": [],
+  "general_recommendations": [
+    "Crear clases base para entidades con campos comunes",
+    "Implementar interfaces base para repositorios",
+    "Establecer patrones estándar para use cases",
+    "Unificar esquemas de validación en DTOs",
+    "Consolidar middleware común en controladores",
+    "Estandarizar respuestas de API"
+  ],
+  "implementation_plan": [
+    {
+      "phase": 1,
+      "name": "Análisis y Preparación",
+      "description": "Analizar duplicados y preparar consolidaciones",
+      "estimated_hours": 2
+    },
+    {
+      "phase": 2,
+      "name": "Consolidación de Entidades",
+      "description": "Consolidar entidades duplicadas",
+      "estimated_hours": 4
+    },
+    {
+      "phase": 3,
+      "name": "Consolidación de Repositorios",
+      "description": "Consolidar repositorios duplicados",
+      "estimated_hours": 3
+    },
+    {
+      "phase": 4,
+      "name": "Consolidación de Use Cases",
+      "description": "Consolidar use cases duplicados",
+      "estimated_hours": 3
+    },
+    {
+      "phase": 5,
+      "name": "Consolidación de DTOs",
+      "description": "Consolidar DTOs duplicados",
+      "estimated_hours": 2
+    },
+    {
+      "phase": 6,
+      "name": "Validación y Testing",
+      "description": "Validar consolidaciones y ejecutar tests",
+      "estimated_hours": 2
+    }
+  ]
+}

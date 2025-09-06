@@ -2,6 +2,10 @@
 // APPLICATION LAYER EXPORTS
 // ============================================================================
 
+// Base Use Case
+export { BaseUseCase } from './use-cases/base.use-case.js';
+export type { BaseRequest, BaseResponse, BaseError } from './use-cases/base.use-case.js';
+
 // Use Cases
 export { CreateUserUseCase } from './use-cases/user/create-user.use-case.js';
 export { UpdateUserUseCase } from './use-cases/user/update-user.use-case.js';
@@ -10,6 +14,13 @@ export { CreateCompanyUseCase } from './use-cases/company/create-company.use-cas
 export { UpdateCompanyUseCase } from './use-cases/company/update-company.use-case.js';
 export { CreateContactUseCase } from './use-cases/contact/create-contact.use-case.js';
 export { UpdateContactUseCase } from './use-cases/contact/update-contact.use-case.js';
+export { CreateProductUseCase } from './use-cases/product/create-product.use-case.js';
+export { UpdateProductUseCase } from './use-cases/product/update-product.use-case.js';
+export { CreateInvoiceUseCase } from './use-cases/invoice/create-invoice.use-case.js';
+export { UpdateInvoiceUseCase } from './use-cases/invoice/update-invoice.use-case.js';
+export { CreateInventoryKardexUseCase } from './use-cases/inventory-kardex/create-inventory-kardex.use-case.js';
+export { UpdateInventoryKardexUseCase } from './use-cases/inventory-kardex/update-inventory-kardex.use-case.js';
+export { RecordMovementUseCase } from './use-cases/inventory-kardex/record-movement.use-case.js';
 
 // Application Services
 export { UserApplicationService } from './services/user.application.service.js';
@@ -22,6 +33,13 @@ export type { CreateCompanyRequest, CreateCompanyResponse } from './use-cases/co
 export type { UpdateCompanyRequest, UpdateCompanyResponse } from './use-cases/company/update-company.use-case.js';
 export type { CreateContactRequest, CreateContactResponse } from './use-cases/contact/create-contact.use-case.js';
 export type { UpdateContactRequest, UpdateContactResponse } from './use-cases/contact/update-contact.use-case.js';
+export type { CreateProductRequest, CreateProductResponse } from './use-cases/product/create-product.use-case.js';
+export type { UpdateProductRequest, UpdateProductResponse } from './use-cases/product/update-product.use-case.js';
+export type { CreateInvoiceRequest, CreateInvoiceResponse } from './use-cases/invoice/create-invoice.use-case.js';
+export type { UpdateInvoiceRequest, UpdateInvoiceResponse } from './use-cases/invoice/update-invoice.use-case.js';
+export type { CreateInventoryKardexRequest, CreateInventoryKardexResponse } from './use-cases/inventory-kardex/create-inventory-kardex.use-case.js';
+export type { UpdateInventoryKardexRequest, UpdateInventoryKardexResponse } from './use-cases/inventory-kardex/update-inventory-kardex.use-case.js';
+export type { RecordMovementRequest, RecordMovementResponse } from './use-cases/inventory-kardex/record-movement.use-case.js';
 export type { UserSearchOptions, UserListResponse, UserStatsResponse } from './services/user.application.service.js';
 
 // Re-export shared utilities for convenience
