@@ -13,6 +13,7 @@ export { Company } from './entities/company.entity.js';
 export { Contact } from './entities/contact.entity.js';
 export { Product } from './entities/product.entity.js';
 export { Invoice } from './entities/invoice.entity.js';
+export { InventoryKardex } from './entities/inventory-kardex.entity.js';
 
 // Value Objects
 export { Email } from './value-objects/email.vo.js';
@@ -29,6 +30,7 @@ export { CompanyRepository } from './repositories/company.repository.js';
 export { ContactRepository } from './repositories/contact.repository.js';
 export { ProductRepository } from './repositories/product.repository.js';
 export { InvoiceRepository } from './repositories/invoice.repository.js';
+export { InventoryKardexRepository } from './repositories/inventory-kardex.repository.js';
 
 // Domain Services
 export { UserDomainService } from './services/user.domain.service.js';
@@ -40,6 +42,7 @@ export type { CompanyId, CompanyType, CompanyStatus, CompanySize, CompanyIndustr
 export type { ContactId, ContactType, ContactStatus, ContactSource, ContactPriority, ContactSettings } from './entities/contact.entity.js';
 export type { ProductId, ProductType, ProductStatus, ProductCategory, ProductBrand, ProductSupplier, ProductSettings, ProductVariant } from './entities/product.entity.js';
 export type { InvoiceId, InvoiceNumber, InvoiceType, InvoiceStatus, InvoicePaymentStatus, InvoicePaymentMethod, InvoiceItem, InvoiceSettings } from './entities/invoice.entity.js';
+export type { InventoryKardexId, MovementType, MovementStatus, MovementReason, InventoryMovement, InventorySettings } from './entities/inventory-kardex.entity.js';
 export type { Currency } from './value-objects/money.vo.js';
 export type { AddressProps } from './value-objects/address.vo.js';
 export type { UserFilters, PaginatedResult, UserSearchOptions } from './repositories/user.repository.js';
@@ -48,6 +51,7 @@ export type { CompanyFilters, CompanySearchOptions, CompanyStats } from './repos
 export type { ContactFilters, ContactSearchOptions, ContactStats } from './repositories/contact.repository.js';
 export type { ProductStats, InventoryStats, PricingStats, CategoryStats, BrandStats, SupplierStats } from './repositories/product.repository.js';
 export type { InvoiceFilters, InvoiceSearchOptions, InvoiceStats } from './repositories/invoice.repository.js';
+export type { InventoryKardexFilters, InventoryKardexSearchOptions, InventoryKardexStats } from './repositories/inventory-kardex.repository.js';
 
 // Re-export shared utilities for convenience
 export * from '../shared/index.js';
