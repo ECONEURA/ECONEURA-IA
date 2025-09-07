@@ -49,6 +49,36 @@ import { securityConsolidated } from './lib/security-consolidated.service.js';
 import { quietHoursOnCallConsolidated } from './lib/quiet-hours-oncall-consolidated.service.js';
 import { gdprConsolidated } from './lib/gdpr-consolidated.service.js';
 
+// PR-17: Azure OpenAI Integration
+import { azureIntegration } from './services/azure-integration.service.js';
+import { azureIntegrationRoutes } from './routes/azure-integration.js';
+
+// PR-18: AI Training Platform
+import { aiTrainingService } from './services/ai-training.service.js';
+import { aiTrainingRoutes } from './routes/ai-training.js';
+
+// PR-19: AI Model Management
+import { aiModelManagementService } from './services/ai-model-management.service.js';
+import { aiModelManagementRoutes } from './routes/ai-model-management.js';
+import { aiAnalyticsService } from './services/ai-analytics.service.js';
+import { aiAnalyticsRoutes } from './routes/ai-analytics.js';
+
+// PR-21: Next AI Platform
+import { nextAIPlatformService } from './services/next-ai-platform.service.js';
+import { nextAIPlatformRoutes } from './routes/next-ai-platform.js';
+
+// PR-22: Advanced AI Features
+import { advancedAIFeaturesService } from './services/advanced-ai-features.service.js';
+import { advancedAIFeaturesRoutes } from './routes/advanced-ai-features.js';
+import { aiSecurityComplianceService } from './services/ai-security-compliance.service.js';
+import { aiSecurityComplianceRoutes } from './routes/ai-security-compliance.js';
+import { aiPerformanceOptimizationService } from './services/ai-performance-optimization.service.js';
+import { aiPerformanceOptimizationRoutes } from './routes/ai-performance-optimization.js';
+import { aiCostOptimizationService } from './services/ai-cost-optimization.service.js';
+import { aiCostOptimizationRoutes } from './routes/ai-cost-optimization.js';
+import { aiCostPredictionService } from './services/ai-cost-prediction.service.js';
+import { aiCostPredictionRoutes } from './routes/ai-cost-prediction.js';
+
 // Import Basic AI services (PR-16)
 import { basicAIService } from './lib/basic-ai/basic-ai.service.js';
 import { basicAIRoutes } from './presentation/routes/basic-ai.routes.js';
@@ -1447,10 +1477,34 @@ app.use('/v1/advanced-features', advancedFeaturesRouter);
 app.use('/v1/basic-ai', basicAIRouter);
 
 // PR-17: Azure OpenAI Integration
-app.use('/v1/azure-integration', azureIntegrationRouter);
+app.use('/v1/azure-integration', azureIntegrationRoutes);
 
-// PR-18: Health Checks
-app.use('/v1/health-checks', healthChecksRouter);
+// PR-18: AI Training Platform
+app.use('/v1/ai-training', aiTrainingRoutes);
+
+// PR-19: AI Model Management
+app.use('/v1/ai-model-management', aiModelManagementRoutes);
+
+// PR-20: AI Analytics Platform
+app.use('/v1/ai-analytics', aiAnalyticsRoutes);
+
+// PR-21: Next AI Platform
+app.use('/v1/next-ai-platform', nextAIPlatformRoutes);
+
+// PR-22: Advanced AI Features
+app.use('/v1/advanced-ai-features', advancedAIFeaturesRoutes);
+
+// PR-23: AI Security & Compliance
+app.use('/v1/ai-security-compliance', aiSecurityComplianceRoutes);
+
+// PR-24: AI Performance Optimization
+app.use('/v1/ai-performance-optimization', aiPerformanceOptimizationRoutes);
+
+// PR-25: AI Cost Optimization
+app.use('/v1/ai-cost-optimization', aiCostOptimizationRoutes);
+
+// PR-26: AI Cost Prediction
+app.use('/v1/ai-cost-prediction', aiCostPredictionRoutes);
 
 // PR-19: Analytics
 app.use('/v1/analytics', analyticsRouter);
