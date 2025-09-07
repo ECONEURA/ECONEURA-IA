@@ -17,6 +17,8 @@ import { securityService } from './lib/security.service.js';
 import { monitoringService } from './lib/monitoring.service.js';
 import { securityComplianceEnhanced } from './lib/security-compliance-enhanced.service.js';
 import advancedSecurityRouter from './routes/advanced-security.js';
+import { advancedSecurityFramework } from './lib/advanced-security-framework.service.js';
+import advancedSecurityFrameworkRouter from './routes/advanced-security-framework.js';
 
 // Importar middlewares de mejora
 import { 
@@ -1533,6 +1535,9 @@ app.use('/v1/advanced-analytics', advancedAnalyticsRouter);
 
 // Mount Advanced Security routes (PR-49)
 app.use('/v1/advanced-security', advancedSecurityRouter);
+
+// Mount Advanced Security Framework routes (PR-28)
+app.use('/v1/security-framework', advancedSecurityFrameworkRouter);
 
 // Mount OpenAPI routes (PR-52)
 app.use('/v1/openapi', openApiRouter);
