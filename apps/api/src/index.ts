@@ -15,6 +15,8 @@ import { authRouter } from './routes/auth.js';
 import { cacheService } from './lib/cache.service.js';
 import { securityService } from './lib/security.service.js';
 import { monitoringService } from './lib/monitoring.service.js';
+import { securityComplianceEnhanced } from './lib/security-compliance-enhanced.service.js';
+import advancedSecurityRouter from './routes/advanced-security.js';
 
 // Importar middlewares de mejora
 import { 
@@ -46,6 +48,7 @@ import { cacheManager } from './lib/advanced-cache.js';
 import { finOpsConsolidatedService } from './lib/finops-consolidated.service.js';
 import { analyticsConsolidated } from './lib/analytics-consolidated.service.js';
 import { securityConsolidated } from './lib/security-consolidated.service.js';
+import { advancedObservability } from './services/advanced-observability.service.js';
 import { quietHoursOnCallConsolidated } from './lib/quiet-hours-oncall-consolidated.service.js';
 import { gdprConsolidated } from './lib/gdpr-consolidated.service.js';
 
@@ -203,7 +206,7 @@ import { analyticsRouter } from './routes/analytics.js';
 import { stabilizationRouter } from './routes/stabilization.js';
 
 // PR-21: Observabilidad Avanzada
-import { advancedObservabilityRouter } from './routes/advanced-observability.js';
+import advancedObservabilityRouter from './routes/advanced-observability.js';
 // ai-agents
 import { aiAgentsRouter } from './routes/ai-agents.js';import { performanceOptimizerService } from './lib/performance-optimizer.service.js';
 // gdpr
@@ -1602,6 +1605,9 @@ app.use('/v1/ai-agents', aiAgentsRouter);// ERROR HANDLING
 app.use('/v1/memory-management', memoryManagementRouter);// =============================================================================
 // rls-generativa
 app.use('/v1/rls-generativa', rlsGenerativaRouter);
+
+// advanced-security
+app.use('/v1/advanced-security', advancedSecurityRouter);
 // blue-green-deployment
 app.use('/v1/blue-green-deployment', blueGreenDeploymentRouter);app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
 // semantic-search-crm
