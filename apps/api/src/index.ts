@@ -78,6 +78,10 @@ import { aiCostOptimizationService } from './services/ai-cost-optimization.servi
 import { aiCostOptimizationRoutes } from './routes/ai-cost-optimization.js';
 import { aiCostPredictionService } from './services/ai-cost-prediction.service.js';
 import { aiCostPredictionRoutes } from './routes/ai-cost-prediction.js';
+import { aiDashboardConsolidationService } from './services/ai-dashboard-consolidation.service.js';
+import { aiDashboardConsolidationRoutes } from './routes/ai-dashboard-consolidation.js';
+import { cockpitIntegrationService } from './services/cockpit-integration.service.js';
+import { cockpitIntegrationRoutes } from './routes/cockpit-integration.js';
 
 // Import Basic AI services (PR-16)
 import { basicAIService } from './lib/basic-ai/basic-ai.service.js';
@@ -1505,6 +1509,12 @@ app.use('/v1/ai-cost-optimization', aiCostOptimizationRoutes);
 
 // PR-26: AI Cost Prediction
 app.use('/v1/ai-cost-prediction', aiCostPredictionRoutes);
+
+// PR-27: AI Dashboard Consolidation
+app.use('/v1/ai-dashboard-consolidation', aiDashboardConsolidationRoutes);
+
+// PR-27: Cockpit Integration
+app.use('/v1/cockpit-integration', cockpitIntegrationRoutes);
 
 // PR-19: Analytics
 app.use('/v1/analytics', analyticsRouter);
