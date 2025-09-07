@@ -1,12 +1,12 @@
 import { Router } from 'express';
-import { basicAI } from '../services/basic-ai.service.js';
+import { basicAIService } from '../lib/basic-ai/basic-ai.service.js';
 
 const router = Router();
 
 router.post('/generate', async (req, res) => {
   try {
     const { prompt } = req.body;
-    const response = await basicAI.generateResponse(prompt);
+    const response = await basicAIService.generateResponse(prompt);
     res.json({ success: true, data: response });
   } catch (error) {
     res.status(500).json({ error: 'Failed to generate response' });
