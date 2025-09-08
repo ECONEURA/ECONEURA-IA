@@ -22,6 +22,8 @@ import advancedSecurityFrameworkRouter from './routes/advanced-security-framewor
 import { gdprConsolidated } from './lib/gdpr-consolidated.service.js';
 import gdprComplianceRouter from './routes/gdpr-compliance.js';
 import { progressRouter } from './routes/progress.js';
+import configurationRouter from './routes/configuration.js';
+import workflowsRouter from './routes/workflows.js';
 
 // Importar middlewares de mejora
 import { 
@@ -177,6 +179,8 @@ import { graphWrappersRouter } from './routes/graph-wrappers.js';
 import { hitlV2Router } from './routes/hitl-v2.js';
 import { stripeReceiptsRouter } from './routes/stripe-receipts.js';
 import { inventoryKardexRouter } from './routes/inventory-kardex.js';
+import { aiChatAdvancedRouter } from './routes/ai-chat-advanced.js';
+import dataAnalyticsDashboardRouter from './routes/data-analytics-dashboard.js';
 import { supplierScorecardRouter } from './routes/supplier-scorecard.js';
 import { interactionsSasAvRouter } from './routes/interactions-sas-av.js';
 import { companiesTaxonomyRouter } from './routes/companies-taxonomy.js';
@@ -1543,6 +1547,12 @@ app.use('/v1/advanced-security', advancedSecurityRouter);
 app.use('/v1/security-framework', advancedSecurityFrameworkRouter);
 app.use('/v1/gdpr', gdprComplianceRouter);
 
+// PR-32: Configuration & Feature Flags
+app.use('/v1/config', configurationRouter);
+
+// PR-33: Workflows BPMN & State Machines
+app.use('/v1/workflows', workflowsRouter);
+
 // Mount Progress routes
 app.use(progressRouter);
 
@@ -1649,7 +1659,13 @@ app.use('/v1/hitl-v2', hitlV2Router);    error: 'Internal server error',
 // stripe-receipts
 app.use('/v1/stripe-receipts', stripeReceiptsRouter);    message: 'An unexpected error occurred',
 // inventory-kardex
-app.use('/v1/inventory-kardex', inventoryKardexRouter);    errorId,
+app.use('/v1/inventory-kardex', inventoryKardexRouter);
+
+// ai-chat-advanced
+app.use('/v1/ai-chat-advanced', aiChatAdvancedRouter);
+
+// data-analytics-dashboard
+app.use('/v1/data-analytics-dashboard', dataAnalyticsDashboardRouter);    errorId,
 // supplier-scorecard
 app.use('/v1/supplier-scorecard', supplierScorecardRouter);    timestamp: new Date().toISOString(),
 // interactions-sas-av
