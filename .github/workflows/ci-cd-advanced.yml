@@ -9,6 +9,12 @@ on:
 env:
   NODE_VERSION: '20'
   PNPM_VERSION: '8'
+  DEPLOY_ENABLED: "false"
+  SKIP_RELEASE: "true"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   # Build and Test Job
@@ -171,6 +177,7 @@ jobs:
   # Deploy to Staging
   deploy-staging:
     runs-on: ubuntu-latest
+    if: env.DEPLOY_ENABLED == 'true'
     needs: [build-and-test, security-scan, performance-test]
     if: github.ref == 'refs/heads/main'
     
