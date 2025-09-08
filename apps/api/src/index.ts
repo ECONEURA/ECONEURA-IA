@@ -19,6 +19,8 @@ import { securityComplianceEnhanced } from './lib/security-compliance-enhanced.s
 import advancedSecurityRouter from './routes/advanced-security.js';
 import { advancedSecurityFramework } from './lib/advanced-security-framework.service.js';
 import advancedSecurityFrameworkRouter from './routes/advanced-security-framework.js';
+import { gdprConsolidated } from './lib/gdpr-consolidated.service.js';
+import gdprComplianceRouter from './routes/gdpr-compliance.js';
 import { progressRouter } from './routes/progress.js';
 
 // Importar middlewares de mejora
@@ -1539,6 +1541,7 @@ app.use('/v1/advanced-security', advancedSecurityRouter);
 
 // Mount Advanced Security Framework routes (PR-28)
 app.use('/v1/security-framework', advancedSecurityFrameworkRouter);
+app.use('/v1/gdpr', gdprComplianceRouter);
 
 // Mount Progress routes
 app.use(progressRouter);
