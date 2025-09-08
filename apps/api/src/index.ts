@@ -217,39 +217,55 @@ import { aiAgentsRouter } from './routes/ai-agents.js';import { performanceOptim
 // gdpr
 import { gdprRouter } from './routes/gdpr.js';import { errorManagerService } from './lib/error-manager.service.js';
 // compliance
-import { complianceRouter } from './routes/compliance.js';import { securityManagerService } from './lib/security-manager.service.js';
+import { complianceRouter } from './routes/compliance.js';
+import { securityManagerService } from './lib/security-manager.service.js';
 // audit
-import { auditRouter } from './routes/audit.js';import { errorHandler as errorHandlerMiddleware, notFoundHandler, asyncHandler } from './middleware/error-handler.js';
+import { auditRouter } from './routes/audit.js';
+import { errorHandler as errorHandlerMiddleware, notFoundHandler, asyncHandler } from './middleware/error-handler.js';
 // monitoring
-import { monitoringRouter } from './routes/monitoring.js';import { 
+import { monitoringRouter } from './routes/monitoring.js';
+import { 
+  rateLimitMiddleware, 
+  jwtAuthMiddleware, 
+  csrfMiddleware, 
+  sanitizeMiddleware, 
+  securityHeadersMiddleware,
+  suspiciousActivityMiddleware,
+  securityLoggingMiddleware
+} from './middleware/security.js';
 // notifications
-import { notificationsRouter } from './routes/notifications.js';  rateLimitMiddleware, 
+import { notificationsRouter } from './routes/notifications.js';
 // intelligent-reporting
-import { intelligentReportingRouter } from './routes/intelligent-reporting.js';  jwtAuthMiddleware, 
+import { intelligentReportingRouter } from './routes/intelligent-reporting.js';
 // business-intelligence
-import { businessIntelligenceRouter } from './routes/business-intelligence.js';  csrfMiddleware, 
+import { businessIntelligenceRouter } from './routes/business-intelligence.js';
 // quiet-hours
-import { quietHoursRouter } from './routes/quiet-hours.js';  sanitizeMiddleware, 
+import { quietHoursRouter } from './routes/quiet-hours.js';
 // oncall
-import { oncallRouter } from './routes/oncall.js';  securityHeadersMiddleware,
+import { oncallRouter } from './routes/oncall.js';
 // escalation
-import { escalationRouter } from './routes/escalation.js';  suspiciousActivityMiddleware,
+import { escalationRouter } from './routes/escalation.js';
 // graceful-shutdown
-import { gracefulShutdownRouter } from './routes/graceful-shutdown.js';  securityLoggingMiddleware
+import { gracefulShutdownRouter } from './routes/graceful-shutdown.js';
 // circuit-breaker
-import { circuitBreakerRouter } from './routes/circuit-breaker.js';} from './middleware/security.js';
+import { circuitBreakerRouter } from './routes/circuit-breaker.js';
 // rate-limiting
 import { rateLimitingRouter } from './routes/rate-limiting.js';
 // request-tracing
-import { requestTracingRouter } from './routes/request-tracing.js';const app = express();
+import { requestTracingRouter } from './routes/request-tracing.js';
+
+const app = express();
 // resource-management
 import { resourceManagementRouter } from './routes/resource-management.js';const PORT = process.env.PORT || 3001;
 // config-validation
 import { configValidationRouter } from './routes/config-validation.js';
 // api-versioning
-import { apiVersioningRouter } from './routes/api-versioning.js';// Initialize services
+import { apiVersioningRouter } from './routes/api-versioning.js';
 // error-recovery
-import { errorRecoveryRouter } from './routes/error-recovery.js';structuredLogger.info('Initializing ECONEURA API services...');
+import { errorRecoveryRouter } from './routes/error-recovery.js';
+
+// Initialize services
+structuredLogger.info('Initializing ECONEURA API services...');
 const errorHandler = new ErrorHandler();
 // Consolidated services are already initialized as singletons
 // finOpsConsolidatedService, analyticsConsolidatedService, etc.
@@ -1610,74 +1626,49 @@ app.use('/v1/cockpit', cockpitRouter);
 // finops
 app.use('/v1/finops', finopsRouter);
 // sepa
-app.use('/v1/sepa', sepaRouter);// =============================================================================
-// ai-agents
-app.use('/v1/ai-agents', aiAgentsRouter);// ERROR HANDLING
-// memory-management
-app.use('/v1/memory-management', memoryManagementRouter);// =============================================================================
-// rls-generativa
-app.use('/v1/rls-generativa', rlsGenerativaRouter);
-
-// advanced-security
-app.use('/v1/advanced-security', advancedSecurityRouter);
-// blue-green-deployment
-app.use('/v1/blue-green-deployment', blueGreenDeploymentRouter);app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-// semantic-search-crm
-app.use('/v1/semantic-search-crm', semanticSearchCRMRouter);  const errorId = `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-// reportes-mensuales
-app.use('/v1/reportes-mensuales', reportesMensualesRouter);  
-// rbac-granular
-app.use('/v1/rbac-granular', rbacGranularRouter);  structuredLogger.error('Unhandled error', error, {
-// gdpr
-app.use('/v1/gdpr', gdprRouter);    errorId,
-// compliance
-app.use('/v1/compliance', complianceRouter);    path: req.path,
-// audit
-app.use('/v1/audit', auditRouter);    method: req.method,
-// monitoring
-app.use('/v1/monitoring', monitoringRouter);    userAgent: req.headers['user-agent'],
-// notifications
-app.use('/v1/notifications', notificationsRouter);    orgId: req.headers['x-org-id']
-// intelligent-reporting
-app.use('/v1/intelligent-reporting', intelligentReportingRouter);  });
-// business-intelligence
-app.use('/v1/business-intelligence', businessIntelligenceRouter);
-// graph-wrappers
-app.use('/v1/graph-wrappers', graphWrappersRouter);  res.status(500).json({
-// hitl-v2
-app.use('/v1/hitl-v2', hitlV2Router);    error: 'Internal server error',
-// stripe-receipts
-app.use('/v1/stripe-receipts', stripeReceiptsRouter);    message: 'An unexpected error occurred',
-// inventory-kardex
-app.use('/v1/inventory-kardex', inventoryKardexRouter);    errorId,
-// supplier-scorecard
-app.use('/v1/supplier-scorecard', supplierScorecardRouter);    timestamp: new Date().toISOString(),
-// interactions-sas-av
-app.use('/v1/interactions-sas-av', interactionsSasAvRouter);    support: 'Please contact support with this error ID'
-// quiet-hours
-app.use('/v1/quiet-hours', quietHoursRouter);  });
-// oncall
-app.use('/v1/oncall', oncallRouter);});
-// escalation
-app.use('/v1/escalation', escalationRouter);
-// graceful-shutdown
-app.use('/v1/graceful-shutdown', gracefulShutdownRouter);// 404 handler
-// circuit-breaker
-app.use('/v1/circuit-breaker', circuitBreakerRouter);app.use((req: express.Request, res: express.Response) => {
-// rate-limiting
-app.use('/v1/rate-limiting', rateLimitingRouter);  res.status(404).json({
-// request-tracing
-app.use('/v1/request-tracing', requestTracingRouter);    error: 'Not found',
-// resource-management
-app.use('/v1/resource-management', resourceManagementRouter);    message: `Route ${req.method} ${req.path} not found`,
+app.use('/v1/sepa', sepaRouter);
 // config-validation
-app.use('/v1/config-validation', configValidationRouter);    timestamp: new Date().toISOString(),
+app.use('/v1/config-validation', configValidationRouter);
 // api-versioning
-app.use('/v1/api-versioning', apiVersioningRouter);    suggestion: 'Check /api/docs for available endpoints',
+app.use('/v1/api-versioning', apiVersioningRouter);
 // error-recovery
-app.use('/v1/error-recovery', errorRecoveryRouter);    availableCategories: [
+app.use('/v1/error-recovery', errorRecoveryRouter);
 // workers-integration
-app.use('/v1/workers-integration', workersIntegrationRouter);      'health', 'analytics', 'events', 'cockpit', 
+app.use('/v1/workers-integration', workersIntegrationRouter);
+
+// =============================================================================
+// ERROR HANDLING
+// =============================================================================
+
+app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const errorId = `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  
+  structuredLogger.error('Unhandled error', error, {
+    errorId,
+    path: req.path,
+    method: req.method,
+    userAgent: req.headers['user-agent'],
+    orgId: req.headers['x-org-id']
+  });
+
+  res.status(500).json({
+    error: 'Internal server error',
+    message: 'An unexpected error occurred',
+    errorId,
+    timestamp: new Date().toISOString(),
+    support: 'Please contact support with this error ID'
+  });
+});
+
+// 404 handler
+app.use((req: express.Request, res: express.Response) => {
+  res.status(404).json({
+    error: 'Not found',
+    message: `Route ${req.method} ${req.path} not found`,
+    timestamp: new Date().toISOString(),
+    suggestion: 'Check /api/docs for available endpoints',
+    availableCategories: [
+      'health', 'analytics', 'events', 'cockpit', 
       'finops', 'gdpr', 'sepa', 'operations'
     ]
   });
