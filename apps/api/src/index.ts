@@ -181,6 +181,7 @@ import { stripeReceiptsRouter } from './routes/stripe-receipts.js';
 import { inventoryKardexRouter } from './routes/inventory-kardex.js';
 import { aiChatAdvancedRouter } from './routes/ai-chat-advanced.js';
 import dataAnalyticsDashboardRouter from './routes/data-analytics-dashboard.js';
+import advancedAuditComplianceRouter from './routes/advanced-audit-compliance.js';
 import { supplierScorecardRouter } from './routes/supplier-scorecard.js';
 import { interactionsSasAvRouter } from './routes/interactions-sas-av.js';
 import { companiesTaxonomyRouter } from './routes/companies-taxonomy.js';
@@ -1665,7 +1666,8 @@ app.use('/v1/inventory-kardex', inventoryKardexRouter);
 app.use('/v1/ai-chat-advanced', aiChatAdvancedRouter);
 
 // data-analytics-dashboard
-app.use('/v1/data-analytics-dashboard', dataAnalyticsDashboardRouter);    errorId,
+app.use('/v1/data-analytics-dashboard', dataAnalyticsDashboardRouter);
+app.use('/v1/advanced-audit-compliance', advancedAuditComplianceRouter);    errorId,
 // supplier-scorecard
 app.use('/v1/supplier-scorecard', supplierScorecardRouter);    timestamp: new Date().toISOString(),
 // interactions-sas-av
