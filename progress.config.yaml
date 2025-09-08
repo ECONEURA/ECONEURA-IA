@@ -1,0 +1,19 @@
+weights:
+  infra: 8
+  observability: 7
+  cicd: 7
+  api: 10
+  webcfg: 5
+  security: 8
+  data: 8
+  typecheck: 7
+  erp: 12
+  crm: 8
+  cockpit: 7
+  agents: 5
+  qa: 4
+  releases: 4
+
+targets:
+  coverage_min: 0.60
+  k6_p95_ms: 2000

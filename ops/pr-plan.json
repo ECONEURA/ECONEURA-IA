@@ -1,0 +1,606 @@
+{
+  "prs": [
+    {
+      "id": 0,
+      "slug": "boot-scripts-configs",
+      "title": "Boot scripts + configs",
+      "area": "infra",
+      "commit": "feat(infra): Configurar scripts de arranque y configuraciones base"
+    },
+    {
+      "id": 1,
+      "slug": "api-health-progress-finops",
+      "title": "API salud/progress/FinOps",
+      "area": "api",
+      "commit": "feat(api): Implementar rutas de salud, progreso y middleware FinOps"
+    },
+    {
+      "id": 2,
+      "slug": "cors-env",
+      "title": "CORS env",
+      "area": "api",
+      "commit": "feat(api): Configurar CORS por entorno con variables de entorno"
+    },
+    {
+      "id": 3,
+      "slug": "web-health-api-url",
+      "title": "Web salud + API URL",
+      "area": "webcfg",
+      "commit": "feat(web): Implementar ruta de salud y configurar API URL"
+    },
+    {
+      "id": 4,
+      "slug": "eslint-prettier-unified",
+      "title": "ESLint/Prettier unificados",
+      "area": "qa",
+      "commit": "feat(qa): Unificar configuración ESLint y Prettier en monorepo"
+    },
+    {
+      "id": 5,
+      "slug": "ts-strict",
+      "title": "TS estricto",
+      "area": "typecheck",
+      "commit": "feat(typecheck): Configurar TypeScript estricto en todo el monorepo"
+    },
+    {
+      "id": 6,
+      "slug": "esm-consistent",
+      "title": "ESM consistente",
+      "area": "infra",
+      "commit": "feat(infra): Asegurar consistencia ESM en todo el monorepo"
+    },
+    {
+      "id": 7,
+      "slug": "dedup-1-jscpd-alto",
+      "title": "Dedup-1 (jscpd alto)",
+      "area": "qa",
+      "commit": "refactor(qa): Eliminar duplicados identificados por jscpd"
+    },
+    {
+      "id": 8,
+      "slug": "exports-knip-ts-prune",
+      "title": "Exports (knip/ts-prune)",
+      "area": "qa",
+      "commit": "refactor(qa): Limpiar exports no utilizados y código muerto"
+    },
+    {
+      "id": 9,
+      "slug": "deps-depcheck",
+      "title": "Deps (depcheck)",
+      "area": "infra",
+      "commit": "refactor(infra): Limpiar dependencias huérfanas identificadas por depcheck"
+    },
+    {
+      "id": 10,
+      "slug": "json-errors",
+      "title": "Errores JSON",
+      "area": "api",
+      "commit": "feat(api): Estandarizar respuestas de error a formato JSON consistente"
+    },
+    {
+      "id": 11,
+      "slug": "playwright-smoke",
+      "title": "Playwright smoke",
+      "area": "qa",
+      "commit": "feat(qa): Implementar tests E2E con Playwright"
+    },
+    {
+      "id": 12,
+      "slug": "k6-smoke",
+      "title": "k6 smoke",
+      "area": "qa",
+      "commit": "feat(qa): Implementar tests de performance con k6"
+    },
+    {
+      "id": 13,
+      "slug": "gates-p95-typecheck",
+      "title": "Gates p95/typecheck",
+      "area": "qa",
+      "commit": "feat(qa): Implementar gates de calidad p95 y typecheck"
+    },
+    {
+      "id": 14,
+      "slug": "ci-ci-yml",
+      "title": "CI ci.yml",
+      "area": "cicd",
+      "commit": "feat(cicd): Configurar pipeline CI completo con GitHub Actions"
+    },
+    {
+      "id": 15,
+      "slug": "templates-pr-issues",
+      "title": "Templates PR/Issues",
+      "area": "cicd",
+      "commit": "feat(cicd): Crear templates V3 para PRs e Issues"
+    },
+    {
+      "id": 16,
+      "slug": "labels-protections-doc",
+      "title": "Labels + protections doc",
+      "area": "cicd",
+      "commit": "feat(cicd): Configurar labels, protecciones y documentación"
+    },
+    {
+      "id": 17,
+      "slug": "dependabot",
+      "title": "Dependabot",
+      "area": "cicd",
+      "commit": "feat(cicd): Configurar Dependabot para actualizaciones automáticas"
+    },
+    {
+      "id": 18,
+      "slug": "codeql",
+      "title": "CodeQL",
+      "area": "security",
+      "commit": "feat(security): Configurar CodeQL para análisis de seguridad"
+    },
+    {
+      "id": 19,
+      "slug": "audit-md-kpis",
+      "title": "AUDIT.md KPIs",
+      "area": "observability",
+      "commit": "feat(observability): Documentar KPIs de auditoría en AUDIT.md"
+    },
+    {
+      "id": 20,
+      "slug": "utils-comunes",
+      "title": "Utils comunes",
+      "area": "infra",
+      "commit": "feat(infra): Crear utilidades comunes en packages/shared"
+    },
+    {
+      "id": 21,
+      "slug": "alias-econeura",
+      "title": "Alias @econeura/*",
+      "area": "infra",
+      "commit": "feat(infra): Configurar alias @econeura/* en tsconfig"
+    },
+    {
+      "id": 22,
+      "slug": "error-boundaries-web",
+      "title": "Error boundaries Web",
+      "area": "webcfg",
+      "commit": "feat(web): Implementar error boundaries en Next.js"
+    },
+    {
+      "id": 23,
+      "slug": "cache-estaticos",
+      "title": "Cache estáticos",
+      "area": "webcfg",
+      "commit": "feat(web): Configurar cache de archivos estáticos"
+    },
+    {
+      "id": 24,
+      "slug": "brotli",
+      "title": "Brotli",
+      "area": "webcfg",
+      "commit": "feat(web): Habilitar compresión Brotli"
+    },
+    {
+      "id": 25,
+      "slug": "imagenes-next",
+      "title": "Imágenes Next",
+      "area": "webcfg",
+      "commit": "feat(web): Optimizar imágenes con Next.js Image"
+    },
+    {
+      "id": 26,
+      "slug": "cors-e2e",
+      "title": "CORS e2e",
+      "area": "api",
+      "commit": "feat(api): Tests E2E para configuración CORS"
+    },
+    {
+      "id": 27,
+      "slug": "rate-limit-api",
+      "title": "Rate limit API",
+      "area": "api",
+      "commit": "feat(api): Implementar rate limiting en API"
+    },
+    {
+      "id": 28,
+      "slug": "idempotency",
+      "title": "Idempotency",
+      "area": "api",
+      "commit": "feat(api): Implementar idempotencia en endpoints críticos"
+    },
+    {
+      "id": 29,
+      "slug": "retries",
+      "title": "Retries",
+      "area": "api",
+      "commit": "feat(api): Implementar sistema de reintentos"
+    },
+    {
+      "id": 30,
+      "slug": "prisma-baseline",
+      "title": "Prisma baseline",
+      "area": "data",
+      "commit": "feat(data): Establecer baseline de Prisma/Drizzle"
+    },
+    {
+      "id": 31,
+      "slug": "seeds",
+      "title": "Seeds",
+      "area": "data",
+      "commit": "feat(data): Implementar seeds de base de datos"
+    },
+    {
+      "id": 32,
+      "slug": "openapi-checksum-route-linter",
+      "title": "OpenAPI checksum + route-linter /v1",
+      "area": "api",
+      "commit": "feat(api): Validar OpenAPI y linter de rutas /v1"
+    },
+    {
+      "id": 33,
+      "slug": "otel-headers",
+      "title": "OTel headers",
+      "area": "observability",
+      "commit": "feat(observability): Implementar headers OpenTelemetry"
+    },
+    {
+      "id": 34,
+      "slug": "progress-panel-inicial",
+      "title": "PROGRESS_PANEL inicial",
+      "area": "observability",
+      "commit": "feat(observability): Crear panel de progreso inicial"
+    },
+    {
+      "id": 35,
+      "slug": "azure-hardening-script",
+      "title": "Azure hardening script",
+      "area": "security",
+      "commit": "feat(security): Script de hardening para Azure"
+    },
+    {
+      "id": 36,
+      "slug": "azure-deploy-yml-dispatch",
+      "title": "Azure deploy.yml dispatch",
+      "area": "cicd",
+      "commit": "feat(cicd): Workflow de deploy manual para Azure"
+    },
+    {
+      "id": 37,
+      "slug": "coberturas-1-10",
+      "title": "Coberturas 1-10",
+      "area": "qa",
+      "commit": "feat(qa): Aumentar cobertura de tests 1-10%"
+    },
+    {
+      "id": 38,
+      "slug": "coberturas-11-20",
+      "title": "Coberturas 11-20",
+      "area": "qa",
+      "commit": "feat(qa): Aumentar cobertura de tests 11-20%"
+    },
+    {
+      "id": 39,
+      "slug": "coberturas-21-30",
+      "title": "Coberturas 21-30",
+      "area": "qa",
+      "commit": "feat(qa): Aumentar cobertura de tests 21-30%"
+    },
+    {
+      "id": 40,
+      "slug": "coberturas-31-40",
+      "title": "Coberturas 31-40",
+      "area": "qa",
+      "commit": "feat(qa): Aumentar cobertura de tests 31-40%"
+    },
+    {
+      "id": 41,
+      "slug": "coberturas-41-50",
+      "title": "Coberturas 41-50",
+      "area": "qa",
+      "commit": "feat(qa): Aumentar cobertura de tests 41-50%"
+    },
+    {
+      "id": 42,
+      "slug": "coberturas-51-60",
+      "title": "Coberturas 51-60",
+      "area": "qa",
+      "commit": "feat(qa): Aumentar cobertura de tests 51-60%"
+    },
+    {
+      "id": 43,
+      "slug": "limpieza-assets-binarios",
+      "title": "Limpieza assets/binarios",
+      "area": "infra",
+      "commit": "refactor(infra): Limpiar assets y archivos binarios innecesarios"
+    },
+    {
+      "id": 44,
+      "slug": "history-scripts",
+      "title": "History scripts",
+      "area": "infra",
+      "commit": "refactor(infra): Limpiar scripts de historial y temporales"
+    },
+    {
+      "id": 45,
+      "slug": "readme-final",
+      "title": "README final",
+      "area": "docs",
+      "commit": "docs: Crear README final del proyecto"
+    },
+    {
+      "id": 46,
+      "slug": "decision-log",
+      "title": "DECISION_LOG",
+      "area": "docs",
+      "commit": "docs: Crear log de decisiones arquitectónicas"
+    },
+    {
+      "id": 47,
+      "slug": "verificacion-integral",
+      "title": "Verificación integral",
+      "area": "qa",
+      "commit": "feat(qa): Verificación integral final del sistema"
+    },
+    {
+      "id": 48,
+      "slug": "erp-module-1",
+      "title": "ERP Module 1",
+      "area": "erp",
+      "commit": "feat(erp): Implementar módulo ERP básico"
+    },
+    {
+      "id": 49,
+      "slug": "erp-module-2",
+      "title": "ERP Module 2",
+      "area": "erp",
+      "commit": "feat(erp): Implementar módulo ERP avanzado"
+    },
+    {
+      "id": 50,
+      "slug": "crm-module-1",
+      "title": "CRM Module 1",
+      "area": "crm",
+      "commit": "feat(crm): Implementar módulo CRM básico"
+    },
+    {
+      "id": 51,
+      "slug": "crm-module-2",
+      "title": "CRM Module 2",
+      "area": "crm",
+      "commit": "feat(crm): Implementar módulo CRM avanzado"
+    },
+    {
+      "id": 52,
+      "slug": "cockpit-module-1",
+      "title": "Cockpit Module 1",
+      "area": "cockpit",
+      "commit": "feat(cockpit): Implementar módulo Cockpit básico"
+    },
+    {
+      "id": 53,
+      "slug": "cockpit-module-2",
+      "title": "Cockpit Module 2",
+      "area": "cockpit",
+      "commit": "feat(cockpit): Implementar módulo Cockpit avanzado"
+    },
+    {
+      "id": 54,
+      "slug": "agents-module-1",
+      "title": "Agents Module 1",
+      "area": "agents",
+      "commit": "feat(agents): Implementar módulo Agents básico"
+    },
+    {
+      "id": 55,
+      "slug": "agents-module-2",
+      "title": "Agents Module 2",
+      "area": "agents",
+      "commit": "feat(agents): Implementar módulo Agents avanzado"
+    },
+    {
+      "id": 56,
+      "slug": "releases-module-1",
+      "title": "Releases Module 1",
+      "area": "releases",
+      "commit": "feat(releases): Implementar módulo Releases básico"
+    },
+    {
+      "id": 57,
+      "slug": "releases-module-2",
+      "title": "Releases Module 2",
+      "area": "releases",
+      "commit": "feat(releases): Implementar módulo Releases avanzado"
+    },
+    {
+      "id": 58,
+      "slug": "data-module-1",
+      "title": "Data Module 1",
+      "area": "data",
+      "commit": "feat(data): Implementar módulo Data básico"
+    },
+    {
+      "id": 59,
+      "slug": "data-module-2",
+      "title": "Data Module 2",
+      "area": "data",
+      "commit": "feat(data): Implementar módulo Data avanzado"
+    },
+    {
+      "id": 60,
+      "slug": "security-module-1",
+      "title": "Security Module 1",
+      "area": "security",
+      "commit": "feat(security): Implementar módulo Security básico"
+    },
+    {
+      "id": 61,
+      "slug": "security-module-2",
+      "title": "Security Module 2",
+      "area": "security",
+      "commit": "feat(security): Implementar módulo Security avanzado"
+    },
+    {
+      "id": 62,
+      "slug": "observability-module-1",
+      "title": "Observability Module 1",
+      "area": "observability",
+      "commit": "feat(observability): Implementar módulo Observability básico"
+    },
+    {
+      "id": 63,
+      "slug": "observability-module-2",
+      "title": "Observability Module 2",
+      "area": "observability",
+      "commit": "feat(observability): Implementar módulo Observability avanzado"
+    },
+    {
+      "id": 64,
+      "slug": "infra-module-1",
+      "title": "Infra Module 1",
+      "area": "infra",
+      "commit": "feat(infra): Implementar módulo Infra básico"
+    },
+    {
+      "id": 65,
+      "slug": "infra-module-2",
+      "title": "Infra Module 2",
+      "area": "infra",
+      "commit": "feat(infra): Implementar módulo Infra avanzado"
+    },
+    {
+      "id": 66,
+      "slug": "cicd-module-1",
+      "title": "CI/CD Module 1",
+      "area": "cicd",
+      "commit": "feat(cicd): Implementar módulo CI/CD básico"
+    },
+    {
+      "id": 67,
+      "slug": "cicd-module-2",
+      "title": "CI/CD Module 2",
+      "area": "cicd",
+      "commit": "feat(cicd): Implementar módulo CI/CD avanzado"
+    },
+    {
+      "id": 68,
+      "slug": "api-module-1",
+      "title": "API Module 1",
+      "area": "api",
+      "commit": "feat(api): Implementar módulo API básico"
+    },
+    {
+      "id": 69,
+      "slug": "api-module-2",
+      "title": "API Module 2",
+      "area": "api",
+      "commit": "feat(api): Implementar módulo API avanzado"
+    },
+    {
+      "id": 70,
+      "slug": "webcfg-module-1",
+      "title": "Web Config Module 1",
+      "area": "webcfg",
+      "commit": "feat(webcfg): Implementar módulo Web Config básico"
+    },
+    {
+      "id": 71,
+      "slug": "webcfg-module-2",
+      "title": "Web Config Module 2",
+      "area": "webcfg",
+      "commit": "feat(webcfg): Implementar módulo Web Config avanzado"
+    },
+    {
+      "id": 72,
+      "slug": "typecheck-module-1",
+      "title": "TypeCheck Module 1",
+      "area": "typecheck",
+      "commit": "feat(typecheck): Implementar módulo TypeCheck básico"
+    },
+    {
+      "id": 73,
+      "slug": "typecheck-module-2",
+      "title": "TypeCheck Module 2",
+      "area": "typecheck",
+      "commit": "feat(typecheck): Implementar módulo TypeCheck avanzado"
+    },
+    {
+      "id": 74,
+      "slug": "qa-module-1",
+      "title": "QA Module 1",
+      "area": "qa",
+      "commit": "feat(qa): Implementar módulo QA básico"
+    },
+    {
+      "id": 75,
+      "slug": "qa-module-2",
+      "title": "QA Module 2",
+      "area": "qa",
+      "commit": "feat(qa): Implementar módulo QA avanzado"
+    },
+    {
+      "id": 76,
+      "slug": "docs-module-1",
+      "title": "Docs Module 1",
+      "area": "docs",
+      "commit": "feat(docs): Implementar módulo Docs básico"
+    },
+    {
+      "id": 77,
+      "slug": "docs-module-2",
+      "title": "Docs Module 2",
+      "area": "docs",
+      "commit": "feat(docs): Implementar módulo Docs avanzado"
+    },
+    {
+      "id": 78,
+      "slug": "final-integration-1",
+      "title": "Final Integration 1",
+      "area": "integration",
+      "commit": "feat(integration): Integración final de módulos 1"
+    },
+    {
+      "id": 79,
+      "slug": "final-integration-2",
+      "title": "Final Integration 2",
+      "area": "integration",
+      "commit": "feat(integration): Integración final de módulos 2"
+    },
+    {
+      "id": 80,
+      "slug": "final-integration-3",
+      "title": "Final Integration 3",
+      "area": "integration",
+      "commit": "feat(integration): Integración final de módulos 3"
+    },
+    {
+      "id": 81,
+      "slug": "final-integration-4",
+      "title": "Final Integration 4",
+      "area": "integration",
+      "commit": "feat(integration): Integración final de módulos 4"
+    },
+    {
+      "id": 82,
+      "slug": "final-integration-5",
+      "title": "Final Integration 5",
+      "area": "integration",
+      "commit": "feat(integration): Integración final de módulos 5"
+    },
+    {
+      "id": 83,
+      "slug": "final-integration-6",
+      "title": "Final Integration 6",
+      "area": "integration",
+      "commit": "feat(integration): Integración final de módulos 6"
+    },
+    {
+      "id": 84,
+      "slug": "final-verification",
+      "title": "Final Verification",
+      "area": "verification",
+      "commit": "feat(verification): Verificación final del sistema completo"
+    },
+    {
+      "id": 85,
+      "slug": "azure-ready",
+      "title": "Azure Ready",
+      "area": "azure",
+      "commit": "feat(azure): Sistema listo para despliegue en Azure"
+    }
+  ]
+}
