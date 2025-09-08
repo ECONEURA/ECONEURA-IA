@@ -1,18 +1,19 @@
 {
   "status": "No disponible",
+  "reason": "jscpd not installed",
   "plan": [
     {
-      "comando": "gh pr list --state all --json number,title,mergedAt > PRS_REAL.json",
+      "comando": "npm install -g jscpd",
       "responsable": "DevOps",
       "fecha": "2024-05-24"
     },
     {
-      "comando": "gh pr view <id> --json timeline > PR-<id>-EVIDENCE.md",
+      "comando": "jscpd --pattern \"**/*.{js,ts,tsx}\" --threshold 85 --reporters json,html --output docs/audit",
       "responsable": "DevOps",
       "fecha": "2024-05-24"
     },
     {
-      "comando": "commit PRS_REAL.json",
+      "comando": "commit jscpd-report.json and jscpd-report.html",
       "responsable": "DevOps",
       "fecha": "2024-05-24"
     }
