@@ -2,6 +2,14 @@ name: CI
 
 on: [push, pull_request]
 
+env:
+  DEPLOY_ENABLED: "false"
+  SKIP_RELEASE: "true"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   ci:
     runs-on: ubuntu-latest
