@@ -134,3 +134,7 @@ results/
 
 # Local development
 .local/
+
+# Studio merge artifacts
+studio-backup-*/
+backup-before-studio-merge-*
