@@ -26,15 +26,21 @@ on:
         type: boolean
 
 env:
+  DEPLOY_ENABLED: "false"
+  SKIP_RELEASE: "true"
   AZURE_REGION: 'West Europe'
   RESOURCE_GROUP: 'econeura-rg'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   # Infrastructure Deployment
   deploy-infrastructure:
     name: Deploy Infrastructure
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.skip_infrastructure != 'true' }}
+    if: env.DEPLOY_ENABLED == 'true'
     environment: ${{ github.event.inputs.environment || 'staging' }}
     
     steps:
@@ -100,6 +106,7 @@ jobs:
   build-and-push:
     name: Build and Push Images
     runs-on: ubuntu-latest
+    if: env.DEPLOY_ENABLED == 'true'
     needs: deploy-infrastructure
     environment: ${{ github.event.inputs.environment || 'staging' }}
     
@@ -176,6 +183,7 @@ jobs:
   deploy-applications:
     name: Deploy Applications
     runs-on: ubuntu-latest
+    if: env.DEPLOY_ENABLED == 'true'
     needs: [deploy-infrastructure, build-and-push]
     environment: ${{ github.event.inputs.environment || 'staging' }}
     
@@ -251,6 +259,7 @@ jobs:
   database-migration:
     name: Database Migration
     runs-on: ubuntu-latest
+    if: env.DEPLOY_ENABLED == 'true'
     needs: [deploy-infrastructure, deploy-applications]
     environment: ${{ github.event.inputs.environment || 'staging' }}
     

@@ -1,20 +1,4 @@
-# Global owners
-* @econeura/developers
-
-# API specific
-apps/api/ @econeura/api-team
-
-# Web specific  
-apps/web/ @econeura/frontend-team
-
-# Packages
-packages/ @econeura/shared-team
-
-# Documentation
-docs/ @econeura/docs-team
-
-# CI/CD
-.github/ @econeura/devops-team
-
-# Security
-ops/azure-pack/ @econeura/security-team
+/apps/*        @ECONEURA
+/packages/*    @ECONEURA
+/functions/*   @ECONEURA
+/.github/*     @ECONEURA
