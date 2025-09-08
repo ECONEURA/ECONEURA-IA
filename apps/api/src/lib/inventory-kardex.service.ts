@@ -697,6 +697,7 @@ class InventoryKardexService {
     const newCycleCount: CycleCount = {
       id: `cycle_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       ...cycleCountData,
+      status: cycleCountData.status || 'scheduled',
       createdAt: now,
       updatedAt: now
     };

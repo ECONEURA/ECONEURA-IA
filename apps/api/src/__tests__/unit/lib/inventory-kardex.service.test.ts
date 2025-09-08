@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { inventoryKardexService } from '../../lib/inventory-kardex.service.js';
+import { inventoryKardexService } from '../../../lib/inventory-kardex.service.js';
 
 // ============================================================================
 // INVENTORY KARDEX SERVICE UNIT TESTS - PR-34
