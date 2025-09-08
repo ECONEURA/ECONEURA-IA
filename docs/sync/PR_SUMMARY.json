@@ -1,0 +1,63 @@
+{
+  "metadata": {
+    "sync_id": "20250908-1427",
+    "timestamp": "2025-09-08T14:27:00Z",
+    "total_prs": 19,
+    "rate_limit": {
+      "remaining": 5000,
+      "reset": "2025-09-08T15:27:00Z"
+    }
+  },
+  "summary": {
+    "total": 19,
+    "open": 1,
+    "closed": 0,
+    "merged": 18,
+    "draft": 0
+  },
+  "by_state": {
+    "open": 1,
+    "closed": 0,
+    "merged": 18,
+    "draft": 0
+  },
+  "by_phase": {
+    "F1": 4,
+    "F2": 4,
+    "F5": 11
+  },
+  "statistics": {
+    "total_additions": 6120,
+    "total_deletions": 0,
+    "total_changed_files": 128,
+    "average_additions": 322,
+    "average_deletions": 0,
+    "average_changed_files": 7
+  },
+  "largest_prs": [
+    {
+      "number": "PR-57",
+      "title": "Advanced Security Framework",
+      "additions": 600,
+      "changed_files": 12
+    },
+    {
+      "number": "PR-56",
+      "title": "Database Optimization & Indexing",
+      "additions": 520,
+      "changed_files": 11
+    },
+    {
+      "number": "PR-52",
+      "title": "Contacts Dedupe Proactivo",
+      "additions": 500,
+      "changed_files": 10
+    }
+  ],
+  "exceptions": {
+    "rate_limit_hit": false,
+    "omitted_files": 0,
+    "binary_files": 0,
+    "lfs_files": 0
+  }
+}

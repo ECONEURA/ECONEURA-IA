@@ -2,6 +2,15 @@ import { Router } from 'express';
 import { getDatabaseService } from '@econeura/db';
 import { structuredLogger } from '../lib/structured-logger.js';
 import { healthMonitor } from '../lib/health-monitor.js';
+import { 
+  HealthChecker, 
+  checkDatabase, 
+  checkRedis, 
+  checkAzureOpenAI,
+  buildHealthResponse,
+  type HealthStatus,
+  type ServiceHealth
+} from '@econeura/shared/health';
 
 const router = Router();
 
@@ -9,40 +18,12 @@ const router = Router();
 // HEALTH CHECK SERVICE
 // ============================================================================
 
-interface HealthStatus {
-  status: 'healthy' | 'unhealthy' | 'degraded';
-  timestamp: string;
-  version: string;
-  uptime: number;
-  services: {
-    database: ServiceHealth;
-    redis?: ServiceHealth;
-    azureOpenAI?: ServiceHealth;
-    externalAPIs?: ServiceHealth;
-  };
-  metrics: {
-    memory: {
-      used: number;
-      total: number;
-      percentage: number;
-    };
-    cpu: {
-      usage: number;
-    };
-    requests: {
-      total: number;
-      errors: number;
-      errorRate: number;
-    };
-  };
-}
+const healthChecker = new HealthChecker();
 
-interface ServiceHealth {
-  status: 'healthy' | 'unhealthy' | 'degraded';
-  responseTime: number;
-  lastCheck: string;
-  error?: string;
-}
+// Register health checks
+healthChecker.registerService('database', checkDatabase);
+healthChecker.registerService('redis', checkRedis);
+healthChecker.registerService('azureOpenAI', checkAzureOpenAI);
 
 // ============================================================================
 // HEALTH CHECK ENDPOINTS
@@ -53,7 +34,10 @@ router.get('/health', async (req, res) => {
   const startTime = Date.now();
   
   try {
-    const healthStatus = await performHealthCheck();
+    const services = await healthChecker.checkAllServices();
+    const overallStatus = healthChecker.getOverallStatus(services);
+    const healthStatus = buildHealthResponse(services, overallStatus);
+    
     const responseTime = Date.now() - startTime;
     
     // Add response time to health status

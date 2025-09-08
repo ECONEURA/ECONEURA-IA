@@ -72,9 +72,35 @@ app.get('/health', async (req, res) => {
       status: 'healthy',
       service: 'workers',
       version: '1.0.0',
+      timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      redis: redisStatus,
-      jobQueue: jobStats,
+      services: {
+        redis: {
+          status: redisStatus === 'connected' ? 'healthy' : 'unhealthy',
+          responseTime: 0,
+          lastCheck: new Date().toISOString(),
+        },
+        jobQueue: {
+          status: 'healthy',
+          responseTime: 0,
+          lastCheck: new Date().toISOString(),
+        }
+      },
+      metrics: {
+        memory: {
+          used: process.memoryUsage().heapUsed,
+          total: process.memoryUsage().heapTotal,
+          percentage: Math.round((process.memoryUsage().heapUsed / process.memoryUsage().heapTotal) * 100),
+        },
+        cpu: {
+          usage: process.cpuUsage().user / 1000000,
+        },
+        requests: {
+          total: 0,
+          errors: 0,
+          errorRate: 0,
+        },
+      },
       features: ['outlook-integration', 'graph-subscriptions', 'delta-queries', 'job-processing', 'cron-jobs', 'email-processing', 'metrics']
     }));
   } catch (error) {

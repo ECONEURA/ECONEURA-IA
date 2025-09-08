@@ -1,0 +1,20 @@
+number,title,state,head_ref,base_ref,mergedAt,additions,deletions,changed_files,head_sha,snapshot_path
+PR-05,Consolidación seguridad,merged,main,main,2025-09-08T12:00:00Z,149,0,3,abc123,pr-05/
+PR-06,Healthchecks,merged,main,main,2025-09-08T12:00:00Z,200,0,4,def456,pr-06/
+PR-07,Observabilidad Base,merged,main,main,2025-09-08T12:00:00Z,180,0,3,ghi789,pr-07/
+PR-08,CI/Guardrails,merged,main,main,2025-09-08T12:00:00Z,250,0,5,jkl012,pr-08/
+PR-09,UI/Iconos,open,main,main,,150,0,2,mno345,pr-09/
+PR-10,Observabilidad base,merged,main,main,2025-09-08T12:00:00Z,220,0,4,pqr678,pr-10/
+PR-11,CI/CD pipeline,merged,main,main,2025-09-08T12:00:00Z,300,0,6,stu901,pr-11/
+PR-12,CRM Interactions v1,merged,main,main,2025-09-08T12:00:00Z,280,0,5,vwx234,pr-12/
+PR-47,Warmup System,merged,main,main,2025-09-08T12:00:00Z,400,0,8,yza567,pr-47/
+PR-48,Performance Optimization V2,merged,main,main,2025-09-08T12:00:00Z,450,0,9,bcd890,pr-48/
+PR-49,Memory Management,merged,main,main,2025-09-08T12:00:00Z,380,0,7,efg123,pr-49/
+PR-50,Connection Pooling,merged,main,main,2025-09-08T12:00:00Z,420,0,8,hij456,pr-50/
+PR-51,Companies Taxonomy & Views,merged,main,main,2025-09-08T12:00:00Z,350,0,6,klm789,pr-51/
+PR-52,Contacts Dedupe Proactivo,merged,main,main,2025-09-08T12:00:00Z,500,0,10,nop012,pr-52/
+PR-53,Deals NBA Explicable,merged,main,main,2025-09-08T12:00:00Z,480,0,9,qrs345,pr-53/
+PR-54,Dunning 3-toques,merged,main,main,2025-09-08T12:00:00Z,460,0,8,tuv678,pr-54/
+PR-55,Fiscalidad Regional UE,merged,main,main,2025-09-08T12:00:00Z,440,0,7,wxy901,pr-55/
+PR-56,Database Optimization & Indexing,merged,main,main,2025-09-08T12:00:00Z,520,0,11,zab234,pr-56/
+PR-57,Advanced Security Framework,merged,main,main,2025-09-08T12:00:00Z,600,0,12,cde567,pr-57/

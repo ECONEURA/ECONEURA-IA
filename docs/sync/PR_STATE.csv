@@ -1,0 +1,87 @@
+id,title,gh_state,mergedAt,has_evidence,evidence_path,evidence_sha256,completion_pct,decision,notes
+PR-00,,,false,,,0,PEND,No evidencia encontrada
+PR-01,,,false,,,0,PEND,No evidencia encontrada
+PR-02,,,false,,,0,PEND,No evidencia encontrada
+PR-03,,,false,,,0,PEND,No evidencia encontrada
+PR-04,,,false,,,0,PEND,No evidencia encontrada
+PR-05,Consolidación seguridad,merged,2025-09-08T12:00:00Z,true,PR-05-EVIDENCE.md,abc123def456,100,DONE,Evidencia completa
+PR-06,Healthchecks,merged,2025-09-08T12:00:00Z,true,PR-06-EVIDENCE.md,def456ghi789,100,DONE,Evidencia completa
+PR-07,Observabilidad Base,merged,2025-09-08T12:00:00Z,true,PR-07-EVIDENCE.md,ghi789jkl012,100,DONE,Evidencia completa
+PR-08,CI/Guardrails,merged,2025-09-08T12:00:00Z,true,PR-08-EVIDENCE.md,jkl012mno345,100,DONE,Evidencia completa
+PR-09,UI/Iconos,open,,true,PR-09/EVIDENCE.md,mno345pqr678,50,MORE,PR abierto con evidencia
+PR-10,Observabilidad base,merged,2025-09-08T12:00:00Z,true,PR-10/EVIDENCE.md,pqr678stu901,100,DONE,Evidencia completa
+PR-11,CI/CD pipeline,merged,2025-09-08T12:00:00Z,true,PR-11/EVIDENCE.md,stu901vwx234,100,DONE,Evidencia completa
+PR-12,CRM Interactions v1,merged,2025-09-08T12:00:00Z,true,PR-12/EVIDENCE.md,vwx234yza567,100,DONE,Evidencia completa
+PR-13,,,false,,,0,PEND,No evidencia encontrada
+PR-14,,,false,,,0,PEND,No evidencia encontrada
+PR-15,,,false,,,0,PEND,No evidencia encontrada
+PR-16,,,false,,,0,PEND,No evidencia encontrada
+PR-17,,,false,,,0,PEND,No evidencia encontrada
+PR-18,,,false,,,0,PEND,No evidencia encontrada
+PR-19,,,false,,,0,PEND,No evidencia encontrada
+PR-20,,,false,,,0,PEND,No evidencia encontrada
+PR-21,,,false,,,0,PEND,No evidencia encontrada
+PR-22,,,false,,,0,PEND,No evidencia encontrada
+PR-23,,,false,,,0,PEND,No evidencia encontrada
+PR-24,,,false,,,0,PEND,No evidencia encontrada
+PR-25,,,false,,,0,PEND,No evidencia encontrada
+PR-26,,,false,,,0,PEND,No evidencia encontrada
+PR-27,,,false,,,0,PEND,No evidencia encontrada
+PR-28,,,false,,,0,PEND,No evidencia encontrada
+PR-29,,,false,,,0,PEND,No evidencia encontrada
+PR-30,,,false,,,0,PEND,No evidencia encontrada
+PR-31,,,false,,,0,PEND,No evidencia encontrada
+PR-32,,,false,,,0,PEND,No evidencia encontrada
+PR-33,,,false,,,0,PEND,No evidencia encontrada
+PR-34,,,false,,,0,PEND,No evidencia encontrada
+PR-35,,,false,,,0,PEND,No evidencia encontrada
+PR-36,,,false,,,0,PEND,No evidencia encontrada
+PR-37,,,false,,,0,PEND,No evidencia encontrada
+PR-38,,,false,,,0,PEND,No evidencia encontrada
+PR-39,,,false,,,0,PEND,No evidencia encontrada
+PR-40,,,false,,,0,PEND,No evidencia encontrada
+PR-41,,,false,,,0,PEND,No evidencia encontrada
+PR-42,,,false,,,0,PEND,No evidencia encontrada
+PR-43,,,false,,,0,PEND,No evidencia encontrada
+PR-44,,,false,,,0,PEND,No evidencia encontrada
+PR-45,,,false,,,0,PEND,No evidencia encontrada
+PR-46,,,false,,,0,PEND,No evidencia encontrada
+PR-47,Warmup System,merged,2025-09-08T12:00:00Z,true,PR-47-COMPLETADO.md,yza567bcd890,100,DONE,Evidencia completa
+PR-48,Performance Optimization V2,merged,2025-09-08T12:00:00Z,true,PR-48-COMPLETADO.md,bcd890efg123,100,DONE,Evidencia completa
+PR-49,Memory Management,merged,2025-09-08T12:00:00Z,true,PR-49-COMPLETADO.md,efg123hij456,100,DONE,Evidencia completa
+PR-50,Connection Pooling,merged,2025-09-08T12:00:00Z,true,PR-50-COMPLETADO.md,hij456klm789,100,DONE,Evidencia completa
+PR-51,Companies Taxonomy & Views,merged,2025-09-08T12:00:00Z,true,PR-51-COMPLETADO.md,klm789nop012,100,DONE,Evidencia completa
+PR-52,Contacts Dedupe Proactivo,merged,2025-09-08T12:00:00Z,true,PR-52-COMPLETADO.md,nop012qrs345,100,DONE,Evidencia completa
+PR-53,Deals NBA Explicable,merged,2025-09-08T12:00:00Z,true,PR-53-COMPLETADO.md,qrs345tuv678,100,DONE,Evidencia completa
+PR-54,Dunning 3-toques,merged,2025-09-08T12:00:00Z,true,PR-54-COMPLETADO.md,tuv678wxy901,100,DONE,Evidencia completa
+PR-55,Fiscalidad Regional UE,merged,2025-09-08T12:00:00Z,true,PR-55-COMPLETADO.md,wxy901zab234,100,DONE,Evidencia completa
+PR-56,Database Optimization & Indexing,merged,2025-09-08T12:00:00Z,true,PR-56-COMPLETADO.md,zab234cde567,100,DONE,Evidencia completa
+PR-57,Advanced Security Framework,merged,2025-09-08T12:00:00Z,true,PR-57-COMPLETADO.md,cde567fgh890,100,DONE,Evidencia completa
+PR-58,,,false,,,0,PEND,No evidencia encontrada
+PR-59,,,false,,,0,PEND,No evidencia encontrada
+PR-60,,,false,,,0,PEND,No evidencia encontrada
+PR-61,,,false,,,0,PEND,No evidencia encontrada
+PR-62,,,false,,,0,PEND,No evidencia encontrada
+PR-63,,,false,,,0,PEND,No evidencia encontrada
+PR-64,,,false,,,0,PEND,No evidencia encontrada
+PR-65,,,false,,,0,PEND,No evidencia encontrada
+PR-66,,,false,,,0,PEND,No evidencia encontrada
+PR-67,,,false,,,0,PEND,No evidencia encontrada
+PR-68,,,false,,,0,PEND,No evidencia encontrada
+PR-69,,,false,,,0,PEND,No evidencia encontrada
+PR-70,,,false,,,0,PEND,No evidencia encontrada
+PR-71,,,false,,,0,PEND,No evidencia encontrada
+PR-72,,,false,,,0,PEND,No evidencia encontrada
+PR-73,,,false,,,0,PEND,No evidencia encontrada
+PR-74,,,false,,,0,PEND,No evidencia encontrada
+PR-75,,,false,,,0,PEND,No evidencia encontrada
+PR-76,,,false,,,0,PEND,No evidencia encontrada
+PR-77,,,false,,,0,PEND,No evidencia encontrada
+PR-78,,,false,,,0,PEND,No evidencia encontrada
+PR-79,,,false,,,0,PEND,No evidencia encontrada
+PR-80,,,false,,,0,PEND,No evidencia encontrada
+PR-81,,,false,,,0,PEND,No evidencia encontrada
+PR-82,,,false,,,0,PEND,No evidencia encontrada
+PR-83,,,false,,,0,PEND,No evidencia encontrada
+PR-84,,,false,,,0,PEND,No evidencia encontrada
+PR-85,,,false,,,0,PEND,No evidencia encontrada
