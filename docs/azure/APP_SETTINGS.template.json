@@ -1,0 +1,344 @@
+{
+  "appSettings": {
+    "description": "Template de configuración de Azure App Service para ECONEURA-IA",
+    "version": "1.0.0",
+    "lastUpdated": "2025-01-09T20:30:00.000Z",
+    "note": "Este archivo contiene placeholders. Reemplazar con valores reales o referencias de Key Vault",
+    
+    "WEBSITE_NODE_DEFAULT_VERSION": "20.0.0",
+    "WEBSITE_RUN_FROM_PACKAGE": "1",
+    "WEBSITE_ENABLE_SYNC_UPDATE_SITE": "true",
+    "WEBSITE_LOAD_CERTIFICATES": "*",
+    "WEBSITE_LOAD_USER_PROFILE": "1",
+    "WEBSITE_HTTPLOGGING_RETENTION_DAYS": "7",
+    "WEBSITE_DETAILED_ERROR_LOGGING_ENABLED": "1",
+    "WEBSITE_LOG_BUFFERING": "1",
+    "WEBSITE_SKIP_CONTENTSHARE_VALIDATION": "1",
+    "WEBSITE_WEBDEPLOY_USE_SCM": "true",
+    "WEBSITE_USE_PLACEHOLDER": "0",
+    "WEBSITE_SWAP_WARMUP_PING_PATH": "/health",
+    "WEBSITE_SWAP_WARMUP_PING_STATUSES": "200",
+    "WEBSITE_SWAP_WARMUP_PING_INTERVAL": "10",
+    "WEBSITE_SWAP_WARMUP_PING_DURATION": "60",
+    
+    "NODE_ENV": "production",
+    "PORT": "8080",
+    "HOST": "0.0.0.0",
+    
+    "API_URL": "https://api.econeura.com",
+    "WEB_URL": "https://app.econeura.com",
+    "ADMIN_URL": "https://admin.econeura.com",
+    
+    "DATABASE_URL": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/database-url/)",
+    "DB_HOST": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/db-host/)",
+    "DB_PORT": "5432",
+    "DB_NAME": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/db-name/)",
+    "DB_USER": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/db-user/)",
+    "DB_PASSWORD": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/db-password/)",
+    "DB_SSL_CA": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/db-ssl-ca/)",
+    
+    "REDIS_URL": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/redis-url/)",
+    "REDIS_HOST": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/redis-host/)",
+    "REDIS_PORT": "6380",
+    "REDIS_PASSWORD": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/redis-password/)",
+    "REDIS_TLS": "true",
+    
+    "JWT_SECRET": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/jwt-secret/)",
+    "JWT_EXPIRES_IN": "24h",
+    "JWT_REFRESH_EXPIRES_IN": "7d",
+    "ENCRYPTION_KEY": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/encryption-key/)",
+    "SESSION_SECRET": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/session-secret/)",
+    
+    "OPENAI_API_KEY": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/openai-api-key/)",
+    "ANTHROPIC_API_KEY": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/anthropic-api-key/)",
+    "GOOGLE_AI_API_KEY": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/google-ai-api-key/)",
+    "AZURE_OPENAI_API_KEY": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/azure-openai-api-key/)",
+    "AZURE_OPENAI_ENDPOINT": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/azure-openai-endpoint/)",
+    
+    "MAILGUN_API_KEY": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/mailgun-api-key/)",
+    "MAILGUN_DOMAIN": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/mailgun-domain/)",
+    "SENDGRID_API_KEY": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/sendgrid-api-key/)",
+    
+    "STRIPE_SECRET_KEY": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/stripe-secret-key/)",
+    "STRIPE_PUBLISHABLE_KEY": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/stripe-publishable-key/)",
+    "STRIPE_WEBHOOK_SECRET": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/stripe-webhook-secret/)",
+    
+    "GOOGLE_CLIENT_ID": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/google-client-id/)",
+    "GOOGLE_CLIENT_SECRET": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/google-client-secret/)",
+    "GITHUB_CLIENT_ID": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/github-client-id/)",
+    "GITHUB_CLIENT_SECRET": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/github-client-secret/)",
+    "MICROSOFT_CLIENT_ID": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/microsoft-client-id/)",
+    "MICROSOFT_CLIENT_SECRET": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/microsoft-client-secret/)",
+    
+    "APPLICATIONINSIGHTS_CONNECTION_STRING": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/applicationinsights-connection-string/)",
+    "APPINSIGHTS_INSTRUMENTATIONKEY": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/appinsights-instrumentationkey/)",
+    "APPINSIGHTS_SAMPLING_PERCENTAGE": "10",
+    "APPINSIGHTS_ENABLE_QUERY_LOGGING": "false",
+    "APPINSIGHTS_ENABLE_DEPENDENCY_TRACKING": "true",
+    "APPINSIGHTS_ENABLE_PERFORMANCE_COUNTERS": "true",
+    
+    "LOG_LEVEL": "info",
+    "LOG_FORMAT": "json",
+    "LOG_RETENTION_DAYS": "30",
+    "UPLOADS_DIR": "/home/uploads",
+    "TEMP_DIR": "/tmp/econeura",
+    "LOGS_DIR": "/home/logs",
+    "CACHE_DIR": "/tmp/cache",
+    
+    "CORS_ORIGINS": "https://app.econeura.com,https://admin.econeura.com,https://api.econeura.com",
+    "CORS_CREDENTIALS": "true",
+    "CORS_METHODS": "GET,POST,PUT,DELETE,OPTIONS",
+    "CORS_HEADERS": "Content-Type,Authorization,X-Requested-With",
+    
+    "RATE_LIMIT_WINDOW_MS": "900000",
+    "RATE_LIMIT_MAX_REQUESTS": "100",
+    "RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS": "false",
+    "RATE_LIMIT_SKIP_FAILED_REQUESTS": "false",
+    
+    "FINOPS_DAILY_LIMIT_EUR": "100",
+    "FINOPS_MONTHLY_LIMIT_EUR": "1000",
+    "FINOPS_PER_REQUEST_LIMIT_EUR": "10",
+    "FINOPS_WARNING_THRESHOLD": "0.8",
+    "FINOPS_CRITICAL_THRESHOLD": "0.95",
+    "FINOPS_EMERGENCY_THRESHOLD": "1.0",
+    
+    "AGENT_MEMORY_TTL_DEFAULT": "3600",
+    "AGENT_MEMORY_CLEANUP_INTERVAL": "300000",
+    "AGENT_MAX_EXECUTION_TIME_MS": "30000",
+    "AGENT_MAX_RETRIES": "3",
+    "AGENT_RETRY_DELAY_MS": "1000",
+    
+    "WEBSOCKET_HEARTBEAT_INTERVAL": "30000",
+    "WEBSOCKET_MAX_CONNECTIONS": "1000",
+    "WEBSOCKET_MESSAGE_SIZE_LIMIT": "1048576",
+    "WEBSOCKET_PING_TIMEOUT": "60000",
+    "WEBSOCKET_PONG_TIMEOUT": "60000",
+    
+    "FILE_UPLOAD_MAX_SIZE": "10485760",
+    "FILE_UPLOAD_MAX_FILES": "5",
+    "FILE_UPLOAD_ALLOWED_TYPES": "jpeg,jpg,png,gif,pdf,doc,docx",
+    "FILE_UPLOAD_CLEANUP_INTERVAL": "3600000",
+    "FILE_UPLOAD_RETENTION_DAYS": "30",
+    
+    "BACKUP_ENABLED": "true",
+    "BACKUP_FREQUENCY": "daily",
+    "BACKUP_RETENTION_DAYS": "30",
+    "BACKUP_ENCRYPTION": "true",
+    "BACKUP_COMPRESSION": "true",
+    
+    "MONITORING_ENABLED": "true",
+    "MONITORING_METRICS_INTERVAL": "60000",
+    "MONITORING_HEALTH_CHECK_INTERVAL": "30000",
+    "MONITORING_ALERT_THRESHOLDS": "80,90,95",
+    "MONITORING_LOG_LEVEL": "info",
+    
+    "SECURITY_ENABLED": "true",
+    "SECURITY_HTTPS_ONLY": "true",
+    "SECURITY_HSTS_MAX_AGE": "31536000",
+    "SECURITY_CSP_ENABLED": "true",
+    "SECURITY_XSS_PROTECTION": "true",
+    "SECURITY_CONTENT_TYPE_NOSNIFF": "true",
+    "SECURITY_FRAME_OPTIONS": "DENY",
+    "SECURITY_REFERRER_POLICY": "strict-origin-when-cross-origin",
+    
+    "PERFORMANCE_CACHE_TTL": "3600",
+    "PERFORMANCE_COMPRESSION_ENABLED": "true",
+    "PERFORMANCE_MINIFY_ENABLED": "true",
+    "PERFORMANCE_BUNDLE_ANALYZE": "false",
+    "PERFORMANCE_IMAGE_OPTIMIZATION": "true",
+    
+    "DEVELOPMENT_MODE": "false",
+    "DEBUG_MODE": "false",
+    "VERBOSE_LOGGING": "false",
+    "PROFILING_ENABLED": "false",
+    "TRACING_ENABLED": "true"
+  },
+  
+  "connectionStrings": {
+    "description": "Connection strings para Azure App Service",
+    "DefaultConnection": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/database-connection-string/)",
+    "RedisConnection": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/redis-connection-string/)",
+    "StorageConnection": "@Microsoft.KeyVault(SecretUri=https://econeura-ia-vault.vault.azure.net/secrets/storage-connection-string/)"
+  },
+  
+  "keyVaultReferences": {
+    "description": "Referencias de Azure Key Vault configuradas",
+    "vaultName": "econeura-ia-vault",
+    "vaultUrl": "https://econeura-ia-vault.vault.azure.net/",
+    "secrets": [
+      "database-url",
+      "db-host",
+      "db-name",
+      "db-user",
+      "db-password",
+      "db-ssl-ca",
+      "redis-url",
+      "redis-host",
+      "redis-password",
+      "jwt-secret",
+      "encryption-key",
+      "session-secret",
+      "openai-api-key",
+      "anthropic-api-key",
+      "google-ai-api-key",
+      "azure-openai-api-key",
+      "azure-openai-endpoint",
+      "mailgun-api-key",
+      "mailgun-domain",
+      "sendgrid-api-key",
+      "stripe-secret-key",
+      "stripe-publishable-key",
+      "stripe-webhook-secret",
+      "google-client-id",
+      "google-client-secret",
+      "github-client-id",
+      "github-client-secret",
+      "microsoft-client-id",
+      "microsoft-client-secret",
+      "applicationinsights-connection-string",
+      "appinsights-instrumentationkey",
+      "database-connection-string",
+      "redis-connection-string",
+      "storage-connection-string"
+    ]
+  },
+  
+  "managedIdentity": {
+    "description": "Configuración de Managed Identity para Azure App Service",
+    "type": "SystemAssigned",
+    "permissions": [
+      "Key Vault Secrets User",
+      "Storage Blob Data Contributor",
+      "Application Insights Component Contributor"
+    ],
+    "keyVaultAccess": {
+      "vaultName": "econeura-ia-vault",
+      "permissions": ["get", "list"]
+    }
+  },
+  
+  "deployment": {
+    "description": "Configuración de deployment para Azure App Service",
+    "source": "GitHub",
+    "repository": "https://github.com/ECONEURA/ECONEURA-IA.git",
+    "branch": "main",
+    "buildCommand": "npm run build:azure",
+    "startCommand": "npm start",
+    "outputDirectory": ".",
+    "nodeVersion": "20.x",
+    "npmVersion": "10.x"
+  },
+  
+  "scaling": {
+    "description": "Configuración de escalado automático",
+    "enabled": true,
+    "minInstances": 1,
+    "maxInstances": 10,
+    "defaultInstances": 2,
+    "scaleOutRules": [
+      {
+        "metric": "CpuPercentage",
+        "threshold": 70,
+        "duration": "PT5M",
+        "action": "ScaleOut",
+        "instances": 1
+      },
+      {
+        "metric": "MemoryPercentage",
+        "threshold": 80,
+        "duration": "PT5M",
+        "action": "ScaleOut",
+        "instances": 1
+      }
+    ],
+    "scaleInRules": [
+      {
+        "metric": "CpuPercentage",
+        "threshold": 30,
+        "duration": "PT10M",
+        "action": "ScaleIn",
+        "instances": -1
+      }
+    ]
+  },
+  
+  "monitoring": {
+    "description": "Configuración de monitoreo",
+    "applicationInsights": {
+      "enabled": true,
+      "samplingPercentage": 10,
+      "enableDependencyTracking": true,
+      "enablePerformanceCounters": true,
+      "enableQueryLogging": false
+    },
+    "alerts": [
+      {
+        "name": "High CPU Usage",
+        "metric": "CpuPercentage",
+        "threshold": 80,
+        "severity": "Warning"
+      },
+      {
+        "name": "High Memory Usage",
+        "metric": "MemoryPercentage",
+        "threshold": 85,
+        "severity": "Warning"
+      },
+      {
+        "name": "Application Errors",
+        "metric": "Http5xx",
+        "threshold": 10,
+        "severity": "Critical"
+      },
+      {
+        "name": "Response Time",
+        "metric": "AverageResponseTime",
+        "threshold": 2000,
+        "severity": "Warning"
+      }
+    ]
+  },
+  
+  "security": {
+    "description": "Configuración de seguridad",
+    "httpsOnly": true,
+    "minimumTlsVersion": "1.2",
+    "ftpsState": "Disabled",
+    "httpLoggingEnabled": true,
+    "detailedErrorLoggingEnabled": true,
+    "requestTracingEnabled": true,
+    "remoteDebuggingEnabled": false,
+    "webSocketsEnabled": true,
+    "alwaysOn": true,
+    "use32BitWorkerProcess": false,
+    "managedPipelineMode": "Integrated",
+    "virtualApplications": [],
+    "loadBalancing": "LeastRequests",
+    "experiments": {
+      "rampUpRules": []
+    },
+    "autoHealEnabled": true,
+    "autoHealRules": {
+      "triggers": {
+        "requests": {
+          "count": 100,
+          "timeInterval": "00:05:00"
+        },
+        "privateBytesInKB": 800000,
+        "statusCodes": [
+          {
+            "status": 500,
+            "subStatus": 0,
+            "win32Status": 0,
+            "count": 10,
+            "timeInterval": "00:05:00"
+          }
+        ]
+      },
+      "actions": {
+        "actionType": "Recycle",
+        "minProcessExecutionTime": "00:01:00"
+      }
+    }
+  }
+}

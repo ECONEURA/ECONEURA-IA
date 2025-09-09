@@ -1,0 +1,296 @@
+{
+  "azure": {
+    "version": "1.0.0",
+    "lastUpdated": "2025-01-09T20:30:00.000Z",
+    "project": {
+      "name": "ECONEURA-IA",
+      "description": "Sistema de gestión de IA para empresas",
+      "version": "1.0.0",
+      "repository": "https://github.com/ECONEURA/ECONEURA-IA.git",
+      "maintainer": "ECONEURA Team"
+    },
+    "deployment": {
+      "target": "Azure App Service",
+      "region": "West Europe",
+      "environment": "production",
+      "deploymentType": "container",
+      "runtime": "Node.js 20",
+      "framework": "Next.js + Express.js"
+    },
+    "services": {
+      "appService": {
+        "name": "econeura-ia-app",
+        "sku": "P1V2",
+        "tier": "Premium",
+        "instances": {
+          "min": 1,
+          "max": 10,
+          "default": 2
+        },
+        "features": [
+          "Always On",
+          "Auto Scale",
+          "Deployment Slots",
+          "Custom Domains",
+          "SSL Certificates",
+          "WebSockets",
+          "WebJobs"
+        ]
+      },
+      "database": {
+        "type": "Azure Database for PostgreSQL",
+        "name": "econeura-ia-db",
+        "sku": "GP_Gen5_2",
+        "tier": "General Purpose",
+        "storage": "100GB",
+        "backup": "7 days",
+        "highAvailability": true
+      },
+      "cache": {
+        "type": "Azure Cache for Redis",
+        "name": "econeura-ia-cache",
+        "sku": "Standard",
+        "tier": "C1",
+        "memory": "1GB",
+        "clustering": false
+      },
+      "storage": {
+        "type": "Azure Blob Storage",
+        "name": "econeuraiastorage",
+        "tier": "Hot",
+        "replication": "LRS",
+        "containers": [
+          "uploads",
+          "exports",
+          "backups",
+          "logs"
+        ]
+      },
+      "keyVault": {
+        "name": "econeura-ia-vault",
+        "sku": "Standard",
+        "accessPolicies": [
+          "App Service Managed Identity",
+          "Azure DevOps Service Principal"
+        ],
+        "secrets": [
+          "DATABASE_URL",
+          "REDIS_URL",
+          "JWT_SECRET",
+          "API_KEYS",
+          "THIRD_PARTY_CREDENTIALS"
+        ]
+      },
+      "monitoring": {
+        "applicationInsights": {
+          "name": "econeura-ia-insights",
+          "location": "West Europe",
+          "sampling": 10,
+          "retention": "90 days"
+        },
+        "logAnalytics": {
+          "name": "econeura-ia-logs",
+          "sku": "PerGB2018",
+          "retention": "30 days"
+        }
+      }
+    },
+    "networking": {
+      "vnet": {
+        "name": "econeura-ia-vnet",
+        "addressSpace": "10.0.0.0/16",
+        "subnets": [
+          {
+            "name": "app-subnet",
+            "addressPrefix": "10.0.1.0/24"
+          },
+          {
+            "name": "db-subnet",
+            "addressPrefix": "10.0.2.0/24"
+          }
+        ]
+      },
+      "dns": {
+        "domain": "econeura.com",
+        "subdomains": [
+          "app.econeura.com",
+          "api.econeura.com",
+          "admin.econeura.com"
+        ]
+      },
+      "ssl": {
+        "certificate": "econeura-ssl-cert",
+        "type": "App Service Certificate",
+        "autoRenew": true
+      }
+    },
+    "security": {
+      "authentication": {
+        "type": "Azure Active Directory B2C",
+        "tenant": "econeura.onmicrosoft.com",
+        "providers": ["Microsoft", "Google", "GitHub"]
+      },
+      "authorization": {
+        "rbac": true,
+        "roles": [
+          "admin",
+          "user",
+          "viewer",
+          "api-user"
+        ]
+      },
+      "encryption": {
+        "atRest": "Azure Storage Service Encryption",
+        "inTransit": "TLS 1.2+",
+        "keyManagement": "Azure Key Vault"
+      },
+      "compliance": {
+        "standards": ["GDPR", "ISO 27001", "SOC 2"],
+        "dataResidency": "EU",
+        "backupRetention": "7 years"
+      }
+    },
+    "scalability": {
+      "autoScale": {
+        "enabled": true,
+        "rules": [
+          {
+            "metric": "CPU Percentage",
+            "threshold": 70,
+            "action": "Scale Out",
+            "instances": 1
+          },
+          {
+            "metric": "Memory Percentage",
+            "threshold": 80,
+            "action": "Scale Out",
+            "instances": 1
+          },
+          {
+            "metric": "CPU Percentage",
+            "threshold": 30,
+            "action": "Scale In",
+            "instances": -1
+          }
+        ]
+      },
+      "loadBalancing": {
+        "type": "Application Gateway",
+        "sku": "WAF_v2",
+        "features": [
+          "SSL Termination",
+          "Web Application Firewall",
+          "URL-based Routing",
+          "Health Probes"
+        ]
+      }
+    },
+    "disasterRecovery": {
+      "backup": {
+        "frequency": "Daily",
+        "retention": "30 days",
+        "location": "West Europe",
+        "encryption": true
+      },
+      "replication": {
+        "enabled": true,
+        "targetRegion": "North Europe",
+        "rto": "4 hours",
+        "rpo": "1 hour"
+      },
+      "failover": {
+        "type": "Manual",
+        "testing": "Quarterly",
+        "documentation": "DR_PLAN.md"
+      }
+    },
+    "costs": {
+      "budget": {
+        "monthly": 1000,
+        "currency": "EUR",
+        "alerts": [80, 90, 100],
+        "tags": {
+          "Environment": "Production",
+          "Project": "ECONEURA-IA",
+          "CostCenter": "IT"
+        }
+      },
+      "optimization": {
+        "reservedInstances": true,
+        "spotInstances": false,
+        "autoShutdown": false,
+        "monitoring": "Azure Cost Management"
+      }
+    },
+    "deployment": {
+      "pipeline": {
+        "type": "Azure DevOps",
+        "stages": [
+          "Build",
+          "Test",
+          "Deploy to Staging",
+          "Integration Tests",
+          "Deploy to Production"
+        ],
+        "approvals": {
+          "production": true,
+          "staging": false
+        }
+      },
+      "strategy": {
+        "type": "Blue-Green",
+        "rollback": "Automatic",
+        "healthChecks": true,
+        "smokeTests": true
+      }
+    },
+    "monitoring": {
+      "alerts": [
+        {
+          "name": "High CPU Usage",
+          "metric": "CPU Percentage",
+          "threshold": 80,
+          "severity": "Warning"
+        },
+        {
+          "name": "High Memory Usage",
+          "metric": "Memory Percentage",
+          "threshold": 85,
+          "severity": "Warning"
+        },
+        {
+          "name": "Application Errors",
+          "metric": "Failed Requests",
+          "threshold": 10,
+          "severity": "Critical"
+        },
+        {
+          "name": "Database Connection Issues",
+          "metric": "Database Connections",
+          "threshold": 80,
+          "severity": "Critical"
+        }
+      ],
+      "dashboards": [
+        "Application Performance",
+        "Infrastructure Health",
+        "Business Metrics",
+        "Security Events"
+      ]
+    },
+    "compliance": {
+      "dataProtection": {
+        "gdpr": true,
+        "dataResidency": "EU",
+        "dataRetention": "7 years",
+        "rightToErasure": true
+      },
+      "security": {
+        "penetrationTesting": "Quarterly",
+        "vulnerabilityScanning": "Weekly",
+        "securityUpdates": "Monthly",
+        "accessReviews": "Quarterly"
+      }
+    }
+  }
+}
