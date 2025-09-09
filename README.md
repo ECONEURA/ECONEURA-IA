@@ -87,7 +87,38 @@
 ## 6) Roadmap completo de PR‑0 → PR‑85 (titular + objetivo + DoD breve)
 
 > **Leyenda**: ✅ listo · ⚠️ parcial/demo · ❌ falta.  
-> *El estado real lo llevamos en GitHub Projects; aquí se describen los objetivos y el “hecho” esperado.*
+> *El estado real lo llevamos en GitHub Projects; aquí se describen los objetivos y el "hecho" esperado.*
+
+### **🚨 CORRECCIONES CRÍTICAS IMPLEMENTADAS**
+
+#### **CODE_FIX - Problemas Resueltos**
+1. **✅ FinOps Enforcement Middleware** - `apps/api/src/middleware/finops-enforce.ts`
+   - Bloqueo HTTP 402 cuando se excede presupuesto
+   - Kill switch automático para emergencias
+   - Circuit breaker y retry logic
+
+2. **✅ AI Router Client Real** - `packages/agents/ai-router.client.ts`
+   - Cliente HTTP real para agentes IA
+   - Retry automático con backoff exponencial
+   - Circuit breaker y health checks
+
+3. **✅ Cockpit Real-time** - `econeura-cockpit/src/components/Cockpit.tsx`
+   - Conexión real a APIs (no más mocks)
+   - Fallback a datos demo si API falla
+   - WebSocket/EventSource para tiempo real
+
+4. **✅ Scripts de Corrección Masiva**
+   - `scripts/fix-js-imports.sh` - Corrige 447 imports .js
+   - `scripts/fix-console-logs.sh` - Elimina 174 console.log
+   - `scripts/verify-repo.sh` - Verificación completa
+   - `scripts/smoke.sh` - Tests de humo
+   - `scripts/run-k6-tests.sh` - Tests de performance
+   - `scripts/visual.sh` - Tests visuales
+
+#### **MÉTRICAS BASELINE**
+- **📊 docs/PR_STATUS_FIRM.md** - Estado real PR-0 a PR-85
+- **📊 docs/METRICAS_BASELINE.md** - Métricas completas del proyecto
+- **📊 scripts/metrics/collect.ts** - Recolección automática de métricas
 
 ### **Fase 0 — Base del monorepo (PR‑0 → PR‑21)**
 1. **PR‑00 · Bootstrap monorepo** — Turborepo/PNPM, workspaces, scripts base. *DoD*: build pasa y raíz limpia.

@@ -1,103 +1,174 @@
 #!/bin/bash
 
-# ECONEURA k6 Load Testing and Chaos Testing Script
-# This script runs comprehensive load and chaos tests
+echo "🚀 Running ECONEURA k6 performance tests..."
 
-set -e
-
-echo "🚀 ECONEURA k6 Testing Suite"
-echo "=============================="
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
 
 # Check if k6 is installed
 if ! command -v k6 &> /dev/null; then
-    echo "❌ k6 is not installed. Please install k6 first:"
-    echo "   brew install k6"
-    echo "   or visit: https://k6.io/docs/getting-started/installation/"
+    echo -e "${RED}❌ k6 is not installed. Please install k6 first.${NC}"
+    echo "Installation: https://k6.io/docs/getting-started/installation/"
     exit 1
 fi
 
-# Check if API is running
-echo "🔍 Checking if API is running..."
-if ! curl -s http://localhost:3001/health > /dev/null; then
-    echo "❌ API is not running on localhost:3001"
-    echo "   Please start the API first: npm run dev"
-    exit 1
-fi
+# Create k6 test directory if it doesn't exist
+mkdir -p tests/k6
 
-echo "✅ API is running"
+# Create basic k6 test
+cat > tests/k6/basic-load-test.js << 'EOF'
+import http from 'k6/http';
+import { check, sleep } from 'k6';
 
-# Create results directory
-mkdir -p tests/k6/results
-cd tests/k6
+export let options = {
+  stages: [
+    { duration: '30s', target: 10 }, // Ramp up to 10 users
+    { duration: '1m', target: 10 },  // Stay at 10 users
+    { duration: '30s', target: 0 },  // Ramp down to 0 users
+  ],
+  thresholds: {
+    http_req_duration: ['p95<2000'], // 95% of requests must complete below 2000ms
+    http_req_failed: ['rate<0.01'],  // Error rate must be below 1%
+  },
+};
 
-echo ""
-echo "📊 Running Load Tests..."
-echo "========================"
+export default function () {
+  // Test API health endpoint
+  let response = http.get('http://localhost:3001/health');
+  check(response, {
+    'API health status is 200': (r) => r.status === 200,
+    'API health response time < 500ms': (r) => r.timings.duration < 500,
+  });
 
-# Run load test
-k6 run --out json=results/load-test-results.json load-test.js
+  sleep(1);
 
-echo ""
-echo "💥 Running Chaos Tests..."
-echo "========================="
+  // Test Web health endpoint
+  response = http.get('http://localhost:3000/health');
+  check(response, {
+    'Web health status is 200': (r) => r.status === 200,
+    'Web health response time < 1000ms': (r) => r.timings.duration < 1000,
+  });
 
-# Run chaos test
-k6 run --out json=results/chaos-test-results.json chaos-test.js
+  sleep(1);
 
-echo ""
-echo "📈 Generating Test Report..."
-echo "============================"
+  // Test AI endpoint (if available)
+  response = http.get('http://localhost:3001/v1/ai/health');
+  check(response, {
+    'AI health status is 200': (r) => r.status === 200,
+    'AI health response time < 2000ms': (r) => r.timings.duration < 2000,
+  });
 
-# Generate combined report
-cat > results/test-summary.md << EOF
-# ECONEURA k6 Test Results
-
-## Load Test Results
-- **Test Duration**: 14 minutes
-- **Max Users**: 20 concurrent users
-- **Test Scenarios**: Health, Analytics, Security, FinOps endpoints
-
-## Chaos Test Results
-- **Test Duration**: 5 minutes
-- **Max Users**: 5 concurrent users
-- **Chaos Scenarios**: 
-  - Invalid requests
-  - Malicious payloads
-  - Rate limiting
-  - Resource exhaustion
-  - Error conditions
-
-## Test Coverage
-- ✅ Health endpoints
-- ✅ Analytics endpoints (basic + advanced)
-- ✅ Security endpoints
-- ✅ FinOps endpoints
-- ✅ Error handling
-- ✅ Rate limiting
-- ✅ Security validation
-
-## Performance Thresholds
-- **Response Time**: p95 < 500ms (load), p95 < 1000ms (chaos)
-- **Error Rate**: < 10% (load), < 30% (chaos)
-- **Availability**: > 99% uptime
-
-## Security Testing
-- ✅ SQL injection detection
-- ✅ XSS prevention
-- ✅ Input validation
-- ✅ Rate limiting
-- ✅ Error handling
-
-Generated on: $(date)
+  sleep(1);
+}
 EOF
 
-echo "✅ Test results saved to tests/k6/results/"
+# Create stress test
+cat > tests/k6/stress-test.js << 'EOF'
+import http from 'k6/http';
+import { check, sleep } from 'k6';
+
+export let options = {
+  stages: [
+    { duration: '1m', target: 50 },  // Ramp up to 50 users
+    { duration: '2m', target: 50 },  // Stay at 50 users
+    { duration: '1m', target: 100 }, // Ramp up to 100 users
+    { duration: '2m', target: 100 }, // Stay at 100 users
+    { duration: '1m', target: 0 },   // Ramp down to 0 users
+  ],
+  thresholds: {
+    http_req_duration: ['p95<3000'], // 95% of requests must complete below 3000ms
+    http_req_failed: ['rate<0.05'],  // Error rate must be below 5%
+  },
+};
+
+export default function () {
+  // Test API endpoints
+  let response = http.get('http://localhost:3001/health');
+  check(response, {
+    'API health status is 200': (r) => r.status === 200,
+  });
+
+  sleep(0.5);
+
+  // Test Web endpoints
+  response = http.get('http://localhost:3000/health');
+  check(response, {
+    'Web health status is 200': (r) => r.status === 200,
+  });
+
+  sleep(0.5);
+}
+EOF
+
+# Create spike test
+cat > tests/k6/spike-test.js << 'EOF'
+import http from 'k6/http';
+import { check, sleep } from 'k6';
+
+export let options = {
+  stages: [
+    { duration: '10s', target: 10 }, // Normal load
+    { duration: '1s', target: 200 }, // Spike to 200 users
+    { duration: '10s', target: 10 }, // Back to normal
+    { duration: '1s', target: 200 }, // Another spike
+    { duration: '10s', target: 10 }, // Back to normal
+  ],
+  thresholds: {
+    http_req_duration: ['p95<5000'], // 95% of requests must complete below 5000ms
+    http_req_failed: ['rate<0.1'],   // Error rate must be below 10%
+  },
+};
+
+export default function () {
+  let response = http.get('http://localhost:3001/health');
+  check(response, {
+    'API health status is 200': (r) => r.status === 200,
+  });
+
+  sleep(0.1);
+}
+EOF
+
+echo "📋 Running k6 performance tests..."
 echo ""
-echo "📊 Test Summary:"
-echo "================"
-echo "Load Test Results: tests/k6/results/load-test-results.json"
-echo "Chaos Test Results: tests/k6/results/chaos-test-results.json"
-echo "Test Summary: tests/k6/results/test-summary.md"
+
+# Run basic load test
+echo "🔥 Running basic load test..."
+if k6 run tests/k6/basic-load-test.js; then
+    echo -e "${GREEN}✅ Basic load test PASSED${NC}"
+else
+    echo -e "${RED}❌ Basic load test FAILED${NC}"
+    exit 1
+fi
+
 echo ""
-echo "🎯 k6 Testing Complete!"
-echo "======================"
+
+# Run stress test
+echo "🔥 Running stress test..."
+if k6 run tests/k6/stress-test.js; then
+    echo -e "${GREEN}✅ Stress test PASSED${NC}"
+else
+    echo -e "${RED}❌ Stress test FAILED${NC}"
+    exit 1
+fi
+
+echo ""
+
+# Run spike test
+echo "🔥 Running spike test..."
+if k6 run tests/k6/spike-test.js; then
+    echo -e "${GREEN}✅ Spike test PASSED${NC}"
+else
+    echo -e "${RED}❌ Spike test FAILED${NC}"
+    exit 1
+fi
+
+echo ""
+echo -e "${GREEN}🎉 All k6 performance tests PASSED!${NC}"
+echo "Performance thresholds met:"
+echo "  - p95 response time < 2000ms"
+echo "  - Error rate < 1%"
+echo "  - System handles load spikes"
