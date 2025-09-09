@@ -1,5 +1,11 @@
 {
-  "name": "econeura",
+  "name": "ECONEURA-IA",
+  "private": true,
+  "license": "MIT",
+  "packageManager": "pnpm@8.15.5",
+  "engines": {
+    "node": ">=20 <21"
+  },
   "version": "1.0.0",
   "description": "ECONEURA - Production-ready ERP+CRM cockpit with AI Router",
   "private": true,

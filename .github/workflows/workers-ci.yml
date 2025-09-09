@@ -19,6 +19,12 @@ env:
   SKIP_RELEASE: "true"
   NODE_VERSION: '20'
   PNPM_VERSION: '8'
+  DEPLOY_ENABLED: "false"
+  SKIP_RELEASE: "true"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
