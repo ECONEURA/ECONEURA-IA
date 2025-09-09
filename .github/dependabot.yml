@@ -1,0 +1,33 @@
+version: 2
+updates:
+  # NPM dependencies (root)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "ECONEURA/maintainers"
+    assignees:
+      - "ECONEURA/maintainers"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"  
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "ECONEURA/maintainers"
+    assignees:
+      - "ECONEURA/maintainers"
+    commit-message:
+      prefix: "ci(deps)"
+      include: "scope"

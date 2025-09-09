@@ -2,7 +2,7 @@ export default {
   // TypeScript and JavaScript files
   '**/*.{ts,tsx,js,jsx}': [
     'eslint --fix',
-    'prettier --write',
+    'tsc --noEmit --pretty false',
   ],
   
   // JSON files

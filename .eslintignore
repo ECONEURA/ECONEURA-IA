@@ -1,0 +1,9 @@
+dist/
+build/
+node_modules/
+*.min.js
+.tsbuildinfo
+coverage/
+.turbo/
+.next/
+.artifacts/

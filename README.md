@@ -41,6 +41,27 @@
 
 ---
 
+## Automatización de Calidad
+
+### Scripts Principales
+- **`npm run validate`**: Ejecuta typecheck y lint en todos los workspaces
+- **`npm run lint`**: ESLint con corrección automática (--fix) en todos los proyectos
+- **`npm run typecheck`**: TypeScript strict mode en cascada
+- **`npm run test`**: Suite de tests unitarios e integración
+
+### Validaciones Automáticas
+- **Pre-commit**: Lint-staged con ESLint --fix y TypeScript --noEmit
+- **CI Pipeline**: Quality matrix (typecheck/lint/test por workspace) + smoke tests
+- **Security**: Dependabot semanal + CodeQL + secret scanning
+- **Build & Smoke**: API con PostgreSQL 16 + Redis 7, health checks con reintentos
+
+### Configuración Estricta
+- **TypeScript**: strict, noUncheckedIndexedAccess, exactOptionalPropertyTypes, useUnknownInCatchVariables
+- **ESLint**: @typescript-eslint/recommended con autofix seguro
+- **Engines**: Node >=20.0.0 en todos los packages
+
+---
+
 ## 3) Dominios funcionales
 
 ### CRM

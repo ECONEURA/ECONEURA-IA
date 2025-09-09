@@ -21,9 +21,11 @@
     "pnpm": ">=8"
   },
   "scripts": {
+    "validate": "pnpm run -ws typecheck && pnpm run -ws lint",
+    "lint": "pnpm run -ws lint",
+    "typecheck": "pnpm run -ws typecheck", 
+    "test": "pnpm run -ws test",
     "build": "pnpm -r build",
-    "test": "pnpm -r test",
-    "lint": "pnpm -r lint",
     "format": "pnpm -r format",
     "check": "pnpm -r check",
     "verify": "pnpm lint && pnpm test && pnpm build",
@@ -45,7 +47,7 @@
     "docker:down": "docker-compose down",
     "clean": "rm -rf node_modules && rm -rf apps/*/node_modules && rm -rf packages/*/node_modules && rm -rf apps/*/.next && rm -rf packages/*/dist",
     "setup": "pnpm install && pnpm db:generate && pnpm db:migrate && pnpm db:seed",
-    "postinstall": "echo 'Setup complete'",
+    "postinstall": "husky install",
     "k6:smoke": "k6 run e2e/k6/smoke-chaos.js",
     "chaos:on": "cross-env CHAOS_ENABLED=true pnpm --filter @econeura/api dev",
     "chaos:off": "cross-env CHAOS_ENABLED=false pnpm --filter @econeura/api dev",
