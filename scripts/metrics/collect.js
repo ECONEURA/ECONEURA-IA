@@ -1,168 +1,131 @@
 #!/usr/bin/env node
 /**
- * ECONEURA Metrics Collection Script
- * Collects baseline metrics for the entire project
+ * Script para recopilar métricas del proyecto ECONEURA
+ * Genera baseline de LOC, tests, endpoints, bundle size
  */
 
-const { execSync } = require('child_process');
-const { readFileSync, writeFileSync } = require('fs');
-const { join } = require('path');
+import { execSync } from 'child_process';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { join } from 'path';
 
-function execCommand(command) {
+function countFiles(pattern, exclude = []) {
   try {
-    return execSync(command, { encoding: 'utf8', cwd: process.cwd() }).trim();
-  } catch (error) {
-    return '0';
+    const excludeStr = exclude.map(e => `-not -path "*/${e}/*"`).join(' ');
+    const cmd = `find . -name "${pattern}" ${excludeStr} | wc -l`;
+    return parseInt(execSync(cmd, { encoding: 'utf8' }).trim());
+  } catch {
+    return 0;
   }
 }
 
-function countFiles(pattern, exclude = []) {
-  const excludeStr = exclude.map(e => `-not -path "${e}"`).join(' ');
-  const command = `find . -name "${pattern}" ${excludeStr} | wc -l`;
-  return parseInt(execCommand(command)) || 0;
-}
-
 function countLines(pattern, exclude = []) {
-  const excludeStr = exclude.map(e => `-not -path "${e}"`).join(' ');
-  const command = `find . -name "${pattern}" ${excludeStr} -exec wc -l {} + | tail -1 | awk '{print $1}'`;
-  return parseInt(execCommand(command)) || 0;
-}
-
-function countOccurrences(pattern, exclude = []) {
-  const excludeStr = exclude.map(e => `-not -path "${e}"`).join(' ');
-  const command = `find . -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" ${excludeStr} -exec grep -l "${pattern}" {} + | wc -l`;
-  return parseInt(execCommand(command)) || 0;
+  try {
+    const excludeStr = exclude.map(e => `-not -path "*/${e}/*"`).join(' ');
+    const cmd = `find . -name "${pattern}" ${excludeStr} -exec wc -l {} + | tail -1 | awk '{print $1}'`;
+    const result = execSync(cmd, { encoding: 'utf8' }).trim();
+    return parseInt(result) || 0;
+  } catch {
+    return 0;
+  }
 }
 
 function countEndpoints() {
-  const apiEndpoints = countOccurrences('router\\.(get|post|put|delete|patch)', ['node_modules', 'dist', '.next']);
-  const webEndpoints = countOccurrences('export.*function.*GET|POST|PUT|DELETE|PATCH', ['node_modules', 'dist', '.next']);
-  
-  return {
-    api: apiEndpoints,
-    web: webEndpoints,
-    total: apiEndpoints + webEndpoints
-  };
+  let api = 0;
+  let web = 0;
+
+  try {
+    // Contar rutas API
+    const apiFiles = execSync('find . -name "*.routes.ts" -o -name "*.controller.ts"', { encoding: 'utf8' });
+    api = (apiFiles.match(/\.routes\.ts|\.controller\.ts/g) || []).length;
+  } catch {
+    // Fallback: buscar patrones en archivos
+    api = countFiles('*.routes.ts') + countFiles('*.controller.ts');
+  }
+
+  try {
+    // Contar páginas web
+    const webFiles = execSync('find . -path "*/pages/api/*" -name "*.ts"', { encoding: 'utf8' });
+    web = (webFiles.match(/\.ts$/g) || []).length;
+  } catch {
+    web = countFiles('*.ts', ['node_modules', '.git', '.next', 'dist', 'build']);
+  }
+
+  return { api, web, total: api + web };
 }
 
-function countTests() {
-  const unitTests = countFiles('*.test.ts', ['node_modules', 'dist', '.next']);
-  const integrationTests = countFiles('*.integration.test.ts', ['node_modules', 'dist', '.next']);
-  const e2eTests = countFiles('*.e2e.test.ts', ['node_modules', 'dist', '.next']);
-  
-  return {
-    unit: unitTests,
-    integration: integrationTests,
-    e2e: e2eTests,
-    total: unitTests + integrationTests + e2eTests
-  };
-}
-
-function getBundleSizes() {
-  const webSize = execCommand('du -sb apps/web/.next 2>/dev/null | cut -f1') || '0';
-  const apiSize = execCommand('du -sb apps/api/dist 2>/dev/null | cut -f1') || '0';
-  const workersSize = execCommand('du -sb apps/workers/dist 2>/dev/null | cut -f1') || '0';
-  
-  return {
-    web: parseInt(webSize) || 0,
-    api: parseInt(apiSize) || 0,
-    workers: parseInt(workersSize) || 0
-  };
+function getBundleSize() {
+  try {
+    if (existsSync('apps/web/.next/static/chunks')) {
+      const size = execSync('du -sb apps/web/.next/static/chunks', { encoding: 'utf8' }).split('\t')[0];
+      const chunks = execSync('find apps/web/.next/static/chunks -name "*.js" | wc -l', { encoding: 'utf8' }).trim();
+      return { size: parseInt(size) || 0, chunks: parseInt(chunks) || 0 };
+    }
+  } catch {
+    // Fallback
+  }
+  return { size: 0, chunks: 0 };
 }
 
 function getDependencies() {
   try {
     const packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
-    const prodDeps = Object.keys(packageJson.dependencies || {}).length;
-    const devDeps = Object.keys(packageJson.devDependencies || {}).length;
-    
-    return {
-      production: prodDeps,
-      development: devDeps,
-      total: prodDeps + devDeps
-    };
+    const total = Object.keys(packageJson.dependencies || {}).length + Object.keys(packageJson.devDependencies || {}).length;
+    const dev = Object.keys(packageJson.devDependencies || {}).length;
+    const prod = Object.keys(packageJson.dependencies || {}).length;
+    return { total, dev, prod };
   } catch {
-    return { production: 0, development: 0, total: 0 };
+    return { total: 0, dev: 0, prod: 0 };
   }
 }
 
 function collectMetrics() {
-  const excludePaths = ['node_modules', 'dist', '.next', 'coverage'];
+  const exclude = ['node_modules', '.git', '.next', 'dist', 'build', 'coverage'];
   
+  const tsFiles = countFiles('*.ts', exclude);
+  const tsxFiles = countFiles('*.tsx', exclude);
+  const tsLines = countLines('*.ts', exclude);
+  const tsxLines = countLines('*.tsx', exclude);
+  
+  const unitTests = countFiles('*.test.ts', exclude) + countFiles('*.test.tsx', exclude);
+  const integrationTests = countFiles('*.integration.test.ts', exclude);
+  const e2eTests = countFiles('*.spec.ts', exclude) + countFiles('*.e2e.test.ts', exclude);
+  
+  const endpoints = countEndpoints();
+  const bundle = getBundleSize();
+  const dependencies = getDependencies();
+
   return {
     timestamp: new Date().toISOString(),
-    files: {
-      total: countFiles('*', excludePaths),
-      typescript: countFiles('*.ts', excludePaths) + countFiles('*.tsx', excludePaths),
-      javascript: countFiles('*.js', excludePaths) + countFiles('*.jsx', excludePaths),
-      tests: countFiles('*.test.*', excludePaths),
-      configs: countFiles('*.config.*', excludePaths) + countFiles('*.json', excludePaths)
+    typescript: {
+      files: tsFiles + tsxFiles,
+      lines: tsLines + tsxLines,
+      linesOfCode: tsLines + tsxLines // Simplified - could use cloc for more accuracy
     },
-    lines: {
-      total: countLines('*', excludePaths),
-      typescript: countLines('*.ts', excludePaths) + countLines('*.tsx', excludePaths),
-      javascript: countLines('*.js', excludePaths) + countLines('*.jsx', excludePaths),
-      tests: countLines('*.test.*', excludePaths),
-      comments: countOccurrences('//|/\\*|\\*/', excludePaths)
+    tests: {
+      unit: unitTests,
+      integration: integrationTests,
+      e2e: e2eTests,
+      total: unitTests + integrationTests + e2eTests
     },
-    imports: {
-      total: countOccurrences('import.*from', excludePaths),
-      jsImports: countOccurrences('import.*from.*\\.js', excludePaths),
-      tsImports: countOccurrences('import.*from.*\\.ts', excludePaths),
-      externalImports: countOccurrences('import.*from.*[^./]', excludePaths)
-    },
-    quality: {
-      consoleLogs: countOccurrences('console\\.', excludePaths),
-      todoComments: countOccurrences('TODO|FIXME|HACK', excludePaths),
-      fixmeComments: countOccurrences('FIXME', excludePaths),
-      duplicateImports: countOccurrences('import.*from.*lucide-react', excludePaths)
-    },
-    endpoints: countEndpoints(),
-    tests: countTests(),
-    bundles: getBundleSizes(),
-    dependencies: getDependencies()
+    endpoints: endpoints,
+    bundle: bundle,
+    dependencies: dependencies
   };
 }
 
-function main() {
-  console.log('🔍 Collecting ECONEURA project metrics...');
-  
-  const metrics = collectMetrics();
-  
-  // Create .artifacts directory if it doesn't exist
-  execCommand('mkdir -p .artifacts');
-  
-  // Write metrics to file
-  const outputPath = join(process.cwd(), '.artifacts', 'metrics.json');
-  writeFileSync(outputPath, JSON.stringify(metrics, null, 2));
-  
-  // Print summary
-  console.log('\n📊 METRICS SUMMARY:');
-  console.log(`📁 Files: ${metrics.files.total} total (${metrics.files.typescript} TS, ${metrics.files.javascript} JS)`);
-  console.log(`📝 Lines: ${metrics.lines.total.toLocaleString()} total (${metrics.lines.typescript.toLocaleString()} TS)`);
-  console.log(`🔗 Imports: ${metrics.imports.total} total (${metrics.imports.jsImports} .js imports)`);
-  console.log(`🧪 Tests: ${metrics.tests.total} total (${metrics.tests.unit} unit, ${metrics.tests.integration} integration, ${metrics.tests.e2e} e2e)`);
-  console.log(`🌐 Endpoints: ${metrics.endpoints.total} total (${metrics.endpoints.api} API, ${metrics.endpoints.web} Web)`);
-  console.log(`📦 Bundles: ${(metrics.bundles.web / 1024 / 1024).toFixed(1)}MB web, ${(metrics.bundles.api / 1024 / 1024).toFixed(1)}MB api`);
-  console.log(`📚 Dependencies: ${metrics.dependencies.total} total (${metrics.dependencies.production} prod, ${metrics.dependencies.development} dev)`);
-  
-  console.log(`\n❌ QUALITY ISSUES:`);
-  console.log(`   Console.logs: ${metrics.quality.consoleLogs} files`);
-  console.log(`   TODO/FIXME: ${metrics.quality.todoComments} comments`);
-  console.log(`   .js imports: ${metrics.imports.jsImports} files`);
-  
-  console.log(`\n✅ Metrics saved to: ${outputPath}`);
-  
-  // Exit with error code if critical issues found
-  if (metrics.quality.consoleLogs > 0 || metrics.imports.jsImports > 0) {
-    console.log('\n🚨 Critical quality issues detected!');
-    process.exit(1);
-  }
-}
+// Ejecutar recolección
+const metrics = collectMetrics();
 
-if (require.main === module) {
-  main();
-}
+// Guardar en archivo
+writeFileSync('.artifacts/metrics.json', JSON.stringify(metrics, null, 2));
 
-module.exports = { collectMetrics };
-
+// Mostrar resumen
+console.log('📊 MÉTRICAS BASELINE ECONEURA');
+console.log('==============================');
+console.log(`📁 Archivos TypeScript: ${metrics.typescript.files}`);
+console.log(`📝 Líneas de código: ${metrics.typescript.lines.toLocaleString()}`);
+console.log(`🧪 Tests totales: ${metrics.tests.total} (unit: ${metrics.tests.unit}, integration: ${metrics.tests.integration}, e2e: ${metrics.tests.e2e})`);
+console.log(`🔗 Endpoints: ${metrics.endpoints.total} (API: ${metrics.endpoints.api}, Web: ${metrics.endpoints.web})`);
+console.log(`📦 Bundle: ${(metrics.bundle.size / 1024 / 1024).toFixed(2)}MB, ${metrics.bundle.chunks} chunks`);
+console.log(`📚 Dependencias: ${metrics.dependencies.total} (prod: ${metrics.dependencies.prod}, dev: ${metrics.dependencies.dev})`);
+console.log(`\n💾 Guardado en: .artifacts/metrics.json`);

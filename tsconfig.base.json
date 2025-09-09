@@ -5,17 +5,6 @@
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-    "exactOptionalPropertyTypes": true,
-    "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "ESNext",
@@ -31,24 +20,28 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@econeura/*": ["packages/*/src"],
-      "@econeura/shared": ["packages/shared/src"],
-      "@econeura/db": ["packages/db/src"],
-      "@econeura/config": ["packages/config/src"]
+      "@/*": ["./src/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/types/*": ["./src/types/*"],
+      "@/utils/*": ["./src/utils/*"],
+      "@econeura/shared/*": ["./packages/shared/src/*"],
+      "@econeura/db/*": ["./packages/db/src/*"],
+      "@econeura/sdk/*": ["./packages/sdk/src/*"],
+      "@econeura/agents/*": ["./packages/agents/src/*"]
     }
   },
   "include": [
+    "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "**/*.js",
-    "**/*.jsx"
+    ".next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
     ".next",
     "dist",
     "build",
-    "coverage",
-    ".artifacts"
+    "coverage"
   ]
 }

@@ -123,6 +123,14 @@ results/
 *.sqlite
 *.sqlite3
 
+# Backups and binaries
+**/backups/**
+*.sql
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
 # Azure
 .azure/
 

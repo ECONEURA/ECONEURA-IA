@@ -1,0 +1,11 @@
+old_path,new_path,action,domain,lines
+apps/api/src/services/ai-analytics.service.ts,packages/shared/src/ai/analytics.service.ts,move,ai,1120
+apps/api/src/services/advanced-ai-features.service.ts,packages/shared/src/ai/features.service.ts,move,ai,1120
+apps/api/backup/index.intermediate.ts,packages/shared/src/backup/intermediate.ts,move,backup,327
+apps/api/src/index.intermediate.ts,packages/shared/src/backup/intermediate.ts,delete,backup,327
+apps/api-agents-make/src/middleware/telemetry.ts,packages/shared/src/middleware/telemetry.ts,move,middleware,70
+apps/api-neura-comet/src/middleware/telemetry.ts,packages/shared/src/middleware/telemetry.ts,delete,middleware,70
+apps/api/backup/index.basic.ts,packages/shared/src/backup/basic.ts,move,backup,138
+apps/api/backup/index.basic.backup.ts,packages/shared/src/backup/basic.ts,delete,backup,138
+apps/web/src/app/api/ai-chat-advanced/[...path]/route.ts,packages/shared/src/api/ai-chat-advanced.ts,move,api,224
+apps/web/src/app/api/inventory/[...path]/route.ts,packages/shared/src/api/inventory.ts,move,api,224

@@ -1,0 +1,52 @@
+{
+  "timestamp": "2025-09-09T19:55:53.075Z",
+  "differences": 11,
+  "files": [
+    {
+      "file1": "contracts/cockpit.openapi.json",
+      "file2": "apps/api/openapi.json",
+      "issue": "Diferente número de paths: 3 vs 9"
+    },
+    {
+      "file": "contracts/cockpit.openapi.json",
+      "issue": "Ruta pública /v1/health no encontrada"
+    },
+    {
+      "file": "contracts/cockpit.openapi.json",
+      "issue": "Ruta pública /v1/agents no encontrada"
+    },
+    {
+      "file": "contracts/cockpit.openapi.json",
+      "issue": "Ruta pública /v1/chat no encontrada"
+    },
+    {
+      "file": "contracts/cockpit.openapi.json",
+      "issue": "Ruta pública /v1/budget no encontrada"
+    },
+    {
+      "file": "contracts/cockpit.openapi.json",
+      "issue": "Ruta pública /v1/metrics no encontrada"
+    },
+    {
+      "file": "apps/api/openapi.json",
+      "issue": "Ruta pública /v1/health no encontrada"
+    },
+    {
+      "file": "apps/api/openapi.json",
+      "issue": "Ruta pública /v1/agents no encontrada"
+    },
+    {
+      "file": "apps/api/openapi.json",
+      "issue": "Ruta pública /v1/chat no encontrada"
+    },
+    {
+      "file": "apps/api/openapi.json",
+      "issue": "Ruta pública /v1/budget no encontrada"
+    },
+    {
+      "file": "apps/api/openapi.json",
+      "issue": "Ruta pública /v1/metrics no encontrada"
+    }
+  ],
+  "status": "FAIL"
+}
