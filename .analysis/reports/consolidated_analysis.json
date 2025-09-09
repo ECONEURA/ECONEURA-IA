@@ -1,12 +1,12 @@
 {
-  "analysis_timestamp": "2025-09-06T12:26:16Z",
+  "analysis_timestamp": "2025-09-09T18:46:12Z",
   "project_structure": {
-    "entities": 5,
-    "repositories": 5,
-    "use_cases": 9,
-    "dtos": 5,
-    "controllers": 4,
-    "routes": 4
+    "entities": 14,
+    "repositories": 14,
+    "use_cases": 30,
+    "dtos": 14,
+    "controllers": 13,
+    "routes": 12
   },
   "code_quality": {
     "duplicates_found": 0,

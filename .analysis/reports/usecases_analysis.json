@@ -1,6 +1,17 @@
 {
   "use_cases": [
     {
+      "name": "create-deal",
+      "class": "CreateDealUseCase",
+      "methods": [
+        "createLead",
+        "createNegotiation",
+        "createProposal",
+        "createQualified",
+        "execute"
+      ]
+    },
+    {
       "name": "update-deal",
       "class": "UpdateDealUseCase",
       "methods": [
@@ -21,26 +32,15 @@
       ]
     },
     {
-      "name": "create-deal",
-      "class": "CreateDealUseCase",
-      "methods": [
-        "createLead",
-        "createNegotiation",
-        "createProposal",
-        "createQualified",
-        "execute"
-      ]
-    },
-    {
-      "name": "update-contact",
-      "class": "UpdateContactUseCase",
+      "name": "update-product",
+      "class": "UpdateProductUseCase",
       "methods": [
         "execute"
       ]
     },
     {
-      "name": "create-contact",
-      "class": "CreateContactUseCase",
+      "name": "create-product",
+      "class": "CreateProductUseCase",
       "methods": [
         "execute"
       ]
@@ -53,13 +53,6 @@
       ]
     },
     {
-      "name": "create-user",
-      "class": "CreateUserUseCase",
-      "methods": [
-        "execute"
-      ]
-    },
-    {
       "name": "update-user",
       "class": "UpdateUserUseCase",
       "methods": [
@@ -67,8 +60,166 @@
       ]
     },
     {
-      "name": "update-company",
-      "class": "UpdateCompanyUseCase",
+      "name": "create-user",
+      "class": "CreateUserUseCase",
+      "methods": [
+        "execute"
+      ]
+    },
+    {
+      "name": "create-inventory-kardex",
+      "class": "CreateInventoryKardexUseCase",
+      "methods": [
+        "execute"
+      ]
+    },
+    {
+      "name": "record-movement",
+      "class": "RecordMovementUseCase",
+      "methods": [
+        "execute"
+      ]
+    },
+    {
+      "name": "update-inventory-kardex",
+      "class": "UpdateInventoryKardexUseCase",
+      "methods": [
+        "execute"
+      ]
+    },
+    {
+      "name": "create-architecture",
+      "class": "CreateArchitectureUseCase",
+      "methods": [
+        "execute"
+      ]
+    },
+    {
+      "name": "analyze-architecture",
+      "class": "AnalyzeArchitectureUseCase",
+      "methods": [
+        "execute"
+      ]
+    },
+    {
+      "name": "get-suggestions",
+      "class": "GetSuggestionsUseCase",
+      "methods": [
+        "execute"
+      ]
+    },
+    {
+      "name": "intelligent-search",
+      "class": "IntelligentSearchUseCase",
+      "methods": [
+        "execute"
+      ]
+    },
+    {
+      "name": "index-entity",
+      "class": "IndexEntityUseCase",
+      "methods": [
+        "execute"
+      ]
+    },
+    {
+      "name": "analyze-database-schema",
+      "class": "AnalyzeDatabaseSchemaUseCase",
+      "methods": [
+        "execute"
+      ]
+    },
+    {
+      "name": "create-database-schema",
+      "class": "CreateDatabaseSchemaUseCase",
+      "methods": [
+        "execute"
+      ]
+    },
+    {
+      "name": "update-interaction",
+      "class": "UpdateInteractionUseCase",
+      "methods": [
+        "addTag",
+        "completeInteraction",
+        "execute",
+        "removeCustomField",
+        "removeTag",
+        "scheduleInteraction",
+        "setCustomField",
+        "setNextAction",
+        "updatePriority",
+        "updateStatus"
+      ]
+    },
+    {
+      "name": "create-interaction",
+      "class": "CreateInteractionUseCase",
+      "methods": [
+        "createFollowUp",
+        "createNote",
+        "createScheduledInteraction",
+        "createTask",
+        "execute"
+      ]
+    },
+    {
+      "name": "generate-prediction",
+      "class": "GeneratePredictionUseCase",
+      "methods": [
+        "execute"
+      ]
+    },
+    {
+      "name": "train-model",
+      "class": "TrainModelUseCase",
+      "methods": [
+        "execute"
+      ]
+    },
+    {
+      "name": "create-predictive-analytics",
+      "class": "CreatePredictiveAnalyticsUseCase",
+      "methods": [
+        "execute"
+      ]
+    },
+    {
+      "name": "update-predictive-analytics",
+      "class": "UpdatePredictiveAnalyticsUseCase",
+      "methods": [
+        "execute"
+      ]
+    },
+    {
+      "name": "base",
+      "class": "",
+      "methods": []
+    },
+    {
+      "name": "create-contact",
+      "class": "CreateContactUseCase",
+      "methods": [
+        "execute"
+      ]
+    },
+    {
+      "name": "update-contact",
+      "class": "UpdateContactUseCase",
+      "methods": [
+        "execute"
+      ]
+    },
+    {
+      "name": "create-invoice",
+      "class": "CreateInvoiceUseCase",
+      "methods": [
+        "execute"
+      ]
+    },
+    {
+      "name": "update-invoice",
+      "class": "UpdateInvoiceUseCase",
       "methods": [
         "execute"
       ]
@@ -76,6 +227,13 @@
     {
       "name": "create-company",
       "class": "CreateCompanyUseCase",
+      "methods": [
+        "execute"
+      ]
+    },
+    {
+      "name": "update-company",
+      "class": "UpdateCompanyUseCase",
       "methods": [
         "execute"
       ]

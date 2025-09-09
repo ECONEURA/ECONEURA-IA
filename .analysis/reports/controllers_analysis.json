@@ -1,78 +1,23 @@
 {
   "controllers": [
     {
-      "name": "contact",
+      "name": "predictive-analytics",
       "methods": [
-        "bulkDeleteContacts",
-        "bulkUpdateContacts",
-        "createContact",
-        "deleteContact",
-        "getContactById",
-        "getContactsByAssignedUser",
-        "getContactsByCompany",
-        "getContactsByDepartment",
-        "getContactsByIndustry",
-        "getContactsByOrganization",
-        "getContactsByStatus",
-        "getContactsByType",
-        "getContactStats",
-        "getContactsWithAnniversaryThisMonth",
-        "getContactsWithAnniversaryThisWeek",
-        "getContactsWithAnniversaryToday",
-        "getContactsWithBirthdayThisMonth",
-        "getContactsWithBirthdayThisWeek",
-        "getContactsWithBirthdayToday",
-        "getHighlyEngagedContacts",
-        "getHighScoreLeads",
-        "getLowEngagedContacts",
-        "getLowScoreLeads",
-        "getMediumScoreLeads",
-        "getModeratelyEngagedContacts",
-        "getOverdueForFollowUp",
-        "getScheduledForFollowUp",
-        "searchContacts",
-        "updateContact"
-      ]
-    },
-    {
-      "name": "user",
-      "methods": [
-        "bulkDeleteUsers",
-        "bulkUpdateUsers",
-        "canOrganizationAddUser",
-        "createUser",
-        "deleteUser",
-        "getOrganizationUserCount",
-        "getOrganizationUserLimit",
-        "getUserByEmail",
-        "getUserById",
-        "getUsersByOrganization",
-        "getUserStats",
-        "recordUserLogin",
-        "searchUsers",
-        "updateUser",
-        "updateUserLastActivity"
-      ]
-    },
-    {
-      "name": "deal",
-      "methods": [
-        "createDeal",
-        "createLead",
-        "createNegotiation",
-        "createProposal",
-        "createQualified",
-        "deleteDeal",
-        "getConversionRates",
-        "getDashboardData",
-        "getDealById",
-        "getDealsByCompany",
-        "getDealsByContact",
-        "getDealsByOrganization",
-        "getDealStats",
-        "getPipelineData",
-        "getSalesForecast",
-        "updateDeal"
+        "bulkDeletePredictiveAnalytics",
+        "bulkUpdatePredictiveAnalytics",
+        "createPredictiveAnalytics",
+        "deletePredictiveAnalytics",
+        "generatePrediction",
+        "getActiveModels",
+        "getAnalyticsByStatus",
+        "getAnalyticsByType",
+        "getNeedsRetraining",
+        "getPredictiveAnalytics",
+        "getPredictiveAnalyticsByOrganization",
+        "getPredictiveAnalyticsStats",
+        "searchPredictiveAnalytics",
+        "trainModel",
+        "updatePredictiveAnalytics"
       ]
     },
     {
@@ -96,6 +41,204 @@
         "getScheduledForFollowUp",
         "searchCompanies",
         "updateCompany"
+      ]
+    },
+    {
+      "name": "search",
+      "methods": [
+        "fuzzySearch",
+        "getAvailableFilters",
+        "getPopularSearches",
+        "getSuggestions",
+        "indexEntity",
+        "intelligentSearch",
+        "searchByType",
+        "semanticSearch"
+      ]
+    },
+    {
+      "name": "deal",
+      "methods": [
+        "createDeal",
+        "createLead",
+        "createNegotiation",
+        "createProposal",
+        "createQualified",
+        "deleteDeal",
+        "getConversionRates",
+        "getDashboardData",
+        "getDealById",
+        "getDealStats",
+        "getDealsByCompany",
+        "getDealsByContact",
+        "getDealsByOrganization",
+        "getPipelineData",
+        "getSalesForecast",
+        "updateDeal"
+      ]
+    },
+    {
+      "name": "interaction",
+      "methods": [
+        "createFollowUp",
+        "createInteraction",
+        "createNote",
+        "createScheduledInteraction",
+        "createTask",
+        "deleteInteraction",
+        "getDashboardData",
+        "getInteractionById",
+        "getInteractionStats",
+        "getInteractionsByCompany",
+        "getInteractionsByContact",
+        "getInteractionsByOrganization",
+        "updateInteraction"
+      ]
+    },
+    {
+      "name": "contact",
+      "methods": [
+        "bulkDeleteContacts",
+        "bulkUpdateContacts",
+        "createContact",
+        "deleteContact",
+        "getContactById",
+        "getContactStats",
+        "getContactsByAssignedUser",
+        "getContactsByCompany",
+        "getContactsByDepartment",
+        "getContactsByIndustry",
+        "getContactsByOrganization",
+        "getContactsByStatus",
+        "getContactsByType",
+        "getContactsWithAnniversaryThisMonth",
+        "getContactsWithAnniversaryThisWeek",
+        "getContactsWithAnniversaryToday",
+        "getContactsWithBirthdayThisMonth",
+        "getContactsWithBirthdayThisWeek",
+        "getContactsWithBirthdayToday",
+        "getHighScoreLeads",
+        "getHighlyEngagedContacts",
+        "getLowEngagedContacts",
+        "getLowScoreLeads",
+        "getMediumScoreLeads",
+        "getModeratelyEngagedContacts",
+        "getOverdueForFollowUp",
+        "getScheduledForFollowUp",
+        "searchContacts",
+        "updateContact"
+      ]
+    },
+    {
+      "name": "basic-ai",
+      "methods": [
+        "clearSession",
+        "createSession",
+        "generateResponse",
+        "getCapabilities",
+        "getHealthStatus",
+        "getSessionHistory"
+      ]
+    },
+    {
+      "name": "base",
+      "methods": []
+    },
+    {
+      "name": "architecture",
+      "methods": [
+        "analyzeArchitecture",
+        "bulkDeleteArchitectures",
+        "bulkUpdateArchitectures",
+        "createArchitecture",
+        "deleteArchitecture",
+        "getActiveArchitectures",
+        "getArchitecture",
+        "getArchitectureStats",
+        "getArchitecturesByOrganization",
+        "getArchitecturesByStatus",
+        "getArchitecturesByType",
+        "getArchitecturesWithMetrics",
+        "searchArchitectures",
+        "updateArchitecture"
+      ]
+    },
+    {
+      "name": "product",
+      "methods": [
+        "bulkDeleteProducts",
+        "bulkUpdateProducts",
+        "createProduct",
+        "deleteProduct",
+        "getProduct",
+        "getProductStats",
+        "getProductsByOrganization",
+        "searchProducts",
+        "updateProduct"
+      ]
+    },
+    {
+      "name": "invoice",
+      "methods": [
+        "applyDiscount",
+        "bulkDeleteInvoices",
+        "bulkUpdateInvoices",
+        "createInvoice",
+        "deleteInvoice",
+        "getInvoice",
+        "getInvoiceStats",
+        "getInvoicesByCompany",
+        "getInvoicesByOrganization",
+        "getInvoicesByPaymentStatus",
+        "getInvoicesByStatus",
+        "getInvoicesByType",
+        "getInvoicesDueSoon",
+        "getOverdueInvoices",
+        "recordPayment",
+        "searchInvoices",
+        "updateInvoice"
+      ]
+    },
+    {
+      "name": "user",
+      "methods": [
+        "bulkDeleteUsers",
+        "bulkUpdateUsers",
+        "canOrganizationAddUser",
+        "createUser",
+        "deleteUser",
+        "getOrganizationUserCount",
+        "getOrganizationUserLimit",
+        "getUserByEmail",
+        "getUserById",
+        "getUserStats",
+        "getUsersByOrganization",
+        "recordUserLogin",
+        "searchUsers",
+        "updateUser",
+        "updateUserLastActivity"
+      ]
+    },
+    {
+      "name": "inventory-kardex",
+      "methods": [
+        "bulkDeleteInventoryKardex",
+        "bulkUpdateInventoryKardex",
+        "createInventoryKardex",
+        "deleteInventoryKardex",
+        "getInventoryByProduct",
+        "getInventoryByWarehouse",
+        "getInventoryKardex",
+        "getInventoryKardexByOrganization",
+        "getInventoryKardexStats",
+        "getLowStockInventory",
+        "getNeedsReorderInventory",
+        "getOutOfStockInventory",
+        "recordMovement",
+        "releaseReservation",
+        "reserveQuantity",
+        "searchInventoryKardex",
+        "updateInventoryKardex"
       ]
     }
   ],

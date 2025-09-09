@@ -1,21 +1,6 @@
 {
   "dtos": [
     {
-      "name": "contact",
-      "schemas": [
-        "BulkDeleteContactsRequest",
-        "BulkUpdateContactsRequest",
-        "ContactListResponse",
-        "ContactResponse",
-        "ContactStatsResponse",
-        "CreateContactRequest",
-        "DeleteContactRequest",
-        "GetContactRequest",
-        "SearchContactsRequest",
-        "UpdateContactRequest"
-      ]
-    },
-    {
       "name": "company",
       "schemas": [
         "BulkDeleteCompaniesRequest",
@@ -31,32 +16,63 @@
       ]
     },
     {
-      "name": "user",
+      "name": "search",
       "schemas": [
-        "ApiResponse",
-        "BulkDeleteUsersRequest",
-        "BulkUpdateUsersRequest",
-        "CreateUserRequest",
-        "DeleteUserRequest",
-        "GetUserRequest",
-        "SearchUsersRequest",
-        "UpdateUserRequest",
-        "UserListResponse",
-        "UserResponse",
-        "UserStatsResponse"
+        "GetSuggestionsRequest",
+        "GetSuggestionsResponse",
+        "IndexEntityRequest",
+        "IndexEntityResponse",
+        "IntelligentSearchRequest",
+        "IntelligentSearchResponse",
+        "SearchResultResponse",
+        "SearchSuggestionResponse"
       ]
     },
     {
-      "name": "organization",
+      "name": "architecture",
       "schemas": [
-        "CreateOrganizationRequest",
-        "DeleteOrganizationRequest",
-        "GetOrganizationRequest",
-        "OrganizationListResponse",
-        "OrganizationResponse",
-        "OrganizationStatsResponse",
-        "SearchOrganizationsRequest",
-        "UpdateOrganizationRequest"
+        "AnalysisReportRequest",
+        "AnalyzeArchitectureRequest",
+        "ArchitectureBulkDelete",
+        "ArchitectureBulkUpdate",
+        "ArchitectureComponentResponse",
+        "ArchitectureIdParam",
+        "ArchitectureLayerResponse",
+        "ArchitectureListResponse",
+        "ArchitectureMetricsResponse",
+        "ArchitectureOrganizationIdParam",
+        "ArchitectureReportRequest",
+        "ArchitectureResponse",
+        "ArchitectureSearchQuery",
+        "ArchitectureStatsResponse",
+        "BatchAnalysisRequest",
+        "ComponentReportRequest",
+        "CreateArchitectureRequest",
+        "QualityReportRequest",
+        "UpdateArchitectureRequest"
+      ]
+    },
+    {
+      "name": "inventory-kardex",
+      "schemas": [
+        "CreateInventoryKardexRequest",
+        "ExpirationReportRequest",
+        "InventoryKardexBulkDelete",
+        "InventoryKardexBulkUpdate",
+        "InventoryKardexIdParam",
+        "InventoryKardexListResponse",
+        "InventoryKardexOrganizationIdParam",
+        "InventoryKardexResponse",
+        "InventoryKardexSearchQuery",
+        "InventoryKardexStatsResponse",
+        "InventoryMovementResponse",
+        "InventoryReportRequest",
+        "MovementReportRequest",
+        "RecordMovementRequest",
+        "ReleaseReservationRequest",
+        "ReorderReportRequest",
+        "ReserveQuantityRequest",
+        "UpdateInventoryKardexRequest"
       ]
     },
     {
@@ -112,6 +128,203 @@
         "UpdateStage",
         "UpdateStatus",
         "UpdateValue"
+      ]
+    },
+    {
+      "name": "organization",
+      "schemas": [
+        "CreateOrganizationRequest",
+        "DeleteOrganizationRequest",
+        "GetOrganizationRequest",
+        "OrganizationListResponse",
+        "OrganizationResponse",
+        "OrganizationStatsResponse",
+        "SearchOrganizationsRequest",
+        "UpdateOrganizationRequest"
+      ]
+    },
+    {
+      "name": "invoice",
+      "schemas": [
+        "ApplyDiscountRequest",
+        "CreateInvoiceRequest",
+        "InvoiceBulkDelete",
+        "InvoiceBulkUpdate",
+        "InvoiceIdParam",
+        "InvoiceItemResponse",
+        "InvoiceListResponse",
+        "InvoiceOrganizationIdParam",
+        "InvoiceReportRequest",
+        "InvoiceResponse",
+        "InvoiceSearchQuery",
+        "InvoiceStatsResponse",
+        "OverdueReportRequest",
+        "PaymentReportRequest",
+        "RecordPaymentRequest",
+        "UpdateInvoiceRequest"
+      ]
+    },
+    {
+      "name": "base",
+      "schemas": [
+        "Address",
+        "BaseResponse",
+        "BaseSearchQuery",
+        "BaseStats",
+        "BulkDelete",
+        "BulkUpdate",
+        "CustomFields",
+        "DateRange",
+        "Description",
+        "Email",
+        "IdParam",
+        "ListResponse",
+        "Money",
+        "Name",
+        "Notes",
+        "OrganizationId",
+        "OrganizationIdParam",
+        "PaginationQuery",
+        "PaginationResponse",
+        "Phone",
+        "SearchQuery",
+        "ShortDescription",
+        "Tags",
+        "UUID",
+        "Website"
+      ]
+    },
+    {
+      "name": "predictive-analytics",
+      "schemas": [
+        "AnalyticsMetricsResponse",
+        "AnalyticsReportRequest",
+        "BatchPredictionRequest",
+        "BatchTrainingRequest",
+        "CreatePredictiveAnalyticsRequest",
+        "GeneratePredictionRequest",
+        "ModelPerformanceReportRequest",
+        "PredictionDataResponse",
+        "PredictionReportRequest",
+        "PredictiveAnalyticsBulkDelete",
+        "PredictiveAnalyticsBulkUpdate",
+        "PredictiveAnalyticsIdParam",
+        "PredictiveAnalyticsListResponse",
+        "PredictiveAnalyticsOrganizationIdParam",
+        "PredictiveAnalyticsResponse",
+        "PredictiveAnalyticsSearchQuery",
+        "PredictiveAnalyticsStatsResponse",
+        "TrainModelRequest",
+        "TrainingReportRequest",
+        "UpdatePredictiveAnalyticsRequest"
+      ]
+    },
+    {
+      "name": "interaction",
+      "schemas": [
+        "AddTag",
+        "CompleteInteraction",
+        "CreateFollowUp",
+        "CreateInteraction",
+        "CreateNote",
+        "CreateScheduledInteraction",
+        "CreateTask",
+        "InteractionBulkDelete",
+        "InteractionBulkUpdate",
+        "InteractionCompanyIdParam",
+        "InteractionContactIdParam",
+        "InteractionDashboardResponse",
+        "InteractionFiltersQuery",
+        "InteractionIdParam",
+        "InteractionListResponse",
+        "InteractionOrganizationIdParam",
+        "InteractionPriority",
+        "InteractionPriorityParam",
+        "InteractionResponse",
+        "InteractionScheduledQuery",
+        "InteractionSearchQuery",
+        "InteractionStatsResponse",
+        "InteractionStatus",
+        "InteractionStatusParam",
+        "InteractionSummaryResponse",
+        "InteractionType",
+        "InteractionTypeParam",
+        "InteractionUpcomingQuery",
+        "InteractionUserIdParam",
+        "RemoveCustomField",
+        "RemoveTag",
+        "ScheduleInteraction",
+        "SetCustomField",
+        "SetNextAction",
+        "UpdateInteraction",
+        "UpdatePriority",
+        "UpdateStatus"
+      ]
+    },
+    {
+      "name": "contact",
+      "schemas": [
+        "BulkDeleteContactsRequest",
+        "BulkUpdateContactsRequest",
+        "ContactListResponse",
+        "ContactResponse",
+        "ContactStatsResponse",
+        "CreateContactRequest",
+        "DeleteContactRequest",
+        "GetContactRequest",
+        "SearchContactsRequest",
+        "UpdateContactRequest"
+      ]
+    },
+    {
+      "name": "database-schema",
+      "schemas": [
+        "AnalyzeDatabase",
+        "BatchAnalysisRequest",
+        "CreateDatabase",
+        "Database",
+        "DatabaseColumnResponse",
+        "DatabaseConstraintResponse",
+        "DatabaseIndexResponse",
+        "DatabasePolicyResponse",
+        "DatabaseStatisticsResponse",
+        "DatabaseTableResponse",
+        "DatabaseTriggerResponse",
+        "MaintenanceReportRequest",
+        "PerformanceReportRequest",
+        "TableReportRequest",
+        "UpdateDatabase"
+      ]
+    },
+    {
+      "name": "user",
+      "schemas": [
+        "ApiResponse",
+        "BulkDeleteUsersRequest",
+        "BulkUpdateUsersRequest",
+        "CreateUserRequest",
+        "DeleteUserRequest",
+        "GetUserRequest",
+        "SearchUsersRequest",
+        "UpdateUserRequest",
+        "UserListResponse",
+        "UserResponse",
+        "UserStatsResponse"
+      ]
+    },
+    {
+      "name": "product",
+      "schemas": [
+        "CreateProductRequest",
+        "ProductBulkDelete",
+        "ProductBulkUpdate",
+        "ProductIdParam",
+        "ProductListResponse",
+        "ProductOrganizationIdParam",
+        "ProductResponse",
+        "ProductSearchQuery",
+        "ProductStatsResponse",
+        "UpdateProductRequest"
       ]
     }
   ],

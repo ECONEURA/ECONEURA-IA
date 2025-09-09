@@ -1,7 +1,7 @@
 {
   "routes": [
     {
-      "name": "contact",
+      "name": "user",
       "endpoints": [
         "delete",
         "get",
@@ -10,10 +10,29 @@
       ]
     },
     {
-      "name": "user",
+      "name": "architecture",
       "endpoints": [
         "delete",
         "get",
+        "post",
+        "put"
+      ]
+    },
+    {
+      "name": "inventory-kardex",
+      "endpoints": [
+        "delete",
+        "get",
+        "post",
+        "put"
+      ]
+    },
+    {
+      "name": "interaction",
+      "endpoints": [
+        "delete",
+        "get",
+        "patch",
         "post",
         "put"
       ]
@@ -24,6 +43,58 @@
         "delete",
         "get",
         "patch",
+        "post",
+        "put"
+      ]
+    },
+    {
+      "name": "basic-ai",
+      "endpoints": [
+        "delete",
+        "get",
+        "post"
+      ]
+    },
+    {
+      "name": "contact",
+      "endpoints": [
+        "delete",
+        "get",
+        "post",
+        "put"
+      ]
+    },
+    {
+      "name": "invoice",
+      "endpoints": [
+        "delete",
+        "get",
+        "post",
+        "put"
+      ]
+    },
+    {
+      "name": "predictive-analytics",
+      "endpoints": [
+        "delete",
+        "get",
+        "post",
+        "put"
+      ]
+    },
+    {
+      "name": "search",
+      "endpoints": [
+        "delete",
+        "get",
+        "post"
+      ]
+    },
+    {
+      "name": "product",
+      "endpoints": [
+        "delete",
+        "get",
         "post",
         "put"
       ]
