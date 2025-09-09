@@ -17,6 +17,9 @@ jobs:
           node-version: '20'
           cache: 'pnpm'
       
+      - name: Install pnpm
+        run: npm install -g pnpm
+      
       - run: pnpm install --frozen-lockfile
       - run: pnpm test:coverage
       
@@ -40,6 +43,9 @@ jobs:
         with:
           node-version: '20'
           cache: 'pnpm'
+      
+      - name: Install pnpm
+        run: npm install -g pnpm
       
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
@@ -67,6 +73,9 @@ jobs:
           node-version: '20'
           cache: 'pnpm'
       
+      - name: Install pnpm
+        run: npm install -g pnpm
+      
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm playwright install
@@ -92,6 +101,9 @@ jobs:
         with:
           node-version: '20'
           cache: 'pnpm'
+      
+      - name: Install pnpm
+        run: npm install -g pnpm
       
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
@@ -138,6 +150,9 @@ jobs:
           node-version: '20'
           cache: 'pnpm'
       
+      - name: Install pnpm
+        run: npm install -g pnpm
+      
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm playwright install
@@ -171,6 +186,9 @@ jobs:
         with:
           node-version: '20'
           cache: 'pnpm'
+      
+      - name: Install pnpm
+        run: npm install -g pnpm
       
       - run: pnpm install --frozen-lockfile
       - run: pnpm audit --audit-level high
