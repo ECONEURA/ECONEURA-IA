@@ -1,11 +1,16 @@
-old_path,new_path,action,domain,lines
-apps/api/src/services/ai-analytics.service.ts,packages/shared/src/ai/analytics.service.ts,move,ai,1120
-apps/api/src/services/advanced-ai-features.service.ts,packages/shared/src/ai/features.service.ts,move,ai,1120
-apps/api/backup/index.intermediate.ts,packages/shared/src/backup/intermediate.ts,move,backup,327
-apps/api/src/index.intermediate.ts,packages/shared/src/backup/intermediate.ts,delete,backup,327
-apps/api-agents-make/src/middleware/telemetry.ts,packages/shared/src/middleware/telemetry.ts,move,middleware,70
-apps/api-neura-comet/src/middleware/telemetry.ts,packages/shared/src/middleware/telemetry.ts,delete,middleware,70
-apps/api/backup/index.basic.ts,packages/shared/src/backup/basic.ts,move,backup,138
-apps/api/backup/index.basic.backup.ts,packages/shared/src/backup/basic.ts,delete,backup,138
-apps/web/src/app/api/ai-chat-advanced/[...path]/route.ts,packages/shared/src/api/ai-chat-advanced.ts,move,api,224
-apps/web/src/app/api/inventory/[...path]/route.ts,packages/shared/src/api/inventory.ts,move,api,224
+from,to,reason
+packages/shared/src/schemas/company.schema.ts,packages/shared/schemas/company.schema.ts,Consolidar schemas Zod
+packages/shared/src/schemas/user.schema.ts,packages/shared/schemas/user.schema.ts,Consolidar schemas Zod
+packages/shared/src/schemas/auth.schema.ts,packages/shared/schemas/auth.schema.ts,Consolidar schemas Zod
+packages/shared/src/utils/validation.ts,packages/shared/utils/validation.ts,Consolidar utilidades
+packages/shared/src/utils/errors.ts,packages/shared/utils/errors.ts,Consolidar utilidades
+packages/shared/src/utils/logger.ts,packages/shared/utils/logger.ts,Consolidar utilidades
+packages/shared/src/middleware/cors.ts,packages/shared/middleware/cors.ts,Consolidar middleware
+packages/shared/src/middleware/helmet.ts,packages/shared/middleware/helmet.ts,Consolidar middleware
+packages/shared/src/middleware/rate-limit.ts,packages/shared/middleware/rate-limit.ts,Consolidar middleware
+apps/api/src/services/company.service.ts,apps/api/src/lib/company.service.ts,Consolidar servicios API
+apps/api/src/services/user.service.ts,apps/api/src/lib/user.service.ts,Consolidar servicios API
+apps/api/src/services/auth.service.ts,apps/api/src/lib/auth.service.ts,Consolidar servicios API
+apps/web/src/utils/format.ts,apps/web/src/lib/format.ts,Consolidar utilidades web
+apps/web/src/utils/date.ts,apps/web/src/lib/date.ts,Consolidar utilidades web
+apps/web/src/utils/validation.ts,apps/web/src/lib/validation.ts,Consolidar utilidades web
