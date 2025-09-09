@@ -1,0 +1,15 @@
+{
+  "migrations": {
+    "apps/api/prisma": ["20250828_init"],
+    "packages/db/migrations": ["001_initial_schema.sql"],
+    "packages/db/src/migrations": ["0001_initial_schema.sql"]
+  },
+  "seeds": ["packages/db/src/seeds/inventory.seeds.ts"],
+  "rls_policies": [
+    "packages/db/migrations/001_initial_schema.sql:212-248",
+    "packages/db/src/migrations/0001_initial_schema.sql:319-369"
+  ],
+  "indexes": [
+    "packages/db/migrations/001_initial_schema.sql:165-184"
+  ]
+}

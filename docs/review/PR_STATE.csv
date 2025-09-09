@@ -1,0 +1,5 @@
+No disponible
+Plan:
+1. gh pr list --state all --json number,status > PR_STATE.csv (DevOps, 2024-05-24)
+2. Map completion_pct and decision rules (DevOps, 2024-05-24)
+3. commit PR_STATE.csv (DevOps, 2024-05-24)

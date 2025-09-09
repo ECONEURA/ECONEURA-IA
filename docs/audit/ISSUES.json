@@ -1,1 +1,20 @@
-[]
+{
+  "status": "No disponible",
+  "plan": [
+    {
+      "comando": "gh issue list --state all --json number,title,state > ISSUES.json",
+      "responsable": "DevOps",
+      "fecha": "2024-05-24"
+    },
+    {
+      "comando": "gh issue view <id> --json timeline",
+      "responsable": "DevOps",
+      "fecha": "2024-05-24"
+    },
+    {
+      "comando": "commit ISSUES.json",
+      "responsable": "DevOps",
+      "fecha": "2024-05-24"
+    }
+  ]
+}

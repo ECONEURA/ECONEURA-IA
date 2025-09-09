@@ -1,0 +1,5 @@
+No disponible
+Plan:
+1. npm install -g ts-prune (DevOps, 2024-05-24)
+2. ts-prune -p tsconfig.json > docs/audit/TS_PRUNE.txt (DevOps, 2024-05-24)
+3. commit TS_PRUNE.txt (DevOps, 2024-05-24)
