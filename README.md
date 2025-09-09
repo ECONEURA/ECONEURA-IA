@@ -84,7 +84,152 @@
 
 ---
 
-## 6) Roadmap completo de PR‑0 → PR‑85 (titular + objetivo + DoD breve)
+## 6) Performance Testing
+
+ECONEURA incluye pruebas de rendimiento automatizadas usando k6 para garantizar la calidad operacional.
+
+### Configuración de K6
+
+Las pruebas de rendimiento son configurables via variables de entorno:
+
+```bash
+# Variables de configuración K6
+K6_BASE_URL=http://localhost:3001     # URL base para las pruebas
+K6_MAX_VUS=20                         # Número máximo de usuarios virtuales  
+K6_DURATION=5m                        # Duración de las pruebas
+K6_RAMP_DURATION=2m                   # Tiempo de rampa (subida/bajada)
+K6_CHAOS_DURATION=3m                  # Duración específica para chaos testing
+```
+
+### Ejecución Local
+
+```bash
+# Pruebas de carga
+pnpm k6:load
+
+# Pruebas de caos  
+pnpm k6:chaos
+
+# Con configuración personalizada
+K6_MAX_VUS=50 K6_DURATION=10m pnpm k6:load
+```
+
+### Workflows Automatizados
+
+- **Performance Testing**: Ejecuta pruebas nocturnas y bajo demanda
+- **Quality Nightly**: Ejecuta pruebas de calidad completas cada noche
+
+---
+
+## 7) Code Coverage
+
+El sistema de cobertura de código está configurado con umbrales iniciales realistas.
+
+### Configuración de Umbrales
+
+- **Statements**: 40% mínimo
+- **Branches**: 30% mínimo  
+- **Functions**: 40% mínimo
+- **Lines**: 40% mínimo
+
+### Ejecución de Coverage
+
+```bash
+# Cobertura de todos los workspaces
+pnpm coverage
+
+# Cobertura específica por workspace
+pnpm --filter @econeura/api test:coverage
+pnpm --filter @econeura/workers test:coverage
+```
+
+### Artifacts en CI
+
+Los reportes de cobertura (lcov) se suben automáticamente como artifacts y se integran con Codecov.
+
+---
+
+## 8) Structured Logging
+
+ECONEURA utiliza logging estructurado con pino para observabilidad y debugging.
+
+### Configuración
+
+```bash
+# Control del nivel de logging
+LOG_LEVEL=info  # debug, info, warn, error
+```
+
+### Uso en Código
+
+```typescript
+import { logger } from '@econeura/shared/logging';
+
+// ❌ Evitar: console.log('Server started');
+// ✅ Usar:
+logger.info('Server started', { 
+  port: 3001, 
+  environment: 'production',
+  pid: process.pid 
+});
+
+// Logging específico por contexto
+logger.logAIRequest('AI completion', { model: 'gpt-4', tokens: 150 });
+logger.logSecurityEvent('Failed login', { email: 'user@domain.com', ip: '1.2.3.4' });
+```
+
+### Características
+
+- **Redacción automática** de campos sensibles (passwords, tokens, secrets)
+- **Serialización de errores** con stack traces
+- **Contexto estructurado** para análisis y alertas
+- **Niveles configurables** por entorno
+
+---
+
+## 9) Environment Validation
+
+Todas las variables de entorno críticas son validadas al inicio usando Zod schemas.
+
+### Variables Críticas
+
+```bash
+# Servidor
+NODE_ENV=development
+PORT=3001
+LOG_LEVEL=info
+
+# Base de datos
+PGHOST=localhost
+PGUSER=econeura  
+PGPASSWORD=secure_password
+PGDATABASE=econeura
+PGPORT=5432
+
+# IA
+AZURE_OPENAI_ENDPOINT=https://resource.openai.azure.com/
+AZURE_OPENAI_API_KEY=your_key
+```
+
+### Validación Automática
+
+La aplicación falla con código de salida != 0 si faltan variables críticas:
+
+```typescript
+import { env } from '@econeura/shared/env';
+
+// Acceso type-safe a variables validadas
+const config = env();
+console.log(`Server starting on port ${config.PORT}`);
+```
+
+### Archivo de Ejemplo
+
+Ver `.env.example` para la configuración completa con comentarios explicativos.
+
+---
+
+## 10) Roadmap completo de PR‑0 → PR‑85 (titular + objetivo + DoD breve)
 
 > **Leyenda**: ✅ listo · ⚠️ parcial/demo · ❌ falta.  
 > *El estado real lo llevamos en GitHub Projects; aquí se describen los objetivos y el "hecho" esperado.*

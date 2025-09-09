@@ -8,11 +8,17 @@ const chaosResponseTime = new Trend('chaos_response_time');
 const chaosRequestCount = new Counter('chaos_request_count');
 const chaosScenarios = new Counter('chaos_scenarios');
 
+// Environment-configurable options for chaos testing
+const K6_BASE_URL = __ENV.K6_BASE_URL || 'http://localhost:3001';
+const K6_MAX_VUS = parseInt(__ENV.K6_MAX_VUS || '5');
+const K6_CHAOS_DURATION = __ENV.K6_CHAOS_DURATION || '3m';
+const K6_CHAOS_RAMP = __ENV.K6_CHAOS_RAMP || '1m';
+
 export const options = {
   stages: [
-    { duration: '1m', target: 5 },  // Ramp up to 5 users
-    { duration: '3m', target: 5 },  // Stay at 5 users
-    { duration: '1m', target: 0 },  // Ramp down
+    { duration: K6_CHAOS_RAMP, target: K6_MAX_VUS },  // Ramp up to chaos users
+    { duration: K6_CHAOS_DURATION, target: K6_MAX_VUS },  // Stay at chaos users
+    { duration: K6_CHAOS_RAMP, target: 0 },  // Ramp down
   ],
   thresholds: {
     http_req_duration: ['p(95)<1000'], // More lenient for chaos testing
@@ -21,7 +27,7 @@ export const options = {
   },
 };
 
-const BASE_URL = 'http://localhost:3001';
+const BASE_URL = K6_BASE_URL;
 
 export default function() {
   // Run different chaos scenarios

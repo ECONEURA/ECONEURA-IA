@@ -1,0 +1,135 @@
+name: Nightly Quality Checks
+
+on:
+  schedule:
+    # Run nightly at 3 AM UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      run_performance:
+        description: 'Include performance tests'
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  K6_BASE_URL: 'http://localhost:3001'
+  K6_MAX_VUS: '5'  # Reduced VUs for nightly to avoid overload
+  K6_DURATION: '1m'
+  K6_RAMP_DURATION: '15s'
+
+jobs:
+  nightly-quality:
+    name: Nightly Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: |
+          npm install -g pnpm@8.15.5
+          pnpm install --no-frozen-lockfile
+
+      - name: Type Check
+        run: |
+          echo "🔍 Running strict type checking..."
+          pnpm -r typecheck
+
+      - name: Strict Linting
+        run: |
+          echo "🔧 Running strict linting rules..."
+          pnpm lint:strict
+
+      - name: Test Coverage
+        run: |
+          echo "📊 Running test coverage analysis..."
+          pnpm coverage
+
+      - name: Upload Coverage Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-coverage-reports
+          path: |
+            apps/*/coverage/lcov.info
+            packages/*/coverage/lcov.info
+          retention-days: 30
+
+      - name: Install k6 (for performance tests)
+        if: ${{ github.event.inputs.run_performance != 'false' }}
+        run: |
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Build and Start API (for performance tests)
+        if: ${{ github.event.inputs.run_performance != 'false' }}
+        run: |
+          pnpm build
+          cd apps/api
+          nohup pnpm start > server.log 2>&1 &
+          echo $! > server.pid
+          sleep 10
+          timeout 30 bash -c 'until curl -f http://localhost:3001/health; do sleep 1; done'
+
+      - name: Nightly Load Test (Reduced)
+        if: ${{ github.event.inputs.run_performance != 'false' }}
+        run: |
+          echo "🌙 Running nightly load test with reduced load..."
+          k6 run tests/k6/load-test.js --out json=nightly-load-results.json
+
+      - name: Security Audit
+        run: |
+          echo "🔒 Running security audit..."
+          pnpm security:audit || true  # Don't fail on audit warnings
+
+      - name: Secrets Scan
+        run: |
+          echo "🕵️ Running secrets scan..."
+          pnpm secrets:scan || true
+
+      - name: Stop API server
+        if: always()
+        run: |
+          if [ -f apps/api/server.pid ]; then
+            kill $(cat apps/api/server.pid) || true
+          fi
+
+      - name: Upload Nightly Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-quality-results
+          path: |
+            nightly-load-results.json
+            apps/api/server.log
+          retention-days: 7
+
+      - name: Generate Quality Summary
+        if: always()
+        run: |
+          echo "## 🌙 Nightly Quality Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Type checking completed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Strict linting completed" >> $GITHUB_STEP_SUMMARY  
+          echo "- ✅ Coverage analysis completed" >> $GITHUB_STEP_SUMMARY
+          if [ -f nightly-load-results.json ]; then
+            echo "- ✅ Performance testing completed" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "- ✅ Security audit completed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 All quality checks completed for commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY

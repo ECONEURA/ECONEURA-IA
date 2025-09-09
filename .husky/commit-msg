@@ -1,15 +1,23 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-# Check commit message format
-commit_regex='^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?: .{1,50}'
+# Use commitlint for commit message validation
+npx --no-install commitlint --edit "$1"
 
-if ! grep -qE "$commit_regex" "$1"; then
-    echo "❌ Invalid commit message format!"
-    echo "Format: type(scope): description"
-    echo "Types: feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert"
-    echo "Example: feat(api): add user authentication"
-    exit 1
+# Fallback to basic validation if commitlint fails
+if [ $? -ne 0 ]; then
+    echo "⚠️  Commitlint failed, falling back to basic validation..."
+    
+    # Check commit message format
+    commit_regex='^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert|wip)(\(.+\))?: .{1,50}'
+    
+    if ! grep -qE "$commit_regex" "$1"; then
+        echo "❌ Invalid commit message format!"
+        echo "Format: type(scope): description"
+        echo "Types: feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert, wip"
+        echo "Example: feat(api): add user authentication"
+        exit 1
+    fi
+    
+    echo "✅ Commit message format is valid!"
 fi
-
-echo "✅ Commit message format is valid!"

@@ -7,13 +7,19 @@ const errorRate = new Rate('error_rate');
 const responseTime = new Trend('response_time');
 const requestCount = new Counter('request_count');
 
+// Environment-configurable options
+const K6_BASE_URL = __ENV.K6_BASE_URL || 'http://localhost:3001';
+const K6_MAX_VUS = parseInt(__ENV.K6_MAX_VUS || '20');
+const K6_DURATION = __ENV.K6_DURATION || '5m';
+const K6_RAMP_DURATION = __ENV.K6_RAMP_DURATION || '2m';
+
 export const options = {
   stages: [
-    { duration: '2m', target: 10 }, // Ramp up to 10 users
-    { duration: '5m', target: 10 }, // Stay at 10 users
-    { duration: '2m', target: 20 }, // Ramp up to 20 users
-    { duration: '5m', target: 20 }, // Stay at 20 users
-    { duration: '2m', target: 0 },  // Ramp down to 0 users
+    { duration: K6_RAMP_DURATION, target: Math.floor(K6_MAX_VUS / 2) }, // Ramp up to half users
+    { duration: K6_DURATION, target: Math.floor(K6_MAX_VUS / 2) }, // Stay at half users
+    { duration: K6_RAMP_DURATION, target: K6_MAX_VUS }, // Ramp up to max users
+    { duration: K6_DURATION, target: K6_MAX_VUS }, // Stay at max users
+    { duration: K6_RAMP_DURATION, target: 0 },  // Ramp down to 0 users
   ],
   thresholds: {
     http_req_duration: ['p(95)<500'], // 95% of requests must complete below 500ms
@@ -22,7 +28,7 @@ export const options = {
   },
 };
 
-const BASE_URL = 'http://localhost:3001';
+const BASE_URL = K6_BASE_URL;
 
 export default function() {
   // Test health endpoints

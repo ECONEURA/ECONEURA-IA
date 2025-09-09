@@ -1,0 +1,129 @@
+name: Performance Testing
+
+on:
+  schedule:
+    # Run nightly at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of performance test to run'
+        required: false
+        default: 'load'
+        type: choice
+        options:
+          - load
+          - chaos
+          - both
+      max_vus:
+        description: 'Maximum virtual users'
+        required: false
+        default: '20'
+        type: string
+      base_url:
+        description: 'Base URL for testing'
+        required: false
+        default: 'http://localhost:3001'
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  K6_BASE_URL: ${{ github.event.inputs.base_url || 'http://localhost:3001' }}
+  K6_MAX_VUS: ${{ github.event.inputs.max_vus || '10' }}
+  K6_DURATION: '2m'
+  K6_RAMP_DURATION: '30s'
+  K6_CHAOS_DURATION: '1m'
+
+jobs:
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'pnpm'
+
+      - name: Install k6
+        run: |
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Install dependencies
+        run: |
+          npm install -g pnpm@8.15.5
+          pnpm install --no-frozen-lockfile
+
+      - name: Build applications
+        run: pnpm build
+
+      - name: Start API server (background)
+        run: |
+          cd apps/api
+          nohup pnpm start > server.log 2>&1 &
+          echo $! > server.pid
+          sleep 10
+
+      - name: Wait for server
+        run: |
+          timeout 30 bash -c 'until curl -f http://localhost:3001/health; do sleep 1; done'
+
+      - name: Run Load Tests
+        if: ${{ github.event.inputs.test_type == 'load' || github.event.inputs.test_type == 'both' || github.event.inputs.test_type == '' }}
+        run: |
+          echo "🚀 Running load performance tests..."
+          k6 run tests/k6/load-test.js --out json=load-test-results.json
+
+      - name: Run Chaos Tests
+        if: ${{ github.event.inputs.test_type == 'chaos' || github.event.inputs.test_type == 'both' }}
+        run: |
+          echo "🔥 Running chaos performance tests..."
+          k6 run tests/k6/chaos-test.js --out json=chaos-test-results.json
+
+      - name: Stop API server
+        if: always()
+        run: |
+          if [ -f apps/api/server.pid ]; then
+            kill $(cat apps/api/server.pid) || true
+          fi
+
+      - name: Upload performance test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-performance-results
+          path: |
+            *-test-results.json
+            apps/api/server.log
+          retention-days: 7
+
+      - name: Generate Performance Summary
+        if: always()
+        run: |
+          echo "## 📊 Performance Test Results" >> $GITHUB_STEP_SUMMARY
+          if [ -f load-test-results.json ]; then
+            echo "### Load Test Results" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            tail -n 20 load-test-results.json >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -f chaos-test-results.json ]; then
+            echo "### Chaos Test Results" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            tail -n 20 chaos-test-results.json >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "📈 Test completed with K6_MAX_VUS=$K6_MAX_VUS, K6_BASE_URL=$K6_BASE_URL" >> $GITHUB_STEP_SUMMARY
