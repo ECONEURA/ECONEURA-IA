@@ -208,7 +208,7 @@ export class WebAPIGateway {
   }
 
   private leastConnectionsSelection(services: ServiceEndpoint[]): ServiceEndpoint {
-    return services.reduce((min, service) => 
+    return services.reduce((min, service) => ;
       service.currentConnections < min.currentConnections ? service : min
     );
   }
@@ -216,14 +216,14 @@ export class WebAPIGateway {
   private weightedSelection(services: ServiceEndpoint[]): ServiceEndpoint {
     const totalWeight = services.reduce((sum, service) => sum + service.weight, 0);
     let random = Math.random() * totalWeight;
-    
+
     for (const service of services) {
       random -= service.weight;
       if (random <= 0) {
         return service;
       }
     }
-    
+
     return services[0];
   }
 
@@ -231,13 +231,13 @@ export class WebAPIGateway {
     if (!clientIp) {
       return services[0];
     }
-    
+
     const hash = clientIp.split('.').reduce((acc, octet) => acc + parseInt(octet), 0);
     return services[hash % services.length];
   }
 
   private responseTimeSelection(services: ServiceEndpoint[]): ServiceEndpoint {
-    return services.reduce((min, service) => 
+    return services.reduce((min, service) => ;
       service.responseTime < min.responseTime ? service : min
     );
   }
@@ -319,7 +319,7 @@ export class WebAPIGateway {
 
     const responseTimes = this.responseTimes.get(serviceId) || [];
     responseTimes.push(responseTime);
-    
+
     if (responseTimes.length > 100) {
       responseTimes.shift();
     }
@@ -334,10 +334,10 @@ export class WebAPIGateway {
   getStats(): GatewayStats {
     const totalRequests = Array.from(this.requestCounts.values()).reduce((sum, count) => sum + count, 0);
     const activeConnections = Array.from(this.services.values()).reduce((sum, service) => sum + service.currentConnections, 0);
-    
+
     const allResponseTimes = Array.from(this.responseTimes.values()).flat();
-    const averageResponseTime = allResponseTimes.length > 0 
-      ? allResponseTimes.reduce((sum, time) => sum + time, 0) / allResponseTimes.length 
+    const averageResponseTime = allResponseTimes.length > 0
+      ? allResponseTimes.reduce((sum, time) => sum + time, 0) / allResponseTimes.length
       : 0;
 
     const totalErrors = Array.from(this.errorCounts.values()).reduce((sum, count) => sum + count, 0);

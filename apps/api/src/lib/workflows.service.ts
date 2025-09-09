@@ -230,15 +230,15 @@ export class WorkflowsService {
   // Gestión de workflows
   async getWorkflows(filters?: { type?: string; status?: string }): Promise<Workflow[]> {
     let workflows = Array.from(this.workflows.values());
-    
+
     if (filters?.type) {
       workflows = workflows.filter(w => w.type === filters.type);
     }
-    
+
     if (filters?.status) {
       workflows = workflows.filter(w => w.status === filters.status);
     }
-    
+
     return workflows;
   }
 
@@ -253,7 +253,7 @@ export class WorkflowsService {
       createdAt: new Date(),
       updatedAt: new Date()
     };
-    
+
     this.workflows.set(newWorkflow.id!, newWorkflow);
     return newWorkflow;
   }
@@ -261,13 +261,13 @@ export class WorkflowsService {
   async updateWorkflow(id: string, updates: Partial<Workflow>): Promise<Workflow | null> {
     const existing = this.workflows.get(id);
     if (!existing) return null;
-    
+
     const updated: Workflow = {
       ...existing,
       ...updates,
       updatedAt: new Date()
     };
-    
+
     this.workflows.set(id, updated);
     return updated;
   }
@@ -279,15 +279,15 @@ export class WorkflowsService {
   // Gestión de instancias
   async getInstances(filters?: { status?: string; workflowId?: string }): Promise<WorkflowInstance[]> {
     let instances = Array.from(this.instances.values());
-    
+
     if (filters?.status) {
       instances = instances.filter(i => i.status === filters.status);
     }
-    
+
     if (filters?.workflowId) {
       instances = instances.filter(i => i.workflowId === filters.workflowId);
     }
-    
+
     return instances;
   }
 
@@ -335,7 +335,7 @@ export class WorkflowsService {
 
     instance.status = 'paused';
     this.executionQueue.delete(instanceId);
-    
+
     return instance;
   }
 
@@ -345,7 +345,7 @@ export class WorkflowsService {
 
     instance.status = 'running';
     this.executionQueue.set(instanceId, instance);
-    
+
     return instance;
   }
 
@@ -356,7 +356,7 @@ export class WorkflowsService {
     instance.status = 'cancelled';
     instance.completedAt = new Date();
     this.executionQueue.delete(instanceId);
-    
+
     return instance;
   }
 
@@ -378,7 +378,7 @@ export class WorkflowsService {
 
     try {
       const result = await this.executeActionLogic(action, instance.context);
-      
+
       // Registrar en historial
       instance.executionHistory = instance.executionHistory || [];
       instance.executionHistory.push({
@@ -411,7 +411,7 @@ export class WorkflowsService {
     if (workflow.type === 'bpmn' && currentElement) {
       const bpmnDef = workflow.definition as BPMNDefinition;
       const element = bpmnDef.elements.find(e => e.id === currentElement);
-      
+
       if (element?.actions) {
         for (const actionId of element.actions) {
           await this.executeAction(instance.id!, actionId);
@@ -420,7 +420,7 @@ export class WorkflowsService {
     } else if (workflow.type === 'state_machine' && currentState) {
       const stateDef = workflow.definition as StateMachineDefinition;
       const state = stateDef.states.find(s => s.id === currentState);
-      
+
       if (state?.actions) {
         for (const actionId of state.actions) {
           await this.executeAction(instance.id!, actionId);
@@ -449,10 +449,10 @@ export class WorkflowsService {
 
   private async executeFunctionAction(action: WorkflowAction, context: Record<string, any>): Promise<any> {
     const { functionName, parameters } = action.config;
-    
+
     // Simular ejecución de función
     const processedParams = this.processTemplate(parameters, context);
-    
+
     return {
       functionName,
       parameters: processedParams,
@@ -462,11 +462,11 @@ export class WorkflowsService {
 
   private async executeHttpAction(action: WorkflowAction, context: Record<string, any>): Promise<any> {
     const { url, method, body, headers } = action.config;
-    
+
     // Simular llamada HTTP
     const processedBody = this.processTemplate(body, context);
     const processedHeaders = this.processTemplate(headers, context);
-    
+
     return {
       url,
       method,
@@ -478,11 +478,11 @@ export class WorkflowsService {
 
   private async executeNotificationAction(action: WorkflowAction, context: Record<string, any>): Promise<any> {
     const { type, recipient, message, subject } = action.config;
-    
+
     const processedRecipient = this.processTemplate(recipient, context);
     const processedMessage = this.processTemplate(message, context);
     const processedSubject = this.processTemplate(subject, context);
-    
+
     return {
       type,
       recipient: processedRecipient,
@@ -494,10 +494,10 @@ export class WorkflowsService {
 
   private async executeDelayAction(action: WorkflowAction, context: Record<string, any>): Promise<any> {
     const { duration } = action.config;
-    
+
     // Simular delay
     await new Promise(resolve => setTimeout(resolve, duration || 1000));
-    
+
     return {
       duration,
       result: 'Delay completed'
@@ -506,10 +506,10 @@ export class WorkflowsService {
 
   private async executeConditionAction(action: WorkflowAction, context: Record<string, any>): Promise<any> {
     const { condition, trueAction, falseAction } = action.config;
-    
+
     const processedCondition = this.processTemplate(condition, context);
     const result = this.evaluateCondition(processedCondition, context);
-    
+
     return {
       condition: processedCondition,
       result,
@@ -541,7 +541,7 @@ export class WorkflowsService {
         const value = context[key];
         return typeof value === 'string' ? `"${value}"` : value;
       });
-      
+
       // Evaluación segura (solo operaciones básicas)
       return eval(processedCondition);
     } catch {
@@ -619,15 +619,15 @@ export class WorkflowsService {
     // Validar definición según tipo
     if (workflow.type === 'bpmn') {
       const bpmnDef = workflow.definition as BPMNDefinition;
-      
+
       if (!bpmnDef.startElement) {
         errors.push('BPMN workflow must have a start element');
       }
-      
+
       if (!bpmnDef.endElements || bpmnDef.endElements.length === 0) {
         errors.push('BPMN workflow must have at least one end element');
       }
-      
+
       // Validar que todos los elementos referenciados existen
       const elementIds = bpmnDef.elements.map(e => e.id);
       const referencedElements = [
@@ -636,7 +636,7 @@ export class WorkflowsService {
         ...bpmnDef.flows.map(f => f.source),
         ...bpmnDef.flows.map(f => f.target)
       ];
-      
+
       for (const ref of referencedElements) {
         if (!elementIds.includes(ref)) {
           errors.push(`Referenced element '${ref}' not found in elements`);
@@ -644,15 +644,15 @@ export class WorkflowsService {
       }
     } else if (workflow.type === 'state_machine') {
       const stateDef = workflow.definition as StateMachineDefinition;
-      
+
       if (!stateDef.initialState) {
         errors.push('State machine must have an initial state');
       }
-      
+
       if (!stateDef.finalStates || stateDef.finalStates.length === 0) {
         errors.push('State machine must have at least one final state');
       }
-      
+
       // Validar que todos los estados referenciados existen
       const stateIds = stateDef.states.map(s => s.id);
       const referencedStates = [
@@ -661,7 +661,7 @@ export class WorkflowsService {
         ...stateDef.transitions.map(t => t.from),
         ...stateDef.transitions.map(t => t.to)
       ];
-      
+
       for (const ref of referencedStates) {
         if (!stateIds.includes(ref)) {
           errors.push(`Referenced state '${ref}' not found in states`);
@@ -674,7 +674,7 @@ export class WorkflowsService {
       if (!action.id || action.id.length === 0) {
         errors.push('Action ID is required');
       }
-      
+
       if (!['function', 'http', 'notification', 'delay', 'condition'].includes(action.type)) {
         errors.push(`Invalid action type: ${action.type}`);
       }

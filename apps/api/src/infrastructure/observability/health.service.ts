@@ -117,12 +117,12 @@ export class HealthService {
   async checkDatabase(): Promise<HealthIndicatorResult> {
     try {
       const startTime = Date.now();
-      
+
       // Simulate database check
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       const duration = Date.now() - startTime;
-      
+
       return {
         database: {
           status: 'up',
@@ -143,12 +143,12 @@ export class HealthService {
   async checkRedis(): Promise<HealthIndicatorResult> {
     try {
       const startTime = Date.now();
-      
+
       // Simulate Redis check
       await new Promise(resolve => setTimeout(resolve, 50));
-      
+
       const duration = Date.now() - startTime;
-      
+
       return {
         redis: {
           status: 'up',
@@ -169,12 +169,12 @@ export class HealthService {
   async checkExternalAPIs(): Promise<HealthIndicatorResult> {
     try {
       const startTime = Date.now();
-      
+
       // Simulate external API checks
       await new Promise(resolve => setTimeout(resolve, 200));
-      
+
       const duration = Date.now() - startTime;
-      
+
       return {
         external_apis: {
           status: 'up',
@@ -195,12 +195,12 @@ export class HealthService {
   async checkStorage(): Promise<HealthIndicatorResult> {
     try {
       const startTime = Date.now();
-      
+
       // Simulate storage check
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       const duration = Date.now() - startTime;
-      
+
       return {
         storage: {
           status: 'up',
@@ -224,9 +224,9 @@ export class HealthService {
       const totalMem = memUsage.heapTotal + memUsage.external;
       const usedMem = memUsage.heapUsed;
       const percentage = (usedMem / totalMem) * 100;
-      
+
       const status = percentage > 90 ? 'down' : percentage > 80 ? 'degraded' : 'up';
-      
+
       return {
         memory: {
           status,
@@ -252,9 +252,9 @@ export class HealthService {
       const used = 50 * 1024 * 1024 * 1024; // 50GB
       const total = 100 * 1024 * 1024 * 1024; // 100GB
       const percentage = (used / total) * 100;
-      
+
       const status = percentage > 90 ? 'down' : percentage > 80 ? 'degraded' : 'up';
-      
+
       return {
         disk: {
           status,
@@ -281,7 +281,7 @@ export class HealthService {
   async getHealthStatus(): Promise<HealthStatus> {
     const checks: Record<string, HealthIndicatorResult> = {};
     let overallStatus: 'healthy' | 'unhealthy' | 'degraded' = 'healthy';
-    
+
     // Run all health checks
     const checkPromises = [
       this.checkDatabase(),
@@ -289,18 +289,18 @@ export class HealthService {
       this.checkExternalAPIs(),
       this.checkStorage(),
       this.checkMemory(),
-      this.checkDisk()
+      this.checkDisk();
     ];
-    
+
     const results = await Promise.allSettled(checkPromises);
-    
+
     results.forEach((result, index) => {
       const checkNames = ['database', 'redis', 'external_apis', 'storage', 'memory', 'disk'];
       const checkName = checkNames[index];
-      
+
       if (result.status === 'fulfilled') {
         checks[checkName] = result.value;
-        
+
         // Check if any critical service is down
         const checkConfig = this.healthChecks.get(checkName);
         if (checkConfig?.critical) {
@@ -318,19 +318,19 @@ export class HealthService {
             message: result.reason instanceof Error ? result.reason.message : 'Check failed'
           }
         };
-        
+
         const checkConfig = this.healthChecks.get(checkName);
         if (checkConfig?.critical) {
           overallStatus = 'unhealthy';
         }
       }
     });
-    
+
     // Get system metrics
     const memUsage = process.memoryUsage();
     const totalMem = memUsage.heapTotal + memUsage.external;
     const usedMem = memUsage.heapUsed;
-    
+
     return {
       status: overallStatus,
       timestamp: new Date().toISOString(),
@@ -413,19 +413,19 @@ export class HealthService {
     setInterval(async () => {
       try {
         const healthStatus = await this.getHealthStatus();
-        
+
         // Log health status
         console.log(`Health Status: ${healthStatus.status}`, {
           timestamp: healthStatus.timestamp,
           uptime: healthStatus.uptime,
           checks: Object.keys(healthStatus.checks).length
         });
-        
+
         // Store last check results
         Object.entries(healthStatus.checks).forEach(([name, result]) => {
           this.lastCheckResults.set(name, result);
         });
-        
+
       } catch (error) {
         console.error('Health monitoring error:', error);
       }
@@ -451,16 +451,16 @@ export class HealthService {
     const criticalChecks = Array.from(this.healthChecks.entries())
       .filter(([_, config]) => config.critical)
       .map(([name, _]) => name);
-    
+
     const failedChecks: string[] = [];
-    
+
     for (const checkName of criticalChecks) {
       const result = this.lastCheckResults.get(checkName);
       if (!result || result[checkName]?.status === 'down') {
         failedChecks.push(checkName);
       }
     }
-    
+
     return {
       status: failedChecks.length === 0 ? 'ready' : 'not_ready',
       timestamp: new Date().toISOString(),
@@ -471,7 +471,7 @@ export class HealthService {
   async getStartupProbe(): Promise<{ status: string; timestamp: string; uptime: number }> {
     const uptime = Date.now() - this.startTime.getTime();
     const isStarted = uptime > 10000; // Consider started after 10 seconds
-    
+
     return {
       status: isStarted ? 'started' : 'starting',
       timestamp: new Date().toISOString(),

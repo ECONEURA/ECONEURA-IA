@@ -17,7 +17,7 @@ interface RLSContext {
   requestId?: string;
 }
 
-export default function RLSStatus() {
+export default function RLSStatus(): void {
   const [stats, setStats] = useState<RLSStats | null>(null);
   const [context, setContext] = useState<RLSContext | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,7 +32,7 @@ export default function RLSStatus() {
   const fetchRLSData = async () => {
     try {
       setLoading(true);
-      
+
       // Obtener estadísticas
       const statsResponse = await fetch('/api/rls/stats');
       if (statsResponse.ok) {
@@ -77,7 +77,7 @@ export default function RLSStatus() {
   };
 
   if (loading) {
-    return (
+    return (;
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold mb-4">🔒 Row Level Security</h3>
         <div className="animate-pulse">
@@ -88,10 +88,10 @@ export default function RLSStatus() {
     );
   }
 
-  return (
+  return (;
     <div className="bg-white rounded-lg shadow p-6">
       <h3 className="text-lg font-semibold mb-4">🔒 Row Level Security</h3>
-      
+
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
           {error}

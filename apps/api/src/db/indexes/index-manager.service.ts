@@ -1,6 +1,6 @@
 /**
  * PR-56: Index Manager Service
- * 
+ *
  * Gestión avanzada de índices con creación automática,
  * monitoreo de performance y optimización dinámica.
  */
@@ -236,7 +236,7 @@ export class IndexManagerService {
       }
 
       structuredLogger.info('Index maintenance completed', { indexName: indexName || 'all' });
-      
+
       // Métricas
       metrics.databaseIndexMaintenance.inc({ index: indexName || 'all' });
 
@@ -253,7 +253,7 @@ export class IndexManagerService {
   private async maintainSpecificIndex(indexName: string): Promise<void> {
     // En un sistema real, ejecutaríamos REINDEX
     structuredLogger.info('Index maintenance performed', { indexName });
-    
+
     // Actualizar información de mantenimiento
     const maintenance = this.indexMaintenance.get(indexName);
     if (maintenance) {
@@ -269,7 +269,7 @@ export class IndexManagerService {
   public async createIndexFromRecommendation(recommendation: IndexRecommendation): Promise<boolean> {
     try {
       const indexName = `idx_${recommendation.table}_${recommendation.columns.join('_')}`;
-      
+
       // En un sistema real, crearíamos el índice
       structuredLogger.info('Index created from recommendation', {
         indexName,
@@ -301,7 +301,7 @@ export class IndexManagerService {
   public async dropUnusedIndex(indexName: string): Promise<boolean> {
     try {
       const usage = this.indexUsage.get(indexName);
-      
+
       if (usage && usage.usageCount < 100 && usage.efficiency < 0.5) {
         // En un sistema real, eliminaríamos el índice
         structuredLogger.info('Unused index dropped', {

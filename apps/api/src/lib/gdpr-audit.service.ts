@@ -69,9 +69,9 @@ export class GDPRAuditService {
 
       return auditEntry;
     } catch (error) {
-      logger.error('Failed to log audit entry', { 
-        requestId, 
-        error: (error as Error).message 
+      logger.error('Failed to log audit entry', {
+        requestId,
+        error: (error as Error).message
       });
       throw error;
     }
@@ -88,7 +88,7 @@ export class GDPRAuditService {
   ): Promise<GDPRRequest> {
     try {
       const requestId = `gdpr_req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+
       const gdprRequest: GDPRRequest = {
         id: requestId,
         userId,
@@ -132,9 +132,9 @@ export class GDPRAuditService {
 
       return gdprRequest;
     } catch (error) {
-      logger.error('Failed to create GDPR request', { 
-        userId, 
-        error: (error as Error).message 
+      logger.error('Failed to create GDPR request', {
+        userId,
+        error: (error as Error).message
       });
       throw error;
     }
@@ -166,10 +166,10 @@ export class GDPRAuditService {
         requestId,
         'updated',
         processedBy,
-        { 
-          oldStatus, 
-          newStatus: status, 
-          ...details 
+        {
+          oldStatus,
+          newStatus: status,
+          ...details
         },
         '127.0.0.1',
         'GDPR-System/1.0'
@@ -184,9 +184,9 @@ export class GDPRAuditService {
 
       return request;
     } catch (error) {
-      logger.error('Failed to update request status', { 
-        requestId, 
-        error: (error as Error).message 
+      logger.error('Failed to update request status', {
+        requestId,
+        error: (error as Error).message
       });
       throw error;
     }
@@ -222,11 +222,11 @@ export class GDPRAuditService {
         'system',
         'created',
         discoveredBy,
-        { 
+        {
           breachId: breach.id,
           type,
           severity,
-          affectedDataSubjects 
+          affectedDataSubjects
         },
         '127.0.0.1',
         'GDPR-System/1.0'
@@ -242,8 +242,8 @@ export class GDPRAuditService {
 
       return breach;
     } catch (error) {
-      logger.error('Failed to record breach', { 
-        error: (error as Error).message 
+      logger.error('Failed to record breach', {
+        error: (error as Error).message
       });
       throw error;
     }
@@ -267,11 +267,11 @@ export class GDPRAuditService {
         'system',
         'updated',
         updatedBy,
-        { 
+        {
           breachId,
           oldStatus,
           newStatus: breach.status,
-          updates 
+          updates
         },
         '127.0.0.1',
         'GDPR-System/1.0'
@@ -286,9 +286,9 @@ export class GDPRAuditService {
 
       return breach;
     } catch (error) {
-      logger.error('Failed to update breach', { 
-        breachId, 
-        error: (error as Error).message 
+      logger.error('Failed to update breach', {
+        breachId,
+        error: (error as Error).message
       });
       throw error;
     }
@@ -349,7 +349,7 @@ export class GDPRAuditService {
     const failedRequests = this.gdprRequests.filter(r => r.status === 'failed').length;
 
     // Calculate average processing time
-    const completedRequestsWithTime = this.gdprRequests.filter(r => 
+    const completedRequestsWithTime = this.gdprRequests.filter(r =>
       r.status === 'completed' && r.completedAt && r.requestedAt
     );
     const averageProcessingTime = completedRequestsWithTime.length > 0
@@ -368,8 +368,8 @@ export class GDPRAuditService {
     const resolvedBreaches = this.breaches.filter(b => b.status === 'resolved' || b.status === 'closed').length;
 
     // Calculate data retention compliance (simplified)
-    const dataRetentionCompliance = totalRequests > 0 
-      ? (completedRequests / totalRequests) * 100 
+    const dataRetentionCompliance = totalRequests > 0
+      ? (completedRequests / totalRequests) * 100
       : 100;
 
     return {
@@ -396,15 +396,15 @@ export class GDPRAuditService {
     complianceScore: number;
   } {
     const stats = this.getGDPRStats();
-    const periodBreaches = this.breaches.filter(b => 
+    const periodBreaches = this.breaches.filter(b =>
       b.discoveredAt >= period.start && b.discoveredAt <= period.end
     );
-    const periodAuditEntries = this.auditEntries.filter(a => 
+    const periodAuditEntries = this.auditEntries.filter(a =>
       a.timestamp >= period.start && a.timestamp <= period.end
     );
 
     // Calculate compliance score (simplified)
-    const complianceScore = Math.min(100, Math.max(0, 
+    const complianceScore = Math.min(100, Math.max(0,
       (stats.completedRequests / Math.max(1, stats.totalRequests)) * 100 -
       (periodBreaches.length * 10) -
       (stats.failedRequests * 5)

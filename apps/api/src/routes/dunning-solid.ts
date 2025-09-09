@@ -1,6 +1,6 @@
 /**
  * PR-66: Dunning Sólido Routes
- * 
+ *
  * Endpoints para el sistema robusto de dunning con segmentos KPIs y retries DLQ
  */
 
@@ -103,7 +103,7 @@ const updateConfigSchema = z.object({
 router.get('/stats', async (req, res) => {
   try {
     const stats = dunningSolidService.getStats();
-    
+
     res.json({
       success: true,
       data: stats,
@@ -114,7 +114,7 @@ router.get('/stats', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get dunning stats',
@@ -130,7 +130,7 @@ router.get('/stats', async (req, res) => {
 router.get('/segments', async (req, res) => {
   try {
     const segments = dunningSolidService.getSegments();
-    
+
     res.json({
       success: true,
       data: segments,
@@ -141,7 +141,7 @@ router.get('/segments', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get dunning segments',
@@ -157,16 +157,16 @@ router.get('/segments', async (req, res) => {
 router.get('/segments/:segmentId', async (req, res) => {
   try {
     const { segmentId } = req.params;
-    
+
     const segment = dunningSolidService.getSegment(segmentId);
-    
+
     if (!segment) {
       return res.status(404).json({
         success: false,
         error: 'Segment not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: segment,
@@ -178,7 +178,7 @@ router.get('/segments/:segmentId', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get dunning segment',
@@ -194,15 +194,15 @@ router.get('/segments/:segmentId', async (req, res) => {
 router.post('/segments', async (req, res) => {
   try {
     const validatedData = createSegmentSchema.parse(req.body);
-    
+
     const segment = await dunningSolidService.createSegment(validatedData);
-    
+
     structuredLogger.info('Dunning segment created via API', {
       segmentId: segment.id,
       name: segment.name,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       data: segment,
@@ -214,7 +214,7 @@ router.post('/segments', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to create dunning segment',
@@ -231,15 +231,15 @@ router.put('/segments/:segmentId', async (req, res) => {
   try {
     const { segmentId } = req.params;
     const validatedData = updateSegmentSchema.parse(req.body);
-    
+
     const segment = await dunningSolidService.updateSegment(segmentId, validatedData);
-    
+
     structuredLogger.info('Dunning segment updated via API', {
       segmentId,
       updates: Object.keys(validatedData),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       data: segment,
@@ -252,7 +252,7 @@ router.put('/segments/:segmentId', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to update dunning segment',
@@ -269,13 +269,13 @@ router.get('/kpis', async (req, res) => {
   try {
     const validatedData = getKPIsSchema.parse(req.query);
     const organizationId = req.user?.organizationId || 'default-org';
-    
+
     let kpis = dunningSolidService.getKPIs(validatedData.segmentId, validatedData.period);
-    
+
     // Paginación
     const total = kpis.length;
     const paginatedKPIs = kpis.slice(validatedData.offset, validatedData.offset + validatedData.limit);
-    
+
     res.json({
       success: true,
       data: {
@@ -293,7 +293,7 @@ router.get('/kpis', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get dunning KPIs',
@@ -310,13 +310,13 @@ router.get('/dlq', async (req, res) => {
   try {
     const validatedData = getDLQMessagesSchema.parse(req.query);
     const organizationId = req.user?.organizationId || 'default-org';
-    
+
     let messages = dunningSolidService.getDLQMessages(validatedData.status, validatedData.priority);
-    
+
     // Paginación
     const total = messages.length;
     const paginatedMessages = messages.slice(validatedData.offset, validatedData.offset + validatedData.limit);
-    
+
     res.json({
       success: true,
       data: {
@@ -334,7 +334,7 @@ router.get('/dlq', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get DLQ messages',
@@ -351,7 +351,7 @@ router.post('/dlq', async (req, res) => {
   try {
     const validatedData = addToDLQSchema.parse(req.body);
     const organizationId = req.user?.organizationId || 'default-org';
-    
+
     const dlqMessage = await dunningSolidService.addToDLQ(
       validatedData.originalMessageId,
       validatedData.queueName,
@@ -361,7 +361,7 @@ router.post('/dlq', async (req, res) => {
       organizationId,
       validatedData.priority
     );
-    
+
     structuredLogger.info('Message added to DLQ via API', {
       dlqId: dlqMessage.id,
       originalMessageId: validatedData.originalMessageId,
@@ -369,7 +369,7 @@ router.post('/dlq', async (req, res) => {
       messageType: validatedData.messageType,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       data: dlqMessage,
@@ -381,7 +381,7 @@ router.post('/dlq', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to add message to DLQ',
@@ -397,16 +397,16 @@ router.post('/dlq', async (req, res) => {
 router.post('/dlq/:dlqId/retry', async (req, res) => {
   try {
     const { dlqId } = req.params;
-    
+
     const retry = await dunningSolidService.retryDLQMessage(dlqId);
-    
+
     structuredLogger.info('DLQ message retry initiated via API', {
       retryId: retry.id,
       dlqId,
       attemptNumber: retry.attemptNumber,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       data: retry,
@@ -419,7 +419,7 @@ router.post('/dlq/:dlqId/retry', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to retry DLQ message',
@@ -436,13 +436,13 @@ router.get('/retries', async (req, res) => {
   try {
     const validatedData = getRetriesSchema.parse(req.query);
     const organizationId = req.user?.organizationId || 'default-org';
-    
+
     let retries = dunningSolidService.getRetries(validatedData.messageId, validatedData.status);
-    
+
     // Paginación
     const total = retries.length;
     const paginatedRetries = retries.slice(validatedData.offset, validatedData.offset + validatedData.limit);
-    
+
     res.json({
       success: true,
       data: {
@@ -460,7 +460,7 @@ router.get('/retries', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get dunning retries',
@@ -476,14 +476,14 @@ router.get('/retries', async (req, res) => {
 router.put('/config', async (req, res) => {
   try {
     const validatedData = updateConfigSchema.parse(req.body);
-    
+
     dunningSolidService.updateConfig(validatedData);
-    
+
     structuredLogger.info('Dunning configuration updated', {
       config: validatedData,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       message: 'Dunning configuration updated successfully',
@@ -495,7 +495,7 @@ router.put('/config', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to update dunning configuration',
@@ -525,7 +525,7 @@ router.get('/config', async (req, res) => {
       },
       notificationEnabled: true
     };
-    
+
     res.json({
       success: true,
       data: config,
@@ -536,7 +536,7 @@ router.get('/config', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get dunning configuration',
@@ -555,7 +555,7 @@ router.post('/process', async (req, res) => {
     structuredLogger.info('Manual DLQ processing initiated', {
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       message: 'DLQ processing initiated successfully',
@@ -570,7 +570,7 @@ router.post('/process', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to initiate DLQ processing',

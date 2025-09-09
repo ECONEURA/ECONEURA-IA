@@ -1,9 +1,9 @@
 // RLS Policy Deployer Service for PR-44
-import { 
-  RLSPolicy, 
-  PolicyDeployment, 
+import {
+  RLSPolicy,
+  PolicyDeployment,
   DeploymentAuditEntry,
-  DeploymentConfig 
+  DeploymentConfig
 } from './rls-types';
 import { logger } from './logger.js';
 
@@ -86,12 +86,12 @@ export class RLSPolicyDeployerService {
   ): Promise<PolicyDeployment> {
     try {
       const deploymentId = `deploy_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+
       // Find deployment config
-      const config = this.deploymentConfigs.find(c => 
+      const config = this.deploymentConfigs.find(c =>
         c.strategy === strategy && c.environment === environment
       );
-      
+
       if (!config) {
         throw new Error(`No deployment config found for strategy ${strategy} in environment ${environment}`);
       }
@@ -123,9 +123,9 @@ export class RLSPolicyDeployerService {
 
       // Start deployment process
       this.executeDeployment(deployment, policy, config).catch(error => {
-        logger.error('Deployment execution failed', { 
-          deploymentId: deployment.id, 
-          error: (error as Error).message 
+        logger.error('Deployment execution failed', {
+          deploymentId: deployment.id,
+          error: (error as Error).message
         });
       });
 
@@ -139,9 +139,9 @@ export class RLSPolicyDeployerService {
 
       return deployment;
     } catch (error) {
-      logger.error('Failed to initiate policy deployment', { 
-        policyId: policy.id, 
-        error: (error as Error).message 
+      logger.error('Failed to initiate policy deployment', {
+        policyId: policy.id,
+        error: (error as Error).message
       });
       throw error;
     }
@@ -180,7 +180,7 @@ export class RLSPolicyDeployerService {
       // Mark as deployed
       deployment.status = 'deployed';
       deployment.deployedAt = new Date();
-      
+
       await this.logDeploymentAudit(deployment, 'completed', deployment.deployedBy, {
         message: 'Deployment completed successfully'
       });
@@ -195,7 +195,7 @@ export class RLSPolicyDeployerService {
     } catch (error) {
       // Mark as failed
       deployment.status = 'failed';
-      
+
       await this.logDeploymentAudit(deployment, 'failed', deployment.deployedBy, {
         error: (error as Error).message
       });
@@ -238,17 +238,17 @@ export class RLSPolicyDeployerService {
 
     // Simulate canary deployment
     await this.simulateDeploymentStep('Deploying to canary environment', 3000);
-    
+
     let currentTraffic = initialTraffic;
     while (currentTraffic < maxTraffic) {
       await this.simulateDeploymentStep(`Routing ${(currentTraffic * 100).toFixed(1)}% traffic to canary`, incrementInterval);
-      
+
       // Check health metrics
       const healthScore = await this.checkHealthMetrics(deployment);
       if (healthScore < (1 - config.rollbackThreshold)) {
         throw new Error(`Health score ${healthScore} below threshold ${1 - config.rollbackThreshold}`);
       }
-      
+
       currentTraffic += trafficIncrement;
     }
   }
@@ -264,11 +264,11 @@ export class RLSPolicyDeployerService {
 
     // Simulate rolling deployment
     const totalBatches = Math.ceil(1 / batchSize);
-    
+
     for (let batch = 0; batch < totalBatches; batch++) {
       const batchNumber = batch + 1;
       await this.simulateDeploymentStep(`Deploying batch ${batchNumber}/${totalBatches}`, batchInterval);
-      
+
       // Check health after each batch
       const healthScore = await this.checkHealthMetrics(deployment);
       if (healthScore < (1 - config.rollbackThreshold)) {
@@ -299,7 +299,7 @@ export class RLSPolicyDeployerService {
   private async checkHealthMetrics(deployment: PolicyDeployment): Promise<number> {
     // Simulate health check
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     // Return a random health score between 0.8 and 1.0
     return 0.8 + Math.random() * 0.2;
   }
@@ -349,9 +349,9 @@ export class RLSPolicyDeployerService {
 
       return deployment;
     } catch (error) {
-      logger.error('Failed to rollback deployment', { 
-        deploymentId, 
-        error: (error as Error).message 
+      logger.error('Failed to rollback deployment', {
+        deploymentId,
+        error: (error as Error).message
       });
       throw error;
     }

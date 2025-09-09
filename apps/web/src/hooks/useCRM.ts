@@ -10,7 +10,7 @@ export function useCompanies(params?: {
   status?: string
 }) {
   const queryString = new URLSearchParams(
-    Object.entries(params || {})
+    Object.entries(params || {});
       .filter(([_, v]) => v !== undefined)
       .map(([k, v]) => [k, String(v)])
   ).toString()
@@ -26,28 +26,28 @@ export function useCompanies(params?: {
   }>(`companies-${queryString || 'all'}`, `/v1/crm/companies${queryString ? `?${queryString}` : ''}`)
 }
 
-export function useCompany(id: string) {
-  return useApiQuery<Company>(
+export function useCompany(id: string): void {
+  return useApiQuery<Company>(;
     ['company', id],
     `/v1/crm/companies/${id}`,
     { enabled: !!id }
   )
 }
 
-export function useCreateCompany() {
-  return useApiMutation<Company, Partial<Company>>(
+export function useCreateCompany(): void {
+  return useApiMutation<Company, Partial<Company>>(;
     '/v1/crm/companies',
     {
       method: 'POST',
       invalidateKeys: ['companies'],
       onSuccess: () => {
-        console.log('Company created successfully')
+        console.log('Company created successfully');
       }
     }
   )
 }
 
-export function useUpdateCompany() {
+export function useUpdateCompany(): void {
   return useApiMutation<Company, { id: string } & Partial<Company>>(
     (variables) => `/v1/crm/companies/${variables.id}`,
     {
@@ -57,7 +57,7 @@ export function useUpdateCompany() {
   )
 }
 
-export function useDeleteCompany() {
+export function useDeleteCompany(): void {
   return useApiMutation<void, { id: string }>(
     (variables) => `/v1/crm/companies/${variables.id}`,
     {
@@ -77,7 +77,7 @@ export function useContacts(params?: {
   status?: string
 }) {
   const queryString = new URLSearchParams(
-    Object.entries(params || {})
+    Object.entries(params || {});
       .filter(([_, v]) => v !== undefined)
       .map(([k, v]) => [k, String(v)])
   ).toString()
@@ -93,16 +93,16 @@ export function useContacts(params?: {
   }>(`contacts-${queryString || 'all'}`, `/v1/crm/contacts${queryString ? `?${queryString}` : ''}`)
 }
 
-export function useContact(id: string) {
-  return useApiQuery<Contact>(
+export function useContact(id: string): void {
+  return useApiQuery<Contact>(;
     ['contact', id],
     `/v1/crm/contacts/${id}`,
     { enabled: !!id }
   )
 }
 
-export function useCreateContact() {
-  return useApiMutation<Contact, Partial<Contact>>(
+export function useCreateContact(): void {
+  return useApiMutation<Contact, Partial<Contact>>(;
     '/v1/crm/contacts',
     {
       method: 'POST',
@@ -111,7 +111,7 @@ export function useCreateContact() {
   )
 }
 
-export function useUpdateContact() {
+export function useUpdateContact(): void {
   return useApiMutation<Contact, { id: string } & Partial<Contact>>(
     (variables) => `/v1/crm/contacts/${variables.id}`,
     {
@@ -121,7 +121,7 @@ export function useUpdateContact() {
   )
 }
 
-export function useDeleteContact() {
+export function useDeleteContact(): void {
   return useApiMutation<void, { id: string }>(
     (variables) => `/v1/crm/contacts/${variables.id}`,
     {
@@ -145,7 +145,7 @@ export function useDeals(params?: {
   maxValue?: number
 }) {
   const queryString = new URLSearchParams(
-    Object.entries(params || {})
+    Object.entries(params || {});
       .filter(([_, v]) => v !== undefined)
       .map(([k, v]) => [k, String(v)])
   ).toString()
@@ -166,16 +166,16 @@ export function useDeals(params?: {
   }>(`deals-${queryString || 'all'}`, `/v1/crm/deals${queryString ? `?${queryString}` : ''}`)
 }
 
-export function useDeal(id: string) {
-  return useApiQuery<Deal>(
+export function useDeal(id: string): void {
+  return useApiQuery<Deal>(;
     ['deal', id],
     `/v1/crm/deals/${id}`,
     { enabled: !!id }
   )
 }
 
-export function useCreateDeal() {
-  return useApiMutation<Deal, Partial<Deal>>(
+export function useCreateDeal(): void {
+  return useApiMutation<Deal, Partial<Deal>>(;
     '/v1/crm/deals',
     {
       method: 'POST',
@@ -184,7 +184,7 @@ export function useCreateDeal() {
   )
 }
 
-export function useUpdateDeal() {
+export function useUpdateDeal(): void {
   return useApiMutation<Deal, { id: string } & Partial<Deal>>(
     (variables) => `/v1/crm/deals/${variables.id}`,
     {
@@ -194,7 +194,7 @@ export function useUpdateDeal() {
   )
 }
 
-export function useDeleteDeal() {
+export function useDeleteDeal(): void {
   return useApiMutation<void, { id: string }>(
     (variables) => `/v1/crm/deals/${variables.id}`,
     {

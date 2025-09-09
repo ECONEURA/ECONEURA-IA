@@ -23,8 +23,8 @@ export class ConfigValidationService {
       return { success: true, data: result };
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return { 
-          success: false, 
+        return {
+          success: false,
           errors: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
         };
       }
@@ -41,10 +41,10 @@ export class ConfigValidationService {
     ];
 
     const missing = requiredEnvVars.filter(envVar => !process.env[envVar]);
-    
+
     if (missing.length > 0) {
-      return { 
-        success: false, 
+      return {
+        success: false,
         errors: [`Missing required environment variables: ${missing.join(', ')}`]
       };
     }

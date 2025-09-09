@@ -26,7 +26,7 @@ export class SimpleWorkflowEngine {
     };
 
     this.workflows.set(id, workflow);
-    
+
     structuredLogger.info('Workflow created', { workflowId: id, name, orgId });
     return id;
   }

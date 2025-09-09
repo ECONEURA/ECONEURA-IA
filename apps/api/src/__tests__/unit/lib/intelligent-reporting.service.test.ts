@@ -1,6 +1,6 @@
 /**
  * Unit tests for IntelligentReportingService
- * 
+ *
  * This test suite covers all functionality of the advanced reporting system
  * including report management, generation, scheduling, templates, and analytics.
  */
@@ -83,7 +83,7 @@ describe('IntelligentReportingService', () => {
       };
 
       const createdReport = await service.createReport(reportRequest, 'org_1', 'user_1');
-      
+
       const updates = {
         name: 'Updated Report',
         description: 'Updated description'
@@ -191,7 +191,7 @@ describe('IntelligentReportingService', () => {
 
     it('should throw error when generating non-existent report', async () => {
       await expect(
-        service.generateReport('non-existent-id', 'user_1')
+        service.generateReport('non-existent-id', 'user_1');
       ).rejects.toThrow('Report non-existent-id not found');
     });
 
@@ -220,7 +220,7 @@ describe('IntelligentReportingService', () => {
       };
 
       const report = await service.createReport(reportRequest, 'org_1', 'user_1');
-      
+
       // Generate multiple times
       await service.generateReport(report.id, 'user_1');
       await service.generateReport(report.id, 'user_2');
@@ -479,7 +479,7 @@ describe('IntelligentReportingService', () => {
       };
 
       const report = await service.createReport(reportRequest, 'org_1', 'user_1');
-      
+
       // Mock a generation failure scenario
       const generation = await service.generateReport(report.id, 'user_1');
       expect(generation).toBeDefined();

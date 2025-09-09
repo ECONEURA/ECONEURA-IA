@@ -78,7 +78,7 @@ export class MatchingEngineService {
 
       for (const existingTransaction of existingTransactions) {
         const score = this.calculateMatchingScore(sepaTransaction, existingTransaction);
-        
+
         if (score > 0.7 && (!bestMatch || score > bestMatch.score)) {
           bestMatch = { transaction: existingTransaction, score };
         }
@@ -139,20 +139,20 @@ export class MatchingEngineService {
     switch (condition.operator) {
       case 'equals':
         return sepaValue === existingValue ? 1.0 : 0.0;
-      
+
       case 'contains':
         if (typeof sepaValue === 'string' && typeof existingValue === 'string') {
           return sepaValue.toLowerCase().includes(existingValue.toLowerCase()) ? 0.8 : 0.0;
         }
         return 0.0;
-      
+
       case 'regex':
         if (typeof sepaValue === 'string' && typeof condition.value === 'string') {
           const regex = new RegExp(condition.value);
           return regex.test(sepaValue) ? 1.0 : 0.0;
         }
         return 0.0;
-      
+
       case 'range':
         if (typeof sepaValue === 'number' && typeof existingValue === 'number') {
           const tolerance = (condition.value as any).tolerance || 0.01;
@@ -160,7 +160,7 @@ export class MatchingEngineService {
           return diff <= tolerance ? 1.0 : Math.max(0, 1 - (diff / tolerance));
         }
         return 0.0;
-      
+
       default:
         return 0.0;
     }
@@ -177,12 +177,12 @@ export class MatchingEngineService {
     };
 
     const mappedField = fieldMap[field] || field;
-    
+
     if (mappedField.includes('.')) {
       const [parent, child] = mappedField.split('.');
       return (transaction as any)[parent]?.[child];
     }
-    
+
     return (transaction as any)[mappedField];
   }
 
@@ -226,8 +226,8 @@ export class MatchingEngineService {
     const total = this.reconciliationResults.length;
     const autoMatched = this.reconciliationResults.filter(r => r.status === 'auto').length;
     const manualMatched = this.reconciliationResults.filter(r => r.status === 'manual').length;
-    const averageScore = total > 0 
-      ? this.reconciliationResults.reduce((sum, r) => sum + r.score, 0) / total 
+    const averageScore = total > 0
+      ? this.reconciliationResults.reduce((sum, r) => sum + r.score, 0) / total
       : 0;
 
     return {

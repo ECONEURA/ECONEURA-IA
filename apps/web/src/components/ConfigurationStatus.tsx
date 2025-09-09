@@ -25,7 +25,7 @@ interface ConfigurationStats {
   totalSecrets: number;
 }
 
-export default function ConfigurationStatus() {
+export default function ConfigurationStatus(): void {
   const [flags, setFlags] = useState<FeatureFlag[]>([]);
   const [stats, setStats] = useState<ConfigurationStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -50,7 +50,7 @@ export default function ConfigurationStatus() {
   const fetchConfigurationData = async () => {
     try {
       setLoading(true);
-      
+
       // Obtener feature flags
       const flagsResponse = await fetch('/api/config/feature-flags');
       if (flagsResponse.ok) {
@@ -142,7 +142,7 @@ export default function ConfigurationStatus() {
   };
 
   if (loading) {
-    return (
+    return (;
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold mb-4">⚙️ Configuration & Feature Flags</h3>
         <div className="animate-pulse">
@@ -153,10 +153,10 @@ export default function ConfigurationStatus() {
     );
   }
 
-  return (
+  return (;
     <div className="bg-white rounded-lg shadow p-6">
       <h3 className="text-lg font-semibold mb-4">⚙️ Configuration & Feature Flags</h3>
-      
+
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
           {error}
@@ -284,7 +284,7 @@ export default function ConfigurationStatus() {
                 </div>
                 <div className="mt-2 flex justify-between items-center">
                   <div className="text-xs text-gray-500">
-                    Target Users: {flag.targetUsers.length} | 
+                    Target Users: {flag.targetUsers.length} |
                     Target Orgs: {flag.targetOrganizations.length} |
                     Conditions: {flag.conditions.length}
                   </div>

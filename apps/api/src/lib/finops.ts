@@ -159,7 +159,7 @@ export class FinOpsSystem {
   }
 
   getBudgetsByOrganization(organizationId: string): Budget[] {
-    return Array.from(this.budgets.values()).filter(
+    return Array.from(this.budgets.values()).filter(;
       budget => budget.organizationId === organizationId && budget.isActive
     );
   }
@@ -167,7 +167,7 @@ export class FinOpsSystem {
   // Evaluación de presupuestos
   private evaluateBudgets(organizationId: string): void {
     const organizationBudgets = this.getBudgetsByOrganization(organizationId);
-    
+
     for (const budget of organizationBudgets) {
       const currentAmount = this.calculateCurrentBudgetSpend(budget);
       const percentage = (currentAmount / budget.amount) * 100;
@@ -188,8 +188,8 @@ export class FinOpsSystem {
     const startDate = this.getBudgetStartDate(budget, now);
     const endDate = this.getBudgetEndDate(budget, now);
 
-    return this.costHistory
-      .filter(cost => 
+    return this.costHistory;
+      .filter(cost =>
         cost.organizationId === budget.organizationId &&
         cost.timestamp >= startDate &&
         cost.timestamp <= endDate &&
@@ -217,7 +217,7 @@ export class FinOpsSystem {
 
   private getBudgetEndDate(budget: Budget, currentDate: Date): Date {
     const startDate = this.getBudgetStartDate(budget, currentDate);
-    
+
     switch (budget.period) {
       case 'daily':
         return new Date(startDate.getTime() + 24 * 60 * 60 * 1000 - 1);
@@ -234,13 +234,13 @@ export class FinOpsSystem {
 
   // Alertas de presupuesto
   private createBudgetAlert(
-    budget: Budget, 
-    type: 'threshold' | 'critical' | 'exceeded', 
-    currentAmount: number, 
+    budget: Budget,
+    type: 'threshold' | 'critical' | 'exceeded',
+    currentAmount: number,
     percentage: number
   ): void {
     const alertId = `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const messages = {
       threshold: `Budget ${budget.name} has reached ${percentage.toFixed(1)}% of its limit`,
       critical: `Budget ${budget.name} has reached critical level: ${percentage.toFixed(1)}%`,
@@ -271,7 +271,7 @@ export class FinOpsSystem {
   }
 
   private hasActiveAlert(budgetId: string, type: string): boolean {
-    return Array.from(this.budgetAlerts.values()).some(
+    return Array.from(this.budgetAlerts.values()).some(;
       alert => alert.budgetId === budgetId && alert.type === type && !alert.acknowledged
     );
   }
@@ -330,7 +330,7 @@ export class FinOpsSystem {
 
   private groupCostsBy(costs: CostEntry[], field: keyof CostEntry): Record<string, number> {
     const grouped: Record<string, number> = {};
-    
+
     for (const cost of costs) {
       const key = String(cost[field]);
       grouped[key] = (grouped[key] || 0) + cost.amount;
@@ -341,7 +341,7 @@ export class FinOpsSystem {
 
   private groupCostsByPeriod(costs: CostEntry[]): Record<string, number> {
     const grouped: Record<string, number> = {};
-    
+
     for (const cost of costs) {
       const date = cost.timestamp.toISOString().split('T')[0]; // YYYY-MM-DD
       grouped[date] = (grouped[date] || 0) + cost.amount;
@@ -352,7 +352,7 @@ export class FinOpsSystem {
 
   private getPeriodCutoffDate(period: string): Date {
     const now = new Date();
-    
+
     switch (period) {
       case '1h':
         return new Date(now.getTime() - 60 * 60 * 1000);
@@ -375,7 +375,7 @@ export class FinOpsSystem {
     // Agrupar por día y calcular tendencia
     const dailyCosts = this.groupCostsByPeriod(costs);
     const sortedDays = Object.keys(dailyCosts).sort();
-    
+
     if (sortedDays.length < 2) return 'stable';
 
     const recentCosts = sortedDays.slice(-7).map(day => dailyCosts[day]);
@@ -392,7 +392,7 @@ export class FinOpsSystem {
   }
 
   private getTopExpenses(costs: CostEntry[], limit: number): CostEntry[] {
-    return costs
+    return costs;
       .sort((a, b) => b.amount - a.amount)
       .slice(0, limit);
   }
@@ -400,7 +400,7 @@ export class FinOpsSystem {
   // Headers FinOps
   generateFinOpsHeaders(organizationId: string, operation: string): Record<string, string> {
     const budgets = this.getBudgetsByOrganization(organizationId);
-    const relevantBudgets = budgets.filter(budget => 
+    const relevantBudgets = budgets.filter(budget =>
       budget.categories.includes(operation) || budget.categories.includes('all')
     );
 
@@ -507,19 +507,19 @@ export class FinOpsSystem {
   // Método para obtener el costo total por organización en un período
   getOrganizationCost(organizationId: string, period?: string): number {
     let filteredCosts = this.costHistory.filter(cost => cost.organizationId === organizationId);
-    
+
     if (period) {
       const cutoffDate = this.getPeriodCutoffDate(period);
       filteredCosts = filteredCosts.filter(cost => cost.timestamp >= cutoffDate);
     }
-    
+
     return filteredCosts.reduce((total, cost) => total + cost.amount, 0);
   }
 
   // Método para enviar notificaciones de alertas
   sendBudgetAlertNotification(alert: BudgetAlert): void {
     const notificationId = `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const notification: BudgetNotification = {
       id: notificationId,
       alertId: alert.id,
@@ -543,10 +543,10 @@ export class FinOpsSystem {
 
   clearOldData(daysToKeep: number = 90): void {
     const cutoffDate = new Date(Date.now() - daysToKeep * 24 * 60 * 60 * 1000);
-    
+
     // Limpiar costos antiguos
     this.costHistory = this.costHistory.filter(cost => cost.timestamp >= cutoffDate);
-    
+
     // Limpiar alertas antiguas
     for (const [alertId, alert] of this.budgetAlerts) {
       if (alert.timestamp < cutoffDate) {

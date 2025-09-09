@@ -1,8 +1,8 @@
 /**
  * CONTENT MANAGEMENT DASHBOARD
- * 
+ *
  * PR-55: Dashboard completo de gestión de contenido
- * 
+ *
  * Funcionalidades:
  * - Lista de contenido con filtros
  * - Búsqueda avanzada
@@ -25,16 +25,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
-import { 
-  FileText, 
-  Plus, 
-  Search, 
-  Filter, 
-  Eye, 
-  Edit, 
-  Trash2, 
-  Share, 
-  History, 
+import {
+  FileText,
+  Plus,
+  Search,
+  Filter,
+  Eye,
+  Edit,
+  Trash2,
+  Share,
+  History,
   BarChart3,
   Calendar,
   Clock,
@@ -174,7 +174,7 @@ const ContentManagementDashboard: React.FC = () => {
       setLoading(true);
       const response = await fetch('/api/content');
       const data = await response.json();
-      
+
       if (data.success) {
         setContents(data.data.contents || []);
       }
@@ -189,7 +189,7 @@ const ContentManagementDashboard: React.FC = () => {
     try {
       const response = await fetch('/api/content/statistics');
       const data = await response.json();
-      
+
       if (data.success) {
         setStatistics(data.data);
       }
@@ -202,10 +202,10 @@ const ContentManagementDashboard: React.FC = () => {
     const matchesSearch = content.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          content.metadata.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          content.metadata.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    
+
     const matchesType = selectedType === 'all' || content.type === selectedType;
     const matchesStatus = selectedStatus === 'all' || content.status === selectedStatus;
-    
+
     return matchesSearch && matchesType && matchesStatus;
   });
 
@@ -251,7 +251,7 @@ const ContentManagementDashboard: React.FC = () => {
   };
 
   if (loading) {
-    return (
+    return (;
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -261,7 +261,7 @@ const ContentManagementDashboard: React.FC = () => {
     );
   }
 
-  return (
+  return (;
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -544,14 +544,14 @@ const ContentManagementDashboard: React.FC = () => {
                   <p className="text-sm text-gray-600">{selectedContent.currentVersion}</p>
                 </div>
               </div>
-              
+
               {selectedContent.metadata.description && (
                 <div>
                   <label className="text-sm font-medium">Descripción</label>
                   <p className="text-sm text-gray-600">{selectedContent.metadata.description}</p>
                 </div>
               )}
-              
+
               {selectedContent.metadata.tags.length > 0 && (
                 <div>
                   <label className="text-sm font-medium">Etiquetas</label>
@@ -562,7 +562,7 @@ const ContentManagementDashboard: React.FC = () => {
                   </div>
                 </div>
               )}
-              
+
               {selectedContent.metadata.categories.length > 0 && (
                 <div>
                   <label className="text-sm font-medium">Categorías</label>
@@ -573,7 +573,7 @@ const ContentManagementDashboard: React.FC = () => {
                   </div>
                 </div>
               )}
-              
+
               {selectedContent.metadata.analytics && (
                 <div>
                   <label className="text-sm font-medium">Analytics</label>
@@ -597,7 +597,7 @@ const ContentManagementDashboard: React.FC = () => {
                   </div>
                 </div>
               )}
-              
+
               <div className="flex items-center space-x-4">
                 {selectedContent.isPublic ? (
                   <div className="flex items-center space-x-1 text-green-600">
@@ -610,14 +610,14 @@ const ContentManagementDashboard: React.FC = () => {
                     <span className="text-sm">Privado</span>
                   </div>
                 )}
-                
+
                 {selectedContent.isFeatured && (
                   <div className="flex items-center space-x-1 text-yellow-600">
                     <Star className="h-4 w-4" />
                     <span className="text-sm">Destacado</span>
                   </div>
                 )}
-                
+
                 {selectedContent.isSticky && (
                   <div className="flex items-center space-x-1 text-blue-600">
                     <Pin className="h-4 w-4" />
@@ -670,7 +670,7 @@ const ContentManagementDashboard: React.FC = () => {
             </div>
             <div>
               <label className="text-sm font-medium">Contenido</label>
-              <textarea 
+              <textarea
                 placeholder="Escribe tu contenido aquí..."
                 className="w-full mt-1 p-3 border border-gray-300 rounded-md"
                 rows={6}

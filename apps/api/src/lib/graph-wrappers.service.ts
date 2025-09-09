@@ -153,7 +153,7 @@ export class GraphWrappersService extends EventEmitter {
   public async getUsers(organizationId: string): Promise<GraphUser[]> {
     const cacheKey = `graph_users_${organizationId}`;
     const cached = apiCache.get(cacheKey);
-    
+
     if (cached) {
       return cached as GraphUser[];
     }
@@ -212,7 +212,7 @@ export class GraphWrappersService extends EventEmitter {
   public async getMessages(organizationId: string, userId: string, limit: number = 50): Promise<GraphMessage[]> {
     const cacheKey = `graph_messages_${organizationId}_${userId}_${limit}`;
     const cached = apiCache.get(cacheKey);
-    
+
     if (cached) {
       return cached as GraphMessage[];
     }
@@ -282,7 +282,7 @@ export class GraphWrappersService extends EventEmitter {
   public async getCalendarEvents(organizationId: string, userId: string, startDate?: string, endDate?: string): Promise<GraphCalendarEvent[]> {
     const cacheKey = `graph_calendar_${organizationId}_${userId}_${startDate}_${endDate}`;
     const cached = apiCache.get(cacheKey);
-    
+
     if (cached) {
       return cached as GraphCalendarEvent[];
     }
@@ -360,7 +360,7 @@ export class GraphWrappersService extends EventEmitter {
   public async getDriveItems(organizationId: string, userId: string, folderId?: string): Promise<GraphDriveItem[]> {
     const cacheKey = `graph_drive_${organizationId}_${userId}_${folderId || 'root'}`;
     const cached = apiCache.get(cacheKey);
-    
+
     if (cached) {
       return cached as GraphDriveItem[];
     }
@@ -405,7 +405,7 @@ export class GraphWrappersService extends EventEmitter {
   public async getTeams(organizationId: string): Promise<GraphTeam[]> {
     const cacheKey = `graph_teams_${organizationId}`;
     const cached = apiCache.get(cacheKey);
-    
+
     if (cached) {
       return cached as GraphTeam[];
     }
@@ -462,7 +462,7 @@ export class GraphWrappersService extends EventEmitter {
   public async getTeamChannels(teamId: string, organizationId: string): Promise<GraphChannel[]> {
     const cacheKey = `graph_channels_${teamId}_${organizationId}`;
     const cached = apiCache.get(cacheKey);
-    
+
     if (cached) {
       return cached as GraphChannel[];
     }
@@ -540,7 +540,7 @@ export class GraphWrappersService extends EventEmitter {
 
   public async getOutboxMessages(organizationId: string, status?: GraphOutboxMessage['status']): Promise<GraphOutboxMessage[]> {
     let messages = Array.from(this.outbox.values());
-    
+
     if (status) {
       messages = messages.filter(msg => msg.status === status);
     }
@@ -550,7 +550,7 @@ export class GraphWrappersService extends EventEmitter {
 
   public async sendOutboxMessage(messageId: string): Promise<boolean> {
     const message = this.outbox.get(messageId);
-    
+
     if (!message) {
       throw new Error(`Message not found in outbox: ${messageId}`);
     }
@@ -568,7 +568,7 @@ export class GraphWrappersService extends EventEmitter {
         toRecipients: message.toRecipients.length,
         requestId: ''
       });
-      
+
       this.emit('messageSent', message);
       return true;
     }
@@ -579,7 +579,7 @@ export class GraphWrappersService extends EventEmitter {
 
   public async cancelOutboxMessage(messageId: string): Promise<boolean> {
     const message = this.outbox.get(messageId);
-    
+
     if (!message) {
       throw new Error(`Message not found in outbox: ${messageId}`);
     }
@@ -589,7 +589,7 @@ export class GraphWrappersService extends EventEmitter {
     }
 
     message.status = 'cancelled';
-    
+
     structuredLogger.info('Message cancelled', {
       messageId,
       subject: message.subject,

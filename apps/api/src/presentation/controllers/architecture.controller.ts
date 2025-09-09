@@ -127,7 +127,7 @@ export class ArchitectureController extends BaseController {
       const query = ArchitectureSearchQuerySchema.parse(req.query);
 
       const result = await this.architectureRepository.findByOrganizationId(organizationId, query);
-      
+
       const response: ArchitectureListResponse = {
         data: result.data.map(architecture => this.transformArchitectureToResponse(architecture)),
         pagination: result.pagination
@@ -143,7 +143,7 @@ export class ArchitectureController extends BaseController {
       const query = ArchitectureSearchQuerySchema.parse(req.query);
 
       const result = await this.architectureRepository.search(query.search || '', organizationId, query);
-      
+
       const response: ArchitectureListResponse = {
         data: result.data.map(architecture => this.transformArchitectureToResponse(architecture)),
         pagination: result.pagination
@@ -175,7 +175,7 @@ export class ArchitectureController extends BaseController {
       const query = ArchitectureSearchQuerySchema.parse(req.query);
 
       const result = await this.architectureRepository.findByType(type, organizationId, query);
-      
+
       const response: ArchitectureListResponse = {
         data: result.data.map(architecture => this.transformArchitectureToResponse(architecture)),
         pagination: result.pagination
@@ -192,7 +192,7 @@ export class ArchitectureController extends BaseController {
       const query = ArchitectureSearchQuerySchema.parse(req.query);
 
       const result = await this.architectureRepository.findByStatus(status, organizationId, query);
-      
+
       const response: ArchitectureListResponse = {
         data: result.data.map(architecture => this.transformArchitectureToResponse(architecture)),
         pagination: result.pagination
@@ -208,7 +208,7 @@ export class ArchitectureController extends BaseController {
       const query = ArchitectureSearchQuerySchema.parse(req.query);
 
       const result = await this.architectureRepository.findActiveArchitectures(organizationId, query);
-      
+
       const response: ArchitectureListResponse = {
         data: result.data.map(architecture => this.transformArchitectureToResponse(architecture)),
         pagination: result.pagination
@@ -224,7 +224,7 @@ export class ArchitectureController extends BaseController {
       const query = ArchitectureSearchQuerySchema.parse(req.query);
 
       const result = await this.architectureRepository.findWithMetrics(organizationId, query);
-      
+
       const response: ArchitectureListResponse = {
         data: result.data.map(architecture => this.transformArchitectureToResponse(architecture)),
         pagination: result.pagination

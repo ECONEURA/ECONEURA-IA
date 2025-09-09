@@ -27,7 +27,7 @@ export const initFinOps = (req: FinOpsRequest, res: Response, next: NextFunction
   req.correlationId = req.header('x-correlation-id') || `agent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   req.estimatedCost = 0;
   req.budgetPct = 0;
-  
+
   next();
 };
 
@@ -36,7 +36,7 @@ export const initFinOps = (req: FinOpsRequest, res: Response, next: NextFunction
  */
 export const finalizeFinOps = (req: FinOpsRequest, res: Response, next: NextFunction) => {
   const latency = req.startTime ? Date.now() - req.startTime : 0;
-  
+
   const headers: FinOpsHeaders = {
     'X-Est-Cost-EUR': (req.estimatedCost || 0).toFixed(4),
     'X-Budget-Pct': (req.budgetPct || 0).toFixed(2),
@@ -44,12 +44,12 @@ export const finalizeFinOps = (req: FinOpsRequest, res: Response, next: NextFunc
     'X-Route': req.path,
     'X-Correlation-Id': req.correlationId || 'unknown'
   };
-  
+
   // Set headers
   Object.entries(headers).forEach(([key, value]) => {
     if (value) res.setHeader(key, value);
   });
-  
+
   next();
 };
 
@@ -59,7 +59,7 @@ export const finalizeFinOps = (req: FinOpsRequest, res: Response, next: NextFunc
 export const calculateMakeCost = (operations: number = 1): number => {
   // Make.com pricing (estimated)
   const COST_PER_OPERATION = 0.001; // $0.001 per operation
-  
+
   return operations * COST_PER_OPERATION;
 };
 
@@ -68,7 +68,7 @@ export const calculateMakeCost = (operations: number = 1): number => {
  */
 export const budgetGuard = (req: FinOpsRequest, res: Response, next: NextFunction) => {
   const budgetPct = req.budgetPct || 0;
-  
+
   if (budgetPct >= 90) {
     return res.status(402).json({
       error: 'Budget limit exceeded',
@@ -76,7 +76,7 @@ export const budgetGuard = (req: FinOpsRequest, res: Response, next: NextFunctio
       message: 'Agent execution blocked due to budget constraints'
     });
   }
-  
+
   next();
 };
 

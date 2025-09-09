@@ -4,33 +4,33 @@ import { z } from 'zod';
 export const AnalyticsEventType = z.enum([
   // User actions
   'user_login',
-  'user_logout', 
+  'user_logout',
   'user_action',
   'page_view',
   'button_click',
-  
+
   // CRM events
   'company_created',
   'company_updated',
-  'contact_created', 
+  'contact_created',
   'contact_updated',
   'deal_created',
   'deal_updated',
   'deal_stage_changed',
-  
+
   // Agent events
   'agent_started',
   'agent_completed',
   'agent_failed',
   'agent_cancelled',
-  
+
   // System events
   'api_request',
   'error_occurred',
   'performance_metric',
   'cost_threshold_reached',
   'budget_warning',
-  
+
   // Business events
   'invoice_sent',
   'payment_received',
@@ -46,17 +46,17 @@ export const BaseAnalyticsEventSchema = z.object({
   eventType: AnalyticsEventType,
   timestamp: z.string().datetime(),
   orgId: z.string().uuid(),
-  
+
   // Optional identification
   userId: z.string().uuid().optional(),
   sessionId: z.string().optional(),
   correlationId: z.string().uuid().optional(),
-  
+
   // Event context
   source: z.string().default('api'), // api, web, worker, agent
   version: z.string().default('1.0.0'),
   environment: z.string().default('production'),
-  
+
   // Metadata
   metadata: z.record(z.unknown()).optional(),
 });

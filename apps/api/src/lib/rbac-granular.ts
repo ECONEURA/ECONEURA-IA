@@ -59,7 +59,7 @@ export class GranularRBACService {
       const userPermissions = this.getUserPermissionsFromRoles(userRoles);
 
       // Check direct permission
-      const hasDirectPermission = userPermissions.some(permission => 
+      const hasDirectPermission = userPermissions.some(permission =>
         permission.resource === resource && permission.action === action
       );
 
@@ -68,7 +68,7 @@ export class GranularRBACService {
       }
 
       // Check wildcard permissions
-      const hasWildcardPermission = userPermissions.some(permission => 
+      const hasWildcardPermission = userPermissions.some(permission =>
         (permission.resource === '*' || permission.resource === resource) &&
         (permission.action === '*' || permission.action === action)
       );
@@ -126,7 +126,7 @@ export class GranularRBACService {
     };
 
     this.permissions.set(id, newPermission);
-    
+
     structuredLogger.info('Permission created', {
       permissionId: id,
       name: permission.name,
@@ -141,7 +141,7 @@ export class GranularRBACService {
   async createRole(role: Omit<Role, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
     const id = `role_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date().toISOString();
-    
+
     const newRole: Role = {
       ...role,
       id,
@@ -150,7 +150,7 @@ export class GranularRBACService {
     };
 
     this.roles.set(id, newRole);
-    
+
     structuredLogger.info('Role created', {
       roleId: id,
       name: role.name,
@@ -179,7 +179,7 @@ export class GranularRBACService {
 
     const key = `${userId}:${orgId}`;
     const existingRoles = this.userRoles.get(key) || [];
-    
+
     // Check if role already assigned
     const existingRole = existingRoles.find(ur => ur.roleId === roleId);
     if (existingRole) {
@@ -188,7 +188,7 @@ export class GranularRBACService {
 
     existingRoles.push(userRole);
     this.userRoles.set(key, existingRoles);
-    
+
     structuredLogger.info('Role assigned to user', {
       userId,
       roleId,
@@ -201,10 +201,10 @@ export class GranularRBACService {
   async removeRole(userId: string, roleId: string, orgId: string): Promise<void> {
     const key = `${userId}:${orgId}`;
     const existingRoles = this.userRoles.get(key) || [];
-    
+
     const filteredRoles = existingRoles.filter(ur => ur.roleId !== roleId);
     this.userRoles.set(key, filteredRoles);
-    
+
     structuredLogger.info('Role removed from user', {
       userId,
       roleId,
@@ -226,8 +226,8 @@ export class GranularRBACService {
   async getUserRoles(userId: string, orgId: string): Promise<Role[]> {
     const key = `${userId}:${orgId}`;
     const userRoles = this.userRoles.get(key) || [];
-    
-    return userRoles
+
+    return userRoles;
       .filter(ur => !ur.expiresAt || new Date(ur.expiresAt) > new Date())
       .map(ur => this.roles.get(ur.roleId))
       .filter((role): role is Role => role !== undefined);
@@ -259,7 +259,7 @@ export class GranularRBACService {
 
   private getUserPermissionsFromRoles(userRoles: UserRole[]): Permission[] {
     const permissions: Permission[] = [];
-    
+
     for (const userRole of userRoles) {
       const role = this.roles.get(userRole.roleId);
       if (role) {
@@ -271,19 +271,19 @@ export class GranularRBACService {
         }
       }
     }
-    
+
     return permissions;
   }
 
   private evaluateConditions(conditions: Record<string, any>, context: Record<string, any>): boolean {
     for (const [key, expectedValue] of Object.entries(conditions)) {
       const actualValue = context[key];
-      
+
       if (actualValue !== expectedValue) {
         return false;
       }
     }
-    
+
     return true;
   }
 
@@ -293,26 +293,26 @@ export class GranularRBACService {
       { name: 'analytics:read', resource: 'analytics', action: 'read' },
       { name: 'analytics:write', resource: 'analytics', action: 'write' },
       { name: 'analytics:export', resource: 'analytics', action: 'export' },
-      
+
       // Security permissions
       { name: 'security:read', resource: 'security', action: 'read' },
       { name: 'security:write', resource: 'security', action: 'write' },
       { name: 'security:admin', resource: 'security', action: 'admin' },
-      
+
       // FinOps permissions
       { name: 'finops:read', resource: 'finops', action: 'read' },
       { name: 'finops:write', resource: 'finops', action: 'write' },
       { name: 'finops:admin', resource: 'finops', action: 'admin' },
-      
+
       // GDPR permissions
       { name: 'gdpr:read', resource: 'gdpr', action: 'read' },
       { name: 'gdpr:export', resource: 'gdpr', action: 'export' },
       { name: 'gdpr:erase', resource: 'gdpr', action: 'erase' },
-      
+
       // SEPA permissions
       { name: 'sepa:read', resource: 'sepa', action: 'read' },
       { name: 'sepa:write', resource: 'sepa', action: 'write' },
-      
+
       // Admin permissions
       { name: 'admin:all', resource: '*', action: '*' },
       { name: 'user:manage', resource: 'user', action: '*' },

@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { apiClient } from '@/lib/api-client';
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Clock, 
-  Users, 
+import {
+  BarChart3,
+  TrendingUp,
+  Clock,
+  Users,
   Calendar,
   Activity,
   Target,
@@ -55,7 +55,7 @@ interface AnalyticsData {
   recommendations: string[];
 }
 
-export default function InteractionsAnalyticsPage() {
+export default function InteractionsAnalyticsPage(): void {
   const { user } = useAuth();
   const api = apiClient;
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
@@ -92,7 +92,7 @@ export default function InteractionsAnalyticsPage() {
   const formatTime = (hours: number) => `${hours.toFixed(1)}h`;
 
   if (loading) {
-    return (
+    return (;
       <div className="min-h-screen bg-gradient-to-br from-sand-50 via-white to-mediterranean-50 flex items-center justify-center">
         <div className="text-center">
           <RefreshCw className="w-8 h-8 text-mediterranean-600 animate-spin mx-auto mb-4" />
@@ -103,7 +103,7 @@ export default function InteractionsAnalyticsPage() {
   }
 
   if (!analytics) {
-    return (
+    return (;
       <div className="min-h-screen bg-gradient-to-br from-sand-50 via-white to-mediterranean-50 flex items-center justify-center">
         <div className="text-center">
           <BarChart3 className="w-16 h-16 text-sand-400 mx-auto mb-4" />
@@ -114,7 +114,7 @@ export default function InteractionsAnalyticsPage() {
     );
   }
 
-  return (
+  return (;
     <div className="min-h-screen bg-gradient-to-br from-sand-50 via-white to-mediterranean-50">
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-sand-200">
@@ -224,10 +224,10 @@ export default function InteractionsAnalyticsPage() {
                   <span className="text-sm font-medium text-sand-700 capitalize">{type}</span>
                   <div className="flex items-center space-x-2">
                     <div className="w-24 bg-sand-200 rounded-full h-2">
-                      <div 
+                      <div
                         className="bg-mediterranean-600 h-2 rounded-full"
-                        style={{ 
-                          width: `${(count / analytics.overview.total_interactions) * 100}%` 
+                        style={{
+                          width: `${(count / analytics.overview.total_interactions) * 100}%`
                         }}
                       />
                     </div>
@@ -247,14 +247,14 @@ export default function InteractionsAnalyticsPage() {
                   <span className="text-sm font-medium text-sand-700 capitalize">{status}</span>
                   <div className="flex items-center space-x-2">
                     <div className="w-24 bg-sand-200 rounded-full h-2">
-                      <div 
+                      <div
                         className={`h-2 rounded-full ${
                           status === 'completed' ? 'bg-green-600' :
                           status === 'pending' ? 'bg-yellow-600' :
                           'bg-red-600'
                         }`}
-                        style={{ 
-                          width: `${(count / analytics.overview.total_interactions) * 100}%` 
+                        style={{
+                          width: `${(count / analytics.overview.total_interactions) * 100}%`
                         }}
                       />
                     </div>

@@ -112,7 +112,7 @@ export class CompaniesTaxonomyService {
 
   async classifyCompany(companyData: any): Promise<any[]> {
     const companyId = `company_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     structuredLogger.info('Company classified', {
       companyId,
       companyName: companyData.name,
@@ -166,7 +166,7 @@ export class CompaniesTaxonomyService {
     const companies = [];
     const industries = ['Technology', 'Healthcare', 'Financial Services', 'Manufacturing', 'Retail'];
     const sizes = ['micro', 'small', 'medium', 'large', 'enterprise'];
-    
+
     for (let i = 0; i < count; i++) {
       companies.push({
         id: `company_${i}`,
@@ -180,7 +180,7 @@ export class CompaniesTaxonomyService {
         location: 'Spain'
       });
     }
-    
+
     return companies;
   }
 

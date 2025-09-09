@@ -17,10 +17,10 @@ describe('Companies Taxonomy API Integration Tests', () => {
       expect(response.body.data).toHaveProperty('count');
       expect(response.body.data).toHaveProperty('timestamp');
       expect(response.body.data).toHaveProperty('traceId');
-      
+
       expect(Array.isArray(response.body.data.taxonomies)).toBe(true);
       expect(response.body.data.count).toBeGreaterThan(0);
-      
+
       // Check structure of first taxonomy
       if (response.body.data.taxonomies.length > 0) {
         const taxonomy = response.body.data.taxonomies[0];
@@ -55,7 +55,7 @@ describe('Companies Taxonomy API Integration Tests', () => {
       expect(response.body.data).toHaveProperty('count');
       expect(response.body.data).toHaveProperty('timestamp');
       expect(response.body.data).toHaveProperty('traceId');
-      
+
       expect(Array.isArray(response.body.data.classifications)).toBe(true);
     });
 
@@ -106,7 +106,7 @@ describe('Companies Taxonomy API Integration Tests', () => {
       expect(response.body.data).toHaveProperty('organizationId', organizationId);
       expect(response.body.data).toHaveProperty('timestamp');
       expect(response.body.data).toHaveProperty('traceId');
-      
+
       expect(Array.isArray(response.body.data.views)).toBe(true);
     });
 
@@ -150,7 +150,7 @@ describe('Companies Taxonomy API Integration Tests', () => {
       expect(response.body.data).toHaveProperty('message', 'View created successfully');
       expect(response.body.data).toHaveProperty('timestamp');
       expect(response.body.data).toHaveProperty('traceId');
-      
+
       const view = response.body.data.view;
       expect(view).toHaveProperty('id');
       expect(view).toHaveProperty('name', viewData.name);
@@ -198,7 +198,7 @@ describe('Companies Taxonomy API Integration Tests', () => {
       expect(response.body.data).toHaveProperty('viewId', viewId);
       expect(response.body.data).toHaveProperty('timestamp');
       expect(response.body.data).toHaveProperty('traceId');
-      
+
       expect(Array.isArray(response.body.data.companies)).toBe(true);
       expect(typeof response.body.data.total).toBe('number');
       expect(typeof response.body.data.page).toBe('number');
@@ -262,11 +262,11 @@ describe('Companies Taxonomy API Integration Tests', () => {
       expect(response.body.data).toHaveProperty('viewsCount');
       expect(response.body.data).toHaveProperty('timestamp');
       expect(response.body.data).toHaveProperty('traceId');
-      
+
       expect(response.body.data.checks).toHaveProperty('hasTaxonomies');
       expect(response.body.data.checks).toHaveProperty('hasViews');
       expect(response.body.data.checks).toHaveProperty('serviceInitialized');
-      
+
       expect(typeof response.body.data.taxonomiesCount).toBe('number');
       expect(typeof response.body.data.viewsCount).toBe('number');
     });
@@ -278,7 +278,7 @@ describe('Companies Taxonomy API Integration Tests', () => {
 
       const checks = response.body.data.checks;
       const isHealthy = checks.hasTaxonomies && checks.hasViews && checks.serviceInitialized;
-      
+
       if (isHealthy) {
         expect(response.body.data.status).toBe('healthy');
       } else {

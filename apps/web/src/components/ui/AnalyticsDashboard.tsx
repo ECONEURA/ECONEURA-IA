@@ -5,7 +5,7 @@ interface AnalyticsDashboardProps {
 }
 
 export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ data }) => {
-  return (
+  return (;
     <div className="analytics-dashboard">
       <h2>Analytics Dashboard</h2>
       <div className="metrics-grid">

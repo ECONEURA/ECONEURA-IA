@@ -1,8 +1,8 @@
 /**
  * EMAIL MARKETING SERVICE
- * 
+ *
  * PR-56: Sistema completo de email marketing avanzado
- * 
+ *
  * Funcionalidades:
  * - Gestión de campañas de email
  * - Automatización de emails
@@ -213,10 +213,10 @@ export class EmailMarketingService {
 
       // Initialize email marketing tables
       await this.initializeEmailMarketingTables();
-      
+
       // Load existing data
       await this.loadExistingData();
-      
+
       // Start background processing
       this.startBackgroundProcessing();
 
@@ -563,7 +563,7 @@ export class EmailMarketingService {
   async getCampaign(campaignId: string, organizationId: string): Promise<EmailCampaign | null> {
     try {
       const campaign = this.campaigns.get(campaignId);
-      
+
       if (!campaign || campaign.organizationId !== organizationId) {
         return null;
       }
@@ -587,7 +587,7 @@ export class EmailMarketingService {
   ): Promise<EmailCampaign | null> {
     try {
       const campaign = this.campaigns.get(campaignId);
-      
+
       if (!campaign || campaign.organizationId !== organizationId) {
         return null;
       }
@@ -643,7 +643,7 @@ export class EmailMarketingService {
   async deleteCampaign(campaignId: string, organizationId: string): Promise<boolean> {
     try {
       const campaign = this.campaigns.get(campaignId);
-      
+
       if (!campaign || campaign.organizationId !== organizationId) {
         return false;
       }
@@ -733,7 +733,7 @@ export class EmailMarketingService {
   async getSubscriber(subscriberId: string, organizationId: string): Promise<EmailSubscriber | null> {
     try {
       const subscriber = this.subscribers.get(subscriberId);
-      
+
       if (!subscriber || subscriber.organizationId !== organizationId) {
         return null;
       }
@@ -753,7 +753,7 @@ export class EmailMarketingService {
     try {
       const subscriber = Array.from(this.subscribers.values())
         .find(s => s.email === email && s.organizationId === organizationId);
-      
+
       return subscriber || null;
     } catch (error) {
       structuredLogger.error('Failed to get email subscriber by email', {
@@ -778,7 +778,7 @@ export class EmailMarketingService {
     try {
       const cacheKey = `search:${organizationId}:${JSON.stringify(searchParams)}`;
       const cached = this.searchCache.get(cacheKey);
-      
+
       if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
         return cached.result;
       }
@@ -808,7 +808,7 @@ export class EmailMarketingService {
       // Apply text search
       if (searchParams.query) {
         const query = searchParams.query.toLowerCase();
-        campaigns = campaigns.filter(campaign => 
+        campaigns = campaigns.filter(campaign =>
           campaign.name.toLowerCase().includes(query) ||
           campaign.subject.toLowerCase().includes(query) ||
           campaign.previewText?.toLowerCase().includes(query)
@@ -820,7 +820,7 @@ export class EmailMarketingService {
         const { field, direction } = searchParams.sort;
         campaigns.sort((a, b) => {
           let aValue: any, bValue: any;
-          
+
           switch (field) {
             case 'name':
               aValue = a.name;
@@ -891,9 +891,9 @@ export class EmailMarketingService {
     try {
       const now = new Date();
       const scheduledCampaigns = Array.from(this.campaigns.values())
-        .filter(campaign => 
-          campaign.scheduledAt && 
-          campaign.scheduledAt <= now && 
+        .filter(campaign =>
+          campaign.scheduledAt &&
+          campaign.scheduledAt <= now &&
           campaign.status === 'scheduled'
         );
 
@@ -965,7 +965,7 @@ export class EmailMarketingService {
     try {
       const campaigns = Array.from(this.campaigns.values())
         .filter(campaign => campaign.organizationId === organizationId);
-      
+
       const subscribers = Array.from(this.subscribers.values())
         .filter(subscriber => subscriber.organizationId === organizationId);
 
@@ -981,10 +981,10 @@ export class EmailMarketingService {
       campaigns.forEach(campaign => {
         // Count by type
         campaignsByType[campaign.type] = (campaignsByType[campaign.type] || 0) + 1;
-        
+
         // Count by status
         campaignsByStatus[campaign.status] = (campaignsByStatus[campaign.status] || 0) + 1;
-        
+
         // Sum analytics
         if (campaign.analytics) {
           totalOpenRate += campaign.analytics.openRate || 0;

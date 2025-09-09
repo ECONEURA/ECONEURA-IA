@@ -65,7 +65,7 @@ export class BasicAIService {
 
       // Verificar servicios de IA disponibles
       await this.checkAIServicesHealth();
-      
+
       structuredLogger.info('Basic AI Service initialized successfully');
     } catch (error) {
       structuredLogger.error('Failed to initialize Basic AI Service', error as Error);
@@ -102,7 +102,7 @@ export class BasicAIService {
 
   async generateResponse(request: AIRequest): Promise<AIResponse> {
     const startTime = Date.now();
-    
+
     try {
       structuredLogger.info('Generating AI response', {
         userId: request.context.userId,
@@ -113,7 +113,7 @@ export class BasicAIService {
 
       // Determinar el tipo de respuesta basado en el prompt
       const responseType = this.determineResponseType(request.prompt);
-      
+
       let response: AIResponse;
 
       switch (responseType) {
@@ -162,25 +162,25 @@ export class BasicAIService {
 
   private determineResponseType(prompt: string): 'text' | 'analysis' | 'prediction' | 'search' {
     const lowerPrompt = prompt.toLowerCase();
-    
+
     // Palabras clave para análisis
-    if (lowerPrompt.includes('analyze') || lowerPrompt.includes('analysis') || 
+    if (lowerPrompt.includes('analyze') || lowerPrompt.includes('analysis') ||
         lowerPrompt.includes('sentiment') || lowerPrompt.includes('emotion')) {
       return 'analysis';
     }
-    
+
     // Palabras clave para predicciones
-    if (lowerPrompt.includes('predict') || lowerPrompt.includes('forecast') || 
+    if (lowerPrompt.includes('predict') || lowerPrompt.includes('forecast') ||
         lowerPrompt.includes('future') || lowerPrompt.includes('trend')) {
       return 'prediction';
     }
-    
+
     // Palabras clave para búsqueda
-    if (lowerPrompt.includes('search') || lowerPrompt.includes('find') || 
+    if (lowerPrompt.includes('search') || lowerPrompt.includes('find') ||
         lowerPrompt.includes('look up') || lowerPrompt.includes('information')) {
       return 'search';
     }
-    
+
     // Por defecto, respuesta de texto
     return 'text';
   }
@@ -217,7 +217,7 @@ export class BasicAIService {
     try {
       // Usar análisis de sentimientos
       const sentimentResult = await sentimentAnalysis.analyzeText(request.prompt);
-      
+
       const analysisContent = `
 **Análisis de Sentimiento:**
 - Sentimiento: ${sentimentResult.sentiment}
@@ -254,7 +254,7 @@ ${this.generateAnalysisRecommendations(sentimentResult)}
     try {
       // Usar servicios de predicción
       const prediction = await predictiveAI.predictDemand('general');
-      
+
       const predictionContent = `
 **Predicción Generada:**
 - Tipo: Predicción de demanda general
@@ -337,28 +337,28 @@ ${searchResults.summary}
       '¿Puedes darme un ejemplo práctico?',
       '¿Qué otros aspectos debería considerar?'
     ];
-    
+
     return suggestions.slice(0, 3);
   }
 
   private generateAnalysisRecommendations(sentimentResult: any): string {
     const recommendations = [];
-    
+
     if (sentimentResult.sentiment === 'positive') {
       recommendations.push('Mantén este tono positivo en futuras comunicaciones');
     } else if (sentimentResult.sentiment === 'negative') {
       recommendations.push('Considera revisar el enfoque para mejorar la percepción');
     }
-    
+
     if (sentimentResult.confidence < 0.7) {
       recommendations.push('El análisis tiene baja confianza, considera proporcionar más contexto');
     }
-    
+
     return recommendations.join('\n') || 'No hay recomendaciones específicas disponibles';
   }
 
   private generateAnalysisSuggestions(sentimentResult: any): string[] {
-    return [
+    return [;
       '¿Quieres analizar otro texto?',
       '¿Necesitas un análisis más detallado?',
       '¿Cómo puedo mejorar el sentimiento?'
@@ -366,7 +366,7 @@ ${searchResults.summary}
   }
 
   private generatePredictionSuggestions(prediction: any): string[] {
-    return [
+    return [;
       '¿Quieres ver predicciones para otros períodos?',
       '¿Necesitas más detalles sobre la metodología?',
       '¿Cómo puedo optimizar estos resultados?'
@@ -374,7 +374,7 @@ ${searchResults.summary}
   }
 
   private generateSearchSuggestions(searchResults: any): string[] {
-    return [
+    return [;
       '¿Quieres buscar información más específica?',
       '¿Necesitas más resultados?',
       '¿Cómo puedo refinar la búsqueda?'
@@ -390,11 +390,11 @@ ${searchResults.summary}
         previousMessages: []
       });
     }
-    
+
     const context = this.sessionCache.get(sessionId)!;
     context.previousMessages = context.previousMessages || [];
     context.previousMessages.push(response);
-    
+
     // Mantener solo los últimos 10 mensajes
     if (context.previousMessages.length > 10) {
       context.previousMessages = context.previousMessages.slice(-10);
@@ -406,7 +406,7 @@ ${searchResults.summary}
       // Guardar interacción en base de datos
       await this.db.query(`
         INSERT INTO ai_interactions (
-          id, user_id, organization_id, session_id, prompt, response, 
+          id, user_id, organization_id, session_id, prompt, response,
           response_type, confidence, model, processing_time, created_at
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       `, [
@@ -434,7 +434,7 @@ ${searchResults.summary}
 
   async createSession(userId: string, organizationId: string): Promise<string> {
     const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     this.sessionCache.set(sessionId, {
       userId,
       organizationId,
@@ -485,7 +485,7 @@ ${searchResults.summary}
 
     const healthyServices = Object.values(services).filter(Boolean).length;
     const totalServices = Object.keys(services).length;
-    
+
     let status: 'healthy' | 'degraded' | 'unhealthy';
     if (healthyServices === totalServices) {
       status = 'healthy';

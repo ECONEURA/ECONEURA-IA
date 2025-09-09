@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Users, 
-  Activity, 
-  Eye, 
-  Download, 
-  Settings, 
+import {
+  BarChart3,
+  TrendingUp,
+  Users,
+  Activity,
+  Eye,
+  Download,
+  Settings,
   Plus,
   RefreshCw,
   AlertTriangle,
@@ -164,7 +164,7 @@ export default function DataAnalyticsDashboard({
     try {
       const response = await fetch('/api/data-analytics/dashboards');
       const result = await response.json();
-      
+
       if (result.success) {
         setDashboards(result.data);
         if (result.data.length > 0) {
@@ -181,7 +181,7 @@ export default function DataAnalyticsDashboard({
       setLoading(true);
       const response = await fetch(`/api/data-analytics/analytics?timeRange=${selectedPeriod}`);
       const result = await response.json();
-      
+
       if (result.success) {
         setAnalyticsData(result.data);
         setError(null);
@@ -216,7 +216,7 @@ export default function DataAnalyticsDashboard({
   };
 
   if (loading && !analyticsData) {
-    return (
+    return (;
       <div className={`animate-pulse ${className}`}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -233,7 +233,7 @@ export default function DataAnalyticsDashboard({
   }
 
   if (error) {
-    return (
+    return (;
       <div className={`text-center py-12 ${className}`}>
         <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-gray-900 mb-2">Error loading analytics</h3>
@@ -250,7 +250,7 @@ export default function DataAnalyticsDashboard({
   }
 
   if (!analyticsData) {
-    return (
+    return (;
       <div className={`text-center py-12 ${className}`}>
         <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-gray-900 mb-2">No analytics data available</h3>
@@ -259,7 +259,7 @@ export default function DataAnalyticsDashboard({
     );
   }
 
-  return (
+  return (;
     <div className={`space-y-6 ${className}`}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -267,7 +267,7 @@ export default function DataAnalyticsDashboard({
           <h1 className="text-2xl font-bold text-gray-900">Data Analytics Dashboard</h1>
           <p className="text-gray-600">Análisis completo de datos y métricas de negocio</p>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <select
             value={selectedPeriod}
@@ -279,18 +279,18 @@ export default function DataAnalyticsDashboard({
             <option value="7d">Últimos 7 días</option>
             <option value="30d">Últimos 30 días</option>
           </select>
-          
+
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={`px-3 py-2 rounded-lg border transition-colors ${
-              showFilters 
-                ? 'bg-blue-600 text-white border-blue-600' 
+              showFilters
+                ? 'bg-blue-600 text-white border-blue-600'
                 : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
             }`}
           >
             <Filter className="w-4 h-4" />
           </button>
-          
+
           <button
             onClick={loadAnalyticsData}
             disabled={loading}
@@ -474,7 +474,7 @@ export default function DataAnalyticsDashboard({
                 </div>
                 <div className="flex items-center">
                   <div className="w-32 bg-gray-200 rounded-full h-2 mr-3">
-                    <div 
+                    <div
                       className={`h-2 rounded-full ${
                         index === 0 ? 'bg-blue-500' :
                         index === 1 ? 'bg-green-500' : 'bg-yellow-500'

@@ -160,7 +160,7 @@ export class MetricsCollector {
     if (name) {
       return this.metrics.get(name) || [];
     }
-    
+
     const allMetrics: Metric[] = [];
     for (const metrics of this.metrics.values()) {
       allMetrics.push(...metrics);
@@ -209,7 +209,7 @@ export class Tracer {
 
     span.endTime = new Date().toISOString();
     span.duration = new Date(span.endTime).getTime() - new Date(span.startTime).getTime();
-    
+
     if (tags) {
       span.tags = { ...span.tags, ...tags };
     }

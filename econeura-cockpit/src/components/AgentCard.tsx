@@ -9,13 +9,13 @@ interface AgentCardProps {
   onExecute: (agentKey: string) => void;
 }
 
-export default function AgentCard({ agent, onExecute }: AgentCardProps) {
+export default function AgentCard({ agent, onExecute }: AgentCardProps): void {
   const statusColor = getStatusColor(agent.status);
   const statusLabel = getStatusLabel(agent.status);
 
   const canExecute = agent.status === 'idle' || agent.status === 'completed' || agent.status === 'failed';
 
-  return (
+  return (;
     <div style={{
       backgroundColor: '#FFFFFF',
       border: `${ui.bw}px solid ${ui.border}`,
@@ -38,7 +38,7 @@ export default function AgentCard({ agent, onExecute }: AgentCardProps) {
         }}>
           Agente: {agent.name}
         </h4>
-        
+
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -115,7 +115,7 @@ export default function AgentCard({ agent, onExecute }: AgentCardProps) {
         >
           Ejecutar
         </button>
-        
+
         <button
           style={{
             backgroundColor: 'transparent',

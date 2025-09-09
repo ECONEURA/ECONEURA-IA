@@ -494,7 +494,7 @@ describe('Rate Limiting Integration', () => {
     );
 
     const responses = await Promise.all(requests);
-    
+
     // Some requests should be rate limited
     const rateLimitedResponses = responses.filter(r => r.status === 429);
     expect(rateLimitedResponses.length).toBeGreaterThan(0);
@@ -574,7 +574,7 @@ describe('Error Handling Integration', () => {
 describe('Correlation ID Integration', () => {
   it('should include correlation ID in responses', async () => {
     const correlationId = 'test-correlation-123';
-    
+
     const response = await request(app)
       .get('/users')
       .set('Authorization', `Bearer ${authToken}`)

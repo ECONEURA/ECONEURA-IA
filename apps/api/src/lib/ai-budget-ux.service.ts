@@ -206,7 +206,7 @@ export class AIBudgetUXService {
     try {
       const currentUsage = this.usage.get(organizationId) || this.createEmptyUsage(organizationId);
     const config = this.getBudgetConfig(organizationId) || this.configs.get('default');
-    
+
     if (!config) {
       throw new Error(`No budget config found for organization ${organizationId}`);
     }
@@ -234,7 +234,7 @@ export class AIBudgetUXService {
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
       const daysPassed = Math.floor((now.getTime() - startOfMonth.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-      
+
       updatedUsage.projectedMonthlyUsage = (updatedUsage.monthlyUsage / daysPassed) * daysInMonth;
       updatedUsage.averageDailyUsage = updatedUsage.monthlyUsage / daysPassed;
 
@@ -268,18 +268,18 @@ export class AIBudgetUXService {
   getBudgetProgress(organizationId: string): BudgetProgress | null {
     const config = this.getBudgetConfig(organizationId) || this.configs.get('default');
     const usage = this.usage.get(organizationId);
-    
+
     if (!config) {
       return null;
     }
-    
+
     // Si no hay uso, crear uno vacío
     const actualUsage = usage || this.createEmptyUsage(organizationId);
 
     const percentage = config.monthlyLimit === 0 ? 0 : (actualUsage.monthlyUsage / config.monthlyLimit) * 100;
     const daysRemaining = this.getDaysRemainingInMonth();
     const projectedOverage = Math.max(0, actualUsage.projectedMonthlyUsage - config.monthlyLimit);
-    
+
     let status: BudgetProgress['status'] = 'safe';
     if (percentage >= config.readOnlyThreshold * 100) {
       status = 'read_only';
@@ -315,7 +315,7 @@ export class AIBudgetUXService {
   getBudgetInsights(organizationId: string): BudgetInsights | null {
     const config = this.getBudgetConfig(organizationId) || this.configs.get('default');
     const usage = this.usage.get(organizationId);
-    
+
     if (!config || !usage) {
       return null;
     }
@@ -459,22 +459,22 @@ export class AIBudgetUXService {
   async acknowledgeAlert(organizationId: string, alertId: string, acknowledgedBy: string): Promise<boolean> {
     const alerts = this.alerts.get(organizationId) || [];
     const alert = alerts.find(a => a.id === alertId);
-    
+
     if (alert) {
       alert.acknowledged = true;
       alert.acknowledgedBy = acknowledgedBy;
       alert.acknowledgedAt = new Date().toISOString();
-      
+
       logger.info('Alert acknowledged', {
         organizationId,
         alertId,
         acknowledgedBy,
         requestId: ''
       });
-      
+
       return true;
     }
-    
+
     return false;
   }
 
@@ -560,9 +560,9 @@ export class AIBudgetUXService {
 
   private cleanupOldAlerts(): void {
     const cutoffDate = new Date(Date.now() - (7 * 24 * 60 * 60 * 1000)); // 7 días
-    
+
     for (const [organizationId, alerts] of this.alerts) {
-      const filteredAlerts = alerts.filter(alert => 
+      const filteredAlerts = alerts.filter(alert =>
         new Date(alert.timestamp) > cutoffDate
       );
       this.alerts.set(organizationId, filteredAlerts);
@@ -572,7 +572,7 @@ export class AIBudgetUXService {
   private resetDailyUsage(): void {
     const now = new Date();
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
+
     for (const [organizationId, usage] of this.usage) {
       if (new Date(usage.lastResetDate) < startOfDay) {
         usage.dailyUsage = 0;
@@ -638,7 +638,7 @@ export class AIBudgetUXService {
   }
 
   private getTopUsers(usage: BudgetUsage): Array<BudgetInsights['topUsers'][0]> {
-    return Object.entries(usage.usageByUser)
+    return Object.entries(usage.usageByUser);
       .map(([userId, usageAmount]) => ({
         userId,
         usage: usageAmount,
@@ -649,7 +649,7 @@ export class AIBudgetUXService {
   }
 
   private getTopModels(usage: BudgetUsage): Array<BudgetInsights['topModels'][0]> {
-    return Object.entries(usage.usageByModel)
+    return Object.entries(usage.usageByModel);
       .map(([model, usageAmount]) => ({
         model,
         usage: usageAmount,
@@ -661,7 +661,7 @@ export class AIBudgetUXService {
   }
 
   private getTopFeatures(usage: BudgetUsage): Array<BudgetInsights['topFeatures'][0]> {
-    return Object.entries(usage.usageByFeature)
+    return Object.entries(usage.usageByFeature);
       .map(([feature, usageAmount]) => ({
         feature,
         usage: usageAmount,

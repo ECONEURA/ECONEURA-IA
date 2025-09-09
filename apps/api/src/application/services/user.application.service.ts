@@ -149,7 +149,7 @@ export class UserApplicationService {
   async getUserStats(organizationId: string): Promise<UserStatsResponse> {
     try {
       const users = await this.userRepository.findByOrganizationId(organizationId);
-      
+
       const stats: UserStatsResponse = {
         total: users.length,
         byRole: {},

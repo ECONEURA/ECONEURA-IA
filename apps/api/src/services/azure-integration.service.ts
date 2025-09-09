@@ -151,7 +151,7 @@ export class AzureIntegrationService {
 
     try {
       const startTime = Date.now();
-      
+
       const response = await fetch(`${this.config.endpoint}/openai/deployments/${this.config.chatDeployment}/chat/completions?api-version=${this.config.apiVersion}`, {
         method: 'POST',
         headers: {
@@ -219,19 +219,19 @@ export class AzureIntegrationService {
 
   private generateDemoResponse(prompt: string): string {
     const lowerPrompt = prompt.toLowerCase();
-    
+
     if (lowerPrompt.includes('hello') || lowerPrompt.includes('hi')) {
       return '¡Hola! Soy un asistente de IA en modo demo. ¿En qué puedo ayudarte hoy?';
     }
-    
+
     if (lowerPrompt.includes('weather') || lowerPrompt.includes('clima')) {
       return 'En modo demo, no puedo acceder a datos meteorológicos en tiempo real. Para obtener información del clima, necesitarías configurar las credenciales de Azure OpenAI.';
     }
-    
+
     if (lowerPrompt.includes('code') || lowerPrompt.includes('programming')) {
-      return 'Puedo ayudarte con programación. Aquí tienes un ejemplo de función en JavaScript:\n\n```javascript\nfunction saludar(nombre) {\n  return `¡Hola, ${nombre}!`;\n}\n```\n\n¿Te gustaría que te ayude con algo específico?';
+      return 'Puedo ayudarte con programación. Aquí tienes un ejemplo de función en JavaScript:\n\n```javascript\nfunction saludar(nombre): void {\n  return `¡Hola, ${nombre}!`;\n}\n```\n\n¿Te gustaría que te ayude con algo específico?';
     }
-    
+
     return `He recibido tu mensaje: "${prompt}". En modo demo, puedo simular respuestas pero para funcionalidad completa necesitarías configurar Azure OpenAI. ¿Hay algo específico en lo que pueda ayudarte?`;
   }
 
@@ -310,7 +310,7 @@ export class AzureIntegrationService {
 
     try {
       const ssml = this.generateSSML(request);
-      
+
       const response = await fetch(`https://${this.config.speechRegion}.tts.speech.microsoft.com/cognitiveservices/v1`, {
         method: 'POST',
         headers: {
@@ -362,7 +362,7 @@ export class AzureIntegrationService {
   }
 
   private escapeXml(text: string): string {
-    return text
+    return text;
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
@@ -395,7 +395,7 @@ export class AzureIntegrationService {
 
   async checkServiceHealth(): Promise<Map<string, AzureServiceHealth>> {
     const now = new Date();
-    
+
     // Cache health checks for 5 minutes
     if (now.getTime() - this.lastHealthCheck.getTime() < 5 * 60 * 1000) {
       return this.healthCache;
@@ -456,7 +456,7 @@ export class AzureIntegrationService {
       messages: [{ role: 'user', content: 'test' }],
       maxTokens: 1
     };
-    
+
     await this.generateChatCompletion(testRequest);
   }
 
@@ -464,12 +464,12 @@ export class AzureIntegrationService {
     if (!this.config.imageDeployment) {
       throw new Error('Image deployment not configured');
     }
-    
+
     const testRequest: ImageRequest = {
       prompt: 'test',
       size: '1024x1024'
     };
-    
+
     await this.generateImage(testRequest);
   }
 
@@ -477,11 +477,11 @@ export class AzureIntegrationService {
     if (!this.config.speechKey || !this.config.speechRegion) {
       throw new Error('Speech service not configured');
     }
-    
+
     const testRequest: TTSRequest = {
       text: 'test'
     };
-    
+
     await this.generateSpeech(testRequest);
   }
 
@@ -506,15 +506,15 @@ export class AzureIntegrationService {
 
   getAvailableServices(): string[] {
     const services = ['chat'];
-    
+
     if (this.config.imageDeployment) {
       services.push('image');
     }
-    
+
     if (this.config.speechKey && this.config.speechRegion) {
       services.push('speech');
     }
-    
+
     return services;
   }
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): void {
   try {
     const response = await fetch(`${process.env.API_BASE_URL}/v1/security/stats`, {
       method: 'GET',
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data);
   } catch (error) {
     console.error('Failed to fetch security stats:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Failed to fetch security stats' },
       { status: 500 }
     );

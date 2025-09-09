@@ -1,6 +1,6 @@
 /**
  * PR-48: Performance Optimization Service V2
- * 
+ *
  * Sistema avanzado de optimización de rendimiento con:
  * - Análisis de latencia en tiempo real
  * - Optimización automática de queries
@@ -616,11 +616,11 @@ export class PerformanceOptimizerV2Service {
     metrics.memoryUsage.labels('heapUsed').set(this.metrics.memoryUsage.heapUsed);
     metrics.memoryUsage.labels('external').set(this.metrics.memoryUsage.external);
     metrics.memoryUsage.labels('arrayBuffers').set(this.metrics.memoryUsage.arrayBuffers);
-    
+
     // Actualizar métricas de CPU
     metrics.cpuUsage.labels('user').set(this.metrics.cpuUsage.user);
     metrics.cpuUsage.labels('system').set(this.metrics.cpuUsage.system);
-    
+
     // Actualizar métricas de event loop
     metrics.eventLoopLag.set(this.metrics.eventLoop.lag);
   }

@@ -481,15 +481,15 @@ export class Company {
 
   static validateName(name: string): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
-    
+
     if (!name || name.trim().length === 0) {
       errors.push('Company name is required');
     }
-    
+
     if (name.length > 200) {
       errors.push('Company name cannot exceed 200 characters');
     }
-    
+
     return {
       isValid: errors.length === 0,
       errors

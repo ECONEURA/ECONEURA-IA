@@ -10,18 +10,18 @@ import { IntelligentSearchRequestSchema, GetSuggestionsRequestSchema, IndexEntit
 
 /**
  * Search Routes - Rutas para búsqueda inteligente
- * 
+ *
  * Define los endpoints para búsqueda semántica, filtros avanzados,
  * autocompletado y indexación de entidades.
  */
 export function createSearchRoutes(searchRepository: SearchRepository): Router {
   const router = Router();
-  
+
   // Inicializar casos de uso
   const intelligentSearchUseCase = new IntelligentSearchUseCase(searchRepository);
   const getSuggestionsUseCase = new GetSuggestionsUseCase(searchRepository);
   const indexEntityUseCase = new IndexEntityUseCase(searchRepository);
-  
+
   // Inicializar controlador
   const searchController = new SearchController(
     intelligentSearchUseCase,
@@ -33,7 +33,7 @@ export function createSearchRoutes(searchRepository: SearchRepository): Router {
   router.use(authMiddleware);
 
   // ===== BÚSQUEDA PRINCIPAL =====
-  
+
   /**
    * POST /api/v1/search
    * Búsqueda inteligente principal
@@ -65,7 +65,7 @@ export function createSearchRoutes(searchRepository: SearchRepository): Router {
   );
 
   // ===== BÚSQUEDA POR TIPO =====
-  
+
   /**
    * GET /api/v1/search/:type
    * Búsqueda por tipo específico
@@ -76,7 +76,7 @@ export function createSearchRoutes(searchRepository: SearchRepository): Router {
   );
 
   // ===== BÚSQUEDA ESPECIALIZADA =====
-  
+
   /**
    * POST /api/v1/search/semantic
    * Búsqueda semántica
@@ -98,7 +98,7 @@ export function createSearchRoutes(searchRepository: SearchRepository): Router {
   );
 
   // ===== FILTROS Y METADATOS =====
-  
+
   /**
    * GET /api/v1/search/filters
    * Obtener filtros disponibles
@@ -118,7 +118,7 @@ export function createSearchRoutes(searchRepository: SearchRepository): Router {
   );
 
   // ===== RUTAS DE ADMINISTRACIÓN =====
-  
+
   /**
    * POST /api/v1/search/reindex
    * Reindexar todas las entidades
@@ -153,7 +153,7 @@ export function createSearchRoutesWithConfig(
   }
 ): Router {
   const router = createSearchRoutes(searchRepository);
-  
+
   // Aplicar configuración personalizada
   if (config) {
     if (!config.enableSemanticSearch) {
@@ -161,25 +161,25 @@ export function createSearchRoutesWithConfig(
         res.status(404).json({ error: 'Semantic search not enabled' });
       });
     }
-    
+
     if (!config.enableFuzzySearch) {
       router.delete('/fuzzy', (req, res) => {
         res.status(404).json({ error: 'Fuzzy search not enabled' });
       });
     }
-    
+
     if (!config.enableSuggestions) {
       router.delete('/suggestions', (req, res) => {
         res.status(404).json({ error: 'Suggestions not enabled' });
       });
     }
-    
+
     if (!config.enableIndexing) {
       router.delete('/index', (req, res) => {
         res.status(404).json({ error: 'Indexing not enabled' });
       });
     }
   }
-  
+
   return router;
 }

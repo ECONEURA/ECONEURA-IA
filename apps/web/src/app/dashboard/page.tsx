@@ -71,7 +71,7 @@ interface Alert {
   action_url: string;
 }
 
-export default function DashboardPage() {
+export default function DashboardPage(): void {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -114,7 +114,7 @@ export default function DashboardPage() {
   }, []);
 
   if (loading) {
-    return (
+    return (;
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
       </div>
@@ -130,7 +130,7 @@ export default function DashboardPage() {
     }
   };
 
-  return (
+  return (;
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Dashboard</h1>

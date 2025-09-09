@@ -143,9 +143,9 @@ const getInsightsSchema = z.object({
 router.post('/process', authMiddleware, validate(processRequestSchema), async (req, res) => {
   try {
     const request = req.body;
-    
+
     const result = await nextAIPlatformService.processRequest(request);
-    
+
     res.status(200).json(result);
   } catch (error) {
     console.error('Error processing Next AI request:', error);
@@ -201,7 +201,7 @@ router.post('/process', authMiddleware, validate(processRequestSchema), async (r
 router.get('/models', authMiddleware, async (req, res) => {
   try {
     const models = await nextAIPlatformService.getAvailableModels();
-    
+
     res.status(200).json({
       success: true,
       data: models,
@@ -279,7 +279,7 @@ router.get('/models', authMiddleware, async (req, res) => {
 router.get('/session/:sessionId/history', authMiddleware, async (req, res) => {
   try {
     const { sessionId } = req.params;
-    
+
     if (!sessionId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionId)) {
       return res.status(400).json({
         success: false,
@@ -288,7 +288,7 @@ router.get('/session/:sessionId/history', authMiddleware, async (req, res) => {
     }
 
     const history = await nextAIPlatformService.getSessionHistory(sessionId);
-    
+
     res.status(200).json({
       success: true,
       data: history,
@@ -386,7 +386,7 @@ router.get('/session/:sessionId/history', authMiddleware, async (req, res) => {
 router.get('/insights', authMiddleware, async (req, res) => {
   try {
     const { organizationId, limit = 20, type, impact } = req.query;
-    
+
     if (!organizationId) {
       return res.status(400).json({
         success: false,
@@ -408,15 +408,15 @@ router.get('/insights', authMiddleware, async (req, res) => {
 
     // Apply filters
     let filteredInsights = insights;
-    
+
     if (type) {
       filteredInsights = filteredInsights.filter(insight => insight.type === type);
     }
-    
+
     if (impact) {
       filteredInsights = filteredInsights.filter(insight => insight.impact === impact);
     }
-    
+
     res.status(200).json({
       success: true,
       data: filteredInsights,
@@ -480,7 +480,7 @@ router.get('/insights', authMiddleware, async (req, res) => {
 router.post('/chat', authMiddleware, async (req, res) => {
   try {
     const { sessionId, userId, organizationId, message, context, options } = req.body;
-    
+
     if (!sessionId || !userId || !organizationId || !message) {
       return res.status(400).json({
         success: false,
@@ -501,7 +501,7 @@ router.post('/chat', authMiddleware, async (req, res) => {
     };
 
     const result = await nextAIPlatformService.processRequest(request);
-    
+
     res.status(200).json(result);
   } catch (error) {
     console.error('Error processing chat request:', error);
@@ -562,7 +562,7 @@ router.post('/chat', authMiddleware, async (req, res) => {
 router.post('/analyze', authMiddleware, async (req, res) => {
   try {
     const { sessionId, userId, organizationId, data, context, options } = req.body;
-    
+
     if (!sessionId || !userId || !organizationId || !data) {
       return res.status(400).json({
         success: false,
@@ -583,7 +583,7 @@ router.post('/analyze', authMiddleware, async (req, res) => {
     };
 
     const result = await nextAIPlatformService.processRequest(request);
-    
+
     res.status(200).json(result);
   } catch (error) {
     console.error('Error processing analysis request:', error);
@@ -644,7 +644,7 @@ router.post('/analyze', authMiddleware, async (req, res) => {
 router.post('/predict', authMiddleware, async (req, res) => {
   try {
     const { sessionId, userId, organizationId, data, context, options } = req.body;
-    
+
     if (!sessionId || !userId || !organizationId || !data) {
       return res.status(400).json({
         success: false,
@@ -665,7 +665,7 @@ router.post('/predict', authMiddleware, async (req, res) => {
     };
 
     const result = await nextAIPlatformService.processRequest(request);
-    
+
     res.status(200).json(result);
   } catch (error) {
     console.error('Error processing prediction request:', error);
@@ -726,7 +726,7 @@ router.post('/predict', authMiddleware, async (req, res) => {
 router.post('/generate', authMiddleware, async (req, res) => {
   try {
     const { sessionId, userId, organizationId, prompt, context, options } = req.body;
-    
+
     if (!sessionId || !userId || !organizationId || !prompt) {
       return res.status(400).json({
         success: false,
@@ -747,7 +747,7 @@ router.post('/generate', authMiddleware, async (req, res) => {
     };
 
     const result = await nextAIPlatformService.processRequest(request);
-    
+
     res.status(200).json(result);
   } catch (error) {
     console.error('Error processing generation request:', error);
@@ -793,7 +793,7 @@ router.post('/generate', authMiddleware, async (req, res) => {
 router.get('/health', async (req, res) => {
   try {
     const healthStatus = await nextAIPlatformService.getHealthStatus();
-    
+
     res.status(200).json({
       success: true,
       data: healthStatus,

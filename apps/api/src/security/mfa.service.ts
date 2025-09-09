@@ -1,6 +1,6 @@
 /**
  * PR-57: Multi-Factor Authentication Service
- * 
+ *
  * Sistema avanzado de autenticación multi-factor con TOTP,
  * códigos de respaldo, notificaciones push y verificación por SMS.
  */
@@ -550,7 +550,7 @@ export class MFAService {
         session.completedMethods.push(methodId);
       }
 
-      const isComplete = session.requiredMethods.every(method => 
+      const isComplete = session.requiredMethods.every(method =>
         session.completedMethods.includes(method)
       );
 

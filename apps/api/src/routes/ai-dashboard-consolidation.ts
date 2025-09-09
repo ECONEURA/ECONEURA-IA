@@ -151,7 +151,7 @@ router.post('/agent-status', async (req, res) => {
 router.get('/agents/:department', async (req, res) => {
   try {
     const department = req.params.department as any;
-    
+
     if (!['ceo', 'ia', 'cso', 'cto', 'ciso', 'coo', 'chro', 'cgo', 'cfo', 'cdo'].includes(department)) {
       return res.status(400).json({
         success: false,
@@ -195,7 +195,7 @@ router.get('/agents/:department', async (req, res) => {
 router.get('/kpis/:department', async (req, res) => {
   try {
     const department = req.params.department as any;
-    
+
     if (!['ceo', 'ia', 'cso', 'cto', 'ciso', 'coo', 'chro', 'cgo', 'cfo', 'cdo'].includes(department)) {
       return res.status(400).json({
         success: false,
@@ -246,7 +246,7 @@ router.get('/kpis/:department', async (req, res) => {
 router.get('/timeline/:department', async (req, res) => {
   try {
     const department = req.params.department as any;
-    
+
     if (!['ceo', 'ia', 'cso', 'cto', 'ciso', 'coo', 'chro', 'cgo', 'cfo', 'cdo'].includes(department)) {
       return res.status(400).json({
         success: false,

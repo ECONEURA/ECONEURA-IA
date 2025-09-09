@@ -140,7 +140,7 @@ export class AITrainingService {
 
       // Crear tablas si no existen
       await this.createTables();
-      
+
       // Cargar jobs activos
       await this.loadActiveJobs();
 
@@ -239,7 +239,7 @@ export class AITrainingService {
   private async loadActiveJobs(): Promise<void> {
     try {
       const result = await this.db.query(`
-        SELECT * FROM training_jobs 
+        SELECT * FROM training_jobs
         WHERE status IN ('pending', 'running')
       `);
 
@@ -275,7 +275,7 @@ export class AITrainingService {
 
       await this.db.query(`
         INSERT INTO training_datasets (
-          id, name, description, type, size, features, target_column, 
+          id, name, description, type, size, features, target_column,
           status, metadata, created_at, updated_at
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       `, [
@@ -327,8 +327,8 @@ export class AITrainingService {
   async listDatasets(limit: number = 50, offset: number = 0): Promise<TrainingDataset[]> {
     try {
       const result = await this.db.query(`
-        SELECT * FROM training_datasets 
-        ORDER BY created_at DESC 
+        SELECT * FROM training_datasets
+        ORDER BY created_at DESC
         LIMIT $1 OFFSET $2
       `, [limit, offset]);
 
@@ -342,8 +342,8 @@ export class AITrainingService {
   async updateDatasetStatus(datasetId: string, status: TrainingDataset['status']): Promise<void> {
     try {
       await this.db.query(`
-        UPDATE training_datasets 
-        SET status = $1, updated_at = NOW() 
+        UPDATE training_datasets
+        SET status = $1, updated_at = NOW()
         WHERE id = $2
       `, [status, datasetId]);
 
@@ -426,8 +426,8 @@ export class AITrainingService {
 
       // Actualizar estado en base de datos
       await this.db.query(`
-        UPDATE training_jobs 
-        SET status = 'running', started_at = NOW(), updated_at = NOW() 
+        UPDATE training_jobs
+        SET status = 'running', started_at = NOW(), updated_at = NOW()
         WHERE id = $1
       `, [jobId]);
 
@@ -530,8 +530,8 @@ export class AITrainingService {
         job.updatedAt = new Date();
 
         await this.db.query(`
-          UPDATE training_jobs 
-          SET progress = $1, updated_at = NOW() 
+          UPDATE training_jobs
+          SET progress = $1, updated_at = NOW()
           WHERE id = $2
         `, [job.progress, jobId]);
       }
@@ -563,9 +563,9 @@ export class AITrainingService {
 
       // Actualizar en base de datos
       await this.db.query(`
-        UPDATE training_jobs 
-        SET status = 'completed', completed_at = $1, actual_duration = $2, 
-            metrics = $3, updated_at = NOW() 
+        UPDATE training_jobs
+        SET status = 'completed', completed_at = $1, actual_duration = $2,
+            metrics = $3, updated_at = NOW()
         WHERE id = $4
       `, [completedAt, actualDuration, JSON.stringify(metrics), jobId]);
 
@@ -597,8 +597,8 @@ export class AITrainingService {
 
       // Actualizar en base de datos
       await this.db.query(`
-        UPDATE training_jobs 
-        SET status = 'failed', error = $1, updated_at = NOW() 
+        UPDATE training_jobs
+        SET status = 'failed', error = $1, updated_at = NOW()
         WHERE id = $2
       `, [error.message, jobId]);
 
@@ -647,7 +647,7 @@ export class AITrainingService {
 
       await this.db.query(`
         INSERT INTO model_versions (
-          id, model_id, version, training_job_id, status, metrics, 
+          id, model_id, version, training_job_id, status, metrics,
           file_path, file_size, performance, created_at
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       `, [
@@ -702,8 +702,8 @@ export class AITrainingService {
   async listTrainingJobs(limit: number = 50, offset: number = 0): Promise<TrainingJob[]> {
     try {
       const result = await this.db.query(`
-        SELECT * FROM training_jobs 
-        ORDER BY created_at DESC 
+        SELECT * FROM training_jobs
+        ORDER BY created_at DESC
         LIMIT $1 OFFSET $2
       `, [limit, offset]);
 
@@ -721,8 +721,8 @@ export class AITrainingService {
   async getModelVersions(modelId: string): Promise<ModelVersion[]> {
     try {
       const result = await this.db.query(`
-        SELECT * FROM model_versions 
-        WHERE model_id = $1 
+        SELECT * FROM model_versions
+        WHERE model_id = $1
         ORDER BY created_at DESC
       `, [modelId]);
 
@@ -799,7 +799,7 @@ export class AITrainingService {
   }> {
     try {
       const activeJobs = this.trainingJobs.size;
-      
+
       const datasetsResult = await this.db.query('SELECT COUNT(*) FROM training_datasets');
       const totalDatasets = parseInt(datasetsResult.rows[0].count);
 

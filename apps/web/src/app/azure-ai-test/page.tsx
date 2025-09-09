@@ -3,8 +3,8 @@
 import React from 'react';
 import { AIChatPlayground } from '@/components/ai/AIChatPlayground';
 
-export default function AzureAITestPage() {
-  return (
+export default function AzureAITestPage(): void {
+  return (;
     <div className="min-h-screen bg-gray-100">
       <div className="container mx-auto py-8">
         <div className="mb-8">
@@ -15,11 +15,11 @@ export default function AzureAITestPage() {
             Prueba la integración completa con Azure OpenAI, TTS y búsqueda web
           </p>
         </div>
-        
+
         <div className="bg-white rounded-lg shadow-lg">
           <AIChatPlayground />
         </div>
-        
+
         <div className="mt-8 p-6 bg-blue-50 rounded-lg">
           <h2 className="text-xl font-semibold text-blue-900 mb-4">
             🚀 Funcionalidades Implementadas

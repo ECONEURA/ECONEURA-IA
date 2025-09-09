@@ -142,7 +142,7 @@ export class ApiClient {
 
   private buildUrl(path: string, query?: Record<string, any>): string {
     const url = new URL(`${this.config.baseUrl}${path}`);
-    
+
     if (query) {
       Object.entries(query).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {

@@ -1,6 +1,6 @@
 /**
  * PR-64: Antivirus Global Routes
- * 
+ *
  * Endpoints para el sistema global de antivirus con quarantine y scan
  */
 
@@ -57,7 +57,7 @@ const quarantineActionSchema = z.object({
 router.get('/stats', async (req, res) => {
   try {
     const stats = antivirusGlobalService.getStats();
-    
+
     res.json({
       success: true,
       data: stats,
@@ -68,7 +68,7 @@ router.get('/stats', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get antivirus stats',
@@ -84,7 +84,7 @@ router.get('/stats', async (req, res) => {
 router.post('/scan/global', async (req, res) => {
   try {
     const stats = await antivirusGlobalService.performGlobalScan();
-    
+
     structuredLogger.info('Global scan initiated', {
       totalScans: stats.totalScans,
       cleanScans: stats.cleanScans,
@@ -92,7 +92,7 @@ router.post('/scan/global', async (req, res) => {
       threatsDetected: stats.threatsDetected,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       data: stats,
@@ -104,7 +104,7 @@ router.post('/scan/global', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to perform global scan',
@@ -120,12 +120,12 @@ router.post('/scan/global', async (req, res) => {
 router.post('/scan/item', async (req, res) => {
   try {
     const validatedData = scanItemSchema.parse(req.body);
-    
+
     const scanResult = await antivirusGlobalService.scanItem(
       validatedData.item,
       validatedData.moduleType
     );
-    
+
     structuredLogger.info('Item scan completed', {
       moduleId: validatedData.moduleId,
       moduleType: validatedData.moduleType,
@@ -134,7 +134,7 @@ router.post('/scan/item', async (req, res) => {
       threatsCount: scanResult.threats.length,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       data: scanResult,
@@ -146,7 +146,7 @@ router.post('/scan/item', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to scan item',
@@ -162,23 +162,23 @@ router.post('/scan/item', async (req, res) => {
 router.get('/quarantine', async (req, res) => {
   try {
     const { status, moduleType, limit = 100, offset = 0 } = req.query;
-    
+
     let quarantineItems = antivirusGlobalService.getQuarantineItems();
-    
+
     // Filtrar por status si se proporciona
     if (status) {
       quarantineItems = quarantineItems.filter(item => item.status === status);
     }
-    
+
     // Filtrar por tipo de módulo si se proporciona
     if (moduleType) {
       quarantineItems = quarantineItems.filter(item => item.moduleType === moduleType);
     }
-    
+
     // Paginación
     const total = quarantineItems.length;
     const paginatedItems = quarantineItems.slice(Number(offset), Number(offset) + Number(limit));
-    
+
     res.json({
       success: true,
       data: {
@@ -196,7 +196,7 @@ router.get('/quarantine', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get quarantine items',
@@ -212,17 +212,17 @@ router.get('/quarantine', async (req, res) => {
 router.get('/quarantine/:quarantineId', async (req, res) => {
   try {
     const { quarantineId } = req.params;
-    
+
     const quarantineItems = antivirusGlobalService.getQuarantineItems();
     const item = quarantineItems.find(i => i.id === quarantineId);
-    
+
     if (!item) {
       return res.status(404).json({
         success: false,
         error: 'Quarantine item not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: item,
@@ -234,7 +234,7 @@ router.get('/quarantine/:quarantineId', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get quarantine item',
@@ -251,7 +251,7 @@ router.post('/quarantine/:quarantineId/action', async (req, res) => {
   try {
     const { quarantineId } = req.params;
     const validatedData = quarantineActionSchema.parse(req.body);
-    
+
     switch (validatedData.action) {
       case 'restore':
         await antivirusGlobalService.restoreFromQuarantine(quarantineId);
@@ -264,14 +264,14 @@ router.post('/quarantine/:quarantineId/action', async (req, res) => {
         await antivirusGlobalService.deleteFromQuarantine(quarantineId);
         break;
     }
-    
+
     structuredLogger.info('Quarantine action performed', {
       quarantineId,
       action: validatedData.action,
       reason: validatedData.reason,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       message: `Quarantine item ${validatedData.action} completed successfully`,
@@ -289,7 +289,7 @@ router.post('/quarantine/:quarantineId/action', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to perform quarantine action',
@@ -305,26 +305,26 @@ router.post('/quarantine/:quarantineId/action', async (req, res) => {
 router.get('/scan-results', async (req, res) => {
   try {
     const { status, moduleType, limit = 100, offset = 0 } = req.query;
-    
+
     let scanResults = antivirusGlobalService.getScanResults();
-    
+
     // Filtrar por status si se proporciona
     if (status) {
       scanResults = scanResults.filter(result => result.status === status);
     }
-    
+
     // Filtrar por tipo de módulo si se proporciona
     if (moduleType) {
       scanResults = scanResults.filter(result => result.moduleType === moduleType);
     }
-    
+
     // Ordenar por timestamp descendente
     scanResults.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-    
+
     // Paginación
     const total = scanResults.length;
     const paginatedResults = scanResults.slice(Number(offset), Number(offset) + Number(limit));
-    
+
     res.json({
       success: true,
       data: {
@@ -342,7 +342,7 @@ router.get('/scan-results', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get scan results',
@@ -358,17 +358,17 @@ router.get('/scan-results', async (req, res) => {
 router.get('/scan-results/:scanId', async (req, res) => {
   try {
     const { scanId } = req.params;
-    
+
     const scanResults = antivirusGlobalService.getScanResults();
     const result = scanResults.find(r => r.id === scanId);
-    
+
     if (!result) {
       return res.status(404).json({
         success: false,
         error: 'Scan result not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: result,
@@ -380,7 +380,7 @@ router.get('/scan-results/:scanId', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get scan result',
@@ -396,14 +396,14 @@ router.get('/scan-results/:scanId', async (req, res) => {
 router.put('/config', async (req, res) => {
   try {
     const validatedData = updateConfigSchema.parse(req.body);
-    
+
     antivirusGlobalService.updateConfig(validatedData);
-    
+
     structuredLogger.info('Antivirus configuration updated', {
       config: validatedData,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       message: 'Antivirus configuration updated successfully',
@@ -415,7 +415,7 @@ router.put('/config', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to update antivirus configuration',
@@ -455,7 +455,7 @@ router.get('/config', async (req, res) => {
         sources: ['internal', 'external']
       }
     };
-    
+
     res.json({
       success: true,
       data: config,
@@ -466,7 +466,7 @@ router.get('/config', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get antivirus configuration',
@@ -485,7 +485,7 @@ router.post('/threats/update', async (req, res) => {
     structuredLogger.info('Threat database update initiated', {
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       message: 'Threat database update initiated successfully',
@@ -500,7 +500,7 @@ router.post('/threats/update', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to update threat database',

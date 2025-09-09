@@ -37,14 +37,14 @@ router.post('/events', async (req, res) => {
   try {
     const eventData = TrackEventSchema.parse(req.body);
     const eventId = await advancedAnalytics.trackEvent(eventData);
-    
+
     structuredLogger.info('Analytics event tracked via API', {
       eventId,
       eventType: eventData.eventType,
       action: eventData.action,
       orgId: eventData.orgId
     });
-    
+
     res.status(201).json({
       success: true,
       eventId,
@@ -65,12 +65,12 @@ router.post('/metrics', async (req, res) => {
   try {
     const metricData = RecordMetricSchema.parse(req.body);
     await advancedAnalytics.recordMetric(metricData);
-    
+
     structuredLogger.info('Analytics metric recorded via API', {
       name: metricData.name,
       value: metricData.value
     });
-    
+
     res.status(201).json({
       success: true,
       message: 'Metric recorded successfully'
@@ -90,9 +90,9 @@ router.get('/dashboard', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string || 'demo-org';
     const timeRange = (req.query.timeRange as string) || '24h';
-    
+
     const dashboard = await advancedAnalytics.getDashboard(orgId, timeRange);
-    
+
     res.json({
       success: true,
       data: dashboard,
@@ -116,7 +116,7 @@ router.get('/business-intelligence', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string || 'demo-org';
     const bi = await advancedAnalytics.getBusinessIntelligence(orgId);
-    
+
     res.json({
       success: true,
       data: bi,
@@ -139,9 +139,9 @@ router.get('/events', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string || 'demo-org';
     const filters = EventAnalyticsQuerySchema.parse(req.query);
-    
+
     const events = await advancedAnalytics.getEventAnalytics(orgId, filters);
-    
+
     res.json({
       success: true,
       data: events,
@@ -167,12 +167,12 @@ router.get('/export', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string || 'demo-org';
     const format = (req.query.format as 'json' | 'csv') || 'json';
-    
+
     const data = await advancedAnalytics.exportAnalytics(orgId, format);
-    
+
     const contentType = format === 'csv' ? 'text/csv' : 'application/json';
     const filename = `analytics-export-${orgId}-${new Date().toISOString().split('T')[0]}.${format}`;
-    
+
     res.setHeader('Content-Type', contentType);
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(data);
@@ -189,7 +189,7 @@ router.get('/export', async (req, res) => {
 router.get('/stats', async (req, res) => {
   try {
     const stats = advancedAnalytics.getStats();
-    
+
     res.json({
       success: true,
       data: stats
@@ -214,7 +214,7 @@ router.get('/realtime', async (req, res) => {
   });
 
   const orgId = req.headers['x-org-id'] as string || 'demo-org';
-  
+
   const sendEvent = (data: any) => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   };

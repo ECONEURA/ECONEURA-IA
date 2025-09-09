@@ -34,7 +34,7 @@ class SSEManager {
   // Add new SSE client
   addClient(orgId: string, userId: string | undefined, response: Response, subscriptions: string[] = []): string {
     const clientId = randomUUID();
-    
+
     // Configure SSE headers
     response.writeHead(200, {
       'Content-Type': 'text/event-stream',
@@ -139,7 +139,7 @@ class SSEManager {
         clientId,
         eventType: event.event
       });
-      
+
       // Remove broken client
       this.removeClient(clientId);
       return false;
@@ -152,7 +152,7 @@ class SSEManager {
     if (!orgClients) return 0;
 
     let sentCount = 0;
-    
+
     for (const clientId of orgClients) {
       const client = this.clients.get(clientId);
       if (!client) continue;
@@ -180,7 +180,7 @@ class SSEManager {
   // Broadcast to all clients
   broadcastToAll(event: SSEEvent, eventType?: string): number {
     let sentCount = 0;
-    
+
     for (const [clientId, client] of this.clients) {
       // Check subscriptions
       if (eventType && client.subscriptions.size > 0 && !client.subscriptions.has(eventType)) {

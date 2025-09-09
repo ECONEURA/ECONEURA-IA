@@ -3,10 +3,10 @@
 // ============================================================================
 
 import { Request, Response, NextFunction } from 'express';
-import { 
-  RateLimiter, 
-  createRateLimitMiddleware, 
-  MemoryRateLimitStore 
+import {
+  RateLimiter,
+  createRateLimitMiddleware,
+  MemoryRateLimitStore
 } from '@econeura/shared/rate-limiting';
 import { structuredLogger } from '../lib/structured-logger.js';
 
@@ -73,7 +73,7 @@ export const globalRateLimit = createRateLimitMiddleware(globalRateLimiter);
 export const apiKeyRateLimit = createRateLimitMiddleware(apiKeyRateLimiter);
 export const userRateLimit = createRateLimitMiddleware(userRateLimiter);
 
-export function pathBasedRateLimit(req: Request, res: Response, next: NextFunction) {
+export function pathBasedRateLimit(req: Request, res: Response, next: NextFunction): void {
   const path = req.path;
   let ruleId: string | undefined;
 
@@ -87,17 +87,17 @@ export function pathBasedRateLimit(req: Request, res: Response, next: NextFuncti
   return middleware(req, res, next);
 }
 
-export function authBasedRateLimit(req: Request, res: Response, next: NextFunction) {
+export function authBasedRateLimit(req: Request, res: Response, next: NextFunction): void {
   const request = req as any;
-  
+
   if (request.headers['x-api-key']) {
     return apiKeyRateLimit(req, res, next);
   }
-  
+
   if (request.user?.id) {
     return userRateLimit(req, res, next);
   }
-  
+
   return globalRateLimit(req, res, next);
 }
 
@@ -105,10 +105,10 @@ export function authBasedRateLimit(req: Request, res: Response, next: NextFuncti
 // ADMIN ENDPOINTS
 // ============================================================================
 
-export async function getRateLimitStatus(req: Request, res: Response) {
+export async function getRateLimitStatus(req: Request, res: Response): void {
   try {
     const { key } = req.query;
-    
+
     if (!key || typeof key !== 'string') {
       return res.status(400).json({ error: 'Key parameter is required' });
     }
@@ -122,10 +122,10 @@ export async function getRateLimitStatus(req: Request, res: Response) {
   }
 }
 
-export async function resetRateLimit(req: Request, res: Response) {
+export async function resetRateLimit(req: Request, res: Response): void {
   try {
     const { key } = req.body;
-    
+
     if (!key || typeof key !== 'string') {
       return res.status(400).json({ error: 'Key parameter is required' });
     }
@@ -138,7 +138,7 @@ export async function resetRateLimit(req: Request, res: Response) {
 }
 
 export function getClientIP(req: Request): string {
-  return (
+  return (;
     (req.headers['x-forwarded-for'] as string)?.split(',')[0] ||
     (req.headers['x-real-ip'] as string) ||
     req.connection.remoteAddress ||

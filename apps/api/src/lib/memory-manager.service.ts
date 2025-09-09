@@ -1,6 +1,6 @@
 /**
  * PR-49: Memory Management Service
- * 
+ *
  * Sistema avanzado de gestión de memoria con:
  * - Monitoreo de memoria en tiempo real
  * - Garbage collection inteligente
@@ -125,7 +125,7 @@ export class MemoryManagerService {
    */
   private initializeMetrics(): MemoryMetrics {
     const memUsage = process.memoryUsage();
-    
+
     return {
       total: this.config.maxMemoryMB,
       used: Math.round(memUsage.rss / 1024 / 1024),
@@ -177,15 +177,15 @@ export class MemoryManagerService {
       global.gc = () => {
         const start = Date.now();
         const before = process.memoryUsage().heapUsed;
-        
+
         const result = originalGC();
-        
+
         const after = process.memoryUsage().heapUsed;
         const duration = Date.now() - start;
         const freed = before - after;
 
         this.recordGCAction('manual', duration, freed, before, after);
-        
+
         return result;
       };
     }
@@ -360,7 +360,7 @@ export class MemoryManagerService {
 
     try {
       global.gc();
-      
+
       const after = process.memoryUsage().heapUsed;
       const duration = Date.now() - start;
       const freed = before - after;
@@ -398,7 +398,7 @@ export class MemoryManagerService {
     };
 
     this.gcHistory.push(action);
-    
+
     // Mantener solo los últimos 100 registros
     if (this.gcHistory.length > 100) {
       this.gcHistory = this.gcHistory.slice(-100);
@@ -475,7 +475,7 @@ export class MemoryManagerService {
    */
   private async resolveMemoryLeaks(): Promise<void> {
     const start = Date.now();
-    const leaksToResolve = Array.from(this.leaks.values()).filter(leak => 
+    const leaksToResolve = Array.from(this.leaks.values()).filter(leak =>
       Date.now() - leak.firstDetected > 300000 // 5 minutos
     );
 
@@ -511,7 +511,7 @@ export class MemoryManagerService {
     // Detectar crecimiento anormal de memoria
     if (growthRate > 0.1 && after > this.config.gcThreshold) {
       const leakId = `leak_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+
       const leak: MemoryLeak = {
         id: leakId,
         type: 'object',
@@ -545,7 +545,7 @@ export class MemoryManagerService {
 
   private async compressCacheData(): Promise<void> {
     if (!this.config.compressionEnabled) return;
-    
+
     // Simular compresión de datos
     await new Promise(resolve => setTimeout(resolve, 15));
     this.metrics.compression.compressed += 10;

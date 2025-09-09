@@ -67,7 +67,7 @@ class EconeuraLogger {
       transports: [
         // Console transport for development
         new transports.Console({
-          format: this.environment === 'development' 
+          format: this.environment === 'development'
             ? format.combine(
                 format.colorize(),
                 format.simple(),
@@ -105,9 +105,9 @@ class EconeuraLogger {
 
   private setupApplicationInsights(): void {
     const connectionString = process.env.APPLICATIONINSIGHTS_CONNECTION_STRING;
-    
+
     if (connectionString) {
-      ApplicationInsights.setup(connectionString)
+      ApplicationInsights.setup(connectionString);
         .setAutoDependencyCorrelation(true)
         .setAutoCollectRequests(true)
         .setAutoCollectPerformance(true, true)
@@ -119,7 +119,7 @@ class EconeuraLogger {
         .start();
 
       this.telemetryClient = ApplicationInsights.defaultClient;
-      
+
       // Add custom properties
       this.telemetryClient.addTelemetryProcessor((envelope) => {
         envelope.tags = envelope.tags || {};
@@ -160,7 +160,7 @@ class EconeuraLogger {
 
   error(message: string, error?: Error, context?: LogContext): void {
     this.logger.error(message, this.enrichContext(context, error));
-    
+
     if (this.telemetryClient) {
       if (error) {
         this.telemetryClient.trackException({
@@ -179,7 +179,7 @@ class EconeuraLogger {
 
   critical(message: string, error?: Error, context?: LogContext): void {
     this.logger.error(`[CRITICAL] ${message}`, this.enrichContext(context, error));
-    
+
     if (this.telemetryClient) {
       this.telemetryClient.trackException({
         exception: error || new Error(message),
@@ -324,11 +324,11 @@ class EconeuraLogger {
   flush(): Promise<void> {
     return new Promise((resolve) => {
       this.telemetryClient?.flush();
-      
+
       // Wait for winston to finish writing
       const transports = this.logger.transports;
       let pending = transports.length;
-      
+
       if (pending === 0) {
         resolve();
         return;
@@ -356,9 +356,9 @@ export const logger = new EconeuraLogger();
 export const requestLogger = (req: any, res: any, next: any) => {
   const start = Date.now();
   const requestId = req.headers['x-request-id'] || `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
+
   req.requestId = requestId;
-  
+
   // Log request start
   logger.info('HTTP Request Started', {
     requestId,
@@ -375,7 +375,7 @@ export const requestLogger = (req: any, res: any, next: any) => {
   const originalEnd = res.end;
   res.end = function(this: any, ...args: any[]) {
     const duration = Date.now() - start;
-    
+
     logger.info('HTTP Request Completed', {
       requestId,
       action: 'HTTP_REQUEST_END',

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   BarChart3,
   AlertTriangle,
   TrendingUp,
@@ -77,7 +77,7 @@ interface CostLimitSettings {
   };
 }
 
-export function CFODashboard() {
+export function CFODashboard(): void {
   const [metrics, setMetrics] = useState<FinOpsMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -88,7 +88,7 @@ export function CFODashboard() {
   const fetchMetrics = async (isRefresh = false) => {
     try {
       if (isRefresh) setRefreshing(true);
-      
+
       const response = await fetch('/api/econeura/ai/usage', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
@@ -98,7 +98,7 @@ export function CFODashboard() {
 
       if (response.ok) {
         const data = await response.json();
-        
+
         // Transform API response to FinOpsMetrics
         const transformedMetrics: FinOpsMetrics = {
           organizationId: data.organization_id,
@@ -107,7 +107,7 @@ export function CFODashboard() {
             monthlyCostEur: data.monthly_cost_eur || 0,
             yearlyProjectionEur: (data.monthly_cost_eur || 0) * 12,
             totalRequests: data.total_requests || 0,
-            avgCostPerRequest: data.total_requests > 0 ? 
+            avgCostPerRequest: data.total_requests > 0 ?
               (data.daily_cost_eur || 0) / data.total_requests : 0,
           },
           budgetLimits: {
@@ -120,9 +120,9 @@ export function CFODashboard() {
           utilization: {
             dailyPercent: data.utilization_daily || 0,
             monthlyPercent: data.utilization_monthly || 0,
-            trend: data.utilization_daily > data.utilization_monthly ? 'up' : 
+            trend: data.utilization_daily > data.utilization_monthly ? 'up' :
                    data.utilization_daily < data.utilization_monthly ? 'down' : 'stable',
-            growthRatePercent: ((data.utilization_daily - data.utilization_monthly) / 
+            growthRatePercent: ((data.utilization_daily - data.utilization_monthly) /
                                Math.max(data.utilization_monthly, 1)) * 100,
           },
           costBreakdown: {
@@ -138,9 +138,9 @@ export function CFODashboard() {
           })) || [],
           lastUpdated: new Date(),
         };
-        
+
         setMetrics(transformedMetrics);
-        
+
         // Extract current limits for settings
         setLimitSettings({
           dailyLimitEur: transformedMetrics.budgetLimits.dailyLimitEur,
@@ -168,7 +168,7 @@ export function CFODashboard() {
 
   const updateCostLimits = async () => {
     if (!limitSettings) return;
-    
+
     setSavingSettings(true);
     try {
       const response = await fetch('/api/econeura/ai/usage/limits', {
@@ -203,14 +203,14 @@ export function CFODashboard() {
 
   useEffect(() => {
     fetchMetrics();
-    
+
     // Set up periodic refresh every 60 seconds
     const interval = setInterval(() => fetchMetrics(false), 60000);
     return () => clearInterval(interval);
   }, []);
 
   if (loading) {
-    return (
+    return (;
       <div className="flex justify-center items-center h-64">
         <LoadingSpinner />
       </div>
@@ -218,7 +218,7 @@ export function CFODashboard() {
   }
 
   if (!metrics) {
-    return (
+    return (;
       <div className="text-center py-12">
         <p className="text-gray-500">No financial data available</p>
       </div>
@@ -228,7 +228,7 @@ export function CFODashboard() {
   const activeAlerts = metrics.alerts.filter(a => !a.resolved);
   const criticalAlerts = activeAlerts.filter(a => a.severity === 'critical');
 
-  return (
+  return (;
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
@@ -281,21 +281,21 @@ export function CFODashboard() {
           icon={<BarChart3 className="h-5 w-5" />}
           subtitle={`${metrics.utilization.dailyPercent.toFixed(1)}% of €${metrics.budgetLimits.dailyLimitEur} limit`}
         />
-        
+
         <MetricsCard
           title="Monthly AI Spend"
           value={`€${metrics.currentPeriod.monthlyCostEur.toFixed(2)}`}
           icon={<TrendingUp className="h-5 w-5" />}
           subtitle={`${metrics.utilization.monthlyPercent.toFixed(1)}% of €${metrics.budgetLimits.monthlyLimitEur} limit`}
         />
-        
+
         <MetricsCard
           title="Cost Per Request"
           value={`€${metrics.currentPeriod.avgCostPerRequest.toFixed(4)}`}
           icon={<Zap className="h-5 w-5" />}
           subtitle={`${metrics.currentPeriod.totalRequests} requests today`}
         />
-        
+
         <MetricsCard
           title="Yearly Projection"
           value={`€${metrics.currentPeriod.yearlyProjectionEur.toFixed(0)}`}
@@ -308,14 +308,14 @@ export function CFODashboard() {
       <div className="bg-white shadow rounded-lg">
         <div className="px-4 py-5 sm:p-6">
           <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Budget Status & Controls</h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Daily Budget */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-gray-700">Daily Budget</span>
                 <StatusBadge
-                  status={metrics.utilization.dailyPercent > 90 ? 'danger' : 
+                  status={metrics.utilization.dailyPercent > 90 ? 'danger' :
                          metrics.utilization.dailyPercent > 80 ? 'warning' : 'success'}
                 >
                   {`${metrics.utilization.dailyPercent.toFixed(0)}%`}
@@ -341,7 +341,7 @@ export function CFODashboard() {
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-gray-700">Monthly Budget</span>
                 <StatusBadge
-                  status={metrics.utilization.monthlyPercent > 90 ? 'danger' : 
+                  status={metrics.utilization.monthlyPercent > 90 ? 'danger' :
                          metrics.utilization.monthlyPercent > 80 ? 'warning' : 'success'}
                 >
                   {`${metrics.utilization.monthlyPercent.toFixed(0)}%`}
@@ -459,7 +459,7 @@ export function CFODashboard() {
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Cost Limit Settings</h3>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Daily Limit (EUR)</label>
@@ -468,13 +468,13 @@ export function CFODashboard() {
                   step="0.01"
                   min="1"
                   value={limitSettings.dailyLimitEur}
-                  onChange={(e) => setLimitSettings(prev => prev ? 
+                  onChange={(e) => setLimitSettings(prev => prev ?
                     { ...prev, dailyLimitEur: parseFloat(e.target.value) || 1 } : null
                   )}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700">Monthly Limit (EUR)</label>
                 <input
@@ -482,13 +482,13 @@ export function CFODashboard() {
                   step="1"
                   min="10"
                   value={limitSettings.monthlyLimitEur}
-                  onChange={(e) => setLimitSettings(prev => prev ? 
+                  onChange={(e) => setLimitSettings(prev => prev ?
                     { ...prev, monthlyLimitEur: parseFloat(e.target.value) || 10 } : null
                   )}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700">Per Request Limit (EUR)</label>
                 <input
@@ -496,25 +496,25 @@ export function CFODashboard() {
                   step="0.01"
                   min="0.01"
                   value={limitSettings.perRequestLimitEur}
-                  onChange={(e) => setLimitSettings(prev => prev ? 
+                  onChange={(e) => setLimitSettings(prev => prev ?
                     { ...prev, perRequestLimitEur: parseFloat(e.target.value) || 0.01 } : null
                   )}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 />
               </div>
-              
+
               <div className="flex items-center">
                 <input
                   type="checkbox"
                   checked={limitSettings.emergencyStop.enabled}
-                  onChange={(e) => setLimitSettings(prev => prev ? 
+                  onChange={(e) => setLimitSettings(prev => prev ?
                     { ...prev, emergencyStop: { ...prev.emergencyStop, enabled: e.target.checked } } : null
                   )}
                   className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 />
                 <label className="ml-2 text-sm text-gray-700">Enable Emergency Stop</label>
               </div>
-              
+
               {limitSettings.emergencyStop.enabled && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Emergency Stop Threshold (EUR)</label>
@@ -523,7 +523,7 @@ export function CFODashboard() {
                     step="1"
                     min="1"
                     value={limitSettings.emergencyStop.thresholdEur}
-                    onChange={(e) => setLimitSettings(prev => prev ? 
+                    onChange={(e) => setLimitSettings(prev => prev ?
                       { ...prev, emergencyStop: { ...prev.emergencyStop, thresholdEur: parseFloat(e.target.value) || 1 } } : null
                     )}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
@@ -531,7 +531,7 @@ export function CFODashboard() {
                 </div>
               )}
             </div>
-            
+
             <div className="mt-6 flex justify-end space-x-3">
               <button
                 onClick={() => setShowSettings(false)}

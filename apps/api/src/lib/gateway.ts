@@ -211,7 +211,7 @@ export class APIGateway {
   }
 
   private leastConnectionsSelection(services: ServiceEndpoint[]): ServiceEndpoint {
-    return services.reduce((min, service) => 
+    return services.reduce((min, service) => ;
       service.currentConnections < min.currentConnections ? service : min
     );
   }
@@ -219,14 +219,14 @@ export class APIGateway {
   private weightedSelection(services: ServiceEndpoint[]): ServiceEndpoint {
     const totalWeight = services.reduce((sum, service) => sum + service.weight, 0);
     let random = Math.random() * totalWeight;
-    
+
     for (const service of services) {
       random -= service.weight;
       if (random <= 0) {
         return service;
       }
     }
-    
+
     return services[0];
   }
 
@@ -234,13 +234,13 @@ export class APIGateway {
     if (!clientIp) {
       return services[0];
     }
-    
+
     const hash = clientIp.split('.').reduce((acc, octet) => acc + parseInt(octet), 0);
     return services[hash % services.length];
   }
 
   private responseTimeSelection(services: ServiceEndpoint[]): ServiceEndpoint {
-    return services.reduce((min, service) => 
+    return services.reduce((min, service) => ;
       service.responseTime < min.responseTime ? service : min
     );
   }
@@ -299,7 +299,7 @@ export class APIGateway {
   private matchesPath(routePath: string, requestPath: string): boolean {
     // Implementación básica de matching de paths
     // En una implementación real, se usaría un router más robusto
-    
+
     if (routePath === requestPath) {
       return true;
     }
@@ -377,7 +377,7 @@ export class APIGateway {
 
     const responseTimes = this.responseTimes.get(serviceId) || [];
     responseTimes.push(responseTime);
-    
+
     // Mantener solo los últimos 100 tiempos de respuesta
     if (responseTimes.length > 100) {
       responseTimes.shift();
@@ -393,10 +393,10 @@ export class APIGateway {
   getStats(): GatewayStats {
     const totalRequests = Array.from(this.requestCounts.values()).reduce((sum, count) => sum + count, 0);
     const activeConnections = Array.from(this.services.values()).reduce((sum, service) => sum + service.currentConnections, 0);
-    
+
     const allResponseTimes = Array.from(this.responseTimes.values()).flat();
-    const averageResponseTime = allResponseTimes.length > 0 
-      ? allResponseTimes.reduce((sum, time) => sum + time, 0) / allResponseTimes.length 
+    const averageResponseTime = allResponseTimes.length > 0
+      ? allResponseTimes.reduce((sum, time) => sum + time, 0) / allResponseTimes.length
       : 0;
 
     const totalErrors = Array.from(this.errorCounts.values()).reduce((sum, count) => sum + count, 0);

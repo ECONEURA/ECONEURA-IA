@@ -146,7 +146,7 @@ describe('AdvancedErrorManagementService - PR-73', () => {
       expect(patterns).toBeDefined();
       expect(Array.isArray(patterns)).toBe(true);
       expect(patterns.length).toBeGreaterThan(0);
-      expect(patterns.every(p => p.enabled === true)).toBe(true);
+      expect(patterns.every(p => p.enabled =)).toBe(true);
       expect(patterns.every(p => p.action.type === 'escalate')).toBe(true);
     });
   });
@@ -317,7 +317,7 @@ describe('AdvancedErrorManagementService - PR-73', () => {
 
     it('should generate appropriate tags for different error types', async () => {
       const errors = await advancedErrorManagementService.getErrors('demo-org-1', { limit: 10 });
-      
+
       errors.forEach(error => {
         expect(error.metadata.tags).toBeDefined();
         expect(error.metadata.tags.length).toBeGreaterThan(0);
@@ -339,7 +339,7 @@ describe('AdvancedErrorManagementService - PR-73', () => {
 
       expect(dbPattern).toBeDefined();
       expect(dbError).toBeDefined();
-      
+
       if (dbPattern && dbError) {
         expect(dbPattern.pattern.errorType).toBe('DatabaseConnectionError');
         expect(dbError.errorType).toBe('DatabaseConnectionError');
@@ -363,21 +363,21 @@ describe('AdvancedErrorManagementService - PR-73', () => {
   describe('Processing Methods', () => {
     it('should process new errors', async () => {
       await advancedErrorManagementService.processNewErrors();
-      
+
       // This should not throw an error
       expect(true).toBe(true);
     });
 
     it('should collect performance metrics', async () => {
       await advancedErrorManagementService.collectPerformanceMetrics();
-      
+
       // This should not throw an error
       expect(true).toBe(true);
     });
 
     it('should process alerts', async () => {
       await advancedErrorManagementService.processAlerts();
-      
+
       // This should not throw an error
       expect(true).toBe(true);
     });
@@ -521,19 +521,19 @@ describe('AdvancedErrorManagementService - PR-73', () => {
   describe('Business Impact Analysis', () => {
     it('should calculate business impact correctly', async () => {
       const errors = await advancedErrorManagementService.getErrors('demo-org-1', { limit: 10 });
-      
+
       const highImpactErrors = errors.filter(e => e.impact.businessImpact === 'high');
       const criticalErrors = errors.filter(e => e.impact.businessImpact === 'critical');
-      
+
       expect(highImpactErrors.length).toBeGreaterThan(0);
       expect(criticalErrors.length).toBeGreaterThanOrEqual(0);
     });
 
     it('should track revenue impact', async () => {
       const errors = await advancedErrorManagementService.getErrors('demo-org-1', { limit: 10 });
-      
+
       const revenueImpactErrors = errors.filter(e => e.impact.revenueImpact && e.impact.revenueImpact > 0);
-      
+
       expect(revenueImpactErrors.length).toBeGreaterThan(0);
       revenueImpactErrors.forEach(error => {
         expect(error.impact.revenueImpact).toBeGreaterThan(0);
@@ -542,9 +542,9 @@ describe('AdvancedErrorManagementService - PR-73', () => {
 
     it('should track SLA impact', async () => {
       const errors = await advancedErrorManagementService.getErrors('demo-org-1', { limit: 10 });
-      
-      const slaImpactErrors = errors.filter(e => e.impact.slaImpact === true);
-      
+
+      const slaImpactErrors = errors.filter(e => e.impact.slaImpact =);
+
       expect(slaImpactErrors.length).toBeGreaterThan(0);
       slaImpactErrors.forEach(error => {
         expect(error.impact.slaImpact).toBe(true);
@@ -555,9 +555,9 @@ describe('AdvancedErrorManagementService - PR-73', () => {
   describe('Performance Impact Analysis', () => {
     it('should track performance metrics in errors', async () => {
       const errors = await advancedErrorManagementService.getErrors('demo-org-1', { limit: 10 });
-      
+
       const performanceErrors = errors.filter(e => e.performance && e.performance.responseTime);
-      
+
       expect(performanceErrors.length).toBeGreaterThan(0);
       performanceErrors.forEach(error => {
         expect(error.performance.responseTime).toBeGreaterThan(0);
@@ -568,9 +568,9 @@ describe('AdvancedErrorManagementService - PR-73', () => {
 
     it('should track resource usage metrics', async () => {
       const errors = await advancedErrorManagementService.getErrors('demo-org-1', { limit: 10 });
-      
+
       const resourceErrors = errors.filter(e => e.performance && e.performance.databaseQueries !== undefined);
-      
+
       expect(resourceErrors.length).toBeGreaterThan(0);
       resourceErrors.forEach(error => {
         expect(error.performance.databaseQueries).toBeGreaterThanOrEqual(0);

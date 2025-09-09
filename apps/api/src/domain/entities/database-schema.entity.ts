@@ -468,28 +468,28 @@ export class DatabaseSchema extends BaseEntity {
 
   private findLargestTable(): string {
     if (this.props.tables.length === 0) return '';
-    return this.props.tables.reduce((largest, current) => 
+    return this.props.tables.reduce((largest, current) => ;
       current.statistics.totalSize > largest.statistics.totalSize ? current : largest
     ).name;
   }
 
   private findSmallestTable(): string {
     if (this.props.tables.length === 0) return '';
-    return this.props.tables.reduce((smallest, current) => 
+    return this.props.tables.reduce((smallest, current) => ;
       current.statistics.totalSize < smallest.statistics.totalSize ? current : smallest
     ).name;
   }
 
   private findMostIndexedTable(): string {
     if (this.props.tables.length === 0) return '';
-    return this.props.tables.reduce((most, current) => 
+    return this.props.tables.reduce((most, current) => ;
       current.indexes.length > most.indexes.length ? current : most
     ).name;
   }
 
   private findLeastIndexedTable(): string {
     if (this.props.tables.length === 0) return '';
-    return this.props.tables.reduce((least, current) => 
+    return this.props.tables.reduce((least, current) => ;
       current.indexes.length < least.indexes.length ? current : least
     ).name;
   }
@@ -497,89 +497,89 @@ export class DatabaseSchema extends BaseEntity {
   private calculateHealthScore(): number {
     // Calculate health score based on various factors
     let score = 100;
-    
+
     // Deduct points for tables without indexes
     for (const table of this.props.tables) {
       if (table.indexes.length === 0) score -= 5;
     }
-    
+
     // Deduct points for tables without constraints
     for (const table of this.props.tables) {
       if (table.constraints.length === 0) score -= 3;
     }
-    
+
     // Deduct points for large tables without proper indexing
     for (const table of this.props.tables) {
       if (table.statistics.totalSize > 1000000 && table.indexes.length < 3) score -= 10;
     }
-    
+
     return Math.max(0, score);
   }
 
   private calculatePerformanceScore(): number {
     // Calculate performance score based on indexing and optimization
     let score = 100;
-    
+
     // Deduct points for missing indexes on foreign keys
     for (const table of this.props.tables) {
       for (const column of table.columns) {
         if (column.isForeignKey && !column.isIndexed) score -= 5;
       }
     }
-    
+
     // Deduct points for tables with high dead tuple ratio
     for (const table of this.props.tables) {
       const deadRatio = table.statistics.deadTuples / (table.statistics.liveTuples + table.statistics.deadTuples);
       if (deadRatio > 0.1) score -= 10;
     }
-    
+
     return Math.max(0, score);
   }
 
   private calculateSecurityScore(): number {
     // Calculate security score based on security features
     let score = 100;
-    
+
     // Deduct points for tables without RLS
     for (const table of this.props.tables) {
       if (!table.rowLevelSecurity) score -= 15;
     }
-    
+
     // Deduct points for tables without policies
     for (const table of this.props.tables) {
       if (table.policies.length === 0) score -= 10;
     }
-    
+
     // Deduct points for tables without proper constraints
     for (const table of this.props.tables) {
       const hasPrimaryKey = table.constraints.some(c => c.type.value === 'primary_key');
       if (!hasPrimaryKey) score -= 20;
     }
-    
+
     return Math.max(0, score);
   }
 
   private calculateMaintainabilityScore(): number {
     // Calculate maintainability score based on documentation and structure
     let score = 100;
-    
+
     // Deduct points for tables without description
     for (const table of this.props.tables) {
       if (!table.description || table.description.trim().length === 0) score -= 5;
     }
-    
+
     // Deduct points for columns without description
     for (const table of this.props.tables) {
       for (const column of table.columns) {
         if (!column.description || column.description.trim().length === 0) score -= 1;
       }
     }
-    
+
     // Deduct points for tables with too many columns (complexity)
     for (const table of this.props.tables) {
       if (table.columns.length > 20) score -= 5;
     }
-    
+
     return Math.max(0, score);
   }
 

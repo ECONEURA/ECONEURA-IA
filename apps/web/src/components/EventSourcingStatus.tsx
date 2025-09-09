@@ -19,7 +19,7 @@ interface Event {
   metadata: any;
 }
 
-export default function EventSourcingStatus() {
+export default function EventSourcingStatus(): void {
   const [stats, setStats] = useState<EventSourcingStats | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,7 +43,7 @@ export default function EventSourcingStatus() {
   const fetchEventSourcingData = async () => {
     try {
       setLoading(true);
-      
+
       // Obtener estadísticas
       const statsResponse = await fetch('/api/events/stats');
       if (statsResponse.ok) {
@@ -145,7 +145,7 @@ export default function EventSourcingStatus() {
   };
 
   if (loading) {
-    return (
+    return (;
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold mb-4">📊 Event Sourcing & CQRS</h3>
         <div className="animate-pulse">
@@ -156,10 +156,10 @@ export default function EventSourcingStatus() {
     );
   }
 
-  return (
+  return (;
     <div className="bg-white rounded-lg shadow p-6">
       <h3 className="text-lg font-semibold mb-4">📊 Event Sourcing & CQRS</h3>
-      
+
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
           {error}

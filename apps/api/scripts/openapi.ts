@@ -23,7 +23,7 @@ import {
   ActivitySchema,
   CreateActivitySchema,
   UpdateActivitySchema,
-  
+
   // ERP schemas
   ProductSchema,
   CreateProductSchema,
@@ -42,7 +42,7 @@ import {
   CreateInventoryAdjustmentSchema,
   PurchaseOrderSchema,
   CreatePurchaseOrderSchema,
-  
+
   // Finance schemas
   InvoiceSchema,
   CreateInvoiceSchema,
@@ -55,7 +55,7 @@ import {
   CreateExpenseSchema,
   UpdateExpenseSchema,
   FinancialSummarySchema,
-  
+
   // Auth schemas
   LoginRequestSchema,
   LoginResponseSchema,
@@ -64,14 +64,14 @@ import {
   LogoutRequestSchema,
   MeResponseSchema,
   SessionsResponseSchema,
-  
+
   // Common schemas
   PaginationRequestSchema,
   PaginationResponseSchema,
   ProblemDetailsSchema,
   ValidationErrorSchema,
   HealthCheckResponseSchema,
-  
+
 } from '@econeura/shared/src/schemas';
 
 // Create registry
@@ -86,7 +86,7 @@ registry.registerComponent('securitySchemes', 'bearerAuth', {
 });
 
 // Helper to create paginated response schema
-function createPaginatedResponse(itemSchema: z.ZodType<any>) {
+function createPaginatedResponse(itemSchema: z.ZodType<any>): void {
   return z.object({
     data: z.array(itemSchema),
     pagination: z.object({
@@ -313,7 +313,7 @@ registry.registerPath({
   },
 });
 
-// CRM - Deals endpoints  
+// CRM - Deals endpoints
 registry.registerPath({
   method: 'get',
   path: '/api/v1/crm/deals',

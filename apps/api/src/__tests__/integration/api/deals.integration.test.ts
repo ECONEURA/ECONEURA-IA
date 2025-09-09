@@ -191,7 +191,7 @@ describe('Deals API Integration Tests', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.data.every((deal: any) => 
+      expect(response.body.data.every((deal: any) =>
         deal.amount >= 15000 && deal.amount <= 25000
       )).toBe(true);
     });
@@ -203,7 +203,7 @@ describe('Deals API Integration Tests', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.data.every((deal: any) => 
+      expect(response.body.data.every((deal: any) =>
         deal.name.includes('Test Deal 1')
       )).toBe(true);
     });

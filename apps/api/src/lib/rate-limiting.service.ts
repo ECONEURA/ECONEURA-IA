@@ -21,7 +21,7 @@ export class RateLimitingService {
         count: 1,
         resetTime: now + config.windowMs
       });
-      
+
       return {
         allowed: true,
         remaining: config.maxRequests - 1,
@@ -34,7 +34,7 @@ export class RateLimitingService {
       prometheus.register.getSingleMetric('rate_limit_exceeded_total')?.inc({
         key: key.substring(0, 50) // Truncate for metrics
       });
-      
+
       return {
         allowed: false,
         remaining: 0,

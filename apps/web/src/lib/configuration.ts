@@ -121,7 +121,7 @@ export class WebConfigurationSystem {
   createFeatureFlag(flag: Omit<FeatureFlag, 'id' | 'createdAt' | 'updatedAt'>): string {
     const id = `flag_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date().toISOString();
-    
+
     const featureFlag: FeatureFlag = {
       ...flag,
       id,

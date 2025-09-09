@@ -243,7 +243,7 @@ hitlOwnershipSLARouter.get('/agents', async (req, res) => {
   try {
     const filters = GetAgentsSchema.parse(req.query);
     const agents = await hitlOwnershipSLAService.getAgents(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -267,14 +267,14 @@ hitlOwnershipSLARouter.get('/agents/:id', async (req, res) => {
   try {
     const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
     const agent = await hitlOwnershipSLAService.getAgent(id);
-    
+
     if (!agent) {
       return res.status(404).json({
         success: false,
         error: 'Agent not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: agent,
@@ -294,7 +294,7 @@ hitlOwnershipSLARouter.post('/agents', async (req, res) => {
   try {
     const agentData = CreateAgentSchema.parse(req.body);
     const agent = await hitlOwnershipSLAService.createAgent(agentData);
-    
+
     res.status(201).json({
       success: true,
       data: agent,
@@ -315,7 +315,7 @@ hitlOwnershipSLARouter.get('/shifts', async (req, res) => {
   try {
     const filters = GetShiftsSchema.parse(req.query);
     const shifts = await hitlOwnershipSLAService.getShifts(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -339,7 +339,7 @@ hitlOwnershipSLARouter.post('/shifts', async (req, res) => {
   try {
     const shiftData = CreateShiftSchema.parse(req.body);
     const shift = await hitlOwnershipSLAService.createShift(shiftData);
-    
+
     res.status(201).json({
       success: true,
       data: shift,
@@ -360,7 +360,7 @@ hitlOwnershipSLARouter.get('/vacations', async (req, res) => {
   try {
     const filters = GetVacationsSchema.parse(req.query);
     const vacations = await hitlOwnershipSLAService.getVacations(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -384,7 +384,7 @@ hitlOwnershipSLARouter.post('/vacations', async (req, res) => {
   try {
     const vacationData = CreateVacationSchema.parse(req.body);
     const vacation = await hitlOwnershipSLAService.createVacation(vacationData);
-    
+
     res.status(201).json({
       success: true,
       data: vacation,
@@ -405,7 +405,7 @@ hitlOwnershipSLARouter.get('/tasks', async (req, res) => {
   try {
     const filters = GetTasksSchema.parse(req.query);
     const tasks = await hitlOwnershipSLAService.getTasks(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -429,7 +429,7 @@ hitlOwnershipSLARouter.post('/tasks', async (req, res) => {
   try {
     const taskData = CreateTaskSchema.parse(req.body);
     const task = await hitlOwnershipSLAService.createTask(taskData);
-    
+
     res.status(201).json({
       success: true,
       data: task,
@@ -450,7 +450,7 @@ hitlOwnershipSLARouter.get('/escalations', async (req, res) => {
   try {
     const filters = GetEscalationsSchema.parse(req.query);
     const escalations = await hitlOwnershipSLAService.getEscalations(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -474,7 +474,7 @@ hitlOwnershipSLARouter.post('/escalations', async (req, res) => {
   try {
     const escalationData = CreateEscalationSchema.parse(req.body);
     const escalation = await hitlOwnershipSLAService.createEscalation(escalationData);
-    
+
     res.status(201).json({
       success: true,
       data: escalation,
@@ -495,7 +495,7 @@ hitlOwnershipSLARouter.get('/slas', async (req, res) => {
   try {
     const filters = GetSLAsSchema.parse(req.query);
     const slas = await hitlOwnershipSLAService.getSLAs(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -519,7 +519,7 @@ hitlOwnershipSLARouter.post('/slas', async (req, res) => {
   try {
     const slaData = CreateSLASchema.parse(req.body);
     const sla = await hitlOwnershipSLAService.createSLA(slaData);
-    
+
     res.status(201).json({
       success: true,
       data: sla,
@@ -539,7 +539,7 @@ hitlOwnershipSLARouter.post('/slas', async (req, res) => {
 hitlOwnershipSLARouter.post('/escalate-tasks', async (req, res) => {
   try {
     await hitlOwnershipSLAService.checkAndEscalateTasks();
-    
+
     res.json({
       success: true,
       message: 'Auto-escalation check completed',
@@ -565,7 +565,7 @@ hitlOwnershipSLARouter.post('/reports', async (req, res) => {
       reportData.endDate,
       reportData.generatedBy
     );
-    
+
     res.status(201).json({
       success: true,
       data: report,
@@ -586,7 +586,7 @@ hitlOwnershipSLARouter.get('/stats', async (req, res) => {
   try {
     const { organizationId } = GetStatsSchema.parse(req.query);
     const stats = await hitlOwnershipSLAService.getStats(organizationId);
-    
+
     res.json({
       success: true,
       data: stats,
@@ -606,7 +606,7 @@ hitlOwnershipSLARouter.get('/stats', async (req, res) => {
 hitlOwnershipSLARouter.get('/health', async (req, res) => {
   try {
     const stats = await hitlOwnershipSLAService.getStats('demo-org-1');
-    
+
     res.json({
       success: true,
       data: {

@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { 
-  MessageCircle, 
-  Send, 
-  Bot, 
-  User, 
-  Settings, 
+import {
+  MessageCircle,
+  Send,
+  Bot,
+  User,
+  Settings,
   BarChart3,
   Tag,
   Clock,
@@ -139,7 +139,7 @@ export default function AIAdvancedChat({
   const [isTyping, setIsTyping] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [currentAnalysis, setCurrentAnalysis] = useState<AIAnalysis | null>(null);
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -159,7 +159,7 @@ export default function AIAdvancedChat({
   const loadData = async () => {
     try {
       setLoading(true);
-      
+
       // Load all data in parallel
       const [conversationsRes, sessionsRes, statisticsRes] = await Promise.all([
         fetch('/api/ai-chat-advanced/conversations?organizationId=demo-org-1'),
@@ -170,7 +170,7 @@ export default function AIAdvancedChat({
       const [conversationsData, sessionsData, statisticsData] = await Promise.all([
         conversationsRes.json(),
         sessionsRes.json(),
-        statisticsRes.json()
+        statisticsRes.json();
       ]);
 
       if (conversationsData.success) setConversations(conversationsData.data.conversations || []);
@@ -190,7 +190,7 @@ export default function AIAdvancedChat({
     try {
       const response = await fetch(`/api/ai-chat-advanced/conversations/${conversationId}/messages`);
       const data = await response.json();
-      
+
       if (data.success) {
         setMessages(data.data.messages || []);
       }
@@ -243,7 +243,7 @@ export default function AIAdvancedChat({
         setMessages(prev => [...prev, data.data.message]);
         setCurrentAnalysis(data.data.analysis);
         setShowAnalysis(true);
-        
+
         // Reload conversations to update last message
         await loadData();
       } else {
@@ -297,12 +297,12 @@ export default function AIAdvancedChat({
                          conv.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = selectedStatus === 'all' || conv.status === selectedStatus;
     const matchesTags = selectedTags.length === 0 || selectedTags.some(tag => conv.tags.includes(tag));
-    
+
     return matchesSearch && matchesStatus && matchesTags;
   });
 
   if (loading && !conversations.length) {
-    return (
+    return (;
       <div className={`animate-pulse ${className}`}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1">
@@ -317,7 +317,7 @@ export default function AIAdvancedChat({
   }
 
   if (error) {
-    return (
+    return (;
       <div className={`text-center py-12 ${className}`}>
         <div className="text-red-600 mb-4">
           <MessageCircle className="w-12 h-12 mx-auto mb-2" />
@@ -334,7 +334,7 @@ export default function AIAdvancedChat({
     );
   }
 
-  return (
+  return (;
     <div className={`space-y-6 ${className}`}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -570,7 +570,7 @@ export default function AIAdvancedChat({
                           </span>
                         </div>
                         <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                        
+
                         {/* Message Metadata */}
                         {message.metadata && (
                           <div className="mt-2 pt-2 border-t border-gray-200 border-opacity-50">
@@ -596,7 +596,7 @@ export default function AIAdvancedChat({
                       </div>
                     </div>
                   ))}
-                  
+
                   {isTyping && (
                     <div className="flex justify-start">
                       <div className="bg-gray-100 text-gray-900 px-4 py-2 rounded-lg">
@@ -611,7 +611,7 @@ export default function AIAdvancedChat({
                       </div>
                     </div>
                   )}
-                  
+
                   <div ref={messagesEndRef} />
                 </div>
 

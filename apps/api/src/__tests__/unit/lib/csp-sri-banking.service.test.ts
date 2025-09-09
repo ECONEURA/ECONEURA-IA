@@ -19,7 +19,7 @@ describe('CSPBankingService - PR-75', () => {
   describe('Service Initialization', () => {
     it('should initialize with banking defaults', () => {
       const config = service.getConfig();
-      
+
       expect(config.bankingMode).toBe(true);
       expect(config.strictMode).toBe(true);
       expect(config.enforceMode).toBe(true);
@@ -32,7 +32,7 @@ describe('CSPBankingService - PR-75', () => {
     it('should initialize with default configuration', () => {
       const defaultService = new CSPBankingService();
       const config = defaultService.getConfig();
-      
+
       expect(config.enabled).toBe(true);
       expect(config.reportUri).toBe('/api/security/csp-reports');
       expect(config.alertThreshold).toBe(10);
@@ -43,7 +43,7 @@ describe('CSPBankingService - PR-75', () => {
   describe('CSP Header Generation', () => {
     it('should generate CSP header for banking mode', () => {
       const cspHeader = service.generateCSPHeader();
-      
+
       expect(cspHeader).toContain("default-src 'self'");
       expect(cspHeader).toContain("script-src 'self'");
       expect(cspHeader).toContain("style-src 'self'");
@@ -60,14 +60,14 @@ describe('CSPBankingService - PR-75', () => {
 
     it('should include report-uri in CSP header', () => {
       const cspHeader = service.generateCSPHeader();
-      
+
       expect(cspHeader).toContain("report-uri /api/security/csp-reports");
     });
 
     it('should return empty string when disabled', () => {
       service.updateConfig({ enabled: false });
       const cspHeader = service.generateCSPHeader();
-      
+
       expect(cspHeader).toBe('');
     });
   });
@@ -87,14 +87,14 @@ describe('CSPBankingService - PR-75', () => {
       ];
 
       const hashes = service.generateSRIHashes(resources);
-      
+
       expect(hashes).toHaveLength(2);
       expect(hashes[0]).toHaveProperty('url', 'https://example.com/script.js');
       expect(hashes[0]).toHaveProperty('algorithm', 'sha384');
       expect(hashes[0]).toHaveProperty('hash');
       expect(hashes[0]).toHaveProperty('integrity');
       expect(hashes[0].integrity).toMatch(/^sha384-/);
-      
+
       expect(hashes[1]).toHaveProperty('url', 'https://example.com/style.css');
       expect(hashes[1]).toHaveProperty('algorithm', 'sha384'); // default
       expect(hashes[1]).toHaveProperty('hash');
@@ -116,7 +116,7 @@ describe('CSPBankingService - PR-75', () => {
       ];
 
       const hashes = service.generateSRIHashes(resources);
-      
+
       expect(hashes[0].algorithm).toBe('sha256');
       expect(hashes[0].integrity).toMatch(/^sha256-/);
       expect(hashes[1].algorithm).toBe('sha512');
@@ -144,7 +144,7 @@ describe('CSPBankingService - PR-75', () => {
       };
 
       const report = await service.processCSPViolation(violationData, metadata);
-      
+
       expect(report).toHaveProperty('id');
       expect(report.type).toBe('csp');
       expect(report.severity).toBe('critical'); // script-src with external URI
@@ -244,7 +244,7 @@ describe('CSPBankingService - PR-75', () => {
       };
 
       const report = await service.processCSPViolation(violationData, metadata);
-      
+
       expect(report.tags).toContain('script');
       expect(report.tags).toContain('external');
       expect(report.tags).toContain('inline-script');
@@ -273,7 +273,7 @@ describe('CSPBankingService - PR-75', () => {
       };
 
       const report = await service.processSRIViolation(violationData, metadata);
-      
+
       expect(report).toHaveProperty('id');
       expect(report.type).toBe('sri');
       expect(report.severity).toBe('critical'); // integrity-mismatch
@@ -356,7 +356,7 @@ describe('CSPBankingService - PR-75', () => {
 
     it('should provide comprehensive statistics', () => {
       const stats = service.getStats();
-      
+
       expect(stats).toHaveProperty('totalReports');
       expect(stats).toHaveProperty('reportsByType');
       expect(stats).toHaveProperty('reportsBySeverity');
@@ -365,7 +365,7 @@ describe('CSPBankingService - PR-75', () => {
       expect(stats).toHaveProperty('recentTrends');
       expect(stats).toHaveProperty('unresolvedCount');
       expect(stats).toHaveProperty('averageResolutionTime');
-      
+
       expect(stats.reportsByType).toHaveProperty('csp');
       expect(stats.reportsByType).toHaveProperty('sri');
       expect(stats.reportsBySeverity).toHaveProperty('critical');
@@ -376,7 +376,7 @@ describe('CSPBankingService - PR-75', () => {
       const sriReports = service.getReports({ type: 'sri' });
       const criticalReports = service.getReports({ severity: 'critical' });
       const unresolvedReports = service.getReports({ resolved: false });
-      
+
       expect(cspReports.every(r => r.type === 'csp')).toBe(true);
       expect(sriReports.every(r => r.type === 'sri')).toBe(true);
       expect(criticalReports.every(r => r.severity === 'critical')).toBe(true);
@@ -386,7 +386,7 @@ describe('CSPBankingService - PR-75', () => {
     it('should support pagination', () => {
       const firstPage = service.getReports({ limit: 1, offset: 0 });
       const secondPage = service.getReports({ limit: 1, offset: 1 });
-      
+
       expect(firstPage).toHaveLength(1);
       expect(secondPage).toHaveLength(1);
       expect(firstPage[0].id).not.toBe(secondPage[0].id);
@@ -412,12 +412,12 @@ describe('CSPBankingService - PR-75', () => {
 
       const report = await service.processCSPViolation(violationData, metadata);
       const success = service.resolveReport(report.id, 'Fixed by updating CSP policy');
-      
+
       expect(success).toBe(true);
-      
+
       const reports = service.getReports({ resolved: true });
       const resolvedReport = reports.find(r => r.id === report.id);
-      
+
       expect(resolvedReport).toBeDefined();
       expect(resolvedReport?.resolved).toBe(true);
       expect(resolvedReport?.resolution).toBe('Fixed by updating CSP policy');
@@ -440,7 +440,7 @@ describe('CSPBankingService - PR-75', () => {
 
       service.updateConfig(newConfig);
       const config = service.getConfig();
-      
+
       expect(config.enabled).toBe(false);
       expect(config.alertThreshold).toBe(20);
       expect(config.bankingMode).toBe(false);
@@ -451,7 +451,7 @@ describe('CSPBankingService - PR-75', () => {
       service.updateConfig({ bankingMode: false });
       let config = service.getConfig();
       expect(config.allowedScripts).toContain('unsafe-inline');
-      
+
       service.updateConfig({ bankingMode: true });
       config = service.getConfig();
       expect(config.allowedScripts).not.toContain('unsafe-inline');
@@ -480,14 +480,14 @@ describe('CSPBankingService - PR-75', () => {
       };
 
       const report = await service.processCSPViolation(violationData, metadata);
-      
+
       // Simular que el reporte es antiguo
       (report as any).timestamp = oldDate;
-      
+
       const initialCount = service.getReports().length;
       const removedCount = service.cleanupOldReports();
       const finalCount = service.getReports().length;
-      
+
       expect(removedCount).toBeGreaterThan(0);
       expect(finalCount).toBeLessThan(initialCount);
     });
@@ -512,11 +512,11 @@ describe('CSPBankingService - PR-75', () => {
       };
 
       await service.processCSPViolation(violationData, metadata);
-      
+
       expect(service.getReports().length).toBeGreaterThan(0);
-      
+
       service.reset();
-      
+
       expect(service.getReports().length).toBe(0);
       expect(service.getStats().totalReports).toBe(0);
     });

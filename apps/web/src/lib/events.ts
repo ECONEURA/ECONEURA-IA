@@ -72,7 +72,7 @@ export class WebEventSourcingSystem {
 
   async executeCommand(command: Command): Promise<void> {
     const handler = this.commandHandlers.get(command.type);
-    
+
     if (!handler) {
       throw new Error(`No handler registered for command type: ${command.type}`);
     }
@@ -104,7 +104,7 @@ export class WebEventSourcingSystem {
 
   async executeQuery<T>(query: Query): Promise<T> {
     const handler = this.queryHandlers.get(query.type);
-    
+
     if (!handler) {
       throw new Error(`No handler registered for query type: ${query.type}`);
     }

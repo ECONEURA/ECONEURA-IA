@@ -390,14 +390,14 @@ class DLQGroomingService {
     };
 
     this.messages.set(newMessage.id, newMessage);
-    
+
     // Auto-analyze the message only if no analysis was provided
     if (!messageData.analysis) {
       await this.analyzeMessage(newMessage.id);
     }
-    
-    structuredLogger.info('DLQ message created', { 
-      messageId: newMessage.id, 
+
+    structuredLogger.info('DLQ message created', {
+      messageId: newMessage.id,
       organizationId: newMessage.organizationId,
       queueName: newMessage.queueName,
       errorType: newMessage.failureInfo.errorType
@@ -468,9 +468,9 @@ class DLQGroomingService {
     };
 
     this.patterns.set(newPattern.id, newPattern);
-    
-    structuredLogger.info('DLQ pattern created', { 
-      patternId: newPattern.id, 
+
+    structuredLogger.info('DLQ pattern created', {
+      patternId: newPattern.id,
       organizationId: newPattern.organizationId,
       name: newPattern.name,
       actionType: newPattern.action.type
@@ -516,7 +516,7 @@ class DLQGroomingService {
 
     if (matchingPatterns.length > 0) {
       const bestPattern = matchingPatterns[0]; // Use first matching pattern
-      
+
       // Update analysis based on pattern
       message.analysis = {
         ...message.analysis,
@@ -567,8 +567,8 @@ class DLQGroomingService {
     message.updatedAt = new Date().toISOString();
     this.messages.set(messageId, message);
 
-    structuredLogger.info('DLQ message analyzed', { 
-      messageId, 
+    structuredLogger.info('DLQ message analyzed', {
+      messageId,
       organizationId: message.organizationId,
       suggestedAction: message.analysis.suggestedAction,
       confidence: message.analysis.confidence
@@ -586,7 +586,7 @@ class DLQGroomingService {
     // Check conditions
     for (const condition of pattern.pattern.conditions) {
       let fieldValue: string;
-      
+
       switch (condition.field) {
         case 'errorMessage':
           fieldValue = message.failureInfo.errorMessage;
@@ -678,12 +678,12 @@ class DLQGroomingService {
 
   private async scheduleAction(message: DLQMessage, pattern: DLQPattern): Promise<void> {
     const now = new Date();
-    
+
     switch (pattern.action.type) {
       case 'auto_retry':
         const retryDelay = pattern.action.config.retryDelay || 30000;
         const scheduledAt = new Date(now.getTime() + retryDelay);
-        
+
         const retryJob: DLQRetryJob = {
           id: `retry_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
           organizationId: message.organizationId,
@@ -759,9 +759,9 @@ class DLQGroomingService {
     try {
       // Simulate retry processing
       await this.simulateRetryProcessing(message);
-      
+
       const processingTime = Date.now() - startTime;
-      
+
       retryJob.status = 'completed';
       retryJob.completedAt = new Date().toISOString();
       retryJob.result = {
@@ -774,17 +774,17 @@ class DLQGroomingService {
       message.grooming.notes = `Successfully retried (attempt ${retryJob.retryConfig.currentAttempt + 1})`;
       this.messages.set(message.id, message);
 
-      structuredLogger.info('DLQ retry completed successfully', { 
-        retryJobId: retryJob.id, 
+      structuredLogger.info('DLQ retry completed successfully', {
+        retryJobId: retryJob.id,
         messageId: message.id,
         processingTime
       });
 
     } catch (error) {
       const processingTime = Date.now() - startTime;
-      
+
       retryJob.retryConfig.currentAttempt++;
-      
+
       if (retryJob.retryConfig.currentAttempt >= retryJob.retryConfig.maxRetries) {
         retryJob.status = 'failed';
         retryJob.completedAt = new Date().toISOString();
@@ -799,8 +799,8 @@ class DLQGroomingService {
         message.grooming.notes = `Retry failed after ${retryJob.retryConfig.maxRetries} attempts`;
         this.messages.set(message.id, message);
 
-        structuredLogger.error('DLQ retry failed permanently', { 
-          retryJobId: retryJob.id, 
+        structuredLogger.error('DLQ retry failed permanently', {
+          retryJobId: retryJob.id,
           messageId: message.id,
           error: error.message
         });
@@ -810,12 +810,12 @@ class DLQGroomingService {
           retryJob.retryConfig.delayMs * Math.pow(retryJob.retryConfig.backoffMultiplier, retryJob.retryConfig.currentAttempt),
           retryJob.retryConfig.maxDelayMs
         );
-        
+
         retryJob.status = 'scheduled';
         retryJob.scheduledAt = new Date(Date.now() + nextDelay).toISOString();
-        
-        structuredLogger.info('DLQ retry scheduled for next attempt', { 
-          retryJobId: retryJob.id, 
+
+        structuredLogger.info('DLQ retry scheduled for next attempt', {
+          retryJobId: retryJob.id,
           messageId: message.id,
           attempt: retryJob.retryConfig.currentAttempt + 1,
           nextDelay
@@ -830,7 +830,7 @@ class DLQGroomingService {
   private async simulateRetryProcessing(message: DLQMessage): Promise<void> {
     // Simulate processing delay
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     // Simulate success/failure based on error type
     if (message.failureInfo.errorType === 'SMTPConnectionError') {
       // 80% success rate for connection errors
@@ -875,8 +875,8 @@ class DLQGroomingService {
     message.updatedAt = new Date().toISOString();
     this.messages.set(messageId, message);
 
-    structuredLogger.info('DLQ message manually groomed', { 
-      messageId, 
+    structuredLogger.info('DLQ message manually groomed', {
+      messageId,
       organizationId: message.organizationId,
       action: action.status,
       groomedBy: action.groomedBy
@@ -972,8 +972,8 @@ class DLQGroomingService {
       createdAt: new Date().toISOString()
     };
 
-    structuredLogger.info('DLQ report generated', { 
-      reportId: report.id, 
+    structuredLogger.info('DLQ report generated', {
+      reportId: report.id,
       organizationId,
       reportType,
       period: `${startDate} to ${endDate}`
@@ -983,7 +983,7 @@ class DLQGroomingService {
   }
 
   private calculateAverageResolutionTime(messages: DLQMessage[]): number {
-    const resolvedMessages = messages.filter(m => 
+    const resolvedMessages = messages.filter(m =>
       m.grooming.status === 'retried' || m.grooming.status === 'resolved'
     );
 
@@ -1001,7 +1001,7 @@ class DLQGroomingService {
   private calculateSuccessRate(messages: DLQMessage[]): number {
     if (messages.length === 0) return 0;
 
-    const successful = messages.filter(m => 
+    const successful = messages.filter(m =>
       m.grooming.status === 'retried' || m.grooming.status === 'resolved'
     ).length;
 

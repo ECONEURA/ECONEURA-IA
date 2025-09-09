@@ -250,11 +250,11 @@ export class HITLV2Service extends EventEmitter {
       if (task.status === 'pending' || task.status === 'in_progress') {
         const createdAt = new Date(task.createdAt);
         const hoursElapsed = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
-        
+
         if (hoursElapsed > task.slaHours) {
           overdueCount++;
           this.emit('slaOverdue', task);
-          
+
           structuredLogger.warn('HITL task SLA overdue', {
             taskId: task.id,
             title: task.title,
@@ -278,7 +278,7 @@ export class HITLV2Service extends EventEmitter {
   public async createTask(taskData: Omit<HITLTask, 'id' | 'createdAt' | 'updatedAt' | 'comments' | 'attachments' | 'workflow' | 'currentStep'>): Promise<HITLTask> {
     const id = `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date().toISOString();
-    
+
     const task: HITLTask = {
       ...taskData,
       id,
@@ -331,7 +331,7 @@ export class HITLV2Service extends EventEmitter {
         tasks = tasks.filter(task => task.assignedTo === filters.assignedTo);
       }
       if (filters.tags && filters.tags.length > 0) {
-        tasks = tasks.filter(task => 
+        tasks = tasks.filter(task =>
           filters.tags!.some(tag => task.tags.includes(tag))
         );
       }
@@ -342,7 +342,7 @@ export class HITLV2Service extends EventEmitter {
 
   public async updateTask(taskId: string, updates: Partial<HITLTask>): Promise<HITLTask | null> {
     const task = this.tasks.get(taskId);
-    
+
     if (!task) {
       return null;
     }
@@ -368,7 +368,7 @@ export class HITLV2Service extends EventEmitter {
 
   public async addComment(taskId: string, comment: Omit<HITLComment, 'id' | 'taskId' | 'createdAt'>): Promise<HITLComment | null> {
     const task = this.tasks.get(taskId);
-    
+
     if (!task) {
       return null;
     }
@@ -397,7 +397,7 @@ export class HITLV2Service extends EventEmitter {
 
   public async addAttachment(taskId: string, attachment: Omit<HITLAttachment, 'id' | 'taskId' | 'uploadedAt'>): Promise<HITLAttachment | null> {
     const task = this.tasks.get(taskId);
-    
+
     if (!task) {
       return null;
     }
@@ -426,7 +426,7 @@ export class HITLV2Service extends EventEmitter {
 
   public async advanceWorkflow(taskId: string, stepId: string, comments?: string): Promise<HITLTask | null> {
     const task = this.tasks.get(taskId);
-    
+
     if (!task) {
       return null;
     }
@@ -445,7 +445,7 @@ export class HITLV2Service extends EventEmitter {
 
     // Move to next step
     task.currentStep++;
-    
+
     // Check if workflow is complete
     if (task.currentStep >= task.workflow.length) {
       task.status = 'completed';
@@ -473,7 +473,7 @@ export class HITLV2Service extends EventEmitter {
   public async createBatch(batchData: Omit<HITLBatch, 'id' | 'createdAt' | 'taskIds' | 'status'>): Promise<HITLBatch> {
     const id = `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date().toISOString();
-    
+
     const batch: HITLBatch = {
       ...batchData,
       id,
@@ -497,7 +497,7 @@ export class HITLV2Service extends EventEmitter {
 
   public async addTasksToBatch(batchId: string, taskIds: string[]): Promise<HITLBatch | null> {
     const batch = this.batches.get(batchId);
-    
+
     if (!batch) {
       return null;
     }
@@ -524,7 +524,7 @@ export class HITLV2Service extends EventEmitter {
 
   public async getStats(organizationId: string): Promise<HITLStats> {
     const tasks = Array.from(this.tasks.values()).filter(task => task.organizationId === organizationId);
-    
+
     const now = new Date();
     const overdueTasks = tasks.filter(task => {
       if (task.status === 'completed' || task.status === 'cancelled') return false;
@@ -534,7 +534,7 @@ export class HITLV2Service extends EventEmitter {
     }).length;
 
     const completedTasks = tasks.filter(task => task.status === 'completed');
-    const averageCompletionTime = completedTasks.length > 0 
+    const averageCompletionTime = completedTasks.length > 0
       ? completedTasks.reduce((sum, task) => {
           const createdAt = new Date(task.createdAt);
           const completedAt = new Date(task.completedAt!);
@@ -542,8 +542,8 @@ export class HITLV2Service extends EventEmitter {
         }, 0) / completedTasks.length
       : 0;
 
-    const slaCompliance = tasks.length > 0 
-      ? ((tasks.length - overdueTasks) / tasks.length) * 100 
+    const slaCompliance = tasks.length > 0
+      ? ((tasks.length - overdueTasks) / tasks.length) * 100
       : 100;
 
     const tasksByType = tasks.reduce((acc, task) => {
@@ -586,7 +586,7 @@ export class HITLV2Service extends EventEmitter {
   }> {
     const allTasks = Array.from(this.tasks.values());
     const now = new Date();
-    
+
     const overdueTasks = allTasks.filter(task => {
       if (task.status === 'completed' || task.status === 'cancelled') return false;
       const createdAt = new Date(task.createdAt);
@@ -594,11 +594,11 @@ export class HITLV2Service extends EventEmitter {
       return hoursElapsed > task.slaHours;
     }).length;
 
-    const slaCompliance = allTasks.length > 0 
-      ? ((allTasks.length - overdueTasks) / allTasks.length) * 100 
+    const slaCompliance = allTasks.length > 0
+      ? ((allTasks.length - overdueTasks) / allTasks.length) * 100
       : 100;
 
-    const activeBatches = Array.from(this.batches.values()).filter(b => 
+    const activeBatches = Array.from(this.batches.values()).filter(b =>
       b.status === 'pending' || b.status === 'in_progress'
     ).length;
 

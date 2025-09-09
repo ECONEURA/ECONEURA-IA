@@ -1,6 +1,6 @@
 /**
  * SECURITY & COMPLIANCE ENHANCED SERVICE - MEJORA CRÍTICA 3
- * 
+ *
  * Sistema avanzado de seguridad y compliance con:
  * - Autenticación multifactor (MFA) avanzada
  * - Autorización basada en roles (RBAC) granular
@@ -405,7 +405,7 @@ export class SecurityComplianceEnhancedService {
           {
             id: 'block-unencrypted',
             name: 'Block Unencrypted Sensitive Data',
-            condition: 'data_type == "sensitive" && encryption == false',
+            condition: 'data_type == "sensitive" && encryption ',
             action: 'deny',
             priority: 2,
             enabled: true
@@ -456,7 +456,7 @@ export class SecurityComplianceEnhancedService {
       }
 
       const complianceScore = totalWeight > 0 ? totalScore / totalWeight : 0;
-      
+
       let status: 'compliant' | 'non_compliant' | 'warning';
       if (complianceScore >= 80) {
         status = 'compliant';
@@ -670,11 +670,11 @@ export class SecurityComplianceEnhancedService {
   private async rotateEncryptionKeys(): Promise<void> {
     try {
       const daysSinceLastRotation = (Date.now() - this.encryptionConfig.lastKeyRotation.getTime()) / (1000 * 60 * 60 * 24);
-      
+
       if (daysSinceLastRotation >= this.encryptionConfig.keyRotationInterval) {
         await this.performKeyRotation();
         this.encryptionConfig.lastKeyRotation = new Date();
-        
+
         structuredLogger.info('Encryption keys rotated', {
           algorithm: this.encryptionConfig.algorithm,
           keySize: this.encryptionConfig.keySize
@@ -705,12 +705,12 @@ export class SecurityComplianceEnhancedService {
 
       const existingEvents = this.securityEvents.get(event.type) || [];
       existingEvents.push(event);
-      
+
       // Keep only last 1000 events per type
       if (existingEvents.length > 1000) {
         existingEvents.splice(0, existingEvents.length - 1000);
       }
-      
+
       this.securityEvents.set(event.type, existingEvents);
 
       structuredLogger.info('Security event logged', {
@@ -733,7 +733,7 @@ export class SecurityComplianceEnhancedService {
       'high': 0.75,
       'critical': 1.0
     };
-    
+
     return score * (severityMultiplier[severity as keyof typeof severityMultiplier] || 0.5);
   }
 
@@ -790,7 +790,7 @@ export class SecurityComplianceEnhancedService {
     if (eventType) {
       return this.securityEvents.get(eventType) || [];
     }
-    
+
     return Array.from(this.securityEvents.values()).flat();
   }
 
@@ -822,7 +822,7 @@ export class SecurityComplianceEnhancedService {
       }
 
       frameworks[rule.framework].rules++;
-      
+
       const ruleScore = rule.status === 'compliant' ? 100 : rule.status === 'warning' ? 70 : 0;
       frameworks[rule.framework].score = Math.min(frameworks[rule.framework].score, ruleScore);
       frameworks[rule.framework].status = rule.status;
@@ -833,7 +833,7 @@ export class SecurityComplianceEnhancedService {
 
     const overallScore = totalRules > 0 ? totalScore / totalRules : 100;
     let overall: 'compliant' | 'non_compliant' | 'warning';
-    
+
     if (overallScore >= 90) {
       overall = 'compliant';
     } else if (overallScore >= 70) {

@@ -24,10 +24,10 @@ router.get('/', async (req, res) => {
 
     // Get agents from registry
     const agents = aiAgentsRegistry.getAgents();
-    
+
     // Add cost estimates and FinOps headers
     const costEur = 0.001 * agents.length; // Estimate for listing agents
-    
+
     res.set({
       'X-Est-Cost-EUR': costEur.toFixed(4),
       'X-Budget-Pct': '1.2',
@@ -60,10 +60,10 @@ router.get('/', async (req, res) => {
     structuredLogger.error('Failed to retrieve agent registry', error as Error, {
       orgId: req.headers['x-org-id']
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to retrieve agent registry',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -74,7 +74,7 @@ router.post('/run', async (req, res) => {
     const orgId = req.headers['x-org-id'] as string;
     const userId = req.headers['x-user-id'] as string;
     const correlationId = req.headers['x-correlation-id'] as string || uuidv4();
-    
+
     if (!orgId) {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
@@ -151,10 +151,10 @@ router.post('/run', async (req, res) => {
       userId: req.headers['x-user-id'],
       body: req.body
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to start agent execution',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -164,7 +164,7 @@ router.get('/runs/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const orgId = req.headers['x-org-id'] as string;
-    
+
     if (!orgId) {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
@@ -180,7 +180,7 @@ router.get('/runs/:id', async (req, res) => {
       .limit(1);
 
     if (!dbRecord) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Execution not found',
         message: `Agent execution with ID ${id} not found or access denied`
       });
@@ -188,7 +188,7 @@ router.get('/runs/:id', async (req, res) => {
 
     // Get from memory store for real-time status
     const memoryRecord = executionStore.get(id);
-    
+
     const executionRecord = {
       id: dbRecord.id,
       agentId: dbRecord.agentId,
@@ -209,8 +209,8 @@ router.get('/runs/:id', async (req, res) => {
       executionRecord.status = 'running';
     }
 
-    structuredLogger.info('Agent execution status retrieved', { 
-      orgId, 
+    structuredLogger.info('Agent execution status retrieved', {
+      orgId,
       executionId: id,
       status: executionRecord.status
     });
@@ -225,10 +225,10 @@ router.get('/runs/:id', async (req, res) => {
       orgId: req.headers['x-org-id'],
       executionId: req.params.id
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to retrieve agent execution',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -250,13 +250,13 @@ router.get('/runs', async (req, res) => {
 
     // Build query with filters
     let query = db.select().from(agentRuns);
-    
+
     const conditions = [];
-    
+
     if (agentId) {
       conditions.push(eq(agentRuns.agentId, agentId as string));
     }
-    
+
     if (status) {
       conditions.push(eq(agentRuns.status, status as any));
     }
@@ -312,16 +312,16 @@ router.get('/runs', async (req, res) => {
       orgId: req.headers['x-org-id'],
       query: req.query
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to retrieve agent executions',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
 
 // Simulate agent execution (replace with actual implementation)
-async function executeAgent(executionId: string, agentId: string, inputs: any, context: any) {
+async function executeAgent(executionId: string, agentId: string, inputs: any, context: any): void {
   try {
     // Update status to running
     const record = executionStore.get(executionId);
@@ -335,7 +335,7 @@ async function executeAgent(executionId: string, agentId: string, inputs: any, c
 
     // Update database
     await db.update(agentRuns)
-      .set({ 
+      .set({
         status: 'running',
         updatedAt: new Date().toISOString()
       })
@@ -361,7 +361,7 @@ async function executeAgent(executionId: string, agentId: string, inputs: any, c
         };
         costEur = 0.02;
         break;
-      
+
       case 'invoice-extract':
         outputs = {
           extractedData: {
@@ -374,7 +374,7 @@ async function executeAgent(executionId: string, agentId: string, inputs: any, c
         };
         costEur = 0.05;
         break;
-      
+
       case 'email-draft':
         outputs = {
           subject: 'Following up on our conversation',
@@ -386,7 +386,7 @@ async function executeAgent(executionId: string, agentId: string, inputs: any, c
         };
         costEur = 0.01;
         break;
-      
+
       case 'ar-prioritize':
         outputs = {
           prioritizedList: [
@@ -400,7 +400,7 @@ async function executeAgent(executionId: string, agentId: string, inputs: any, c
         };
         costEur = 0.03;
         break;
-      
+
       default:
         throw new Error(`Unknown agent: ${agentId}`);
     }
@@ -420,7 +420,7 @@ async function executeAgent(executionId: string, agentId: string, inputs: any, c
 
     // Update database
     await db.update(agentRuns)
-      .set({ 
+      .set({
         status: 'completed',
         outputs: JSON.stringify(outputs),
         completedAt: completedAt.toISOString(),
@@ -450,7 +450,7 @@ async function executeAgent(executionId: string, agentId: string, inputs: any, c
 
     // Update database
     await db.update(agentRuns)
-      .set({ 
+      .set({
         status: 'failed',
         error: (error as Error).message,
         completedAt: new Date().toISOString(),

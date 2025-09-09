@@ -321,7 +321,7 @@ export class AlertingService {
 
       try {
         const shouldTrigger = await this.evaluateRule(rule);
-        
+
         if (shouldTrigger) {
           await this.triggerAlert(rule);
         } else {
@@ -347,7 +347,7 @@ export class AlertingService {
 
     // Get metric value
     const metricValue = await this.getMetricValue(rule.condition);
-    
+
     // Evaluate condition
     const condition = rule.condition;
     let result = false;
@@ -487,7 +487,7 @@ export class AlertingService {
   private formatAlertMessage(alert: Alert): string {
     const status = alert.status === 'firing' ? '🚨 FIRING' : '✅ RESOLVED';
     const severity = this.getSeverityEmoji(alert.severity);
-    
+
     return `${severity} ${status}\n\n` +
            `**${alert.name}**\n` +
            `Description: ${alert.description}\n` +
@@ -531,7 +531,7 @@ export class AlertingService {
   // ========================================================================
 
   getActiveAlerts(): Alert[] {
-    return Array.from(this.activeAlerts.values())
+    return Array.from(this.activeAlerts.values());
       .filter(alert => alert.status === 'firing');
   }
 

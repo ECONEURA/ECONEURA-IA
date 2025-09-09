@@ -70,7 +70,7 @@ vi.mock('../index.js', () => ({
     })
     .post('/emails/process', (req, res) => {
       const { messageId, organizationId } = req.body;
-      
+
       if (!messageId || !organizationId) {
         return res.status(400).json({
           success: false,
@@ -100,7 +100,7 @@ vi.mock('../index.js', () => ({
     })
     .post('/emails/process/bulk', (req, res) => {
       const { messageIds, organizationId } = req.body;
-      
+
       if (!messageIds || !Array.isArray(messageIds) || !organizationId) {
         return res.status(400).json({
           success: false,
@@ -338,7 +338,7 @@ describe('Workers API Integration Tests', () => {
     it('should reject bulk processing with invalid messageIds', async () => {
       const response = await request(app)
         .post('/emails/process/bulk')
-        .send({ 
+        .send({
           messageIds: 'not_an_array', // Should be array
           organizationId: 'org_456'
         })
@@ -377,7 +377,7 @@ describe('Workers API Integration Tests', () => {
 
       for (const endpoint of endpoints) {
         const response = await request(app)[endpoint.method](endpoint.path);
-        
+
         expect(response.body).toHaveProperty('success');
         expect(response.body).toHaveProperty('data');
         expect(response.body).toHaveProperty('timestamp');
@@ -400,11 +400,11 @@ describe('Workers API Integration Tests', () => {
   describe('Performance', () => {
     it('should respond to health check within acceptable time', async () => {
       const startTime = Date.now();
-      
+
       await request(app)
         .get('/health')
         .expect(200);
-      
+
       const responseTime = Date.now() - startTime;
       expect(responseTime).toBeLessThan(1000); // Should respond within 1 second
     });
@@ -415,7 +415,7 @@ describe('Workers API Integration Tests', () => {
       );
 
       const responses = await Promise.all(requests);
-      
+
       responses.forEach(response => {
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);

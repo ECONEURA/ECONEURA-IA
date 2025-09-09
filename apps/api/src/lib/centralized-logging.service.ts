@@ -257,12 +257,12 @@ export class CentralizedLoggingService {
         filteredLogs = filteredLogs.filter(log => log.timestamp <= validatedQuery.endTime!);
       }
       if (validatedQuery.message) {
-        filteredLogs = filteredLogs.filter(log => 
+        filteredLogs = filteredLogs.filter(log =>
           log.message.toLowerCase().includes(validatedQuery.message!.toLowerCase())
         );
       }
       if (validatedQuery.tags && validatedQuery.tags.length > 0) {
-        filteredLogs = filteredLogs.filter(log => 
+        filteredLogs = filteredLogs.filter(log =>
           log.tags && validatedQuery.tags!.some(tag => log.tags!.includes(tag))
         );
       }
@@ -270,11 +270,11 @@ export class CentralizedLoggingService {
       // Ordenar
       const sortField = validatedQuery.sort || 'timestamp';
       const order = validatedQuery.order || 'desc';
-      
+
       filteredLogs.sort((a, b) => {
         const aValue = a[sortField as keyof LogEntry];
         const bValue = b[sortField as keyof LogEntry];
-        
+
         if (aValue < bValue) return order === 'asc' ? -1 : 1;
         if (aValue > bValue) return order === 'asc' ? 1 : -1;
         return 0;
@@ -302,9 +302,9 @@ export class CentralizedLoggingService {
   async aggregateLogs(aggregation: LogAggregation): Promise<Record<string, any>> {
     try {
       const validatedAggregation = LogAggregationSchema.parse(aggregation);
-      
+
       // Obtener logs en el rango de tiempo
-      const logs = Array.from(this.logs.values()).filter(log => 
+      const logs = Array.from(this.logs.values()).filter(log =>
         log.timestamp >= validatedAggregation.timeRange.start &&
         log.timestamp <= validatedAggregation.timeRange.end
       );
@@ -313,7 +313,7 @@ export class CentralizedLoggingService {
       let filteredLogs = logs;
       if (validatedAggregation.filters) {
         Object.entries(validatedAggregation.filters).forEach(([key, value]) => {
-          filteredLogs = filteredLogs.filter(log => 
+          filteredLogs = filteredLogs.filter(log =>
             (log as any)[key] === value
           );
         });
@@ -321,10 +321,10 @@ export class CentralizedLoggingService {
 
       // Agrupar por campos especificados
       const groups: Record<string, any> = {};
-      
+
       validatedAggregation.groupBy.forEach(field => {
         groups[field] = {};
-        
+
         filteredLogs.forEach(log => {
           const value = (log as any)[field] || 'unknown';
           groups[field][value] = (groups[field][value] || 0) + 1;
@@ -347,10 +347,10 @@ export class CentralizedLoggingService {
   private aggregateByTime(logs: LogEntry[], interval: string): Array<{ timestamp: Date; count: number }> {
     const intervalMs = this.getIntervalMs(interval);
     const timeline: Array<{ timestamp: Date; count: number }> = [];
-    
+
     // Agrupar logs por intervalos de tiempo
     const timeGroups: Map<number, number> = new Map();
-    
+
     logs.forEach(log => {
       const intervalStart = Math.floor(log.timestamp.getTime() / intervalMs) * intervalMs;
       timeGroups.set(intervalStart, (timeGroups.get(intervalStart) || 0) + 1);
@@ -477,7 +477,7 @@ export class CentralizedLoggingService {
   private async sendAlertNotification(rule: LogAlertRule, logEntry: LogEntry, action: any): Promise<void> {
     // Simular envío de notificaciones
     logger.info(`Sending ${action.type} notification for alert rule ${rule.id}`);
-    
+
     // En una implementación real, aquí se enviarían las notificaciones reales
     await new Promise(resolve => setTimeout(resolve, 100));
   }
@@ -533,15 +533,15 @@ export class CentralizedLoggingService {
 
       try {
         const cutoffDate = new Date(Date.now() - policy.retentionDays * 24 * 60 * 60 * 1000);
-        
+
         // Obtener logs que cumplen los criterios de la política
         const logsToProcess = Array.from(this.logs.values()).filter(log => {
           if (log.timestamp > cutoffDate) return false;
-          
+
           if (policy.service && log.service !== policy.service) return false;
           if (policy.environment && log.environment !== policy.environment) return false;
           if (policy.level && log.level !== policy.level) return false;
-          
+
           return true;
         });
 
@@ -649,10 +649,10 @@ export class CentralizedLoggingService {
     try {
       const logDir = '/app/logs';
       const logFile = join(logDir, `${logEntry.service}-${new Date().toISOString().split('T')[0]}.log`);
-      
+
       // Crear directorio si no existe
       await fs.mkdir(dirname(logFile), { recursive: true });
-      
+
       // Escribir log al archivo
       const logLine = JSON.stringify({
         '@timestamp': logEntry.timestamp.toISOString(),
@@ -715,7 +715,7 @@ export class CentralizedLoggingService {
 
   async getLogStatistics(): Promise<LogStatistics> {
     const logs = Array.from(this.logs.values());
-    
+
     const logsByLevel = logs.reduce((acc, log) => {
       acc[log.level] = (acc[log.level] || 0) + 1;
       return acc;
@@ -731,8 +731,8 @@ export class CentralizedLoggingService {
       return acc;
     }, {} as Record<string, number>);
 
-    const averageLogSize = logs.length > 0 
-      ? logs.reduce((sum, log) => sum + JSON.stringify(log).length, 0) / logs.length 
+    const averageLogSize = logs.length > 0
+      ? logs.reduce((sum, log) => sum + JSON.stringify(log).length, 0) / logs.length
       : 0;
 
     const errorLogs = logs.filter(log => log.level === 'ERROR' || log.level === 'FATAL');
@@ -752,7 +752,7 @@ export class CentralizedLoggingService {
 
     const logVolume = this.aggregateByTime(logs, '1h');
 
-    const lastProcessed = logs.length > 0 
+    const lastProcessed = logs.length > 0
       ? new Date(Math.max(...logs.map(log => log.timestamp.getTime())))
       : null;
 
@@ -861,7 +861,7 @@ export class CentralizedLoggingService {
 
   async updateConfig(updates: Partial<CentralizedLoggingConfig>): Promise<CentralizedLoggingConfig> {
     this.config = { ...this.config, ...updates };
-    
+
     // Reiniciar procesamiento si cambió la configuración
     if (updates.realTimeProcessing !== undefined || updates.flushInterval !== undefined) {
       this.startLogProcessing();

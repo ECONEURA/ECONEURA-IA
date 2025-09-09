@@ -33,7 +33,7 @@ const UpdateServiceHealthSchema = z.object({
 performanceRouter.get('/metrics', async (req, res) => {
   try {
     const metrics = performanceOptimizerService.getMetrics();
-    
+
     res.json({
       success: true,
       data: metrics,
@@ -52,7 +52,7 @@ performanceRouter.get('/metrics', async (req, res) => {
 performanceRouter.get('/stats', async (req, res) => {
   try {
     const stats = performanceOptimizerService.getPerformanceStats();
-    
+
     res.json({
       success: true,
       data: stats,
@@ -71,7 +71,7 @@ performanceRouter.get('/stats', async (req, res) => {
 performanceRouter.get('/health', async (req, res) => {
   try {
     const health = performanceOptimizerService.getServiceHealth();
-    
+
     res.json({
       success: true,
       data: {
@@ -95,13 +95,13 @@ performanceRouter.get('/health', async (req, res) => {
 // Get optimization history
 performanceRouter.get('/optimizations', async (req, res) => {
   try {
-    const { limit = 50 } = z.object({ 
-      limit: z.coerce.number().int().positive().max(100).default(50) 
+    const { limit = 50 } = z.object({
+      limit: z.coerce.number().int().positive().max(100).default(50)
     }).parse(req.query);
-    
+
     const history = performanceOptimizerService.getOptimizationHistory();
     const limitedHistory = history.slice(-limit);
-    
+
     res.json({
       success: true,
       data: {
@@ -125,7 +125,7 @@ performanceRouter.get('/optimizations', async (req, res) => {
 performanceRouter.get('/recommendations', async (req, res) => {
   try {
     const recommendations = performanceOptimizerService.getRecommendations();
-    
+
     res.json({
       success: true,
       data: {
@@ -149,7 +149,7 @@ performanceRouter.put('/config', async (req, res) => {
   try {
     const config = UpdateConfigSchema.parse(req.body);
     performanceOptimizerService.updateConfig(config);
-    
+
     res.json({
       success: true,
       data: {
@@ -178,7 +178,7 @@ performanceRouter.post('/health/service', async (req, res) => {
       responseTime,
       errorRate
     });
-    
+
     res.json({
       success: true,
       data: {
@@ -201,13 +201,13 @@ performanceRouter.post('/health/service', async (req, res) => {
 // Force optimization
 performanceRouter.post('/optimize', async (req, res) => {
   try {
-    const { type } = z.object({ 
-      type: z.enum(['memory', 'cache', 'connections', 'all']).default('all') 
+    const { type } = z.object({
+      type: z.enum(['memory', 'cache', 'connections', 'all']).default('all')
     }).parse(req.body);
-    
+
     // Simular optimización forzada
     const beforeMetrics = performanceOptimizerService.getMetrics();
-    
+
     // Aplicar optimizaciones según el tipo
     if (type === 'memory' || type === 'all') {
       // Forzar garbage collection
@@ -215,19 +215,19 @@ performanceRouter.post('/optimize', async (req, res) => {
         global.gc();
       }
     }
-    
+
     if (type === 'cache' || type === 'all') {
       // Optimizar cache
       // En una implementación real, esto limpiaría el cache
     }
-    
+
     if (type === 'connections' || type === 'all') {
       // Optimizar conexiones
       // En una implementación real, esto cerraría conexiones inactivas
     }
-    
+
     const afterMetrics = performanceOptimizerService.getMetrics();
-    
+
     res.json({
       success: true,
       data: {
@@ -256,10 +256,10 @@ performanceRouter.get('/health/check', async (req, res) => {
   try {
     const stats = performanceOptimizerService.getPerformanceStats();
     const overallHealth = stats.health.overall;
-    
-    const statusCode = overallHealth === 'healthy' ? 200 : 
+
+    const statusCode = overallHealth === 'healthy' ? 200 :
                       overallHealth === 'degraded' ? 200 : 503;
-    
+
     res.status(statusCode).json({
       success: true,
       data: {

@@ -1,8 +1,8 @@
 /**
  * DOCUMENT MANAGEMENT SERVICE
- * 
+ *
  * PR-54: Sistema completo de gestión de documentos avanzado
- * 
+ *
  * Funcionalidades:
  * - Gestión de documentos con versionado
  * - Procesamiento de documentos con IA
@@ -160,10 +160,10 @@ export class DocumentManagementService {
 
       // Initialize document tables
       await this.initializeDocumentTables();
-      
+
       // Load existing documents
       await this.loadExistingDocuments();
-      
+
       // Start background processing
       this.startBackgroundProcessing();
 
@@ -373,7 +373,7 @@ export class DocumentManagementService {
   async getDocument(documentId: string, organizationId: string): Promise<Document | null> {
     try {
       const document = this.documents.get(documentId);
-      
+
       if (!document || document.organizationId !== organizationId) {
         return null;
       }
@@ -397,7 +397,7 @@ export class DocumentManagementService {
   ): Promise<Document | null> {
     try {
       const document = this.documents.get(documentId);
-      
+
       if (!document || document.organizationId !== organizationId) {
         return null;
       }
@@ -449,7 +449,7 @@ export class DocumentManagementService {
   async deleteDocument(documentId: string, organizationId: string): Promise<boolean> {
     try {
       const document = this.documents.get(documentId);
-      
+
       if (!document || document.organizationId !== organizationId) {
         return false;
       }
@@ -490,7 +490,7 @@ export class DocumentManagementService {
     try {
       const cacheKey = `search:${organizationId}:${JSON.stringify(searchParams)}`;
       const cached = this.searchCache.get(cacheKey);
-      
+
       if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
         return cached.result;
       }
@@ -510,7 +510,7 @@ export class DocumentManagementService {
           documents = documents.filter(doc => searchParams.filters!.author!.includes(doc.metadata.author));
         }
         if (searchParams.filters.tags) {
-          documents = documents.filter(doc => 
+          documents = documents.filter(doc =>
             searchParams.filters!.tags!.some(tag => doc.metadata.tags.includes(tag))
           );
         }
@@ -540,7 +540,7 @@ export class DocumentManagementService {
       // Apply text search
       if (searchParams.query) {
         const query = searchParams.query.toLowerCase();
-        documents = documents.filter(doc => 
+        documents = documents.filter(doc =>
           doc.name.toLowerCase().includes(query) ||
           doc.metadata.title.toLowerCase().includes(query) ||
           doc.metadata.description?.toLowerCase().includes(query) ||
@@ -554,7 +554,7 @@ export class DocumentManagementService {
         const { field, direction } = searchParams.sort;
         documents.sort((a, b) => {
           let aValue: any, bValue: any;
-          
+
           switch (field) {
             case 'name':
               aValue = a.name;
@@ -628,7 +628,7 @@ export class DocumentManagementService {
   ): Promise<DocumentVersion> {
     try {
       const document = this.documents.get(documentId);
-      
+
       if (!document || document.organizationId !== organizationId) {
         throw new Error('Document not found');
       }
@@ -687,7 +687,7 @@ export class DocumentManagementService {
   ): Promise<boolean> {
     try {
       const document = this.documents.get(documentId);
-      
+
       if (!document || document.organizationId !== organizationId) {
         return false;
       }
@@ -786,7 +786,7 @@ export class DocumentManagementService {
         if (document.retentionPolicy?.autoDelete && document.retentionPolicy.retentionDays) {
           const expirationDate = new Date(document.createdAt);
           expirationDate.setDate(expirationDate.getDate() + document.retentionPolicy.retentionDays);
-          
+
           if (now > expirationDate) {
             expiredDocuments.push(id);
           }
@@ -844,13 +844,13 @@ export class DocumentManagementService {
       documents.forEach(doc => {
         // Count by type
         documentsByType[doc.type] = (documentsByType[doc.type] || 0) + 1;
-        
+
         // Count by status
         documentsByStatus[doc.status] = (documentsByStatus[doc.status] || 0) + 1;
-        
+
         // Sum sizes
         totalSize += doc.size;
-        
+
         // Count recent documents
         if (doc.createdAt > oneWeekAgo) {
           recentDocuments++;

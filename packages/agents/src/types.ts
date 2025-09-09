@@ -38,7 +38,7 @@ export type AgentResult = z.infer<typeof AgentResultSchema>;
 // Agent categories
 export const AgentCategory = z.enum([
   'ventas',
-  'marketing', 
+  'marketing',
   'operaciones',
   'finanzas',
   'soporte_qa'
@@ -79,7 +79,7 @@ export type AgentExecutionRequest = z.infer<typeof AgentExecutionRequestSchema>;
 // Agent execution status
 export const AgentExecutionStatus = z.enum([
   'pending',
-  'running', 
+  'running',
   'completed',
   'failed',
   'cancelled'

@@ -210,7 +210,7 @@ describe('SEPA API Integration Tests', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.data.every((t: any) => 
+      expect(response.body.data.every((t: any) =>
         t.amount >= 1000 && t.amount <= 1500
       )).toBe(true);
     });

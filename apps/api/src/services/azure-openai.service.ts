@@ -80,7 +80,7 @@ export class AzureOpenAIService {
     };
 
     this.isDemoMode = !this.config.endpoint || !this.config.apiKey;
-    
+
     if (this.isDemoMode) {
       structuredLogger.warn('Azure OpenAI running in demo mode - no API keys configured');
     }
@@ -105,7 +105,7 @@ export class AzureOpenAIService {
       }
 
       const response = await this.makeChatRequest(messages, options);
-      
+
       structuredLogger.info('Chat request completed', {
         messages: messages.length,
         tokens: response.usage.totalTokens,
@@ -132,7 +132,7 @@ export class AzureOpenAIService {
       }
 
       const response = await this.makeImageRequest(request);
-      
+
       structuredLogger.info('Image generation completed', {
         prompt: request.prompt.substring(0, 100),
         size: request.size,
@@ -153,7 +153,7 @@ export class AzureOpenAIService {
       }
 
       const response = await this.makeTTSRequest(request);
-      
+
       structuredLogger.info('TTS request completed', {
         textLength: request.text.length,
         voice: request.voice,
@@ -176,8 +176,8 @@ export class AzureOpenAIService {
       // Simulate content filtering
       const content = messages.map(m => m.content).join(' ');
       const blockedWords = ['spam', 'hate', 'violence', 'illegal'];
-      
-      const hasBlockedContent = blockedWords.some(word => 
+
+      const hasBlockedContent = blockedWords.some(word =>
         content.toLowerCase().includes(word)
       );
 
@@ -267,7 +267,7 @@ export class AzureOpenAIService {
   private async makeTTSRequest(request: TTSRequest): Promise<TTSResponse> {
     // Simulate Azure Speech TTS request
     const duration = request.text.length * 0.1; // Rough estimate
-    
+
     return {
       audioUrl: `https://example.com/audio-${Date.now()}.wav`,
       duration,
@@ -361,7 +361,7 @@ export class AzureOpenAIService {
   }> {
     try {
       const startTime = Date.now();
-      
+
       if (this.isDemoMode) {
         return {
           connected: true,
@@ -372,7 +372,7 @@ export class AzureOpenAIService {
 
       // Simulate connection test
       const latency = Date.now() - startTime;
-      
+
       return {
         connected: true,
         latency

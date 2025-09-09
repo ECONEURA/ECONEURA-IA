@@ -65,7 +65,7 @@ describe('CronService', () => {
   describe('initialization', () => {
     it('should initialize with default jobs', () => {
       const jobs = cronService.getAllJobs();
-      
+
       expect(jobs).toHaveLength(6);
       expect(jobs.map(j => j.id)).toEqual([
         'email_processing',
@@ -79,14 +79,14 @@ describe('CronService', () => {
 
     it('should have all jobs enabled by default', () => {
       const jobs = cronService.getAllJobs();
-      
+
       expect(jobs.every(job => job.enabled)).toBe(true);
     });
 
     it('should have correct schedules for default jobs', () => {
       const jobs = cronService.getAllJobs();
       const jobMap = new Map(jobs.map(job => [job.id, job.schedule]));
-      
+
       expect(jobMap.get('email_processing')).toBe('*/5 * * * *');
       expect(jobMap.get('graph_sync')).toBe('*/15 * * * *');
       expect(jobMap.get('cleanup')).toBe('0 * * * *');
@@ -109,7 +109,7 @@ describe('CronService', () => {
       };
 
       cronService.addJob(newJob);
-      
+
       const job = cronService.getJobStatus('test_job');
       expect(job).toMatchObject({
         id: 'test_job',
@@ -121,7 +121,7 @@ describe('CronService', () => {
 
     it('should remove a job', () => {
       cronService.removeJob('email_processing');
-      
+
       const job = cronService.getJobStatus('email_processing');
       expect(job).toBeNull();
     });
@@ -129,14 +129,14 @@ describe('CronService', () => {
     it('should enable a job', () => {
       cronService.disableJob('email_processing');
       cronService.enableJob('email_processing');
-      
+
       const job = cronService.getJobStatus('email_processing');
       expect(job?.enabled).toBe(true);
     });
 
     it('should disable a job', () => {
       cronService.disableJob('email_processing');
-      
+
       const job = cronService.getJobStatus('email_processing');
       expect(job?.enabled).toBe(false);
     });
@@ -156,7 +156,7 @@ describe('CronService', () => {
       };
 
       cronService.addJob(job);
-      
+
       // Simulate job execution
       const jobStatus = cronService.getJobStatus('test_job');
       if (jobStatus) {
@@ -180,7 +180,7 @@ describe('CronService', () => {
       };
 
       cronService.addJob(job);
-      
+
       // Simulate job execution with error
       const jobStatus = cronService.getJobStatus('failing_job');
       if (jobStatus) {
@@ -196,7 +196,7 @@ describe('CronService', () => {
   describe('job statistics', () => {
     it('should return correct job statistics', () => {
       const stats = cronService.getJobStats();
-      
+
       expect(stats).toMatchObject({
         total: 6,
         enabled: 6,
@@ -215,7 +215,7 @@ describe('CronService', () => {
       }
 
       const stats = cronService.getJobStats();
-      
+
       expect(stats.totalRuns).toBe(5);
       expect(stats.totalErrors).toBe(1);
     });
@@ -225,7 +225,7 @@ describe('CronService', () => {
     it('should process pending emails job', async () => {
       const { JobQueue } = await import('../queues/job-queue.js');
       const mockJobQueue = new JobQueue();
-      
+
       (mockJobQueue.getStats as any).mockResolvedValue({
         pending: 2,
         processing: 0,
@@ -262,7 +262,7 @@ describe('CronService', () => {
     it('should perform cleanup job', async () => {
       const { JobQueue } = await import('../queues/job-queue.js');
       const mockJobQueue = new JobQueue();
-      
+
       (mockJobQueue.clearCompletedJobs as any).mockResolvedValue(5);
 
       const cleanupJob = cronService.getJobStatus('cleanup');
@@ -272,7 +272,7 @@ describe('CronService', () => {
     it('should generate daily reports job', async () => {
       const { JobQueue } = await import('../queues/job-queue.js');
       const mockJobQueue = new JobQueue();
-      
+
       (mockJobQueue.enqueue as any).mockResolvedValue('job_id');
 
       const reportsJob = cronService.getJobStatus('daily_reports');
@@ -282,7 +282,7 @@ describe('CronService', () => {
     it('should perform weekly export job', async () => {
       const { JobQueue } = await import('../queues/job-queue.js');
       const mockJobQueue = new JobQueue();
-      
+
       (mockJobQueue.enqueue as any).mockResolvedValue('export_job_id');
 
       const exportJob = cronService.getJobStatus('weekly_export');
@@ -294,7 +294,7 @@ describe('CronService', () => {
     it('should perform health check', async () => {
       const { JobQueue } = await import('../queues/job-queue.js');
       const mockJobQueue = new JobQueue();
-      
+
       (mockJobQueue.getStats as any).mockResolvedValue({
         pending: 0,
         processing: 0,

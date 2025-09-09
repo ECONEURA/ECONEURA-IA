@@ -32,7 +32,7 @@ class APITester {
 
   async runAllTests(): Promise<void> {
     console.log(`${COLORS.BOLD}${COLORS.BLUE}🚀 ECONEURA API - Test Suite Completo${COLORS.RESET}\n`);
-    
+
     // Test Health endpoints (PR-22)
     await this.testCategory('Health & Monitoring (PR-22)', [
       { method: 'GET', endpoint: '/health' },
@@ -71,7 +71,7 @@ class APITester {
     await this.testCategory('FinOps Panel (PR-45)', [
       { method: 'GET', endpoint: '/v1/finops/budgets' },
       { method: 'GET', endpoint: '/v1/finops/costs' },
-      { method: 'POST', endpoint: '/v1/finops/budgets', body: { 
+      { method: 'POST', endpoint: '/v1/finops/budgets', body: {
         organizationId: 'test-org',
         name: 'Test Budget',
         amount: 100,
@@ -115,7 +115,7 @@ class APITester {
 
   private async testCategory(category: string, tests: Array<{ method: string, endpoint: string, body?: any }>): Promise<void> {
     console.log(`${COLORS.BOLD}${COLORS.YELLOW}📂 ${category}${COLORS.RESET}`);
-    
+
     for (const test of tests) {
       await this.testEndpoint(test.method, test.endpoint, test.body);
     }
@@ -124,7 +124,7 @@ class APITester {
 
   private async testEndpoint(method: string, endpoint: string, body?: any): Promise<void> {
     const startTime = Date.now();
-    
+
     try {
       const options: RequestInit = {
         method,
@@ -161,7 +161,7 @@ class APITester {
 
       const statusColor = success ? COLORS.GREEN : COLORS.RED;
       const statusIcon = success ? '✅' : '❌';
-      
+
       console.log(`  ${statusIcon} ${method} ${endpoint} ${statusColor}${response.status}${COLORS.RESET} (${responseTime}ms)`);
 
       if (!success && result.error) {
@@ -208,7 +208,7 @@ class APITester {
     }
 
     console.log(`\n${COLORS.BOLD}${COLORS.GREEN}🏆 PRUEBAS COMPLETADAS${COLORS.RESET}`);
-    
+
     // Export results for CI
     const resultsFile = {
       summary: {

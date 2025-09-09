@@ -32,7 +32,7 @@ const openApiDocument = {
   tags: [
     { name: 'Authentication', description: 'User authentication and session management' },
     { name: 'CRM - Companies', description: 'Company management' },
-    { name: 'CRM - Contacts', description: 'Contact management' },  
+    { name: 'CRM - Contacts', description: 'Contact management' },
     { name: 'CRM - Deals', description: 'Deal pipeline management' },
     { name: 'ERP - Products', description: 'Product catalog management' },
     { name: 'ERP - Inventory', description: 'Inventory tracking and adjustments' },

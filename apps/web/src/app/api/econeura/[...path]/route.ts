@@ -11,35 +11,35 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { path: string[] } }
 ) {
-  return handleRequest(request, params.path, 'GET')
+  return handleRequest(request, params.path, 'GET');
 }
 
 export async function POST(
   request: NextRequest,
   { params }: { params: { path: string[] } }
 ) {
-  return handleRequest(request, params.path, 'POST')
+  return handleRequest(request, params.path, 'POST');
 }
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: { path: string[] } }
 ) {
-  return handleRequest(request, params.path, 'PUT')
+  return handleRequest(request, params.path, 'PUT');
 }
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { path: string[] } }
 ) {
-  return handleRequest(request, params.path, 'PATCH')
+  return handleRequest(request, params.path, 'PATCH');
 }
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { path: string[] } }
 ) {
-  return handleRequest(request, params.path, 'DELETE')
+  return handleRequest(request, params.path, 'DELETE');
 }
 
 async function handleRequest(
@@ -50,7 +50,7 @@ async function handleRequest(
   try {
     const targetPath = pathSegments.join('/')
     const targetUrl = `${API_BASE_URL}/api/${targetPath}`
-    
+
     // Get request body if present
     let body: string | undefined
     if (['POST', 'PUT', 'PATCH'].includes(method)) {
@@ -63,7 +63,7 @@ async function handleRequest(
 
     // Prepare headers to forward
     const headers = new Headers()
-    
+
     // Forward essential headers
     const headersToForward = [
       'authorization',
@@ -80,25 +80,25 @@ async function handleRequest(
     headersToForward.forEach(header => {
       const value = request.headers.get(header)
       if (value) {
-        headers.set(header, value)
+        headers.set(header, value);
       }
     })
 
     // Generate correlation ID if not present
     if (!headers.get('x-request-id')) {
       const correlationId = crypto.randomUUID()
-      headers.set('x-request-id', correlationId)
+      headers.set('x-request-id', correlationId);
     }
 
     // Set traceparent if not present
     if (!headers.get('traceparent')) {
       const traceId = crypto.randomUUID().replace(/-/g, '').substring(0, 32)
       const spanId = crypto.randomUUID().replace(/-/g, '').substring(0, 16)
-      headers.set('traceparent', `00-${traceId}-${spanId}-01`)
+      headers.set('traceparent', `00-${traceId}-${spanId}-01`);
     }
 
     // Add BFF-specific headers
-    headers.set('x-bff-proxy', 'true')
+    headers.set('x-bff-proxy', 'true');
     headers.set('x-forwarded-for', request.ip || request.headers.get('x-forwarded-for') || 'unknown')
     headers.set('x-forwarded-proto', request.headers.get('x-forwarded-proto') || 'http')
 
@@ -122,7 +122,7 @@ async function handleRequest(
 
     // Prepare response headers
     const responseHeaders = new Headers()
-    
+
     // Forward response headers
     const responseHeadersToForward = [
       'content-type',
@@ -137,14 +137,14 @@ async function handleRequest(
     responseHeadersToForward.forEach(header => {
       const value = response.headers.get(header)
       if (value) {
-        responseHeaders.set(header, value)
+        responseHeaders.set(header, value);
       }
     })
 
     // Add CORS headers for web requests
-    responseHeaders.set('Access-Control-Allow-Origin', '*')
-    responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
-    responseHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-org-id, x-request-id, traceparent')
+    responseHeaders.set('Access-Control-Allow-Origin', '*');
+    responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    responseHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-org-id, x-request-id, traceparent');
 
     // Return response
     return new NextResponse(responseBody, {
@@ -154,7 +154,7 @@ async function handleRequest(
     })
 
   } catch (error) {
-    console.error('BFF Proxy Error:', error)
+    console.error('BFF Proxy Error:', error);
 
     // Return error response
     const errorResponse = {
@@ -181,7 +181,7 @@ async function handleRequest(
 /**
  * Handle OPTIONS requests for CORS preflight
  */
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS(request: NextRequest): void {
   return new NextResponse(null, {
     status: 200,
     headers: {

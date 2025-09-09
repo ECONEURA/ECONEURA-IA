@@ -39,7 +39,7 @@ class CostMeter {
 
     const inputCost = (inputTokens / 1000) * rates.input
     const outputCost = (outputTokens / 1000) * rates.output
-    return inputCost + outputCost
+    return inputCost + outputCost;
   }
 
   recordUsage(orgId: string, model: string, inputTokens: number, outputTokens: number): CostUsage {
@@ -59,13 +59,13 @@ class CostMeter {
     this.costCounter.add(costEur, { org_id: orgId, model, provider: this.getProvider(model) })
     this.usageCounter.add(1, { org_id: orgId, model, provider: this.getProvider(model) })
 
-    return usage
+    return usage;
   }
 
   private getProvider(model: string): string {
     if (model.startsWith('mistral')) return 'mistral'
     if (model.startsWith('gpt')) return 'azure-openai'
-    return 'unknown'
+    return 'unknown';
   }
 
   async getMonthlyUsage(orgId: string): Promise<number> {
@@ -74,16 +74,16 @@ class CostMeter {
       const modName = '@econeura' + '/db'
       // Indirect dynamic import to avoid Next.js static resolution
       const { db, setOrg } = await (Function('return import(arguments[0])') as any)(modName)
-      
+
       // Set organization context for RLS
       await setOrg(orgId)
-      
+
       // Get current month's usage from database
       const currentDate = new Date()
       const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
-      
+
       const { aiCostUsage } = await (Function('return import(arguments[0])') as any)(modName)
-      
+
       const result = await db
         .select({ totalCost: aiCostUsage.costEur })
         .from(aiCostUsage)
@@ -93,11 +93,11 @@ class CostMeter {
         .execute()
 
       const totalCost = result.reduce((sum: number, row: any) => sum + Number(row.totalCost), 0)
-      return totalCost
-      
+      return totalCost;
+
     } catch (error) {
       // Fallback to in-memory tracking if database fails
-      return 0
+      return 0;
     }
   }
 
@@ -115,10 +115,10 @@ class CostMeter {
       const modName = '@econeura' + '/db'
       const { db, setOrg } = await (Function('return import(arguments[0])') as any)(modName)
       const { aiCostUsage } = await (Function('return import(arguments[0])') as any)(modName)
-      
+
       // Set organization context for RLS
       await setOrg(usage.orgId)
-      
+
       // Insert usage record
       await db.insert(aiCostUsage).values({
         orgId: usage.orgId,
@@ -128,9 +128,9 @@ class CostMeter {
         costEur: usage.costEur,
         timestamp: usage.timestamp,
       })
-      
+
     } catch (error) {
-      console.error('Error recording usage to database:', error)
+      console.error('Error recording usage to database:', error);
       // Don't throw - we don't want to break the AI request if metrics fail
     }
   }
@@ -140,19 +140,19 @@ class CostMeter {
       const modName = '@econeura' + '/db'
       const { db, setOrg } = await (Function('return import(arguments[0])') as any)(modName)
       const { aiCostUsage } = await (Function('return import(arguments[0])') as any)(modName)
-      
+
       await setOrg(orgId)
-      
+
       const startDate = new Date()
       startDate.setDate(startDate.getDate() - days)
-      
+
       const result = await db
         .select()
         .from(aiCostUsage)
         .where(aiCostUsage.timestamp >= startDate)
         .orderBy(aiCostUsage.timestamp)
         .execute()
-      
+
       return result.map((row: any) => ({
         orgId: row.orgId,
         model: row.model,
@@ -161,10 +161,10 @@ class CostMeter {
         costEur: Number(row.costEur),
         timestamp: row.timestamp,
       }))
-      
+
     } catch (error) {
-      console.error('Error getting usage history:', error)
-      return []
+      console.error('Error getting usage history:', error);
+      return [];
     }
   }
 
@@ -177,12 +177,12 @@ class CostMeter {
       const modName = '@econeura/db'
       const { db, setOrg } = await (Function('return import(arguments[0])') as any)(modName)
       const { aiCostUsage } = await (Function('return import(arguments[0])') as any)(modName)
-      
+
       await setOrg(orgId)
-      
+
       const currentDate = new Date()
       const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
-      
+
       const result = await db
         .select({
           totalCost: aiCostUsage.costEur,
@@ -194,18 +194,18 @@ class CostMeter {
           aiCostUsage.model.like(`${provider}%`)
         )
         .execute()
-      
+
       const totalCost = result.reduce((sum: number, row: any) => sum + Number(row.totalCost), 0)
       const totalRequests = result.reduce((sum: number, row: any) => sum + Number(row.count), 0)
-      
+
       return {
         totalCost,
         totalRequests,
         averageLatency: 0, // TODO: Add latency tracking to database
       }
-      
+
     } catch (error) {
-      console.error('Error getting provider usage:', error)
+      console.error('Error getting provider usage:', error);
       return {
         totalCost: 0,
         totalRequests: 0,

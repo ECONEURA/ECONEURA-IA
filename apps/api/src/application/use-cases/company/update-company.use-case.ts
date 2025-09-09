@@ -350,9 +350,9 @@ export class UpdateCompanyUseCase {
     }
 
     // Check if at least one field is being updated
-    const hasUpdates = Object.keys(request).some(key => 
-      key !== 'companyId' && 
-      key !== 'updatedBy' && 
+    const hasUpdates = Object.keys(request).some(key =>
+      key !== 'companyId' &&
+      key !== 'updatedBy' &&
       request[key as keyof UpdateCompanyRequest] !== undefined
     );
 

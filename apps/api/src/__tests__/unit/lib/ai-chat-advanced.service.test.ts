@@ -47,7 +47,7 @@ describe('AIChatAdvancedService', () => {
 
     it('should get a conversation by ID', async () => {
       const conversation = await aiChatAdvancedService.getConversation('conv_1');
-      
+
       expect(conversation).toBeDefined();
       expect(conversation?.id).toBe('conv_1');
       expect(conversation?.title).toBe('Análisis de Inventario Q3');
@@ -56,7 +56,7 @@ describe('AIChatAdvancedService', () => {
 
     it('should return undefined for non-existent conversation', async () => {
       const conversation = await aiChatAdvancedService.getConversation('non-existent');
-      
+
       expect(conversation).toBeUndefined();
     });
 
@@ -109,7 +109,7 @@ describe('AIChatAdvancedService', () => {
       const success = await aiChatAdvancedService.deleteConversation('conv_1');
 
       expect(success).toBe(true);
-      
+
       // Verify conversation is marked as deleted
       const conversation = await aiChatAdvancedService.getConversation('conv_1');
       expect(conversation?.status).toBe('deleted');
@@ -314,7 +314,7 @@ describe('AIChatAdvancedService', () => {
 
       expect(analysis.entities).toBeDefined();
       expect(analysis.entities.length).toBeGreaterThan(0);
-      
+
       const periodEntity = analysis.entities.find(e => e.type === 'period');
       expect(periodEntity).toBeDefined();
       expect(periodEntity?.value).toBe('Q3');
@@ -454,7 +454,7 @@ describe('AIChatAdvancedService', () => {
 
       expect(statistics.topIntents).toBeDefined();
       expect(Array.isArray(statistics.topIntents)).toBe(true);
-      
+
       // Verify sorting (if there are multiple intents)
       if (statistics.topIntents.length > 1) {
         for (let i = 1; i < statistics.topIntents.length; i++) {
@@ -468,7 +468,7 @@ describe('AIChatAdvancedService', () => {
 
       expect(statistics.topTopics).toBeDefined();
       expect(Array.isArray(statistics.topTopics)).toBe(true);
-      
+
       // Verify sorting (if there are multiple topics)
       if (statistics.topTopics.length > 1) {
         for (let i = 1; i < statistics.topTopics.length; i++) {

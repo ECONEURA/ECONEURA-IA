@@ -1,8 +1,8 @@
 /**
  * EMAIL MARKETING ROUTES
- * 
+ *
  * PR-56: Rutas API para email marketing avanzado
- * 
+ *
  * Endpoints:
  * - POST /email-marketing/campaigns - Crear campaña
  * - GET /email-marketing/campaigns - Listar campañas

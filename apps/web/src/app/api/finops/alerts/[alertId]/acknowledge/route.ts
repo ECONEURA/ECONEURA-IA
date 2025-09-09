@@ -8,11 +8,11 @@ export async function POST(
   try {
     const { alertId } = params;
     const { acknowledgedBy } = await request.json();
-    
+
     const acknowledged = webFinOpsSystem.acknowledgeAlert(alertId, acknowledgedBy);
-    
+
     if (!acknowledged) {
-      return NextResponse.json(
+      return NextResponse.json(;
         { error: 'Alert not found' },
         { status: 404 }
       );
@@ -27,7 +27,7 @@ export async function POST(
     });
   } catch (error) {
     console.error('Failed to acknowledge alert:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Internal server error' },
       { status: 500 }
     );

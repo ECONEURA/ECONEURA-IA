@@ -160,7 +160,7 @@ export class AISecurityComplianceService {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       )`,
-      
+
       // Tabla de verificaciones de cumplimiento
       `CREATE TABLE IF NOT EXISTS ai_compliance_checks (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -172,7 +172,7 @@ export class AISecurityComplianceService {
         completed_at TIMESTAMP WITH TIME ZONE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       )`,
-      
+
       // Tabla de incidentes de seguridad
       `CREATE TABLE IF NOT EXISTS ai_security_incidents (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -188,7 +188,7 @@ export class AISecurityComplianceService {
         resolved_at TIMESTAMP WITH TIME ZONE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       )`,
-      
+
       // Tabla de logs de auditoría
       `CREATE TABLE IF NOT EXISTS ai_audit_logs (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -213,7 +213,7 @@ export class AISecurityComplianceService {
     try {
       const result = await this.db.query('SELECT * FROM ai_security_policies WHERE is_active = true');
       this.securityCache.clear();
-      
+
       for (const row of result.rows) {
         this.securityCache.set(row.id, {
           id: row.id,
@@ -227,7 +227,7 @@ export class AISecurityComplianceService {
           updatedAt: row.updated_at
         });
       }
-      
+
       logger.info(`Loaded ${this.securityCache.size} security policies`);
     } catch (error: any) {
       logger.error('Failed to load security policies', { error: error.message });
@@ -296,7 +296,7 @@ export class AISecurityComplianceService {
 
       const newPolicy = result.rows[0];
       this.securityCache.set(newPolicy.id, newPolicy);
-      
+
       logger.info('Security policy created', { policyId: newPolicy.id, name: newPolicy.name });
       return newPolicy;
     } catch (error: any) {
@@ -366,7 +366,7 @@ export class AISecurityComplianceService {
 
       const updatedPolicy = result.rows[0];
       this.securityCache.set(id, updatedPolicy);
-      
+
       logger.info('Security policy updated', { policyId: id });
       return updatedPolicy;
     } catch (error: any) {
@@ -386,12 +386,12 @@ export class AISecurityComplianceService {
       );
 
       const check = result.rows[0];
-      
+
       // Simular verificación de cumplimiento
       const checkResult = await this.performComplianceCheck(checkType, policyId);
-      
+
       await this.db.query(
-        `UPDATE ai_compliance_checks 
+        `UPDATE ai_compliance_checks
          SET status = 'completed', result = $1, completed_at = NOW()
          WHERE id = $2`,
         [JSON.stringify(checkResult), check.id]
@@ -409,7 +409,7 @@ export class AISecurityComplianceService {
       };
 
       this.complianceCache.set(check.id, completedCheck);
-      
+
       logger.info('Compliance check completed', { checkId: check.id, checkType });
       return completedCheck;
     } catch (error: any) {
@@ -546,13 +546,13 @@ export class AISecurityComplianceService {
       );
 
       const newIncident = result.rows[0];
-      
-      logger.warn('Security incident created', { 
-        incidentId: newIncident.id, 
-        type: newIncident.type, 
-        severity: newIncident.severity 
+
+      logger.warn('Security incident created', {
+        incidentId: newIncident.id,
+        type: newIncident.type,
+        severity: newIncident.severity
       });
-      
+
       return {
         id: newIncident.id,
         type: newIncident.type,
@@ -578,7 +578,7 @@ export class AISecurityComplianceService {
       const result = await this.db.query(
         'SELECT * FROM ai_security_incidents ORDER BY reported_at DESC'
       );
-      
+
       return result.rows.map(row => ({
         id: row.id,
         type: row.type,
@@ -619,13 +619,13 @@ export class AISecurityComplianceService {
       );
 
       const newLog = result.rows[0];
-      
-      logger.info('Audit event logged', { 
-        auditId: newLog.id, 
-        action: newLog.action, 
-        resource: newLog.resource 
+
+      logger.info('Audit event logged', {
+        auditId: newLog.id,
+        action: newLog.action,
+        resource: newLog.resource
       });
-      
+
       return {
         id: newLog.id,
         userId: newLog.user_id,
@@ -659,11 +659,11 @@ export class AISecurityComplianceService {
           const violation = this.evaluateRule(rule, request, policy);
           if (violation) {
             violations.push(violation);
-            
+
             if (rule.action === 'deny') {
               allowed = false;
             }
-            
+
             if (rule.action === 'log') {
               await this.logAuditEvent({
                 userId: request.userId,
@@ -722,7 +722,7 @@ export class AISecurityComplianceService {
   private evaluateRule(rule: any, request: AISecurityRequest, policy: SecurityPolicy): AISecurityResponse['violations'][0] | null {
     // Lógica simplificada de evaluación de reglas
     const fieldValue = this.getFieldValue(rule.field, request);
-    
+
     if (!fieldValue) {
       if (rule.operator === 'exists') {
         return {
@@ -776,7 +776,7 @@ export class AISecurityComplianceService {
   async generateComplianceReport(organizationId: string, reportType: string, period: { start: Date; end: Date }): Promise<ComplianceReport> {
     try {
       const checks = await this.db.query(
-        `SELECT * FROM ai_compliance_checks 
+        `SELECT * FROM ai_compliance_checks
          WHERE created_at BETWEEN $1 AND $2
          ORDER BY created_at DESC`,
         [period.start, period.end]
@@ -809,10 +809,10 @@ export class AISecurityComplianceService {
         generatedAt: new Date()
       };
 
-      logger.info('Compliance report generated', { 
-        reportId: report.id, 
-        organizationId, 
-        overallScore 
+      logger.info('Compliance report generated', {
+        reportId: report.id,
+        organizationId,
+        overallScore
       });
 
       return report;
@@ -824,7 +824,7 @@ export class AISecurityComplianceService {
 
   private aggregateCheckResults(checks: any[], checkType: string): ComplianceCheck['result'] {
     const typeChecks = checks.filter(check => check.check_type === checkType);
-    
+
     if (typeChecks.length === 0) {
       return {
         passed: true,
@@ -837,7 +837,7 @@ export class AISecurityComplianceService {
     const totalScore = typeChecks.reduce((sum, check) => sum + check.result.score, 0);
     const averageScore = Math.round(totalScore / typeChecks.length);
     const allPassed = typeChecks.every(check => check.result.passed);
-    
+
     const allViolations = typeChecks.flatMap(check => check.result.violations);
 
     return {
@@ -854,7 +854,7 @@ export class AISecurityComplianceService {
 
   private generateRecommendations(checks: any[]): string[] {
     const recommendations: string[] = [];
-    
+
     const failedChecks = checks.filter(check => !check.result.passed);
     if (failedChecks.length > 0) {
       recommendations.push('Address failed compliance checks immediately');
@@ -865,7 +865,7 @@ export class AISecurityComplianceService {
       recommendations.push('Improve compliance scores for low-performing areas');
     }
 
-    const criticalViolations = checks.flatMap(check => 
+    const criticalViolations = checks.flatMap(check =>
       check.result.violations.filter((v: any) => v.severity === 'critical')
     );
     if (criticalViolations.length > 0) {
@@ -891,7 +891,7 @@ export class AISecurityComplianceService {
 
       const healthyServices = Object.values(services).filter(Boolean).length;
       const totalServices = Object.keys(services).length;
-      
+
       let status: 'healthy' | 'degraded' | 'unhealthy';
       if (healthyServices === totalServices) {
         status = 'healthy';

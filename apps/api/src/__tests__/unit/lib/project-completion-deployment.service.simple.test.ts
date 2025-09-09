@@ -4,14 +4,14 @@ describe('ProjectCompletionDeploymentService - Simple Test', () => {
   it('should import the service successfully', async () => {
     // Test simple para verificar que el servicio se puede importar
     const { default: ProjectCompletionDeploymentService } = await import('../../lib/project-completion-deployment.service.ts');
-    
+
     expect(ProjectCompletionDeploymentService).toBeDefined();
     expect(typeof ProjectCompletionDeploymentService).toBe('function');
   });
 
   it('should create service instance', async () => {
     const { default: ProjectCompletionDeploymentService } = await import('../../lib/project-completion-deployment.service.ts');
-    
+
     const config = {
       validationEnabled: true,
       deploymentEnabled: true,
@@ -26,7 +26,7 @@ describe('ProjectCompletionDeploymentService - Simple Test', () => {
     };
 
     const service = new ProjectCompletionDeploymentService(config);
-    
+
     expect(service).toBeDefined();
     expect(typeof service.validateProjectCompletion).toBe('function');
     expect(typeof service.deploy).toBe('function');
@@ -38,7 +38,7 @@ describe('ProjectCompletionDeploymentService - Simple Test', () => {
 
   it('should validate project completion', async () => {
     const { default: ProjectCompletionDeploymentService } = await import('../../lib/project-completion-deployment.service.ts');
-    
+
     const config = {
       validationEnabled: true,
       deploymentEnabled: true,
@@ -53,9 +53,9 @@ describe('ProjectCompletionDeploymentService - Simple Test', () => {
     };
 
     const service = new ProjectCompletionDeploymentService(config);
-    
+
     const validation = await service.validateProjectCompletion();
-    
+
     expect(validation).toBeDefined();
     expect(typeof validation.totalComponents).toBe('number');
     expect(typeof validation.passedComponents).toBe('number');
@@ -69,7 +69,7 @@ describe('ProjectCompletionDeploymentService - Simple Test', () => {
 
   it('should list health checks', async () => {
     const { default: ProjectCompletionDeploymentService } = await import('../../lib/project-completion-deployment.service.ts');
-    
+
     const config = {
       validationEnabled: true,
       deploymentEnabled: true,
@@ -85,14 +85,14 @@ describe('ProjectCompletionDeploymentService - Simple Test', () => {
 
     const service = new ProjectCompletionDeploymentService(config);
     const healthChecks = await service.listHealthChecks();
-    
+
     expect(Array.isArray(healthChecks)).toBe(true);
     expect(healthChecks.length).toBeGreaterThan(0);
   });
 
   it('should get deployment status', async () => {
     const { default: ProjectCompletionDeploymentService } = await import('../../lib/project-completion-deployment.service.ts');
-    
+
     const config = {
       validationEnabled: true,
       deploymentEnabled: true,
@@ -108,7 +108,7 @@ describe('ProjectCompletionDeploymentService - Simple Test', () => {
 
     const service = new ProjectCompletionDeploymentService(config);
     const status = await service.getDeploymentStatus();
-    
+
     expect(status).toBeDefined();
     expect(typeof status.activeDeployments).toBe('number');
     expect(typeof status.successfulDeployments).toBe('number');
@@ -120,7 +120,7 @@ describe('ProjectCompletionDeploymentService - Simple Test', () => {
 
   it('should generate deployment report', async () => {
     const { default: ProjectCompletionDeploymentService } = await import('../../lib/project-completion-deployment.service.ts');
-    
+
     const config = {
       validationEnabled: true,
       deploymentEnabled: true,
@@ -136,7 +136,7 @@ describe('ProjectCompletionDeploymentService - Simple Test', () => {
 
     const service = new ProjectCompletionDeploymentService(config);
     const report = await service.generateDeploymentReport('daily');
-    
+
     expect(report).toBeDefined();
     expect(report.period).toBe('daily');
     expect(report.generatedAt).toBeInstanceOf(Date);

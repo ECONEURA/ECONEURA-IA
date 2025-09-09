@@ -5,8 +5,8 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 import { rbacMiddleware } from '../middleware/rbac.js';
-import { 
-  getMetricsData, 
+import {
+  getMetricsData,
   clearMetrics,
   startSystemMetricsCollection,
   stopSystemMetricsCollection
@@ -39,10 +39,10 @@ router.get('/system', authMiddleware, rbacMiddleware('read:metrics'), async (req
   try {
     const { getMetrics } = await import('../middleware/metrics.js');
     const metrics = await getMetrics();
-    
+
     // Filter system metrics
-    const systemMetrics = metrics.filter(metric => 
-      metric.name.includes('memory_') || 
+    const systemMetrics = metrics.filter(metric =>
+      metric.name.includes('memory_') ||
       metric.name.includes('uptime_') ||
       metric.name.includes('cpu_')
     );
@@ -78,10 +78,10 @@ router.get('/business', authMiddleware, rbacMiddleware('read:metrics'), async (r
   try {
     const { getMetrics } = await import('../middleware/metrics.js');
     const metrics = await getMetrics();
-    
+
     // Filter business metrics
-    const businessMetrics = metrics.filter(metric => 
-      metric.name.includes('users_') || 
+    const businessMetrics = metrics.filter(metric =>
+      metric.name.includes('users_') ||
       metric.name.includes('contacts_') ||
       metric.name.includes('deals_') ||
       metric.name.includes('orders_') ||
@@ -119,10 +119,10 @@ router.get('/performance', authMiddleware, rbacMiddleware('read:metrics'), async
   try {
     const { getMetrics } = await import('../middleware/metrics.js');
     const metrics = await getMetrics();
-    
+
     // Filter performance metrics
-    const performanceMetrics = metrics.filter(metric => 
-      metric.name.includes('api_request_duration') || 
+    const performanceMetrics = metrics.filter(metric =>
+      metric.name.includes('api_request_duration') ||
       metric.name.includes('api_requests_total') ||
       metric.name.includes('db_queries_total') ||
       metric.name.includes('response_time')
@@ -159,10 +159,10 @@ router.get('/errors', authMiddleware, rbacMiddleware('read:metrics'), async (req
   try {
     const { getMetrics } = await import('../middleware/metrics.js');
     const metrics = await getMetrics();
-    
+
     // Filter error metrics
-    const errorMetrics = metrics.filter(metric => 
-      metric.name.includes('errors_total') || 
+    const errorMetrics = metrics.filter(metric =>
+      metric.name.includes('errors_total') ||
       metric.name.includes('failures_total') ||
       metric.name.includes('exceptions_total')
     );
@@ -277,7 +277,7 @@ router.get('/health', async (req, res) => {
   try {
     const { getMetrics } = await import('../middleware/metrics.js');
     const metrics = await getMetrics();
-    
+
     const isHealthy = metrics.length > 0;
 
     res.status(isHealthy ? 200 : 503).json({

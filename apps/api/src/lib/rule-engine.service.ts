@@ -315,7 +315,7 @@ export class RuleEngineService {
     value: any;
   } {
     const fieldValue = this.getNestedValue(testData, condition.field);
-    
+
     switch (condition.operator) {
       case 'equals':
         return {
@@ -323,7 +323,7 @@ export class RuleEngineService {
           matched: fieldValue === condition.value,
           value: fieldValue
         };
-      
+
       case 'contains':
         if (typeof fieldValue === 'string' && typeof condition.value === 'string') {
           const matched = fieldValue.toLowerCase().includes(condition.value.toLowerCase());
@@ -334,7 +334,7 @@ export class RuleEngineService {
           };
         }
         return { score: 0.0, matched: false, value: fieldValue };
-      
+
       case 'regex':
         if (typeof fieldValue === 'string' && typeof condition.value === 'string') {
           try {
@@ -350,7 +350,7 @@ export class RuleEngineService {
           }
         }
         return { score: 0.0, matched: false, value: fieldValue };
-      
+
       case 'range':
         if (typeof fieldValue === 'number' && typeof condition.value === 'object') {
           const tolerance = (condition.value as any).tolerance || 0.01;
@@ -360,7 +360,7 @@ export class RuleEngineService {
           return { score, matched, value: fieldValue };
         }
         return { score: 0.0, matched: false, value: fieldValue };
-      
+
       default:
         return { score: 0.0, matched: false, value: fieldValue };
     }
@@ -383,8 +383,8 @@ export class RuleEngineService {
     const total = this.rules.length;
     const enabled = this.rules.filter(r => r.enabled).length;
     const disabled = total - enabled;
-    const averagePriority = total > 0 
-      ? this.rules.reduce((sum, r) => sum + r.priority, 0) / total 
+    const averagePriority = total > 0
+      ? this.rules.reduce((sum, r) => sum + r.priority, 0) / total
       : 0;
 
     return {

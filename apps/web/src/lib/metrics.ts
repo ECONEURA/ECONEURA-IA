@@ -2,9 +2,9 @@
 // METRICS CLIENT - WEB INTEGRATION
 // ============================================================================
 
-import { 
-  initializeMetrics, 
-  getMetrics, 
+import {
+  initializeMetrics,
+  getMetrics,
   PredefinedMetrics,
   counter,
   gauge,

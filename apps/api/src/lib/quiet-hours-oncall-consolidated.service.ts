@@ -1,11 +1,11 @@
 /**
  * QUIET HOURS & ONCALL CONSOLIDATED SERVICE
- * 
+ *
  * Este servicio consolida las mejores funcionalidades de:
  * - PR-25: Quiet Hours & Oncall (100%)
  * - PR-30: Quiet Hours Oncall (100%)
  * - PR-34: Quiet Hours & Oncall (100%)
- * 
+ *
  * Funcionalidades consolidadas:
  * - Gestión de Quiet Hours
  * - Gestión de On-Call
@@ -16,18 +16,18 @@
  * - Integración con sistemas externos
  */
 
-import { 
-  QuietHoursConfig, 
-  QuietHoursSchedule, 
-  QuietHoursException, 
-  QuietHoursStatus, 
+import {
+  QuietHoursConfig,
+  QuietHoursSchedule,
+  QuietHoursException,
+  QuietHoursStatus,
   QuietHoursOverride,
   CreateQuietHoursRequest,
   UpdateQuietHoursRequest,
   QuietHoursStats,
-  OnCallSchedule, 
-  OnCallRotation, 
-  OnCallShift, 
+  OnCallSchedule,
+  OnCallRotation,
+  OnCallShift,
   OnCallOverride,
   OnCallParticipant,
   RotationPattern,
@@ -76,7 +76,7 @@ export class QuietHoursOnCallConsolidatedService {
   async getQuietHoursConfigs(organizationId: string): Promise<QuietHoursConfig[]> {
     const configs = Array.from(this.quietHoursConfigs.values())
       .filter(config => config.organizationId === organizationId);
-    
+
     return configs;
   }
 
@@ -102,7 +102,7 @@ export class QuietHoursOnCallConsolidatedService {
     };
 
     this.quietHoursConfigs.set(id, config);
-    
+
     structuredLogger.info('Quiet hours config created', {
       configId: id,
       organizationId: request.organizationId,
@@ -130,7 +130,7 @@ export class QuietHoursOnCallConsolidatedService {
     };
 
     this.quietHoursConfigs.set(id, updatedConfig);
-    
+
     structuredLogger.info('Quiet hours config updated', {
       configId: id,
       changes: Object.keys(request),
@@ -142,7 +142,7 @@ export class QuietHoursOnCallConsolidatedService {
 
   async deleteQuietHoursConfig(id: string): Promise<boolean> {
     const deleted = this.quietHoursConfigs.delete(id);
-    
+
     if (deleted) {
       structuredLogger.info('Quiet hours config deleted', {
         configId: id,
@@ -155,7 +155,7 @@ export class QuietHoursOnCallConsolidatedService {
 
   async getQuietHoursStatus(organizationId: string, serviceName?: string): Promise<QuietHoursStatus> {
     const configs = await this.getQuietHoursConfigs(organizationId);
-    const relevantConfig = serviceName 
+    const relevantConfig = serviceName
       ? configs.find(c => c.serviceName === serviceName) || configs.find(c => !c.serviceName)
       : configs.find(c => !c.serviceName);
 
@@ -182,7 +182,7 @@ export class QuietHoursOnCallConsolidatedService {
       const exception = activeExceptions[0];
       const exceptionSchedule = exception.schedule;
       const currentLevel = this.getCurrentLevel(exceptionSchedule, currentTime, dayName);
-      
+
       return {
         isQuietHours: currentLevel === 'quiet',
         currentLevel,
@@ -208,7 +208,7 @@ export class QuietHoursOnCallConsolidatedService {
 
     // Use regular schedule
     const currentLevel = this.getCurrentLevel(relevantConfig.schedule, currentTime, dayName);
-    
+
     return {
       isQuietHours: currentLevel === 'quiet',
       currentLevel,
@@ -243,7 +243,7 @@ export class QuietHoursOnCallConsolidatedService {
     };
 
     this.quietHoursOverrides.set(id, override);
-    
+
     structuredLogger.info('Quiet hours override created', {
       overrideId: id,
       organizationId,
@@ -274,7 +274,7 @@ export class QuietHoursOnCallConsolidatedService {
     };
 
     this.quietHoursOverrides.set(id, updatedOverride);
-    
+
     structuredLogger.info('Quiet hours override updated', {
       overrideId: id,
       status,
@@ -292,7 +292,7 @@ export class QuietHoursOnCallConsolidatedService {
   async getOnCallSchedules(organizationId: string): Promise<OnCallSchedule[]> {
     const schedules = Array.from(this.onCallSchedules.values())
       .filter(schedule => schedule.organizationId === organizationId);
-    
+
     return schedules;
   }
 
@@ -317,10 +317,10 @@ export class QuietHoursOnCallConsolidatedService {
     };
 
     this.onCallSchedules.set(id, schedule);
-    
+
     // Generate initial shifts
     await this.generateShifts(schedule);
-    
+
     structuredLogger.info('On-call schedule created', {
       scheduleId: id,
       organizationId: request.organizationId,
@@ -348,12 +348,12 @@ export class QuietHoursOnCallConsolidatedService {
     };
 
     this.onCallSchedules.set(id, updatedSchedule);
-    
+
     // Regenerate shifts if schedule changed
     if (request.schedule || request.rotationType) {
       await this.generateShifts(updatedSchedule);
     }
-    
+
     structuredLogger.info('On-call schedule updated', {
       scheduleId: id,
       changes: Object.keys(request),
@@ -367,11 +367,11 @@ export class QuietHoursOnCallConsolidatedService {
     // Delete associated shifts
     const shiftsToDelete = Array.from(this.onCallShifts.values())
       .filter(shift => shift.scheduleId === id);
-    
+
     shiftsToDelete.forEach(shift => this.onCallShifts.delete(shift.id));
-    
+
     const deleted = this.onCallSchedules.delete(id);
-    
+
     if (deleted) {
       structuredLogger.info('On-call schedule deleted', {
         scheduleId: id,
@@ -386,7 +386,7 @@ export class QuietHoursOnCallConsolidatedService {
   async getCurrentOnCall(scheduleId: string): Promise<OnCallParticipant | null> {
     const now = new Date();
     const currentShift = Array.from(this.onCallShifts.values())
-      .find(shift => 
+      .find(shift =>
         shift.scheduleId === scheduleId &&
         shift.startTime <= now &&
         shift.endTime >= now &&
@@ -441,7 +441,7 @@ export class QuietHoursOnCallConsolidatedService {
     };
 
     this.onCallOverrides.set(id, override);
-    
+
     structuredLogger.info('On-call override created', {
       overrideId: id,
       scheduleId,
@@ -473,7 +473,7 @@ export class QuietHoursOnCallConsolidatedService {
     };
 
     this.onCallOverrides.set(id, updatedOverride);
-    
+
     structuredLogger.info('On-call override updated', {
       overrideId: id,
       status,
@@ -506,7 +506,7 @@ export class QuietHoursOnCallConsolidatedService {
     };
 
     this.escalationRules.set(id, rule);
-    
+
     structuredLogger.info('Escalation rule created', {
       ruleId: id,
       organizationId: request.organizationId,
@@ -535,7 +535,7 @@ export class QuietHoursOnCallConsolidatedService {
     };
 
     this.escalationRules.set(id, updatedRule);
-    
+
     structuredLogger.info('Escalation rule updated', {
       ruleId: id,
       changes: Object.keys(request),
@@ -551,9 +551,9 @@ export class QuietHoursOnCallConsolidatedService {
 
     // Find matching escalation rule
     const matchingRule = Array.from(this.escalationRules.values())
-      .find(rule => 
-        rule.enabled && 
-        this.evaluateEscalationConditions(rule.conditions, request)
+      .find(rule =>
+        rule.enabled &&
+        this.evaluateEscalationConditions(rule.conditions, request);
       );
 
     if (!matchingRule) {
@@ -576,10 +576,10 @@ export class QuietHoursOnCallConsolidatedService {
     };
 
     this.escalationEvents.set(id, escalationEvent);
-    
+
     // Start escalation process
     await this.processEscalation(escalationEvent);
-    
+
     structuredLogger.info('Escalation triggered', {
       escalationId: id,
       ruleId: matchingRule.id,
@@ -635,7 +635,7 @@ export class QuietHoursOnCallConsolidatedService {
     };
 
     this.notificationPreferences.set(id, notificationPrefs);
-    
+
     structuredLogger.info('Notification preferences created', {
       prefsId: id,
       userId,
@@ -654,7 +654,7 @@ export class QuietHoursOnCallConsolidatedService {
     const preferences = Array.from(this.notificationPreferences.values())
       .find(pref => pref.userId === request.userId);
 
-    const channels = request.channels || 
+    const channels = request.channels ||
       (preferences ? preferences.channels.map(c => c.type) : ['email']);
 
     const notification: Notification = {
@@ -679,10 +679,10 @@ export class QuietHoursOnCallConsolidatedService {
     };
 
     this.notifications.set(id, notification);
-    
+
     // Process notification
     await this.processNotification(notification);
-    
+
     structuredLogger.info('Notification sent', {
       notificationId: id,
       userId: request.userId,
@@ -701,12 +701,12 @@ export class QuietHoursOnCallConsolidatedService {
   async getQuietHoursStats(organizationId: string): Promise<QuietHoursStats> {
     const configs = await this.getQuietHoursConfigs(organizationId);
     const activeConfigs = configs.filter(c => c.enabled);
-    
-    const totalExceptions = configs.reduce((sum, config) => 
+
+    const totalExceptions = configs.reduce((sum, config) =>
       sum + (config.exceptions?.length || 0), 0
     );
 
-    const averageCostSavings = configs.length > 0 
+    const averageCostSavings = configs.length > 0
       ? configs.reduce((sum, config) => sum + (config.costOptimization ? 35 : 0), 0) / configs.length
       : 0;
 
@@ -723,7 +723,7 @@ export class QuietHoursOnCallConsolidatedService {
   async getOnCallStats(organizationId: string): Promise<OnCallStats> {
     const schedules = await this.getOnCallSchedules(organizationId);
     const activeSchedules = schedules.filter(s => s.enabled);
-    
+
     const allShifts = Array.from(this.onCallShifts.values())
       .filter(shift => schedules.some(s => s.id === shift.scheduleId));
 
@@ -854,7 +854,7 @@ export class QuietHoursOnCallConsolidatedService {
     };
 
     this.onCallSchedules.set(defaultOnCallSchedule.id, defaultOnCallSchedule);
-    
+
     // Generate initial shifts
     this.generateShifts(defaultOnCallSchedule);
   }
@@ -879,7 +879,7 @@ export class QuietHoursOnCallConsolidatedService {
   private async monitorQuietHoursStatus(): Promise<void> {
     // Monitor and log quiet hours status changes
     const configs = Array.from(this.quietHoursConfigs.values());
-    
+
     for (const config of configs) {
       if (config.enabled) {
         const status = await this.getQuietHoursStatus(config.organizationId, config.serviceName);
@@ -892,7 +892,7 @@ export class QuietHoursOnCallConsolidatedService {
     // Monitor and update on-call shift statuses
     const now = new Date();
     const shifts = Array.from(this.onCallShifts.values());
-    
+
     for (const shift of shifts) {
       if (shift.status === 'scheduled' && shift.startTime <= now) {
         shift.status = 'active';
@@ -907,9 +907,9 @@ export class QuietHoursOnCallConsolidatedService {
   private async processPendingEscalations(): Promise<void> {
     const now = new Date();
     const pendingEscalations = Array.from(this.escalationEvents.values())
-      .filter(event => 
-        event.status === 'pending' && 
-        event.nextEscalation && 
+      .filter(event =>
+        event.status === 'pending' &&
+        event.nextEscalation &&
         event.nextEscalation <= now
       );
 
@@ -932,8 +932,8 @@ export class QuietHoursOnCallConsolidatedService {
   }
 
   private getCurrentLevel(
-    schedule: QuietHoursSchedule, 
-    currentTime: Date, 
+    schedule: QuietHoursSchedule,
+    currentTime: Date,
     dayName: keyof QuietHoursSchedule
   ): 'quiet' | 'reduced' | 'normal' {
     const daySchedule = schedule[dayName];
@@ -971,12 +971,12 @@ export class QuietHoursOnCallConsolidatedService {
   }
 
   private getActiveQuietHoursOverride(
-    organizationId: string, 
-    serviceName: string | undefined, 
+    organizationId: string,
+    serviceName: string | undefined,
     now: Date
   ): QuietHoursOverride | null {
     const overrides = Array.from(this.quietHoursOverrides.values())
-      .filter(override => 
+      .filter(override =>
         override.organizationId === organizationId &&
         override.serviceName === serviceName &&
         override.status === 'active' &&
@@ -989,7 +989,7 @@ export class QuietHoursOnCallConsolidatedService {
 
   private getActiveOnCallOverride(scheduleId: string, now: Date): OnCallOverride | null {
     const overrides = Array.from(this.onCallOverrides.values())
-      .filter(override => 
+      .filter(override =>
         override.scheduleId === scheduleId &&
         override.status === 'active' &&
         now >= override.startTime &&
@@ -1000,8 +1000,8 @@ export class QuietHoursOnCallConsolidatedService {
   }
 
   private getNextChangeTime(
-    schedule: QuietHoursSchedule, 
-    currentTime: Date, 
+    schedule: QuietHoursSchedule,
+    currentTime: Date,
     dayName: keyof QuietHoursSchedule
   ): Date {
     const nextChange = new Date(currentTime);
@@ -1010,8 +1010,8 @@ export class QuietHoursOnCallConsolidatedService {
   }
 
   private getTimeUntilNextChange(
-    schedule: QuietHoursSchedule, 
-    currentTime: Date, 
+    schedule: QuietHoursSchedule,
+    currentTime: Date,
     dayName: keyof QuietHoursSchedule
   ): number {
     const nextChange = this.getNextChangeTime(schedule, currentTime, dayName);
@@ -1072,7 +1072,7 @@ export class QuietHoursOnCallConsolidatedService {
 
     const totalSchedules = schedules.length;
     const activeSchedules = schedules.filter(s => s.enabled).length;
-    
+
     return (activeSchedules / totalSchedules) * 100;
   }
 
@@ -1127,7 +1127,7 @@ export class QuietHoursOnCallConsolidatedService {
     // Simplified notification processing
     notification.status = 'sent';
     notification.sentAt = new Date();
-    
+
     // Simulate delivery
     setTimeout(() => {
       notification.status = 'delivered';

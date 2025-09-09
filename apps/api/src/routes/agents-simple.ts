@@ -84,10 +84,10 @@ const agentRegistry = [
 router.get('/', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string || 'org-demo';
-    
+
     // Add cost estimates and FinOps headers
     const costEur = 0.001 * agentRegistry.length; // Estimate for listing agents
-    
+
     res.set({
       'X-Est-Cost-EUR': costEur.toFixed(4),
       'X-Budget-Pct': '1.2',
@@ -119,10 +119,10 @@ router.get('/', async (req, res) => {
     structuredLogger.error('Failed to retrieve agent registry', error as Error, {
       orgId: req.headers['x-org-id']
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to retrieve agent registry',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -133,7 +133,7 @@ router.post('/run', async (req, res) => {
     const orgId = req.headers['x-org-id'] as string || 'org-demo';
     const userId = req.headers['x-user-id'] as string || 'user-demo';
     const correlationId = req.headers['x-correlation-id'] as string || randomUUID();
-    
+
     const { agentId, inputs, idempotencyKey } = req.body;
 
     if (!agentId) {
@@ -153,7 +153,7 @@ router.post('/run', async (req, res) => {
     if (idempotencyKey) {
       const existingExecution = Array.from(executionStore.values())
         .find(exec => exec.idempotencyKey === idempotencyKey && exec.orgId === orgId);
-      
+
       if (existingExecution) {
         return res.status(200).json({
           success: true,
@@ -172,11 +172,11 @@ router.post('/run', async (req, res) => {
 
     // Generate execution ID
     const executionId = randomUUID();
-    
+
     // Estimate cost based on agent type
     const baseCosts = { low: 0.01, medium: 0.05, high: 0.15 };
     const estimatedCost = baseCosts[agent.costHint as keyof typeof baseCosts] || 0.05;
-    
+
     // Create execution record
     const executionRecord = {
       id: executionId,
@@ -232,10 +232,10 @@ router.post('/run', async (req, res) => {
       orgId: req.headers['x-org-id'],
       body: req.body
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to start agent execution',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -245,11 +245,11 @@ router.get('/runs/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const orgId = req.headers['x-org-id'] as string || 'org-demo';
-    
+
     const executionRecord = executionStore.get(id);
 
     if (!executionRecord || executionRecord.orgId !== orgId) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Execution not found',
         message: `Agent execution with ID ${id} not found or access denied`
       });
@@ -264,8 +264,8 @@ router.get('/runs/:id', async (req, res) => {
       'X-Correlation-Id': executionRecord.correlationId
     });
 
-    structuredLogger.info('Agent execution status retrieved', { 
-      orgId, 
+    structuredLogger.info('Agent execution status retrieved', {
+      orgId,
       executionId: id,
       status: executionRecord.status
     });
@@ -291,10 +291,10 @@ router.get('/runs/:id', async (req, res) => {
       orgId: req.headers['x-org-id'],
       executionId: req.params.id
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to retrieve agent execution',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -304,22 +304,22 @@ router.get('/runs', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string || 'org-demo';
     const { agentId, status } = req.query;
-    
+
     // Filter executions by org and optional filters
     let executions = Array.from(executionStore.values())
       .filter(exec => exec.orgId === orgId);
-    
+
     if (agentId) {
       executions = executions.filter(exec => exec.agentId === agentId);
     }
-    
+
     if (status) {
       executions = executions.filter(exec => exec.status === status);
     }
-    
+
     // Sort by start time (most recent first)
     executions.sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
-    
+
     // Pagination
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
@@ -358,16 +358,16 @@ router.get('/runs', async (req, res) => {
     structuredLogger.error('Failed to retrieve agent executions', error as Error, {
       orgId: req.headers['x-org-id']
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to retrieve agent executions',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
 
 // Simulate agent execution
-async function executeAgent(executionId: string, agent: any) {
+async function executeAgent(executionId: string, agent: any): void {
   try {
     const record = executionStore.get(executionId);
     if (!record) return;
@@ -379,7 +379,7 @@ async function executeAgent(executionId: string, agent: any) {
     // Simulate processing time based on cost hint
     const processingTimes = { low: 1000, medium: 3000, high: 8000 };
     const processingTime = processingTimes[agent.costHint as keyof typeof processingTimes] || 3000;
-    
+
     await new Promise(resolve => setTimeout(resolve, processingTime + Math.random() * 2000));
 
     // Simulate outputs based on agent category
@@ -395,7 +395,7 @@ async function executeAgent(executionId: string, agent: any) {
         };
         actualCost = 0.008 + Math.random() * 0.012;
         break;
-      
+
       case 'marketing':
         outputs = {
           content: 'Generated marketing content...',
@@ -404,7 +404,7 @@ async function executeAgent(executionId: string, agent: any) {
         };
         actualCost = 0.015 + Math.random() * 0.025;
         break;
-      
+
       case 'operaciones':
         outputs = {
           priority: 'high',
@@ -414,7 +414,7 @@ async function executeAgent(executionId: string, agent: any) {
         };
         actualCost = 0.005 + Math.random() * 0.010;
         break;
-      
+
       case 'finanzas':
         outputs = {
           amount: 1250.00,
@@ -424,7 +424,7 @@ async function executeAgent(executionId: string, agent: any) {
         };
         actualCost = 0.012 + Math.random() * 0.018;
         break;
-      
+
       case 'soporte_qa':
         outputs = {
           severity: 'medium',

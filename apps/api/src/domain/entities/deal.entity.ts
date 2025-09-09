@@ -147,7 +147,7 @@ export class Deal {
   updateStage(stage: DealStage): void {
     this.props.stage = stage;
     this.props.updatedAt = new Date();
-    
+
     // Update status based on stage
     if (stage === 'CLOSED_WON') {
       this.props.status = 'WON';
@@ -167,7 +167,7 @@ export class Deal {
   updateStatus(status: DealStatus): void {
     this.props.status = status;
     this.props.updatedAt = new Date();
-    
+
     if (status === 'WON' || status === 'LOST') {
       this.props.actualCloseDate = new Date();
     }
@@ -327,7 +327,7 @@ export class Deal {
   // ========================================================================
 
   validate(): boolean {
-    return (
+    return (;
       this.props.id.length > 0 &&
       this.props.organizationId.length > 0 &&
       this.props.contactId.length > 0 &&

@@ -9,11 +9,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Shield, 
-  AlertTriangle, 
-  FileText, 
-  BarChart3, 
+import {
+  Shield,
+  AlertTriangle,
+  FileText,
+  BarChart3,
   Eye,
   Plus,
   Search,
@@ -28,7 +28,7 @@ import {
   Lock,
   AlertCircle
 } from 'lucide-react';
-import { 
+import {
   useAuditEvents,
   useLogAuditEvent,
   useComplianceRules,
@@ -50,8 +50,8 @@ interface AdvancedAuditComplianceDashboardProps {
   organizationId?: string;
 }
 
-export function AdvancedAuditComplianceDashboard({ 
-  organizationId = 'default' 
+export function AdvancedAuditComplianceDashboard({
+  organizationId = 'default'
 }: AdvancedAuditComplianceDashboardProps) {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedSeverity, setSelectedSeverity] = useState<string>('');
@@ -66,7 +66,7 @@ export function AdvancedAuditComplianceDashboard({
     severity: selectedSeverity || undefined,
     limit: 50
   });
-  
+
   const { data: complianceRules, isLoading: rulesLoading } = useComplianceRules();
   const { data: violations, isLoading: violationsLoading } = useComplianceViolations({
     organizationId,
@@ -75,7 +75,7 @@ export function AdvancedAuditComplianceDashboard({
   const { data: metrics, isLoading: metricsLoading } = useComplianceMetrics(organizationId);
   const { data: health, isLoading: healthLoading } = useAuditComplianceHealth();
   const { data: reports, isLoading: reportsLoading } = useAuditReports(organizationId);
-  
+
   const logAuditEvent = useLogAuditEvent();
   const createRule = useCreateComplianceRule();
   const updateViolationStatus = useUpdateViolationStatus();
@@ -104,7 +104,7 @@ export function AdvancedAuditComplianceDashboard({
 
   const handleCreateRule = async () => {
     if (!newRuleName.trim() || !newRuleFramework) return;
-    
+
     await createRule.mutateAsync({
       name: newRuleName,
       description: newRuleDescription,
@@ -120,7 +120,7 @@ export function AdvancedAuditComplianceDashboard({
       },
       isActive: true
     });
-    
+
     setNewRuleName('');
     setNewRuleDescription('');
     setNewRuleFramework('');
@@ -137,7 +137,7 @@ export function AdvancedAuditComplianceDashboard({
   const handleGenerateReport = async () => {
     const endDate = new Date().toISOString();
     const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(); // 30 days ago
-    
+
     await generateReport.mutateAsync({
       name: 'Monthly Compliance Report',
       description: 'Automated monthly compliance report',
@@ -175,7 +175,7 @@ export function AdvancedAuditComplianceDashboard({
 
   const healthStatus = getHealthStatus();
 
-  return (
+  return (;
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -193,7 +193,7 @@ export function AdvancedAuditComplianceDashboard({
               <AlertCircle className="h-5 w-5 text-yellow-500" />
             )}
             <span className={`text-sm font-medium ${healthStatus.color}`}>
-              {healthStatus.status === 'loading' ? 'Checking...' : 
+              {healthStatus.status === 'loading' ? 'Checking...' :
                healthStatus.status === 'healthy' ? 'System Healthy' : 'System Degraded'}
             </span>
           </div>
@@ -296,7 +296,7 @@ export function AdvancedAuditComplianceDashboard({
                         </div>
                         <div className="flex items-center space-x-2">
                           <div className="w-20 bg-gray-200 rounded-full h-2">
-                            <div 
+                            <div
                               className={`h-2 rounded-full ${
                                 score >= 90 ? 'bg-green-500' :
                                 score >= 70 ? 'bg-yellow-500' : 'bg-red-500'
@@ -437,7 +437,7 @@ export function AdvancedAuditComplianceDashboard({
                       </div>
                     </div>
                   ))}
-                  
+
                   {auditEvents?.events?.length === 0 && (
                     <div className="text-center py-8">
                       <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -527,7 +527,7 @@ export function AdvancedAuditComplianceDashboard({
                       </div>
                     </div>
                   ))}
-                  
+
                   {violations?.violations?.length === 0 && (
                     <div className="text-center py-8">
                       <CheckCircle className="h-12 w-12 text-green-400 mx-auto mb-4" />
@@ -587,8 +587,8 @@ export function AdvancedAuditComplianceDashboard({
                     </SelectContent>
                   </Select>
                 </div>
-                <Button 
-                  onClick={handleCreateRule} 
+                <Button
+                  onClick={handleCreateRule}
                   disabled={!newRuleName.trim() || !newRuleFramework || createRule.isPending}
                   className="w-full"
                 >
@@ -701,7 +701,7 @@ export function AdvancedAuditComplianceDashboard({
                       </div>
                     </div>
                   ))}
-                  
+
                   {reports?.length === 0 && (
                     <div className="text-center py-8">
                       <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />

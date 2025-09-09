@@ -102,7 +102,7 @@ router.post('/strategies', async (req, res) => {
   try {
     const validatedData = createStrategySchema.parse(req.body);
     const strategy = await advancedDeploymentAutomationService.createStrategy(validatedData);
-    
+
     res.status(201).json({
       success: true,
       data: strategy
@@ -119,7 +119,7 @@ router.post('/strategies', async (req, res) => {
 router.get('/strategies', async (req, res) => {
   try {
     const strategies = await advancedDeploymentAutomationService.getStrategies();
-    
+
     res.json({
       success: true,
       data: strategies,
@@ -138,16 +138,16 @@ router.put('/strategies/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
-    
+
     const strategy = await advancedDeploymentAutomationService.updateStrategy(id, updates);
-    
+
     if (!strategy) {
       return res.status(404).json({
         success: false,
         error: 'Strategy not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: strategy
@@ -165,14 +165,14 @@ router.delete('/strategies/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const deleted = await advancedDeploymentAutomationService.deleteStrategy(id);
-    
+
     if (!deleted) {
       return res.status(404).json({
         success: false,
         error: 'Strategy not found'
       });
     }
-    
+
     res.json({
       success: true,
       message: 'Strategy deleted successfully'
@@ -191,7 +191,7 @@ router.post('/environments', async (req, res) => {
   try {
     const validatedData = createEnvironmentSchema.parse(req.body);
     const environment = await advancedDeploymentAutomationService.createEnvironment(validatedData);
-    
+
     res.status(201).json({
       success: true,
       data: environment
@@ -208,7 +208,7 @@ router.post('/environments', async (req, res) => {
 router.get('/environments', async (req, res) => {
   try {
     const environments = await advancedDeploymentAutomationService.getEnvironments();
-    
+
     res.json({
       success: true,
       data: environments,
@@ -227,16 +227,16 @@ router.put('/environments/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
-    
+
     const environment = await advancedDeploymentAutomationService.updateEnvironment(id, updates);
-    
+
     if (!environment) {
       return res.status(404).json({
         success: false,
         error: 'Environment not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: environment
@@ -255,7 +255,7 @@ router.post('/pipelines', async (req, res) => {
   try {
     const validatedData = createPipelineSchema.parse(req.body);
     const pipeline = await advancedDeploymentAutomationService.createPipeline(validatedData);
-    
+
     res.status(201).json({
       success: true,
       data: pipeline
@@ -272,7 +272,7 @@ router.post('/pipelines', async (req, res) => {
 router.get('/pipelines', async (req, res) => {
   try {
     const pipelines = await advancedDeploymentAutomationService.getPipelines();
-    
+
     res.json({
       success: true,
       data: pipelines,
@@ -291,16 +291,16 @@ router.put('/pipelines/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
-    
+
     const pipeline = await advancedDeploymentAutomationService.updatePipeline(id, updates);
-    
+
     if (!pipeline) {
       return res.status(404).json({
         success: false,
         error: 'Pipeline not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: pipeline
@@ -325,7 +325,7 @@ router.get('/jobs', async (req, res) => {
     };
 
     const jobs = await advancedDeploymentAutomationService.getJobs(filters);
-    
+
     res.json({
       success: true,
       data: jobs,
@@ -345,14 +345,14 @@ router.get('/jobs/:id', async (req, res) => {
     const { id } = req.params;
     const jobs = await advancedDeploymentAutomationService.getJobs({ limit: 1000 });
     const job = jobs.find(j => j.id === id);
-    
+
     if (!job) {
       return res.status(404).json({
         success: false,
         error: 'Job not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: job
@@ -370,16 +370,16 @@ router.put('/jobs/:id/status', async (req, res) => {
   try {
     const { id } = req.params;
     const { status, progress } = req.body;
-    
+
     const job = await advancedDeploymentAutomationService.updateJobStatus(id, status, progress);
-    
+
     if (!job) {
       return res.status(404).json({
         success: false,
         error: 'Job not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: job
@@ -397,16 +397,16 @@ router.post('/jobs/:id/logs', async (req, res) => {
   try {
     const { id } = req.params;
     const { step, level, message } = req.body;
-    
+
     const success = await advancedDeploymentAutomationService.addJobLog(id, { step, level, message });
-    
+
     if (!success) {
       return res.status(404).json({
         success: false,
         error: 'Job not found'
       });
     }
-    
+
     res.json({
       success: true,
       message: 'Log added successfully'
@@ -429,7 +429,7 @@ router.post('/deployments/execute', async (req, res) => {
       validatedData.environmentId,
       validatedData.trigger
     );
-    
+
     res.status(201).json({
       success: true,
       data: job
@@ -448,7 +448,7 @@ router.get('/approvals', async (req, res) => {
   try {
     const jobId = req.query.jobId as string;
     const approvals = await advancedDeploymentAutomationService.getApprovals(jobId);
-    
+
     res.json({
       success: true,
       data: approvals,
@@ -467,21 +467,21 @@ router.put('/approvals/:id/respond', async (req, res) => {
   try {
     const { id } = req.params;
     const validatedData = respondToApprovalSchema.parse(req.body);
-    
+
     const approval = await advancedDeploymentAutomationService.respondToApproval(
       id,
       validatedData.status,
       validatedData.comments,
       validatedData.approver
     );
-    
+
     if (!approval) {
       return res.status(404).json({
         success: false,
         error: 'Approval not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: approval
@@ -500,7 +500,7 @@ router.get('/notifications', async (req, res) => {
   try {
     const jobId = req.query.jobId as string;
     const notifications = await advancedDeploymentAutomationService.getNotifications(jobId);
-    
+
     res.json({
       success: true,
       data: notifications,
@@ -519,14 +519,14 @@ router.put('/notifications/:id/sent', async (req, res) => {
   try {
     const { id } = req.params;
     const success = await advancedDeploymentAutomationService.markNotificationSent(id);
-    
+
     if (!success) {
       return res.status(404).json({
         success: false,
         error: 'Notification not found'
       });
     }
-    
+
     res.json({
       success: true,
       message: 'Notification marked as sent'
@@ -545,7 +545,7 @@ router.get('/health-checks', async (req, res) => {
   try {
     const jobId = req.query.jobId as string;
     const healthChecks = await advancedDeploymentAutomationService.getHealthChecks(jobId);
-    
+
     res.json({
       success: true,
       data: healthChecks,
@@ -564,16 +564,16 @@ router.put('/health-checks/:id/result', async (req, res) => {
   try {
     const { id } = req.params;
     const result = req.body;
-    
+
     const success = await advancedDeploymentAutomationService.updateHealthCheckResult(id, result);
-    
+
     if (!success) {
       return res.status(404).json({
         success: false,
         error: 'Health check not found'
       });
     }
-    
+
     res.json({
       success: true,
       message: 'Health check result updated'
@@ -592,7 +592,7 @@ router.get('/rollbacks', async (req, res) => {
   try {
     const jobId = req.query.jobId as string;
     const rollbacks = await advancedDeploymentAutomationService.getRollbacks(jobId);
-    
+
     res.json({
       success: true,
       data: rollbacks,
@@ -611,16 +611,16 @@ router.put('/rollbacks/:id/status', async (req, res) => {
   try {
     const { id } = req.params;
     const { status, progress } = req.body;
-    
+
     const rollback = await advancedDeploymentAutomationService.updateRollbackStatus(id, status, progress);
-    
+
     if (!rollback) {
       return res.status(404).json({
         success: false,
         error: 'Rollback not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: rollback
@@ -638,7 +638,7 @@ router.put('/rollbacks/:id/status', async (req, res) => {
 router.get('/statistics', async (req, res) => {
   try {
     const statistics = await advancedDeploymentAutomationService.getStatistics();
-    
+
     res.json({
       success: true,
       data: statistics
@@ -656,7 +656,7 @@ router.get('/statistics', async (req, res) => {
 router.get('/health', async (req, res) => {
   try {
     const statistics = await advancedDeploymentAutomationService.getStatistics();
-    
+
     res.json({
       success: true,
       status: 'healthy',

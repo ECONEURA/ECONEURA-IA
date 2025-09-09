@@ -24,7 +24,7 @@ export function assertRealProviders(): void {
   )) {
     throw new Error('LLM credentials missing');
   }
-  
+
   if (env.NEXT_PUBLIC_MAKE_MODE === 'real' && !(env.MAKE_BASE_URL && env.MAKE_TOKEN)) {
     throw new Error('Make credentials missing');
   }

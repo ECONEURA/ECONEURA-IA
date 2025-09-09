@@ -454,7 +454,7 @@ class SemanticSearchCRMService {
     };
 
     this.documents.set(document.id, document);
-    
+
     // Actualizar estadísticas del índice
     const index = this.searchIndexes.get('index_main');
     if (index) {
@@ -463,9 +463,9 @@ class SemanticSearchCRMService {
       index.statistics.lastUpdated = now;
       this.searchIndexes.set('index_main', index);
     }
-    
-    structuredLogger.info('Document indexed', { 
-      documentId: document.id, 
+
+    structuredLogger.info('Document indexed', {
+      documentId: document.id,
       type: document.type,
       organizationId: document.organizationId
     });
@@ -500,9 +500,9 @@ class SemanticSearchCRMService {
     }
 
     this.documents.set(documentId, updatedDocument);
-    
-    structuredLogger.info('Document updated', { 
-      documentId, 
+
+    structuredLogger.info('Document updated', {
+      documentId,
       type: updatedDocument.type,
       organizationId: updatedDocument.organizationId
     });
@@ -521,7 +521,7 @@ class SemanticSearchCRMService {
   } = {}): Promise<SearchQuery> {
     const startTime = Date.now();
     const queryId = `query_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    
+
     const searchQuery: SearchQuery = {
       id: queryId,
       organizationId,
@@ -557,21 +557,21 @@ class SemanticSearchCRMService {
 
     // Aplicar filtros
     let filteredDocuments = allDocuments;
-    
+
     if (options.filters?.documentTypes) {
-      filteredDocuments = filteredDocuments.filter(doc => 
+      filteredDocuments = filteredDocuments.filter(doc =>
         options.filters!.documentTypes!.includes(doc.type)
       );
     }
 
     if (options.filters?.tags) {
-      filteredDocuments = filteredDocuments.filter(doc => 
+      filteredDocuments = filteredDocuments.filter(doc =>
         options.filters!.tags!.some(tag => doc.metadata.tags.includes(tag))
       );
     }
 
     if (options.filters?.priority) {
-      filteredDocuments = filteredDocuments.filter(doc => 
+      filteredDocuments = filteredDocuments.filter(doc =>
         options.filters!.priority!.includes(doc.metadata.priority)
       );
     }
@@ -593,7 +593,7 @@ class SemanticSearchCRMService {
 
     // Generar sugerencias
     const suggestions = this.generateSuggestions(query, organizationId);
-    
+
     // Generar facets
     const facets = this.generateFacets(filteredDocuments);
 
@@ -607,9 +607,9 @@ class SemanticSearchCRMService {
     };
 
     this.searchQueries.set(queryId, searchQuery);
-    
-    structuredLogger.info('Semantic search executed', { 
-      queryId, 
+
+    structuredLogger.info('Semantic search executed', {
+      queryId,
       query,
       organizationId,
       resultsCount: relevantDocuments.length,
@@ -621,7 +621,7 @@ class SemanticSearchCRMService {
 
   private generateSuggestions(query: string, organizationId: string): string[] {
     const suggestions: string[] = [];
-    
+
     // Sugerencias basadas en el query
     if (query.includes('cliente')) {
       suggestions.push('cliente premium', 'cliente techcorp', 'cliente madrid');
@@ -647,15 +647,15 @@ class SemanticSearchCRMService {
     documents.forEach(doc => {
       // Document types
       facets.documentTypes[doc.type] = (facets.documentTypes[doc.type] || 0) + 1;
-      
+
       // Priority
       facets.priority[doc.metadata.priority] = (facets.priority[doc.metadata.priority] || 0) + 1;
-      
+
       // Tags
       doc.metadata.tags.forEach(tag => {
         facets.tags[tag] = (facets.tags[tag] || 0) + 1;
       });
-      
+
       // Categories
       doc.metadata.categories.forEach(category => {
         facets.categories[category] = (facets.categories[category] || 0) + 1;
@@ -667,7 +667,7 @@ class SemanticSearchCRMService {
 
   // Gestión de índices
   async getSearchIndexes(organizationId: string): Promise<SearchIndex[]> {
-    return Array.from(this.searchIndexes.values())
+    return Array.from(this.searchIndexes.values());
       .filter(index => index.organizationId === organizationId);
   }
 
@@ -689,9 +689,9 @@ class SemanticSearchCRMService {
     };
 
     this.searchIndexes.set(index.id, index);
-    
-    structuredLogger.info('Search index created', { 
-      indexId: index.id, 
+
+    structuredLogger.info('Search index created', {
+      indexId: index.id,
       name: index.name,
       organizationId: index.organizationId
     });
@@ -709,9 +709,9 @@ class SemanticSearchCRMService {
     };
 
     this.searchAnalytics.set(analytics.id, analytics);
-    
-    structuredLogger.info('Search analytics logged', { 
-      analyticsId: analytics.id, 
+
+    structuredLogger.info('Search analytics logged', {
+      analyticsId: analytics.id,
       queryId: analytics.queryId,
       userId: analytics.userId,
       resultsFound: analytics.results.totalFound
@@ -728,7 +728,7 @@ class SemanticSearchCRMService {
   }): Promise<SearchSuggestion> {
     const now = new Date().toISOString();
     const suggestionId = `suggestions_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    
+
     const suggestions: SearchSuggestion = {
       id: suggestionId,
       organizationId,
@@ -744,9 +744,9 @@ class SemanticSearchCRMService {
     };
 
     this.searchSuggestions.set(suggestionId, suggestions);
-    
-    structuredLogger.info('Search suggestions generated', { 
-      suggestionId, 
+
+    structuredLogger.info('Search suggestions generated', {
+      suggestionId,
       query,
       organizationId,
       suggestionsCount: suggestions.suggestions.length
@@ -772,52 +772,52 @@ class SemanticSearchCRMService {
       totalQueries: queries.length,
       totalAnalytics: analytics.length,
       totalIndexes: indexes.length,
-      
+
       // Estadísticas de documentos
       documentStats: {
         byType: this.getDocumentTypeStats(documents),
         byPriority: this.getDocumentPriorityStats(documents),
         byLanguage: this.getDocumentLanguageStats(documents),
-        averageConfidence: documents.length > 0 ? 
+        averageConfidence: documents.length > 0 ?
           documents.reduce((sum, d) => sum + d.metadata.confidence, 0) / documents.length : 0
       },
-      
+
       // Estadísticas de búsqueda
       searchStats: {
         totalSearches: queries.length,
-        averageResults: queries.length > 0 ? 
+        averageResults: queries.length > 0 ?
           queries.reduce((sum, q) => sum + q.results.total, 0) / queries.length : 0,
-        averageExecutionTime: queries.length > 0 ? 
+        averageExecutionTime: queries.length > 0 ?
           queries.reduce((sum, q) => sum + q.results.executionTime, 0) / queries.length : 0,
         byType: this.getSearchTypeStats(queries)
       },
-      
+
       // Estadísticas por período
       last24Hours: {
         searches: queries.filter(q => new Date(q.createdAt) >= last24Hours).length,
         documentsIndexed: documents.filter(d => new Date(d.indexedAt) >= last24Hours).length,
         analytics: analytics.filter(a => new Date(a.timestamp) >= last24Hours).length
       },
-      
+
       last7Days: {
         searches: queries.filter(q => new Date(q.createdAt) >= last7Days).length,
         documentsIndexed: documents.filter(d => new Date(d.indexedAt) >= last7Days).length,
         analytics: analytics.filter(a => new Date(a.timestamp) >= last7Days).length
       },
-      
+
       // Estadísticas de rendimiento
       performanceStats: {
-        averageQueryTime: queries.length > 0 ? 
+        averageQueryTime: queries.length > 0 ?
           queries.reduce((sum, q) => sum + q.results.executionTime, 0) / queries.length : 0,
-        cacheHitRate: analytics.length > 0 ? 
+        cacheHitRate: analytics.length > 0 ?
           analytics.filter(a => a.performance.cacheHit).length / analytics.length : 0,
-        averageSatisfaction: analytics.length > 0 ? 
+        averageSatisfaction: analytics.length > 0 ?
           analytics.reduce((sum, a) => sum + a.results.satisfaction, 0) / analytics.length : 0
       },
-      
+
       // Top queries
       topQueries: this.getTopQueries(queries),
-      
+
       // Top tags
       topTags: this.getTopTags(documents)
     };
@@ -860,8 +860,8 @@ class SemanticSearchCRMService {
     queries.forEach(q => {
       queryCounts[q.query] = (queryCounts[q.query] || 0) + 1;
     });
-    
-    return Object.entries(queryCounts)
+
+    return Object.entries(queryCounts);
       .map(([query, count]) => ({ query, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
@@ -874,8 +874,8 @@ class SemanticSearchCRMService {
         tagCounts[tag] = (tagCounts[tag] || 0) + 1;
       });
     });
-    
-    return Object.entries(tagCounts)
+
+    return Object.entries(tagCounts);
       .map(([tag, count]) => ({ tag, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 20);

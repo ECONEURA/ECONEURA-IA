@@ -79,7 +79,7 @@ const TrainingConfigurationSchema = z.object({
 router.post('/datasets', async (req, res) => {
   try {
     const validatedData = DatasetSchema.parse(req.body);
-    
+
     structuredLogger.info('Dataset creation request received', {
       userId: req.user?.id,
       datasetName: validatedData.name,
@@ -131,7 +131,7 @@ router.get('/datasets', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = parseInt(req.query.offset as string) || 0;
-    
+
     const datasets = await aiTrainingService.listDatasets(limit, offset);
 
     res.json({
@@ -165,7 +165,7 @@ router.get('/datasets', async (req, res) => {
 router.get('/datasets/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const dataset = await aiTrainingService.getDataset(id);
 
     if (!dataset) {
@@ -248,7 +248,7 @@ router.patch('/datasets/:id/status', async (req, res) => {
 router.post('/jobs', async (req, res) => {
   try {
     const validatedData = TrainingJobSchema.parse(req.body);
-    
+
     structuredLogger.info('Training job creation request received', {
       userId: req.user?.id,
       jobName: validatedData.name,
@@ -300,7 +300,7 @@ router.get('/jobs', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = parseInt(req.query.offset as string) || 0;
-    
+
     const jobs = await aiTrainingService.listTrainingJobs(limit, offset);
 
     res.json({
@@ -334,7 +334,7 @@ router.get('/jobs', async (req, res) => {
 router.get('/jobs/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const job = await aiTrainingService.getTrainingJob(id);
 
     if (!job) {
@@ -372,7 +372,7 @@ router.get('/jobs/:id', async (req, res) => {
 router.post('/jobs/:id/start', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     structuredLogger.info('Training job start request received', {
       userId: req.user?.id,
       jobId: id
@@ -409,7 +409,7 @@ router.post('/jobs/:id/start', async (req, res) => {
 router.get('/jobs/:id/progress', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const progress = await aiTrainingService.getTrainingProgress(id);
 
     if (!progress) {
@@ -452,7 +452,7 @@ router.get('/jobs/:id/progress', async (req, res) => {
 router.get('/models/:modelId/versions', async (req, res) => {
   try {
     const { modelId } = req.params;
-    
+
     const versions = await aiTrainingService.getModelVersions(modelId);
 
     res.json({
@@ -489,7 +489,7 @@ router.get('/models/:modelId/versions', async (req, res) => {
 router.get('/health', async (req, res) => {
   try {
     const healthStatus = await aiTrainingService.getHealthStatus();
-    
+
     res.json({
       success: true,
       data: healthStatus,
@@ -518,7 +518,7 @@ router.get('/health', async (req, res) => {
 router.get('/status', async (req, res) => {
   try {
     const healthStatus = await aiTrainingService.getHealthStatus();
-    
+
     res.json({
       success: true,
       data: {
@@ -579,7 +579,7 @@ router.get('/status', async (req, res) => {
 router.post('/configure', async (req, res) => {
   try {
     const validatedData = TrainingConfigurationSchema.parse(req.body);
-    
+
     structuredLogger.info('Training configuration request received', {
       userId: req.user?.id,
       algorithm: validatedData.algorithm,

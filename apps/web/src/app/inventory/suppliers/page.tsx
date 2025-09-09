@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { apiClient } from '@/lib/api-client';
-import { 
-  Building2, 
-  Plus, 
-  Search, 
-  Filter, 
+import {
+  Building2,
+  Plus,
+  Search,
+  Filter,
   MoreVertical,
   Edit,
   Trash2,
@@ -57,7 +57,7 @@ interface SuppliersResponse {
   };
 }
 
-export default function SuppliersPage() {
+export default function SuppliersPage(): void {
   const { user } = useAuth();
   const api = apiClient;
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -116,7 +116,7 @@ export default function SuppliersPage() {
   };
 
   if (loading && suppliers.length === 0) {
-    return (
+    return (;
       <div className="min-h-screen bg-gradient-to-br from-sand-50 via-white to-mediterranean-50 flex items-center justify-center">
         <div className="text-center">
           <Building2 className="w-8 h-8 text-mediterranean-600 animate-pulse mx-auto mb-4" />
@@ -126,7 +126,7 @@ export default function SuppliersPage() {
     );
   }
 
-  return (
+  return (;
     <div className="min-h-screen bg-gradient-to-br from-sand-50 via-white to-mediterranean-50">
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-sand-200">
@@ -217,8 +217,8 @@ export default function SuppliersPage() {
 
                 {/* Status */}
                 <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                  supplier.is_active 
-                    ? 'bg-green-100 text-green-800' 
+                  supplier.is_active
+                    ? 'bg-green-100 text-green-800'
                     : 'bg-red-100 text-red-800'
                 }`}>
                   {supplier.is_active ? 'Activo' : 'Inactivo'}
@@ -248,7 +248,7 @@ export default function SuppliersPage() {
                 {supplier.website && (
                   <div className="flex items-center text-sm text-sand-600">
                     <Globe className="w-4 h-4 mr-2 text-mediterranean-500" />
-                    <a 
+                    <a
                       href={supplier.website.startsWith('http') ? supplier.website : `https://${supplier.website}`}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -345,7 +345,7 @@ export default function SuppliersPage() {
             <Building2 className="w-16 h-16 text-sand-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-sand-600 mb-2">No hay proveedores</h3>
             <p className="text-sand-500 mb-6">
-              {searchTerm 
+              {searchTerm
                 ? 'No se encontraron proveedores con los filtros aplicados.'
                 : 'Comienza agregando tu primer proveedor.'
               }

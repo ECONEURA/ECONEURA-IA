@@ -26,38 +26,38 @@ export enum ErrorCode {
   INVALID_FORMAT = 1003,
   INVALID_RANGE = 1004,
   INVALID_ENUM = 1005,
-  
+
   // Not found errors (2000-2999)
   ENTITY_NOT_FOUND = 2001,
   USER_NOT_FOUND = 2002,
   ORGANIZATION_NOT_FOUND = 2003,
   COMPANY_NOT_FOUND = 2004,
   CONTACT_NOT_FOUND = 2005,
-  
+
   // Conflict errors (3000-3999)
   DUPLICATE_ENTITY = 3001,
   DUPLICATE_EMAIL = 3002,
   DUPLICATE_NAME = 3003,
   DUPLICATE_SLUG = 3004,
-  
+
   // Authorization errors (4000-4999)
   UNAUTHORIZED_ACCESS = 4001,
   INVALID_TOKEN = 4002,
   EXPIRED_TOKEN = 4003,
   INSUFFICIENT_PERMISSIONS = 4004,
-  
+
   // Business logic errors (5000-5999)
   BUSINESS_RULE_VIOLATION = 5001,
   QUOTA_EXCEEDED = 5002,
   INVALID_OPERATION = 5003,
   DEPENDENCY_CONFLICT = 5004,
-  
+
   // External service errors (6000-6999)
   EXTERNAL_API_ERROR = 6001,
   DATABASE_ERROR = 6002,
   CACHE_ERROR = 6003,
   EMAIL_SERVICE_ERROR = 6004,
-  
+
   // System errors (7000-7999)
   INTERNAL_SERVER_ERROR = 7001,
   SERVICE_UNAVAILABLE = 7002,
@@ -487,7 +487,7 @@ export const aggregateErrors = (errors: any[]): AppError => {
 
   const messages = errors.map(error => getErrorMessage(error));
   const aggregatedMessage = `Multiple errors occurred: ${messages.join('; ')}`;
-  
+
   return new AppError(ErrorType.INTERNAL, ErrorCode.INTERNAL_SERVER_ERROR, aggregatedMessage, { errors });
 };
 
@@ -497,7 +497,7 @@ export const aggregateErrors = (errors: any[]): AppError => {
 
 export const addErrorContext = (error: any, context: any): AppError => {
   if (isAppError(error)) {
-    return new AppError(
+    return new AppError(;
       error.type,
       error.code,
       error.message,
@@ -507,13 +507,13 @@ export const addErrorContext = (error: any, context: any): AppError => {
       error.organizationId
     );
   }
-  
+
   return new AppError(ErrorType.INTERNAL, ErrorCode.INTERNAL_SERVER_ERROR, getErrorMessage(error), { context });
 };
 
 export const addRequestContext = (error: any, requestId: string, userId?: string, organizationId?: string): AppError => {
   if (isAppError(error)) {
-    return new AppError(
+    return new AppError(;
       error.type,
       error.code,
       error.message,
@@ -523,6 +523,6 @@ export const addRequestContext = (error: any, requestId: string, userId?: string
       organizationId
     );
   }
-  
+
   return new AppError(ErrorType.INTERNAL, ErrorCode.INTERNAL_SERVER_ERROR, getErrorMessage(error), undefined, requestId, userId, organizationId);
 };

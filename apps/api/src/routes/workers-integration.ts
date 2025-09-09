@@ -1,6 +1,6 @@
 /**
  * Workers Integration Routes
- * 
+ *
  * API endpoints for communicating with Workers service
  */
 
@@ -38,7 +38,7 @@ const cronJobSchema = z.object({
 router.post('/emails/process', async (req, res) => {
   try {
     const validatedData = emailProcessingSchema.parse(req.body);
-    
+
     structuredLogger.info('API: Processing email through workers', {
       messageId: validatedData.messageId,
       organizationId: validatedData.organizationId,
@@ -96,7 +96,7 @@ router.post('/emails/process', async (req, res) => {
 router.post('/emails/process/bulk', async (req, res) => {
   try {
     const validatedData = bulkEmailProcessingSchema.parse(req.body);
-    
+
     structuredLogger.info('API: Processing bulk emails through workers', {
       count: validatedData.messageIds.length,
       organizationId: validatedData.organizationId,
@@ -162,7 +162,7 @@ router.post('/emails/process/bulk', async (req, res) => {
 router.post('/cron/manage', async (req, res) => {
   try {
     const validatedData = cronJobSchema.parse(req.body);
-    
+
     structuredLogger.info('API: Managing cron job through workers', {
       jobId: validatedData.jobId,
       action: validatedData.action,
@@ -290,7 +290,7 @@ router.post('/webhooks/workers', async (req, res) => {
     // Verify webhook signature
     const payload = JSON.stringify(req.body);
     const secret = process.env.WEBHOOK_SECRET || 'default-secret';
-    
+
     // In a real implementation, you'd verify the signature here
     // const isValid = webhookManager.verifySignature(payload, signature, secret);
     // if (!isValid) {

@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { 
-  InvoiceSchema, 
-  CreateInvoiceSchema, 
-  UpdateInvoiceSchema, 
-  InvoiceFilterSchema 
+import {
+  InvoiceSchema,
+  CreateInvoiceSchema,
+  UpdateInvoiceSchema,
+  InvoiceFilterSchema
 } from '@econeura/shared/src/schemas/finance';
 import { PaginationRequestSchema } from '@econeura/shared/src/schemas/common';
 import { db } from '../lib/database.js';
@@ -31,9 +31,9 @@ router.get('/', async (req, res) => {
 
     // Build query with filters
     let query = db.select().from(invoices);
-    
+
     const conditions = [];
-    
+
     if (filters.q) {
       conditions.push(
         or(
@@ -42,31 +42,31 @@ router.get('/', async (req, res) => {
         )
       );
     }
-    
+
     if (filters.entityId) {
       conditions.push(eq(invoices.entityId, filters.entityId));
     }
-    
+
     if (filters.entityType) {
       conditions.push(eq(invoices.entityType, filters.entityType));
     }
-    
+
     if (filters.status) {
       conditions.push(eq(invoices.status, filters.status));
     }
-    
+
     if (filters.type) {
       conditions.push(eq(invoices.type, filters.type));
     }
-    
+
     if (filters.minAmount !== undefined) {
       conditions.push(gte(invoices.totalAmount, filters.minAmount));
     }
-    
+
     if (filters.maxAmount !== undefined) {
       conditions.push(lte(invoices.totalAmount, filters.maxAmount));
     }
-    
+
     if (filters.overdue) {
       conditions.push(
         and(
@@ -95,7 +95,7 @@ router.get('/', async (req, res) => {
 
     // Calculate summary statistics
     const totalAmountResult = await db
-      .select({ 
+      .select({
         totalAmount: sql<number>`COALESCE(SUM(total_amount), 0)`,
         totalPaid: sql<number>`COALESCE(SUM(paid_amount), 0)`,
         totalOutstanding: sql<number>`COALESCE(SUM(balance_due), 0)`
@@ -130,10 +130,10 @@ router.get('/', async (req, res) => {
       orgId: req.headers['x-org-id'],
       query: req.query
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to retrieve invoices',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -143,7 +143,7 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const orgId = req.headers['x-org-id'] as string;
-    
+
     if (!orgId) {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
@@ -158,7 +158,7 @@ router.get('/:id', async (req, res) => {
       .limit(1);
 
     if (!invoice) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Invoice not found',
         message: `Invoice with ID ${id} not found or access denied`
       });
@@ -176,10 +176,10 @@ router.get('/:id', async (req, res) => {
       orgId: req.headers['x-org-id'],
       invoiceId: req.params.id
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to retrieve invoice',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -189,7 +189,7 @@ router.post('/', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string;
     const userId = req.headers['x-user-id'] as string;
-    
+
     if (!orgId) {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
@@ -269,10 +269,10 @@ router.post('/', async (req, res) => {
       userId: req.headers['x-user-id'],
       body: req.body
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to create invoice',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -283,7 +283,7 @@ router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const orgId = req.headers['x-org-id'] as string;
     const userId = req.headers['x-user-id'] as string;
-    
+
     if (!orgId) {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
@@ -295,10 +295,10 @@ router.put('/:id', async (req, res) => {
     await db.execute(`SET LOCAL app.org_id = '${orgId}'`);
 
     // Recalculate totals if amount fields are being updated
-    if (updateData.subtotal !== undefined || updateData.discountAmount !== undefined || 
+    if (updateData.subtotal !== undefined || updateData.discountAmount !== undefined ||
         updateData.taxAmount !== undefined || updateData.shippingCost !== undefined ||
         updateData.paidAmount !== undefined) {
-      
+
       // Get current invoice to calculate from
       const [currentInvoice] = await db
         .select()
@@ -312,13 +312,13 @@ router.put('/:id', async (req, res) => {
         const taxAmount = updateData.taxAmount ?? currentInvoice.taxAmount;
         const shippingCost = updateData.shippingCost ?? currentInvoice.shippingCost;
         const paidAmount = updateData.paidAmount ?? currentInvoice.paidAmount;
-        
+
         const totalAmount = subtotal - discountAmount + taxAmount + shippingCost;
         const balanceDue = totalAmount - paidAmount;
-        
+
         updateData.totalAmount = totalAmount;
         updateData.balanceDue = balanceDue;
-        
+
         // Update status based on payment
         if (balanceDue <= 0) {
           updateData.status = 'paid';
@@ -339,7 +339,7 @@ router.put('/:id', async (req, res) => {
       .returning();
 
     if (!updatedInvoice) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Invoice not found',
         message: `Invoice with ID ${id} not found or access denied`
       });
@@ -371,10 +371,10 @@ router.put('/:id', async (req, res) => {
       invoiceId: req.params.id,
       body: req.body
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to update invoice',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -385,7 +385,7 @@ router.post('/:id/send', async (req, res) => {
     const { id } = req.params;
     const orgId = req.headers['x-org-id'] as string;
     const userId = req.headers['x-user-id'] as string;
-    
+
     if (!orgId) {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
@@ -404,7 +404,7 @@ router.post('/:id/send', async (req, res) => {
       .returning();
 
     if (!updatedInvoice) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Invoice not found',
         message: `Invoice with ID ${id} not found or access denied`
       });
@@ -429,10 +429,10 @@ router.post('/:id/send', async (req, res) => {
       userId: req.headers['x-user-id'],
       invoiceId: req.params.id
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to send invoice',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -443,7 +443,7 @@ router.delete('/:id', async (req, res) => {
     const { id } = req.params;
     const orgId = req.headers['x-org-id'] as string;
     const userId = req.headers['x-user-id'] as string;
-    
+
     if (!orgId) {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
@@ -461,7 +461,7 @@ router.delete('/:id', async (req, res) => {
       .returning();
 
     if (!deletedInvoice) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Invoice not found',
         message: `Invoice with ID ${id} not found or access denied`
       });
@@ -482,10 +482,10 @@ router.delete('/:id', async (req, res) => {
       userId: req.headers['x-user-id'],
       invoiceId: req.params.id
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to delete invoice',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });

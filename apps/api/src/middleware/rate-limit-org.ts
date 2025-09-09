@@ -94,11 +94,11 @@ async function getOrgRateLimitConfig(orgId: string): Promise<typeof SUBSCRIPTION
   try {
     const db = getDatabaseService().getDatabase();
     const org = await db.select().from(organizations).where(eq(organizations.id, orgId)).limit(1);
-    
+
     if (org.length === 0) {
       return SUBSCRIPTION_LIMITS.free;
     }
-    
+
     const subscriptionTier = org[0].subscriptionTier as keyof typeof SUBSCRIPTION_LIMITS;
     return SUBSCRIPTION_LIMITS[subscriptionTier] || SUBSCRIPTION_LIMITS.free;
   } catch (error) {
@@ -118,7 +118,7 @@ async function checkOrgRateLimit(orgId: string, endpoint?: string): Promise<{
   const now = Date.now();
   const config = await getOrgRateLimitConfig(orgId);
   const orgLimit = orgRateLimits.get(orgId);
-  
+
   // Initialize or reset rate limit
   if (!orgLimit || orgLimit.resetTime < now) {
     const newLimit: OrganizationRateLimit = {
@@ -131,7 +131,7 @@ async function checkOrgRateLimit(orgId: string, endpoint?: string): Promise<{
       totalRequests: 1
     };
     orgRateLimits.set(orgId, newLimit);
-    
+
     return {
       allowed: true,
       remaining: config.requests - 1,
@@ -140,16 +140,16 @@ async function checkOrgRateLimit(orgId: string, endpoint?: string): Promise<{
       burstAllowed: true
     };
   }
-  
+
   // Check burst limit (requests per minute)
   const timeSinceLastRequest = now - orgLimit.lastRequest;
   const burstAllowed = timeSinceLastRequest > (60000 / config.burstLimit);
-  
+
   // Check main rate limit
   if (orgLimit.requests >= config.requests) {
     orgLimit.blockedRequests++;
     orgLimit.totalRequests++;
-    
+
     return {
       allowed: false,
       remaining: 0,
@@ -158,12 +158,12 @@ async function checkOrgRateLimit(orgId: string, endpoint?: string): Promise<{
       burstAllowed: false
     };
   }
-  
+
   // Update counters
   orgLimit.requests++;
   orgLimit.lastRequest = now;
   orgLimit.totalRequests++;
-  
+
   return {
     allowed: true,
     remaining: config.requests - orgLimit.requests,
@@ -177,7 +177,7 @@ async function checkOrgRateLimit(orgId: string, endpoint?: string): Promise<{
 function getRateLimitMetrics(orgId: string): RateLimitMetrics | null {
   const orgLimit = orgRateLimits.get(orgId);
   if (!orgLimit) return null;
-  
+
   const metrics = rateLimitMetrics.get(orgId) || {
     totalRequests: 0,
     blockedRequests: 0,
@@ -185,7 +185,7 @@ function getRateLimitMetrics(orgId: string): RateLimitMetrics | null {
     peakRequestsPerMinute: 0,
     lastReset: Date.now()
   };
-  
+
   return {
     ...metrics,
     totalRequests: orgLimit.totalRequests,
@@ -199,17 +199,17 @@ export const rateLimitOrg = async (req: Request, res: Response, next: NextFuncti
   const orgId = req.headers['x-org-id'] as string;
   const endpoint = req.path;
   const method = req.method;
-  
+
   if (!orgId) {
     return res.status(400).json({
       error: 'Missing x-org-id header',
       timestamp: new Date().toISOString()
     });
   }
-  
+
   try {
     const rateLimitResult = await checkOrgRateLimit(orgId, endpoint);
-    
+
     // Add rate limit headers
     res.set({
       'X-RateLimit-Limit': rateLimitResult.remaining + rateLimitResult.remaining,
@@ -218,10 +218,10 @@ export const rateLimitOrg = async (req: Request, res: Response, next: NextFuncti
       'X-RateLimit-Tier': rateLimitResult.tier,
       'X-RateLimit-Burst-Allowed': rateLimitResult.burstAllowed.toString()
     });
-    
+
     if (!rateLimitResult.allowed) {
       const processingTime = Date.now() - startTime;
-      
+
       structuredLogger.warn('Rate limit exceeded', {
         orgId,
         endpoint,
@@ -233,7 +233,7 @@ export const rateLimitOrg = async (req: Request, res: Response, next: NextFuncti
         userAgent: req.get('User-Agent'),
         processingTime
       });
-      
+
       return res.status(429).json({
         error: 'Rate limit exceeded',
         message: `Organization ${orgId} has exceeded the rate limit`,
@@ -244,7 +244,7 @@ export const rateLimitOrg = async (req: Request, res: Response, next: NextFuncti
         timestamp: new Date().toISOString()
       });
     }
-    
+
     // Log successful request
     const processingTime = Date.now() - startTime;
     structuredLogger.info('Rate limit check passed', {
@@ -256,11 +256,11 @@ export const rateLimitOrg = async (req: Request, res: Response, next: NextFuncti
       burstAllowed: rateLimitResult.burstAllowed,
       processingTime
     });
-    
+
     next();
   } catch (error) {
     const processingTime = Date.now() - startTime;
-    
+
     structuredLogger.error('Rate limit check failed', {
       error: error instanceof Error ? error.message : 'Unknown error',
       orgId,
@@ -268,7 +268,7 @@ export const rateLimitOrg = async (req: Request, res: Response, next: NextFuncti
       method,
       processingTime
     });
-    
+
     // Allow request to proceed if rate limit check fails
     next();
   }
@@ -285,7 +285,7 @@ export const standardRateLimit = rateLimit({
       ip: req.ip,
       userAgent: req.get('User-Agent')
     });
-    
+
     res.status(429).json({
       error: 'Too many requests',
       message: 'Rate limit exceeded. Please try again later.',
@@ -298,16 +298,16 @@ export const standardRateLimit = rateLimit({
 export const budgetGuard = (req: Request, res: Response, next: NextFunction) => {
   const orgId = req.headers['x-org-id'] as string;
   const estimatedCost = req.headers['x-est-cost-eur'] as string;
-  
+
   if (!orgId) {
     return next();
   }
-  
+
   // Verificar presupuesto (simulado)
   const budget = getOrgBudget(orgId);
   const currentUsage = getOrgUsage(orgId);
   const cost = parseFloat(estimatedCost) || 0;
-  
+
   if (currentUsage + cost > budget) {
     structuredLogger.warn('Budget exceeded', {
       orgId,
@@ -315,7 +315,7 @@ export const budgetGuard = (req: Request, res: Response, next: NextFunction) => 
       currentUsage,
       estimatedCost: cost
     });
-    
+
     return res.status(429).json({
       error: 'Budget exceeded',
       message: `Organization ${orgId} has exceeded its budget`,
@@ -324,7 +324,7 @@ export const budgetGuard = (req: Request, res: Response, next: NextFunction) => 
       estimatedCost: cost
     });
   }
-  
+
   next();
 };
 
@@ -336,7 +336,7 @@ function getOrgBudget(orgId: string): number {
     'starter': 100,        // €100 per month
     'demo': 10             // €10 per month
   };
-  
+
   return budgets[orgId as keyof typeof budgets] || budgets.starter;
 }
 
@@ -360,14 +360,14 @@ export const endpointRateLimit = (maxRequests: number, windowMs: number = 15 * 6
     handler: (req: Request, res: Response) => {
       const orgId = req.headers['x-org-id'] as string;
       const endpoint = req.path;
-      
+
       structuredLogger.warn('Endpoint rate limit exceeded', {
         orgId,
         endpoint,
         maxRequests,
         windowMs
       });
-      
+
       res.status(429).json({
         error: 'Endpoint rate limit exceeded',
         message: `Too many requests to ${endpoint}`,
@@ -392,14 +392,14 @@ export const userRateLimit = (maxRequests: number, windowMs: number = 15 * 60 * 
     handler: (req: Request, res: Response) => {
       const orgId = req.headers['x-org-id'] as string;
       const userId = req.headers['x-user-id'] as string;
-      
+
       structuredLogger.warn('User rate limit exceeded', {
         orgId,
         userId,
         maxRequests,
         windowMs
       });
-      
+
       res.status(429).json({
         error: 'User rate limit exceeded',
         message: `User ${userId} has exceeded the rate limit`,

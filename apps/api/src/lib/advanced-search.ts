@@ -108,7 +108,7 @@ export class AdvancedSearchEngine {
       // Check cache first
       const cacheKey = this.generateCacheKey(params);
       const cachedResult = this.searchCache.get(cacheKey);
-      
+
       if (cachedResult) {
         this.updateAnalytics(startTime, true);
         return cachedResult;
@@ -121,7 +121,7 @@ export class AdvancedSearchEngine {
       results = await this.performLocalSearch(params);
 
       // Federated search if enabled
-      if (params.includeFederated !== false) {
+      if (params.includeFederated !) {
         const federatedResults = await this.performFederatedSearch(params);
         results = results.concat(federatedResults);
       }
@@ -299,7 +299,7 @@ export class AdvancedSearchEngine {
     ];
 
     const queryWords = query.split(" ");
-    
+
     for (const field of searchableFields) {
       for (const word of queryWords) {
         if (field.toLowerCase().includes(word)) {
@@ -342,10 +342,10 @@ export class AdvancedSearchEngine {
   private async queryFederatedSource(source: any, params: z.infer<typeof SearchQuerySchema>): Promise<z.infer<typeof SearchResultSchema>[]> {
     // Simulate federated source query
     const results: z.infer<typeof SearchResultSchema>[] = [];
-    
+
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, Math.random() * 1000));
-    
+
     // Return mock results based on source type
     for (let i = 0; i < Math.floor(Math.random() * 5) + 1; i++) {
       results.push({
@@ -388,7 +388,7 @@ export class AdvancedSearchEngine {
     const correctionSuggestions = this.getSpellCorrections(query);
     suggestions.push(...correctionSuggestions);
 
-    return suggestions
+    return suggestions;
       .sort((a, b) => b.score - a.score)
       .slice(0, 10);
   }

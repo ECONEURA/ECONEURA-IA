@@ -1,6 +1,6 @@
 /**
  * Example usage of ECONEURA SDK Clients
- * 
+ *
  * This file demonstrates how to use the ECONEURA SDK clients
  * for ERP, CRM, and Finance operations.
  */
@@ -15,7 +15,7 @@ const client = new ECONEURAClient({
 });
 
 // Example: ERP Operations
-export async function erpExamples() {
+export async function erpExamples(): void {
   try {
     // Create a new product
     const product = await client.erp.createProduct({
@@ -56,7 +56,7 @@ export async function erpExamples() {
 }
 
 // Example: CRM Operations
-export async function crmExamples() {
+export async function crmExamples(): void {
   try {
     // Create a new company
     const company = await client.crm.createCompany({
@@ -114,7 +114,7 @@ export async function crmExamples() {
 }
 
 // Example: Finance Operations
-export async function financeExamples() {
+export async function financeExamples(): void {
   try {
     // Create an account
     const account = await client.finance.createAccount({
@@ -163,7 +163,7 @@ export async function financeExamples() {
 }
 
 // Example: Complete workflow
-export async function completeWorkflowExample() {
+export async function completeWorkflowExample(): void {
   try {
     console.log('🚀 Starting ECONEURA SDK Complete Workflow Example...\n');
 

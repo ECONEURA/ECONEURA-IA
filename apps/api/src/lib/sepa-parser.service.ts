@@ -9,13 +9,13 @@ export class SEPAParserService {
       // Parse CAMT.053/.054 XML
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(fileContent, 'text/xml');
-      
+
       const transactions: SEPATransaction[] = [];
       const errors: string[] = [];
 
       // Extract transactions from CAMT structure
       const entries = xmlDoc.querySelectorAll('Ntry');
-      
+
       for (let i = 0; i < entries.length; i++) {
         const entry = entries[i];
         try {
@@ -66,7 +66,7 @@ export class SEPAParserService {
 
       for (const line of lines) {
         const trimmedLine = line.trim();
-        
+
         if (trimmedLine.startsWith(':61:')) {
           // Transaction start
           if (inTransaction) {
@@ -188,7 +188,7 @@ export class SEPAParserService {
   private parseMT940DetailsLine(line: string, transaction: Partial<SEPATransaction>): void {
     // Parse :86: line for additional details
     const details = line.substring(4); // Remove :86: prefix
-    
+
     // Extract reference, description, etc.
     const referenceMatch = details.match(/(\d{10,})/);
     if (referenceMatch) {
@@ -212,7 +212,7 @@ export class SEPAParserService {
     const year = 2000 + parseInt(dateStr.substring(0, 2));
     const month = parseInt(dateStr.substring(2, 4)) - 1; // Month is 0-indexed
     const day = parseInt(dateStr.substring(4, 6));
-    
+
     return new Date(year, month, day);
   }
 

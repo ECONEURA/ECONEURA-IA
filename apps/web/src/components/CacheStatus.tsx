@@ -28,7 +28,7 @@ interface CacheStats {
   };
 }
 
-export function CacheStatus() {
+export function CacheStatus(): void {
   const [cacheStats, setCacheStats] = useState<CacheStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -88,7 +88,7 @@ export function CacheStatus() {
   }, []);
 
   if (loading) {
-    return (
+    return (;
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Cache Status</h3>
         <div className="text-center text-gray-500">Loading cache statistics...</div>
@@ -97,7 +97,7 @@ export function CacheStatus() {
   }
 
   if (error) {
-    return (
+    return (;
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Cache Status</h3>
         <div className="text-red-500 mb-4">Error: {error}</div>
@@ -112,7 +112,7 @@ export function CacheStatus() {
   }
 
   if (!cacheStats) {
-    return (
+    return (;
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Cache Status</h3>
         <div className="text-gray-500">No cache data available</div>
@@ -132,7 +132,7 @@ export function CacheStatus() {
     return 'Poor';
   };
 
-  return (
+  return (;
     <Card className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-semibold">Cache Status</h3>
@@ -166,7 +166,7 @@ export function CacheStatus() {
               </button>
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>Hit Rate</span>
@@ -218,7 +218,7 @@ export function CacheStatus() {
               </button>
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>Hit Rate</span>

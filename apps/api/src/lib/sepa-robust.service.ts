@@ -331,7 +331,7 @@ class SEPARobustService {
     // Validate transaction
     const validation = await this.validateTransaction(newTransaction);
     newTransaction.validationErrors = validation.errors;
-    
+
     if (!validation.isValid) {
       newTransaction.status = 'exception';
       newTransaction.exceptionType = this.determineExceptionType(validation.errors);
@@ -342,9 +342,9 @@ class SEPARobustService {
     await this.applyRules(newTransaction);
 
     this.transactions.set(newTransaction.id, newTransaction);
-    
-    structuredLogger.info('SEPA robust transaction created', { 
-      transactionId: newTransaction.id, 
+
+    structuredLogger.info('SEPA robust transaction created', {
+      transactionId: newTransaction.id,
       organizationId: newTransaction.organizationId,
       status: newTransaction.status,
       validationErrors: newTransaction.validationErrors.length
@@ -411,9 +411,9 @@ class SEPARobustService {
     };
 
     this.rules.set(newRule.id, newRule);
-    
-    structuredLogger.info('SEPA robust rule created', { 
-      ruleId: newRule.id, 
+
+    structuredLogger.info('SEPA robust rule created', {
+      ruleId: newRule.id,
       organizationId: newRule.organizationId,
       name: newRule.name,
       priority: newRule.priority
@@ -456,9 +456,9 @@ class SEPARobustService {
     };
 
     this.exceptions.set(newException.id, newException);
-    
-    structuredLogger.info('SEPA robust exception created', { 
-      exceptionId: newException.id, 
+
+    structuredLogger.info('SEPA robust exception created', {
+      exceptionId: newException.id,
       organizationId: newException.organizationId,
       transactionId: newException.transactionId,
       exceptionType: newException.exceptionType,
@@ -530,11 +530,11 @@ class SEPARobustService {
 
     // Check for duplicates
     const duplicates = Array.from(this.transactions.values())
-      .filter(t => t.id !== transaction.id && 
-                  t.reference === transaction.reference && 
+      .filter(t => t.id !== transaction.id &&
+                  t.reference === transaction.reference &&
                   t.amount === transaction.amount &&
                   t.counterparty.iban === transaction.counterparty.iban);
-    
+
     if (duplicates.length > 0) {
       errors.push('Potential duplicate transaction detected');
       suggestions.push('Review existing transactions with same reference and amount');
@@ -576,7 +576,7 @@ class SEPARobustService {
 
     for (const condition of rule.conditions) {
       totalWeight += condition.weight;
-      
+
       if (this.evaluateCondition(condition, transaction)) {
         matchedWeight += condition.weight;
       }
@@ -587,7 +587,7 @@ class SEPARobustService {
 
   private evaluateCondition(condition: SEPARobustRule['conditions'][0], transaction: SEPARobustTransaction): boolean {
     const fieldValue = this.getFieldValue(transaction, condition.field);
-    
+
     switch (condition.operator) {
       case 'equals':
         return fieldValue === condition.value;
@@ -609,11 +609,11 @@ class SEPARobustService {
   private getFieldValue(transaction: SEPARobustTransaction, field: string): any {
     const fields = field.split('.');
     let value: any = transaction;
-    
+
     for (const f of fields) {
       value = value?.[f];
     }
-    
+
     return value;
   }
 
@@ -625,7 +625,7 @@ class SEPARobustService {
           transaction.matchingScore = 95;
           transaction.processingFlags.push('auto_matched');
           break;
-          
+
         case 'flag_exception':
           await this.createException({
             organizationId: transaction.organizationId,
@@ -639,11 +639,11 @@ class SEPARobustService {
           transaction.status = 'exception';
           transaction.exceptionType = action.parameters.exception_type;
           break;
-          
+
         case 'require_manual_review':
           transaction.processingFlags.push('requires_manual_review');
           break;
-          
+
         case 'send_alert':
           // Implementation for sending alerts
           structuredLogger.warn('SEPA robust alert triggered', {
@@ -680,8 +680,8 @@ class SEPARobustService {
   // Reports
   async generateReport(organizationId: string, reportType: string, startDate: string, endDate: string, generatedBy: string): Promise<SEPARobustReport> {
     const transactions = Array.from(this.transactions.values())
-      .filter(t => t.organizationId === organizationId && 
-                  t.date >= startDate && 
+      .filter(t => t.organizationId === organizationId &&
+                  t.date >= startDate &&
                   t.date <= endDate);
 
     const exceptions = Array.from(this.exceptions.values())
@@ -734,8 +734,8 @@ class SEPARobustService {
       createdAt: new Date().toISOString()
     };
 
-    structuredLogger.info('SEPA robust report generated', { 
-      reportId: report.id, 
+    structuredLogger.info('SEPA robust report generated', {
+      reportId: report.id,
       organizationId,
       reportType,
       period: `${startDate} to ${endDate}`
@@ -765,7 +765,7 @@ class SEPARobustService {
       last24Hours: {
         transactions: recentTransactions.length,
         exceptions: recentExceptions.length,
-        successRate: recentTransactions.length > 0 ? 
+        successRate: recentTransactions.length > 0 ?
           (recentTransactions.filter(t => t.status === 'matched').length / recentTransactions.length) * 100 : 0
       },
       last7Days: {

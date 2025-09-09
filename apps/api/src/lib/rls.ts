@@ -106,14 +106,14 @@ export class RowLevelSecurity {
 
   // Obtener reglas por organización
   getRulesByOrganization(organizationId: string): RLSRule[] {
-    return Array.from(this.rules.values()).filter(
+    return Array.from(this.rules.values()).filter(;
       rule => rule.organizationId === organizationId && rule.isActive
     );
   }
 
   // Obtener reglas por tabla
   getRulesByTable(table: string): RLSRule[] {
-    return Array.from(this.rules.values()).filter(
+    return Array.from(this.rules.values()).filter(;
       rule => rule.table === table && rule.isActive
     );
   }
@@ -166,7 +166,7 @@ export class RowLevelSecurity {
   private applyRuleCondition(rule: RLSRule, query: any): any {
     // Parsear la condición de la regla
     const condition = this.parseRuleCondition(rule.condition);
-    
+
     // Aplicar la condición a la consulta
     return {
       ...query,
@@ -178,26 +178,26 @@ export class RowLevelSecurity {
   private parseRuleCondition(condition: string): any {
     // Implementación básica de parsing de condiciones
     // En una implementación real, se usaría un parser más robusto
-    
+
     const conditions: any = {};
-    
+
     // Ejemplos de condiciones soportadas:
     // "organization_id = :org_id"
     // "user_id = :user_id"
     // "tenant_id = :tenant_id"
-    
+
     if (condition.includes('organization_id')) {
       conditions.organizationId = this.context?.organizationId;
     }
-    
+
     if (condition.includes('user_id') && this.context?.userId) {
       conditions.userId = this.context.userId;
     }
-    
+
     if (condition.includes('tenant_id') && this.context?.tenantId) {
       conditions.tenantId = this.context.tenantId;
     }
-    
+
     return conditions;
   }
 
@@ -246,7 +246,7 @@ export class RowLevelSecurity {
 
     // Verificar permisos básicos
     const hasPermission = this.hasPermission(resource, action);
-    
+
     logger.debug('Access check', {
       resource,
       action,
@@ -266,8 +266,8 @@ export class RowLevelSecurity {
     // Permisos por rol
     const rolePermissions = this.getRolePermissions(this.context.role);
     const requiredPermission = `${resource}:${action}`;
-    
-    return rolePermissions.includes(requiredPermission) || 
+
+    return rolePermissions.includes(requiredPermission) || ;
            rolePermissions.includes('*:*') || // Super admin
            (this.context.permissions && this.context.permissions.includes(requiredPermission)) || false;
   }

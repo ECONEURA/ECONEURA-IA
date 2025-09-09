@@ -85,8 +85,8 @@ describe('DataAnalyticsDashboardService', () => {
       };
 
       const createdDashboard = await service.createDashboard(dashboardData, 'test-org');
-      const updatedDashboard = await service.updateDashboard(createdDashboard.id, { 
-        name: 'Updated Dashboard' 
+      const updatedDashboard = await service.updateDashboard(createdDashboard.id, {
+        name: 'Updated Dashboard'
       });
 
       expect(updatedDashboard).toBeDefined();
@@ -107,7 +107,7 @@ describe('DataAnalyticsDashboardService', () => {
       const deleted = await service.deleteDashboard(createdDashboard.id);
 
       expect(deleted).toBe(true);
-      
+
       const retrievedDashboard = await service.getDashboard(createdDashboard.id);
       expect(retrievedDashboard).toBeNull();
     });
@@ -171,8 +171,8 @@ describe('DataAnalyticsDashboardService', () => {
       };
 
       const widget = await service.addWidget(dashboardId, widgetData);
-      const updatedWidget = await service.updateWidget(dashboardId, widget!.id, { 
-        title: 'Updated Chart' 
+      const updatedWidget = await service.updateWidget(dashboardId, widget!.id, {
+        title: 'Updated Chart'
       });
 
       expect(updatedWidget).toBeDefined();
@@ -393,7 +393,7 @@ describe('DataAnalyticsDashboardService', () => {
       }, 'test-org');
 
       const triggeredAlerts = await service.checkAlerts('test-org');
-      
+
       // The demo data has totalUsers > 1000, so the alert should be triggered
       expect(triggeredAlerts).toHaveLength(1);
       expect(triggeredAlerts[0].name).toBe('High Users Alert');

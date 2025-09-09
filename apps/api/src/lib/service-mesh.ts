@@ -77,20 +77,20 @@ export class ServiceMesh {
 
       // Realizar request
       const response = await this.executeRequest(serviceInstance, request);
-      
+
       // Registrar éxito
       this.recordSuccess(serviceName, Date.now() - startTime);
-      
+
       return response;
     } catch (error) {
       // Registrar fallo
       this.recordFailure(serviceName);
-      
+
       // Intentar retry si es posible
       if (this.shouldRetry(request)) {
         return this.retryRequest(request, startTime);
       }
-      
+
       throw error;
     }
   }
@@ -121,7 +121,7 @@ export class ServiceMesh {
 
     const responseBody = await response.text();
     let parsedBody: any;
-    
+
     try {
       parsedBody = JSON.parse(responseBody);
     } catch {
@@ -174,12 +174,12 @@ export class ServiceMesh {
 
         const response = await this.executeRequest(serviceInstance, request);
         this.recordSuccess(request.serviceName, Date.now() - originalStartTime);
-        
+
         return response;
       } catch (error) {
         lastError = error as Error;
         this.recordFailure(request.serviceName);
-        
+
         // Esperar antes del siguiente intento (backoff exponencial)
         if (attempt < maxRetries) {
           const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
@@ -193,21 +193,21 @@ export class ServiceMesh {
 
   private isCircuitBreakerOpen(serviceName: string): boolean {
     const circuitBreaker = this.circuitBreakers.get(serviceName);
-    
+
     if (!circuitBreaker) {
       return false;
     }
 
     if (circuitBreaker.state === 'open') {
       const timeSinceLastFailure = Date.now() - circuitBreaker.lastFailureTime.getTime();
-      
+
       if (timeSinceLastFailure > circuitBreaker.timeout) {
         // Cambiar a half-open
         circuitBreaker.state = 'half-open';
         logger.info('Circuit breaker changed to half-open', { serviceName });
         return false;
       }
-      
+
       return true;
     }
 
@@ -228,19 +228,19 @@ export class ServiceMesh {
     stats.total++;
     stats.success++;
     stats.responseTimes.push(responseTime);
-    
+
     // Mantener solo los últimos 100 tiempos de respuesta
     if (stats.responseTimes.length > 100) {
       stats.responseTimes.shift();
     }
-    
+
     this.requestStats.set(serviceName, stats);
   }
 
   private recordFailure(serviceName: string): void {
     // Actualizar circuit breaker
     let circuitBreaker = this.circuitBreakers.get(serviceName);
-    
+
     if (!circuitBreaker) {
       circuitBreaker = {
         serviceName,
@@ -261,10 +261,10 @@ export class ServiceMesh {
       logger.warn('Circuit breaker opened (half-open failure)', { serviceName });
     } else if (circuitBreaker.failureCount >= circuitBreaker.threshold) {
       circuitBreaker.state = 'open';
-      logger.warn('Circuit breaker opened (threshold reached)', { 
-        serviceName, 
+      logger.warn('Circuit breaker opened (threshold reached)', {
+        serviceName,
         failureCount: circuitBreaker.failureCount,
-        threshold: circuitBreaker.threshold 
+        threshold: circuitBreaker.threshold
       });
     }
 
@@ -285,10 +285,10 @@ export class ServiceMesh {
     const totalRequests = allStats.reduce((sum, stats) => sum + stats.total, 0);
     const successfulRequests = allStats.reduce((sum, stats) => sum + stats.success, 0);
     const failedRequests = allStats.reduce((sum, stats) => sum + stats.failed, 0);
-    
+
     const allResponseTimes = allStats.flatMap(stats => stats.responseTimes);
-    const averageResponseTime = allResponseTimes.length > 0 
-      ? allResponseTimes.reduce((sum, time) => sum + time, 0) / allResponseTimes.length 
+    const averageResponseTime = allResponseTimes.length > 0
+      ? allResponseTimes.reduce((sum, time) => sum + time, 0) / allResponseTimes.length
       : 0;
 
     return {

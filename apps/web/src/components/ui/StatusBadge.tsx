@@ -5,14 +5,14 @@ interface StatusBadgeProps {
   className?: string;
 }
 
-export default function StatusBadge({ 
-  status, 
-  children, 
-  size = 'md', 
-  className = '' 
+export default function StatusBadge({
+  status,
+  children,
+  size = 'md',
+  className = ''
 }: StatusBadgeProps) {
   const baseClasses = 'status-badge';
-  
+
   const statusClasses = {
     success: 'status-success',
     warning: 'status-warning',
@@ -26,8 +26,8 @@ export default function StatusBadge({
     md: 'px-2.5 py-0.5 text-sm',
   };
 
-  return (
-    <span 
+  return (;
+    <span
       className={`${baseClasses} ${statusClasses[status]} ${sizeClasses[size]} ${className}`}
     >
       {children}

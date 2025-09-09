@@ -19,10 +19,10 @@ describe('WorkflowsService', () => {
     it('should get workflows by type', async () => {
       const bpmnWorkflows = await service.getWorkflows({ type: 'bpmn' });
       const stateMachineWorkflows = await service.getWorkflows({ type: 'state_machine' });
-      
+
       expect(bpmnWorkflows).toHaveLength(1);
       expect(bpmnWorkflows[0].type).toBe('bpmn');
-      
+
       expect(stateMachineWorkflows).toHaveLength(1);
       expect(stateMachineWorkflows[0].type).toBe('state_machine');
     });
@@ -66,7 +66,7 @@ describe('WorkflowsService', () => {
     it('should update a workflow', async () => {
       const workflows = await service.getWorkflows();
       const workflow = workflows[0];
-      
+
       const updated = await service.updateWorkflow(workflow.id!, { status: 'inactive' });
       expect(updated?.status).toBe('inactive');
       expect(updated?.updatedAt).toBeDefined();
@@ -75,10 +75,10 @@ describe('WorkflowsService', () => {
     it('should delete a workflow', async () => {
       const workflows = await service.getWorkflows();
       const workflow = workflows[0];
-      
+
       const deleted = await service.deleteWorkflow(workflow.id!);
       expect(deleted).toBe(true);
-      
+
       const retrieved = await service.getWorkflow(workflow.id!);
       expect(retrieved).toBeNull();
     });
@@ -88,12 +88,12 @@ describe('WorkflowsService', () => {
     it('should start a workflow instance', async () => {
       const workflows = await service.getWorkflows();
       const workflow = workflows[0];
-      
+
       const context = { userId: 'test-user', userEmail: 'test@example.com' };
       const metadata = { source: 'test' };
-      
+
       const instance = await service.startWorkflow(workflow.id!, context, metadata);
-      
+
       expect(instance.workflowId).toBe(workflow.id);
       expect(instance.status).toBe('running');
       expect(instance.context).toEqual(context);
@@ -104,31 +104,31 @@ describe('WorkflowsService', () => {
     it('should pause a workflow instance', async () => {
       const workflows = await service.getWorkflows();
       const workflow = workflows[0];
-      
+
       const instance = await service.startWorkflow(workflow.id!, {}, {});
       const paused = await service.pauseInstance(instance.id!);
-      
+
       expect(paused?.status).toBe('paused');
     });
 
     it('should resume a workflow instance', async () => {
       const workflows = await service.getWorkflows();
       const workflow = workflows[0];
-      
+
       const instance = await service.startWorkflow(workflow.id!, {}, {});
       await service.pauseInstance(instance.id!);
       const resumed = await service.resumeInstance(instance.id!);
-      
+
       expect(resumed?.status).toBe('running');
     });
 
     it('should cancel a workflow instance', async () => {
       const workflows = await service.getWorkflows();
       const workflow = workflows[0];
-      
+
       const instance = await service.startWorkflow(workflow.id!, {}, {});
       const cancelled = await service.cancelInstance(instance.id!);
-      
+
       expect(cancelled?.status).toBe('cancelled');
       expect(cancelled?.completedAt).toBeDefined();
     });
@@ -136,14 +136,14 @@ describe('WorkflowsService', () => {
     it('should get instances by status', async () => {
       const workflows = await service.getWorkflows();
       const workflow = workflows[0];
-      
+
       const instance1 = await service.startWorkflow(workflow.id!, {}, {});
       const instance2 = await service.startWorkflow(workflow.id!, {}, {});
       await service.pauseInstance(instance2.id!);
-      
+
       const runningInstances = await service.getInstances({ status: 'running' });
       const pausedInstances = await service.getInstances({ status: 'paused' });
-      
+
       expect(runningInstances).toHaveLength(1);
       expect(pausedInstances).toHaveLength(1);
     });
@@ -152,13 +152,13 @@ describe('WorkflowsService', () => {
       const workflows = await service.getWorkflows();
       const workflow1 = workflows[0];
       const workflow2 = workflows[1];
-      
+
       await service.startWorkflow(workflow1.id!, {}, {});
       await service.startWorkflow(workflow2.id!, {}, {});
-      
+
       const instances1 = await service.getInstances({ workflowId: workflow1.id });
       const instances2 = await service.getInstances({ workflowId: workflow2.id });
-      
+
       expect(instances1).toHaveLength(1);
       expect(instances2).toHaveLength(1);
     });
@@ -168,12 +168,12 @@ describe('WorkflowsService', () => {
     it('should execute a function action', async () => {
       const workflows = await service.getWorkflows();
       const workflow = workflows[0];
-      
+
       const instance = await service.startWorkflow(workflow.id!, { userId: 'test-user' }, {});
       const action = workflow.actions[0];
-      
+
       const result = await service.executeAction(instance.id!, action.id);
-      
+
       expect(result.success).toBe(true);
       expect(result.result).toBeDefined();
     });
@@ -181,11 +181,11 @@ describe('WorkflowsService', () => {
     it('should handle action execution errors', async () => {
       const workflows = await service.getWorkflows();
       const workflow = workflows[0];
-      
+
       const instance = await service.startWorkflow(workflow.id!, {}, {});
-      
+
       const result = await service.executeAction(instance.id!, 'non-existent-action');
-      
+
       expect(result.success).toBe(false);
       expect(result.error).toBe('Action not found');
     });
@@ -193,12 +193,12 @@ describe('WorkflowsService', () => {
     it('should record execution history', async () => {
       const workflows = await service.getWorkflows();
       const workflow = workflows[0];
-      
+
       const instance = await service.startWorkflow(workflow.id!, {}, {});
       const action = workflow.actions[0];
-      
+
       await service.executeAction(instance.id!, action.id);
-      
+
       const updatedInstance = await service.getInstance(instance.id!);
       expect(updatedInstance?.executionHistory).toHaveLength(1);
       expect(updatedInstance?.executionHistory?.[0].action).toBe(action.id);
@@ -208,7 +208,7 @@ describe('WorkflowsService', () => {
   describe('Statistics', () => {
     it('should get workflow statistics', async () => {
       const stats = await service.getStats();
-      
+
       expect(stats.totalWorkflows).toBeGreaterThan(0);
       expect(stats.totalInstances).toBeGreaterThanOrEqual(0);
       expect(stats.workflowsByType).toHaveProperty('bpmn');
@@ -221,14 +221,14 @@ describe('WorkflowsService', () => {
     it('should calculate success rate correctly', async () => {
       const workflows = await service.getWorkflows();
       const workflow = workflows[0];
-      
+
       // Crear instancias con diferentes estados
       const instance1 = await service.startWorkflow(workflow.id!, {}, {});
       const instance2 = await service.startWorkflow(workflow.id!, {}, {});
-      
+
       await service.cancelInstance(instance1.id!); // cancelled
       // instance2 sigue running
-      
+
       const stats = await service.getStats();
       expect(stats.successRate).toBeGreaterThanOrEqual(0);
     });

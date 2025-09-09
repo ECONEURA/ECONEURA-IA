@@ -1,7 +1,7 @@
 // Export all client classes and types
 export { BaseClient, type BaseClientConfig, type ApiResponse, type PaginatedResponse } from './base-client.js';
 
-export { 
+export {
   ERPClient,
   type Product,
   type InventoryMovement,

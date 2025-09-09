@@ -1,10 +1,10 @@
 // Cost Tracker Service for PR-45
-import { 
-  Cost, 
-  CostTrend, 
-  CostAllocation, 
+import {
+  Cost,
+  CostTrend,
+  CostAllocation,
   ResourceUtilization,
-  CostAnomaly 
+  CostAnomaly
 } from './finops-types';
 import { structuredLogger } from './structured-logger.js';
 import { ErrorHandler } from './error-handler.js';
@@ -96,7 +96,7 @@ export class CostTrackerService {
     for (let i = 29; i >= 0; i--) {
       const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
       const baseAmount = 100 + Math.random() * 50;
-      
+
       trends.push({
         date,
         amount: baseAmount,
@@ -121,10 +121,10 @@ export class CostTrackerService {
       };
 
       this.costs.push(cost);
-      
+
       // Update cost trends
       await this.updateCostTrends(cost);
-      
+
       // Check for anomalies
       await this.checkForAnomalies(cost);
 
@@ -147,7 +147,7 @@ export class CostTrackerService {
   }
 
   private async updateCostTrends(cost: Cost): Promise<void> {
-    const existingTrend = this.costTrends.find(trend => 
+    const existingTrend = this.costTrends.find(trend =>
       trend.date.toDateString() === cost.timestamp.toDateString() &&
       trend.service === cost.service &&
       trend.organizationId === cost.organizationId
@@ -172,7 +172,7 @@ export class CostTrackerService {
 
   private async checkForAnomalies(cost: Cost): Promise<void> {
     // Simple anomaly detection based on historical data
-    const historicalCosts = this.costs.filter(c => 
+    const historicalCosts = this.costs.filter(c =>
       c.service === cost.service &&
       c.organizationId === cost.organizationId &&
       c.timestamp < cost.timestamp
@@ -326,7 +326,7 @@ export class CostTrackerService {
   }
 
   getTotalCosts(organizationId: string, period?: { start: Date; end: Date }): number {
-    const costs = this.getCosts({ 
+    const costs = this.getCosts({
       organizationId,
       startDate: period?.start,
       endDate: period?.end
@@ -342,7 +342,7 @@ export class CostTrackerService {
       // Filter anomalies based on organization's costs
       const orgCosts = this.getCosts({ organizationId });
       const orgServices = new Set(orgCosts.map(c => c.service));
-      
+
       filteredAnomalies = filteredAnomalies.filter(anomaly =>
         anomaly.affectedServices.some(service => orgServices.has(service))
       );
@@ -483,15 +483,15 @@ export class CostTrackerService {
     anomalies: number;
     efficiency: number;
   } {
-    const costs = this.getCosts({ 
+    const costs = this.getCosts({
       organizationId,
       startDate: period?.start,
       endDate: period?.end
     });
 
     const totalCosts = costs.reduce((sum, cost) => sum + cost.amount, 0);
-    const days = period ? 
-      Math.ceil((period.end.getTime() - period.start.getTime()) / (1000 * 60 * 60 * 24)) : 
+    const days = period ?
+      Math.ceil((period.end.getTime() - period.start.getTime()) / (1000 * 60 * 60 * 24)) :
       30;
     const averageDailyCost = totalCosts / days;
 
@@ -531,7 +531,7 @@ export class CostTrackerService {
 
     // Efficiency (simplified calculation)
     const utilizations = this.getResourceUtilizations({ organizationId });
-    const efficiency = utilizations.length > 0 ? 
+    const efficiency = utilizations.length > 0 ?
       utilizations.reduce((sum, u) => sum + u.efficiency, 0) / utilizations.length : 0;
 
     return {

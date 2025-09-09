@@ -1,11 +1,11 @@
 // RLS Policy Generator Service for PR-44
-import { 
-  RLSPolicy, 
-  PolicyTemplate, 
-  PolicyGenerationRequest, 
-  DatabaseSchema, 
+import {
+  RLSPolicy,
+  PolicyTemplate,
+  PolicyGenerationRequest,
+  DatabaseSchema,
   PolicyRule,
-  PolicyGenerationOptions 
+  PolicyGenerationOptions
 } from './rls-types';
 import { logger } from './logger.js';
 
@@ -417,7 +417,7 @@ USING (data_sensitivity_level <= current_user_clearance_level());`,
   ): Promise<RLSPolicy> {
     try {
       const requestId = `gen_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+
       // Create generation request
       const generationRequest: PolicyGenerationRequest = {
         id: requestId,
@@ -480,10 +480,10 @@ USING (data_sensitivity_level <= current_user_clearance_level());`,
 
       return policy;
     } catch (error) {
-      logger.error('Failed to generate RLS policy', { 
-        schemaId, 
-        tableName, 
-        error: (error as Error).message 
+      logger.error('Failed to generate RLS policy', {
+        schemaId,
+        tableName,
+        error: (error as Error).message
       });
       throw error;
     }
@@ -498,19 +498,19 @@ USING (data_sensitivity_level <= current_user_clearance_level());`,
   ): Promise<RLSPolicy> {
     // Generate policy name
     const policyName = `${table.name}_${template.category}_policy`;
-    
+
     // Generate condition based on rules
     const condition = this.generateCondition(rules, table);
-    
+
     // Generate roles from rules
     const roles = this.extractRoles(rules);
-    
+
     // Generate users from rules
     const users = this.extractUsers(rules);
-    
+
     // Generate organizations from rules
     const organizations = this.extractOrganizations(rules);
-    
+
     // Generate data categories from rules
     const dataCategories = this.extractDataCategories(rules);
 
@@ -568,7 +568,7 @@ USING (data_sensitivity_level <= current_user_clearance_level());`,
 
   private extractRoles(rules: PolicyRule[]): string[] {
     const roles = new Set<string>();
-    
+
     rules.forEach(rule => {
       if (rule.type === 'role') {
         roles.add(rule.condition);
@@ -580,7 +580,7 @@ USING (data_sensitivity_level <= current_user_clearance_level());`,
 
   private extractUsers(rules: PolicyRule[]): string[] {
     const users = new Set<string>();
-    
+
     rules.forEach(rule => {
       if (rule.type === 'user') {
         users.add(rule.condition);
@@ -592,7 +592,7 @@ USING (data_sensitivity_level <= current_user_clearance_level());`,
 
   private extractOrganizations(rules: PolicyRule[]): string[] {
     const organizations = new Set<string>();
-    
+
     rules.forEach(rule => {
       if (rule.type === 'organization') {
         organizations.add(rule.condition);
@@ -604,7 +604,7 @@ USING (data_sensitivity_level <= current_user_clearance_level());`,
 
   private extractDataCategories(rules: PolicyRule[]): string[] {
     const categories = new Set<string>();
-    
+
     rules.forEach(rule => {
       if (rule.type === 'data') {
         categories.add(rule.condition);

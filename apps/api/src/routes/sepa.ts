@@ -13,15 +13,15 @@ router.get('/transactions', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string || 'demo-org-1';
     const userId = req.headers['x-user-id'] as string || 'demo-user';
-    
+
     const filters = SEPAFilterSchema.parse({
       ...req.query,
       limit: req.query.limit ? parseInt(req.query.limit as string) : 50,
       offset: req.query.offset ? parseInt(req.query.offset as string) : 0,
     });
-    
+
     const result = await sepaService.getTransactions(orgId, filters);
-    
+
     res.set({
       'X-Est-Cost-EUR': '0.0010',
       'X-Budget-Pct': '0.1',
@@ -29,7 +29,7 @@ router.get('/transactions', async (req, res) => {
       'X-Route': 'local',
       'X-Correlation-Id': `req_${Date.now()}`
     });
-    
+
     res.json({
       success: true,
       data: result.transactions,
@@ -45,12 +45,12 @@ router.get('/transactions', async (req, res) => {
         details: error.errors
       });
     }
-    
+
     logger.error('Failed to get SEPA transactions', {
       error: (error as Error).message,
       query: req.query
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get SEPA transactions',
@@ -64,16 +64,16 @@ router.get('/transactions/:id', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string || 'demo-org-1';
     const { id } = req.params;
-    
+
     const transaction = await sepaService.getTransactionById(orgId, id);
-    
+
     if (!transaction) {
       return res.status(404).json({
         success: false,
         error: 'SEPA transaction not found'
       });
     }
-    
+
     res.set({
       'X-Est-Cost-EUR': '0.0005',
       'X-Budget-Pct': '0.05',
@@ -81,7 +81,7 @@ router.get('/transactions/:id', async (req, res) => {
       'X-Route': 'local',
       'X-Correlation-Id': `req_${Date.now()}`
     });
-    
+
     res.json({
       success: true,
       data: transaction
@@ -91,7 +91,7 @@ router.get('/transactions/:id', async (req, res) => {
       error: (error as Error).message,
       transactionId: req.params.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get SEPA transaction',
@@ -105,10 +105,10 @@ router.post('/transactions', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string || 'demo-org-1';
     const userId = req.headers['x-user-id'] as string || 'demo-user';
-    
+
     const data = SEPATransactionSchema.parse(req.body);
     const transaction = await sepaService.createTransaction(orgId, userId, data);
-    
+
     res.set({
       'X-Est-Cost-EUR': '0.0020',
       'X-Budget-Pct': '0.2',
@@ -116,7 +116,7 @@ router.post('/transactions', async (req, res) => {
       'X-Route': 'local',
       'X-Correlation-Id': `req_${Date.now()}`
     });
-    
+
     res.status(201).json({
       success: true,
       data: transaction
@@ -129,12 +129,12 @@ router.post('/transactions', async (req, res) => {
         details: error.errors
       });
     }
-    
+
     logger.error('Failed to create SEPA transaction', {
       error: (error as Error).message,
       body: req.body
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to create SEPA transaction',
@@ -149,17 +149,17 @@ router.put('/transactions/:id', async (req, res) => {
     const orgId = req.headers['x-org-id'] as string || 'demo-org-1';
     const userId = req.headers['x-user-id'] as string || 'demo-user';
     const { id } = req.params;
-    
+
     const data = SEPATransactionSchema.partial().parse(req.body);
     const transaction = await sepaService.updateTransaction(orgId, id, userId, data);
-    
+
     if (!transaction) {
       return res.status(404).json({
         success: false,
         error: 'SEPA transaction not found'
       });
     }
-    
+
     res.set({
       'X-Est-Cost-EUR': '0.0015',
       'X-Budget-Pct': '0.15',
@@ -167,7 +167,7 @@ router.put('/transactions/:id', async (req, res) => {
       'X-Route': 'local',
       'X-Correlation-Id': `req_${Date.now()}`
     });
-    
+
     res.json({
       success: true,
       data: transaction
@@ -180,13 +180,13 @@ router.put('/transactions/:id', async (req, res) => {
         details: error.errors
       });
     }
-    
+
     logger.error('Failed to update SEPA transaction', {
       error: (error as Error).message,
       transactionId: req.params.id,
       body: req.body
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to update SEPA transaction',
@@ -201,16 +201,16 @@ router.delete('/transactions/:id', async (req, res) => {
     const orgId = req.headers['x-org-id'] as string || 'demo-org-1';
     const userId = req.headers['x-user-id'] as string || 'demo-user';
     const { id } = req.params;
-    
+
     const deleted = await sepaService.deleteTransaction(orgId, id, userId);
-    
+
     if (!deleted) {
       return res.status(404).json({
         success: false,
         error: 'SEPA transaction not found'
       });
     }
-    
+
     res.set({
       'X-Est-Cost-EUR': '0.0005',
       'X-Budget-Pct': '0.05',
@@ -218,7 +218,7 @@ router.delete('/transactions/:id', async (req, res) => {
       'X-Route': 'local',
       'X-Correlation-Id': `req_${Date.now()}`
     });
-    
+
     res.json({
       success: true,
       message: 'SEPA transaction deleted successfully'
@@ -228,7 +228,7 @@ router.delete('/transactions/:id', async (req, res) => {
       error: (error as Error).message,
       transactionId: req.params.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to delete SEPA transaction',
@@ -242,9 +242,9 @@ router.post('/transactions/:id/match', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string || 'demo-org-1';
     const { id } = req.params;
-    
+
     const result = await sepaService.autoMatchTransaction(id);
-    
+
     res.set({
       'X-Est-Cost-EUR': '0.0030',
       'X-Budget-Pct': '0.3',
@@ -252,7 +252,7 @@ router.post('/transactions/:id/match', async (req, res) => {
       'X-Route': 'local',
       'X-Correlation-Id': `req_${Date.now()}`
     });
-    
+
     res.json({
       success: true,
       data: result
@@ -262,7 +262,7 @@ router.post('/transactions/:id/match', async (req, res) => {
       error: (error as Error).message,
       transactionId: req.params.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to auto-match SEPA transaction',
@@ -275,9 +275,9 @@ router.post('/transactions/:id/match', async (req, res) => {
 router.get('/summary', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string || 'demo-org-1';
-    
+
     const summary = await sepaService.getSEPASummary(orgId);
-    
+
     res.set({
       'X-Est-Cost-EUR': '0.0020',
       'X-Budget-Pct': '0.2',
@@ -285,7 +285,7 @@ router.get('/summary', async (req, res) => {
       'X-Route': 'local',
       'X-Correlation-Id': `req_${Date.now()}`
     });
-    
+
     res.json({
       success: true,
       data: summary
@@ -294,7 +294,7 @@ router.get('/summary', async (req, res) => {
     logger.error('Failed to get SEPA summary', {
       error: (error as Error).message
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get SEPA summary',
@@ -307,9 +307,9 @@ router.get('/summary', async (req, res) => {
 router.get('/analytics', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string || 'demo-org-1';
-    
+
     const analytics = await sepaService.getSEPAAnalytics(orgId);
-    
+
     res.set({
       'X-Est-Cost-EUR': '0.0030',
       'X-Budget-Pct': '0.3',
@@ -317,7 +317,7 @@ router.get('/analytics', async (req, res) => {
       'X-Route': 'local',
       'X-Correlation-Id': `req_${Date.now()}`
     });
-    
+
     res.json({
       success: true,
       data: analytics
@@ -326,7 +326,7 @@ router.get('/analytics', async (req, res) => {
     logger.error('Failed to get SEPA analytics', {
       error: (error as Error).message
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get SEPA analytics',
@@ -339,9 +339,9 @@ router.get('/analytics', async (req, res) => {
 router.get('/rules', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string || 'demo-org-1';
-    
+
     const rules = await sepaService.getMatchingRules(orgId);
-    
+
     res.set({
       'X-Est-Cost-EUR': '0.0010',
       'X-Budget-Pct': '0.1',
@@ -349,7 +349,7 @@ router.get('/rules', async (req, res) => {
       'X-Route': 'local',
       'X-Correlation-Id': `req_${Date.now()}`
     });
-    
+
     res.json({
       success: true,
       data: rules
@@ -358,7 +358,7 @@ router.get('/rules', async (req, res) => {
     logger.error('Failed to get matching rules', {
       error: (error as Error).message
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get matching rules',
@@ -372,10 +372,10 @@ router.post('/rules', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string || 'demo-org-1';
     const userId = req.headers['x-user-id'] as string || 'demo-user';
-    
+
     const data = MatchingRuleSchema.parse(req.body);
     const rule = await sepaService.createMatchingRule(orgId, userId, data);
-    
+
     res.set({
       'X-Est-Cost-EUR': '0.0020',
       'X-Budget-Pct': '0.2',
@@ -383,7 +383,7 @@ router.post('/rules', async (req, res) => {
       'X-Route': 'local',
       'X-Correlation-Id': `req_${Date.now()}`
     });
-    
+
     res.status(201).json({
       success: true,
       data: rule
@@ -396,12 +396,12 @@ router.post('/rules', async (req, res) => {
         details: error.errors
       });
     }
-    
+
     logger.error('Failed to create matching rule', {
       error: (error as Error).message,
       body: req.body
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to create matching rule',
@@ -415,7 +415,7 @@ router.post('/upload', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string || 'demo-org-1';
     const userId = req.headers['x-user-id'] as string || 'demo-user';
-    
+
     // This would typically handle file upload
     // For now, we'll simulate a successful upload
     const uploadResult = {
@@ -428,7 +428,7 @@ router.post('/upload', async (req, res) => {
       errors: [],
       createdAt: new Date()
     };
-    
+
     res.set({
       'X-Est-Cost-EUR': '0.0050',
       'X-Budget-Pct': '0.5',
@@ -436,7 +436,7 @@ router.post('/upload', async (req, res) => {
       'X-Route': 'local',
       'X-Correlation-Id': `req_${Date.now()}`
     });
-    
+
     res.status(201).json({
       success: true,
       data: uploadResult
@@ -446,7 +446,7 @@ router.post('/upload', async (req, res) => {
       error: (error as Error).message,
       body: req.body
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to upload SEPA file',

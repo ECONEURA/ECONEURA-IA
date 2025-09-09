@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react';
 import { apiClient } from '@/lib/api-client';
 import AdvancedDashboard from '@/components/ui/AdvancedDashboard';
 import InteractiveCharts from '@/components/ui/InteractiveCharts';
-import { 
-  Bell, 
-  Settings, 
-  RefreshCw, 
+import {
+  Bell,
+  Settings,
+  RefreshCw,
   Download,
   Filter,
   Calendar,
@@ -34,7 +34,7 @@ interface Notification {
   created_at: string;
 }
 
-export default function AdvancedDashboardPage() {
+export default function AdvancedDashboardPage(): void {
   const api = apiClient;
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -89,11 +89,11 @@ export default function AdvancedDashboardPage() {
   const handleExportData = async () => {
     try {
       const resp = await fetch('/api/dashboard/export/org-123', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ period: selectedPeriod }) });
-      
+
       // Download the exported data
       const dataExport = await resp.json();
-      const blob = new Blob([JSON.stringify(dataExport, null, 2)], { 
-        type: 'application/json' 
+      const blob = new Blob([JSON.stringify(dataExport, null, 2)], {
+        type: 'application/json'
       });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -129,7 +129,7 @@ export default function AdvancedDashboardPage() {
   };
 
   if (loading && !dashboardData) {
-    return (
+    return (;
       <div className="min-h-screen bg-sand-50 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="animate-pulse">
@@ -150,7 +150,7 @@ export default function AdvancedDashboardPage() {
     );
   }
 
-  return (
+  return (;
     <div className="min-h-screen bg-sand-50">
       {/* Header */}
       <div className="bg-white border-b border-sand-200 px-6 py-4">
@@ -255,8 +255,8 @@ export default function AdvancedDashboardPage() {
                 <button
                   onClick={() => setAutoRefresh(!autoRefresh)}
                   className={`p-2 rounded-lg ${
-                    autoRefresh 
-                      ? 'text-mediterranean-600 bg-mediterranean-50' 
+                    autoRefresh
+                      ? 'text-mediterranean-600 bg-mediterranean-50'
                       : 'text-sand-600 hover:text-mediterranean-600 hover:bg-sand-50'
                   }`}
                   title={autoRefresh ? 'Auto-refresh activado' : 'Auto-refresh desactivado'}
@@ -297,7 +297,7 @@ export default function AdvancedDashboardPage() {
               <h2 className="text-xl font-semibold text-sand-900 mb-4">
                 Insights de IA
               </h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Immediate Actions */}
                 <div>
@@ -357,7 +357,7 @@ export default function AdvancedDashboardPage() {
             <h2 className="text-xl font-semibold text-sand-900 mb-4">
               Estado del Sistema
             </h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg">
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>

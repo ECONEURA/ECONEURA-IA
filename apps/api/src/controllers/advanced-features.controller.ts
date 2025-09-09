@@ -150,12 +150,12 @@ export class AdvancedFeaturesController {
   async predictDemand(req: AuthenticatedRequest, res: Response): Promise<void> {
     const startTime = Date.now();
     const requestId = this.generateRequestId();
-    
+
     try {
       // Validate request
       const validation = predictDemandSchema.safeParse(req.body);
       if (!validation.success) {
-        this.sendResponse(res, requestId, startTime, undefined, 
+        this.sendResponse(res, requestId, startTime, undefined,
           `Validation error: ${validation.error.errors.map(e => e.message).join(', ')}`, 400);
         return;
       }
@@ -184,15 +184,15 @@ export class AdvancedFeaturesController {
       });
 
       // Log successful request
-      await this.logRequest(requestId, 'predictDemand', userId, organizationId, 
+      await this.logRequest(requestId, 'predictDemand', userId, organizationId,
         Date.now() - startTime, true);
 
       this.sendResponse(res, requestId, startTime, prediction);
-      
+
     } catch (error) {
       const processingTime = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
+
       structuredLogger.error('Failed to predict demand', {
         error: errorMessage,
         requestId,
@@ -203,7 +203,7 @@ export class AdvancedFeaturesController {
 
       // Log failed request
       if (req.user?.id && req.user?.organizationId) {
-        await this.logRequest(requestId, 'predictDemand', req.user.id, 
+        await this.logRequest(requestId, 'predictDemand', req.user.id,
           req.user.organizationId, processingTime, false, errorMessage);
       }
 
@@ -214,14 +214,14 @@ export class AdvancedFeaturesController {
   async optimizeInventory(req: Request, res: Response): Promise<void> {
     try {
       const { productId } = req.body;
-      
+
       if (!productId) {
         res.status(400).json({ error: 'Product ID is required' });
         return;
       }
 
       const optimization = await predictiveAI.optimizeInventory(productId);
-      
+
       res.json({
         success: true,
         data: optimization
@@ -235,14 +235,14 @@ export class AdvancedFeaturesController {
   async analyzeSeasonality(req: Request, res: Response): Promise<void> {
     try {
       const { productId } = req.body;
-      
+
       if (!productId) {
         res.status(400).json({ error: 'Product ID is required' });
         return;
       }
 
       const analysis = await predictiveAI.analyzeSeasonality(productId);
-      
+
       res.json({
         success: true,
         data: analysis
@@ -256,14 +256,14 @@ export class AdvancedFeaturesController {
   async generateRecommendations(req: Request, res: Response): Promise<void> {
     try {
       const { productId } = req.body;
-      
+
       if (!productId) {
         res.status(400).json({ error: 'Product ID is required' });
         return;
       }
 
       const recommendations = await predictiveAI.generateRecommendations(productId);
-      
+
       res.json({
         success: true,
         data: { recommendations }
@@ -278,9 +278,9 @@ export class AdvancedFeaturesController {
   async getKPIScorecard(req: Request, res: Response): Promise<void> {
     try {
       const { category } = req.query;
-      
+
       const scorecard = await metricsService.getKPIScorecard(category as string);
-      
+
       res.json({
         success: true,
         data: scorecard
@@ -294,14 +294,14 @@ export class AdvancedFeaturesController {
   async getTrendAnalysis(req: Request, res: Response): Promise<void> {
     try {
       const { metricId, period = '30d' } = req.query;
-      
+
       if (!metricId) {
         res.status(400).json({ error: 'Metric ID is required' });
         return;
       }
 
       const analysis = await metricsService.getTrendAnalysis(metricId as string, period as string);
-      
+
       res.json({
         success: true,
         data: analysis
@@ -315,7 +315,7 @@ export class AdvancedFeaturesController {
   async generateAlerts(req: Request, res: Response): Promise<void> {
     try {
       const alerts = await metricsService.generateAlerts();
-      
+
       res.json({
         success: true,
         data: alerts
@@ -329,14 +329,14 @@ export class AdvancedFeaturesController {
   async updateMetric(req: Request, res: Response): Promise<void> {
     try {
       const { metricId, value } = req.body;
-      
+
       if (!metricId || value === undefined) {
         res.status(400).json({ error: 'Metric ID and value are required' });
         return;
       }
 
       await metricsService.updateMetric(metricId, value);
-      
+
       res.json({
         success: true,
         message: 'Metric updated successfully'
@@ -351,14 +351,14 @@ export class AdvancedFeaturesController {
   async trainModel(req: Request, res: Response): Promise<void> {
     try {
       const { modelId, data, algorithm } = req.body;
-      
+
       if (!modelId || !data) {
         res.status(400).json({ error: 'Model ID and training data are required' });
         return;
       }
 
       const model = await autoML.trainModel(modelId, data, algorithm);
-      
+
       res.json({
         success: true,
         data: model
@@ -372,14 +372,14 @@ export class AdvancedFeaturesController {
   async predict(req: Request, res: Response): Promise<void> {
     try {
       const { modelId, features } = req.body;
-      
+
       if (!modelId || !features) {
         res.status(400).json({ error: 'Model ID and features are required' });
         return;
       }
 
       const prediction = await autoML.predict(modelId, features);
-      
+
       res.json({
         success: true,
         data: prediction
@@ -393,14 +393,14 @@ export class AdvancedFeaturesController {
   async evaluateModel(req: Request, res: Response): Promise<void> {
     try {
       const { modelId, testData } = req.body;
-      
+
       if (!modelId || !testData) {
         res.status(400).json({ error: 'Model ID and test data are required' });
         return;
       }
 
       const evaluation = await autoML.evaluateModel(modelId, testData);
-      
+
       res.json({
         success: true,
         data: evaluation
@@ -414,7 +414,7 @@ export class AdvancedFeaturesController {
   async getModels(req: Request, res: Response): Promise<void> {
     try {
       const models = await autoML.getModels();
-      
+
       res.json({
         success: true,
         data: models
@@ -429,14 +429,14 @@ export class AdvancedFeaturesController {
   async analyzeSentiment(req: Request, res: Response): Promise<void> {
     try {
       const { text, source } = req.body;
-      
+
       if (!text) {
         res.status(400).json({ error: 'Text is required' });
         return;
       }
 
       const result = await sentimentAnalysis.analyzeSentiment(text, source);
-      
+
       res.json({
         success: true,
         data: result
@@ -450,14 +450,14 @@ export class AdvancedFeaturesController {
   async analyzeBatchSentiment(req: Request, res: Response): Promise<void> {
     try {
       const { texts, source } = req.body;
-      
+
       if (!texts || !Array.isArray(texts)) {
         res.status(400).json({ error: 'Texts array is required' });
         return;
       }
 
       const result = await sentimentAnalysis.analyzeBatch(texts, source);
-      
+
       res.json({
         success: true,
         data: result
@@ -471,14 +471,14 @@ export class AdvancedFeaturesController {
   async getSentimentTrends(req: Request, res: Response): Promise<void> {
     try {
       const { source, period = '30d' } = req.query;
-      
+
       if (!source) {
         res.status(400).json({ error: 'Source is required' });
         return;
       }
 
       const trends = await sentimentAnalysis.getTrendAnalysis(source as string, period as string);
-      
+
       res.json({
         success: true,
         data: trends
@@ -493,14 +493,14 @@ export class AdvancedFeaturesController {
   async chat(req: Request, res: Response): Promise<void> {
     try {
       const { messages, options } = req.body;
-      
+
       if (!messages || !Array.isArray(messages)) {
         res.status(400).json({ error: 'Messages array is required' });
         return;
       }
 
       const response = await azureOpenAI.chat(messages, options);
-      
+
       res.json({
         success: true,
         data: response
@@ -514,7 +514,7 @@ export class AdvancedFeaturesController {
   async generateImage(req: Request, res: Response): Promise<void> {
     try {
       const { prompt, size, quality, style } = req.body;
-      
+
       if (!prompt) {
         res.status(400).json({ error: 'Prompt is required' });
         return;
@@ -526,7 +526,7 @@ export class AdvancedFeaturesController {
         quality,
         style
       });
-      
+
       res.json({
         success: true,
         data: response
@@ -540,7 +540,7 @@ export class AdvancedFeaturesController {
   async textToSpeech(req: Request, res: Response): Promise<void> {
     try {
       const { text, voice, speed, pitch } = req.body;
-      
+
       if (!text) {
         res.status(400).json({ error: 'Text is required' });
         return;
@@ -552,7 +552,7 @@ export class AdvancedFeaturesController {
         speed,
         pitch
       });
-      
+
       res.json({
         success: true,
         data: response
@@ -566,9 +566,9 @@ export class AdvancedFeaturesController {
   async getUsageStats(req: Request, res: Response): Promise<void> {
     try {
       const { period = '30d' } = req.query;
-      
+
       const stats = await azureOpenAI.getUsageStats(period as string);
-      
+
       res.json({
         success: true,
         data: stats
@@ -583,14 +583,14 @@ export class AdvancedFeaturesController {
   async search(req: Request, res: Response): Promise<void> {
     try {
       const { query, options } = req.body;
-      
+
       if (!query) {
         res.status(400).json({ error: 'Query is required' });
         return;
       }
 
       const response = await webSearch.search(query, options);
-      
+
       res.json({
         success: true,
         data: response
@@ -604,14 +604,14 @@ export class AdvancedFeaturesController {
   async searchNews(req: Request, res: Response): Promise<void> {
     try {
       const { query, options } = req.body;
-      
+
       if (!query) {
         res.status(400).json({ error: 'Query is required' });
         return;
       }
 
       const response = await webSearch.searchNews(query, options);
-      
+
       res.json({
         success: true,
         data: response
@@ -625,7 +625,7 @@ export class AdvancedFeaturesController {
   async getTrendingTopics(req: Request, res: Response): Promise<void> {
     try {
       const topics = await webSearch.getTrendingTopics();
-      
+
       res.json({
         success: true,
         data: topics
@@ -651,7 +651,7 @@ export class AdvancedFeaturesController {
         },
         timestamp: new Date()
       };
-      
+
       res.json({
         success: true,
         data: health

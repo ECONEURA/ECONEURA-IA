@@ -37,7 +37,7 @@ describe('EmailProcessor', () => {
 
   beforeEach(() => {
     emailProcessor = new EmailProcessor();
-    
+
     mockEmail = {
       id: 'email_123',
       subject: 'Invoice Payment Required',
@@ -200,7 +200,7 @@ describe('EmailProcessor', () => {
       (mockGraphService.getEmail as any).mockResolvedValue(null);
 
       await expect(
-        emailProcessor.processEmail('nonexistent_email', 'org_456')
+        emailProcessor.processEmail('nonexistent_email', 'org_456');
       ).rejects.toThrow('Email nonexistent_email not found');
     });
 
@@ -210,7 +210,7 @@ describe('EmailProcessor', () => {
       (mockGraphService.getEmail as any).mockRejectedValue(new Error('Graph API error'));
 
       await expect(
-        emailProcessor.processEmail('email_123', 'org_456')
+        emailProcessor.processEmail('email_123', 'org_456');
       ).rejects.toThrow('Graph API error');
     });
   });
@@ -218,7 +218,7 @@ describe('EmailProcessor', () => {
   describe('processBulkEmails', () => {
     it('should process multiple emails successfully', async () => {
       const messageIds = ['email_1', 'email_2', 'email_3'];
-      
+
       const { GraphService } = await import('../services/graph-service.js');
       const mockGraphService = new GraphService();
       (mockGraphService.getEmail as any).mockResolvedValue(mockEmail);
@@ -232,7 +232,7 @@ describe('EmailProcessor', () => {
 
     it('should handle partial failures in bulk processing', async () => {
       const messageIds = ['email_1', 'email_2', 'email_3'];
-      
+
       const { GraphService } = await import('../services/graph-service.js');
       const mockGraphService = new GraphService();
       (mockGraphService.getEmail as any)
@@ -250,7 +250,7 @@ describe('EmailProcessor', () => {
 
     it('should respect concurrency limit', async () => {
       const messageIds = Array.from({ length: 10 }, (_, i) => `email_${i}`);
-      
+
       const { GraphService } = await import('../services/graph-service.js');
       const mockGraphService = new GraphService();
       (mockGraphService.getEmail as any).mockResolvedValue(mockEmail);

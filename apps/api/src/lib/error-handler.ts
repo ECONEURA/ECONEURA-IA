@@ -18,7 +18,7 @@ export class ErrorHandler {
     backoffFactor: 2,
     retryCondition: (error: Error) => {
       // Retry on network errors, timeouts, and 5xx errors
-      return error.message.includes('timeout') ||
+      return error.message.includes('timeout') ||;
              error.message.includes('ECONNRESET') ||
              error.message.includes('ENOTFOUND') ||
              error.message.includes('5');
@@ -35,18 +35,18 @@ export class ErrorHandler {
     for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
       try {
         const result = await operation();
-        
+
         if (attempt > 0) {
           logger.info('Operation succeeded after retry', {
             attempt: attempt + 1,
             maxRetries: config.maxRetries
           });
         }
-        
+
         return result;
       } catch (error) {
         lastError = error as Error;
-        
+
         if (attempt === config.maxRetries) {
           logger.error('Operation failed after all retries', {
             attempts: attempt + 1,
@@ -99,7 +99,7 @@ export class ErrorHandler {
   ) {
     const originalMethod = descriptor.value;
 
-    descriptor.value = async function (...args: any[]) {
+    descriptor.value = async function (...args: any[]): void {
       try {
         return await originalMethod.apply(this, args);
       } catch (error) {
@@ -121,7 +121,7 @@ export class ErrorHandler {
     context?: Record<string, unknown>
   ) {
     const errorId = `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     logger.error('API Error', {
       errorId,
       statusCode,

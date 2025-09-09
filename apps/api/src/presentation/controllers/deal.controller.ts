@@ -3,7 +3,7 @@ import { CreateDealUseCase } from '../../application/use-cases/deal/create-deal.
 import { UpdateDealUseCase } from '../../application/use-cases/deal/update-deal.use-case.js';
 import { DealRepository } from '../../domain/repositories/deal.repository.js';
 import { createErrorResponse } from '../../../shared/utils/error.utils.js';
-import { 
+import {
   CreateDealRequest,
   UpdateDealRequest,
   DealSearchQuery,

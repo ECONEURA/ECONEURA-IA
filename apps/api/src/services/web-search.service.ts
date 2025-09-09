@@ -45,7 +45,7 @@ export class WebSearchService {
     };
 
     this.isDemoMode = !this.config.googleApiKey && !this.config.bingApiKey;
-    
+
     if (this.isDemoMode) {
       structuredLogger.warn('Web search running in demo mode - no API keys configured');
     }
@@ -54,7 +54,7 @@ export class WebSearchService {
   async search(query: string, options: SearchOptions = {}): Promise<SearchResponse> {
     try {
       const cacheKey = this.generateCacheKey(query, options);
-      
+
       // Check cache first
       if (this.isCacheValid(cacheKey)) {
         const cached = this.cache.get(cacheKey);
@@ -108,10 +108,10 @@ export class WebSearchService {
       };
 
       const response = await this.search(query, newsOptions);
-      
+
       // Filter for news-like results
-      response.results = response.results.filter(result => 
-        this.isNewsResult(result)
+      response.results = response.results.filter(result =>
+        this.isNewsResult(result);
       );
 
       structuredLogger.info('News search completed', {
@@ -134,10 +134,10 @@ export class WebSearchService {
       };
 
       const response = await this.search(query, imageOptions);
-      
+
       // Filter for image results
-      response.results = response.results.filter(result => 
-        this.isImageResult(result)
+      response.results = response.results.filter(result =>
+        this.isImageResult(result);
       );
 
       structuredLogger.info('Image search completed', {
@@ -204,7 +204,7 @@ export class WebSearchService {
   private async searchGoogle(query: string, options: SearchOptions): Promise<SearchResponse> {
     // Simulate Google Custom Search API call
     const results = this.generateSearchResults(query, options, 'google');
-    
+
     return {
       query,
       results,
@@ -218,7 +218,7 @@ export class WebSearchService {
   private async searchBing(query: string, options: SearchOptions): Promise<SearchResponse> {
     // Simulate Bing Search API call
     const results = this.generateSearchResults(query, options, 'bing');
-    
+
     return {
       query,
       results,
@@ -231,7 +231,7 @@ export class WebSearchService {
 
   private async generateDemoSearchResponse(query: string, options: SearchOptions): Promise<SearchResponse> {
     const results = this.generateSearchResults(query, options, 'demo');
-    
+
     return {
       query,
       results,
@@ -303,9 +303,9 @@ export class WebSearchService {
   private isNewsResult(result: SearchResult): boolean {
     const newsKeywords = ['news', 'breaking', 'update', 'report', 'announcement'];
     const newsDomains = ['news.com', 'cnn.com', 'bbc.com', 'reuters.com'];
-    
-    return newsKeywords.some(keyword => 
-      result.title.toLowerCase().includes(keyword) || 
+
+    return newsKeywords.some(keyword => ;
+      result.title.toLowerCase().includes(keyword) ||
       result.snippet.toLowerCase().includes(keyword)
     ) || newsDomains.some(domain => result.url.includes(domain));
   }
@@ -313,10 +313,10 @@ export class WebSearchService {
   private isImageResult(result: SearchResult): boolean {
     const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
     const imageKeywords = ['image', 'photo', 'picture', 'gallery'];
-    
-    return imageExtensions.some(ext => result.url.toLowerCase().includes(ext)) ||
-           imageKeywords.some(keyword => 
-             result.title.toLowerCase().includes(keyword) || 
+
+    return imageExtensions.some(ext => result.url.toLowerCase().includes(ext)) ||;
+           imageKeywords.some(keyword =>
+             result.title.toLowerCase().includes(keyword) ||
              result.snippet.toLowerCase().includes(keyword)
            );
   }
@@ -334,7 +334,7 @@ export class WebSearchService {
   async clearCache(): Promise<void> {
     this.cache.clear();
     this.cacheExpiry.clear();
-    
+
     structuredLogger.info('Search cache cleared');
   }
 
@@ -345,7 +345,7 @@ export class WebSearchService {
     newestEntry: Date | null;
   }> {
     const entries = Array.from(this.cache.values());
-    
+
     return {
       size: this.cache.size,
       hitRate: 0.75, // Simulated hit rate
@@ -370,7 +370,7 @@ export class WebSearchService {
         source: i % 2 === 0 ? 'google' : 'bing'
       });
     }
-    
+
     return history;
   }
 }

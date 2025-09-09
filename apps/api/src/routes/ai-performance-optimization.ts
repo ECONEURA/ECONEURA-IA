@@ -64,25 +64,25 @@ router.post('/metrics',
   async (req, res) => {
     try {
       const metric = await aiPerformanceOptimizationService.recordPerformanceMetric(req.body);
-      
-      logger.info('Performance metric recorded', { 
-        metricId: metric.id, 
+
+      logger.info('Performance metric recorded', {
+        metricId: metric.id,
         serviceName: metric.serviceName,
         metricType: metric.metricType,
-        userId: req.user?.id 
+        userId: req.user?.id
       });
-      
+
       res.status(201).json({
         success: true,
         data: metric,
         message: 'Performance metric recorded successfully'
       });
     } catch (error: any) {
-      logger.error('Failed to record performance metric', { 
-        error: error.message, 
-        userId: req.user?.id 
+      logger.error('Failed to record performance metric', {
+        error: error.message,
+        userId: req.user?.id
       });
-      
+
       res.status(500).json({
         success: false,
         error: 'Failed to record performance metric',
@@ -96,30 +96,30 @@ router.post('/metrics',
 router.get('/metrics', async (req, res) => {
   try {
     const { serviceName, metricType, limit = 100 } = req.query;
-    
+
     const metrics = await aiPerformanceOptimizationService.getPerformanceMetrics(
       serviceName as string,
       metricType as string,
       Number(limit)
     );
-    
-    logger.info('Performance metrics retrieved', { 
-      userId: req.user?.id, 
+
+    logger.info('Performance metrics retrieved', {
+      userId: req.user?.id,
       count: metrics.length,
       filters: { serviceName, metricType, limit }
     });
-    
+
     res.json({
       success: true,
       data: metrics,
       count: metrics.length
     });
   } catch (error: any) {
-    logger.error('Failed to get performance metrics', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Failed to get performance metrics', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve performance metrics',
@@ -134,23 +134,23 @@ router.get('/metrics', async (req, res) => {
 router.get('/rules', async (req, res) => {
   try {
     const rules = await aiPerformanceOptimizationService.getOptimizationRules();
-    
-    logger.info('Optimization rules retrieved', { 
-      userId: req.user?.id, 
-      count: rules.length 
+
+    logger.info('Optimization rules retrieved', {
+      userId: req.user?.id,
+      count: rules.length
     });
-    
+
     res.json({
       success: true,
       data: rules,
       count: rules.length
     });
   } catch (error: any) {
-    logger.error('Failed to get optimization rules', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Failed to get optimization rules', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve optimization rules',
@@ -165,24 +165,24 @@ router.post('/rules',
   async (req, res) => {
     try {
       const rule = await aiPerformanceOptimizationService.createOptimizationRule(req.body);
-      
-      logger.info('Optimization rule created', { 
-        ruleId: rule.id, 
+
+      logger.info('Optimization rule created', {
+        ruleId: rule.id,
         name: rule.name,
-        userId: req.user?.id 
+        userId: req.user?.id
       });
-      
+
       res.status(201).json({
         success: true,
         data: rule,
         message: 'Optimization rule created successfully'
       });
     } catch (error: any) {
-      logger.error('Failed to create optimization rule', { 
-        error: error.message, 
-        userId: req.user?.id 
+      logger.error('Failed to create optimization rule', {
+        error: error.message,
+        userId: req.user?.id
       });
-      
+
       res.status(500).json({
         success: false,
         error: 'Failed to create optimization rule',
@@ -199,24 +199,24 @@ router.put('/rules/:id',
     try {
       const { id } = req.params;
       // Implementar actualización de regla
-      
-      logger.info('Optimization rule updated', { 
-        ruleId: id, 
-        userId: req.user?.id 
+
+      logger.info('Optimization rule updated', {
+        ruleId: id,
+        userId: req.user?.id
       });
-      
+
       res.json({
         success: true,
         data: { id, ...req.body },
         message: 'Optimization rule updated successfully'
       });
     } catch (error: any) {
-      logger.error('Failed to update optimization rule', { 
-        error: error.message, 
+      logger.error('Failed to update optimization rule', {
+        error: error.message,
         ruleId: req.params.id,
-        userId: req.user?.id 
+        userId: req.user?.id
       });
-      
+
       res.status(500).json({
         success: false,
         error: 'Failed to update optimization rule',
@@ -232,23 +232,23 @@ router.put('/rules/:id',
 router.get('/alerts', async (req, res) => {
   try {
     const alerts = await aiPerformanceOptimizationService.getPerformanceAlerts();
-    
-    logger.info('Performance alerts retrieved', { 
-      userId: req.user?.id, 
-      count: alerts.length 
+
+    logger.info('Performance alerts retrieved', {
+      userId: req.user?.id,
+      count: alerts.length
     });
-    
+
     res.json({
       success: true,
       data: alerts,
       count: alerts.length
     });
   } catch (error: any) {
-    logger.error('Failed to get performance alerts', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Failed to get performance alerts', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve performance alerts',
@@ -261,25 +261,25 @@ router.get('/alerts', async (req, res) => {
 router.put('/alerts/:id/resolve', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // Implementar resolución de alerta
-    logger.info('Performance alert resolved', { 
-      alertId: id, 
-      userId: req.user?.id 
+    logger.info('Performance alert resolved', {
+      alertId: id,
+      userId: req.user?.id
     });
-    
+
     res.json({
       success: true,
       data: { id, status: 'resolved' },
       message: 'Performance alert resolved successfully'
     });
   } catch (error: any) {
-    logger.error('Failed to resolve performance alert', { 
-      error: error.message, 
+    logger.error('Failed to resolve performance alert', {
+      error: error.message,
       alertId: req.params.id,
-      userId: req.user?.id 
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to resolve performance alert',
@@ -296,26 +296,26 @@ router.post('/optimize',
   async (req, res) => {
     try {
       const optimization = await aiPerformanceOptimizationService.optimizePerformance(req.body);
-      
-      logger.info('Performance optimization completed', { 
+
+      logger.info('Performance optimization completed', {
         serviceName: req.body.serviceName,
         metricType: req.body.metricType,
         optimized: optimization.optimized,
         actionsCount: optimization.actions.length,
-        userId: req.user?.id 
+        userId: req.user?.id
       });
-      
+
       res.json({
         success: true,
         data: optimization,
         message: 'Performance optimization completed'
       });
     } catch (error: any) {
-      logger.error('Failed to optimize performance', { 
-        error: error.message, 
-        userId: req.user?.id 
+      logger.error('Failed to optimize performance', {
+        error: error.message,
+        userId: req.user?.id
       });
-      
+
       res.status(500).json({
         success: false,
         error: 'Failed to optimize performance',
@@ -334,32 +334,32 @@ router.post('/reports',
     try {
       const { serviceName, reportType, period } = req.body;
       const report = await aiPerformanceOptimizationService.generateOptimizationReport(
-        serviceName, 
-        reportType, 
+        serviceName,
+        reportType,
         {
           start: new Date(period.start),
           end: new Date(period.end)
         }
       );
-      
-      logger.info('Optimization report generated', { 
-        reportId: report.id, 
+
+      logger.info('Optimization report generated', {
+        reportId: report.id,
         serviceName,
         reportType,
-        userId: req.user?.id 
+        userId: req.user?.id
       });
-      
+
       res.status(201).json({
         success: true,
         data: report,
         message: 'Optimization report generated successfully'
       });
     } catch (error: any) {
-      logger.error('Failed to generate optimization report', { 
-        error: error.message, 
-        userId: req.user?.id 
+      logger.error('Failed to generate optimization report', {
+        error: error.message,
+        userId: req.user?.id
       });
-      
+
       res.status(500).json({
         success: false,
         error: 'Failed to generate optimization report',
@@ -373,16 +373,16 @@ router.post('/reports',
 router.get('/reports', async (req, res) => {
   try {
     const { serviceName, reportType, limit = 50 } = req.query;
-    
+
     // Simular obtención de reportes (implementar según necesidad)
     const reports = [];
-    
-    logger.info('Optimization reports retrieved', { 
-      userId: req.user?.id, 
+
+    logger.info('Optimization reports retrieved', {
+      userId: req.user?.id,
       count: reports.length,
       filters: { serviceName, reportType }
     });
-    
+
     res.json({
       success: true,
       data: reports,
@@ -393,11 +393,11 @@ router.get('/reports', async (req, res) => {
       }
     });
   } catch (error: any) {
-    logger.error('Failed to get optimization reports', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Failed to get optimization reports', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve optimization reports',
@@ -419,22 +419,22 @@ router.get('/autoscaling/config', async (req, res) => {
       scaleDownThreshold: 30,
       cooldownPeriod: 300
     };
-    
-    logger.info('Auto-scaling configuration retrieved', { 
-      userId: req.user?.id 
+
+    logger.info('Auto-scaling configuration retrieved', {
+      userId: req.user?.id
     });
-    
+
     res.json({
       success: true,
       data: config,
       message: 'Auto-scaling configuration retrieved successfully'
     });
   } catch (error: any) {
-    logger.error('Failed to get auto-scaling configuration', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Failed to get auto-scaling configuration', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve auto-scaling configuration',
@@ -447,23 +447,23 @@ router.get('/autoscaling/config', async (req, res) => {
 router.put('/autoscaling/config', async (req, res) => {
   try {
     const config = req.body;
-    
-    logger.info('Auto-scaling configuration updated', { 
+
+    logger.info('Auto-scaling configuration updated', {
       config,
-      userId: req.user?.id 
+      userId: req.user?.id
     });
-    
+
     res.json({
       success: true,
       data: config,
       message: 'Auto-scaling configuration updated successfully'
     });
   } catch (error: any) {
-    logger.error('Failed to update auto-scaling configuration', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Failed to update auto-scaling configuration', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to update auto-scaling configuration',
@@ -478,7 +478,7 @@ router.put('/autoscaling/config', async (req, res) => {
 router.get('/realtime', async (req, res) => {
   try {
     const { serviceName } = req.query;
-    
+
     const realtimeMetrics = {
       timestamp: new Date().toISOString(),
       serviceName: serviceName || 'ai-chat-service',
@@ -494,23 +494,23 @@ router.get('/realtime', async (req, res) => {
       },
       status: 'healthy'
     };
-    
-    logger.info('Realtime metrics retrieved', { 
+
+    logger.info('Realtime metrics retrieved', {
       serviceName,
-      userId: req.user?.id 
+      userId: req.user?.id
     });
-    
+
     res.json({
       success: true,
       data: realtimeMetrics,
       message: 'Realtime metrics retrieved successfully'
     });
   } catch (error: any) {
-    logger.error('Failed to get realtime metrics', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Failed to get realtime metrics', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve realtime metrics',
@@ -525,21 +525,21 @@ router.get('/realtime', async (req, res) => {
 router.get('/health', async (req, res) => {
   try {
     const health = await aiPerformanceOptimizationService.getHealthStatus();
-    
-    const statusCode = health.status === 'healthy' ? 200 : 
+
+    const statusCode = health.status === 'healthy' ? 200 :
                       health.status === 'degraded' ? 200 : 503;
-    
+
     res.status(statusCode).json({
       success: true,
       data: health,
       message: `Service is ${health.status}`
     });
   } catch (error: any) {
-    logger.error('Health check failed', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Health check failed', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(503).json({
       success: false,
       error: 'Health check failed',
@@ -597,22 +597,22 @@ router.get('/stats', async (req, res) => {
         averageImprovement: 0
       }
     };
-    
-    logger.info('Performance optimization stats retrieved', { 
-      userId: req.user?.id 
+
+    logger.info('Performance optimization stats retrieved', {
+      userId: req.user?.id
     });
-    
+
     res.json({
       success: true,
       data: stats,
       message: 'Statistics retrieved successfully'
     });
   } catch (error: any) {
-    logger.error('Failed to get statistics', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Failed to get statistics', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve statistics',

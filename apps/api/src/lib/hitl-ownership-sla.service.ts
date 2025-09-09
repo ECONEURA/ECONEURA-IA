@@ -447,9 +447,9 @@ class HITLOwnershipSLAService {
     };
 
     this.agents.set(newAgent.id, newAgent);
-    
-    structuredLogger.info('HITL agent created', { 
-      agentId: newAgent.id, 
+
+    structuredLogger.info('HITL agent created', {
+      agentId: newAgent.id,
       organizationId: newAgent.organizationId,
       name: newAgent.name,
       role: newAgent.role
@@ -501,9 +501,9 @@ class HITLOwnershipSLAService {
     };
 
     this.shifts.set(newShift.id, newShift);
-    
-    structuredLogger.info('HITL shift created', { 
-      shiftId: newShift.id, 
+
+    structuredLogger.info('HITL shift created', {
+      shiftId: newShift.id,
       organizationId: newShift.organizationId,
       agentId: newShift.agentId,
       shiftType: newShift.shiftType,
@@ -557,9 +557,9 @@ class HITLOwnershipSLAService {
     };
 
     this.vacations.set(newVacation.id, newVacation);
-    
-    structuredLogger.info('HITL vacation created', { 
-      vacationId: newVacation.id, 
+
+    structuredLogger.info('HITL vacation created', {
+      vacationId: newVacation.id,
       organizationId: newVacation.organizationId,
       agentId: newVacation.agentId,
       type: newVacation.type,
@@ -626,9 +626,9 @@ class HITLOwnershipSLAService {
     };
 
     this.tasks.set(newTask.id, newTask);
-    
-    structuredLogger.info('HITL task created', { 
-      taskId: newTask.id, 
+
+    structuredLogger.info('HITL task created', {
+      taskId: newTask.id,
       organizationId: newTask.organizationId,
       taskType: newTask.taskType,
       priority: newTask.priority
@@ -695,9 +695,9 @@ class HITLOwnershipSLAService {
     };
 
     this.escalations.set(newEscalation.id, newEscalation);
-    
-    structuredLogger.info('HITL escalation created', { 
-      escalationId: newEscalation.id, 
+
+    structuredLogger.info('HITL escalation created', {
+      escalationId: newEscalation.id,
       organizationId: newEscalation.organizationId,
       taskId: newEscalation.taskId,
       level: newEscalation.level,
@@ -761,9 +761,9 @@ class HITLOwnershipSLAService {
     };
 
     this.slas.set(newSLA.id, newSLA);
-    
-    structuredLogger.info('HITL SLA created', { 
-      slaId: newSLA.id, 
+
+    structuredLogger.info('HITL SLA created', {
+      slaId: newSLA.id,
       organizationId: newSLA.organizationId,
       taskType: newSLA.taskType,
       priority: newSLA.priority
@@ -813,7 +813,7 @@ class HITLOwnershipSLAService {
       if (!sla || !sla.enabled) continue;
 
       const timeSinceCreated = (now.getTime() - new Date(task.timestamps.created).getTime()) / (1000 * 60);
-      const timeSinceAssigned = task.timestamps.assigned ? 
+      const timeSinceAssigned = task.timestamps.assigned ?
         (now.getTime() - new Date(task.timestamps.assigned).getTime()) / (1000 * 60) : 0;
 
       // Check response time SLA
@@ -849,13 +849,13 @@ class HITLOwnershipSLAService {
       if (escalationTarget) {
         // Find available agent with target role
         const availableAgents = Array.from(this.agents.values())
-          .filter(a => a.role === escalationTarget.targetRole && 
-                      a.status === 'active' && 
+          .filter(a => a.role === escalationTarget.targetRole &&
+                      a.status === 'active' &&
                       a.availability.currentTasks < a.availability.maxConcurrentTasks);
 
         if (availableAgents.length > 0) {
           const targetAgent = availableAgents[0];
-          
+
           // Create escalation
           await this.createEscalation({
             organizationId: task.organizationId,
@@ -883,9 +883,9 @@ class HITLOwnershipSLAService {
     }
 
     this.tasks.set(task.id, task);
-    
-    structuredLogger.info('HITL task escalated', { 
-      taskId: task.id, 
+
+    structuredLogger.info('HITL task escalated', {
+      taskId: task.id,
       organizationId: task.organizationId,
       level: task.escalation.level,
       reason
@@ -896,8 +896,8 @@ class HITLOwnershipSLAService {
   async generateReport(organizationId: string, reportType: string, startDate: string, endDate: string, generatedBy: string): Promise<HITLReport> {
     const agents = Array.from(this.agents.values()).filter(a => a.organizationId === organizationId);
     const tasks = Array.from(this.tasks.values())
-      .filter(t => t.organizationId === organizationId && 
-                  t.timestamps.created >= startDate && 
+      .filter(t => t.organizationId === organizationId &&
+                  t.timestamps.created >= startDate &&
                   t.timestamps.created <= endDate);
     const escalations = Array.from(this.escalations.values())
       .filter(e => e.organizationId === organizationId &&
@@ -939,8 +939,8 @@ class HITLOwnershipSLAService {
       createdAt: new Date().toISOString()
     };
 
-    structuredLogger.info('HITL report generated', { 
-      reportId: report.id, 
+    structuredLogger.info('HITL report generated', {
+      reportId: report.id,
       organizationId,
       reportType,
       period: `${startDate} to ${endDate}`
@@ -952,7 +952,7 @@ class HITLOwnershipSLAService {
   private calculateAverageResponseTime(tasks: HITLTask[]): number {
     const tasksWithResponseTime = tasks.filter(t => t.performance.responseTime);
     if (tasksWithResponseTime.length === 0) return 0;
-    
+
     const total = tasksWithResponseTime.reduce((sum, t) => sum + (t.performance.responseTime || 0), 0);
     return total / tasksWithResponseTime.length;
   }
@@ -960,36 +960,36 @@ class HITLOwnershipSLAService {
   private calculateAverageResolutionTime(tasks: HITLTask[]): number {
     const tasksWithResolutionTime = tasks.filter(t => t.performance.resolutionTime);
     if (tasksWithResolutionTime.length === 0) return 0;
-    
+
     const total = tasksWithResolutionTime.reduce((sum, t) => sum + (t.performance.resolutionTime || 0), 0);
     return total / tasksWithResolutionTime.length;
   }
 
   private calculateSLACompliance(tasks: HITLTask[]): number {
     if (tasks.length === 0) return 0;
-    
+
     const compliantTasks = tasks.filter(t => {
       const sla = Array.from(this.slas.values())
         .find(s => s.taskType === t.taskType && s.priority === t.priority);
-      
+
       if (!sla) return false;
-      
+
       const responseTime = t.performance.responseTime || 0;
       const resolutionTime = t.performance.resolutionTime || 0;
-      
-      return responseTime <= sla.metrics.responseTimeTarget && 
+
+      return responseTime <= sla.metrics.responseTimeTarget && ;
              resolutionTime <= sla.metrics.resolutionTimeTarget;
     });
-    
+
     return (compliantTasks.length / tasks.length) * 100;
   }
 
   private calculateAgentUtilization(agents: HITLAgent[], tasks: HITLTask[]): number {
     if (agents.length === 0) return 0;
-    
+
     const totalCapacity = agents.reduce((sum, a) => sum + a.availability.maxConcurrentTasks, 0);
     const totalCurrentTasks = agents.reduce((sum, a) => sum + a.availability.currentTasks, 0);
-    
+
     return (totalCurrentTasks / totalCapacity) * 100;
   }
 

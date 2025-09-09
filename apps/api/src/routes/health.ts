@@ -2,10 +2,10 @@ import { Router } from 'express';
 import { getDatabaseService } from '@econeura/db';
 import { structuredLogger } from '../lib/structured-logger.js';
 import { healthMonitor } from '../lib/health-monitor.js';
-import { 
-  HealthChecker, 
-  checkDatabase, 
-  checkRedis, 
+import {
+  HealthChecker,
+  checkDatabase,
+  checkRedis,
   checkAzureOpenAI,
   buildHealthResponse,
   type HealthStatus,
@@ -32,37 +32,37 @@ healthChecker.registerService('azureOpenAI', checkAzureOpenAI);
 // GET /health - Comprehensive health check
 router.get('/health', async (req, res) => {
   const startTime = Date.now();
-  
+
   try {
     const services = await healthChecker.checkAllServices();
     const overallStatus = healthChecker.getOverallStatus(services);
     const healthStatus = buildHealthResponse(services, overallStatus);
-    
+
     const responseTime = Date.now() - startTime;
-    
+
     // Add response time to health status
     healthStatus.metrics.requests = {
       ...healthStatus.metrics.requests,
       responseTime
     };
-    
-    const statusCode = healthStatus.status === 'healthy' ? 200 : 
+
+    const statusCode = healthStatus.status === 'healthy' ? 200 :
                       healthStatus.status === 'degraded' ? 200 : 503;
-    
+
     res.status(statusCode).json(healthStatus);
-    
+
     // Log health check
     structuredLogger.info('Health check completed', {
       status: healthStatus.status,
       responseTime,
       services: Object.keys(healthStatus.services).length
     });
-    
+
   } catch (error) {
     const responseTime = Date.now() - startTime;
-    
+
     structuredLogger.error('Health check failed', error as Error);
-    
+
     res.status(503).json({
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
@@ -87,9 +87,9 @@ router.get('/health/ready', async (req, res) => {
   try {
     const db = getDatabaseService();
     const dbHealth = await db.getHealth();
-    
+
     const isReady = dbHealth.status === 'healthy';
-    
+
     if (isReady) {
       res.json({
         status: 'ready',
@@ -122,7 +122,7 @@ router.get('/health/degraded', async (req, res) => {
   try {
     const healthStatus = await performHealthCheck();
     const isDegraded = healthStatus.status === 'degraded';
-    
+
     res.json({
       status: isDegraded ? 'degraded' : 'healthy',
       mode: isDegraded ? 'degraded' : 'normal',
@@ -157,34 +157,34 @@ router.get('/health/metrics', async (req, res) => {
 
 async function performHealthCheck(): Promise<HealthStatus> {
   const startTime = Date.now();
-  
+
   // Check database
   const dbHealth = await checkDatabaseHealth();
-  
+
   // Check Redis (if available)
   const redisHealth = await checkRedisHealth();
-  
+
   // Check Azure OpenAI (if available)
   const azureHealth = await checkAzureOpenAIHealth();
-  
+
   // Check external APIs
   const externalAPIsHealth = await checkExternalAPIsHealth();
-  
+
   // Get system metrics
   const metrics = await getSystemMetrics();
-  
+
   // Determine overall status
   const services = [dbHealth, redisHealth, azureHealth, externalAPIsHealth];
   const unhealthyServices = services.filter(s => s && s.status === 'unhealthy');
   const degradedServices = services.filter(s => s && s.status === 'degraded');
-  
+
   let overallStatus: 'healthy' | 'unhealthy' | 'degraded' = 'healthy';
   if (unhealthyServices.length > 0) {
     overallStatus = 'unhealthy';
   } else if (degradedServices.length > 0) {
     overallStatus = 'degraded';
   }
-  
+
   return {
     status: overallStatus,
     timestamp: new Date().toISOString(),
@@ -202,11 +202,11 @@ async function performHealthCheck(): Promise<HealthStatus> {
 
 async function checkDatabaseHealth(): Promise<ServiceHealth> {
   const startTime = Date.now();
-  
+
   try {
     const db = getDatabaseService();
     const health = await db.getHealth();
-    
+
     return {
       status: health.status,
       responseTime: health.responseTime,
@@ -225,17 +225,17 @@ async function checkDatabaseHealth(): Promise<ServiceHealth> {
 
 async function checkRedisHealth(): Promise<ServiceHealth | null> {
   const startTime = Date.now();
-  
+
   try {
     // Check if Redis is configured
     if (!process.env.REDIS_URL) {
       return null;
     }
-    
+
     // TODO: Implement Redis health check
     // const redis = getRedisService();
     // await redis.ping();
-    
+
     return {
       status: 'healthy',
       responseTime: Date.now() - startTime,
@@ -253,17 +253,17 @@ async function checkRedisHealth(): Promise<ServiceHealth | null> {
 
 async function checkAzureOpenAIHealth(): Promise<ServiceHealth | null> {
   const startTime = Date.now();
-  
+
   try {
     // Check if Azure OpenAI is configured
     if (!process.env.AZURE_OPENAI_API_KEY) {
       return null;
     }
-    
+
     // TODO: Implement Azure OpenAI health check
     // const azure = getAzureOpenAIService();
     // await azure.healthCheck();
-    
+
     return {
       status: 'healthy',
       responseTime: Date.now() - startTime,
@@ -281,11 +281,11 @@ async function checkAzureOpenAIHealth(): Promise<ServiceHealth | null> {
 
 async function checkExternalAPIsHealth(): Promise<ServiceHealth | null> {
   const startTime = Date.now();
-  
+
   try {
     // Check external APIs (Stripe, etc.)
     // TODO: Implement external APIs health check
-    
+
     return {
       status: 'healthy',
       responseTime: Date.now() - startTime,
@@ -301,11 +301,11 @@ async function checkExternalAPIsHealth(): Promise<ServiceHealth | null> {
   }
 }
 
-async function getSystemMetrics() {
+async function getSystemMetrics(): void {
   const memUsage = process.memoryUsage();
   const totalMem = memUsage.heapTotal + memUsage.external;
   const usedMem = memUsage.heapUsed;
-  
+
   return {
     memory: {
       used: Math.round(usedMem / 1024 / 1024), // MB
@@ -323,10 +323,10 @@ async function getSystemMetrics() {
   };
 }
 
-async function getHealthMetrics() {
+async function getHealthMetrics(): void {
   const db = getDatabaseService();
   const dbStats = db.getPoolStats();
-  
+
   return {
     database: {
       connections: dbStats.totalCount,

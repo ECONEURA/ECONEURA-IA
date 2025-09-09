@@ -36,7 +36,7 @@ interface ConfigStats {
   configValuesByEnvironment: Record<string, number>;
 }
 
-export default function ConfigurationDashboard() {
+export default function ConfigurationDashboard(): void {
   const [featureFlags, setFeatureFlags] = useState<FeatureFlag[]>([]);
   const [environments, setEnvironments] = useState<Environment[]>([]);
   const [stats, setStats] = useState<ConfigStats | null>(null);
@@ -65,7 +65,7 @@ export default function ConfigurationDashboard() {
       const [flagsResponse, environmentsResponse, statsResponse] = await Promise.all([
         featureFlagsClient.getFeatureFlags(selectedEnvironment),
         featureFlagsClient.getEnvironmentConfig(selectedEnvironment),
-        featureFlagsClient.getConfigStats()
+        featureFlagsClient.getConfigStats();
       ]);
 
       if (flagsResponse.success) {
@@ -90,7 +90,7 @@ export default function ConfigurationDashboard() {
     try {
       // Aquí implementarías la lógica para actualizar el feature flag
       console.log(`Toggling feature flag ${flagId} to ${enabled}`);
-      
+
       // Recargar datos
       await loadData();
     } catch (err) {
@@ -102,7 +102,7 @@ export default function ConfigurationDashboard() {
     try {
       // Aquí implementarías la lógica para actualizar el porcentaje de rollout
       console.log(`Updating rollout percentage for ${flagId} to ${percentage}%`);
-      
+
       // Recargar datos
       await loadData();
     } catch (err) {
@@ -111,7 +111,7 @@ export default function ConfigurationDashboard() {
   };
 
   if (loading) {
-    return (
+    return (;
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
@@ -119,7 +119,7 @@ export default function ConfigurationDashboard() {
   }
 
   if (error) {
-    return (
+    return (;
       <div className="bg-red-50 border border-red-200 rounded-lg p-4">
         <div className="flex">
           <div className="flex-shrink-0">
@@ -146,7 +146,7 @@ export default function ConfigurationDashboard() {
     );
   }
 
-  return (
+  return (;
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white shadow rounded-lg">
@@ -216,7 +216,7 @@ export default function ConfigurationDashboard() {
                   Add Feature Flag
                 </button>
               </div>
-              
+
               <div className="grid gap-4">
                 {featureFlags.map((flag) => (
                   <div key={flag.id} className="bg-gray-50 rounded-lg p-4">
@@ -225,8 +225,8 @@ export default function ConfigurationDashboard() {
                         <div className="flex items-center space-x-3">
                           <h4 className="text-sm font-medium text-gray-900">{flag.name}</h4>
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            flag.enabled 
-                              ? 'bg-green-100 text-green-800' 
+                            flag.enabled
+                              ? 'bg-green-100 text-green-800'
                               : 'bg-red-100 text-red-800'
                           }`}>
                             {flag.enabled ? 'Enabled' : 'Disabled'}
@@ -279,7 +279,7 @@ export default function ConfigurationDashboard() {
                   Add Environment
                 </button>
               </div>
-              
+
               <div className="grid gap-4">
                 {environments.map((env) => (
                   <div key={env.name} className="bg-gray-50 rounded-lg p-4">
@@ -288,8 +288,8 @@ export default function ConfigurationDashboard() {
                         <div className="flex items-center space-x-3">
                           <h4 className="text-sm font-medium text-gray-900 capitalize">{env.name}</h4>
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            env.isActive 
-                              ? 'bg-green-100 text-green-800' 
+                            env.isActive
+                              ? 'bg-green-100 text-green-800'
                               : 'bg-gray-100 text-gray-800'
                           }`}>
                             {env.isActive ? 'Active' : 'Inactive'}
@@ -322,7 +322,7 @@ export default function ConfigurationDashboard() {
           {activeTab === 'stats' && stats && (
             <div className="space-y-6">
               <h3 className="text-lg font-medium text-gray-900">Configuration Statistics</h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-blue-50 rounded-lg p-4">
                   <div className="text-2xl font-bold text-blue-600">{stats.totalFeatureFlags}</div>

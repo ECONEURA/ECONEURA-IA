@@ -8,10 +8,10 @@ interface SidebarProps {
   onDeptChange: (dept: DeptKey) => void;
 }
 
-export default function Sidebar({ activeDept, onDeptChange }: SidebarProps) {
+export default function Sidebar({ activeDept, onDeptChange }: SidebarProps): void {
   const depts = Object.keys(palette) as DeptKey[];
 
-  return (
+  return (;
     <aside style={{
       width: '240px',
       backgroundColor: ui.bg,
@@ -30,8 +30,8 @@ export default function Sidebar({ activeDept, onDeptChange }: SidebarProps) {
             const isActive = activeDept === dept;
             const color = getDeptColor(dept);
             const name = getDeptName(dept);
-            
-            return (
+
+            return (;
               <li key={dept} style={{ marginBottom: '4px' }}>
                 <button
                   onClick={() => onDeptChange(dept)}

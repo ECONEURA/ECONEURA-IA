@@ -118,7 +118,7 @@ describe('Contacts Dedupe API Integration Tests', () => {
       await request(app)
         .post('/api/contacts-dedupe/contacts')
         .send(mockContact1);
-      
+
       await request(app)
         .post('/api/contacts-dedupe/contacts')
         .send(mockContact2);
@@ -166,7 +166,7 @@ describe('Contacts Dedupe API Integration Tests', () => {
       await request(app)
         .post('/api/contacts-dedupe/contacts')
         .send(mockContact1);
-      
+
       await request(app)
         .post('/api/contacts-dedupe/contacts')
         .send(mockContact2);
@@ -204,7 +204,7 @@ describe('Contacts Dedupe API Integration Tests', () => {
 
       if (pendingResponse.body.data.length > 0) {
         const mergeId = pendingResponse.body.data[0].id;
-        
+
         const response = await request(app)
           .post(`/api/contacts-dedupe/merges/${mergeId}/approve`)
           .send({ approvedBy: 'user-1' })
@@ -221,7 +221,7 @@ describe('Contacts Dedupe API Integration Tests', () => {
 
       if (pendingResponse.body.data.length > 0) {
         const mergeId = pendingResponse.body.data[0].id;
-        
+
         const response = await request(app)
           .post(`/api/contacts-dedupe/merges/${mergeId}/execute`)
           .send({ approvedBy: 'user-1' })
@@ -238,7 +238,7 @@ describe('Contacts Dedupe API Integration Tests', () => {
 
       if (pendingResponse.body.data.length > 0) {
         const mergeId = pendingResponse.body.data[0].id;
-        
+
         const response = await request(app)
           .post(`/api/contacts-dedupe/merges/${mergeId}/revert`)
           .send({ approvedBy: 'user-1' })
@@ -313,7 +313,7 @@ describe('Contacts Dedupe API Integration Tests', () => {
       await request(app)
         .post('/api/contacts-dedupe/contacts')
         .send(mockContact1);
-      
+
       await request(app)
         .post('/api/contacts-dedupe/contacts')
         .send(mockContact2);

@@ -507,10 +507,10 @@ export class CompanyController {
           }
         } catch (error) {
           errorCount++;
-          results.push({ 
-            companyId, 
-            success: false, 
-            error: error instanceof Error ? error.message : 'Unknown error' 
+          results.push({
+            companyId,
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error'
           });
         }
       }
@@ -556,10 +556,10 @@ export class CompanyController {
           results.push({ companyId, success: true });
         } catch (error) {
           errorCount++;
-          results.push({ 
-            companyId, 
-            success: false, 
-            error: error instanceof Error ? error.message : 'Unknown error' 
+          results.push({
+            companyId,
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error'
           });
         }
       }
@@ -632,16 +632,16 @@ export class CompanyController {
     for (const company of companies) {
       // Count by type
       stats.byType[company.type] = (stats.byType[company.type] || 0) + 1;
-      
+
       // Count by status
       stats.byStatus[company.status] = (stats.byStatus[company.status] || 0) + 1;
-      
+
       // Count by size
       stats.bySize[company.size] = (stats.bySize[company.size] || 0) + 1;
-      
+
       // Count by industry
       stats.byIndustry[company.industry] = (stats.byIndustry[company.industry] || 0) + 1;
-      
+
       // Count by source
       stats.bySource[company.source] = (stats.bySource[company.source] || 0) + 1;
 
@@ -683,7 +683,7 @@ export class CompanyController {
       if (company.leadScore !== null && company.leadScore !== undefined) {
         totalLeadScore += company.leadScore;
         leadScoreCount++;
-        
+
         if (company.leadScore >= 70) stats.highScoreLeads++;
         else if (company.leadScore >= 30) stats.mediumScoreLeads++;
         else stats.lowScoreLeads++;

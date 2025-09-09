@@ -98,7 +98,7 @@ export class ProcessManager {
   private setupSignalHandlers(): void {
     for (const signal of this.config.signals) {
       const handler = () => {
-        structuredLogger.info(`Received ${signal} signal`, { 
+        structuredLogger.info(`Received ${signal} signal`, {
           operation: 'signal_handler',
           signal,
           pid: process.pid
@@ -145,7 +145,7 @@ export class ProcessManager {
     setInterval(() => {
       const memUsage = process.memoryUsage();
       const memUsageMB = memUsage.heapUsed / 1024 / 1024;
-      
+
       if (memUsageMB > 500) { // 500MB threshold
         structuredLogger.warn('High memory usage detected', {
           operation: 'memory_monitoring',
@@ -163,7 +163,7 @@ export class ProcessManager {
       const start = process.hrtime.bigint();
       setImmediate(() => {
         const lag = Number(process.hrtime.bigint() - start) / 1000000; // Convert to milliseconds
-        
+
         if (lag > 100) { // 100ms threshold
           structuredLogger.warn('High event loop lag detected', {
             operation: 'event_loop_monitoring',
@@ -231,7 +231,7 @@ export class ProcessManager {
 
     for (const task of this.config.cleanupTasks) {
       const taskStartTime = Date.now();
-      
+
       try {
         structuredLogger.info(`Executing cleanup task: ${task.name}`, {
           operation: 'cleanup_task',
@@ -249,7 +249,7 @@ export class ProcessManager {
 
         const duration = Date.now() - taskStartTime;
         results.push({ name: task.name, success: true, duration });
-        
+
         structuredLogger.info(`Cleanup task completed: ${task.name}`, {
           operation: 'cleanup_task',
           taskName: task.name,
@@ -259,7 +259,7 @@ export class ProcessManager {
         const duration = Date.now() - taskStartTime;
         const errorMessage = (error as Error).message;
         results.push({ name: task.name, success: false, duration, error: errorMessage });
-        
+
         structuredLogger.error(`Cleanup task failed: ${task.name}`, error as Error, {
           operation: 'cleanup_task',
           taskName: task.name,
@@ -275,7 +275,7 @@ export class ProcessManager {
     // Log cleanup summary
     const successfulTasks = results.filter(r => r.success).length;
     const failedTasks = results.filter(r => !r.success).length;
-    
+
     structuredLogger.info('Cleanup tasks summary', {
       operation: 'cleanup_summary',
       total: results.length,
@@ -418,7 +418,7 @@ export class ProcessManager {
 
     // Perform graceful shutdown first
     await this.gracefulShutdown('RESTART');
-    
+
     // Restart the process
     process.exit(0);
   }

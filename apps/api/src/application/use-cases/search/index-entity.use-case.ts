@@ -26,7 +26,7 @@ export class IndexEntityUseCase implements UseCase<IndexEntityRequest, IndexEnti
 
   async execute(request: IndexEntityRequest): Promise<IndexEntityResponse> {
     const startTime = Date.now();
-    
+
     // Validar entidad
     if (!request.entity || !request.entityId) {
       throw new Error('Entity and entityId are required');

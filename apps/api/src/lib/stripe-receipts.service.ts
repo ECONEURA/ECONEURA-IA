@@ -235,8 +235,8 @@ class StripeReceiptsService {
     };
 
     this.receipts.set(newReceipt.id, newReceipt);
-    structuredLogger.info('Stripe receipt created', { 
-      receiptId: newReceipt.id, 
+    structuredLogger.info('Stripe receipt created', {
+      receiptId: newReceipt.id,
       organizationId: newReceipt.organizationId,
       amount: newReceipt.amount,
       currency: newReceipt.currency
@@ -304,7 +304,7 @@ class StripeReceiptsService {
 
   private async handlePaymentIntentSucceeded(event: StripeWebhookEvent): Promise<{ processed: boolean; receiptId?: string }> {
     const paymentIntent = event.data.object;
-    
+
     const receiptData = {
       organizationId: 'demo-org-1', // TODO: Get from metadata
       stripePaymentIntentId: paymentIntent.id,
@@ -321,9 +321,9 @@ class StripeReceiptsService {
     };
 
     const receipt = await this.createReceipt(receiptData);
-    structuredLogger.info('Payment intent succeeded, receipt created', { 
-      receiptId: receipt.id, 
-      paymentIntentId: paymentIntent.id 
+    structuredLogger.info('Payment intent succeeded, receipt created', {
+      receiptId: receipt.id,
+      paymentIntentId: paymentIntent.id
     });
 
     return { processed: true, receiptId: receipt.id };
@@ -331,7 +331,7 @@ class StripeReceiptsService {
 
   private async handlePaymentIntentFailed(event: StripeWebhookEvent): Promise<{ processed: boolean; receiptId?: string }> {
     const paymentIntent = event.data.object;
-    
+
     // Find existing receipt and update status
     const existingReceipt = Array.from(this.receipts.values())
       .find(r => r.stripePaymentIntentId === paymentIntent.id);
@@ -340,12 +340,12 @@ class StripeReceiptsService {
       existingReceipt.status = 'failed';
       existingReceipt.updatedAt = new Date().toISOString();
       this.receipts.set(existingReceipt.id, existingReceipt);
-      
-      structuredLogger.info('Payment intent failed, receipt updated', { 
-        receiptId: existingReceipt.id, 
-        paymentIntentId: paymentIntent.id 
+
+      structuredLogger.info('Payment intent failed, receipt updated', {
+        receiptId: existingReceipt.id,
+        paymentIntentId: paymentIntent.id
       });
-      
+
       return { processed: true, receiptId: existingReceipt.id };
     }
 
@@ -354,7 +354,7 @@ class StripeReceiptsService {
 
   private async handleChargeDispute(event: StripeWebhookEvent): Promise<{ processed: boolean; receiptId?: string }> {
     const charge = event.data.object;
-    
+
     // Find existing receipt and mark for manual review
     const existingReceipt = Array.from(this.receipts.values())
       .find(r => r.stripeChargeId === charge.id);
@@ -364,13 +364,13 @@ class StripeReceiptsService {
       existingReceipt.discrepancyReason = `Charge dispute: ${charge.dispute?.reason || 'Unknown reason'}`;
       existingReceipt.updatedAt = new Date().toISOString();
       this.receipts.set(existingReceipt.id, existingReceipt);
-      
-      structuredLogger.warn('Charge dispute detected, receipt marked for review', { 
-        receiptId: existingReceipt.id, 
+
+      structuredLogger.warn('Charge dispute detected, receipt marked for review', {
+        receiptId: existingReceipt.id,
         chargeId: charge.id,
         disputeReason: charge.dispute?.reason
       });
-      
+
       return { processed: true, receiptId: existingReceipt.id };
     }
 
@@ -383,10 +383,10 @@ class StripeReceiptsService {
     if (!receipt) return false;
 
     const applicableRules = Array.from(this.reconciliationRules.values())
-      .filter(rule => 
+      .filter(rule =>
         rule.organizationId === receipt.organizationId &&
         rule.isActive &&
-        this.matchesRule(receipt, rule)
+        this.matchesRule(receipt, rule);
       );
 
     if (applicableRules.length === 0) {
@@ -401,8 +401,8 @@ class StripeReceiptsService {
       receipt.updatedAt = new Date().toISOString();
       this.receipts.set(receiptId, receipt);
 
-      structuredLogger.info('Receipt auto-reconciled', { 
-        receiptId, 
+      structuredLogger.info('Receipt auto-reconciled', {
+        receiptId,
         ruleId: rule.id,
         ruleName: rule.name
       });
@@ -415,8 +415,8 @@ class StripeReceiptsService {
       receipt.updatedAt = new Date().toISOString();
       this.receipts.set(receiptId, receipt);
 
-      structuredLogger.info('Receipt marked for manual review', { 
-        receiptId, 
+      structuredLogger.info('Receipt marked for manual review', {
+        receiptId,
         ruleId: rule.id,
         ruleName: rule.name
       });
@@ -466,15 +466,15 @@ class StripeReceiptsService {
     receipt.bankTransactionId = bankTransactionId;
     receipt.bankReference = bankReference;
     receipt.updatedAt = new Date().toISOString();
-    
+
     if (notes) {
       receipt.discrepancyReason = notes;
     }
 
     this.receipts.set(receiptId, receipt);
 
-    structuredLogger.info('Receipt manually reconciled', { 
-      receiptId, 
+    structuredLogger.info('Receipt manually reconciled', {
+      receiptId,
       bankTransactionId,
       bankReference,
       reconciledBy: 'manual'
@@ -494,8 +494,8 @@ class StripeReceiptsService {
     };
 
     this.reconciliationRules.set(newRule.id, newRule);
-    structuredLogger.info('Reconciliation rule created', { 
-      ruleId: newRule.id, 
+    structuredLogger.info('Reconciliation rule created', {
+      ruleId: newRule.id,
       organizationId: newRule.organizationId,
       ruleName: newRule.name
     });
@@ -504,7 +504,7 @@ class StripeReceiptsService {
   }
 
   async getReconciliationRules(organizationId: string): Promise<ReconciliationRule[]> {
-    return Array.from(this.reconciliationRules.values())
+    return Array.from(this.reconciliationRules.values());
       .filter(rule => rule.organizationId === organizationId)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
@@ -512,7 +512,7 @@ class StripeReceiptsService {
   // Reports
   async generateReconciliationReport(organizationId: string, startDate: string, endDate: string, generatedBy: string): Promise<ReconciliationReport> {
     const receipts = await this.getReceipts(organizationId, { startDate, endDate });
-    
+
     const summary = {
       totalReceipts: receipts.length,
       totalAmount: receipts.reduce((sum, r) => sum + r.amount, 0),
@@ -545,8 +545,8 @@ class StripeReceiptsService {
       generatedBy
     };
 
-    structuredLogger.info('Reconciliation report generated', { 
-      reportId: report.id, 
+    structuredLogger.info('Reconciliation report generated', {
+      reportId: report.id,
       organizationId,
       period: `${startDate} to ${endDate}`,
       totalReceipts: summary.totalReceipts,

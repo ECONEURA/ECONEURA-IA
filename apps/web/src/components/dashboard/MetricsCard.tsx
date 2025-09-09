@@ -37,7 +37,7 @@ export default function MetricsCard({
     )
   ) : null;
 
-  return (
+  return (;
     <div className={`card ${className}`}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
@@ -45,15 +45,15 @@ export default function MetricsCard({
             {icon && <div className="text-gray-400">{icon}</div>}
             <h3 className="text-sm font-medium text-gray-500">{title}</h3>
           </div>
-          
+
           <div className="flex items-baseline gap-2">
             <p className="text-2xl font-semibold text-gray-900">{value}</p>
             {trend && (
               <div className={`flex items-center gap-1 text-sm ${
-                trend.direction === 'up' 
-                  ? 'text-success-600' 
-                  : trend.direction === 'down' 
-                  ? 'text-danger-600' 
+                trend.direction === 'up'
+                  ? 'text-success-600'
+                  : trend.direction === 'down'
+                  ? 'text-danger-600'
                   : 'text-gray-500'
               }`}>
                 {trendIcon}
@@ -61,11 +61,11 @@ export default function MetricsCard({
               </div>
             )}
           </div>
-          
+
           {subtitle && (
             <p className="text-sm text-gray-600 mt-1">{subtitle}</p>
           )}
-          
+
           {trend && (
             <p className="text-xs text-gray-500 mt-1">{trend.label}</p>
           )}

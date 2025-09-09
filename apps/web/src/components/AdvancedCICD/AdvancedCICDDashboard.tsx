@@ -1,18 +1,18 @@
 /**
  * Advanced CI/CD Dashboard
- * 
+ *
  * This component provides a comprehensive dashboard for managing advanced CI/CD operations,
  * including deployments, rollbacks, artifacts, test results, and analytics.
  */
 
 import React, { useState, useEffect } from 'react';
-import { 
-  GitBranch, 
-  Play, 
-  RotateCcw, 
-  Package, 
-  TestTube, 
-  BarChart3, 
+import {
+  GitBranch,
+  Play,
+  RotateCcw,
+  Package,
+  TestTube,
+  BarChart3,
   Settings,
   Clock,
   CheckCircle,
@@ -401,14 +401,14 @@ export const AdvancedCICDDashboard: React.FC = () => {
   };
 
   if (loading) {
-    return (
+    return (;
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
-  return (
+  return (;
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
@@ -648,9 +648,9 @@ export const AdvancedCICDDashboard: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {deployment.completedAt 
+                          {deployment.completedAt
                             ? formatDuration(new Date(deployment.completedAt).getTime() - new Date(deployment.startedAt).getTime())
-                            : deployment.status === 'in_progress' 
+                            : deployment.status === 'in_progress'
                               ? formatDuration(Date.now() - new Date(deployment.startedAt).getTime())
                               : '-'
                           }

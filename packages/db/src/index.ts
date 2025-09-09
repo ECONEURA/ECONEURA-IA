@@ -16,18 +16,18 @@ export { migrate } from 'drizzle-orm/postgres-js/migrator';
 export { sql } from 'drizzle-orm';
 
 // Re-export common Drizzle utilities
-export { 
-  eq, 
-  ne, 
-  gt, 
-  gte, 
-  lt, 
-  lte, 
-  like, 
-  ilike, 
-  inArray, 
-  notInArray, 
-  isNull, 
+export {
+  eq,
+  ne,
+  gt,
+  gte,
+  lt,
+  lte,
+  like,
+  ilike,
+  inArray,
+  notInArray,
+  isNull,
   isNotNull,
   and,
   or,

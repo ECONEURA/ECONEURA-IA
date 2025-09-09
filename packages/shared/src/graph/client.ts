@@ -71,7 +71,7 @@ export class GraphClient {
 
   constructor(config: GraphConfig) {
     this.config = config
-    
+
     // Initialize MSAL
     this.msalApp = new ConfidentialClientApplication({
       auth: {
@@ -112,7 +112,7 @@ export class GraphClient {
     draft: GraphDraftMessage
   ): Promise<{ id: string; webLink: string }> {
     const span = this.tracer.startSpan('graph_create_draft_message')
-    
+
     try {
       const response = await this.client
         .api(`/users/${userId}/messages`)
@@ -132,10 +132,10 @@ export class GraphClient {
         webLink: response.webLink,
       }
     } catch (error) {
-      span.recordException(error as Error)
+      span.recordException(error as Error);
       throw this.handleGraphError('createDraftMessage', error)
     } finally {
-      span.end()
+      span.end();
     }
   }
 
@@ -148,7 +148,7 @@ export class GraphClient {
     message: GraphTeamsMessage
   ): Promise<{ id: string }> {
     const span = this.tracer.startSpan('graph_send_teams_message')
-    
+
     try {
       const response = await this.client
         .api(`/teams/${teamId}/channels/${channelId}/messages`)
@@ -167,10 +167,10 @@ export class GraphClient {
 
       return { id: response.id }
     } catch (error) {
-      span.recordException(error as Error)
+      span.recordException(error as Error);
       throw this.handleGraphError('sendTeamsMessage', error)
     } finally {
-      span.end()
+      span.end();
     }
   }
 
@@ -182,7 +182,7 @@ export class GraphClient {
     task: GraphPlannerTask
   ): Promise<{ id: string; title: string }> {
     const span = this.tracer.startSpan('graph_create_planner_task')
-    
+
     try {
       const response = await this.client
         .api('/planner/tasks')
@@ -206,10 +206,10 @@ export class GraphClient {
         title: response.title,
       }
     } catch (error) {
-      span.recordException(error as Error)
+      span.recordException(error as Error);
       throw this.handleGraphError('createPlannerTask', error)
     } finally {
-      span.end()
+      span.end();
     }
   }
 
@@ -222,7 +222,7 @@ export class GraphClient {
     top: number = 50
   ): Promise<GraphMessage[]> {
     const span = this.tracer.startSpan('graph_get_user_messages')
-    
+
     try {
       let request = this.client
         .api(`/users/${userId}/messages`)
@@ -241,12 +241,12 @@ export class GraphClient {
         'graph.filter': filter || 'none',
       })
 
-      return response.value
+      return response.value;
     } catch (error) {
-      span.recordException(error as Error)
+      span.recordException(error as Error);
       throw this.handleGraphError('getUserMessages', error)
     } finally {
-      span.end()
+      span.end();
     }
   }
 
@@ -260,7 +260,7 @@ export class GraphClient {
     userPrincipalName: string
   }> {
     const span = this.tracer.startSpan('graph_get_user_profile')
-    
+
     try {
       const response = await this.client
         .api(`/users/${userId}`)
@@ -279,10 +279,10 @@ export class GraphClient {
         userPrincipalName: response.userPrincipalName,
       }
     } catch (error) {
-      span.recordException(error as Error)
+      span.recordException(error as Error);
       throw this.handleGraphError('getUserProfile', error)
     } finally {
-      span.end()
+      span.end();
     }
   }
 
@@ -295,7 +295,7 @@ export class GraphClient {
     description?: string
   }>> {
     const span = this.tracer.startSpan('graph_get_team_channels')
-    
+
     try {
       const response = await this.client
         .api(`/teams/${teamId}/channels`)
@@ -312,10 +312,10 @@ export class GraphClient {
         description: channel.description,
       }))
     } catch (error) {
-      span.recordException(error as Error)
+      span.recordException(error as Error);
       throw this.handleGraphError('getTeamChannels', error)
     } finally {
-      span.end()
+      span.end();
     }
   }
 
@@ -329,13 +329,13 @@ export class GraphClient {
   }> {
     const span = this.tracer.startSpan('graph_health_check')
     const startTime = Date.now()
-    
+
     try {
       // Test with a simple API call
       await this.client.api('/me').get()
-      
+
       const latency = Date.now() - startTime
-      
+
       span.setAttributes({
         'graph.latency_ms': latency,
         'graph.status': 'healthy',
@@ -348,8 +348,8 @@ export class GraphClient {
     } catch (error) {
       const latency = Date.now() - startTime
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      
-      span.recordException(error as Error)
+
+      span.recordException(error as Error);
       span.setAttributes({
         'graph.latency_ms': latency,
         'graph.status': 'unavailable',
@@ -362,7 +362,7 @@ export class GraphClient {
         error: errorMessage,
       }
     } finally {
-      span.end()
+      span.end();
     }
   }
 
@@ -371,14 +371,14 @@ export class GraphClient {
    */
   private handleGraphError(operation: string, error: unknown): Error {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    
+
     // Check for rate limiting
     if (errorMessage.includes('429') || errorMessage.includes('Too Many Requests')) {
       logger.warn('Graph API rate limited', {
         operation,
         error: errorMessage,
       })
-      
+
       // TODO: Implement exponential backoff
       return new Error(`Graph API rate limited: ${errorMessage}`)
     }
@@ -389,7 +389,7 @@ export class GraphClient {
         operation,
         error: errorMessage,
       })
-      
+
       return new Error(`Graph API authentication failed: ${errorMessage}`)
     }
 
@@ -399,7 +399,7 @@ export class GraphClient {
         operation,
         error: errorMessage,
       })
-      
+
       return new Error(`Graph API permission denied: ${errorMessage}`)
     }
 
@@ -408,7 +408,7 @@ export class GraphClient {
       operation,
       error: errorMessage,
     })
-    
+
     return new Error(`Graph API error in ${operation}: ${errorMessage}`)
   }
 }
@@ -416,7 +416,7 @@ export class GraphClient {
 // Factory function to create Graph client
 export function createGraphClient(config?: Partial<GraphConfig>): GraphClient {
   const envConfig = env()
-  
+
   const graphConfig: GraphConfig = {
     tenantId: config?.tenantId || envConfig.AZURE_TENANT_ID || '',
     clientId: config?.clientId || envConfig.AZURE_CLIENT_ID || '',
@@ -429,5 +429,5 @@ export function createGraphClient(config?: Partial<GraphConfig>): GraphClient {
     throw new Error('Microsoft Graph credentials not configured')
   }
 
-  return new GraphClient(graphConfig)
+  return new GraphClient(graphConfig);
 }

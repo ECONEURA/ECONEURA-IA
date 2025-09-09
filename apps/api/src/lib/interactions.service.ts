@@ -192,7 +192,7 @@ export class InteractionsService {
   async createInteraction(orgId: string, userId: string, data: z.infer<typeof CreateInteractionSchema>): Promise<Interaction> {
     try {
       const validatedData = CreateInteractionSchema.parse(data);
-      
+
       const interaction: Interaction = {
         id: `interaction-${this.nextId++}`,
         org_id: orgId,
@@ -227,7 +227,7 @@ export class InteractionsService {
   async getInteractions(orgId: string, filters: z.infer<typeof InteractionFiltersSchema>): Promise<{ interactions: Interaction[]; total: number }> {
     try {
       const validatedFilters = InteractionFiltersSchema.parse(filters);
-      
+
       let filteredInteractions = Array.from(this.interactions.values())
         .filter(interaction => interaction.org_id === orgId);
 
@@ -295,7 +295,7 @@ export class InteractionsService {
   async getInteractionById(orgId: string, interactionId: string): Promise<Interaction | null> {
     try {
       const interaction = this.interactions.get(interactionId);
-      
+
       if (!interaction || interaction.org_id !== orgId) {
         return null;
       }
@@ -320,7 +320,7 @@ export class InteractionsService {
     try {
       const validatedData = UpdateInteractionSchema.parse(data);
       const interaction = this.interactions.get(interactionId);
-      
+
       if (!interaction || interaction.org_id !== orgId) {
         return null;
       }
@@ -361,7 +361,7 @@ export class InteractionsService {
   async deleteInteraction(orgId: string, interactionId: string, userId: string): Promise<boolean> {
     try {
       const interaction = this.interactions.get(interactionId);
-      
+
       if (!interaction || interaction.org_id !== orgId) {
         return false;
       }
@@ -411,25 +411,25 @@ export class InteractionsService {
       }, {} as Record<string, number>);
 
       const pendingCount = interactions.filter(i => i.status === 'pending').length;
-      
-      const overdueCount = interactions.filter(i => 
-        i.status === 'pending' && 
-        i.due_date && 
+
+      const overdueCount = interactions.filter(i =>
+        i.status === 'pending' &&
+        i.due_date &&
         new Date(i.due_date) < now
       ).length;
 
-      const completedToday = interactions.filter(i => 
-        i.status === 'completed' && 
-        i.completed_at && 
+      const completedToday = interactions.filter(i =>
+        i.status === 'completed' &&
+        i.completed_at &&
         new Date(i.completed_at) >= today
       ).length;
 
       // Calcular tiempo promedio de completado
-      const completedInteractions = interactions.filter(i => 
+      const completedInteractions = interactions.filter(i =>
         i.status === 'completed' && i.completed_at
       );
-      
-      const avgCompletionTime = completedInteractions.length > 0 
+
+      const avgCompletionTime = completedInteractions.length > 0
         ? completedInteractions.reduce((sum, i) => {
             const created = new Date(i.created_at).getTime();
             const completed = new Date(i.completed_at!).getTime();
@@ -456,7 +456,7 @@ export class InteractionsService {
         const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
         const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
         const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
-        
+
         const count = interactions.filter(i => {
           const created = new Date(i.created_at);
           return created >= dayStart && created < dayEnd;
@@ -506,8 +506,8 @@ export class InteractionsService {
 
       // Calcular tendencias
       const completedInteractions = interactions.filter(i => i.status === 'completed');
-      const completionRate = interactions.length > 0 
-        ? (completedInteractions.length / interactions.length) * 100 
+      const completionRate = interactions.length > 0
+        ? (completedInteractions.length / interactions.length) * 100
         : 0;
 
       // Tiempo promedio de respuesta (simulado)
@@ -534,15 +534,15 @@ export class InteractionsService {
 
       // Generar recomendaciones
       const recommendations: string[] = [];
-      
+
       if (summary.overdue_count > 0) {
         recommendations.push(`Tienes ${summary.overdue_count} interacciones vencidas que requieren atención inmediata.`);
       }
-      
+
       if (completionRate < 70) {
         recommendations.push('La tasa de completado está por debajo del 70%. Considera revisar la carga de trabajo.');
       }
-      
+
       if (summary.avg_completion_time > 24) {
         recommendations.push('El tiempo promedio de completado es alto. Considera optimizar los procesos.');
       }

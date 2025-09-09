@@ -238,7 +238,7 @@ export function gatewayMetricsMiddleware(req: GatewayRequest, res: Response, nex
   // Agregar headers de métricas del gateway
   res.setHeader('X-Gateway-Request-Id', req.headers['x-request-id'] || 'unknown');
   res.setHeader('X-Gateway-Timestamp', new Date().toISOString());
-  
+
   if (req.gatewayInfo) {
     res.setHeader('X-Gateway-Route-Id', req.gatewayInfo.routeId || 'unknown');
     res.setHeader('X-Gateway-Service-Id', req.gatewayInfo.serviceId || 'unknown');
@@ -260,7 +260,7 @@ export function gatewayCircuitBreakerMiddleware(req: GatewayRequest, res: Respon
 
   // Verificar si el servicio está en estado de circuit breaker
   const circuitBreakerThreshold = apiGateway['loadBalancerConfig'].circuitBreakerThreshold;
-  
+
   if (service.errorRate > circuitBreakerThreshold) {
     logger.warn('Circuit breaker activated for service', {
       serviceId: service.id,

@@ -48,7 +48,7 @@ interface BudgetAlert {
   acknowledged: boolean;
 }
 
-export function FinOpsStatus() {
+export function FinOpsStatus(): void {
   const [costMetrics, setCostMetrics] = useState<CostMetrics | null>(null);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [alerts, setAlerts] = useState<BudgetAlert[]>([]);
@@ -111,7 +111,7 @@ export function FinOpsStatus() {
   }, []);
 
   if (loading) {
-    return (
+    return (;
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">FinOps Status</h3>
         <div className="text-center text-gray-500">Loading FinOps data...</div>
@@ -120,7 +120,7 @@ export function FinOpsStatus() {
   }
 
   if (error) {
-    return (
+    return (;
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">FinOps Status</h3>
         <div className="text-red-500 mb-4">Error: {error}</div>
@@ -159,7 +159,7 @@ export function FinOpsStatus() {
     }
   };
 
-  return (
+  return (;
     <Card className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-semibold">FinOps Status</h3>
@@ -201,7 +201,7 @@ export function FinOpsStatus() {
               const isOverThreshold = percentage >= budget.alertThreshold;
               const isOverCritical = percentage >= budget.criticalThreshold;
 
-              return (
+              return (;
                 <div key={budget.id} className="border rounded-lg p-3">
                   <div className="flex justify-between items-start mb-2">
                     <div>

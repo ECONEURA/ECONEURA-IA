@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { 
+import {
   AdvancedConfigurationManagementService,
   AdvancedConfig,
   ConfigTemplate,
@@ -17,7 +17,7 @@ describe('AdvancedConfigurationManagementService', () => {
     it('should initialize with default configurations', async () => {
       const configs = await service.getConfigs();
       expect(configs.length).toBeGreaterThan(0);
-      
+
       const apiRateLimit = configs.find(c => c.name === 'api_rate_limit');
       expect(apiRateLimit).toBeDefined();
       expect(apiRateLimit?.value).toBe(1000);
@@ -27,7 +27,7 @@ describe('AdvancedConfigurationManagementService', () => {
     it('should initialize with default templates', async () => {
       const templates = await service.getTemplates();
       expect(templates.length).toBeGreaterThan(0);
-      
+
       const apiTemplate = templates.find(t => t.name === 'api_configuration');
       expect(apiTemplate).toBeDefined();
       expect(apiTemplate?.category).toBe('system');
@@ -54,7 +54,7 @@ describe('AdvancedConfigurationManagementService', () => {
       };
 
       const config = await service.createConfig(configData);
-      
+
       expect(config.id).toBeDefined();
       expect(config.name).toBe('test_config');
       expect(config.value).toBe('test_value');
@@ -64,7 +64,7 @@ describe('AdvancedConfigurationManagementService', () => {
     it('should retrieve configuration by ID', async () => {
       const configs = await service.getConfigs();
       const firstConfig = configs[0];
-      
+
       const retrieved = await service.getConfig(firstConfig.id!);
       expect(retrieved).toBeDefined();
       expect(retrieved?.id).toBe(firstConfig.id);
@@ -81,17 +81,17 @@ describe('AdvancedConfigurationManagementService', () => {
     it('should update configuration', async () => {
       const configs = await service.getConfigs();
       const firstConfig = configs[0];
-      
+
       // Update with a value that matches the config type
-      const updateValue = firstConfig.type === 'string' ? 'updated_value' : 
-                         firstConfig.type === 'number' ? 42 : 
+      const updateValue = firstConfig.type === 'string' ? 'updated_value' :
+                         firstConfig.type === 'number' ? 42 :
                          firstConfig.type === 'boolean' ? true : 'updated_value';
-      
+
       const updated = await service.updateConfig(firstConfig.id!, {
         value: updateValue,
         updatedBy: 'test-user'
       }, 'test-user');
-      
+
       expect(updated).toBeDefined();
       expect(updated?.value).toBe(updateValue);
       expect(updated?.updatedBy).toBe('test-user');
@@ -117,9 +117,9 @@ describe('AdvancedConfigurationManagementService', () => {
 
       const config = await service.createConfig(configData);
       const deleted = await service.deleteConfig(config.id!, 'test-user');
-      
+
       expect(deleted).toBe(true);
-      
+
       const retrieved = await service.getConfig(config.id!);
       expect(retrieved).toBeNull();
     });
@@ -133,7 +133,7 @@ describe('AdvancedConfigurationManagementService', () => {
     it('should filter configurations by environment', async () => {
       const devConfigs = await service.getConfigs({ environment: 'development' });
       const allConfigs = await service.getConfigs({ environment: 'all' });
-      
+
       expect(devConfigs.length).toBeGreaterThan(0);
       expect(allConfigs.length).toBeGreaterThan(0);
     });
@@ -269,7 +269,7 @@ describe('AdvancedConfigurationManagementService', () => {
       };
 
       const template = await service.createTemplate(templateData);
-      
+
       expect(template.id).toBeDefined();
       expect(template.name).toBe('test_template');
       expect(template.template).toEqual(templateData.template);
@@ -278,7 +278,7 @@ describe('AdvancedConfigurationManagementService', () => {
     it('should generate configurations from template', async () => {
       const templates = await service.getTemplates();
       const apiTemplate = templates.find(t => t.name === 'api_configuration');
-      
+
       if (apiTemplate) {
         const variables = {
           rate_limit: 2000,
@@ -288,7 +288,7 @@ describe('AdvancedConfigurationManagementService', () => {
         };
 
         const configs = await service.generateConfigFromTemplate(apiTemplate.id!, variables);
-        
+
         expect(configs.length).toBeGreaterThan(0);
         expect(configs.every(c => c.tags.includes('template-generated'))).toBe(true);
       }
@@ -307,7 +307,7 @@ describe('AdvancedConfigurationManagementService', () => {
       };
 
       const deployment = await service.createDeployment(deploymentData);
-      
+
       expect(deployment.id).toBeDefined();
       expect(deployment.name).toBe('test_deployment');
       expect(deployment.status).toBe('pending');
@@ -327,7 +327,7 @@ describe('AdvancedConfigurationManagementService', () => {
 
       const deployment = await service.createDeployment(deploymentData);
       const result = await service.executeDeployment(deployment.id!, 'test-user');
-      
+
       expect(result.success).toBe(true);
       expect(result.message).toContain('completed successfully');
     });
@@ -354,10 +354,10 @@ describe('AdvancedConfigurationManagementService', () => {
       };
 
       await service.createConfig(configData);
-      
+
       const auditLog = await service.getAuditLog();
       expect(auditLog.length).toBeGreaterThan(0);
-      
+
       const createAudit = auditLog.find(a => a.action === 'create');
       expect(createAudit).toBeDefined();
       expect(createAudit?.userId).toBe('test-user');
@@ -365,7 +365,7 @@ describe('AdvancedConfigurationManagementService', () => {
 
     it('should retrieve metrics', async () => {
       const metrics = await service.getMetrics();
-      
+
       expect(metrics.totalConfigs).toBeGreaterThan(0);
       expect(metrics.activeConfigs).toBeGreaterThan(0);
       expect(metrics.configsByCategory).toBeDefined();
@@ -387,7 +387,7 @@ describe('AdvancedConfigurationManagementService', () => {
     it('should cache configuration values', async () => {
       const value1 = await service.getConfigValue('api_rate_limit');
       const value2 = await service.getConfigValue('api_rate_limit');
-      
+
       expect(value1).toBe(value2);
       expect(value1).toBe(1000);
     });
@@ -402,7 +402,7 @@ describe('AdvancedConfigurationManagementService', () => {
   describe('Export and Import', () => {
     it('should export configurations', async () => {
       const exported = await service.exportConfigs('development');
-      
+
       expect(exported).toBeDefined();
       expect(typeof exported).toBe('object');
       expect(Object.keys(exported).length).toBeGreaterThan(0);
@@ -416,11 +416,11 @@ describe('AdvancedConfigurationManagementService', () => {
       };
 
       const result = await service.importConfigs(
-        configsToImport, 
-        'development', 
+        configsToImport,
+        'development',
         'test-user'
       );
-      
+
       expect(result.success).toBe(true);
       expect(result.imported).toBe(3);
       expect(result.errors).toHaveLength(0);
@@ -433,11 +433,11 @@ describe('AdvancedConfigurationManagementService', () => {
       };
 
       const result = await service.importConfigs(
-        invalidConfigs, 
-        'development', 
+        invalidConfigs,
+        'development',
         'test-user'
       );
-      
+
       expect(result.success).toBe(false);
       expect(result.imported).toBe(1); // Only valid config imported
       expect(result.errors.length).toBeGreaterThan(0);

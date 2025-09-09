@@ -52,7 +52,7 @@ export class CircuitBreakerService extends EventEmitter {
    * Register a circuit breaker for a service
    */
   registerCircuit(
-    name: string, 
+    name: string,
     config: CircuitBreakerConfig
   ): void {
     this.configs.set(name, config);
@@ -110,7 +110,7 @@ export class CircuitBreakerService extends EventEmitter {
 
       // Execute operation
       const result = await operation();
-      
+
       // Record success
       this.recordSuccess(circuitName, circuit, startTime);
       return result;
@@ -118,7 +118,7 @@ export class CircuitBreakerService extends EventEmitter {
     } catch (error) {
       // Record failure
       this.recordFailure(circuitName, circuit, config, startTime);
-      
+
       // Try fallback if available
       if (fallback) {
         try {
@@ -136,7 +136,7 @@ export class CircuitBreakerService extends EventEmitter {
           throw fallbackError;
         }
       }
-      
+
       throw error;
     }
   }
@@ -144,7 +144,7 @@ export class CircuitBreakerService extends EventEmitter {
   private recordSuccess(circuitName: string, circuit: CircuitBreakerState, startTime: number): void {
     circuit.failureCount = 0;
     circuit.successCount++;
-    
+
     if (circuit.state === 'HALF_OPEN') {
       circuit.state = 'CLOSED';
     }
@@ -165,8 +165,8 @@ export class CircuitBreakerService extends EventEmitter {
   }
 
   private recordFailure(
-    circuitName: string, 
-    circuit: CircuitBreakerState, 
+    circuitName: string,
+    circuit: CircuitBreakerState,
     config: CircuitBreakerConfig,
     startTime: number
   ): void {
@@ -254,7 +254,7 @@ export class CircuitBreakerService extends EventEmitter {
       circuit.successCount = 0;
       circuit.lastFailureTime = 0;
       circuit.nextAttemptTime = 0;
-      
+
       this.updateStateMetric(circuitName, circuit.state);
       this.emit('reset', { circuitName, circuit });
     }

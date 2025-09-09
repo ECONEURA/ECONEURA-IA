@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  BookOpen, 
-  Search, 
-  Plus, 
-  X, 
-  Briefcase, 
-  Palette, 
-  BarChart3, 
+import {
+  BookOpen,
+  Search,
+  Plus,
+  X,
+  Briefcase,
+  Palette,
+  BarChart3,
   Code,
   ChevronDown,
   ChevronRight
@@ -34,7 +34,7 @@ const categoryColors = {
   technical: 'bg-orange-100 text-orange-800'
 };
 
-export function PromptTemplates({ onTemplateSelect, onClose }: PromptTemplatesProps) {
+export function PromptTemplates({ onTemplateSelect, onClose }: PromptTemplatesProps): void {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['business']));
@@ -48,11 +48,11 @@ export function PromptTemplates({ onTemplateSelect, onClose }: PromptTemplatesPr
     { id: 'technical', name: 'Técnico', icon: Code }
   ];
 
-  const filteredTemplates = selectedCategory === 'all' 
+  const filteredTemplates = selectedCategory === 'all'
     ? promptManager.getAllTemplates()
     : promptManager.getTemplatesByCategory(selectedCategory);
 
-  const searchResults = searchQuery 
+  const searchResults = searchQuery
     ? promptManager.searchTemplates(searchQuery)
     : filteredTemplates;
 
@@ -93,7 +93,7 @@ export function PromptTemplates({ onTemplateSelect, onClose }: PromptTemplatesPr
     return selectedTemplate.variables.every(variable => templateVariables[variable]?.trim());
   };
 
-  return (
+  return (;
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl h-[80vh] flex flex-col">
         {/* Header */}
@@ -134,8 +134,8 @@ export function PromptTemplates({ onTemplateSelect, onClose }: PromptTemplatesPr
                   const Icon = category.icon;
                   const templates = promptManager.getTemplatesByCategory(category.id);
                   const isExpanded = expandedCategories.has(category.id);
-                  
-                  return (
+
+                  return (;
                     <div key={category.id} className="border rounded-lg">
                       <button
                         onClick={() => toggleCategory(category.id)}
@@ -148,7 +148,7 @@ export function PromptTemplates({ onTemplateSelect, onClose }: PromptTemplatesPr
                         </div>
                         {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                       </button>
-                      
+
                       {isExpanded && (
                         <div className="border-t bg-white">
                           {templates.map(template => (
@@ -185,7 +185,7 @@ export function PromptTemplates({ onTemplateSelect, onClose }: PromptTemplatesPr
                     <h3 className="text-lg font-semibold">{selectedTemplate.name}</h3>
                   </div>
                   <p className="text-gray-600 mb-4">{selectedTemplate.description}</p>
-                  
+
                   {/* Variables */}
                   <div className="space-y-3">
                     <h4 className="font-medium">Variables requeridas:</h4>

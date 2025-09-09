@@ -127,7 +127,7 @@ dlgGroomingRouter.get('/messages', async (req, res) => {
   try {
     const filters = GetDLQMessagesSchema.parse(req.query);
     const messages = await dlgGroomingService.getDLQMessages(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -152,14 +152,14 @@ dlgGroomingRouter.get('/messages/:id', async (req, res) => {
     const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
     const messages = await dlgGroomingService.getDLQMessages('demo-org-1', { limit: 1000 });
     const message = messages.find(m => m.id === id);
-    
+
     if (!message) {
       return res.status(404).json({
         success: false,
         error: 'Message not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: message,
@@ -179,7 +179,7 @@ dlgGroomingRouter.post('/messages', async (req, res) => {
   try {
     const messageData = CreateDLQMessageSchema.parse(req.body);
     const message = await dlgGroomingService.createDLQMessage(messageData);
-    
+
     res.status(201).json({
       success: true,
       data: message,
@@ -200,7 +200,7 @@ dlgGroomingRouter.get('/patterns', async (req, res) => {
   try {
     const filters = GetPatternsSchema.parse(req.query);
     const patterns = await dlgGroomingService.getPatterns(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -224,7 +224,7 @@ dlgGroomingRouter.post('/patterns', async (req, res) => {
   try {
     const patternData = CreatePatternSchema.parse(req.body);
     const pattern = await dlgGroomingService.createPattern(patternData);
-    
+
     res.status(201).json({
       success: true,
       data: pattern,
@@ -245,7 +245,7 @@ dlgGroomingRouter.post('/messages/:id/analyze', async (req, res) => {
   try {
     const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
     const message = await dlgGroomingService.analyzeMessage(id);
-    
+
     res.json({
       success: true,
       data: message,
@@ -266,7 +266,7 @@ dlgGroomingRouter.post('/messages/:id/groom', async (req, res) => {
     const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
     const action = GroomMessageSchema.parse(req.body);
     const message = await dlgGroomingService.groomMessage(id, action);
-    
+
     res.json({
       success: true,
       data: message,
@@ -286,7 +286,7 @@ dlgGroomingRouter.post('/messages/:id/groom', async (req, res) => {
 dlgGroomingRouter.post('/process-pending', async (req, res) => {
   try {
     await dlgGroomingService.processPendingMessages();
-    
+
     res.json({
       success: true,
       message: 'Pending messages processed',
@@ -304,7 +304,7 @@ dlgGroomingRouter.post('/process-pending', async (req, res) => {
 dlgGroomingRouter.post('/process-retries', async (req, res) => {
   try {
     await dlgGroomingService.processScheduledRetries();
-    
+
     res.json({
       success: true,
       message: 'Scheduled retries processed',
@@ -330,7 +330,7 @@ dlgGroomingRouter.post('/reports', async (req, res) => {
       reportData.endDate,
       reportData.generatedBy
     );
-    
+
     res.status(201).json({
       success: true,
       data: report,
@@ -351,7 +351,7 @@ dlgGroomingRouter.get('/stats', async (req, res) => {
   try {
     const { organizationId } = GetStatsSchema.parse(req.query);
     const stats = await dlgGroomingService.getStats(organizationId);
-    
+
     res.json({
       success: true,
       data: stats,
@@ -371,7 +371,7 @@ dlgGroomingRouter.get('/stats', async (req, res) => {
 dlgGroomingRouter.get('/health', async (req, res) => {
   try {
     const stats = await dlgGroomingService.getStats('demo-org-1');
-    
+
     res.json({
       success: true,
       data: {

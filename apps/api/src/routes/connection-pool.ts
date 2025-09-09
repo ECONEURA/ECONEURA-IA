@@ -1,6 +1,6 @@
 /**
  * PR-50: Connection Pool Routes
- * 
+ *
  * Endpoints para gestionar pools de conexiones
  * y monitorear métricas de conexiones en tiempo real.
  */
@@ -110,7 +110,7 @@ router.get('/:poolName/stats', async (req, res) => {
 
   try {
     const poolStats = connectionPoolService.getPoolStats(poolName);
-    
+
     if (!poolStats) {
       return res.status(404).json({
         success: false,
@@ -127,7 +127,7 @@ router.get('/:poolName/stats', async (req, res) => {
         active: poolStats.metrics.active,
         idle: poolStats.metrics.idle,
         waiting: poolStats.metrics.waiting,
-        utilizationRate: poolStats.metrics.total > 0 ? 
+        utilizationRate: poolStats.metrics.total > 0 ?
           (poolStats.metrics.active / poolStats.metrics.total) * 100 : 0
       },
       performance: {
@@ -140,7 +140,7 @@ router.get('/:poolName/stats', async (req, res) => {
         created: poolStats.metrics.created,
         destroyed: poolStats.metrics.destroyed,
         failed: poolStats.metrics.failed,
-        failureRate: poolStats.metrics.created > 0 ? 
+        failureRate: poolStats.metrics.created > 0 ?
           (poolStats.metrics.failed / poolStats.metrics.created) * 100 : 0,
         circuitBreakerStatus: poolStats.circuitBreakerStatus
       },
@@ -198,7 +198,7 @@ router.post('/create', async (req, res) => {
 
   try {
     const { name, type, config } = CreatePoolSchema.parse(req.body);
-    
+
     // Verificar si el pool ya existe
     const existingPool = connectionPoolService.getPoolStats(name);
     if (existingPool) {
@@ -219,7 +219,7 @@ router.post('/create', async (req, res) => {
     });
 
     connectionPoolService.createPool(name, type, config);
-    
+
     const newPoolStats = connectionPoolService.getPoolStats(name);
 
     structuredLogger.info('Connection pool created successfully', {
@@ -274,7 +274,7 @@ router.put('/:poolName/config', async (req, res) => {
 
   try {
     const configData = PoolConfigSchema.parse(req.body);
-    
+
     // Verificar si el pool existe
     const existingPool = connectionPoolService.getPoolStats(poolName);
     if (!existingPool) {
@@ -294,7 +294,7 @@ router.put('/:poolName/config', async (req, res) => {
     });
 
     connectionPoolService.updatePoolConfig(poolName, configData);
-    
+
     const updatedPoolStats = connectionPoolService.getPoolStats(poolName);
 
     structuredLogger.info('Pool configuration updated successfully', {
@@ -359,7 +359,7 @@ router.post('/:poolName/acquire', async (req, res) => {
     });
 
     const connection = await connectionPoolService.acquireConnection(poolName, timeout);
-    
+
     if (!connection) {
       return res.status(503).json({
         success: false,
@@ -490,7 +490,7 @@ router.get('/:poolName/connections', async (req, res) => {
 
   try {
     const poolStats = connectionPoolService.getPoolStats(poolName);
-    
+
     if (!poolStats) {
       return res.status(404).json({
         success: false,
@@ -527,12 +527,12 @@ router.get('/:poolName/connections', async (req, res) => {
         acc[conn.healthStatus] = (acc[conn.healthStatus] || 0) + 1;
         return acc;
       }, {} as Record<string, number>),
-      avgResponseTime: poolStats.connections.length > 0 ? 
+      avgResponseTime: poolStats.connections.length > 0 ?
         poolStats.connections.reduce((sum, conn) => sum + conn.responseTime, 0) / poolStats.connections.length : 0,
       totalErrors: poolStats.connections.reduce((sum, conn) => sum + conn.errorCount, 0),
-      oldestConnection: poolStats.connections.length > 0 ? 
+      oldestConnection: poolStats.connections.length > 0 ?
         Math.min(...poolStats.connections.map(c => c.createdAt)) : 0,
-      newestConnection: poolStats.connections.length > 0 ? 
+      newestConnection: poolStats.connections.length > 0 ?
         Math.max(...poolStats.connections.map(c => c.createdAt)) : 0
     };
 
@@ -596,7 +596,7 @@ router.get('/:poolName/health', async (req, res) => {
 
   try {
     const poolStats = connectionPoolService.getPoolStats(poolName);
-    
+
     if (!poolStats) {
       return res.status(404).json({
         success: false,
@@ -613,7 +613,7 @@ router.get('/:poolName/health', async (req, res) => {
       circuitBreakerClosed: poolStats.circuitBreakerStatus === 'closed',
       recentHealthCheck: Date.now() - poolStats.lastHealthCheck < 60000, // Último health check hace menos de 1 minuto
       hasActiveConnections: poolStats.metrics.active > 0,
-      lowFailureRate: poolStats.metrics.created > 0 ? 
+      lowFailureRate: poolStats.metrics.created > 0 ?
         (poolStats.metrics.failed / poolStats.metrics.created) < 0.1 : true
     };
 
@@ -670,7 +670,7 @@ router.get('/health', async (req, res) => {
   try {
     const stats = connectionPoolService.getStats();
     const pools = Array.from(stats.values());
-    
+
     // Evaluar salud global
     const healthChecks = {
       hasPools: pools.length > 0,

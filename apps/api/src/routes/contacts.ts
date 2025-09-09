@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { 
-  ContactSchema, 
-  CreateContactSchema, 
-  UpdateContactSchema, 
-  ContactFilterSchema 
+import {
+  ContactSchema,
+  CreateContactSchema,
+  UpdateContactSchema,
+  ContactFilterSchema
 } from '@econeura/shared/src/schemas/crm';
 import { PaginationRequestSchema } from '@econeura/shared/src/schemas/common';
 import { db } from '../lib/database.js';
@@ -31,9 +31,9 @@ router.get('/', async (req, res) => {
 
     // Build query with filters
     let query = db.select().from(contacts);
-    
+
     const conditions = [];
-    
+
     if (filters.q) {
       conditions.push(
         or(
@@ -43,19 +43,19 @@ router.get('/', async (req, res) => {
         )
       );
     }
-    
+
     if (filters.companyId) {
       conditions.push(eq(contacts.companyId, filters.companyId));
     }
-    
+
     if (filters.status) {
       conditions.push(eq(contacts.status, filters.status));
     }
-    
+
     if (filters.isPrimary !== undefined) {
       conditions.push(eq(contacts.isPrimary, filters.isPrimary));
     }
-    
+
     if (filters.department) {
       conditions.push(eq(contacts.department, filters.department));
     }
@@ -100,10 +100,10 @@ router.get('/', async (req, res) => {
       orgId: req.headers['x-org-id'],
       query: req.query
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to retrieve contacts',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -113,7 +113,7 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const orgId = req.headers['x-org-id'] as string;
-    
+
     if (!orgId) {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
@@ -128,7 +128,7 @@ router.get('/:id', async (req, res) => {
       .limit(1);
 
     if (!contact) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Contact not found',
         message: `Contact with ID ${id} not found or access denied`
       });
@@ -146,10 +146,10 @@ router.get('/:id', async (req, res) => {
       orgId: req.headers['x-org-id'],
       contactId: req.params.id
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to retrieve contact',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -159,7 +159,7 @@ router.post('/', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string;
     const userId = req.headers['x-user-id'] as string;
-    
+
     if (!orgId) {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
@@ -208,10 +208,10 @@ router.post('/', async (req, res) => {
       userId: req.headers['x-user-id'],
       body: req.body
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to create contact',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -222,7 +222,7 @@ router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const orgId = req.headers['x-org-id'] as string;
     const userId = req.headers['x-user-id'] as string;
-    
+
     if (!orgId) {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
@@ -243,7 +243,7 @@ router.put('/:id', async (req, res) => {
       .returning();
 
     if (!updatedContact) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Contact not found',
         message: `Contact with ID ${id} not found or access denied`
       });
@@ -275,10 +275,10 @@ router.put('/:id', async (req, res) => {
       contactId: req.params.id,
       body: req.body
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to update contact',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -289,7 +289,7 @@ router.delete('/:id', async (req, res) => {
     const { id } = req.params;
     const orgId = req.headers['x-org-id'] as string;
     const userId = req.headers['x-user-id'] as string;
-    
+
     if (!orgId) {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
@@ -307,7 +307,7 @@ router.delete('/:id', async (req, res) => {
       .returning();
 
     if (!deletedContact) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Contact not found',
         message: `Contact with ID ${id} not found or access denied`
       });
@@ -328,10 +328,10 @@ router.delete('/:id', async (req, res) => {
       userId: req.headers['x-user-id'],
       contactId: req.params.id
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to delete contact',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });

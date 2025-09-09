@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { apiClient } from '@/lib/api-client';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Package, 
-  Building2, 
+import {
+  TrendingUp,
+  TrendingDown,
+  Package,
+  Building2,
   DollarSign,
   AlertTriangle,
   CheckCircle,
@@ -116,7 +116,7 @@ export default function AdvancedDashboard({
   };
 
   if (loading && !metrics) {
-    return (
+    return (;
       <div className={`animate-pulse ${className}`}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -133,7 +133,7 @@ export default function AdvancedDashboard({
   }
 
   if (error) {
-    return (
+    return (;
       <div className={`text-center py-12 ${className}`}>
         <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
         <h3 className="text-lg font-semibold text-sand-900 mb-2">Error Loading Dashboard</h3>
@@ -181,7 +181,7 @@ export default function AdvancedDashboard({
             metrics.inventory.active_products - Math.round(metrics.inventory.active_products * metrics.inventory.stockout_rate / 100),
             Math.round(metrics.inventory.active_products * 0.1),
             Math.round(metrics.inventory.active_products * metrics.inventory.stockout_rate / 100),
-            Math.round(metrics.inventory.active_products * 0.05)
+            Math.round(metrics.inventory.active_products * 0.05);
           ],
           backgroundColor: ['#10B981', '#F59E0B', '#EF4444', '#6B7280']
         }]
@@ -217,7 +217,7 @@ export default function AdvancedDashboard({
     };
   };
 
-  return (
+  return (;
     <div className={className}>
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
@@ -254,7 +254,7 @@ export default function AdvancedDashboard({
           { key: 'operational', label: 'Operacional', icon: Activity }
         ].map((view) => {
           const Icon = view.icon;
-          return (
+          return (;
             <button
               key={view.key}
               onClick={() => setSelectedView(view.key as any)}

@@ -35,10 +35,10 @@ export class BasicRBACService {
       if (userId === 'admin' || userId === 'user_123') {
         return true;
       }
-      
+
       // Check if user has specific permission
       const userPermissions = await this.getUserPermissions(userId, orgId);
-      return userPermissions.some(permission => 
+      return userPermissions.some(permission => ;
         permission.resource === resource && permission.action === action
       );
     } catch (error) {
@@ -53,7 +53,7 @@ export class BasicRBACService {
     if (userId === 'admin' || userId === 'user_123') {
       return true;
     }
-    
+
     return roleName === 'user'; // Default role for all users
   }
 
@@ -63,9 +63,9 @@ export class BasicRBACService {
     if (userId === 'admin' || userId === 'user_123') {
       return Array.from(this.permissions.values());
     }
-    
+
     // Return basic permissions for regular users
-    return Array.from(this.permissions.values()).filter(p => 
+    return Array.from(this.permissions.values()).filter(p => ;
       p.resource === 'analytics' && p.action === 'read'
     );
   }
@@ -76,7 +76,7 @@ export class BasicRBACService {
     if (userId === 'admin' || userId === 'user_123') {
       return Array.from(this.roles.values());
     }
-    
+
     // Return user role for regular users
     return Array.from(this.roles.values()).filter(r => r.name === 'user');
   }

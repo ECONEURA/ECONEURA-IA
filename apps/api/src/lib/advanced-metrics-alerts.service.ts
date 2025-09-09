@@ -147,7 +147,7 @@ export class AdvancedMetricsAlertsService {
   async collectMetrics(): Promise<Metric[]> {
     try {
       logger.info('Starting metric collection');
-      
+
       // Simular recolección de métricas desde Prometheus
       const prometheusMetrics = prometheus.register.getMetricsAsJSON();
       const collectedMetrics: Metric[] = [];
@@ -233,8 +233,8 @@ export class AdvancedMetricsAlertsService {
         metrics = metrics.filter(m => m.type === filter.type);
       }
       if (filter.timeRange) {
-        metrics = metrics.filter(m => 
-          m.timestamp >= filter.timeRange!.start && 
+        metrics = metrics.filter(m =>
+          m.timestamp >= filter.timeRange!.start &&
           m.timestamp <= filter.timeRange!.end
         );
       }
@@ -249,7 +249,7 @@ export class AdvancedMetricsAlertsService {
 
   async getMetricTrends(metricName: string, period: string): Promise<MetricTrend[]> {
     const metrics = await this.getMetricByName(metricName);
-    
+
     if (metrics.length === 0) {
       return [];
     }
@@ -275,17 +275,17 @@ export class AdvancedMetricsAlertsService {
 
   private calculateTrend(metrics: Metric[]): 'INCREASING' | 'DECREASING' | 'STABLE' | 'VOLATILE' {
     if (metrics.length < 2) return 'STABLE';
-    
+
     const values = metrics.map(m => m.value);
     const firstHalf = values.slice(0, Math.floor(values.length / 2));
     const secondHalf = values.slice(Math.floor(values.length / 2));
-    
+
     const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
     const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
-    
+
     const change = (secondAvg - firstAvg) / firstAvg;
     const volatility = this.calculateVolatility(values);
-    
+
     if (volatility > 0.2) return 'VOLATILE';
     if (change > 0.1) return 'INCREASING';
     if (change < -0.1) return 'DECREASING';
@@ -294,31 +294,31 @@ export class AdvancedMetricsAlertsService {
 
   private calculateChangePercent(metrics: Metric[]): number {
     if (metrics.length < 2) return 0;
-    
+
     const first = metrics[0].value;
     const last = metrics[metrics.length - 1].value;
-    
+
     return ((last - first) / first) * 100;
   }
 
   private calculateVolatility(values: number[]): number {
     if (values.length < 2) return 0;
-    
+
     const mean = values.reduce((a, b) => a + b, 0) / values.length;
     const variance = values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length;
-    
+
     return Math.sqrt(variance) / mean;
   }
 
   private predictNextValue(metrics: Metric[]): number {
     if (metrics.length < 2) return metrics[0]?.value || 0;
-    
+
     // Simple predicción lineal
     const recent = metrics.slice(-5);
     const trend = this.calculateTrend(recent);
-    
+
     const lastValue = recent[recent.length - 1].value;
-    
+
     switch (trend) {
       case 'INCREASING':
         return lastValue * 1.05;
@@ -385,7 +385,7 @@ export class AdvancedMetricsAlertsService {
 
   async evaluateAlertRules(): Promise<Alert[]> {
     const newAlerts: Alert[] = [];
-    
+
     for (const rule of Array.from(this.alertRules.values())) {
       if (!rule.enabled) continue;
 
@@ -394,7 +394,7 @@ export class AdvancedMetricsAlertsService {
         if (alert) {
           this.alerts.set(alert.id, alert);
           newAlerts.push(alert);
-          
+
           // Enviar notificaciones
           await this.sendAlertNotifications(alert, rule);
         }
@@ -414,25 +414,25 @@ export class AdvancedMetricsAlertsService {
     // Filtrar por ventana de tiempo
     const windowStart = new Date(Date.now() - rule.condition.window * 1000);
     const recentMetrics = metrics.filter(m => m.timestamp >= windowStart);
-    
+
     if (recentMetrics.length === 0) return null;
 
     // Aplicar agregación
     const aggregatedValue = this.aggregateMetrics(recentMetrics, rule.condition.aggregation);
-    
+
     // Evaluar condición
     const conditionMet = this.evaluateCondition(aggregatedValue, rule.condition.operator, rule.condition.threshold);
-    
+
     if (!conditionMet) return null;
 
     // Verificar cooldown
     const existingAlerts = Array.from(this.alerts.values())
       .filter(a => a.ruleId === rule.id && a.status === 'ACTIVE');
-    
+
     if (existingAlerts.length > 0) {
       const lastAlert = existingAlerts[existingAlerts.length - 1];
       const timeSinceLastAlert = Date.now() - lastAlert.timestamp.getTime();
-      
+
       if (timeSinceLastAlert < rule.cooldown * 1000) {
         return null; // En cooldown
       }
@@ -463,7 +463,7 @@ export class AdvancedMetricsAlertsService {
 
   private aggregateMetrics(metrics: Metric[], aggregation: string): number {
     const values = metrics.map(m => m.value);
-    
+
     switch (aggregation) {
       case 'avg':
         return values.reduce((a, b) => a + b, 0) / values.length;
@@ -655,13 +655,13 @@ export class AdvancedMetricsAlertsService {
       const validResults = complianceResults
         .filter(r => r.status === 'fulfilled')
         .map(r => (r as PromiseFulfilledResult<any>).value.compliance);
-      
+
       if (validResults.length > 0) {
         averageCompliance = validResults.reduce((a, b) => a + b, 0) / validResults.length;
       }
     }
 
-    const lastCollection = metrics.length > 0 
+    const lastCollection = metrics.length > 0
       ? new Date(Math.max(...metrics.map(m => m.timestamp.getTime())))
       : null;
 

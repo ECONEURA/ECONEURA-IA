@@ -131,13 +131,13 @@ export interface IInventorySystem {
   updateProduct(id: string, updates: Partial<Product>): Promise<Product>;
   deleteProduct(id: string): Promise<void>;
   listProducts(filters?: ProductFilters): Promise<Product[]>;
-  
+
   // Transacciones Kardex
   addTransaction(transaction: Omit<KardexTransaction, 'id' | 'createdAt'>): Promise<KardexTransaction>;
   getTransaction(id: string): Promise<KardexTransaction | null>;
   listTransactions(filters?: TransactionFilters): Promise<KardexTransaction[]>;
   getProductKardex(productId: string): Promise<KardexTransaction[]>;
-  
+
   // Alertas
   createAlert(alert: Omit<StockAlert, 'id' | 'createdAt' | 'updatedAt'>): Promise<StockAlert>;
   getAlert(id: string): Promise<StockAlert | null>;
@@ -146,12 +146,12 @@ export interface IInventorySystem {
   listAlerts(filters?: AlertFilters): Promise<StockAlert[]>;
   acknowledgeAlert(id: string, userId: string): Promise<void>;
   resolveAlert(id: string): Promise<void>;
-  
+
   // Reportes
   getInventoryReport(): Promise<InventoryReport>;
   getProductReport(productId: string): Promise<any>;
   getKardexReport(productId: string, fromDate?: Date, toDate?: Date): Promise<any>;
-  
+
   // Utilidades
   checkStockLevels(): Promise<void>;
   calculateTurnoverRate(productId: string, days?: number): Promise<number>;
@@ -218,7 +218,7 @@ class InventorySystemImpl implements IInventorySystem {
   async createProduct(product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): Promise<Product> {
     const id = `prod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date();
-    
+
     const newProduct: Product = {
       ...product,
       id,
@@ -227,10 +227,10 @@ class InventorySystemImpl implements IInventorySystem {
     };
 
     this.products.set(id, newProduct);
-    
+
     // Verificar niveles de stock después de crear
     await this.checkStockLevels();
-    
+
     return newProduct;
   }
 
@@ -251,10 +251,10 @@ class InventorySystemImpl implements IInventorySystem {
     };
 
     this.products.set(id, updatedProduct);
-    
+
     // Verificar niveles de stock después de actualizar
     await this.checkStockLevels();
-    
+
     return updatedProduct;
   }
 
@@ -306,13 +306,13 @@ class InventorySystemImpl implements IInventorySystem {
     if (filters?.expiring) {
       const now = new Date();
       const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-      products = products.filter(p => 
+      products = products.filter(p =>
         p.expiryDate && p.expiryDate <= thirtyDaysFromNow && p.currentStock > 0
       );
     }
 
     if (filters?.tags && filters.tags.length > 0) {
-      products = products.filter(p => 
+      products = products.filter(p =>
         p.tags?.some(tag => filters.tags!.includes(tag))
       );
     }
@@ -327,7 +327,7 @@ class InventorySystemImpl implements IInventorySystem {
   async addTransaction(transaction: Omit<KardexTransaction, 'id' | 'createdAt'>): Promise<KardexTransaction> {
     const id = `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date();
-    
+
     const newTransaction: KardexTransaction = {
       ...transaction,
       id,
@@ -370,10 +370,10 @@ class InventorySystemImpl implements IInventorySystem {
     });
 
     this.transactions.set(id, newTransaction);
-    
+
     // Verificar niveles de stock después de la transacción
     await this.checkStockLevels();
-    
+
     return newTransaction;
   }
 
@@ -422,7 +422,7 @@ class InventorySystemImpl implements IInventorySystem {
   async createAlert(alert: Omit<StockAlert, 'id' | 'createdAt' | 'updatedAt'>): Promise<StockAlert> {
     const id = `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date();
-    
+
     const newAlert: StockAlert = {
       ...alert,
       id,
@@ -519,16 +519,16 @@ class InventorySystemImpl implements IInventorySystem {
   async getInventoryReport(): Promise<InventoryReport> {
     const products = Array.from(this.products.values());
     const transactions = Array.from(this.transactions.values());
-    
+
     const totalProducts = products.length;
     const totalValue = products.reduce((sum, p) => sum + (p.currentStock * p.cost), 0);
     const lowStockItems = products.filter(p => p.currentStock <= p.reorderPoint).length;
     const outOfStockItems = products.filter(p => p.currentStock === 0).length;
     const overstockItems = products.filter(p => p.currentStock > p.maxStock).length;
-    
+
     const now = new Date();
     const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-    const expiringItems = products.filter(p => 
+    const expiringItems = products.filter(p =>
       p.expiryDate && p.expiryDate <= thirtyDaysFromNow && p.currentStock > 0
     ).length;
 
@@ -539,7 +539,7 @@ class InventorySystemImpl implements IInventorySystem {
     }
     const turnoverRate = products.length > 0 ? totalTurnoverRate / products.length : 0;
 
-    const averageCost = products.length > 0 
+    const averageCost = products.length > 0
       ? products.reduce((sum, p) => sum + p.cost, 0) / products.length
       : 0;
 
@@ -655,7 +655,7 @@ class InventorySystemImpl implements IInventorySystem {
         totalSold: transactions
           .filter(t => t.type === 'sale')
           .reduce((sum, t) => sum + t.quantity, 0),
-        averageCost: transactions.length > 0 
+        averageCost: transactions.length > 0
           ? transactions.reduce((sum, t) => sum + t.unitCost, 0) / transactions.length
           : 0,
       },
@@ -668,7 +668,7 @@ class InventorySystemImpl implements IInventorySystem {
 
   async checkStockLevels(): Promise<void> {
     const products = Array.from(this.products.values());
-    
+
     for (const product of products) {
       // Verificar stock bajo
       if (product.currentStock <= product.reorderPoint && product.currentStock > 0) {
@@ -689,7 +689,7 @@ class InventorySystemImpl implements IInventorySystem {
       if (product.expiryDate) {
         const now = new Date();
         const daysUntilExpiry = Math.ceil((product.expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-        
+
         if (daysUntilExpiry <= 7 && product.currentStock > 0) {
           await this.createExpiryAlert(product, 'critical');
         } else if (daysUntilExpiry <= 30 && product.currentStock > 0) {
@@ -701,15 +701,15 @@ class InventorySystemImpl implements IInventorySystem {
 
   async calculateTurnoverRate(productId: string, days: number = 365): Promise<number> {
     const fromDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-    const transactions = await this.listTransactions({ 
-      productId, 
+    const transactions = await this.listTransactions({
+      productId,
       fromDate,
       type: 'sale'
     });
 
     const totalSold = transactions.reduce((sum, t) => sum + t.quantity, 0);
     const product = await this.getProduct(productId);
-    
+
     if (!product || product.currentStock === 0) {
       return 0;
     }
@@ -724,8 +724,8 @@ class InventorySystemImpl implements IInventorySystem {
   async getExpiringProducts(days: number = 30): Promise<Product[]> {
     const products = Array.from(this.products.values());
     const cutoffDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
-    
-    return products.filter(p => 
+
+    return products.filter(p => ;
       p.expiryDate && p.expiryDate <= cutoffDate && p.currentStock > 0
     );
   }
@@ -735,9 +735,9 @@ class InventorySystemImpl implements IInventorySystem {
   // ============================================================================
 
   private async createLowStockAlert(product: Product): Promise<void> {
-    const existingAlert = Array.from(this.alerts.values()).find(a => 
-      a.productId === product.id && 
-      a.type === 'low_stock' && 
+    const existingAlert = Array.from(this.alerts.values()).find(a =>
+      a.productId === product.id &&
+      a.type === 'low_stock' &&
       a.status === 'active'
     );
 
@@ -756,9 +756,9 @@ class InventorySystemImpl implements IInventorySystem {
   }
 
   private async createOutOfStockAlert(product: Product): Promise<void> {
-    const existingAlert = Array.from(this.alerts.values()).find(a => 
-      a.productId === product.id && 
-      a.type === 'out_of_stock' && 
+    const existingAlert = Array.from(this.alerts.values()).find(a =>
+      a.productId === product.id &&
+      a.type === 'out_of_stock' &&
       a.status === 'active'
     );
 
@@ -777,9 +777,9 @@ class InventorySystemImpl implements IInventorySystem {
   }
 
   private async createOverstockAlert(product: Product): Promise<void> {
-    const existingAlert = Array.from(this.alerts.values()).find(a => 
-      a.productId === product.id && 
-      a.type === 'overstock' && 
+    const existingAlert = Array.from(this.alerts.values()).find(a =>
+      a.productId === product.id &&
+      a.type === 'overstock' &&
       a.status === 'active'
     );
 
@@ -799,15 +799,15 @@ class InventorySystemImpl implements IInventorySystem {
 
   private async createExpiryAlert(product: Product, severity: 'high' | 'critical'): Promise<void> {
     const alertType = severity === 'critical' ? 'expiry_critical' : 'expiry_warning';
-    const existingAlert = Array.from(this.alerts.values()).find(a => 
-      a.productId === product.id && 
-      a.type === alertType && 
+    const existingAlert = Array.from(this.alerts.values()).find(a =>
+      a.productId === product.id &&
+      a.type === alertType &&
       a.status === 'active'
     );
 
     if (!existingAlert && product.expiryDate) {
       const daysUntilExpiry = Math.ceil((product.expiryDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-      
+
       await this.createAlert({
         productId: product.id,
         type: alertType,
@@ -822,7 +822,7 @@ class InventorySystemImpl implements IInventorySystem {
   }
 
   private calculateBalance(transactions: KardexTransaction[], upToDate: Date): number {
-    return transactions
+    return transactions;
       .filter(t => t.createdAt <= upToDate)
       .reduce((balance, t) => {
         switch (t.type) {
@@ -929,7 +929,7 @@ class InventorySystemImpl implements IInventorySystem {
     // Crear algunas transacciones de ejemplo
     setTimeout(async () => {
       const products = Array.from(this.products.values());
-      
+
       if (products.length > 0) {
         // Compra inicial
         await this.addTransaction({

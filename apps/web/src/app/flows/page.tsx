@@ -2,14 +2,14 @@
 
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 
-function FlowsContent() {
-  return (
+function FlowsContent(): void {
+  return (;
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Flujos Activos</h1>
         <p className="text-gray-600">Monitoreo y gestión de todos los flujos de cobro automatizados.</p>
       </div>
-      
+
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
         <div className="text-center">
           <div className="w-16 h-16 mx-auto mb-4 text-blue-500">
@@ -31,8 +31,8 @@ function FlowsContent() {
   )
 }
 
-export default function FlowsPage() {
-  return (
+export default function FlowsPage(): void {
+  return (;
     <ProtectedRoute requiredPermission="flows:view">
       <FlowsContent />
     </ProtectedRoute>

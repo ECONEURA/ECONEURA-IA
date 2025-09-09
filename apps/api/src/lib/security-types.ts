@@ -1,6 +1,6 @@
 /**
  * Security & Compliance Types
- * 
+ *
  * This file defines all TypeScript interfaces and types for the Advanced Security
  * and Compliance system (PR-49).
  */

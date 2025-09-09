@@ -1,12 +1,12 @@
 // Reporting Engine Service for PR-45
-import { 
-  FinOpsReport, 
-  CostTrend, 
-  CostForecast, 
+import {
+  FinOpsReport,
+  CostTrend,
+  CostForecast,
   CostAnomaly,
   BudgetStatus,
   OptimizationRecommendation,
-  FinOpsMetrics 
+  FinOpsMetrics
 } from './finops-types';
 import { structuredLogger } from './structured-logger.js';
 import { ErrorHandler } from './error-handler.js';
@@ -131,11 +131,11 @@ export class ReportingEngineService {
   private generateSampleTrends(): CostTrend[] {
     const trends: CostTrend[] = [];
     const now = new Date();
-    
+
     for (let i = 29; i >= 0; i--) {
       const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
       const baseAmount = 100 + Math.random() * 50;
-      
+
       trends.push({
         date,
         amount: baseAmount,
@@ -147,12 +147,12 @@ export class ReportingEngineService {
         metadata: {}
       });
     }
-    
+
     return trends;
   }
 
   private generateSampleRecommendations(): OptimizationRecommendation[] {
-    return [
+    return [;
       {
         id: 'rec_sample_1',
         type: 'right_sizing',
@@ -179,7 +179,7 @@ export class ReportingEngineService {
   }
 
   private generateSampleBudgetStatus(): BudgetStatus[] {
-    return [
+    return [;
       {
         budgetId: 'budget_1',
         budgetName: 'Production Infrastructure',
@@ -196,7 +196,7 @@ export class ReportingEngineService {
   }
 
   private generateSampleAnomalies(): CostAnomaly[] {
-    return [
+    return [;
       {
         id: 'anomaly_1',
         type: 'spike',
@@ -222,11 +222,11 @@ export class ReportingEngineService {
   private generateSampleForecasts(): CostForecast[] {
     const forecasts: CostForecast[] = [];
     const now = new Date();
-    
+
     for (let i = 1; i <= 30; i++) {
       const date = new Date(now.getTime() + i * 24 * 60 * 60 * 1000);
       const baseAmount = 120 + Math.random() * 20;
-      
+
       forecasts.push({
         date,
         predictedAmount: baseAmount,
@@ -236,7 +236,7 @@ export class ReportingEngineService {
         metadata: {}
       });
     }
-    
+
     return forecasts;
   }
 
@@ -351,7 +351,7 @@ export class ReportingEngineService {
 
   private getPeriodType(period: { start: Date; end: Date }): string {
     const days = Math.ceil((period.end.getTime() - period.start.getTime()) / (1000 * 60 * 60 * 24));
-    
+
     if (days <= 1) return 'daily';
     if (days <= 7) return 'weekly';
     if (days <= 31) return 'monthly';
@@ -492,11 +492,11 @@ export class ReportingEngineService {
     try {
       const forecasts: CostForecast[] = [];
       const days = Math.ceil((period.end.getTime() - period.start.getTime()) / (1000 * 60 * 60 * 24));
-      
+
       for (let i = 0; i < days; i++) {
         const date = new Date(period.start.getTime() + i * 24 * 60 * 60 * 1000);
         const baseAmount = 100 + Math.random() * 50;
-        
+
         forecasts.push({
           date,
           predictedAmount: baseAmount,

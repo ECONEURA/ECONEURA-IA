@@ -298,7 +298,7 @@ export const createProductRoutes = (productController: ProductController): Route
       try {
         const { type } = req.params;
         const products = await productController['productRepository'].findByType(type);
-        
+
         res.status(200).json({
           success: true,
           data: products.map(product => ({
@@ -338,7 +338,7 @@ export const createProductRoutes = (productController: ProductController): Route
       try {
         const { status } = req.params;
         const products = await productController['productRepository'].findByStatus(status);
-        
+
         res.status(200).json({
           success: true,
           data: products.map(product => ({
@@ -378,7 +378,7 @@ export const createProductRoutes = (productController: ProductController): Route
       try {
         const { category } = req.params;
         const products = await productController['productRepository'].findByCategory(category);
-        
+
         res.status(200).json({
           success: true,
           data: products.map(product => ({
@@ -418,7 +418,7 @@ export const createProductRoutes = (productController: ProductController): Route
       try {
         const { brand } = req.params;
         const products = await productController['productRepository'].findByBrand(brand);
-        
+
         res.status(200).json({
           success: true,
           data: products.map(product => ({
@@ -458,7 +458,7 @@ export const createProductRoutes = (productController: ProductController): Route
       try {
         const { supplier } = req.params;
         const products = await productController['productRepository'].findBySupplier(supplier);
-        
+
         res.status(200).json({
           success: true,
           data: products.map(product => ({
@@ -492,7 +492,7 @@ export const createProductRoutes = (productController: ProductController): Route
       try {
         const { sku } = req.params;
         const product = await productController['productRepository'].findBySku(sku);
-        
+
         if (!product) {
           res.status(404).json({
             success: false,
@@ -534,7 +534,7 @@ export const createProductRoutes = (productController: ProductController): Route
       try {
         const { barcode } = req.params;
         const product = await productController['productRepository'].findByBarcode(barcode);
-        
+
         if (!product) {
           res.status(404).json({
             success: false,
@@ -582,7 +582,7 @@ export const createProductRoutes = (productController: ProductController): Route
       try {
         const { organizationId, threshold } = req.query;
         const products = await productController['productRepository'].findByLowStock(organizationId as string, threshold as number);
-        
+
         res.status(200).json({
           success: true,
           data: products.map(product => ({
@@ -616,7 +616,7 @@ export const createProductRoutes = (productController: ProductController): Route
       try {
         const { organizationId } = req.query;
         const products = await productController['productRepository'].findByOutOfStock(organizationId as string);
-        
+
         res.status(200).json({
           success: true,
           data: products.map(product => ({
@@ -650,7 +650,7 @@ export const createProductRoutes = (productController: ProductController): Route
       try {
         const { organizationId } = req.query;
         const products = await productController['productRepository'].findByInStock(organizationId as string);
-        
+
         res.status(200).json({
           success: true,
           data: products.map(product => ({

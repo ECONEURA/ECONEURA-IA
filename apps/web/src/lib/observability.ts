@@ -105,7 +105,7 @@ class WebObservability {
   recordAPIRequest(endpoint: string, method: string, statusCode: number, duration: number): void {
     this.recordMetric('api_requests_total', 1, { endpoint, method, status: statusCode.toString() });
     this.recordMetric('api_request_duration_ms', duration, { endpoint, method });
-    
+
     if (statusCode >= 400) {
       this.recordMetric('api_errors_total', 1, { endpoint, method, status: statusCode.toString() });
     }
@@ -133,30 +133,30 @@ class WebObservability {
   // Métodos para obtener datos
   getLogs(level?: string, limit: number = 100): LogEntry[] {
     let filteredLogs = this.logs;
-    
+
     if (level) {
       filteredLogs = filteredLogs.filter(log => log.level === level);
     }
-    
+
     return filteredLogs.slice(-limit);
   }
 
   getMetrics(name?: string, limit: number = 100): MetricValue[] {
     let filteredMetrics = this.metrics;
-    
+
     if (name) {
       filteredMetrics = filteredMetrics.filter(metric => metric.name === name);
     }
-    
+
     return filteredMetrics.slice(-limit);
   }
 
   getMetricsSummary(): any {
     const summary: any = {};
-    
+
     // Agrupar métricas por nombre
     const groupedMetrics = new Map<string, MetricValue[]>();
-    
+
     for (const metric of this.metrics) {
       if (!groupedMetrics.has(metric.name)) {
         groupedMetrics.set(metric.name, []);
@@ -167,7 +167,7 @@ class WebObservability {
     // Calcular estadísticas para cada métrica
     for (const [name, values] of groupedMetrics) {
       const numericValues = values.map(v => v.value);
-      
+
       summary[name] = {
         count: values.length,
         total: numericValues.reduce((sum, val) => sum + val, 0),
@@ -184,21 +184,21 @@ class WebObservability {
   // Método para exportar en formato Prometheus
   exportPrometheus(): string {
     let output = '';
-    
+
     // Agrupar métricas por nombre y labels
     const groupedMetrics = new Map<string, Map<string, number>>();
-    
+
     for (const metric of this.metrics) {
-      const labelStr = metric.labels 
+      const labelStr = metric.labels
         ? Object.entries(metric.labels).map(([k, v]) => `${k}="${v}"`).join(',')
         : '';
-      
+
       const key = `${metric.name}${labelStr ? `{${labelStr}}` : ''}`;
-      
+
       if (!groupedMetrics.has(key)) {
         groupedMetrics.set(key, new Map());
       }
-      
+
       // Usar el último valor para cada combinación
       groupedMetrics.get(key)!.set('value', metric.value);
     }
@@ -215,7 +215,7 @@ class WebObservability {
   // Método para limpiar datos antiguos
   cleanup(maxAgeMs: number = 24 * 60 * 60 * 1000): void { // Por defecto 24 horas
     const cutoff = Date.now() - maxAgeMs;
-    
+
     this.logs = this.logs.filter(log => new Date(log.timestamp).getTime() >= cutoff);
     this.metrics = this.metrics.filter(metric => metric.timestamp >= cutoff);
   }

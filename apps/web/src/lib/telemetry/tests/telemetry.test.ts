@@ -128,7 +128,7 @@ describe('Web Telemetry Integration', () => {
     it('should provide telemetry context', () => {
       const TestComponent = () => {
         const { track } = useTelemetryContext();
-        return (
+        return (;
           <button onClick={() => track('test_action', 'button')}>
             Test Button
           </button>
@@ -161,8 +161,8 @@ describe('Web Telemetry Integration', () => {
     it('should provide tracking functions', () => {
       const TestComponent = () => {
         const { track, trackError, trackCustom } = useTelemetry();
-        
-        return (
+
+        return (;
           <div>
             <button onClick={() => track('test_action', 'button')}>Track</button>
             <button onClick={() => trackError('test error')}>Error</button>
@@ -214,7 +214,7 @@ describe('Web Telemetry Integration', () => {
           trackFieldBlur
         } = useFormTracking('test-form');
 
-        return (
+        return (;
           <div>
             <button onClick={() => trackFormStart()}>Start</button>
             <button onClick={() => trackFormSubmit(true, ['field1'])}>Submit</button>
@@ -240,7 +240,7 @@ describe('Web Telemetry Integration', () => {
       const TestComponent = () => {
         const { trackRenderTime, trackApiCall, trackResourceLoad } = usePerformanceTracking();
 
-        return (
+        return (;
           <div>
             <button onClick={() => trackRenderTime('TestComponent', 100)}>Render</button>
             <button onClick={() => trackApiCall('/api/test', 'GET', 200, true, 200)}>API</button>
@@ -260,7 +260,7 @@ describe('Web Telemetry Integration', () => {
   describe('withTelemetry HOC', () => {
     it('should wrap component with telemetry', () => {
       const TestComponent = ({ name }: { name: string }) => <div>Hello {name}</div>;
-      
+
       const WrappedComponent = withTelemetry(TestComponent, {
         page: '/test',
         component: 'TestComponent',
@@ -278,10 +278,10 @@ describe('TelemetryProvider Component', () => {
   describe('TrackedButton', () => {
     it('should track button clicks', () => {
       const handleClick = vi.fn();
-      
+
       render(
         <TelemetryProvider>
-          <TrackedButton 
+          <TrackedButton
             trackingAction="test_click"
             trackingContext={{ buttonId: 'test' }}
             onClick={handleClick}
@@ -301,10 +301,10 @@ describe('TelemetryProvider Component', () => {
   describe('TrackedLink', () => {
     it('should track link clicks', () => {
       const handleClick = vi.fn();
-      
+
       render(
         <TelemetryProvider>
-          <TrackedLink 
+          <TrackedLink
             href="/test"
             trackingAction="test_link_click"
             trackingContext={{ linkType: 'navigation' }}
@@ -325,10 +325,10 @@ describe('TelemetryProvider Component', () => {
   describe('TrackedForm', () => {
     it('should track form submissions', () => {
       const handleSubmit = vi.fn();
-      
+
       render(
         <TelemetryProvider>
-          <TrackedForm 
+          <TrackedForm
             trackingAction="test_form_submit"
             trackingContext={{ formType: 'contact' }}
             onSubmit={handleSubmit}
@@ -350,7 +350,7 @@ describe('TelemetryProvider Component', () => {
     it('should track component performance', () => {
       render(
         <TelemetryProvider>
-          <PerformanceTracker 
+          <PerformanceTracker
             componentName="TestComponent"
             trackRender={true}
             trackMount={true}
@@ -452,7 +452,7 @@ describe('Integration Tests', () => {
   it('should work with multiple providers', () => {
     const TestComponent = () => {
       const { track } = useTelemetryContext();
-      return (
+      return (;
         <button onClick={() => track('nested_action', 'button')}>
           Nested Button
         </button>

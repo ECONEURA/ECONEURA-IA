@@ -249,7 +249,7 @@ export class Invoice extends BaseEntity {
       this.props.paidAmount.currency
     );
     this.props.paymentMethod = paymentMethod;
-    
+
     if (paidDate) {
       this.props.paidDate = paidDate;
     }

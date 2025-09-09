@@ -69,7 +69,7 @@ const GetPipelinesSchema = z.object({
 blueGreenDeploymentRouter.get('/environments', async (req, res) => {
   try {
     const environments = await blueGreenDeploymentService.getEnvironments();
-    
+
     res.json({
       success: true,
       data: {
@@ -91,14 +91,14 @@ blueGreenDeploymentRouter.get('/environments/:environmentId', async (req, res) =
   try {
     const { environmentId } = z.object({ environmentId: z.string().min(1) }).parse(req.params);
     const environment = await blueGreenDeploymentService.getEnvironment(environmentId);
-    
+
     if (!environment) {
       return res.status(404).json({
         success: false,
         error: 'Environment not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: environment,
@@ -125,16 +125,16 @@ blueGreenDeploymentRouter.put('/environments/:environmentId/metrics', async (req
       memoryUsage: z.coerce.number().min(0).max(100).optional(),
       diskUsage: z.coerce.number().min(0).max(100).optional()
     }).parse(req.body);
-    
+
     const environment = await blueGreenDeploymentService.updateEnvironmentMetrics(environmentId, metrics);
-    
+
     if (!environment) {
       return res.status(404).json({
         success: false,
         error: 'Environment not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: environment,
@@ -155,7 +155,7 @@ blueGreenDeploymentRouter.get('/gates', async (req, res) => {
   try {
     const filters = GetGatesSchema.parse(req.query);
     const gates = await blueGreenDeploymentService.getGates(filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -179,7 +179,7 @@ blueGreenDeploymentRouter.post('/gates', async (req, res) => {
   try {
     const gateData = CreateGateSchema.parse(req.body);
     const gate = await blueGreenDeploymentService.createGate(gateData);
-    
+
     res.status(201).json({
       success: true,
       data: gate,
@@ -199,7 +199,7 @@ blueGreenDeploymentRouter.post('/gates/:gateId/execute', async (req, res) => {
   try {
     const { gateId } = z.object({ gateId: z.string().min(1) }).parse(req.params);
     const gate = await blueGreenDeploymentService.executeGate(gateId);
-    
+
     res.json({
       success: true,
       data: gate,
@@ -220,7 +220,7 @@ blueGreenDeploymentRouter.get('/pipelines', async (req, res) => {
   try {
     const filters = GetPipelinesSchema.parse(req.query);
     const pipelines = await blueGreenDeploymentService.getPipelines(filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -244,7 +244,7 @@ blueGreenDeploymentRouter.post('/pipelines', async (req, res) => {
   try {
     const pipelineData = CreatePipelineSchema.parse(req.body);
     const pipeline = await blueGreenDeploymentService.createPipeline(pipelineData);
-    
+
     res.status(201).json({
       success: true,
       data: pipeline,
@@ -264,7 +264,7 @@ blueGreenDeploymentRouter.post('/pipelines/:pipelineId/execute', async (req, res
   try {
     const { pipelineId } = z.object({ pipelineId: z.string().min(1) }).parse(req.params);
     const pipeline = await blueGreenDeploymentService.executePipeline(pipelineId);
-    
+
     res.json({
       success: true,
       data: pipeline,
@@ -285,7 +285,7 @@ blueGreenDeploymentRouter.post('/rollback', async (req, res) => {
   try {
     const { pipelineId, reason, triggeredBy } = TriggerRollbackSchema.parse(req.body);
     const rollback = await blueGreenDeploymentService.triggerRollback(pipelineId, reason, triggeredBy);
-    
+
     res.status(201).json({
       success: true,
       data: rollback,
@@ -305,7 +305,7 @@ blueGreenDeploymentRouter.post('/rollback', async (req, res) => {
 blueGreenDeploymentRouter.get('/stats', async (req, res) => {
   try {
     const stats = await blueGreenDeploymentService.getDeploymentStats();
-    
+
     res.json({
       success: true,
       data: stats,
@@ -324,7 +324,7 @@ blueGreenDeploymentRouter.get('/stats', async (req, res) => {
 blueGreenDeploymentRouter.get('/health', async (req, res) => {
   try {
     const stats = await blueGreenDeploymentService.getDeploymentStats();
-    
+
     res.json({
       success: true,
       data: {

@@ -6,7 +6,7 @@ export const progressRouter = Router();
 progressRouter.get("/v1/progress", (_req, res) => {
   let pct = 0;
   let areas = {};
-  
+
   try {
     const out = execSync("node tools/progress/audit.js", {
       stdio: ["ignore", "pipe", "ignore"]
@@ -19,7 +19,7 @@ progressRouter.get("/v1/progress", (_req, res) => {
     pct = 0;
     areas = {};
   }
-  
+
   res.json({
     ok: true,
     pct,

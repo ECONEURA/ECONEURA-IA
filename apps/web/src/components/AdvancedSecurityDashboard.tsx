@@ -7,15 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { 
-  Shield, 
-  Users, 
-  Key, 
-  Lock, 
-  Eye, 
-  AlertTriangle, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Shield,
+  Users,
+  Key,
+  Lock,
+  Eye,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
   Clock,
   TrendingUp,
   TrendingDown,
@@ -143,7 +143,7 @@ interface SecurityStats {
   threatIntelligenceCount: number;
 }
 
-export default function AdvancedSecurityDashboard() {
+export default function AdvancedSecurityDashboard(): void {
   const [users, setUsers] = useState<User[]>([]);
   const [mfaMethods, setMFAMethods] = useState<MFAMethod[]>([]);
   const [apiTokens, setAPITokens] = useState<APIToken[]>([]);
@@ -235,14 +235,14 @@ export default function AdvancedSecurityDashboard() {
   };
 
   if (loading && !stats) {
-    return (
+    return (;
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
-  return (
+  return (;
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">

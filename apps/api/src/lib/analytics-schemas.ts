@@ -3,13 +3,13 @@ import { z } from 'zod';
 // Event types for analytics
 export const AnalyticsEventType = z.enum([
   'user_login',
-  'user_logout', 
+  'user_logout',
   'user_action',
   'page_view',
   'button_click',
   'company_created',
   'company_updated',
-  'contact_created', 
+  'contact_created',
   'contact_updated',
   'deal_created',
   'deal_updated',
@@ -33,17 +33,17 @@ export const AnalyticsEventSchema = z.object({
   sessionId: z.string().optional(),
   correlationId: z.string().optional(),
   source: z.string().default('api'),
-  
+
   // Event-specific data
   action: z.string().optional(),
   entity: z.string().optional(),
   entityId: z.string().optional(),
   metadata: z.record(z.any()).optional(),
-  
+
   // Performance data
   duration: z.number().optional(),
   responseTime: z.number().optional(),
-  
+
   // Error data
   error: z.string().optional(),
   errorCode: z.string().optional(),

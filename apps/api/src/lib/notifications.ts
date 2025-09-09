@@ -152,7 +152,7 @@ export interface INotificationSystem {
   listTemplates(orgId: string): Promise<NotificationTemplate[]>;
   updateTemplate(id: string, updates: Partial<NotificationTemplate>): Promise<NotificationTemplate>;
   deleteTemplate(id: string): Promise<void>;
-  
+
   // Notifications
   createNotification(notification: Omit<Notification, 'id' | 'createdAt' | 'updatedAt'>): Promise<Notification>;
   getNotification(id: string): Promise<Notification | null>;
@@ -167,19 +167,19 @@ export interface INotificationSystem {
   deleteNotification(id: string): Promise<void>;
   markAsRead(id: string): Promise<Notification>;
   markAllAsRead(userId: string, orgId: string): Promise<void>;
-  
+
   // Preferences
   getPreferences(userId: string, orgId: string): Promise<NotificationPreferences>;
   updatePreferences(userId: string, orgId: string, updates: Partial<NotificationPreferences>): Promise<NotificationPreferences>;
-  
+
   // Sending
   sendNotification(notification: Omit<Notification, 'id' | 'createdAt' | 'updatedAt'>): Promise<Notification>;
   sendBulkNotifications(notifications: Omit<Notification, 'id' | 'createdAt' | 'updatedAt'>[]): Promise<Notification[]>;
   scheduleNotification(notification: Omit<Notification, 'id' | 'createdAt' | 'updatedAt'>, scheduledAt: Date): Promise<Notification>;
-  
+
   // Statistics
   getStatistics(orgId: string): Promise<NotificationStats>;
-  
+
   // Utilities
   getUnreadCount(userId: string, orgId: string): Promise<number>;
   validateTemplate(template: NotificationTemplate): Promise<boolean>;
@@ -196,7 +196,7 @@ export class NotificationSystemImpl implements INotificationSystem {
 
   constructor() {
     this.initializeDefaultTemplates();
-    logger.info('Notification system initialized', { 
+    logger.info('Notification system initialized', {
       system: 'notifications',
       templatesCount: this.templates.size,
       notificationsCount: 0
@@ -211,7 +211,7 @@ export class NotificationSystemImpl implements INotificationSystem {
     try {
       const id = `template_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const now = new Date();
-      
+
       const newTemplate: NotificationTemplate = {
         ...template,
         id,
@@ -221,7 +221,7 @@ export class NotificationSystemImpl implements INotificationSystem {
 
       this.templates.set(id, newTemplate);
 
-      logger.info('Notification template created', { 
+      logger.info('Notification template created', {
         system: 'notifications',
         templateId: id,
         name: template.name,
@@ -230,9 +230,9 @@ export class NotificationSystemImpl implements INotificationSystem {
 
       return newTemplate;
     } catch (error) {
-      logger.error('Failed to create notification template', { 
+      logger.error('Failed to create notification template', {
         system: 'notifications',
-        error: (error as Error).message 
+        error: (error as Error).message
       });
       throw error;
     }
@@ -241,20 +241,20 @@ export class NotificationSystemImpl implements INotificationSystem {
   async getTemplate(id: string): Promise<NotificationTemplate | null> {
     try {
       const template = this.templates.get(id);
-      
+
       if (template) {
-        logger.info('Notification template retrieved', { 
+        logger.info('Notification template retrieved', {
           system: 'notifications',
-          templateId: id 
+          templateId: id
         });
       }
 
       return template || null;
     } catch (error) {
-      logger.error('Failed to get notification template', { 
+      logger.error('Failed to get notification template', {
         system: 'notifications',
         error: (error as Error).message,
-        templateId: id 
+        templateId: id
       });
       throw error;
     }
@@ -265,7 +265,7 @@ export class NotificationSystemImpl implements INotificationSystem {
       const templates = Array.from(this.templates.values())
         .filter(t => t.isActive);
 
-      logger.info('Notification templates listed', { 
+      logger.info('Notification templates listed', {
         system: 'notifications',
         orgId,
         count: templates.length
@@ -273,9 +273,9 @@ export class NotificationSystemImpl implements INotificationSystem {
 
       return templates;
     } catch (error) {
-      logger.error('Failed to list notification templates', { 
+      logger.error('Failed to list notification templates', {
         system: 'notifications',
-        error: (error as Error).message 
+        error: (error as Error).message
       });
       throw error;
     }
@@ -297,17 +297,17 @@ export class NotificationSystemImpl implements INotificationSystem {
 
       this.templates.set(id, updatedTemplate);
 
-      logger.info('Notification template updated', { 
+      logger.info('Notification template updated', {
         system: 'notifications',
-        templateId: id 
+        templateId: id
       });
 
       return updatedTemplate;
     } catch (error) {
-      logger.error('Failed to update notification template', { 
+      logger.error('Failed to update notification template', {
         system: 'notifications',
         error: (error as Error).message,
-        templateId: id 
+        templateId: id
       });
       throw error;
     }
@@ -316,20 +316,20 @@ export class NotificationSystemImpl implements INotificationSystem {
   async deleteTemplate(id: string): Promise<void> {
     try {
       const deleted = this.templates.delete(id);
-      
+
       if (deleted) {
-        logger.info('Notification template deleted', { 
+        logger.info('Notification template deleted', {
           system: 'notifications',
-          templateId: id 
+          templateId: id
         });
       } else {
         throw new Error('Template not found');
       }
     } catch (error) {
-      logger.error('Failed to delete notification template', { 
+      logger.error('Failed to delete notification template', {
         system: 'notifications',
         error: (error as Error).message,
-        templateId: id 
+        templateId: id
       });
       throw error;
     }
@@ -343,7 +343,7 @@ export class NotificationSystemImpl implements INotificationSystem {
     try {
       const id = `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const now = new Date();
-      
+
       const newNotification: Notification = {
         ...notification,
         id,
@@ -354,7 +354,7 @@ export class NotificationSystemImpl implements INotificationSystem {
 
       this.notifications.set(id, newNotification);
 
-      logger.info('Notification created', { 
+      logger.info('Notification created', {
         system: 'notifications',
         notificationId: id,
         userId: notification.userId,
@@ -364,9 +364,9 @@ export class NotificationSystemImpl implements INotificationSystem {
 
       return newNotification;
     } catch (error) {
-      logger.error('Failed to create notification', { 
+      logger.error('Failed to create notification', {
         system: 'notifications',
-        error: (error as Error).message 
+        error: (error as Error).message
       });
       throw error;
     }
@@ -375,20 +375,20 @@ export class NotificationSystemImpl implements INotificationSystem {
   async getNotification(id: string): Promise<Notification | null> {
     try {
       const notification = this.notifications.get(id);
-      
+
       if (notification) {
-        logger.info('Notification retrieved', { 
+        logger.info('Notification retrieved', {
           system: 'notifications',
-          notificationId: id 
+          notificationId: id
         });
       }
 
       return notification || null;
     } catch (error) {
-      logger.error('Failed to get notification', { 
+      logger.error('Failed to get notification', {
         system: 'notifications',
         error: (error as Error).message,
-        notificationId: id 
+        notificationId: id
       });
       throw error;
     }
@@ -427,7 +427,7 @@ export class NotificationSystemImpl implements INotificationSystem {
         notifications = notifications.slice(0, filters.limit);
       }
 
-      logger.info('Notifications listed', { 
+      logger.info('Notifications listed', {
         system: 'notifications',
         userId,
         orgId,
@@ -437,9 +437,9 @@ export class NotificationSystemImpl implements INotificationSystem {
 
       return notifications;
     } catch (error) {
-      logger.error('Failed to list notifications', { 
+      logger.error('Failed to list notifications', {
         system: 'notifications',
-        error: (error as Error).message 
+        error: (error as Error).message
       });
       throw error;
     }
@@ -461,17 +461,17 @@ export class NotificationSystemImpl implements INotificationSystem {
 
       this.notifications.set(id, updatedNotification);
 
-      logger.info('Notification updated', { 
+      logger.info('Notification updated', {
         system: 'notifications',
-        notificationId: id 
+        notificationId: id
       });
 
       return updatedNotification;
     } catch (error) {
-      logger.error('Failed to update notification', { 
+      logger.error('Failed to update notification', {
         system: 'notifications',
         error: (error as Error).message,
-        notificationId: id 
+        notificationId: id
       });
       throw error;
     }
@@ -480,20 +480,20 @@ export class NotificationSystemImpl implements INotificationSystem {
   async deleteNotification(id: string): Promise<void> {
     try {
       const deleted = this.notifications.delete(id);
-      
+
       if (deleted) {
-        logger.info('Notification deleted', { 
+        logger.info('Notification deleted', {
           system: 'notifications',
-          notificationId: id 
+          notificationId: id
         });
       } else {
         throw new Error('Notification not found');
       }
     } catch (error) {
-      logger.error('Failed to delete notification', { 
+      logger.error('Failed to delete notification', {
         system: 'notifications',
         error: (error as Error).message,
-        notificationId: id 
+        notificationId: id
       });
       throw error;
     }
@@ -515,17 +515,17 @@ export class NotificationSystemImpl implements INotificationSystem {
 
       this.notifications.set(id, updatedNotification);
 
-      logger.info('Notification marked as read', { 
+      logger.info('Notification marked as read', {
         system: 'notifications',
-        notificationId: id 
+        notificationId: id
       });
 
       return updatedNotification;
     } catch (error) {
-      logger.error('Failed to mark notification as read', { 
+      logger.error('Failed to mark notification as read', {
         system: 'notifications',
         error: (error as Error).message,
-        notificationId: id 
+        notificationId: id
       });
       throw error;
     }
@@ -543,16 +543,16 @@ export class NotificationSystemImpl implements INotificationSystem {
         notification.updatedAt = now;
       }
 
-      logger.info('All notifications marked as read', { 
+      logger.info('All notifications marked as read', {
         system: 'notifications',
         userId,
         orgId,
         count: notifications.length
       });
     } catch (error) {
-      logger.error('Failed to mark all notifications as read', { 
+      logger.error('Failed to mark all notifications as read', {
         system: 'notifications',
-        error: (error as Error).message 
+        error: (error as Error).message
       });
       throw error;
     }
@@ -590,7 +590,7 @@ export class NotificationSystemImpl implements INotificationSystem {
         this.preferences.set(key, preferences);
       }
 
-      logger.info('Notification preferences retrieved', { 
+      logger.info('Notification preferences retrieved', {
         system: 'notifications',
         userId,
         orgId
@@ -598,9 +598,9 @@ export class NotificationSystemImpl implements INotificationSystem {
 
       return preferences;
     } catch (error) {
-      logger.error('Failed to get notification preferences', { 
+      logger.error('Failed to get notification preferences', {
         system: 'notifications',
-        error: (error as Error).message 
+        error: (error as Error).message
       });
       throw error;
     }
@@ -619,7 +619,7 @@ export class NotificationSystemImpl implements INotificationSystem {
 
       this.preferences.set(key, updatedPreferences);
 
-      logger.info('Notification preferences updated', { 
+      logger.info('Notification preferences updated', {
         system: 'notifications',
         userId,
         orgId
@@ -627,9 +627,9 @@ export class NotificationSystemImpl implements INotificationSystem {
 
       return updatedPreferences;
     } catch (error) {
-      logger.error('Failed to update notification preferences', { 
+      logger.error('Failed to update notification preferences', {
         system: 'notifications',
-        error: (error as Error).message 
+        error: (error as Error).message
       });
       throw error;
     }
@@ -674,14 +674,14 @@ export class NotificationSystemImpl implements INotificationSystem {
       for (const channel of allowedChannels) {
         try {
           await this.sendToChannel(newNotification, channel);
-          logger.info('Notification sent to channel', { 
+          logger.info('Notification sent to channel', {
             system: 'notifications',
             notificationId: newNotification.id,
             channel,
             userId: notification.userId
           });
         } catch (error) {
-          logger.error('Failed to send notification to channel', { 
+          logger.error('Failed to send notification to channel', {
             system: 'notifications',
             notificationId: newNotification.id,
             channel,
@@ -697,9 +697,9 @@ export class NotificationSystemImpl implements INotificationSystem {
         sentAt
       });
     } catch (error) {
-      logger.error('Failed to send notification', { 
+      logger.error('Failed to send notification', {
         system: 'notifications',
-        error: (error as Error).message 
+        error: (error as Error).message
       });
       throw error;
     }
@@ -708,21 +708,21 @@ export class NotificationSystemImpl implements INotificationSystem {
   async sendBulkNotifications(notifications: Omit<Notification, 'id' | 'createdAt' | 'updatedAt'>[]): Promise<Notification[]> {
     try {
       const results: Notification[] = [];
-      
+
       for (const notification of notifications) {
         try {
           const result = await this.sendNotification(notification);
           results.push(result);
         } catch (error) {
-          logger.error('Failed to send bulk notification', { 
+          logger.error('Failed to send bulk notification', {
             system: 'notifications',
-            error: (error as Error).message 
+            error: (error as Error).message
           });
           // Continuar con las siguientes notificaciones
         }
       }
 
-      logger.info('Bulk notifications sent', { 
+      logger.info('Bulk notifications sent', {
         system: 'notifications',
         total: notifications.length,
         successful: results.length
@@ -730,9 +730,9 @@ export class NotificationSystemImpl implements INotificationSystem {
 
       return results;
     } catch (error) {
-      logger.error('Failed to send bulk notifications', { 
+      logger.error('Failed to send bulk notifications', {
         system: 'notifications',
-        error: (error as Error).message 
+        error: (error as Error).message
       });
       throw error;
     }
@@ -746,7 +746,7 @@ export class NotificationSystemImpl implements INotificationSystem {
         status: 'pending'
       });
 
-      logger.info('Notification scheduled', { 
+      logger.info('Notification scheduled', {
         system: 'notifications',
         notificationId: scheduledNotification.id,
         scheduledAt: scheduledAt.toISOString()
@@ -754,9 +754,9 @@ export class NotificationSystemImpl implements INotificationSystem {
 
       return scheduledNotification;
     } catch (error) {
-      logger.error('Failed to schedule notification', { 
+      logger.error('Failed to schedule notification', {
         system: 'notifications',
-        error: (error as Error).message 
+        error: (error as Error).message
       });
       throw error;
     }
@@ -788,13 +788,13 @@ export class NotificationSystemImpl implements INotificationSystem {
       for (const notification of notifications) {
         // Por estado
         stats.byStatus[notification.status] = (stats.byStatus[notification.status] || 0) + 1;
-        
+
         // Por tipo
         stats.byType[notification.type] = (stats.byType[notification.type] || 0) + 1;
-        
+
         // Por prioridad
         stats.byPriority[notification.priority] = (stats.byPriority[notification.priority] || 0) + 1;
-        
+
         // Por canal
         for (const channel of notification.channels) {
           stats.byChannel[channel] = (stats.byChannel[channel] || 0) + 1;
@@ -817,7 +817,7 @@ export class NotificationSystemImpl implements INotificationSystem {
         }
       }
 
-      logger.info('Notification statistics retrieved', { 
+      logger.info('Notification statistics retrieved', {
         system: 'notifications',
         orgId,
         total: stats.total
@@ -825,9 +825,9 @@ export class NotificationSystemImpl implements INotificationSystem {
 
       return stats;
     } catch (error) {
-      logger.error('Failed to get notification statistics', { 
+      logger.error('Failed to get notification statistics', {
         system: 'notifications',
-        error: (error as Error).message 
+        error: (error as Error).message
       });
       throw error;
     }
@@ -844,9 +844,9 @@ export class NotificationSystemImpl implements INotificationSystem {
 
       return notifications.length;
     } catch (error) {
-      logger.error('Failed to get unread count', { 
+      logger.error('Failed to get unread count', {
         system: 'notifications',
-        error: (error as Error).message 
+        error: (error as Error).message
       });
       throw error;
     }
@@ -877,9 +877,9 @@ export class NotificationSystemImpl implements INotificationSystem {
 
       return true;
     } catch (error) {
-      logger.error('Failed to validate template', { 
+      logger.error('Failed to validate template', {
         system: 'notifications',
-        error: (error as Error).message 
+        error: (error as Error).message
       });
       return false;
     }
@@ -964,7 +964,7 @@ export class NotificationSystemImpl implements INotificationSystem {
   private async simulateEmailSend(notification: Notification): Promise<void> {
     // Simulación de envío de email
     await new Promise(resolve => setTimeout(resolve, 100));
-    logger.info('Email sent (simulated)', { 
+    logger.info('Email sent (simulated)', {
       system: 'notifications',
       notificationId: notification.id,
       to: notification.userId
@@ -974,7 +974,7 @@ export class NotificationSystemImpl implements INotificationSystem {
   private async simulateSMSSend(notification: Notification): Promise<void> {
     // Simulación de envío de SMS
     await new Promise(resolve => setTimeout(resolve, 50));
-    logger.info('SMS sent (simulated)', { 
+    logger.info('SMS sent (simulated)', {
       system: 'notifications',
       notificationId: notification.id,
       to: notification.userId
@@ -984,7 +984,7 @@ export class NotificationSystemImpl implements INotificationSystem {
   private async simulatePushSend(notification: Notification): Promise<void> {
     // Simulación de envío de push notification
     await new Promise(resolve => setTimeout(resolve, 30));
-    logger.info('Push notification sent (simulated)', { 
+    logger.info('Push notification sent (simulated)', {
       system: 'notifications',
       notificationId: notification.id,
       to: notification.userId
@@ -994,7 +994,7 @@ export class NotificationSystemImpl implements INotificationSystem {
   private async simulateInAppSend(notification: Notification): Promise<void> {
     // Simulación de envío de notificación in-app
     await new Promise(resolve => setTimeout(resolve, 10));
-    logger.info('In-app notification sent (simulated)', { 
+    logger.info('In-app notification sent (simulated)', {
       system: 'notifications',
       notificationId: notification.id,
       to: notification.userId
@@ -1004,7 +1004,7 @@ export class NotificationSystemImpl implements INotificationSystem {
   private async simulateWebhookSend(notification: Notification): Promise<void> {
     // Simulación de envío de webhook
     await new Promise(resolve => setTimeout(resolve, 200));
-    logger.info('Webhook sent (simulated)', { 
+    logger.info('Webhook sent (simulated)', {
       system: 'notifications',
       notificationId: notification.id,
       to: notification.userId

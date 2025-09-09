@@ -13,7 +13,7 @@ describe('AI Analytics API Integration Tests', () => {
     testOrganizationId = '123e4567-e89b-12d3-a456-426614174002';
     testUserId = '123e4567-e89b-12d3-a456-426614174001';
     testSessionId = '123e4567-e89b-12d3-a456-426614174000';
-    
+
     // Mock auth token (in real implementation, this would be a valid JWT)
     authToken = 'Bearer mock-jwt-token';
   });
@@ -525,7 +525,7 @@ describe('AI Analytics API Integration Tests', () => {
       );
 
       const responses = await Promise.all(requests);
-      
+
       // All requests should complete (either successfully or with proper error handling)
       responses.forEach(response => {
         expect([200, 429, 500]).toContain(response.status);

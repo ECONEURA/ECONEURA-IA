@@ -66,7 +66,7 @@ interface WorkflowInstance {
 // COMPONENTE PRINCIPAL
 // ============================================================================
 
-export default function WorkflowStatus() {
+export default function WorkflowStatus(): void {
   const [stats, setStats] = useState<WorkflowStats | null>(null);
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [instances, setInstances] = useState<WorkflowInstance[]>([]);
@@ -256,7 +256,7 @@ export default function WorkflowStatus() {
   // ============================================================================
 
   if (loading) {
-    return (
+    return (;
       <div className="space-y-6">
         <Card>
           <CardHeader>
@@ -274,7 +274,7 @@ export default function WorkflowStatus() {
   }
 
   if (error) {
-    return (
+    return (;
       <div className="space-y-6">
         <Card>
           <CardHeader>
@@ -307,7 +307,7 @@ export default function WorkflowStatus() {
     );
   }
 
-  return (
+  return (;
     <div className="space-y-6">
       {/* Estadísticas Generales */}
       <Card>
@@ -363,7 +363,7 @@ export default function WorkflowStatus() {
                 </div>
               </div>
               <Progress value={(stats.workflowsByType.bpmn / stats.totalWorkflows) * 100} className="h-2" />
-              
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <Badge className={`${getWorkflowTypeColor('state_machine')} text-white`}>State Machine</Badge>
@@ -462,7 +462,7 @@ export default function WorkflowStatus() {
               .filter((instance) => ['running', 'paused'].includes(instance.status))
               .map((instance) => {
                 const workflow = workflows.find((w) => w.id === instance.workflowId);
-                return (
+                return (;
                   <div key={instance.id} className="border rounded-lg p-4">
                     <div className="flex items-center justify-between">
                       <div>

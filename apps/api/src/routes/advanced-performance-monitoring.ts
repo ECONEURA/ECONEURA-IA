@@ -68,7 +68,7 @@ router.post('/metrics', async (req, res) => {
   try {
     const validatedData = createMetricSchema.parse(req.body);
     const metric = await advancedPerformanceMonitoringService.recordMetric(validatedData);
-    
+
     res.status(201).json({
       success: true,
       data: metric
@@ -93,7 +93,7 @@ router.get('/metrics', async (req, res) => {
     };
 
     const metrics = await advancedPerformanceMonitoringService.getMetrics(filters);
-    
+
     res.json({
       success: true,
       data: metrics,
@@ -113,7 +113,7 @@ router.post('/alerts', async (req, res) => {
   try {
     const validatedData = createAlertSchema.parse(req.body);
     const alert = await advancedPerformanceMonitoringService.createAlert(validatedData);
-    
+
     res.status(201).json({
       success: true,
       data: alert
@@ -130,7 +130,7 @@ router.post('/alerts', async (req, res) => {
 router.get('/alerts', async (req, res) => {
   try {
     const alerts = await advancedPerformanceMonitoringService.getAlerts();
-    
+
     res.json({
       success: true,
       data: alerts,
@@ -149,16 +149,16 @@ router.put('/alerts/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
-    
+
     const alert = await advancedPerformanceMonitoringService.updateAlert(id, updates);
-    
+
     if (!alert) {
       return res.status(404).json({
         success: false,
         error: 'Alert not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: alert
@@ -176,14 +176,14 @@ router.delete('/alerts/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const deleted = await advancedPerformanceMonitoringService.deleteAlert(id);
-    
+
     if (!deleted) {
       return res.status(404).json({
         success: false,
         error: 'Alert not found'
       });
     }
-    
+
     res.json({
       success: true,
       message: 'Alert deleted successfully'
@@ -202,7 +202,7 @@ router.post('/dashboards', async (req, res) => {
   try {
     const validatedData = createDashboardSchema.parse(req.body);
     const dashboard = await advancedPerformanceMonitoringService.createDashboard(validatedData);
-    
+
     res.status(201).json({
       success: true,
       data: dashboard
@@ -219,7 +219,7 @@ router.post('/dashboards', async (req, res) => {
 router.get('/dashboards', async (req, res) => {
   try {
     const dashboards = await advancedPerformanceMonitoringService.getDashboards();
-    
+
     res.json({
       success: true,
       data: dashboards,
@@ -238,16 +238,16 @@ router.put('/dashboards/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
-    
+
     const dashboard = await advancedPerformanceMonitoringService.updateDashboard(id, updates);
-    
+
     if (!dashboard) {
       return res.status(404).json({
         success: false,
         error: 'Dashboard not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: dashboard
@@ -266,7 +266,7 @@ router.post('/reports', async (req, res) => {
   try {
     const validatedData = createReportSchema.parse(req.body);
     const report = await advancedPerformanceMonitoringService.createReport(validatedData);
-    
+
     res.status(201).json({
       success: true,
       data: report
@@ -283,7 +283,7 @@ router.post('/reports', async (req, res) => {
 router.get('/reports', async (req, res) => {
   try {
     const reports = await advancedPerformanceMonitoringService.getReports();
-    
+
     res.json({
       success: true,
       data: reports,
@@ -302,11 +302,11 @@ router.post('/reports/:id/generate', async (req, res) => {
   try {
     const { id } = req.params;
     const result = await advancedPerformanceMonitoringService.generateReport(id);
-    
-    res.setHeader('Content-Type', result.format === 'json' ? 'application/json' : 
+
+    res.setHeader('Content-Type', result.format === 'json' ? 'application/json' :
                   result.format === 'csv' ? 'text/csv' : 'text/html');
     res.setHeader('Content-Disposition', `attachment; filename="report-${id}.${result.format}"`);
-    
+
     res.send(result.content);
   } catch (error) {
     logger.error('Error generating report:', error);
@@ -321,7 +321,7 @@ router.post('/reports/:id/generate', async (req, res) => {
 router.get('/baselines', async (req, res) => {
   try {
     const baselines = await advancedPerformanceMonitoringService.getBaselines();
-    
+
     res.json({
       success: true,
       data: baselines,
@@ -339,7 +339,7 @@ router.get('/baselines', async (req, res) => {
 router.post('/baselines/calculate', async (req, res) => {
   try {
     await advancedPerformanceMonitoringService.calculateBaselines();
-    
+
     res.json({
       success: true,
       message: 'Baselines calculation started'
@@ -364,7 +364,7 @@ router.get('/anomalies', async (req, res) => {
     };
 
     const anomalies = await advancedPerformanceMonitoringService.getAnomalies(filters);
-    
+
     res.json({
       success: true,
       data: anomalies,
@@ -383,14 +383,14 @@ router.post('/anomalies/:id/resolve', async (req, res) => {
   try {
     const { id } = req.params;
     const resolved = await advancedPerformanceMonitoringService.resolveAnomaly(id);
-    
+
     if (!resolved) {
       return res.status(404).json({
         success: false,
         error: 'Anomaly not found'
       });
     }
-    
+
     res.json({
       success: true,
       message: 'Anomaly resolved successfully'
@@ -408,7 +408,7 @@ router.post('/anomalies/:id/resolve', async (req, res) => {
 router.get('/statistics', async (req, res) => {
   try {
     const statistics = await advancedPerformanceMonitoringService.getStatistics();
-    
+
     res.json({
       success: true,
       data: statistics
@@ -426,7 +426,7 @@ router.get('/statistics', async (req, res) => {
 router.get('/health', async (req, res) => {
   try {
     const statistics = await advancedPerformanceMonitoringService.getStatistics();
-    
+
     res.json({
       success: true,
       status: 'healthy',

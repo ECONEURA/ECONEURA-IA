@@ -113,7 +113,7 @@ export class InventoryKardexController extends BaseController {
       const query = InventoryKardexSearchQuerySchema.parse(req.query);
 
       const result = await this.inventoryKardexRepository.findByOrganizationId(organizationId, query);
-      
+
       const response: InventoryKardexListResponse = {
         data: result.data.map(inventoryKardex => this.transformInventoryKardexToResponse(inventoryKardex)),
         pagination: result.pagination
@@ -129,7 +129,7 @@ export class InventoryKardexController extends BaseController {
       const query = InventoryKardexSearchQuerySchema.parse(req.query);
 
       const result = await this.inventoryKardexRepository.search(query.search || '', organizationId, query);
-      
+
       const response: InventoryKardexListResponse = {
         data: result.data.map(inventoryKardex => this.transformInventoryKardexToResponse(inventoryKardex)),
         pagination: result.pagination
@@ -161,7 +161,7 @@ export class InventoryKardexController extends BaseController {
       const query = InventoryKardexSearchQuerySchema.parse(req.query);
 
       const result = await this.inventoryKardexRepository.findByProductId(productId, organizationId, query);
-      
+
       const response: InventoryKardexListResponse = {
         data: result.data.map(inventoryKardex => this.transformInventoryKardexToResponse(inventoryKardex)),
         pagination: result.pagination
@@ -178,7 +178,7 @@ export class InventoryKardexController extends BaseController {
       const query = InventoryKardexSearchQuerySchema.parse(req.query);
 
       const result = await this.inventoryKardexRepository.findByWarehouseId(warehouseId, organizationId, query);
-      
+
       const response: InventoryKardexListResponse = {
         data: result.data.map(inventoryKardex => this.transformInventoryKardexToResponse(inventoryKardex)),
         pagination: result.pagination
@@ -194,7 +194,7 @@ export class InventoryKardexController extends BaseController {
       const query = InventoryKardexSearchQuerySchema.parse(req.query);
 
       const result = await this.inventoryKardexRepository.findLowStock(organizationId, undefined, query);
-      
+
       const response: InventoryKardexListResponse = {
         data: result.data.map(inventoryKardex => this.transformInventoryKardexToResponse(inventoryKardex)),
         pagination: result.pagination
@@ -210,7 +210,7 @@ export class InventoryKardexController extends BaseController {
       const query = InventoryKardexSearchQuerySchema.parse(req.query);
 
       const result = await this.inventoryKardexRepository.findOutOfStock(organizationId, query);
-      
+
       const response: InventoryKardexListResponse = {
         data: result.data.map(inventoryKardex => this.transformInventoryKardexToResponse(inventoryKardex)),
         pagination: result.pagination
@@ -226,7 +226,7 @@ export class InventoryKardexController extends BaseController {
       const query = InventoryKardexSearchQuerySchema.parse(req.query);
 
       const result = await this.inventoryKardexRepository.findNeedsReorder(organizationId, query);
-      
+
       const response: InventoryKardexListResponse = {
         data: result.data.map(inventoryKardex => this.transformInventoryKardexToResponse(inventoryKardex)),
         pagination: result.pagination

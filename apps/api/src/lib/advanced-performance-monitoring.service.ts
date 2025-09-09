@@ -122,15 +122,15 @@ export class AdvancedPerformanceMonitoringService {
 
   private async initializeService(): Promise<void> {
     logger.info('Initializing Advanced Performance Monitoring Service');
-    
+
     // Start background processes
     this.startAlertChecking();
     this.startBaselineCalculation();
     this.startAnomalyDetection();
-    
+
     // Initialize demo data
     await this.initializeDemoData();
-    
+
     logger.info('Advanced Performance Monitoring Service initialized');
   }
 
@@ -286,7 +286,7 @@ export class AdvancedPerformanceMonitoringService {
 
   private async checkAlerts(): Promise<void> {
     const enabledAlerts = Array.from(this.alerts.values()).filter(alert => alert.enabled);
-    
+
     for (const alert of enabledAlerts) {
       try {
         const metrics = await this.getMetrics({
@@ -479,7 +479,7 @@ export class AdvancedPerformanceMonitoringService {
 
   private generateReportSummary(metrics: PerformanceMetric[]): Record<string, any> {
     const summary: Record<string, any> = {};
-    
+
     const metricGroups = metrics.reduce((groups, metric) => {
       if (!groups[metric.name]) {
         groups[metric.name] = [];
@@ -529,7 +529,7 @@ export class AdvancedPerformanceMonitoringService {
   }
 
   private generateHTMLReport(data: any): string {
-    return `
+    return `;
       <!DOCTYPE html>
       <html>
       <head>
@@ -574,7 +574,7 @@ export class AdvancedPerformanceMonitoringService {
   // Baseline Management
   async calculateBaselines(): Promise<void> {
     const metricNames = Array.from(new Set(Array.from(this.metrics.values()).map(m => m.name)));
-    
+
     for (const metricName of metricNames) {
       const metrics = await this.getMetrics({
         name: metricName,
@@ -617,7 +617,7 @@ export class AdvancedPerformanceMonitoringService {
   // Anomaly Detection
   async detectAnomalies(): Promise<void> {
     const baselines = await this.getBaselines();
-    
+
     for (const baseline of baselines) {
       const recentMetrics = await this.getMetrics({
         name: baseline.metric,
@@ -626,7 +626,7 @@ export class AdvancedPerformanceMonitoringService {
 
       for (const metric of recentMetrics) {
         const deviation = Math.abs(metric.value - baseline.baseline.mean) / baseline.baseline.stdDev;
-        
+
         if (deviation > 3) { // 3 standard deviations
           const anomaly: PerformanceAnomaly = {
             id: `anomaly_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,

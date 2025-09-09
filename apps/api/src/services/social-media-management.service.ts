@@ -1,8 +1,8 @@
 /**
  * SOCIAL MEDIA MANAGEMENT SERVICE
- * 
+ *
  * PR-57: Sistema completo de gestión de redes sociales avanzado
- * 
+ *
  * Funcionalidades:
  * - Gestión de múltiples plataformas sociales
  * - Programación y publicación de contenido
@@ -243,10 +243,10 @@ export class SocialMediaManagementService {
 
       // Initialize social media tables
       await this.initializeSocialMediaTables();
-      
+
       // Load existing data
       await this.loadExistingData();
-      
+
       // Start background processing
       this.startBackgroundProcessing();
 
@@ -648,7 +648,7 @@ export class SocialMediaManagementService {
   async getAccount(accountId: string, organizationId: string): Promise<SocialAccount | null> {
     try {
       const account = this.accounts.get(accountId);
-      
+
       if (!account || account.organizationId !== organizationId) {
         return null;
       }
@@ -729,7 +729,7 @@ export class SocialMediaManagementService {
   async getPost(postId: string, organizationId: string): Promise<SocialPost | null> {
     try {
       const post = this.posts.get(postId);
-      
+
       if (!post || post.organizationId !== organizationId) {
         return null;
       }
@@ -758,7 +758,7 @@ export class SocialMediaManagementService {
     try {
       const cacheKey = `search:${organizationId}:${JSON.stringify(searchParams)}`;
       const cached = this.searchCache.get(cacheKey);
-      
+
       if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
         return cached.result;
       }
@@ -787,7 +787,7 @@ export class SocialMediaManagementService {
           }
         }
         if (searchParams.filters.tags) {
-          posts = posts.filter(post => 
+          posts = posts.filter(post =>
             searchParams.filters!.tags!.some(tag => post.tags.includes(tag))
           );
         }
@@ -799,7 +799,7 @@ export class SocialMediaManagementService {
       // Apply text search
       if (searchParams.query) {
         const query = searchParams.query.toLowerCase();
-        posts = posts.filter(post => 
+        posts = posts.filter(post =>
           post.content.toLowerCase().includes(query) ||
           post.hashtags.some(hashtag => hashtag.toLowerCase().includes(query)) ||
           post.mentions.some(mention => mention.toLowerCase().includes(query))
@@ -811,7 +811,7 @@ export class SocialMediaManagementService {
         const { field, direction } = searchParams.sort;
         posts.sort((a, b) => {
           let aValue: any, bValue: any;
-          
+
           switch (field) {
             case 'createdAt':
               aValue = a.createdAt;
@@ -882,9 +882,9 @@ export class SocialMediaManagementService {
     try {
       const now = new Date();
       const scheduledPosts = Array.from(this.posts.values())
-        .filter(post => 
-          post.scheduledAt && 
-          post.scheduledAt <= now && 
+        .filter(post =>
+          post.scheduledAt &&
+          post.scheduledAt <= now &&
           post.status === 'scheduled'
         );
 
@@ -973,13 +973,13 @@ export class SocialMediaManagementService {
     try {
       const accounts = Array.from(this.accounts.values())
         .filter(account => account.organizationId === organizationId);
-      
+
       const posts = Array.from(this.posts.values())
         .filter(post => post.organizationId === organizationId);
-      
+
       const mentions = Array.from(this.mentions.values())
         .filter(mention => mention.organizationId === organizationId);
-      
+
       const campaigns = Array.from(this.campaigns.values())
         .filter(campaign => campaign.organizationId === organizationId);
 
@@ -1002,7 +1002,7 @@ export class SocialMediaManagementService {
       posts.forEach(post => {
         postsByPlatform[post.platform] = (postsByPlatform[post.platform] || 0) + 1;
         postsByStatus[post.status] = (postsByStatus[post.status] || 0) + 1;
-        
+
         if (post.engagement?.engagementRate) {
           totalEngagementRate += post.engagement.engagementRate;
           postsWithEngagement++;

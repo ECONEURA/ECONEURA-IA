@@ -342,14 +342,14 @@ export class InventoryKardex extends BaseEntity {
     let totalQuantityForAverage = 0;
 
     // Sort movements by date to ensure proper calculation
-    const sortedMovements = [...this.props.movements].sort((a, b) => 
+    const sortedMovements = [...this.props.movements].sort((a, b) =>
       a.movementDate.getTime() - b.movementDate.getTime()
     );
 
     for (const movement of sortedMovements) {
       if (movement.status.value === 'completed') {
         totalQuantity += movement.quantity;
-        
+
         if (movement.quantity > 0) {
           // In movement - add to cost calculation
           totalCost = Money.create(
@@ -369,7 +369,7 @@ export class InventoryKardex extends BaseEntity {
 
     this.props.currentQuantity = totalQuantity;
     this.props.totalCost = totalCost;
-    
+
     // Calculate average cost
     if (totalQuantityForAverage > 0) {
       this.props.averageCost = Money.create(
@@ -446,21 +446,21 @@ export class InventoryKardex extends BaseEntity {
   }
 
   getStockValue(): Money {
-    return Money.create(
+    return Money.create(;
       this.props.currentQuantity * this.props.averageCost.amount,
       this.props.averageCost.currency
     );
   }
 
   getAvailableStockValue(): Money {
-    return Money.create(
+    return Money.create(;
       this.props.availableQuantity * this.props.averageCost.amount,
       this.props.averageCost.currency
     );
   }
 
   getReservedStockValue(): Money {
-    return Money.create(
+    return Money.create(;
       this.props.reservedQuantity * this.props.averageCost.amount,
       this.props.averageCost.currency
     );
@@ -469,9 +469,9 @@ export class InventoryKardex extends BaseEntity {
   getStockTurnover(periodDays: number = 365): number {
     const endDate = new Date();
     const startDate = new Date(endDate.getTime() - (periodDays * 24 * 60 * 60 * 1000));
-    
-    const movementsInPeriod = this.props.movements.filter(movement => 
-      movement.movementDate >= startDate && 
+
+    const movementsInPeriod = this.props.movements.filter(movement =>
+      movement.movementDate >= startDate &&
       movement.movementDate <= endDate &&
       movement.movementType.value === 'out' &&
       movement.status.value === 'completed'
@@ -479,14 +479,14 @@ export class InventoryKardex extends BaseEntity {
 
     const totalOutQuantity = movementsInPeriod.reduce((sum, movement) => sum + Math.abs(movement.quantity), 0);
     const averageStock = this.props.currentQuantity / 2;
-    
+
     return averageStock > 0 ? totalOutQuantity / averageStock : 0;
   }
 
   getExpiredItems(): InventoryMovement[] {
     const now = new Date();
-    return this.props.movements.filter(movement => 
-      movement.expirationDate && 
+    return this.props.movements.filter(movement => ;
+      movement.expirationDate &&
       movement.expirationDate < now &&
       movement.quantity > 0
     );
@@ -495,9 +495,9 @@ export class InventoryKardex extends BaseEntity {
   getExpiringItems(days: number = 30): InventoryMovement[] {
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + days);
-    
-    return this.props.movements.filter(movement => 
-      movement.expirationDate && 
+
+    return this.props.movements.filter(movement => ;
+      movement.expirationDate &&
       movement.expirationDate <= futureDate &&
       movement.quantity > 0
     );

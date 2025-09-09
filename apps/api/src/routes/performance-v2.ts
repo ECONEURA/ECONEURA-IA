@@ -1,6 +1,6 @@
 /**
  * PR-48: Performance Optimization Routes V2
- * 
+ *
  * Endpoints para gestionar el sistema de optimización de rendimiento
  * y monitorear métricas en tiempo real.
  */
@@ -43,7 +43,7 @@ router.get('/status', async (req, res) => {
 
   try {
     const status = performanceOptimizerV2.getStatus();
-    
+
     structuredLogger.info('Performance status requested', {
       traceId,
       spanId,
@@ -92,7 +92,7 @@ router.get('/metrics', async (req, res) => {
 
   try {
     const status = performanceOptimizerV2.getStatus();
-    
+
     // Análisis detallado de métricas
     const analysis = {
       memory: {
@@ -172,7 +172,7 @@ router.post('/optimize', async (req, res) => {
 
   try {
     const { type } = req.body;
-    
+
     // Validar tipo de optimización
     if (type && !OptimizationTypeSchema.safeParse(type).success) {
       return res.status(400).json({
@@ -190,7 +190,7 @@ router.post('/optimize', async (req, res) => {
     });
 
     const results = await performanceOptimizerV2.forceOptimization(type);
-    
+
     const summary = {
       totalOptimizations: results.length,
       successful: results.filter(r => r.success).length,
@@ -240,7 +240,7 @@ router.put('/config', async (req, res) => {
 
   try {
     const configData = PerformanceConfigSchema.parse(req.body);
-    
+
     structuredLogger.info('Performance config update requested', {
       traceId,
       spanId,
@@ -248,7 +248,7 @@ router.put('/config', async (req, res) => {
     });
 
     performanceOptimizerV2.updateConfig(configData);
-    
+
     const newStatus = performanceOptimizerV2.getStatus();
 
     structuredLogger.info('Performance config updated', {
@@ -302,7 +302,7 @@ router.get('/optimizations', async (req, res) => {
   try {
     const { limit = 50, type, success } = req.query;
     const status = performanceOptimizerV2.getStatus();
-    
+
     let optimizations = status.optimizations;
 
     // Filtrar por tipo
@@ -376,7 +376,7 @@ router.get('/health', async (req, res) => {
 
   try {
     const status = performanceOptimizerV2.getStatus();
-    
+
     // Evaluar salud del sistema
     const healthChecks = {
       memory: status.metrics.memoryUsage.rss <= status.config.memoryThreshold,

@@ -21,7 +21,7 @@ router.post("/trigger", async (req, res) => {
   try {
     // Validate request
     const { dept, agentKey, params, hitl } = TriggerRequestSchema.parse(req.body);
-    
+
     const runId = crypto.randomUUID();
     const idempotencyKey = req.header("x-idempotency-key") || runId;
     const tenantId = req.header("x-tenant-id") || req.body.tenantId || "demo";
@@ -78,7 +78,7 @@ router.post("/trigger", async (req, res) => {
 
   } catch (error) {
     console.error("❌ Trigger error:", error);
-    
+
     res.status(500).json({
       error: "Agent trigger failed",
       message: error instanceof Error ? error.message : "Unknown error"

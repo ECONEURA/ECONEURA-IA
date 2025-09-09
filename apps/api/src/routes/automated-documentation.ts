@@ -1,11 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import AutomatedDocumentationService, { 
-  Documentation, 
-  APIDocumentation, 
-  ArchitectureDocumentation, 
-  Runbook, 
-  DocumentationConfig 
+import AutomatedDocumentationService, {
+  Documentation,
+  APIDocumentation,
+  ArchitectureDocumentation,
+  Runbook,
+  DocumentationConfig
 } from '../lib/automated-documentation.service.js';
 import { logger } from '../lib/logger.js';
 
@@ -73,7 +73,7 @@ router.get('/docs', async (req: Request, res: Response) => {
   try {
     const { type } = req.query;
     const docs = await documentationService.listDocumentation(type as string);
-    
+
     res.json({
       success: true,
       data: docs,
@@ -94,7 +94,7 @@ router.get('/docs/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const doc = await documentationService.getDocumentation(id);
-    
+
     if (!doc) {
       return res.status(404).json({
         success: false,
@@ -120,7 +120,7 @@ router.get('/docs/:id', async (req: Request, res: Response) => {
 router.post('/docs', async (req: Request, res: Response) => {
   try {
     const validatedData = CreateDocumentationSchema.parse(req.body);
-    
+
     const doc = await documentationService.createDocumentation({
       title: validatedData.title,
       type: validatedData.type,
@@ -161,9 +161,9 @@ router.put('/docs/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const updates = req.body;
-    
+
     const updatedDoc = await documentationService.updateDocumentation(id, updates);
-    
+
     if (!updatedDoc) {
       return res.status(404).json({
         success: false,
@@ -191,7 +191,7 @@ router.delete('/docs/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const deleted = await documentationService.deleteDocumentation(id);
-    
+
     if (!deleted) {
       return res.status(404).json({
         success: false,
@@ -219,7 +219,7 @@ router.delete('/docs/:id', async (req: Request, res: Response) => {
 router.post('/generate/api', async (req: Request, res: Response) => {
   try {
     const generation = await documentationService.generateAPIDocumentation();
-    
+
     res.json({
       success: true,
       data: generation,
@@ -239,7 +239,7 @@ router.post('/generate/api', async (req: Request, res: Response) => {
 router.post('/generate/architecture', async (req: Request, res: Response) => {
   try {
     const generation = await documentationService.generateArchitectureDocumentation();
-    
+
     res.json({
       success: true,
       data: generation,
@@ -259,7 +259,7 @@ router.post('/generate/architecture', async (req: Request, res: Response) => {
 router.post('/generate/user-guides', async (req: Request, res: Response) => {
   try {
     const generation = await documentationService.generateUserGuides();
-    
+
     res.json({
       success: true,
       data: generation,
@@ -279,7 +279,7 @@ router.post('/generate/user-guides', async (req: Request, res: Response) => {
 router.post('/generate/runbooks', async (req: Request, res: Response) => {
   try {
     const generation = await documentationService.generateRunbooks();
-    
+
     res.json({
       success: true,
       data: generation,
@@ -299,7 +299,7 @@ router.post('/generate/runbooks', async (req: Request, res: Response) => {
 router.post('/generate/all', async (req: Request, res: Response) => {
   try {
     const generations = await documentationService.generateAllDocumentation();
-    
+
     res.json({
       success: true,
       data: generations,
@@ -322,7 +322,7 @@ router.post('/generate/all', async (req: Request, res: Response) => {
 router.get('/runbooks', async (req: Request, res: Response) => {
   try {
     const runbooks = await documentationService.listRunbooks();
-    
+
     res.json({
       success: true,
       data: runbooks,
@@ -343,7 +343,7 @@ router.get('/runbooks/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const runbook = await documentationService.getRunbook(id);
-    
+
     if (!runbook) {
       return res.status(404).json({
         success: false,
@@ -369,7 +369,7 @@ router.get('/runbooks/:id', async (req: Request, res: Response) => {
 router.post('/runbooks', async (req: Request, res: Response) => {
   try {
     const validatedData = CreateRunbookSchema.parse(req.body);
-    
+
     const runbook = await documentationService.createRunbook({
       title: validatedData.title,
       description: validatedData.description,
@@ -407,9 +407,9 @@ router.put('/runbooks/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const updates = req.body;
-    
+
     const updatedRunbook = await documentationService.updateRunbook(id, updates);
-    
+
     if (!updatedRunbook) {
       return res.status(404).json({
         success: false,
@@ -437,7 +437,7 @@ router.delete('/runbooks/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const deleted = await documentationService.deleteRunbook(id);
-    
+
     if (!deleted) {
       return res.status(404).json({
         success: false,
@@ -465,7 +465,7 @@ router.delete('/runbooks/:id', async (req: Request, res: Response) => {
 router.get('/statistics', async (req: Request, res: Response) => {
   try {
     const statistics = await documentationService.getDocumentationStatistics();
-    
+
     res.json({
       success: true,
       data: statistics
@@ -484,7 +484,7 @@ router.get('/statistics', async (req: Request, res: Response) => {
 router.get('/reports/:period', async (req: Request, res: Response) => {
   try {
     const { period } = req.params;
-    
+
     if (!['daily', 'weekly', 'monthly'].includes(period)) {
       return res.status(400).json({
         success: false,
@@ -493,7 +493,7 @@ router.get('/reports/:period', async (req: Request, res: Response) => {
     }
 
     const report = await documentationService.generateDocumentationReport(period as 'daily' | 'weekly' | 'monthly');
-    
+
     res.json({
       success: true,
       data: report
@@ -531,10 +531,10 @@ router.get('/config', async (req: Request, res: Response) => {
 router.put('/config', async (req: Request, res: Response) => {
   try {
     const validatedData = UpdateConfigSchema.parse(req.body);
-    
+
     // Actualizar configuración (en una implementación real, esto se persistiría)
     Object.assign(defaultConfig, validatedData);
-    
+
     res.json({
       success: true,
       data: defaultConfig,
@@ -564,7 +564,7 @@ router.put('/config', async (req: Request, res: Response) => {
 router.get('/health', async (req: Request, res: Response) => {
   try {
     const statistics = await documentationService.getDocumentationStatistics();
-    
+
     const health = {
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -577,8 +577,8 @@ router.get('/health', async (req: Request, res: Response) => {
         totalDocuments: statistics.totalDocuments,
         totalRunbooks: statistics.totalRunbooks,
         totalGenerations: statistics.totalGenerations,
-        successRate: statistics.totalGenerations > 0 
-          ? (statistics.successfulGenerations / statistics.totalGenerations) * 100 
+        successRate: statistics.totalGenerations > 0
+          ? (statistics.successfulGenerations / statistics.totalGenerations) * 100
           : 0
       }
     };

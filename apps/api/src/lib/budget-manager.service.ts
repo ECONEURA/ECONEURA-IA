@@ -1,10 +1,10 @@
 // Budget Manager Service for PR-45
-import { 
-  Budget, 
-  BudgetAlert, 
-  BudgetNotification, 
+import {
+  Budget,
+  BudgetAlert,
+  BudgetNotification,
   NotificationCondition,
-  BudgetStatus 
+  BudgetStatus
 } from './finops-types';
 import { structuredLogger } from './structured-logger.js';
 import { ErrorHandler } from './error-handler.js';
@@ -230,9 +230,9 @@ export class BudgetManagerService {
   async checkBudgetThresholds(): Promise<void> {
     try {
       const now = new Date();
-      const activeBudgets = this.budgets.filter(b => 
-        b.status === 'active' && 
-        b.startDate <= now && 
+      const activeBudgets = this.budgets.filter(b =>
+        b.status === 'active' &&
+        b.startDate <= now &&
         b.endDate >= now
       );
 
@@ -280,11 +280,11 @@ export class BudgetManagerService {
     const now = new Date();
     const totalDays = Math.ceil((budget.endDate.getTime() - budget.startDate.getTime()) / (1000 * 60 * 60 * 24));
     const elapsedDays = Math.ceil((now.getTime() - budget.startDate.getTime()) / (1000 * 60 * 60 * 24));
-    
+
     // Simulate spending with some variance
     const baseSpending = (elapsedDays / totalDays) * budget.amount;
     const variance = (Math.random() - 0.5) * budget.amount * 0.1; // ±10% variance
-    
+
     return Math.max(0, baseSpending + variance);
   }
 
@@ -303,7 +303,7 @@ export class BudgetManagerService {
   }
 
   private async createBudgetAlert(
-    budget: Budget, 
+    budget: Budget,
     type: 'threshold' | 'exceeded' | 'predicted_exceeded' | 'anomaly',
     percentage: number,
     currentAmount: number
@@ -360,10 +360,10 @@ export class BudgetManagerService {
   }
 
   private generateAlertMessage(
-    type: string, 
-    budgetName: string, 
-    percentage: number, 
-    currentAmount: number, 
+    type: string,
+    budgetName: string,
+    percentage: number,
+    currentAmount: number,
     budgetAmount: number
   ): string {
     switch (type) {
@@ -383,7 +383,7 @@ export class BudgetManagerService {
   private async sendBudgetNotifications(budget: Budget, alert: BudgetAlert): Promise<void> {
     try {
       const notifications = budget.notifications.filter(n => n.enabled);
-      
+
       for (const notification of notifications) {
         if (this.shouldSendNotification(notification, alert)) {
           await this.sendNotification(notification, alert);
@@ -507,7 +507,7 @@ export class BudgetManagerService {
       const currentSpending = this.simulateCurrentSpending(budget);
       const percentage = (currentSpending / budget.amount) * 100;
       const daysRemaining = Math.ceil((budget.endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-      const projectedAmount = this.isPredictedToExceed(budget, currentSpending) ? 
+      const projectedAmount = this.isPredictedToExceed(budget, currentSpending) ?
         currentSpending + ((currentSpending / Math.ceil((now.getTime() - budget.startDate.getTime()) / (1000 * 60 * 60 * 24))) * daysRemaining) :
         currentSpending;
       const variance = projectedAmount - budget.amount;
@@ -556,7 +556,7 @@ export class BudgetManagerService {
     const atRiskBudgets = budgetStatuses.filter(s => s.status === 'at_risk').length;
     const totalBudgetAmount = budgets.reduce((sum, b) => sum + b.amount, 0);
     const totalSpent = budgetStatuses.reduce((sum, s) => sum + s.currentAmount, 0);
-    const averageUtilization = budgetStatuses.length > 0 ? 
+    const averageUtilization = budgetStatuses.length > 0 ?
       budgetStatuses.reduce((sum, s) => sum + s.percentage, 0) / budgetStatuses.length : 0;
     const totalAlerts = alerts.length;
     const unacknowledgedAlerts = alerts.filter(a => !a.acknowledged).length;

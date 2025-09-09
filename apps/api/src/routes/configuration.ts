@@ -64,7 +64,7 @@ router.get('/feature-flags', async (req, res) => {
   try {
     const { environment } = req.query;
     const flags = await configurationService.getFeatureFlags(environment as string);
-    
+
     res.json({
       success: true,
       data: flags,
@@ -84,14 +84,14 @@ router.get('/feature-flags/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const flag = await configurationService.getFeatureFlag(id);
-    
+
     if (!flag) {
       return res.status(404).json({
         success: false,
         error: 'Feature flag not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: flag
@@ -109,7 +109,7 @@ router.get('/feature-flags/:id', async (req, res) => {
 router.post('/feature-flags', validateFeatureFlag, async (req, res) => {
   try {
     const flag = await configurationService.createFeatureFlag(req.body);
-    
+
     res.status(201).json({
       success: true,
       data: flag,
@@ -129,16 +129,16 @@ router.put('/feature-flags/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
-    
+
     const flag = await configurationService.updateFeatureFlag(id, updates);
-    
+
     if (!flag) {
       return res.status(404).json({
         success: false,
         error: 'Feature flag not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: flag,
@@ -158,14 +158,14 @@ router.delete('/feature-flags/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const deleted = await configurationService.deleteFeatureFlag(id);
-    
+
     if (!deleted) {
       return res.status(404).json({
         success: false,
         error: 'Feature flag not found'
       });
     }
-    
+
     res.json({
       success: true,
       message: 'Feature flag deleted successfully'
@@ -184,9 +184,9 @@ router.post('/feature-flags/:name/check', validateFeatureFlagCheck, async (req, 
   try {
     const { name } = req.params;
     const context = req.body;
-    
+
     const result = await configurationService.checkFeatureFlag(name, context);
-    
+
     res.json({
       success: true,
       data: result
@@ -206,7 +206,7 @@ router.post('/feature-flags/:name/check', validateFeatureFlagCheck, async (req, 
 router.get('/environments', async (req, res) => {
   try {
     const environments = await configurationService.getEnvironments();
-    
+
     res.json({
       success: true,
       data: environments,
@@ -226,14 +226,14 @@ router.get('/environments/:name', async (req, res) => {
   try {
     const { name } = req.params;
     const environment = await configurationService.getEnvironment(name);
-    
+
     if (!environment) {
       return res.status(404).json({
         success: false,
         error: 'Environment not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: environment
@@ -252,16 +252,16 @@ router.put('/environments/:name', validateEnvironment, async (req, res) => {
   try {
     const { name } = req.params;
     const updates = req.body;
-    
+
     const environment = await configurationService.updateEnvironment(name, updates);
-    
+
     if (!environment) {
       return res.status(404).json({
         success: false,
         error: 'Environment not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: environment,
@@ -283,9 +283,9 @@ router.get('/values/:key', async (req, res) => {
   try {
     const { key } = req.params;
     const { environment, defaultValue } = req.query;
-    
+
     let config = await configurationService.getConfigValue(key, environment as string);
-    
+
     // Si no se encuentra y hay valor por defecto, usarlo
     if (!config && defaultValue) {
       config = {
@@ -295,14 +295,14 @@ router.get('/values/:key', async (req, res) => {
         isSecret: false
       };
     }
-    
+
     if (!config) {
       return res.status(404).json({
         success: false,
         error: 'Config value not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: config
@@ -321,9 +321,9 @@ router.put('/values/:key', async (req, res) => {
   try {
     const { key } = req.params;
     const { value, environment } = req.body;
-    
+
     const config = await configurationService.setConfigValue(key, value, environment);
-    
+
     res.json({
       success: true,
       data: config,
@@ -345,16 +345,16 @@ router.get('/secrets/:key', async (req, res) => {
   try {
     const { key } = req.params;
     const { environment } = req.query;
-    
+
     const secret = await configurationService.getSecret(key, environment as string);
-    
+
     if (!secret) {
       return res.status(404).json({
         success: false,
         error: 'Secret not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: {
@@ -377,16 +377,16 @@ router.put('/secrets/:key', async (req, res) => {
   try {
     const { key } = req.params;
     const { value, environment } = req.body;
-    
+
     if (!value) {
       return res.status(400).json({
         success: false,
         error: 'Secret value is required'
       });
     }
-    
+
     await configurationService.setSecret(key, value, environment);
-    
+
     res.json({
       success: true,
       message: 'Secret set successfully'
@@ -405,16 +405,16 @@ router.delete('/secrets/:key', async (req, res) => {
   try {
     const { key } = req.params;
     const { environment } = req.query;
-    
+
     const deleted = await configurationService.deleteSecret(key, environment as string);
-    
+
     if (!deleted) {
       return res.status(404).json({
         success: false,
         error: 'Secret not found'
       });
     }
-    
+
     res.json({
       success: true,
       message: 'Secret deleted successfully'
@@ -434,7 +434,7 @@ router.delete('/secrets/:key', async (req, res) => {
 router.get('/stats', async (req, res) => {
   try {
     const stats = await configurationService.getStats();
-    
+
     res.json({
       success: true,
       data: stats
@@ -454,7 +454,7 @@ router.get('/stats', async (req, res) => {
 router.get('/validate', async (req, res) => {
   try {
     const validation = await configurationService.validateConfiguration();
-    
+
     res.json({
       success: true,
       data: validation
@@ -474,7 +474,7 @@ router.get('/validate', async (req, res) => {
 router.post('/reload', async (req, res) => {
   try {
     const result = await configurationService.reloadConfiguration();
-    
+
     res.json({
       success: result.success,
       message: result.message
@@ -498,7 +498,7 @@ router.get('/beta-features', async (req, res) => {
       userId: req.headers['x-user-id'] as string,
       organizationId: req.headers['x-organization-id'] as string
     });
-    
+
     if (!betaCheck.isEnabled) {
       return res.status(403).json({
         success: false,
@@ -506,7 +506,7 @@ router.get('/beta-features', async (req, res) => {
         reason: betaCheck.reason
       });
     }
-    
+
     const betaFeatures = [
       {
         name: 'ai_chat',
@@ -527,7 +527,7 @@ router.get('/beta-features', async (req, res) => {
         enabled: false
       }
     ];
-    
+
     res.json({
       success: true,
       data: betaFeatures
@@ -548,7 +548,7 @@ router.get('/health', async (req, res) => {
   try {
     const stats = await configurationService.getStats();
     const validation = await configurationService.validateConfiguration();
-    
+
     const health = {
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -559,7 +559,7 @@ router.get('/health', async (req, res) => {
         warningCount: validation.warnings.length
       }
     };
-    
+
     res.json({
       success: true,
       data: health

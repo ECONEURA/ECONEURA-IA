@@ -351,7 +351,7 @@ describe('Azure Integration API', () => {
       );
 
       const responses = await Promise.all(promises);
-      
+
       // Some requests should be rate limited
       const rateLimitedResponses = responses.filter(r => r.status === 429);
       expect(rateLimitedResponses.length).toBeGreaterThan(0);

@@ -31,7 +31,7 @@ export class BaseClient {
 
   constructor(config: BaseClientConfig) {
     this.config = config;
-    
+
     this.client = axios.create({
       baseURL: config.baseURL,
       timeout: config.timeout || 30000,
@@ -48,14 +48,14 @@ export class BaseClient {
         if (this.config.apiKey) {
           config.headers.Authorization = `Bearer ${this.config.apiKey}`;
         }
-        
+
         if (this.config.organizationId) {
           config.headers['X-Org'] = this.config.organizationId;
         }
 
         // Add correlation ID for tracing
         config.headers['X-Correlation-Id'] = this.generateCorrelationId();
-        
+
         return config;
       },
       (error) => Promise.reject(error)
@@ -109,11 +109,11 @@ export class BaseClient {
 
   private handleResponse<T>(response: AxiosResponse<ApiResponse<T>>): T {
     const { data } = response.data;
-    
+
     if (!response.data.success) {
       throw new Error(response.data.error || 'Unknown error occurred');
     }
-    
+
     return data as T;
   }
 

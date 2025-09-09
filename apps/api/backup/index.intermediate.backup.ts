@@ -59,19 +59,19 @@ app.use((req, res, next) => {
   const now = Date.now();
   const windowMs = 15 * 60 * 1000; // 15 minutes
   const maxRequests = 100;
-  
+
   if (!rateLimitStore.has(ip)) {
     rateLimitStore.set(ip, { count: 1, resetTime: now + windowMs });
     return next();
   }
-  
+
   const record = rateLimitStore.get(ip);
   if (now > record.resetTime) {
     record.count = 1;
     record.resetTime = now + windowMs;
     return next();
   }
-  
+
   if (record.count >= maxRequests) {
     return res.status(429).json({
       error: 'Too Many Requests',
@@ -79,7 +79,7 @@ app.use((req, res, next) => {
       retryAfter: Math.ceil((record.resetTime - now) / 1000)
     });
   }
-  
+
   record.count++;
   next();
 });
@@ -152,14 +152,14 @@ app.get("/metrics", async (req, res) => {
   try {
     const cacheStats = cacheManager.getAllStats();
     const memoryUsage = process.memoryUsage();
-    
+
     // Generate Prometheus-style metrics
     const metrics = `
 # HELP econeura_cache_hits_total Total number of cache hits
 # TYPE econeura_cache_hits_total counter
 econeura_cache_hits_total{cache="all"} ${Object.values(cacheStats).reduce((sum: number, stats: any) => sum + (stats?.hits || 0), 0)}
 
-# HELP econeura_cache_misses_total Total number of cache misses  
+# HELP econeura_cache_misses_total Total number of cache misses
 # TYPE econeura_cache_misses_total counter
 econeura_cache_misses_total{cache="all"} ${Object.values(cacheStats).reduce((sum: number, stats: any) => sum + (stats?.misses || 0), 0)}
 
@@ -175,7 +175,7 @@ econeura_system_memory_heap_total_bytes ${memoryUsage.heapTotal}
 # TYPE econeura_system_uptime_seconds counter
 econeura_system_uptime_seconds ${process.uptime()}
 `;
-    
+
     res.set('Content-Type', 'text/plain');
     res.send(metrics.trim());
   } catch (error) {
@@ -214,7 +214,7 @@ app.get("/", (req, res) => {
     features: [
       "PR-22: Health modes (live/ready/degraded)",
       "PR-23: Observability coherente (logs + métricas + traces)",
-      "PR-24: Analytics events with Zod validation", 
+      "PR-24: Analytics events with Zod validation",
       "PR-27: Validación básica en requests",
       "PR-28: Security headers básicos + CORS",
       "PR-29: Rate limiting básico",
@@ -225,7 +225,7 @@ app.get("/", (req, res) => {
     ],
     endpoints: [
       "GET /health - Basic health check",
-      "GET /health/live - Liveness probe (PR-22)", 
+      "GET /health/live - Liveness probe (PR-22)",
       "GET /health/ready - Readiness probe (PR-22)",
       "GET /metrics - Prometheus metrics (PR-23)",
       "GET /cache/stats - Cache statistics",
@@ -254,7 +254,7 @@ app.use('/v1/cockpit', cockpitRouter);
 // Basic error handling middleware
 app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   const errorId = `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
+
   structuredLogger.error('Unhandled error', error, {
     errorId,
     path: req.path,
@@ -292,7 +292,7 @@ const server = app.listen(PORT, () => {
     features: [
       'PR-22: Health modes (live/ready/degraded)',
       'PR-23: Observability coherente (logs + métricas + traces)',
-      'PR-24: Analytics events with Zod validation', 
+      'PR-24: Analytics events with Zod validation',
       'PR-27: Validación básica en requests',
       'PR-28: Security headers básicos + CORS',
       'PR-29: Rate limiting básico',

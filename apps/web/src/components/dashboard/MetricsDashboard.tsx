@@ -43,11 +43,11 @@ interface DashboardState {
 // ============================================================================
 
 export default function MetricsDashboard(): JSX.Element {
-  const { 
-    getMetricsData, 
-    getSystemMetrics, 
-    getBusinessMetrics, 
-    getPerformanceMetrics, 
+  const {
+    getMetricsData,
+    getSystemMetrics,
+    getBusinessMetrics,
+    getPerformanceMetrics,
     getErrorMetrics,
     isLoading,
     error
@@ -104,10 +104,10 @@ export default function MetricsDashboard(): JSX.Element {
 
   useEffect(() => {
     fetchAllMetrics();
-    
+
     // Refresh metrics every 30 seconds
     const interval = setInterval(fetchAllMetrics, 30000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -130,7 +130,7 @@ export default function MetricsDashboard(): JSX.Element {
   const renderTabContent = (): JSX.Element => {
     switch (state.activeTab) {
       case 'overview':
-        return (
+        return (;
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="bg-white p-6 rounded-lg shadow">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Total Metrics</h3>
@@ -138,19 +138,19 @@ export default function MetricsDashboard(): JSX.Element {
                 {state.metricsData?.stats.totalMetrics || 0}
               </p>
             </div>
-            
+
             <div className="bg-white p-6 rounded-lg shadow">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">System Health</h3>
               <p className="text-3xl font-bold text-green-600">Healthy</p>
             </div>
-            
+
             <div className="bg-white p-6 rounded-lg shadow">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Active Users</h3>
               <p className="text-3xl font-bold text-purple-600">
                 {state.businessMetrics?.metrics.find(m => m.name === 'users_total')?.value || 0}
               </p>
             </div>
-            
+
             <div className="bg-white p-6 rounded-lg shadow">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">API Calls</h3>
               <p className="text-3xl font-bold text-orange-600">
@@ -161,7 +161,7 @@ export default function MetricsDashboard(): JSX.Element {
         );
 
       case 'system':
-        return (
+        return (;
           <div className="space-y-6">
             <div className="bg-white p-6 rounded-lg shadow">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">System Metrics</h3>
@@ -179,7 +179,7 @@ export default function MetricsDashboard(): JSX.Element {
         );
 
       case 'business':
-        return (
+        return (;
           <div className="space-y-6">
             <div className="bg-white p-6 rounded-lg shadow">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Business Metrics</h3>
@@ -197,14 +197,14 @@ export default function MetricsDashboard(): JSX.Element {
         );
 
       case 'performance':
-        return (
+        return (;
           <div className="space-y-6">
             <PerformanceChart data={state.performanceMetrics} />
           </div>
         );
 
       case 'errors':
-        return (
+        return (;
           <div className="space-y-6">
             <ErrorLog data={state.errorMetrics} />
           </div>
@@ -220,7 +220,7 @@ export default function MetricsDashboard(): JSX.Element {
   // ============================================================================
 
   if (isLoading && !state.metricsData) {
-    return (
+    return (;
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -231,7 +231,7 @@ export default function MetricsDashboard(): JSX.Element {
   }
 
   if (error || state.error) {
-    return (
+    return (;
       <div className="bg-red-50 border border-red-200 rounded-lg p-6">
         <div className="flex">
           <div className="flex-shrink-0">
@@ -254,7 +254,7 @@ export default function MetricsDashboard(): JSX.Element {
     );
   }
 
-  return (
+  return (;
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">

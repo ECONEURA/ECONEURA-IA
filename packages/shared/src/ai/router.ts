@@ -38,7 +38,7 @@ export class AIRouter {
 
     // Decision Matrix Implementation
     const decision = await this.makeRoutingDecision(request);
-    
+
     logger.info('AI routing decision made', {
       org_id: request.org_id,
     });
@@ -64,7 +64,7 @@ export class AIRouter {
     // Rule 2: Check cost budget
     const currentCost = this.costTracker.get(request.org_id) || 0;
     const estimatedCost = this.estimateCostEUR(request.tokens_est, 'openai-cloud');
-    
+
     if (currentCost + estimatedCost > request.budget_cents / 100) {
       logger.logFinOpsEvent('Budget exceeded, routing to edge', {
         event_type: 'budget_exceeded',
@@ -86,11 +86,11 @@ export class AIRouter {
     }
 
     // Rule 3: Special tools/languages -> Cloud
-    const requiresCloudTools = request.tools_needed.some(tool => 
+    const requiresCloudTools = request.tools_needed.some(tool =>
       ['function_calling', 'vision', 'code_interpreter'].includes(tool)
     );
 
-    const requiresSpecialLanguages = request.languages.some(lang => 
+    const requiresSpecialLanguages = request.languages.some(lang =>
       !['en', 'es', 'fr'].includes(lang)
     );
 
@@ -196,7 +196,7 @@ export class AIRouter {
   updateCostTracking(orgId: string, costEUR: number): void {
     const currentCost = this.costTracker.get(orgId) || 0;
     this.costTracker.set(orgId, currentCost + costEUR);
-    
+
     logger.logFinOpsEvent('AI cost updated', {
       event_type: 'cost_calculation',
       org_id: orgId,
@@ -212,12 +212,12 @@ export class AIRouter {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
-      
+
       const response = await fetch(`${this.config.mistralEdgeUrl}/health`, {
         method: 'GET',
         signal: controller.signal,
       });
-      
+
       clearTimeout(timeoutId);
       return response.ok;
     } catch (error) {

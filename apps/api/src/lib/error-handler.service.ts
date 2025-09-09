@@ -1,6 +1,6 @@
 /**
  * MEJORA 1: Sistema de Error Handling Centralizado y Robusto
- * 
+ *
  * Sistema avanzado de manejo de errores con categorización,
  * logging estructurado, métricas y recuperación automática.
  */
@@ -192,44 +192,44 @@ export class ErrorHandlerService {
   public handleError(error: Error, context: ErrorContext = {}): ErrorResponse {
     const errorDetails = this.categorizeError(error, context);
     const response = this.createErrorResponse(errorDetails);
-    
+
     // Log estructurado
     this.logError(errorDetails);
-    
+
     // Métricas
     this.recordErrorMetrics(errorDetails);
-    
+
     // Circuit breaker
     this.updateCircuitBreaker(errorDetails);
-    
+
     return response;
   }
 
   private categorizeError(error: Error, context: ErrorContext): ErrorDetails {
     const errorMessage = error.message.toLowerCase();
     const errorName = error.name.toLowerCase();
-    
+
     // Detectar tipo de error basado en mensaje y nombre
     if (errorMessage.includes('validation') || errorMessage.includes('invalid')) {
       return this.createErrorDetails('VALIDATION_ERROR', error, context);
     }
-    
+
     if (errorMessage.includes('unauthorized') || errorMessage.includes('authentication')) {
       return this.createErrorDetails('AUTHENTICATION_ERROR', error, context);
     }
-    
+
     if (errorMessage.includes('database') || errorMessage.includes('connection')) {
       return this.createErrorDetails('DATABASE_CONNECTION_ERROR', error, context);
     }
-    
+
     if (errorMessage.includes('api') || errorMessage.includes('http')) {
       return this.createErrorDetails('EXTERNAL_API_ERROR', error, context);
     }
-    
+
     if (errorMessage.includes('rate limit') || errorMessage.includes('too many requests')) {
       return this.createErrorDetails('RATE_LIMIT_ERROR', error, context);
     }
-    
+
     // Error genérico del sistema
     return {
       code: 'SYSTEM_ERROR',
@@ -282,7 +282,7 @@ export class ErrorHandlerService {
 
   private logError(errorDetails: ErrorDetails): void {
     const logLevel = this.getLogLevel(errorDetails.severity);
-    
+
     structuredLogger[logLevel]('Error handled by centralized error handler', {
       code: errorDetails.code,
       message: errorDetails.message,
@@ -334,13 +334,13 @@ export class ErrorHandlerService {
   private updateCircuitBreaker(errorDetails: ErrorDetails): void {
     const serviceKey = this.getServiceKey(errorDetails);
     const circuitBreaker = this.circuitBreakers.get(serviceKey);
-    
+
     if (!circuitBreaker) return;
 
     if (errorDetails.severity === ErrorSeverity.HIGH || errorDetails.severity === ErrorSeverity.CRITICAL) {
       circuitBreaker.failureCount++;
       circuitBreaker.lastFailureTime = Date.now();
-      
+
       if (circuitBreaker.failureCount >= circuitBreaker.failureThreshold) {
         circuitBreaker.state = 'OPEN';
         structuredLogger.warn('Circuit breaker opened', {

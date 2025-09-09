@@ -16,7 +16,7 @@ describe('Basic AI API Integration Tests', () => {
     // Setup test data
     testUserId = 'test-user-123';
     testOrganizationId = 'test-org-456';
-    
+
     // Mock authentication token
     authToken = 'Bearer test-token-123';
   });
@@ -158,7 +158,7 @@ describe('Basic AI API Integration Tests', () => {
       );
 
       const responses = await Promise.all(requests);
-      
+
       // At least one should be rate limited
       const rateLimitedResponses = responses.filter(r => r.status === 429);
       expect(rateLimitedResponses.length).toBeGreaterThan(0);

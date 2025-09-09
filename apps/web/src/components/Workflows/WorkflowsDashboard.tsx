@@ -55,7 +55,7 @@ interface WorkflowStats {
   successRate: number;
 }
 
-export default function WorkflowsDashboard() {
+export default function WorkflowsDashboard(): void {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [instances, setInstances] = useState<WorkflowInstance[]>([]);
   const [stats, setStats] = useState<WorkflowStats | null>(null);
@@ -181,7 +181,7 @@ export default function WorkflowsDashboard() {
   };
 
   if (loading) {
-    return (
+    return (;
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
@@ -189,7 +189,7 @@ export default function WorkflowsDashboard() {
   }
 
   if (error) {
-    return (
+    return (;
       <div className="bg-red-50 border border-red-200 rounded-lg p-4">
         <div className="flex">
           <div className="flex-shrink-0">
@@ -216,7 +216,7 @@ export default function WorkflowsDashboard() {
     );
   }
 
-  return (
+  return (;
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white shadow rounded-lg">
@@ -296,7 +296,7 @@ export default function WorkflowsDashboard() {
                   Create Workflow
                 </button>
               </div>
-              
+
               <div className="grid gap-4">
                 {workflows.map((workflow) => (
                   <div key={workflow.id} className="bg-gray-50 rounded-lg p-4">
@@ -305,15 +305,15 @@ export default function WorkflowsDashboard() {
                         <div className="flex items-center space-x-3">
                           <h4 className="text-sm font-medium text-gray-900">{workflow.name}</h4>
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            workflow.type === 'bpmn' 
-                              ? 'bg-blue-100 text-blue-800' 
+                            workflow.type === 'bpmn'
+                              ? 'bg-blue-100 text-blue-800'
                               : 'bg-green-100 text-green-800'
                           }`}>
                             {workflow.type === 'bpmn' ? 'BPMN' : 'State Machine'}
                           </span>
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            workflow.status === 'active' 
-                              ? 'bg-green-100 text-green-800' 
+                            workflow.status === 'active'
+                              ? 'bg-green-100 text-green-800'
                               : workflow.status === 'inactive'
                               ? 'bg-red-100 text-red-800'
                               : 'bg-yellow-100 text-yellow-800'
@@ -358,7 +358,7 @@ export default function WorkflowsDashboard() {
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-medium text-gray-900">Workflow Instances</h3>
               </div>
-              
+
               <div className="grid gap-4">
                 {instances.map((instance) => (
                   <div key={instance.id} className="bg-gray-50 rounded-lg p-4">
@@ -367,8 +367,8 @@ export default function WorkflowsDashboard() {
                         <div className="flex items-center space-x-3">
                           <h4 className="text-sm font-medium text-gray-900">Instance {instance.id.slice(-8)}</h4>
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            instance.status === 'running' 
-                              ? 'bg-green-100 text-green-800' 
+                            instance.status === 'running'
+                              ? 'bg-green-100 text-green-800'
                               : instance.status === 'completed'
                               ? 'bg-blue-100 text-blue-800'
                               : instance.status === 'failed'
@@ -428,7 +428,7 @@ export default function WorkflowsDashboard() {
           {activeTab === 'stats' && stats && (
             <div className="space-y-6">
               <h3 className="text-lg font-medium text-gray-900">Workflow Statistics</h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-blue-50 rounded-lg p-4">
                   <div className="text-2xl font-bold text-blue-600">{stats.totalWorkflows}</div>

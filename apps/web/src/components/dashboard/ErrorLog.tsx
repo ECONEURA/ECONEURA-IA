@@ -62,8 +62,8 @@ export default function ErrorLog({ data }: ErrorLogProps): JSX.Element {
     if (!data?.metrics) return;
 
     // Filter error metrics
-    const errorMetrics = data.metrics.filter(metric => 
-      metric.name.includes('errors_total') || 
+    const errorMetrics = data.metrics.filter(metric =>
+      metric.name.includes('errors_total') ||
       metric.name.includes('failures_total') ||
       metric.name.includes('exceptions_total') ||
       metric.name.includes('client_errors_total')
@@ -73,7 +73,7 @@ export default function ErrorLog({ data }: ErrorLogProps): JSX.Element {
     const errorEntries: ErrorEntry[] = errorMetrics.map((metric, index) => ({
       id: `error-${index}`,
       timestamp: metric.timestamp,
-      level: metric.name.includes('client_errors') ? 'error' : 
+      level: metric.name.includes('client_errors') ? 'error' :
              metric.name.includes('warnings') ? 'warning' : 'info',
       message: metric.name.replace(/_/g, ' ').toUpperCase(),
       source: metric.labels.source || 'unknown',
@@ -103,7 +103,7 @@ export default function ErrorLog({ data }: ErrorLogProps): JSX.Element {
 
     // Filter by search
     if (filter.search) {
-      filtered = filtered.filter(error => 
+      filtered = filtered.filter(error =>
         error.message.toLowerCase().includes(filter.search.toLowerCase()) ||
         error.source.toLowerCase().includes(filter.search.toLowerCase())
       );
@@ -144,25 +144,25 @@ export default function ErrorLog({ data }: ErrorLogProps): JSX.Element {
   const getLevelIcon = (level: string): JSX.Element => {
     switch (level) {
       case 'error':
-        return (
+        return (;
           <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
           </svg>
         );
       case 'warning':
-        return (
+        return (;
           <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
           </svg>
         );
       case 'info':
-        return (
+        return (;
           <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
           </svg>
         );
       default:
-        return (
+        return (;
           <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
           </svg>
@@ -177,21 +177,21 @@ export default function ErrorLog({ data }: ErrorLogProps): JSX.Element {
           <div className={`p-1 rounded-full ${getLevelColor(error.level)}`}>
             {getLevelIcon(error.level)}
           </div>
-          
+
           <div className="flex-1">
             <div className="flex items-center space-x-2 mb-1">
               <h4 className="font-medium text-gray-900">{error.message}</h4>
               <span className="text-sm text-gray-500">({error.count} occurrences)</span>
             </div>
-            
+
             <p className="text-sm text-gray-600 mb-2">
               Source: <span className="font-medium">{error.source}</span>
             </p>
-            
+
             <p className="text-xs text-gray-500">
               {new Date(error.timestamp).toLocaleString()}
             </p>
-            
+
             {Object.keys(error.labels).length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1">
                 {Object.entries(error.labels).map(([key, value]) => (
@@ -206,7 +206,7 @@ export default function ErrorLog({ data }: ErrorLogProps): JSX.Element {
             )}
           </div>
         </div>
-        
+
         <div className="flex space-x-2">
           <button className="text-gray-400 hover:text-gray-600">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -214,7 +214,7 @@ export default function ErrorLog({ data }: ErrorLogProps): JSX.Element {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
           </button>
-          
+
           <button className="text-gray-400 hover:text-gray-600">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -230,7 +230,7 @@ export default function ErrorLog({ data }: ErrorLogProps): JSX.Element {
   // ============================================================================
 
   if (!data?.metrics) {
-    return (
+    return (;
       <div className="bg-white p-6 rounded-lg border">
         <div className="text-center text-gray-500">
           <svg className="h-12 w-12 mx-auto mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -242,7 +242,7 @@ export default function ErrorLog({ data }: ErrorLogProps): JSX.Element {
     );
   }
 
-  return (
+  return (;
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
@@ -268,7 +268,7 @@ export default function ErrorLog({ data }: ErrorLogProps): JSX.Element {
               <option value="info">Info</option>
             </select>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Source</label>
             <select
@@ -283,7 +283,7 @@ export default function ErrorLog({ data }: ErrorLogProps): JSX.Element {
               <option value="system">System</option>
             </select>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
             <input
@@ -294,7 +294,7 @@ export default function ErrorLog({ data }: ErrorLogProps): JSX.Element {
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
             />
           </div>
-          
+
           <div className="flex items-end">
             <button
               onClick={handleClearFilters}
@@ -316,7 +316,7 @@ export default function ErrorLog({ data }: ErrorLogProps): JSX.Element {
             <p>No errors found matching your filters</p>
           </div>
         ) : (
-          filteredErrors.map(renderErrorEntry)
+          filteredErrors.map(renderErrorEntry);
         )}
       </div>
 

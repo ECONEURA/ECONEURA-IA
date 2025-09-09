@@ -287,7 +287,7 @@ export class BackupRecoveryService {
     // Solo validar si se están actualizando campos críticos
     const criticalFields = ['source', 'destination', 'schedule'];
     const hasCriticalUpdates = criticalFields.some(field => updates[field as keyof BackupConfig] !== undefined);
-    
+
     if (hasCriticalUpdates) {
       const updatedConfig = { ...existing, ...updates };
       const validation = await this.validateBackupConfig(updatedConfig);
@@ -362,11 +362,11 @@ export class BackupRecoveryService {
       if (!config.source.type) {
         errors.push('Source type is required');
       }
-      
+
       if (config.source.type === 'database' && !config.source.connectionString) {
         errors.push('Database connection string is required for database backups');
       }
-      
+
       if (config.source.type === 'filesystem' && !config.source.path) {
         errors.push('Source path is required for filesystem backups');
       }
@@ -379,7 +379,7 @@ export class BackupRecoveryService {
       if (!config.destination.type) {
         errors.push('Destination type is required');
       }
-      
+
       if (!config.destination.path) {
         errors.push('Destination path is required');
       }
@@ -519,7 +519,7 @@ export class BackupRecoveryService {
   private async backupDatabase(config: BackupConfig): Promise<{ size: number; filesCount: number; metadata: Record<string, any> }> {
     // Simular backup de base de datos
     const backupPath = path.join(config.destination.path, `db_backup_${Date.now()}.sql`);
-    
+
     // Crear directorio si no existe
     await fs.mkdir(path.dirname(backupPath), { recursive: true });
 
@@ -530,7 +530,7 @@ export class BackupRecoveryService {
 SELECT 'Backup completed successfully' as status;`;
 
     let data = mockData;
-    
+
     // Aplicar compresión si está habilitada
     if (config.destination.compression) {
       data = this.compressData(data);
@@ -558,7 +558,7 @@ SELECT 'Backup completed successfully' as status;`;
   private async backupFiles(config: BackupConfig): Promise<{ size: number; filesCount: number; metadata: Record<string, any> }> {
     // Simular backup de archivos
     const backupPath = path.join(config.destination.path, `files_backup_${Date.now()}.tar.gz`);
-    
+
     // Crear directorio si no existe
     await fs.mkdir(path.dirname(backupPath), { recursive: true });
 
@@ -586,7 +586,7 @@ Files included: ${filesCount}
 Total size: ${totalSize} bytes`;
 
     let data = mockData;
-    
+
     // Aplicar compresión si está habilitada
     if (config.destination.compression) {
       data = this.compressData(data);
@@ -615,7 +615,7 @@ Total size: ${totalSize} bytes`;
   private async backupConfiguration(config: BackupConfig): Promise<{ size: number; filesCount: number; metadata: Record<string, any> }> {
     // Simular backup de configuración
     const backupPath = path.join(config.destination.path, `config_backup_${Date.now()}.json`);
-    
+
     // Crear directorio si no existe
     await fs.mkdir(path.dirname(backupPath), { recursive: true });
 
@@ -638,7 +638,7 @@ Total size: ${totalSize} bytes`;
     };
 
     let data = JSON.stringify(mockConfig, null, 2);
-    
+
     // Aplicar compresión si está habilitada
     if (config.destination.compression) {
       data = this.compressData(data);
@@ -877,7 +877,7 @@ Total size: ${totalSize} bytes`;
     try {
       const files = await fs.readdir(backupPath);
       const backupFiles = files.filter(file => file.includes('backup'));
-      
+
       // Ordenar por fecha de modificación
       const fileStats = await Promise.all(
         backupFiles.map(async file => ({
@@ -944,7 +944,7 @@ Total size: ${totalSize} bytes`;
       totalSize,
       successfulBackups: successfulJobs.length,
       failedBackups: failedJobs.length,
-      lastBackupTime: successfulJobs.length > 0 ? 
+      lastBackupTime: successfulJobs.length > 0 ?
         new Date(Math.max(...successfulJobs.map(j => j.endTime?.getTime() || 0))) : null,
       averageDuration: successfulJobs.length > 0 ? totalDuration / successfulJobs.length : 0,
       backupsByType,
@@ -968,7 +968,7 @@ Total size: ${totalSize} bytes`;
       totalRecoveries: jobs.length,
       successfulRecoveries: successfulJobs.length,
       failedRecoveries: failedJobs.length,
-      lastRecoveryTime: successfulJobs.length > 0 ? 
+      lastRecoveryTime: successfulJobs.length > 0 ?
         new Date(Math.max(...successfulJobs.map(j => j.endTime?.getTime() || 0))) : null,
       averageRecoveryTime: successfulJobs.length > 0 ? totalDuration / successfulJobs.length : 0,
       recoveriesByType

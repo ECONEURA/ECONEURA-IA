@@ -8,7 +8,7 @@ export interface Product {
 
 export class ProductsService {
   private products: Product[] = [];
-  
+
   async create(data: Omit<Product, 'id'>) {
     const product: Product = {
       id: Date.now().toString(),
@@ -17,11 +17,11 @@ export class ProductsService {
     this.products.push(product);
     return product;
   }
-  
+
   async list(orgId: string) {
     return this.products.filter(p => p.orgId === orgId);
   }
-  
+
   async get(id: string) {
     return this.products.find(p => p.id === id);
   }

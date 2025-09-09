@@ -243,16 +243,16 @@ export class DatabasePool {
 
     try {
       connection = await this.acquireConnection();
-      
+
       // Simulate query execution
       await new Promise(resolve => setTimeout(resolve, Math.random() * 100 + 10));
-      
+
       const duration = Date.now() - startTime;
       connection.queryCount++;
 
       // Update stats
       this.stats.totalQueries++;
-      this.stats.averageQueryTime = 
+      this.stats.averageQueryTime =
         (this.stats.averageQueryTime * (this.stats.totalQueries - 1) + duration) / this.stats.totalQueries;
 
       // Simulate query result
@@ -339,7 +339,7 @@ export class DatabasePool {
     options: QueryOptions = {}
   ): Promise<QueryResult<T>[]> {
     const results: QueryResult<T>[] = [];
-    
+
     for (const query of queries) {
       const result = await this.query<T>(query.sql, query.params, options);
       results.push(result);
@@ -389,8 +389,8 @@ export class DatabasePool {
       errorRate: number;
     };
   }> {
-    const errorRate = this.stats.totalQueries > 0 
-      ? (this.stats.failedQueries / this.stats.totalQueries) * 100 
+    const errorRate = this.stats.totalQueries > 0
+      ? (this.stats.failedQueries / this.stats.totalQueries) * 100
       : 0;
 
     let status: 'healthy' | 'unhealthy' | 'degraded' = 'healthy';

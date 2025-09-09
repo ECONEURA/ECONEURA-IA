@@ -125,7 +125,7 @@ export class AIRouterClient {
         return response;
       } catch (error) {
         lastError = error as Error;
-        
+
         // Don't retry on certain errors
         if (error instanceof AIError && this.isNonRetryableError(error)) {
           throw error;
@@ -191,15 +191,15 @@ export class AIRouterClient {
       return this.mapResponse(data, requestId);
     } catch (error) {
       clearTimeout(timeoutId);
-      
+
       if (error instanceof AIError) {
         throw error;
       }
-      
+
       if (error.name === 'AbortError') {
         throw new AIError('TIMEOUT', 'Request timeout', { attempt });
       }
-      
+
       throw new AIError('NETWORK_ERROR', error instanceof Error ? error.message : 'Unknown error', { attempt });
     }
   }
@@ -236,13 +236,13 @@ export class AIRouterClient {
    */
   private getCircuitBreakerState(provider: string): { failures: number; lastFailure: number; state: 'closed' | 'open' | 'half-open' } {
     const state = this.circuitBreaker.get(provider) || { failures: 0, lastFailure: 0, state: 'closed' as const };
-    
+
     // Reset circuit breaker after 5 minutes
     if (state.state === 'open' && Date.now() - state.lastFailure > 5 * 60 * 1000) {
       state.state = 'half-open';
       state.failures = 0;
     }
-    
+
     return state;
   }
 
@@ -257,12 +257,12 @@ export class AIRouterClient {
     const state = this.circuitBreaker.get(provider) || { failures: 0, lastFailure: 0, state: 'closed' as const };
     state.failures++;
     state.lastFailure = Date.now();
-    
+
     // Open circuit breaker after 5 failures
     if (state.failures >= 5) {
       state.state = 'open';
     }
-    
+
     this.circuitBreaker.set(provider, state);
   }
 
@@ -277,7 +277,7 @@ export class AIRouterClient {
       'AUTHORIZATION_ERROR',
       'RATE_LIMIT_EXCEEDED'
     ];
-    
+
     return nonRetryableCodes.includes(error.code);
   }
 
@@ -288,7 +288,7 @@ export class AIRouterClient {
     const baseDelay = 1000; // 1 second
     const maxDelay = 10000; // 10 seconds
     const delay = Math.min(baseDelay * Math.pow(2, attempt - 1), maxDelay);
-    
+
     // Add jitter
     return delay + Math.random() * 1000;
   }

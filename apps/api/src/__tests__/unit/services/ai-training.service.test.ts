@@ -469,7 +469,7 @@ describe('AITrainingService', () => {
     it('should throw error when service not initialized', async () => {
       // Reset the service to uninitialized state
       const service = new (aiTrainingService.constructor as any)();
-      
+
       await expect(service.createDataset({
         name: 'test',
         type: 'classification',

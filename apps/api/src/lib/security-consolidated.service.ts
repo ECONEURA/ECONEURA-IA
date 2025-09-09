@@ -1,11 +1,11 @@
 /**
  * SECURITY & COMPLIANCE CONSOLIDATED SERVICE
- * 
+ *
  * Este servicio consolida las mejores funcionalidades de:
  * - PR-24: Advanced Security & Compliance (100%)
  * - PR-33: Advanced Security & Compliance (100%)
  * - PR-15: Testing + Performance + Security (100%)
- * 
+ *
  * Funcionalidades consolidadas:
  * - Seguridad avanzada
  * - Gestión de compliance
@@ -242,7 +242,7 @@ export class SecurityConsolidatedService {
     };
 
     this.securityEvents.set(eventId, updatedEvent);
-    
+
     structuredLogger.info('Security event status updated', {
       eventId,
       status,
@@ -300,8 +300,8 @@ export class SecurityConsolidatedService {
 
     // Check for patterns
     const recentEvents = await this.getRecentEvents(event.organizationId, event.userId, 24);
-    const similarEvents = recentEvents.filter(e => 
-      e.type === event.type && 
+    const similarEvents = recentEvents.filter(e =>
+      e.type === event.type &&
       e.category === event.category &&
       e.id !== event.id
     );
@@ -489,9 +489,9 @@ export class SecurityConsolidatedService {
 
       let encrypted = cipher.update(data, 'utf8', 'hex');
       encrypted += cipher.final('hex');
-      
+
       const authTag = cipher.getAuthTag();
-      
+
       return `${iv.toString('hex')}:${authTag.toString('hex')}:${encrypted}`;
     } catch (error) {
       structuredLogger.error('Data encryption error', error as Error);
@@ -504,17 +504,17 @@ export class SecurityConsolidatedService {
       const algorithm = 'aes-256-gcm';
       const key = crypto.scryptSync(this.config.dataEncryptionKey, 'salt', 32);
       const [ivHex, authTagHex, encrypted] = encryptedData.split(':');
-      
+
       const iv = Buffer.from(ivHex, 'hex');
       const authTag = Buffer.from(authTagHex, 'hex');
-      
+
       const decipher = crypto.createDecipher(algorithm, key);
       decipher.setAAD(Buffer.from('econeura', 'utf8'));
       decipher.setAuthTag(authTag);
-      
+
       let decrypted = decipher.update(encrypted, 'hex', 'utf8');
       decrypted += decipher.final('utf8');
-      
+
       return decrypted;
     } catch (error) {
       structuredLogger.error('Data decryption error', error as Error);
@@ -608,7 +608,7 @@ export class SecurityConsolidatedService {
     };
 
     this.vulnerabilities.set(newVulnerability.id, newVulnerability);
-    
+
     structuredLogger.info('Vulnerability created', {
       vulnerabilityId: newVulnerability.id,
       severity: newVulnerability.severity,
@@ -635,7 +635,7 @@ export class SecurityConsolidatedService {
         vulnerabilities = vulnerabilities.filter(v => v.status === filters.status);
       }
       if (filters.affectedSystem) {
-        vulnerabilities = vulnerabilities.filter(v => 
+        vulnerabilities = vulnerabilities.filter(v =>
           v.affectedSystems.includes(filters.affectedSystem!)
         );
       }
@@ -658,7 +658,7 @@ export class SecurityConsolidatedService {
     };
 
     this.securityTests.set(newTest.id, newTest);
-    
+
     structuredLogger.info('Security test created', {
       testId: newTest.id,
       name: newTest.name,
@@ -726,7 +726,7 @@ export class SecurityConsolidatedService {
     };
 
     this.securityTests.set(testId, completedTest);
-    
+
     structuredLogger.info('Security test completed', {
       testId,
       resultsCount: mockResults.length,
@@ -789,7 +789,7 @@ export class SecurityConsolidatedService {
     try {
       for (const [field, rules] of Object.entries(schema)) {
         const value = data[field];
-        
+
         if (rules.required && (value === undefined || value === null || value === '')) {
           errors.push(`${field} is required`);
           continue;
@@ -836,7 +836,7 @@ export class SecurityConsolidatedService {
   }
 
   sanitizeInput(input: string): string {
-    return input
+    return input;
       .trim()
       .replace(/[<>]/g, '')
       .replace(/javascript:/gi, '')
@@ -853,8 +853,8 @@ export class SecurityConsolidatedService {
 
   private async getRecentEvents(organizationId: string, userId?: string, hours: number = 24): Promise<SecurityEvent[]> {
     const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
-    return Array.from(this.securityEvents.values())
-      .filter(e => 
+    return Array.from(this.securityEvents.values());
+      .filter(e =>
         e.organizationId === organizationId &&
         e.timestamp >= cutoff &&
         (!userId || e.userId === userId)
@@ -954,7 +954,7 @@ export class SecurityConsolidatedService {
     if (requirement.evidence.length > 0 && requirement.controls.length > 0) {
       const implementedControls = requirement.controls.filter(c => c.status === 'implemented').length;
       const totalControls = requirement.controls.length;
-      
+
       if (implementedControls === totalControls) {
         status = 'compliant';
       } else if (implementedControls > totalControls * 0.5) {
@@ -998,7 +998,7 @@ export class SecurityConsolidatedService {
     try {
       const redis = getRedisService();
       const keys = await redis.keys('blocked_ip:*');
-      
+
       for (const key of keys) {
         const ttl = await redis.ttl(key);
         if (ttl === -1) {
@@ -1098,7 +1098,7 @@ export class SecurityConsolidatedService {
     if (complianceConfig) {
       this.complianceConfig = { ...this.complianceConfig, ...complianceConfig };
     }
-    
+
     structuredLogger.info('Security consolidated service config updated', {
       securityConfig: this.config,
       complianceConfig: this.complianceConfig,

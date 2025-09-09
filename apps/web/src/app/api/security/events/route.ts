@@ -5,7 +5,7 @@ const SecurityEventsQuerySchema = z.object({
   limit: z.string().optional().transform(val => val ? parseInt(val) : 100),
 });
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): void {
   try {
     const { searchParams } = new URL(request.url);
     const validatedParams = SecurityEventsQuerySchema.parse(Object.fromEntries(searchParams));
@@ -32,14 +32,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
+      return NextResponse.json(;
         { error: 'Invalid query parameters', details: error.errors },
         { status: 400 }
       );
     }
 
     console.error('Failed to fetch security events:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Failed to fetch security events' },
       { status: 500 }
     );

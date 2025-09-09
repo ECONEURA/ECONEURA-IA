@@ -14,7 +14,7 @@ global.fetch = vi.fn()
 
 describe('BFF Proxy Route', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.clearAllMocks();
   })
 
   describe('GET requests', () => {

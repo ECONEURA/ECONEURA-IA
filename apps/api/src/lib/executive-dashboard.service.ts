@@ -1,6 +1,6 @@
 /**
  * Executive Dashboard Service
- * 
+ *
  * This service provides comprehensive executive dashboard capabilities including
  * C-level dashboards, real-time monitoring, strategic alerts, decision support,
  * and performance benchmarking.
@@ -300,18 +300,18 @@ export class ExecutiveDashboardService {
   private generateRevenueTrendData(): any {
     const data = [];
     const now = new Date();
-    
+
     for (let i = 11; i >= 0; i--) {
       const date = new Date(now);
       date.setMonth(date.getMonth() - i);
-      
+
       data.push({
         date: date.toISOString().split('T')[0],
         revenue: 1000000 + Math.random() * 500000,
         profit: 200000 + Math.random() * 100000
       });
     }
-    
+
     return data;
   }
 
@@ -352,7 +352,7 @@ export class ExecutiveDashboardService {
     // Simulate KPI data
     const metricId = widget.config?.metricId || 'default';
     const baseValue = this.getBaseValueForMetric(metricId);
-    
+
     return {
       value: baseValue + (Math.random() - 0.5) * baseValue * 0.1,
       unit: this.getUnitForMetric(metricId),
@@ -370,7 +370,7 @@ export class ExecutiveDashboardService {
 
   private async getChartData(widget: DashboardWidget, organizationId: string): Promise<any> {
     const chartType = widget.config?.chartType || 'line';
-    
+
     switch (chartType) {
       case 'line':
         return this.generateLineChartData();
@@ -389,14 +389,14 @@ export class ExecutiveDashboardService {
     const data = [];
     const labels = [];
     const now = new Date();
-    
+
     for (let i = 11; i >= 0; i--) {
       const date = new Date(now);
       date.setMonth(date.getMonth() - i);
       labels.push(date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }));
       data.push(Math.random() * 1000 + 500);
     }
-    
+
     return {
       labels,
       datasets: [{
@@ -412,7 +412,7 @@ export class ExecutiveDashboardService {
   private generateBarChartData(): any {
     const categories = ['Q1', 'Q2', 'Q3', 'Q4'];
     const data = categories.map(() => Math.random() * 1000 + 500);
-    
+
     return {
       labels: categories,
       datasets: [{
@@ -440,7 +440,7 @@ export class ExecutiveDashboardService {
   private async getGaugeData(widget: DashboardWidget, organizationId: string): Promise<any> {
     const metricId = widget.config?.metricId || 'default';
     const baseValue = this.getBaseValueForMetric(metricId);
-    
+
     return {
       value: baseValue + (Math.random() - 0.5) * baseValue * 0.1,
       unit: this.getUnitForMetric(metricId),
@@ -481,18 +481,18 @@ export class ExecutiveDashboardService {
   private generateForecastData(): any[] {
     const forecast = [];
     const now = new Date();
-    
+
     for (let i = 1; i <= 6; i++) {
       const date = new Date(now);
       date.setMonth(date.getMonth() + i);
-      
+
       forecast.push({
         date: date.toISOString().split('T')[0],
         predicted: 1000 + Math.random() * 500,
         confidence: 0.9 - (i * 0.1)
       });
     }
-    
+
     return forecast;
   }
 
@@ -502,7 +502,7 @@ export class ExecutiveDashboardService {
 
   private async initializeDashboardAlerts(dashboard: Dashboard): Promise<void> {
     const alerts: DashboardAlert[] = [];
-    
+
     for (const widget of dashboard.widgets) {
       if (widget.config?.thresholds) {
         for (const threshold of widget.config.thresholds) {
@@ -522,19 +522,19 @@ export class ExecutiveDashboardService {
             recipients: [dashboard.createdBy],
             createdAt: new Date()
           };
-          
+
           alerts.push(alert);
         }
       }
     }
-    
+
     this.alerts.set(dashboard.id, alerts);
   }
 
   private async updateDashboardAlerts(dashboardId: string, widgets: DashboardWidget[]): Promise<void> {
     // Remove old alerts
     this.alerts.delete(dashboardId);
-    
+
     // Create new dashboard with updated widgets
     const dashboard = this.dashboards.get(dashboardId);
     if (dashboard) {
@@ -558,16 +558,16 @@ export class ExecutiveDashboardService {
 
   async getCriticalAlerts(organizationId: string): Promise<DashboardAlert[]> {
     const allAlerts: DashboardAlert[] = [];
-    
+
     for (const [dashboardId, alerts] of this.alerts.entries()) {
       const dashboard = this.dashboards.get(dashboardId);
       if (dashboard && dashboard.organizationId === organizationId) {
-        allAlerts.push(...alerts.filter(alert => 
+        allAlerts.push(...alerts.filter(alert =>
           alert.isActive && alert.severity === 'critical'
         ));
       }
     }
-    
+
     return allAlerts;
   }
 
@@ -615,17 +615,17 @@ export class ExecutiveDashboardService {
     const dashboards = await this.getDashboards(organizationId);
     const activeDashboards = dashboards.filter(d => d.isActive).length;
     const totalWidgets = dashboards.reduce((sum, d) => sum + d.widgets.length, 0);
-    
+
     const widgetTypes: Record<string, number> = {};
     dashboards.forEach(d => {
       d.widgets.forEach(w => {
         widgetTypes[w.type] = (widgetTypes[w.type] || 0) + 1;
       });
     });
-    
+
     const mostPopularWidgetType = Object.entries(widgetTypes)
       .sort(([,a], [,b]) => b - a)[0]?.[0] || 'kpi';
-    
+
     const alertCount = Array.from(this.alerts.values())
       .flat()
       .filter(alert => {
@@ -655,7 +655,7 @@ export class ExecutiveDashboardService {
       operational_efficiency: 87.5,
       default: 100
     };
-    
+
     return baseValues[metricId] || baseValues.default;
   }
 
@@ -667,7 +667,7 @@ export class ExecutiveDashboardService {
       operational_efficiency: '%',
       default: ''
     };
-    
+
     return units[metricId] || units.default;
   }
 
@@ -695,7 +695,7 @@ export class ExecutiveDashboardService {
   }> {
     const totalWidgets = Array.from(this.dashboards.values())
       .reduce((sum, d) => sum + d.widgets.length, 0);
-    
+
     const totalAlerts = Array.from(this.alerts.values())
       .flat().length;
 

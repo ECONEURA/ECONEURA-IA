@@ -12,7 +12,7 @@ describe('API Routes', () => {
         ok: true,
         json: () => Promise.resolve({ ok: true, response: 'NEURA demo: test message' })
       });
-      
+
       global.fetch = mockFetch;
 
       const response = await fetch('/api/llm', {
@@ -33,7 +33,7 @@ describe('API Routes', () => {
         ok: true,
         json: () => Promise.resolve({ ok: false, error: 'Messages array is required' })
       });
-      
+
       global.fetch = mockFetch;
 
       const response = await fetch('/api/llm', {
@@ -54,7 +54,7 @@ describe('API Routes', () => {
         ok: true,
         json: () => Promise.resolve({ ok: true, result: { accepted: true } })
       });
-      
+
       global.fetch = mockFetch;
 
       const runOrder = {
@@ -86,7 +86,7 @@ describe('API Routes', () => {
         ok: true,
         json: () => Promise.resolve({ ok: true, events: [] })
       });
-      
+
       global.fetch = mockFetch;
 
       const response = await fetch('/api/agent?idempotencyKey=test-key-123', {

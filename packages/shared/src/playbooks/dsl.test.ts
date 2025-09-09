@@ -22,7 +22,7 @@ vi.mock('../logging/index.js', () => ({
 
 describe('Playbook DSL', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.clearAllMocks();
   })
 
   describe('PlaybookExecutor', () => {
@@ -431,7 +431,7 @@ describe('Playbook DSL', () => {
       const result = await executor.execute()
 
       expect(result.auditTrail.length).toBeGreaterThan(0)
-      
+
       // Check audit trail structure
       const auditEvent = result.auditTrail[0]
       expect(auditEvent).toHaveProperty('timestamp')

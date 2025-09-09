@@ -75,7 +75,7 @@ router.post('/csp-reports', async (req: Request, res: Response) => {
       // Reporte CSP
       const cspData = CSPReportSchema.parse(req.body);
       const report = await cspBankingService.processCSPViolation(cspData, metadata);
-      
+
       logger.info('CSP violation report received', {
         reportId: report.id,
         severity: report.severity,
@@ -89,7 +89,7 @@ router.post('/csp-reports', async (req: Request, res: Response) => {
       // Reporte SRI
       const sriData = SRIReportSchema.parse(req.body);
       const report = await cspBankingService.processSRIViolation(sriData, metadata);
-      
+
       logger.info('SRI violation report received', {
         reportId: report.id,
         severity: report.severity,

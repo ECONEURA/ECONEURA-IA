@@ -12,7 +12,7 @@ const queueStats = new Map<string, any>();
 const systemMetrics = new Map<string, any>();
 
 // Initialize some demo data
-function initializeCockpitData() {
+function initializeCockpitData(): void {
   // Agent executions demo data
   agentExecutions.set('exec-1', {
     id: 'exec-1',
@@ -44,7 +44,7 @@ function initializeCockpitData() {
   });
 
   queueStats.set('email-queue', {
-    name: 'email-queue', 
+    name: 'email-queue',
     pending: 12,
     running: 1,
     completed: 89,
@@ -73,11 +73,11 @@ router.get('/overview', async (req, res) => {
 
     // Get current system health
     const healthStatus = await healthModeManager.getReadinessProbe();
-    
+
     // Get agent execution stats
     const agentExecs = Array.from(agentExecutions.values())
       .filter(exec => exec.orgId === orgId);
-    
+
     const agentStats = {
       running: agentExecs.filter(e => e.status === 'running').length,
       completed: agentExecs.filter(e => e.status === 'completed').length,
@@ -132,7 +132,7 @@ router.get('/overview', async (req, res) => {
         dunningLevel: 2
       },
       {
-        invoiceId: 'inv-002', 
+        invoiceId: 'inv-002',
         companyName: 'Global Industries',
         amount: 750.00,
         dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
@@ -237,10 +237,10 @@ router.get('/agents', async (req, res) => {
     const completedExecutions = byStatus.completed.filter(e => e.costEur !== undefined);
     const totalCost = completedExecutions.reduce((sum, e) => sum + (e.costEur || 0), 0);
     const avgCost = completedExecutions.length > 0 ? totalCost / completedExecutions.length : 0;
-    
-    const avgExecutionTime = completedExecutions.length > 0 
+
+    const avgExecutionTime = completedExecutions.length > 0
       ? completedExecutions.reduce((sum, e) => {
-          const duration = e.completedAt ? 
+          const duration = e.completedAt ?
             new Date(e.completedAt).getTime() - new Date(e.startedAt).getTime() : 0;
           return sum + duration;
         }, 0) / completedExecutions.length
@@ -265,7 +265,7 @@ router.get('/agents', async (req, res) => {
         totalCostEur: Math.round(totalCost * 10000) / 10000,
         avgCostEur: Math.round(avgCost * 10000) / 10000,
         avgExecutionTimeMs: Math.round(avgExecutionTime),
-        successRate: executions.length > 0 ? 
+        successRate: executions.length > 0 ?
           Math.round((byStatus.completed.length / executions.length) * 100) / 100 : 0
       },
       recent: executions.slice(0, 10), // Last 10 executions
@@ -427,17 +427,17 @@ router.get('/system', async (req, res) => {
 
     // Get detailed health status
     const healthStatus = await healthModeManager.getDetailedHealth();
-    
+
     // Get SSE connection stats
     const sseStats = sseManager.getStats();
-    
+
     // Get system performance metrics
     const performance = systemMetrics.get('api-performance');
-    
+
     // Memory and process info
     const memoryUsage = process.memoryUsage();
     const cpuUsage = process.cpuUsage();
-    
+
     const systemInfo = {
       health: healthStatus,
       performance: {

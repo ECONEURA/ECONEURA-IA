@@ -2,7 +2,7 @@
 // ECONEURA API SDK - TYPESCRIPT CLIENT
 // ============================================================================
 
-import { 
+import {
   BaseResponse,
   PaginatedResponse,
   LoginRequest,

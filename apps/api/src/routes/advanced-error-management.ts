@@ -201,7 +201,7 @@ advancedErrorManagementRouter.get('/errors', async (req, res) => {
   try {
     const filters = GetErrorsSchema.parse(req.query);
     const errors = await advancedErrorManagementService.getErrors(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -226,14 +226,14 @@ advancedErrorManagementRouter.get('/errors/:id', async (req, res) => {
     const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
     const errors = await advancedErrorManagementService.getErrors('demo-org-1', { limit: 1000 });
     const error = errors.find(e => e.id === id);
-    
+
     if (!error) {
       return res.status(404).json({
         success: false,
         error: 'Error not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: error,
@@ -253,7 +253,7 @@ advancedErrorManagementRouter.post('/errors', async (req, res) => {
   try {
     const errorData = CreateErrorSchema.parse(req.body);
     const error = await advancedErrorManagementService.createError(errorData);
-    
+
     res.status(201).json({
       success: true,
       data: error,
@@ -274,7 +274,7 @@ advancedErrorManagementRouter.get('/patterns', async (req, res) => {
   try {
     const filters = GetPatternsSchema.parse(req.query);
     const patterns = await advancedErrorManagementService.getPatterns(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -298,7 +298,7 @@ advancedErrorManagementRouter.post('/patterns', async (req, res) => {
   try {
     const patternData = CreatePatternSchema.parse(req.body);
     const pattern = await advancedErrorManagementService.createPattern(patternData);
-    
+
     res.status(201).json({
       success: true,
       data: pattern,
@@ -319,7 +319,7 @@ advancedErrorManagementRouter.get('/performance-metrics', async (req, res) => {
   try {
     const filters = GetPerformanceMetricsSchema.parse(req.query);
     const metrics = await advancedErrorManagementService.getPerformanceMetrics(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -343,7 +343,7 @@ advancedErrorManagementRouter.post('/performance-metrics', async (req, res) => {
   try {
     const metricData = CreatePerformanceMetricSchema.parse(req.body);
     const metric = await advancedErrorManagementService.createPerformanceMetric(metricData);
-    
+
     res.status(201).json({
       success: true,
       data: metric,
@@ -364,7 +364,7 @@ advancedErrorManagementRouter.get('/alerts', async (req, res) => {
   try {
     const filters = GetAlertsSchema.parse(req.query);
     const alerts = await advancedErrorManagementService.getAlerts(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -388,7 +388,7 @@ advancedErrorManagementRouter.post('/alerts', async (req, res) => {
   try {
     const alertData = CreateAlertSchema.parse(req.body);
     const alert = await advancedErrorManagementService.createAlert(alertData);
-    
+
     res.status(201).json({
       success: true,
       data: alert,
@@ -409,7 +409,7 @@ advancedErrorManagementRouter.post('/errors/:id/analyze', async (req, res) => {
   try {
     const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
     const error = await advancedErrorManagementService.analyzeError(id);
-    
+
     res.json({
       success: true,
       data: error,
@@ -429,7 +429,7 @@ advancedErrorManagementRouter.post('/errors/:id/analyze', async (req, res) => {
 advancedErrorManagementRouter.post('/process-errors', async (req, res) => {
   try {
     await advancedErrorManagementService.processNewErrors();
-    
+
     res.json({
       success: true,
       message: 'New errors processed',
@@ -447,7 +447,7 @@ advancedErrorManagementRouter.post('/process-errors', async (req, res) => {
 advancedErrorManagementRouter.post('/collect-metrics', async (req, res) => {
   try {
     await advancedErrorManagementService.collectPerformanceMetrics();
-    
+
     res.json({
       success: true,
       message: 'Performance metrics collected',
@@ -465,7 +465,7 @@ advancedErrorManagementRouter.post('/collect-metrics', async (req, res) => {
 advancedErrorManagementRouter.post('/process-alerts', async (req, res) => {
   try {
     await advancedErrorManagementService.processAlerts();
-    
+
     res.json({
       success: true,
       message: 'Alerts processed',
@@ -491,7 +491,7 @@ advancedErrorManagementRouter.post('/reports', async (req, res) => {
       reportData.endDate,
       reportData.generatedBy
     );
-    
+
     res.status(201).json({
       success: true,
       data: report,
@@ -512,7 +512,7 @@ advancedErrorManagementRouter.get('/stats', async (req, res) => {
   try {
     const { organizationId } = GetStatsSchema.parse(req.query);
     const stats = await advancedErrorManagementService.getStats(organizationId);
-    
+
     res.json({
       success: true,
       data: stats,
@@ -532,7 +532,7 @@ advancedErrorManagementRouter.get('/stats', async (req, res) => {
 advancedErrorManagementRouter.get('/health', async (req, res) => {
   try {
     const stats = await advancedErrorManagementService.getStats('demo-org-1');
-    
+
     res.json({
       success: true,
       data: {

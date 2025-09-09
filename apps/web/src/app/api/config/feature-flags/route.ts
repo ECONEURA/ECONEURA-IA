@@ -5,16 +5,16 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // GET /api/config/feature-flags - Obtener feature flags
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): void {
   try {
     const { searchParams } = new URL(request.url);
     const environment = searchParams.get('environment');
-    
+
     let flags = webConfigurationSystem.getAllFeatureFlags();
     if (environment) {
       flags = flags.filter(flag => flag.environment === environment);
     }
-    
+
     return NextResponse.json({
       success: true,
       data: {
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Failed to get feature flags:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Internal server error' },
       { status: 500 }
     );
@@ -32,11 +32,11 @@ export async function GET(request: NextRequest) {
 }
 
 // POST /api/config/feature-flags - Crear feature flag
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): void {
   try {
     const flagData = await request.json();
     const flagId = webConfigurationSystem.createFeatureFlag(flagData);
-    
+
     return NextResponse.json({
       success: true,
       data: {
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
   } catch (error) {
     console.error('Failed to create feature flag:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: (error as Error).message },
       { status: 400 }
     );

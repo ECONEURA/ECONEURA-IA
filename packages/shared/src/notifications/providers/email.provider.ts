@@ -112,7 +112,7 @@ export class SendGridProvider implements IEmailProvider {
   constructor(config: EmailProviderConfig) {
     this.config = config;
     this.apiKey = config.apiKey || process.env.SENDGRID_API_KEY || '';
-    
+
     if (!this.apiKey) {
       throw new Error('SendGrid API key is required');
     }
@@ -126,7 +126,7 @@ export class SendGridProvider implements IEmailProvider {
           subject: message.subject,
           provider: 'sendgrid'
         });
-        
+
         return {
           messageId: `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           success: true,
@@ -206,7 +206,7 @@ export class SendGridProvider implements IEmailProvider {
 
   async sendBulk(messages: EmailMessage[]): Promise<EmailResult[]> {
     const results: EmailResult[] = [];
-    
+
     // Process in batches of 10
     const batchSize = 10;
     for (let i = 0; i < messages.length; i += batchSize) {
@@ -257,7 +257,7 @@ export class AWSSESProvider implements IEmailProvider {
           subject: message.subject,
           provider: 'aws_ses'
         });
-        
+
         return {
           messageId: `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           success: true,
@@ -324,7 +324,7 @@ export class AWSSESProvider implements IEmailProvider {
 
   async sendBulk(messages: EmailMessage[]): Promise<EmailResult[]> {
     const results: EmailResult[] = [];
-    
+
     // Process in batches of 50 (AWS SES limit)
     const batchSize = 50;
     for (let i = 0; i < messages.length; i += batchSize) {
@@ -374,7 +374,7 @@ export class SMTPProvider implements IEmailProvider {
           subject: message.subject,
           provider: 'smtp'
         });
-        
+
         return {
           messageId: `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           success: true,
@@ -436,7 +436,7 @@ export class SMTPProvider implements IEmailProvider {
 
   async sendBulk(messages: EmailMessage[]): Promise<EmailResult[]> {
     const results: EmailResult[] = [];
-    
+
     // Process sequentially for SMTP
     for (const message of messages) {
       const result = await this.send(message);

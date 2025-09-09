@@ -98,7 +98,7 @@ reportesMensualesRouter.post('/', async (req, res) => {
   try {
     const reporteData = CrearReporteSchema.parse(req.body);
     const reporte = await reportesMensualesService.crearReporte(reporteData);
-    
+
     res.status(201).json({
       success: true,
       data: reporte,
@@ -117,12 +117,12 @@ reportesMensualesRouter.post('/', async (req, res) => {
 // Obtener todos los reportes
 reportesMensualesRouter.get('/', async (req, res) => {
   try {
-    const { organizacionId } = z.object({ 
-      organizacionId: z.string().optional() 
+    const { organizacionId } = z.object({
+      organizacionId: z.string().optional()
     }).parse(req.query);
-    
+
     const reportes = await reportesMensualesService.obtenerReportes(organizacionId);
-    
+
     res.json({
       success: true,
       data: {
@@ -145,7 +145,7 @@ reportesMensualesRouter.get('/', async (req, res) => {
 reportesMensualesRouter.get('/plantillas', async (req, res) => {
   try {
     const plantillas = await reportesMensualesService.obtenerPlantillas();
-    
+
     res.json({
       success: true,
       data: {
@@ -166,12 +166,12 @@ reportesMensualesRouter.get('/plantillas', async (req, res) => {
 // Obtener generaciones (debe ir antes de /:id)
 reportesMensualesRouter.get('/generaciones', async (req, res) => {
   try {
-    const { reporteId } = z.object({ 
-      reporteId: z.string().optional() 
+    const { reporteId } = z.object({
+      reporteId: z.string().optional()
     }).parse(req.query);
-    
+
     const generaciones = await reportesMensualesService.obtenerGeneraciones(reporteId);
-    
+
     res.json({
       success: true,
       data: {
@@ -195,14 +195,14 @@ reportesMensualesRouter.get('/generaciones/:id', async (req, res) => {
   try {
     const { id } = z.object({ id: z.string() }).parse(req.params);
     const generacion = await reportesMensualesService.obtenerGeneracion(id);
-    
+
     if (!generacion) {
       return res.status(404).json({
         success: false,
         error: 'Generación not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: generacion,
@@ -221,12 +221,12 @@ reportesMensualesRouter.get('/generaciones/:id', async (req, res) => {
 // Obtener estadísticas (debe ir antes de /:id)
 reportesMensualesRouter.get('/stats', async (req, res) => {
   try {
-    const { organizacionId } = z.object({ 
-      organizacionId: z.string().optional() 
+    const { organizacionId } = z.object({
+      organizacionId: z.string().optional()
     }).parse(req.query);
-    
+
     const estadisticas = await reportesMensualesService.obtenerEstadisticas(organizacionId);
-    
+
     res.json({
       success: true,
       data: estadisticas,
@@ -246,7 +246,7 @@ reportesMensualesRouter.get('/stats', async (req, res) => {
 reportesMensualesRouter.get('/health', async (req, res) => {
   try {
     const estadisticas = await reportesMensualesService.obtenerEstadisticas();
-    
+
     res.json({
       success: true,
       data: {
@@ -271,14 +271,14 @@ reportesMensualesRouter.get('/:id', async (req, res) => {
   try {
     const { id } = z.object({ id: z.string() }).parse(req.params);
     const reporte = await reportesMensualesService.obtenerReporte(id);
-    
+
     if (!reporte) {
       return res.status(404).json({
         success: false,
         error: 'Reporte not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: reporte,
@@ -299,16 +299,16 @@ reportesMensualesRouter.put('/:id', async (req, res) => {
   try {
     const { id } = z.object({ id: z.string() }).parse(req.params);
     const updates = ActualizarReporteSchema.parse(req.body);
-    
+
     const reporte = await reportesMensualesService.actualizarReporte(id, updates);
-    
+
     if (!reporte) {
       return res.status(404).json({
         success: false,
         error: 'Reporte not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: reporte,
@@ -329,14 +329,14 @@ reportesMensualesRouter.delete('/:id', async (req, res) => {
   try {
     const { id } = z.object({ id: z.string() }).parse(req.params);
     const eliminado = await reportesMensualesService.eliminarReporte(id);
-    
+
     if (!eliminado) {
       return res.status(404).json({
         success: false,
         error: 'Reporte not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: { message: 'Reporte eliminado exitosamente' },
@@ -357,7 +357,7 @@ reportesMensualesRouter.post('/generar', async (req, res) => {
   try {
     const { reporteId, periodo } = GenerarReporteSchema.parse(req.body);
     const generacion = await reportesMensualesService.generarReporte(reporteId, periodo);
-    
+
     res.status(202).json({
       success: true,
       data: generacion,
@@ -379,21 +379,21 @@ reportesMensualesRouter.get('/:id/datos', async (req, res) => {
     const { id } = z.object({ id: z.string() }).parse(req.params);
     const mes = parseInt(req.query.mes as string) || 1;
     const año = parseInt(req.query.año as string) || 2024;
-    
+
     if (mes < 1 || mes > 12) {
       return res.status(400).json({
         success: false,
         error: 'Mes debe estar entre 1 y 12'
       });
     }
-    
+
     if (año < 2020 || año > 2030) {
       return res.status(400).json({
         success: false,
         error: 'Año debe estar entre 2020 y 2030'
       });
     }
-    
+
     const reporte = await reportesMensualesService.obtenerReporte(id);
     if (!reporte) {
       return res.status(404).json({
@@ -401,9 +401,9 @@ reportesMensualesRouter.get('/:id/datos', async (req, res) => {
         error: 'Reporte not found'
       });
     }
-    
+
     const datos = await reportesMensualesService.obtenerDatosReporte(reporte.organizacionId, { mes, año });
-    
+
     res.json({
       success: true,
       data: datos,
@@ -424,14 +424,14 @@ reportesMensualesRouter.post('/programar', async (req, res) => {
   try {
     const { reporteId, programacion } = ProgramarReporteSchema.parse(req.body);
     const programado = await reportesMensualesService.programarReporte(reporteId, programacion);
-    
+
     if (!programado) {
       return res.status(404).json({
         success: false,
         error: 'Reporte not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: { message: 'Reporte programado exitosamente' },
@@ -452,14 +452,14 @@ reportesMensualesRouter.post('/distribuir/:generacionId', async (req, res) => {
   try {
     const { generacionId } = z.object({ generacionId: z.string() }).parse(req.params);
     const distribuido = await reportesMensualesService.distribuirReporte(generacionId);
-    
+
     if (!distribuido) {
       return res.status(404).json({
         success: false,
         error: 'Generación not found or not completed'
       });
     }
-    
+
     res.json({
       success: true,
       data: { message: 'Reporte distribuido exitosamente' },

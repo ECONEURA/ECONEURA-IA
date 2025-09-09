@@ -81,7 +81,7 @@ export class AIAnalyticsService {
 
       // Initialize analytics tables if they don't exist
       await this.initializeAnalyticsTables();
-      
+
       // Start background analytics processing
       this.startBackgroundProcessing();
 
@@ -167,17 +167,17 @@ export class AIAnalyticsService {
 
       // Create indexes for better performance
       await this.db.query(`
-        CREATE INDEX IF NOT EXISTS idx_ai_analytics_usage_org_time 
+        CREATE INDEX IF NOT EXISTS idx_ai_analytics_usage_org_time
         ON ai_analytics_usage(organization_id, created_at);
       `);
 
       await this.db.query(`
-        CREATE INDEX IF NOT EXISTS idx_ai_analytics_usage_service 
+        CREATE INDEX IF NOT EXISTS idx_ai_analytics_usage_service
         ON ai_analytics_usage(service_name, created_at);
       `);
 
       await this.db.query(`
-        CREATE INDEX IF NOT EXISTS idx_ai_analytics_performance_service_time 
+        CREATE INDEX IF NOT EXISTS idx_ai_analytics_performance_service_time
         ON ai_analytics_performance(service_name, timestamp);
       `);
 
@@ -224,10 +224,10 @@ export class AIAnalyticsService {
     try {
       // Generate insights from recent data
       await this.generateInsights();
-      
+
       // Update trend calculations
       await this.updateTrends();
-      
+
       // Clean cache
       this.cleanupCache();
 
@@ -247,19 +247,19 @@ export class AIAnalyticsService {
     try {
       // Keep only last 90 days of usage data
       await this.db.query(`
-        DELETE FROM ai_analytics_usage 
+        DELETE FROM ai_analytics_usage
         WHERE created_at < NOW() - INTERVAL '90 days'
       `);
 
       // Keep only last 30 days of performance data
       await this.db.query(`
-        DELETE FROM ai_analytics_performance 
+        DELETE FROM ai_analytics_performance
         WHERE timestamp < NOW() - INTERVAL '30 days'
       `);
 
       // Clean expired insights
       await this.db.query(`
-        DELETE FROM ai_analytics_insights 
+        DELETE FROM ai_analytics_insights
         WHERE expires_at < NOW()
       `);
 
@@ -290,7 +290,7 @@ export class AIAnalyticsService {
 
   async generateAnalytics(request: AIAnalyticsRequest): Promise<AIAnalyticsResponse> {
     const startTime = Date.now();
-    
+
     try {
       structuredLogger.info('Generating AI analytics', {
         service: 'ai-analytics',
@@ -394,7 +394,7 @@ export class AIAnalyticsService {
 
     // Build query with filters
     let query = `
-      SELECT 
+      SELECT
         service_name,
         model_name,
         request_type,
@@ -431,7 +431,7 @@ export class AIAnalyticsService {
       totalTokens: result.rows.reduce((sum, row) => sum + parseInt(row.total_tokens || 0), 0),
       totalCost: result.rows.reduce((sum, row) => sum + parseFloat(row.total_cost || 0), 0),
       avgResponseTime: result.rows.reduce((sum, row) => sum + parseFloat(row.avg_response_time || 0), 0) / result.rows.length,
-      successRate: result.rows.reduce((sum, row) => sum + parseInt(row.success_count), 0) / 
+      successRate: result.rows.reduce((sum, row) => sum + parseInt(row.success_count), 0) /
                    result.rows.reduce((sum, row) => sum + parseInt(row.request_count), 0) * 100,
       services: result.rows,
     };
@@ -454,7 +454,7 @@ export class AIAnalyticsService {
     const { organizationId, timeRange, filters } = request;
 
     let query = `
-      SELECT 
+      SELECT
         service_name,
         model_name,
         metric_name,
@@ -514,7 +514,7 @@ export class AIAnalyticsService {
     const { organizationId, timeRange } = request;
 
     const query = `
-      SELECT 
+      SELECT
         insight_type,
         insight_title,
         insight_description,
@@ -569,7 +569,7 @@ export class AIAnalyticsService {
     const { organizationId, timeRange } = request;
 
     const query = `
-      SELECT 
+      SELECT
         trend_name,
         trend_type,
         trend_data,
@@ -831,8 +831,8 @@ export class AIAnalyticsService {
     try {
       // Get organizations with recent activity
       const orgsResult = await this.db.query(`
-        SELECT DISTINCT organization_id 
-        FROM ai_analytics_usage 
+        SELECT DISTINCT organization_id
+        FROM ai_analytics_usage
         WHERE created_at >= NOW() - INTERVAL '24 hours'
       `);
 
@@ -851,7 +851,7 @@ export class AIAnalyticsService {
     try {
       // Generate usage insights
       const usageResult = await this.db.query(`
-        SELECT 
+        SELECT
           service_name,
           COUNT(*) as request_count,
           AVG(response_time_ms) as avg_response_time,
@@ -915,8 +915,8 @@ export class AIAnalyticsService {
     try {
       // Update usage trends
       const orgsResult = await this.db.query(`
-        SELECT DISTINCT organization_id 
-        FROM ai_analytics_usage 
+        SELECT DISTINCT organization_id
+        FROM ai_analytics_usage
         WHERE created_at >= NOW() - INTERVAL '30 days'
       `);
 
@@ -935,7 +935,7 @@ export class AIAnalyticsService {
     try {
       // Calculate daily usage trends
       const dailyUsage = await this.db.query(`
-        SELECT 
+        SELECT
           DATE(created_at) as date,
           COUNT(*) as request_count,
           AVG(response_time_ms) as avg_response_time
@@ -956,7 +956,7 @@ export class AIAnalyticsService {
           INSERT INTO ai_analytics_trends (
             organization_id, trend_name, trend_type, trend_data, trend_period
           ) VALUES ($1, $2, $3, $4, $5)
-          ON CONFLICT (organization_id, trend_name, trend_period) 
+          ON CONFLICT (organization_id, trend_name, trend_period)
           DO UPDATE SET trend_data = $4, updated_at = NOW()
         `, [
           organizationId,
@@ -1082,7 +1082,7 @@ export class AIAnalyticsService {
 
       const healthyServices = Object.values(services).filter(Boolean).length;
       const totalServices = Object.keys(services).length;
-      
+
       let status: 'healthy' | 'degraded' | 'unhealthy';
       if (healthyServices === totalServices) {
         status = 'healthy';

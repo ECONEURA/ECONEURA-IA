@@ -1,6 +1,6 @@
 /**
  * CONTENT MANAGEMENT SERVICE TESTS
- * 
+ *
  * PR-55: Tests unitarios para el servicio de gestión de contenido
  */
 
@@ -129,7 +129,7 @@ describe('ContentManagementService', () => {
       mockDb.query.mockRejectedValue(new Error('Database error'));
 
       await expect(
-        service.createContent(mockOrganizationId, contentData, mockUserId)
+        service.createContent(mockOrganizationId, contentData, mockUserId);
       ).rejects.toThrow('Database error');
     });
   });
@@ -190,7 +190,7 @@ describe('ContentManagementService', () => {
 
     it('should return null if content not found', async () => {
       const contentId = 'non-existent-content';
-      
+
       const result = await service.getContent(contentId, mockOrganizationId);
 
       expect(result).toBeNull();
@@ -303,7 +303,7 @@ describe('ContentManagementService', () => {
 
     it('should return null if content not found by slug', async () => {
       const slug = 'non-existent-slug';
-      
+
       const result = await service.getContentBySlug(slug, mockOrganizationId);
 
       expect(result).toBeNull();
@@ -705,7 +705,7 @@ describe('ContentManagementService', () => {
       };
 
       await expect(
-        service.createContentVersion(contentId, mockOrganizationId, versionData)
+        service.createContentVersion(contentId, mockOrganizationId, versionData);
       ).rejects.toThrow('Content not found');
     });
   });

@@ -37,7 +37,7 @@ export async function createTestUser(data: {
   roles?: string[];
 }) {
   const hashedPassword = await bcrypt.hash(data.password, 10);
-  
+
   const [user] = await db.insert(users).values({
     id: crypto.randomUUID(),
     email: data.email,
@@ -210,7 +210,7 @@ export async function createTestWebhook(data: {
 // CLEANUP HELPERS
 // ============================================================================
 
-export async function cleanupTestData() {
+export async function cleanupTestData(): void {
   try {
     // Delete in reverse order of dependencies
     await db.delete(webhooks);
@@ -225,7 +225,7 @@ export async function cleanupTestData() {
   }
 }
 
-export async function cleanupTestOrganization(organizationId: string) {
+export async function cleanupTestOrganization(organizationId: string): void {
   try {
     await db.delete(webhooks).where(eq(webhooks.organizationId, organizationId));
     await db.delete(orders).where(eq(orders.organizationId, organizationId));
@@ -239,7 +239,7 @@ export async function cleanupTestOrganization(organizationId: string) {
   }
 }
 
-export async function cleanupTestUser(userId: string) {
+export async function cleanupTestUser(userId: string): void {
   try {
     await db.delete(users).where(eq(users.id, userId));
   } catch (error) {
@@ -251,7 +251,7 @@ export async function cleanupTestUser(userId: string) {
 // UTILITY HELPERS
 // ============================================================================
 
-export function generateTestData() {
+export function generateTestData(): void {
   return {
     organization: {
       name: `Test Org ${Date.now()}`,
@@ -305,21 +305,21 @@ export function generateTestData() {
   };
 }
 
-export function createAuthHeaders(token: string) {
+export function createAuthHeaders(token: string): void {
   return {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json'
   };
 }
 
-export function createCorrelationHeaders(correlationId?: string) {
+export function createCorrelationHeaders(correlationId?: string): void {
   return {
     'X-Correlation-Id': correlationId || `test-${Date.now()}`,
     'Content-Type': 'application/json'
   };
 }
 
-export function createApiKeyHeaders(apiKey: string) {
+export function createApiKeyHeaders(apiKey: string): void {
   return {
     'X-API-Key': apiKey,
     'Content-Type': 'application/json'
@@ -330,7 +330,7 @@ export function createApiKeyHeaders(apiKey: string) {
 // ASSERTION HELPERS
 // ============================================================================
 
-export function expectValidResponse(response: any) {
+export function expectValidResponse(response: any): void {
   expect(response.body).toHaveProperty('success');
   expect(response.body).toHaveProperty('requestId');
   expect(response.body).toHaveProperty('timestamp');
@@ -338,7 +338,7 @@ export function expectValidResponse(response: any) {
   expect(response.body.timestamp).toBeDefined();
 }
 
-export function expectValidPaginatedResponse(response: any) {
+export function expectValidPaginatedResponse(response: any): void {
   expectValidResponse(response);
   expect(response.body).toHaveProperty('data');
   expect(response.body).toHaveProperty('pagination');
@@ -348,7 +348,7 @@ export function expectValidPaginatedResponse(response: any) {
   expect(response.body.pagination).toHaveProperty('total');
 }
 
-export function expectValidErrorResponse(response: any, expectedStatus: number) {
+export function expectValidErrorResponse(response: any, expectedStatus: number): void {
   expect(response.status).toBe(expectedStatus);
   expect(response.body).toHaveProperty('success', false);
   expect(response.body).toHaveProperty('error');
@@ -356,7 +356,7 @@ export function expectValidErrorResponse(response: any, expectedStatus: number) 
   expect(response.body).toHaveProperty('timestamp');
 }
 
-export function expectValidUserResponse(response: any) {
+export function expectValidUserResponse(response: any): void {
   expectValidResponse(response);
   expect(response.body.data).toHaveProperty('id');
   expect(response.body.data).toHaveProperty('email');
@@ -369,7 +369,7 @@ export function expectValidUserResponse(response: any) {
   expect(response.body.data).toHaveProperty('updatedAt');
 }
 
-export function expectValidContactResponse(response: any) {
+export function expectValidContactResponse(response: any): void {
   expectValidResponse(response);
   expect(response.body.data).toHaveProperty('id');
   expect(response.body.data).toHaveProperty('firstName');
@@ -381,7 +381,7 @@ export function expectValidContactResponse(response: any) {
   expect(response.body.data).toHaveProperty('updatedAt');
 }
 
-export function expectValidDealResponse(response: any) {
+export function expectValidDealResponse(response: any): void {
   expectValidResponse(response);
   expect(response.body.data).toHaveProperty('id');
   expect(response.body.data).toHaveProperty('title');
@@ -392,7 +392,7 @@ export function expectValidDealResponse(response: any) {
   expect(response.body.data).toHaveProperty('updatedAt');
 }
 
-export function expectValidProductResponse(response: any) {
+export function expectValidProductResponse(response: any): void {
   expectValidResponse(response);
   expect(response.body.data).toHaveProperty('id');
   expect(response.body.data).toHaveProperty('name');
@@ -404,7 +404,7 @@ export function expectValidProductResponse(response: any) {
   expect(response.body.data).toHaveProperty('updatedAt');
 }
 
-export function expectValidOrderResponse(response: any) {
+export function expectValidOrderResponse(response: any): void {
   expectValidResponse(response);
   expect(response.body.data).toHaveProperty('id');
   expect(response.body.data).toHaveProperty('orderNumber');
@@ -417,7 +417,7 @@ export function expectValidOrderResponse(response: any) {
   expect(response.body.data).toHaveProperty('updatedAt');
 }
 
-export function expectValidWebhookResponse(response: any) {
+export function expectValidWebhookResponse(response: any): void {
   expectValidResponse(response);
   expect(response.body.data).toHaveProperty('id');
   expect(response.body.data).toHaveProperty('name');
@@ -443,14 +443,14 @@ export async function waitForCondition(
   interval: number = 100
 ): Promise<void> {
   const startTime = Date.now();
-  
+
   while (Date.now() - startTime < timeout) {
     if (await condition()) {
       return;
     }
     await wait(interval);
   }
-  
+
   throw new Error(`Condition not met within ${timeout}ms`);
 }
 
@@ -458,7 +458,7 @@ export async function waitForCondition(
 // MOCK HELPERS
 // ============================================================================
 
-export function createMockRequest(overrides: any = {}) {
+export function createMockRequest(overrides: any = {}): void {
   return {
     method: 'GET',
     url: '/test',
@@ -471,7 +471,7 @@ export function createMockRequest(overrides: any = {}) {
   };
 }
 
-export function createMockResponse() {
+export function createMockResponse(): void {
   const res: any = {
     status: vi.fn().mockReturnThis(),
     json: vi.fn().mockReturnThis(),
@@ -483,6 +483,6 @@ export function createMockResponse() {
   return res;
 }
 
-export function createMockNext() {
+export function createMockNext(): void {
   return vi.fn();
 }

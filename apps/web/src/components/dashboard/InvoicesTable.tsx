@@ -36,19 +36,19 @@ export default function InvoicesTable({
   const sortedInvoices = [...invoices].sort((a, b) => {
     const aValue = a[sortField];
     const bValue = b[sortField];
-    
+
     if (typeof aValue === 'string' && typeof bValue === 'string') {
-      return sortDirection === 'asc' 
+      return sortDirection === 'asc' ;
         ? aValue.localeCompare(bValue)
         : bValue.localeCompare(aValue);
     }
-    
+
     if (typeof aValue === 'number' && typeof bValue === 'number') {
-      return sortDirection === 'asc' 
+      return sortDirection === 'asc' ;
         ? aValue - bValue
         : bValue - aValue;
     }
-    
+
     return 0;
   });
 
@@ -98,7 +98,7 @@ export default function InvoicesTable({
   const allSelected = selectedIds.length === invoices.length && invoices.length > 0;
   const someSelected = selectedIds.length > 0 && selectedIds.length < invoices.length;
 
-  return (
+  return (;
     <div className="card">
       <div className="card-header">
         <div className="flex items-center justify-between">
@@ -144,7 +144,7 @@ export default function InvoicesTable({
                   onChange={(e) => handleSelectAll(e.target.checked)}
                 />
               </th>
-              <th 
+              <th
                 className="cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('customer_name')}
               >
@@ -157,7 +157,7 @@ export default function InvoicesTable({
                   )}
                 </div>
               </th>
-              <th 
+              <th
                 className="cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('amount')}
               >
@@ -170,7 +170,7 @@ export default function InvoicesTable({
                   )}
                 </div>
               </th>
-              <th 
+              <th
                 className="cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('due_date')}
               >
@@ -192,8 +192,8 @@ export default function InvoicesTable({
               const daysOverdue = Math.floor(
                 (Date.now() - new Date(invoice.due_date).getTime()) / (1000 * 60 * 60 * 24)
               );
-              
-              return (
+
+              return (;
                 <tr key={invoice.id} className="hover:bg-gray-50">
                   <td>
                     <input
@@ -224,8 +224,8 @@ export default function InvoicesTable({
                   </td>
                   <td>
                     <span className={`font-medium ${
-                      daysOverdue > 30 ? 'text-danger-600' : 
-                      daysOverdue > 7 ? 'text-warning-600' : 
+                      daysOverdue > 30 ? 'text-danger-600' :
+                      daysOverdue > 7 ? 'text-warning-600' :
                       'text-gray-600'
                     }`}>
                       {daysOverdue} days

@@ -735,10 +735,10 @@ export class ContactController {
           }
         } catch (error) {
           errorCount++;
-          results.push({ 
-            contactId, 
-            success: false, 
-            error: error instanceof Error ? error.message : 'Unknown error' 
+          results.push({
+            contactId,
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error'
           });
         }
       }
@@ -784,10 +784,10 @@ export class ContactController {
           results.push({ contactId, success: true });
         } catch (error) {
           errorCount++;
-          results.push({ 
-            contactId, 
-            success: false, 
-            error: error instanceof Error ? error.message : 'Unknown error' 
+          results.push({
+            contactId,
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error'
           });
         }
       }
@@ -913,26 +913,26 @@ export class ContactController {
     for (const contact of contacts) {
       // Count by type
       stats.byType[contact.type] = (stats.byType[contact.type] || 0) + 1;
-      
+
       // Count by status
       stats.byStatus[contact.status] = (stats.byStatus[contact.status] || 0) + 1;
-      
+
       // Count by source
       stats.bySource[contact.source] = (stats.bySource[contact.source] || 0) + 1;
-      
+
       // Count by priority
       stats.byPriority[contact.priority] = (stats.byPriority[contact.priority] || 0) + 1;
-      
+
       // Count by department
       if (contact.department) {
         stats.byDepartment[contact.department] = (stats.byDepartment[contact.department] || 0) + 1;
       }
-      
+
       // Count by industry
       if (contact.industry) {
         stats.byIndustry[contact.industry] = (stats.byIndustry[contact.industry] || 0) + 1;
       }
-      
+
       // Count by profession
       if (contact.profession) {
         stats.byProfession[contact.profession] = (stats.byProfession[contact.profession] || 0) + 1;
@@ -990,7 +990,7 @@ export class ContactController {
       if (contact.leadScore !== null && contact.leadScore !== undefined) {
         totalLeadScore += contact.leadScore;
         leadScoreCount++;
-        
+
         if (contact.leadScore >= 70) stats.highScoreLeads++;
         else if (contact.leadScore >= 30) stats.mediumScoreLeads++;
         else stats.lowScoreLeads++;
@@ -1000,7 +1000,7 @@ export class ContactController {
       if (contact.engagementScore !== null && contact.engagementScore !== undefined) {
         totalEngagementScore += contact.engagementScore;
         engagementScoreCount++;
-        
+
         if (contact.engagementScore >= 70) stats.highlyEngaged++;
         else if (contact.engagementScore >= 30) stats.moderatelyEngaged++;
         else stats.lowEngaged++;

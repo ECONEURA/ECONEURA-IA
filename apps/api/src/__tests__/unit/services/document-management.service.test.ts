@@ -1,6 +1,6 @@
 /**
  * DOCUMENT MANAGEMENT SERVICE TESTS
- * 
+ *
  * PR-54: Tests unitarios para el servicio de gestión de documentos
  */
 
@@ -116,7 +116,7 @@ describe('DocumentManagementService', () => {
       mockDb.query.mockRejectedValue(new Error('Database error'));
 
       await expect(
-        service.createDocument(mockOrganizationId, documentData, mockUserId)
+        service.createDocument(mockOrganizationId, documentData, mockUserId);
       ).rejects.toThrow('Database error');
     });
   });
@@ -169,7 +169,7 @@ describe('DocumentManagementService', () => {
 
     it('should return null if document not found', async () => {
       const documentId = 'non-existent-doc';
-      
+
       const result = await service.getDocument(documentId, mockOrganizationId);
 
       expect(result).toBeNull();
@@ -567,7 +567,7 @@ describe('DocumentManagementService', () => {
       };
 
       await expect(
-        service.createDocumentVersion(documentId, mockOrganizationId, versionData)
+        service.createDocumentVersion(documentId, mockOrganizationId, versionData);
       ).rejects.toThrow('Document not found');
     });
   });

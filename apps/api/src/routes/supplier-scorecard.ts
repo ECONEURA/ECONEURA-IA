@@ -152,7 +152,7 @@ supplierScorecardRouter.get('/suppliers', async (req, res) => {
   try {
     const filters = GetSuppliersSchema.parse(req.query);
     const suppliers = await supplierScorecardService.getSuppliers(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -176,14 +176,14 @@ supplierScorecardRouter.get('/suppliers/:id', async (req, res) => {
   try {
     const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
     const supplier = await supplierScorecardService.getSupplier(id);
-    
+
     if (!supplier) {
       return res.status(404).json({
         success: false,
         error: 'Supplier not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: supplier,
@@ -203,7 +203,7 @@ supplierScorecardRouter.post('/suppliers', async (req, res) => {
   try {
     const supplierData = CreateSupplierSchema.parse(req.body);
     const supplier = await supplierScorecardService.createSupplier(supplierData);
-    
+
     res.status(201).json({
       success: true,
       data: supplier,
@@ -224,7 +224,7 @@ supplierScorecardRouter.get('/evaluations', async (req, res) => {
   try {
     const filters = GetEvaluationsSchema.parse(req.query);
     const evaluations = await supplierScorecardService.getEvaluations(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -248,7 +248,7 @@ supplierScorecardRouter.post('/evaluations', async (req, res) => {
   try {
     const evaluationData = CreateEvaluationSchema.parse(req.body);
     const evaluation = await supplierScorecardService.createEvaluation(evaluationData);
-    
+
     res.status(201).json({
       success: true,
       data: evaluation,
@@ -269,7 +269,7 @@ supplierScorecardRouter.get('/performance', async (req, res) => {
   try {
     const filters = GetPerformanceSchema.parse(req.query);
     const performances = await supplierScorecardService.getSuppliersPerformance(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -293,16 +293,16 @@ supplierScorecardRouter.get('/performance/:supplierId', async (req, res) => {
   try {
     const { supplierId } = z.object({ supplierId: z.string().min(1) }).parse(req.params);
     const { organizationId } = z.object({ organizationId: z.string().min(1) }).parse(req.query);
-    
+
     const performance = await supplierScorecardService.getSupplierPerformance(supplierId, organizationId);
-    
+
     if (!performance) {
       return res.status(404).json({
         success: false,
         error: 'Supplier performance not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: performance,
@@ -326,9 +326,9 @@ supplierScorecardRouter.get('/comparisons', async (req, res) => {
       category: z.string().optional(),
       limit: z.coerce.number().int().positive().max(100).default(50).optional(),
     }).parse(req.query);
-    
+
     const comparisons = await supplierScorecardService.getSupplierComparisons(organizationId, { category, limit });
-    
+
     res.json({
       success: true,
       data: {
@@ -352,7 +352,7 @@ supplierScorecardRouter.post('/comparisons', async (req, res) => {
   try {
     const comparisonData = CreateComparisonSchema.parse(req.body);
     const comparison = await supplierScorecardService.createSupplierComparison(comparisonData);
-    
+
     res.status(201).json({
       success: true,
       data: comparison,
@@ -379,7 +379,7 @@ supplierScorecardRouter.post('/reports', async (req, res) => {
       reportData.endDate,
       reportData.generatedBy
     );
-    
+
     res.status(201).json({
       success: true,
       data: report,
@@ -400,7 +400,7 @@ supplierScorecardRouter.get('/stats', async (req, res) => {
   try {
     const { organizationId } = GetStatsSchema.parse(req.query);
     const stats = await supplierScorecardService.getSupplierStats(organizationId);
-    
+
     res.json({
       success: true,
       data: stats,
@@ -421,7 +421,7 @@ supplierScorecardRouter.get('/alerts', async (req, res) => {
   try {
     const { organizationId } = GetVendorScorecardAlertsSchema.parse(req.query);
     const alerts = await supplierScorecardService.generateVendorScorecardAlerts(organizationId);
-    
+
     res.json({
       success: true,
       data: {
@@ -446,7 +446,7 @@ supplierScorecardRouter.get('/alerts', async (req, res) => {
 supplierScorecardRouter.get('/health', async (req, res) => {
   try {
     const stats = await supplierScorecardService.getSupplierStats('demo-org-1');
-    
+
     res.json({
       success: true,
       data: {

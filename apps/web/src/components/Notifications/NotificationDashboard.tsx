@@ -3,14 +3,14 @@
 // ============================================================================
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  Bell, 
-  Mail, 
-  MessageSquare, 
-  Smartphone, 
-  Settings, 
-  Plus, 
-  Filter, 
+import {
+  Bell,
+  Mail,
+  MessageSquare,
+  Smartphone,
+  Settings,
+  Plus,
+  Filter,
   Search,
   Send,
   Clock,
@@ -107,7 +107,7 @@ export const NotificationDashboard: React.FC = () => {
   const [preferences, setPreferences] = useState<NotificationPreferences | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Filters
   const [filters, setFilters] = useState({
     status: '',
@@ -115,7 +115,7 @@ export const NotificationDashboard: React.FC = () => {
     priority: '',
     search: ''
   });
-  
+
   // Pagination
   const [pagination, setPagination] = useState({
     page: 1,
@@ -247,7 +247,7 @@ export const NotificationDashboard: React.FC = () => {
         throw new Error('Failed to mark as read');
       }
 
-      setNotifications(prev => 
+      setNotifications(prev =>
         prev.map(n => n.id === notificationId ? { ...n, status: 'read', readAt: new Date().toISOString() } : n)
       );
     } catch (err) {
@@ -268,7 +268,7 @@ export const NotificationDashboard: React.FC = () => {
         throw new Error('Failed to mark all as read');
       }
 
-      setNotifications(prev => 
+      setNotifications(prev =>
         prev.map(n => ({ ...n, status: 'read', readAt: new Date().toISOString() }))
       );
     } catch (err) {
@@ -386,7 +386,7 @@ export const NotificationDashboard: React.FC = () => {
   // RENDER
   // ============================================================================
 
-  return (
+  return (;
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
@@ -688,7 +688,7 @@ export const NotificationDashboard: React.FC = () => {
         {activeTab === 'preferences' && !loading && preferences && (
           <div className="space-y-6">
             <h2 className="text-xl font-semibold text-gray-900">Preferencias de Notificaciones</h2>
-            
+
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Canales de Notificación</h3>
               <div className="space-y-4">
@@ -707,7 +707,7 @@ export const NotificationDashboard: React.FC = () => {
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <MessageSquare className="w-5 h-5 text-gray-400" />
@@ -723,7 +723,7 @@ export const NotificationDashboard: React.FC = () => {
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <Smartphone className="w-5 h-5 text-gray-400" />
@@ -739,7 +739,7 @@ export const NotificationDashboard: React.FC = () => {
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <Bell className="w-5 h-5 text-gray-400" />
@@ -768,7 +768,7 @@ export const NotificationDashboard: React.FC = () => {
                       <input
                         type="checkbox"
                         checked={preferences.quietHours.enabled}
-                        onChange={(e) => updatePreferences({ 
+                        onChange={(e) => updatePreferences({
                           quietHours: { ...preferences.quietHours!, enabled: e.target.checked }
                         })}
                         className="sr-only peer"
@@ -776,7 +776,7 @@ export const NotificationDashboard: React.FC = () => {
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
                   </div>
-                  
+
                   {preferences.quietHours.enabled && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
@@ -784,7 +784,7 @@ export const NotificationDashboard: React.FC = () => {
                         <input
                           type="time"
                           value={preferences.quietHours.startTime}
-                          onChange={(e) => updatePreferences({ 
+                          onChange={(e) => updatePreferences({
                             quietHours: { ...preferences.quietHours!, startTime: e.target.value }
                           })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -795,7 +795,7 @@ export const NotificationDashboard: React.FC = () => {
                         <input
                           type="time"
                           value={preferences.quietHours.endTime}
-                          onChange={(e) => updatePreferences({ 
+                          onChange={(e) => updatePreferences({
                             quietHours: { ...preferences.quietHours!, endTime: e.target.value }
                           })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -805,7 +805,7 @@ export const NotificationDashboard: React.FC = () => {
                         <label className="block text-sm font-medium text-gray-700 mb-2">Zona horaria</label>
                         <select
                           value={preferences.quietHours.timezone}
-                          onChange={(e) => updatePreferences({ 
+                          onChange={(e) => updatePreferences({
                             quietHours: { ...preferences.quietHours!, timezone: e.target.value }
                           })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -827,7 +827,7 @@ export const NotificationDashboard: React.FC = () => {
         {activeTab === 'statistics' && !loading && stats && (
           <div className="space-y-6">
             <h2 className="text-xl font-semibold text-gray-900">Estadísticas de Notificaciones</h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center">
@@ -840,7 +840,7 @@ export const NotificationDashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center">
                   <div className="p-2 bg-green-100 rounded-lg">
@@ -852,7 +852,7 @@ export const NotificationDashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center">
                   <div className="p-2 bg-red-100 rounded-lg">
@@ -864,7 +864,7 @@ export const NotificationDashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center">
                   <div className="p-2 bg-blue-100 rounded-lg">
@@ -890,7 +890,7 @@ export const NotificationDashboard: React.FC = () => {
                   ))}
                 </div>
               </div>
-              
+
               <div className="bg-white rounded-lg shadow p-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Por Canal</h3>
                 <div className="space-y-3">

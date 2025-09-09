@@ -63,7 +63,7 @@ const GetOutboxMessagesSchema = z.object({
 router.get('/users', async (req, res) => {
   try {
     const validatedData = GetUsersSchema.parse(req.query);
-    
+
     const users = await graphWrappersService.getUsers(validatedData.organizationId);
 
     res.json({
@@ -105,7 +105,7 @@ router.get('/users/:userId', async (req, res) => {
       ...req.params,
       ...req.query
     });
-    
+
     const user = await graphWrappersService.getUser(validatedData.userId, validatedData.organizationId);
 
     if (!user) {
@@ -151,7 +151,7 @@ router.get('/users/:userId', async (req, res) => {
 router.get('/messages', async (req, res) => {
   try {
     const validatedData = GetMessagesSchema.parse(req.query);
-    
+
     const messages = await graphWrappersService.getMessages(
       validatedData.organizationId,
       validatedData.userId,
@@ -195,7 +195,7 @@ router.get('/messages', async (req, res) => {
 router.get('/calendar/events', async (req, res) => {
   try {
     const validatedData = GetCalendarEventsSchema.parse(req.query);
-    
+
     const events = await graphWrappersService.getCalendarEvents(
       validatedData.organizationId,
       validatedData.userId,
@@ -239,7 +239,7 @@ router.get('/calendar/events', async (req, res) => {
 router.get('/drive/items', async (req, res) => {
   try {
     const validatedData = GetDriveItemsSchema.parse(req.query);
-    
+
     const items = await graphWrappersService.getDriveItems(
       validatedData.organizationId,
       validatedData.userId,
@@ -282,7 +282,7 @@ router.get('/drive/items', async (req, res) => {
 router.get('/teams', async (req, res) => {
   try {
     const validatedData = GetTeamsSchema.parse(req.query);
-    
+
     const teams = await graphWrappersService.getTeams(validatedData.organizationId);
 
     res.json({
@@ -324,7 +324,7 @@ router.get('/teams/:teamId/channels', async (req, res) => {
       ...req.params,
       ...req.query
     });
-    
+
     const channels = await graphWrappersService.getTeamChannels(
       validatedData.teamId,
       validatedData.organizationId
@@ -367,7 +367,7 @@ router.get('/teams/:teamId/channels', async (req, res) => {
 router.post('/outbox', async (req, res) => {
   try {
     const validatedData = AddToOutboxSchema.parse(req.body);
-    
+
     const message = await graphWrappersService.addToOutbox(validatedData);
 
     res.json({
@@ -403,7 +403,7 @@ router.post('/outbox', async (req, res) => {
 router.get('/outbox', async (req, res) => {
   try {
     const validatedData = GetOutboxMessagesSchema.parse(req.query);
-    
+
     const messages = await graphWrappersService.getOutboxMessages(
       validatedData.organizationId,
       validatedData.status
@@ -446,7 +446,7 @@ router.get('/outbox', async (req, res) => {
 router.post('/outbox/:messageId/send', async (req, res) => {
   try {
     const { messageId } = req.params;
-    
+
     const success = await graphWrappersService.sendOutboxMessage(messageId);
 
     res.json({
@@ -492,7 +492,7 @@ router.post('/outbox/:messageId/send', async (req, res) => {
 router.post('/outbox/:messageId/cancel', async (req, res) => {
   try {
     const { messageId } = req.params;
-    
+
     const success = await graphWrappersService.cancelOutboxMessage(messageId);
 
     res.json({

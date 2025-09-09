@@ -1,8 +1,8 @@
 /**
  * SOCIAL MEDIA MANAGEMENT ROUTES
- * 
+ *
  * PR-57: Rutas API para gestión de redes sociales avanzado
- * 
+ *
  * Endpoints:
  * - POST /social-media/accounts - Crear cuenta social
  * - GET /social-media/accounts - Listar cuentas sociales

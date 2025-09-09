@@ -10,9 +10,9 @@ export async function GET(
     const path = params.path.join('/');
     const url = new URL(request.url);
     const searchParams = url.searchParams.toString();
-    
+
     const apiUrl = `${API_BASE_URL}/v1/data-analytics-dashboard/${path}${searchParams ? `?${searchParams}` : ''}`;
-    
+
     const response = await fetch(apiUrl, {
       method: 'GET',
       headers: {
@@ -31,9 +31,9 @@ export async function GET(
     return NextResponse.json(data);
   } catch (error) {
     console.error('Data Analytics BFF Error:', error);
-    return NextResponse.json(
-      { 
-        success: false, 
+    return NextResponse.json(;
+      {
+        success: false,
         error: 'Failed to fetch data analytics information',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
@@ -49,9 +49,9 @@ export async function POST(
   try {
     const path = params.path.join('/');
     const body = await request.json();
-    
+
     const apiUrl = `${API_BASE_URL}/v1/data-analytics-dashboard/${path}`;
-    
+
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
@@ -71,9 +71,9 @@ export async function POST(
     return NextResponse.json(data);
   } catch (error) {
     console.error('Data Analytics BFF Error:', error);
-    return NextResponse.json(
-      { 
-        success: false, 
+    return NextResponse.json(;
+      {
+        success: false,
         error: 'Failed to create data analytics resource',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
@@ -89,9 +89,9 @@ export async function PUT(
   try {
     const path = params.path.join('/');
     const body = await request.json();
-    
+
     const apiUrl = `${API_BASE_URL}/v1/data-analytics-dashboard/${path}`;
-    
+
     const response = await fetch(apiUrl, {
       method: 'PUT',
       headers: {
@@ -111,9 +111,9 @@ export async function PUT(
     return NextResponse.json(data);
   } catch (error) {
     console.error('Data Analytics BFF Error:', error);
-    return NextResponse.json(
-      { 
-        success: false, 
+    return NextResponse.json(;
+      {
+        success: false,
         error: 'Failed to update data analytics resource',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
@@ -128,9 +128,9 @@ export async function DELETE(
 ) {
   try {
     const path = params.path.join('/');
-    
+
     const apiUrl = `${API_BASE_URL}/v1/data-analytics-dashboard/${path}`;
-    
+
     const response = await fetch(apiUrl, {
       method: 'DELETE',
       headers: {
@@ -149,9 +149,9 @@ export async function DELETE(
     return NextResponse.json(data);
   } catch (error) {
     console.error('Data Analytics BFF Error:', error);
-    return NextResponse.json(
-      { 
-        success: false, 
+    return NextResponse.json(;
+      {
+        success: false,
         error: 'Failed to delete data analytics resource',
         details: error instanceof Error ? error.message : 'Unknown error'
       },

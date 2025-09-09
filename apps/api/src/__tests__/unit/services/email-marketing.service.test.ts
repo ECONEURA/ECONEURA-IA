@@ -1,6 +1,6 @@
 /**
  * EMAIL MARKETING SERVICE TESTS
- * 
+ *
  * PR-56: Tests unitarios para el servicio de email marketing
  */
 
@@ -109,7 +109,7 @@ describe('EmailMarketingService', () => {
       mockDb.query.mockRejectedValue(new Error('Database error'));
 
       await expect(
-        service.createCampaign(mockOrganizationId, campaignData, mockUserId)
+        service.createCampaign(mockOrganizationId, campaignData, mockUserId);
       ).rejects.toThrow('Database error');
     });
   });
@@ -158,7 +158,7 @@ describe('EmailMarketingService', () => {
 
     it('should return null if campaign not found', async () => {
       const campaignId = 'non-existent-campaign';
-      
+
       const result = await service.getCampaign(campaignId, mockOrganizationId);
 
       expect(result).toBeNull();
@@ -394,7 +394,7 @@ describe('EmailMarketingService', () => {
       mockDb.query.mockRejectedValue(new Error('Database error'));
 
       await expect(
-        service.createSubscriber(mockOrganizationId, subscriberData)
+        service.createSubscriber(mockOrganizationId, subscriberData);
       ).rejects.toThrow('Database error');
     });
   });
@@ -439,7 +439,7 @@ describe('EmailMarketingService', () => {
 
     it('should return null if subscriber not found', async () => {
       const subscriberId = 'non-existent-subscriber';
-      
+
       const result = await service.getSubscriber(subscriberId, mockOrganizationId);
 
       expect(result).toBeNull();
@@ -485,7 +485,7 @@ describe('EmailMarketingService', () => {
 
     it('should return null if subscriber not found by email', async () => {
       const email = 'nonexistent@example.com';
-      
+
       const result = await service.getSubscriberByEmail(email, mockOrganizationId);
 
       expect(result).toBeNull();

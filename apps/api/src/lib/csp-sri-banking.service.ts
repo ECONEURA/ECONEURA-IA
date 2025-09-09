@@ -127,7 +127,7 @@ export class CSPBankingService {
       this.config.allowedConnections = ['self'];
       this.config.strictMode = true;
       this.config.enforceMode = true;
-      
+
       // Directivas específicas para banca
       this.config.customDirectives = {
         'frame-ancestors': ['none'],
@@ -202,12 +202,12 @@ export class CSPBankingService {
    */
   generateSRIHashes(resources: Array<{ url: string; content: string; algorithm?: 'sha256' | 'sha384' | 'sha512' }>): Array<{ url: string; hash: string; algorithm: string; integrity: string }> {
     const crypto = require('crypto');
-    
+
     return resources.map(resource => {
       const algorithm = resource.algorithm || 'sha384';
       const hash = crypto.createHash(algorithm).update(resource.content).digest('base64');
       const integrity = `${algorithm}-${hash}`;
-      
+
       return {
         url: resource.url,
         hash,
@@ -224,7 +224,7 @@ export class CSPBankingService {
     try {
       const violation = CSPViolationSchema.parse(violationData);
       const severity = this.calculateSeverity(violation['csp-report']);
-      
+
       const report: CSPReport = {
         id: this.generateReportId(),
         timestamp: new Date(),
@@ -242,10 +242,10 @@ export class CSPBankingService {
 
       this.reports.push(report);
       this.updateViolationPatterns(violation['csp-report']);
-      
+
       // Verificar si se debe generar una alerta
       await this.checkAlertThresholds(report);
-      
+
       logger.info('CSP violation processed', {
         reportId: report.id,
         severity: report.severity,
@@ -272,7 +272,7 @@ export class CSPBankingService {
     try {
       const violation = SRIViolationSchema.parse(violationData);
       const severity = this.calculateSRISeverity(violation['sri-report']);
-      
+
       const report: CSPReport = {
         id: this.generateReportId(),
         timestamp: new Date(),
@@ -290,10 +290,10 @@ export class CSPBankingService {
 
       this.reports.push(report);
       this.updateSRIViolationPatterns(violation['sri-report']);
-      
+
       // Verificar si se debe generar una alerta
       await this.checkAlertThresholds(report);
-      
+
       logger.info('SRI violation processed', {
         reportId: report.id,
         severity: report.severity,
@@ -316,41 +316,41 @@ export class CSPBankingService {
   private calculateSeverity(cspReport: CSPViolation['csp-report']): 'low' | 'medium' | 'high' | 'critical' {
     const directive = cspReport['violated-directive'];
     const blockedUri = cspReport['blocked-uri'] || '';
-    
+
     // Violaciones críticas para banca
     if (directive.includes('script-src') && blockedUri.includes('http')) {
       return 'critical';
     }
-    
+
     if (directive.includes('connect-src') && blockedUri.includes('http')) {
       return 'critical';
     }
-    
+
     if (directive.includes('frame-ancestors')) {
       return 'critical';
     }
-    
+
     // Violaciones altas
     if (directive.includes('style-src') && blockedUri.includes('http')) {
       return 'high';
     }
-    
+
     if (directive.includes('img-src') && blockedUri.includes('http')) {
       return 'high';
     }
-    
+
     // Violaciones medias
     if (directive.includes('font-src') && blockedUri.includes('http')) {
       return 'medium';
     }
-    
+
     // Violaciones bajas
     return 'low';
   }
 
   private calculateSRISeverity(sriReport: SRIViolation['sri-report']): 'low' | 'medium' | 'high' | 'critical' {
     const violationType = sriReport['violation-type'];
-    
+
     switch (violationType) {
       case 'integrity-mismatch':
         return 'critical'; // Posible ataque de integridad
@@ -367,61 +367,61 @@ export class CSPBankingService {
     const tags: string[] = [];
     const directive = cspReport['violated-directive'];
     const blockedUri = cspReport['blocked-uri'] || '';
-    
+
     // Tags por directiva
     if (directive.includes('script-src')) tags.push('script');
     if (directive.includes('style-src')) tags.push('style');
     if (directive.includes('img-src')) tags.push('image');
     if (directive.includes('connect-src')) tags.push('connection');
     if (directive.includes('frame-ancestors')) tags.push('frame');
-    
+
     // Tags por tipo de URI
     if (blockedUri.includes('http://')) tags.push('insecure');
     if (blockedUri.includes('https://')) tags.push('external');
     if (blockedUri.includes('data:')) tags.push('data-uri');
     if (blockedUri.includes('blob:')) tags.push('blob');
-    
+
     // Tags por contexto
     if (cspReport['script-sample']) tags.push('inline-script');
     if (cspReport['source-file']) tags.push('external-script');
-    
+
     return tags;
   }
 
   private generateSRITags(sriReport: SRIViolation['sri-report']): string[] {
     const tags: string[] = [];
-    
+
     tags.push('sri');
     tags.push(sriReport['violation-type']);
-    
+
     if (sriReport['algorithm']) {
       tags.push(sriReport['algorithm']);
     }
-    
+
     return tags;
   }
 
   private updateViolationPatterns(cspReport: CSPViolation['csp-report']): void {
     const directive = cspReport['violated-directive'];
     const blockedUri = cspReport['blocked-uri'] || '';
-    
+
     // Actualizar patrones específicos
     if (directive.includes('script-src') && blockedUri.includes('unsafe-inline')) {
       this.violationPatterns.set('script-src-unsafe-inline', (this.violationPatterns.get('script-src-unsafe-inline') || 0) + 1);
     }
-    
+
     if (directive.includes('style-src') && blockedUri.includes('unsafe-inline')) {
       this.violationPatterns.set('style-src-unsafe-inline', (this.violationPatterns.get('style-src-unsafe-inline') || 0) + 1);
     }
-    
+
     if (blockedUri.includes('http')) {
       this.violationPatterns.set('img-src-external', (this.violationPatterns.get('img-src-external') || 0) + 1);
     }
-    
+
     if (directive.includes('connect-src') && blockedUri.includes('http')) {
       this.violationPatterns.set('connect-src-external', (this.violationPatterns.get('connect-src-external') || 0) + 1);
     }
-    
+
     if (directive.includes('frame-ancestors')) {
       this.violationPatterns.set('frame-ancestors-violation', (this.violationPatterns.get('frame-ancestors-violation') || 0) + 1);
     }
@@ -429,7 +429,7 @@ export class CSPBankingService {
 
   private updateSRIViolationPatterns(sriReport: SRIViolation['sri-report']): void {
     const violationType = sriReport['violation-type'];
-    
+
     if (violationType === 'integrity-mismatch') {
       this.violationPatterns.set('sri-integrity-mismatch', (this.violationPatterns.get('sri-integrity-mismatch') || 0) + 1);
     } else if (violationType === 'missing-integrity') {
@@ -440,7 +440,7 @@ export class CSPBankingService {
   private async checkAlertThresholds(report: CSPReport): Promise<void> {
     const pattern = this.getViolationPattern(report);
     const count = this.violationPatterns.get(pattern) || 0;
-    
+
     if (count >= this.config.alertThreshold) {
       await this.generateAlert(report, pattern, count);
     }
@@ -451,7 +451,7 @@ export class CSPBankingService {
       const cspReport = report.violation as CSPViolation;
       const directive = cspReport['csp-report']['violated-directive'];
       const blockedUri = cspReport['csp-report']['blocked-uri'] || '';
-      
+
       if (directive.includes('script-src') && blockedUri.includes('unsafe-inline')) {
         return 'script-src-unsafe-inline';
       }
@@ -470,14 +470,14 @@ export class CSPBankingService {
     } else if (report.type === 'sri') {
       const sriReport = report.violation as SRIViolation;
       const violationType = sriReport['sri-report']['violation-type'];
-      
+
       if (violationType === 'integrity-mismatch') {
         return 'sri-integrity-mismatch';
       } else if (violationType === 'missing-integrity') {
         return 'sri-missing-integrity';
       }
     }
-    
+
     return 'unknown';
   }
 
@@ -490,7 +490,7 @@ export class CSPBankingService {
       severity: report.severity,
       requestId: ''
     });
-    
+
     // Aquí se podría integrar con un sistema de alertas externo
     // Por ejemplo, enviar notificación a Slack, email, etc.
   }
@@ -505,24 +505,24 @@ export class CSPBankingService {
   getStats(): CSPStats {
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
-    
+
     const recentReports = this.reports.filter(r => r.timestamp >= thirtyDaysAgo);
-    
+
     const reportsByType = recentReports.reduce((acc, report) => {
       acc[report.type] = (acc[report.type] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
-    
+
     const reportsBySeverity = recentReports.reduce((acc, report) => {
       acc[report.severity] = (acc[report.severity] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
-    
+
     const reportsBySource = recentReports.reduce((acc, report) => {
       acc[report.source] = (acc[report.source] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
-    
+
     // Top violaciones
     const directiveCounts = new Map<string, number>();
     recentReports.forEach(report => {
@@ -532,7 +532,7 @@ export class CSPBankingService {
         directiveCounts.set(directive, (directiveCounts.get(directive) || 0) + 1);
       }
     });
-    
+
     const topViolations = Array.from(directiveCounts.entries())
       .map(([directive, count]) => ({
         directive,
@@ -541,32 +541,32 @@ export class CSPBankingService {
       }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
-    
+
     // Tendencias recientes (últimos 7 días)
     const recentTrends = [];
     for (let i = 6; i >= 0; i--) {
       const date = new Date(now.getTime() - (i * 24 * 60 * 60 * 1000));
       const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
       const dayEnd = new Date(dayStart.getTime() + (24 * 60 * 60 * 1000));
-      
+
       const dayReports = recentReports.filter(r => r.timestamp >= dayStart && r.timestamp < dayEnd);
       recentTrends.push({
         date: dayStart.toISOString().split('T')[0],
         count: dayReports.length
       });
     }
-    
+
     const unresolvedCount = this.reports.filter(r => !r.resolved).length;
-    
+
     // Calcular tiempo promedio de resolución
     const resolvedReports = this.reports.filter(r => r.resolved);
-    const averageResolutionTime = resolvedReports.length > 0 
+    const averageResolutionTime = resolvedReports.length > 0
       ? resolvedReports.reduce((sum, r) => {
           // Simular tiempo de resolución (en una implementación real se calcularía)
           return sum + 2; // 2 horas promedio
         }, 0) / resolvedReports.length
       : 0;
-    
+
     return {
       totalReports: recentReports.length,
       reportsByType,
@@ -592,34 +592,34 @@ export class CSPBankingService {
     offset?: number;
   } = {}): CSPReport[] {
     let filteredReports = [...this.reports];
-    
+
     if (filters.type) {
       filteredReports = filteredReports.filter(r => r.type === filters.type);
     }
-    
+
     if (filters.severity) {
       filteredReports = filteredReports.filter(r => r.severity === filters.severity);
     }
-    
+
     if (filters.resolved !== undefined) {
       filteredReports = filteredReports.filter(r => r.resolved === filters.resolved);
     }
-    
+
     if (filters.startDate) {
       filteredReports = filteredReports.filter(r => r.timestamp >= filters.startDate!);
     }
-    
+
     if (filters.endDate) {
       filteredReports = filteredReports.filter(r => r.timestamp <= filters.endDate!);
     }
-    
+
     // Ordenar por timestamp descendente
     filteredReports.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-    
+
     // Aplicar paginación
     const offset = filters.offset || 0;
     const limit = filters.limit || 100;
-    
+
     return filteredReports.slice(offset, offset + limit);
   }
 
@@ -631,13 +631,13 @@ export class CSPBankingService {
     if (report) {
       report.resolved = true;
       report.resolution = resolution;
-      
+
       logger.info('CSP/SRI report resolved', {
         reportId,
         resolution,
         requestId: ''
       });
-      
+
       return true;
     }
     return false;
@@ -648,11 +648,11 @@ export class CSPBankingService {
    */
   updateConfig(newConfig: Partial<BankingCSPConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    
+
     if (newConfig.bankingMode !== undefined) {
       this.initializeBankingDefaults();
     }
-    
+
     logger.info('CSP banking configuration updated', {
       config: this.config,
       requestId: ''
@@ -665,11 +665,11 @@ export class CSPBankingService {
   cleanupOldReports(): number {
     const cutoffDate = new Date(Date.now() - (this.config.maxReportAge * 24 * 60 * 60 * 1000));
     const initialCount = this.reports.length;
-    
+
     this.reports = this.reports.filter(r => r.timestamp >= cutoffDate);
-    
+
     const removedCount = initialCount - this.reports.length;
-    
+
     if (removedCount > 0) {
       logger.info('Cleaned up old CSP/SRI reports', {
         removedCount,
@@ -677,7 +677,7 @@ export class CSPBankingService {
         requestId: ''
       });
     }
-    
+
     return removedCount;
   }
 
@@ -695,7 +695,7 @@ export class CSPBankingService {
     this.reports = [];
     this.violationPatterns.clear();
     this.alertThresholds.clear();
-    
+
     logger.info('CSP banking service reset', {
       requestId: ''
     });

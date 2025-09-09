@@ -320,12 +320,12 @@ export class ProductController {
       const query = ProductSearchQuerySchema.parse(req.query);
 
       const products = await this.productRepository.findByOrganizationId(organizationId);
-      
+
       // Apply filtering and sorting
       let filteredProducts = products;
-      
+
       if (query.search) {
-        filteredProducts = filteredProducts.filter(product => 
+        filteredProducts = filteredProducts.filter(product =>
           product.name.toLowerCase().includes(query.search!.toLowerCase()) ||
           product.sku.toLowerCase().includes(query.search!.toLowerCase()) ||
           product.description?.toLowerCase().includes(query.search!.toLowerCase())
@@ -356,7 +356,7 @@ export class ProductController {
       filteredProducts.sort((a, b) => {
         const aValue = a[query.sortBy as keyof typeof a];
         const bValue = b[query.sortBy as keyof typeof b];
-        
+
         if (query.sortOrder === 'asc') {
           return aValue > bValue ? 1 : -1;
         } else {
@@ -592,7 +592,7 @@ export class ProductController {
       );
 
       const validProducts = products.filter(product => product !== null);
-      
+
       if (validProducts.length !== requestData.ids.length) {
         res.status(400).json({
           success: false,

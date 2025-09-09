@@ -588,7 +588,7 @@ describe('AIModelManagementService', () => {
     it('should throw error when service not initialized', async () => {
       // Reset the service to uninitialized state
       const service = new (aiModelManagementService.constructor as any)();
-      
+
       await expect(service.createModel({
         name: 'test',
         type: 'classification',

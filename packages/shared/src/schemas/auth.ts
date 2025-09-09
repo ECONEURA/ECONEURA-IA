@@ -32,7 +32,7 @@ export const OrganizationSchema = z.object({
   timezone: z.string().default('Europe/Madrid'),
   locale: z.enum(['es-ES', 'en-US']).default('es-ES'),
   currency: z.string().length(3).default('EUR'),
-  
+
   // Billing info
   taxId: z.string().max(50).optional(),
   billingEmail: z.string().email().optional(),
@@ -44,13 +44,13 @@ export const OrganizationSchema = z.object({
     postalCode: z.string().max(20),
     country: z.string().max(100),
   }).optional(),
-  
+
   // Subscription info
   plan: z.enum(['trial', 'starter', 'professional', 'enterprise']).default('trial'),
   planExpiresAt: z.string().datetime().optional(),
   maxUsers: z.number().int().min(1).default(5),
   maxStorage: z.number().int().min(0).default(10737418240), // 10GB in bytes
-  
+
   status: z.enum(['active', 'inactive', 'suspended']).default('active'),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
@@ -122,13 +122,13 @@ export const DeviceSessionSchema = z.object({
     latitude: z.number().optional(),
     longitude: z.number().optional(),
   }).optional(),
-  
+
   accessToken: z.string(),
   accessTokenExpiresAt: z.string().datetime(),
   refreshToken: z.string(),
   refreshTokenExpiresAt: z.string().datetime(),
   refreshTokenVersion: z.number().int().default(0),
-  
+
   lastActivityAt: z.string().datetime(),
   createdAt: z.string().datetime(),
   revokedAt: z.string().datetime().nullable().optional(),
@@ -214,22 +214,22 @@ export const AuditLogSchema = z.object({
   action: z.string().max(100), // e.g., "invoice.approved", "user.login"
   resource: z.string().max(100), // e.g., "invoice", "user"
   resourceId: z.string().uuid().optional(),
-  
+
   changes: z.object({
     before: z.record(z.unknown()).optional(),
     after: z.record(z.unknown()).optional(),
   }).optional(),
-  
+
   metadata: z.object({
     ipAddress: z.string().max(45).optional(),
     userAgent: z.string().max(1000).optional(),
     sessionId: z.string().uuid().optional(),
     correlationId: z.string().uuid().optional(),
   }).optional(),
-  
+
   result: z.enum(['success', 'failure']),
   errorMessage: z.string().max(1000).optional(),
-  
+
   createdAt: z.string().datetime(),
 });
 

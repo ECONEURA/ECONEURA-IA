@@ -1,6 +1,6 @@
 /**
  * SOCIAL MEDIA MANAGEMENT SERVICE TESTS
- * 
+ *
  * PR-57: Pruebas unitarias para el servicio de gestión de redes sociales
  */
 
@@ -32,10 +32,10 @@ describe('SocialMediaManagementService', () => {
     mockDb = {
       query: vi.fn()
     };
-    
+
     // Mock the database service to return our mock
     vi.mocked(require('../../../lib/database.service.js').getDatabaseService).mockReturnValue(mockDb);
-    
+
     service = new SocialMediaManagementService();
   });
 
@@ -139,7 +139,7 @@ describe('SocialMediaManagementService', () => {
     it('should return account when found', async () => {
       const accountId = 'test-account-id';
       const organizationId = 'test-org';
-      
+
       const mockAccount = {
         id: accountId,
         organizationId,
@@ -179,7 +179,7 @@ describe('SocialMediaManagementService', () => {
       const accountId = 'test-account-id';
       const organizationId = 'test-org';
       const differentOrgId = 'different-org';
-      
+
       const mockAccount = {
         id: accountId,
         organizationId: differentOrgId,
@@ -305,7 +305,7 @@ describe('SocialMediaManagementService', () => {
     it('should return post when found', async () => {
       const postId = 'test-post-id';
       const organizationId = 'test-org';
-      
+
       const mockPost = {
         id: postId,
         organizationId,
@@ -344,7 +344,7 @@ describe('SocialMediaManagementService', () => {
       const postId = 'test-post-id';
       const organizationId = 'test-org';
       const differentOrgId = 'different-org';
-      
+
       const mockPost = {
         id: postId,
         organizationId: differentOrgId,

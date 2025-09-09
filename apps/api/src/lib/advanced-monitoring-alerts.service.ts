@@ -1,6 +1,6 @@
 /**
  * ADVANCED MONITORING & ALERTS SERVICE - MEJORA CRÍTICA 2
- * 
+ *
  * Sistema avanzado de monitoreo y alertas con:
  * - Monitoreo en tiempo real de métricas críticas
  * - Alertas inteligentes con machine learning
@@ -384,12 +384,12 @@ export class AdvancedMonitoringAlertsService {
       metrics.forEach(metric => {
         const existingMetrics = this.metrics.get(metric.id) || [];
         existingMetrics.push(metric);
-        
+
         // Keep only last 100 metrics per type
         if (existingMetrics.length > 100) {
           existingMetrics.splice(0, existingMetrics.length - 100);
         }
-        
+
         this.metrics.set(metric.id, existingMetrics);
       });
 
@@ -408,7 +408,7 @@ export class AdvancedMonitoringAlertsService {
     const startUsage = process.cpuUsage();
     await new Promise(resolve => setTimeout(resolve, 100));
     const endUsage = process.cpuUsage(startUsage);
-    
+
     const totalUsage = (endUsage.user + endUsage.system) / 1000000;
     return Math.min(totalUsage * 100, 100);
   }
@@ -609,7 +609,7 @@ export class AdvancedMonitoringAlertsService {
   private async executeHealthCheck(healthCheck: HealthCheck): Promise<void> {
     try {
       const startTime = Date.now();
-      
+
       // Simulate health check execution
       const isHealthy = Math.random() > 0.1; // 90% success rate
       const responseTime = Date.now() - startTime;
@@ -689,7 +689,7 @@ export class AdvancedMonitoringAlertsService {
     if (metricId) {
       return this.metrics.get(metricId) || [];
     }
-    
+
     return Array.from(this.metrics.values()).flat();
   }
 
@@ -758,7 +758,7 @@ export class AdvancedMonitoringAlertsService {
   async getHealthStatus(): Promise<{ status: string; details: any }> {
     const healthChecks = await this.getHealthChecks();
     const activeAlerts = await this.getActiveAlerts();
-    
+
     const unhealthyChecks = healthChecks.filter(hc => hc.lastStatus === 'unhealthy');
     const criticalAlerts = activeAlerts.filter(alert => alert.severity === 'critical');
 

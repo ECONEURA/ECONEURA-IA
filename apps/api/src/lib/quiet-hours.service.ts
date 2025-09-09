@@ -1,14 +1,14 @@
 /**
  * PR-46: Quiet Hours Management Service
- * 
+ *
  * Service for managing quiet hours configurations, schedules, and exceptions
  */
 
-import { 
-  QuietHoursConfig, 
-  QuietHoursSchedule, 
-  QuietHoursException, 
-  QuietHoursStatus, 
+import {
+  QuietHoursConfig,
+  QuietHoursSchedule,
+  QuietHoursException,
+  QuietHoursStatus,
   QuietHoursOverride,
   CreateQuietHoursRequest,
   UpdateQuietHoursRequest,
@@ -30,7 +30,7 @@ export class QuietHoursService {
   async getQuietHoursConfigs(organizationId: string): Promise<QuietHoursConfig[]> {
     const configs = Array.from(this.quietHoursConfigs.values())
       .filter(config => config.organizationId === organizationId);
-    
+
     return configs;
   }
 
@@ -100,7 +100,7 @@ export class QuietHoursService {
    */
   async getQuietHoursStatus(organizationId: string, serviceName?: string): Promise<QuietHoursStatus> {
     const configs = await this.getQuietHoursConfigs(organizationId);
-    const relevantConfig = serviceName 
+    const relevantConfig = serviceName
       ? configs.find(c => c.serviceName === serviceName) || configs.find(c => !c.serviceName)
       : configs.find(c => !c.serviceName);
 
@@ -127,7 +127,7 @@ export class QuietHoursService {
       const exception = activeExceptions[0];
       const exceptionSchedule = exception.schedule;
       const currentLevel = this.getCurrentLevel(exceptionSchedule, currentTime, dayName);
-      
+
       return {
         isQuietHours: currentLevel === 'quiet',
         currentLevel,
@@ -153,7 +153,7 @@ export class QuietHoursService {
 
     // Use regular schedule
     const currentLevel = this.getCurrentLevel(relevantConfig.schedule, currentTime, dayName);
-    
+
     return {
       isQuietHours: currentLevel === 'quiet',
       currentLevel,
@@ -224,12 +224,12 @@ export class QuietHoursService {
   async getQuietHoursStats(organizationId: string): Promise<QuietHoursStats> {
     const configs = await this.getQuietHoursConfigs(organizationId);
     const activeConfigs = configs.filter(c => c.enabled);
-    
-    const totalExceptions = configs.reduce((sum, config) => 
+
+    const totalExceptions = configs.reduce((sum, config) =>
       sum + (config.exceptions?.length || 0), 0
     );
 
-    const averageCostSavings = configs.length > 0 
+    const averageCostSavings = configs.length > 0
       ? configs.reduce((sum, config) => sum + (config.costOptimization ? 35 : 0), 0) / configs.length
       : 0;
 
@@ -287,8 +287,8 @@ export class QuietHoursService {
   }
 
   private getCurrentLevel(
-    schedule: QuietHoursSchedule, 
-    currentTime: Date, 
+    schedule: QuietHoursSchedule,
+    currentTime: Date,
     dayName: keyof QuietHoursSchedule
   ): 'quiet' | 'reduced' | 'normal' {
     const daySchedule = schedule[dayName];
@@ -327,12 +327,12 @@ export class QuietHoursService {
   }
 
   private getActiveOverride(
-    organizationId: string, 
-    serviceName: string | undefined, 
+    organizationId: string,
+    serviceName: string | undefined,
     now: Date
   ): QuietHoursOverride | null {
     const overrides = Array.from(this.overrides.values())
-      .filter(override => 
+      .filter(override =>
         override.organizationId === organizationId &&
         override.serviceName === serviceName &&
         override.status === 'active' &&
@@ -344,8 +344,8 @@ export class QuietHoursService {
   }
 
   private getNextChangeTime(
-    schedule: QuietHoursSchedule, 
-    currentTime: Date, 
+    schedule: QuietHoursSchedule,
+    currentTime: Date,
     dayName: keyof QuietHoursSchedule
   ): Date {
     // Simplified implementation - in production, calculate the actual next change time
@@ -355,8 +355,8 @@ export class QuietHoursService {
   }
 
   private getTimeUntilNextChange(
-    schedule: QuietHoursSchedule, 
-    currentTime: Date, 
+    schedule: QuietHoursSchedule,
+    currentTime: Date,
     dayName: keyof QuietHoursSchedule
   ): number {
     const nextChange = this.getNextChangeTime(schedule, currentTime, dayName);

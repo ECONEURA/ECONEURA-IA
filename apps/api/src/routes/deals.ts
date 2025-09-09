@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { 
-  DealSchema, 
-  CreateDealSchema, 
-  UpdateDealSchema, 
+import {
+  DealSchema,
+  CreateDealSchema,
+  UpdateDealSchema,
   DealFilterSchema,
   MoveDealStageSchema
 } from '@econeura/shared/src/schemas/crm';
@@ -32,9 +32,9 @@ router.get('/', async (req, res) => {
 
     // Build query with filters
     let query = db.select().from(deals);
-    
+
     const conditions = [];
-    
+
     if (filters.q) {
       conditions.push(
         or(
@@ -43,27 +43,27 @@ router.get('/', async (req, res) => {
         )
       );
     }
-    
+
     if (filters.companyId) {
       conditions.push(eq(deals.companyId, filters.companyId));
     }
-    
+
     if (filters.contactId) {
       conditions.push(eq(deals.contactId, filters.contactId));
     }
-    
+
     if (filters.stage) {
       conditions.push(eq(deals.stage, filters.stage));
     }
-    
+
     if (filters.status) {
       conditions.push(eq(deals.status, filters.status));
     }
-    
+
     if (filters.minAmount !== undefined) {
       conditions.push(gte(deals.amount, filters.minAmount));
     }
-    
+
     if (filters.maxAmount !== undefined) {
       conditions.push(lte(deals.amount, filters.maxAmount));
     }
@@ -108,10 +108,10 @@ router.get('/', async (req, res) => {
       orgId: req.headers['x-org-id'],
       query: req.query
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to retrieve deals',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -121,7 +121,7 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const orgId = req.headers['x-org-id'] as string;
-    
+
     if (!orgId) {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
@@ -136,7 +136,7 @@ router.get('/:id', async (req, res) => {
       .limit(1);
 
     if (!deal) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Deal not found',
         message: `Deal with ID ${id} not found or access denied`
       });
@@ -154,10 +154,10 @@ router.get('/:id', async (req, res) => {
       orgId: req.headers['x-org-id'],
       dealId: req.params.id
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to retrieve deal',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -167,7 +167,7 @@ router.post('/', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string;
     const userId = req.headers['x-user-id'] as string;
-    
+
     if (!orgId) {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
@@ -217,10 +217,10 @@ router.post('/', async (req, res) => {
       userId: req.headers['x-user-id'],
       body: req.body
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to create deal',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -231,7 +231,7 @@ router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const orgId = req.headers['x-org-id'] as string;
     const userId = req.headers['x-user-id'] as string;
-    
+
     if (!orgId) {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
@@ -252,7 +252,7 @@ router.put('/:id', async (req, res) => {
       .returning();
 
     if (!updatedDeal) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Deal not found',
         message: `Deal with ID ${id} not found or access denied`
       });
@@ -284,10 +284,10 @@ router.put('/:id', async (req, res) => {
       dealId: req.params.id,
       body: req.body
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to update deal',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -298,7 +298,7 @@ router.post('/:id/move-stage', async (req, res) => {
     const { id } = req.params;
     const orgId = req.headers['x-org-id'] as string;
     const userId = req.headers['x-user-id'] as string;
-    
+
     if (!orgId) {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
@@ -334,7 +334,7 @@ router.post('/:id/move-stage', async (req, res) => {
       .returning();
 
     if (!updatedDeal) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Deal not found',
         message: `Deal with ID ${id} not found or access denied`
       });
@@ -368,10 +368,10 @@ router.post('/:id/move-stage', async (req, res) => {
       dealId: req.params.id,
       body: req.body
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to move deal stage',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -382,7 +382,7 @@ router.delete('/:id', async (req, res) => {
     const { id } = req.params;
     const orgId = req.headers['x-org-id'] as string;
     const userId = req.headers['x-user-id'] as string;
-    
+
     if (!orgId) {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
@@ -400,7 +400,7 @@ router.delete('/:id', async (req, res) => {
       .returning();
 
     if (!deletedDeal) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Deal not found',
         message: `Deal with ID ${id} not found or access denied`
       });
@@ -421,10 +421,10 @@ router.delete('/:id', async (req, res) => {
       userId: req.headers['x-user-id'],
       dealId: req.params.id
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to delete deal',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -433,7 +433,7 @@ router.delete('/:id', async (req, res) => {
 router.get('/summary', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string;
-    
+
     if (!orgId) {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
@@ -443,11 +443,11 @@ router.get('/summary', async (req, res) => {
 
     // Get summary data
     const deals = await db.select().from(deals);
-    
+
     const total = deals.length;
     const totalValue = deals.reduce((sum, deal) => sum + (deal.amount || 0), 0);
     const averageDealSize = total > 0 ? totalValue / total : 0;
-    
+
     const closedWon = deals.filter(deal => deal.stage === 'closed_won').length;
     const closedLost = deals.filter(deal => deal.stage === 'closed_lost').length;
     const winRate = (closedWon + closedLost) > 0 ? (closedWon / (closedWon + closedLost)) * 100 : 0;
@@ -491,10 +491,10 @@ router.get('/summary', async (req, res) => {
     structuredLogger.error('Failed to get deal summary', error as Error, {
       orgId: req.headers['x-org-id']
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to get deal summary',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -503,7 +503,7 @@ router.get('/summary', async (req, res) => {
 router.get('/analytics', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string;
-    
+
     if (!orgId) {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
@@ -513,7 +513,7 @@ router.get('/analytics', async (req, res) => {
 
     // Get analytics data
     const deals = await db.select().from(deals);
-    
+
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
@@ -523,10 +523,10 @@ router.get('/analytics', async (req, res) => {
     for (let i = 11; i >= 0; i--) {
       const date = new Date(currentYear, currentMonth - i, 1);
       const monthKey = date.toISOString().substring(0, 7);
-      
+
       const monthDeals = deals.filter(deal => {
         const dealDate = new Date(deal.createdAt);
-        return dealDate.getFullYear() === date.getFullYear() && 
+        return dealDate.getFullYear() === date.getFullYear() && ;
                dealDate.getMonth() === date.getMonth();
       });
 
@@ -575,10 +575,10 @@ router.get('/analytics', async (req, res) => {
     structuredLogger.error('Failed to get deal analytics', error as Error, {
       orgId: req.headers['x-org-id']
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to get deal analytics',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -588,13 +588,13 @@ router.post('/bulk-update', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string;
     const userId = req.headers['x-user-id'] as string;
-    
+
     if (!orgId) {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
 
     const { updates } = req.body;
-    
+
     if (!Array.isArray(updates) || updates.length === 0) {
       return res.status(400).json({
         success: false,
@@ -612,7 +612,7 @@ router.post('/bulk-update', async (req, res) => {
     for (const update of updates) {
       try {
         const updateData = UpdateDealSchema.parse(update.data);
-        
+
         const [updatedDeal] = await db
           .update(deals)
           .set({
@@ -652,10 +652,10 @@ router.post('/bulk-update', async (req, res) => {
       orgId: req.headers['x-org-id'],
       userId: req.headers['x-user-id']
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to bulk update deals',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });

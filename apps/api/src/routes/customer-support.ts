@@ -1,8 +1,8 @@
 /**
  * CUSTOMER SUPPORT ROUTES
- * 
+ *
  * PR-58: Rutas API para sistema de soporte al cliente
- * 
+ *
  * Endpoints:
  * - POST /support/tickets - Crear ticket
  * - GET /support/tickets - Listar tickets

@@ -1,6 +1,6 @@
 /**
  * Analytics & Business Intelligence Types
- * 
+ *
  * This file defines all TypeScript interfaces and types for the Advanced Analytics
  * and Business Intelligence system (PR-48).
  */

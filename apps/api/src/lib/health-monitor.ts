@@ -75,7 +75,7 @@ export class HealthMonitor {
         // Simulate database check
         await new Promise(resolve => setTimeout(resolve, 10));
         const responseTime = Date.now() - start;
-        
+
         return {
           name: 'database',
           status: 'healthy',
@@ -99,7 +99,7 @@ export class HealthMonitor {
       try {
         const stats = cacheManager.getAllStats();
         const responseTime = Date.now() - start;
-        
+
         return {
           name: 'cache',
           status: 'healthy',
@@ -124,17 +124,17 @@ export class HealthMonitor {
       try {
         const memUsage = process.memoryUsage();
         const responseTime = Date.now() - start;
-        
+
         const memoryUsageMB = memUsage.heapUsed / 1024 / 1024;
         const memoryLimitMB = 512; // 512MB limit
-        
+
         let status: 'healthy' | 'unhealthy' | 'degraded' = 'healthy';
         if (memoryUsageMB > memoryLimitMB) {
           status = 'unhealthy';
         } else if (memoryUsageMB > memoryLimitMB * 0.8) {
           status = 'degraded';
         }
-        
+
         return {
           name: 'memory',
           status,
@@ -166,16 +166,16 @@ export class HealthMonitor {
         const freeSpace = 1024 * 1024 * 1024; // 1GB free
         const totalSpace = 10 * 1024 * 1024 * 1024; // 10GB total
         const usagePercent = ((totalSpace - freeSpace) / totalSpace) * 100;
-        
+
         const responseTime = Date.now() - start;
-        
+
         let status: 'healthy' | 'unhealthy' | 'degraded' = 'healthy';
         if (usagePercent > 90) {
           status = 'unhealthy';
         } else if (usagePercent > 80) {
           status = 'degraded';
         }
-        
+
         return {
           name: 'disk',
           status,
@@ -208,11 +208,11 @@ export class HealthMonitor {
           { name: 'Email Service', status: 'up' },
           { name: 'SMS Service', status: 'degraded' }
         ];
-        
+
         const responseTime = Date.now() - start;
-        const overallStatus = services.every(s => s.status === 'up') ? 'healthy' : 
+        const overallStatus = services.every(s => s.status === 'up') ? 'healthy' :
                              services.some(s => s.status === 'down') ? 'unhealthy' : 'degraded';
-        
+
         return {
           name: 'external',
           status: overallStatus,
@@ -267,12 +267,12 @@ export class HealthMonitor {
 
   async runAllChecks(): Promise<HealthCheck[]> {
     const checks: HealthCheck[] = [];
-    
+
     for (const [name, checkFunction] of this.checks.entries()) {
       try {
         const check = await checkFunction();
         checks.push(check);
-        
+
         // Update service health
         this.updateServiceHealth(name, check);
       } catch (error) {
@@ -381,9 +381,9 @@ export class HealthMonitor {
     if (isError) {
       this.metrics.totalErrors++;
     }
-    
+
     this.metrics.responseTimes.push(responseTime);
-    
+
     // Keep only last 1000 response times
     if (this.metrics.responseTimes.length > 1000) {
       this.metrics.responseTimes = this.metrics.responseTimes.slice(-1000);
@@ -405,7 +405,7 @@ export class HealthMonitor {
   async getReadinessProbe(): Promise<{ status: string; timestamp: string; checks: HealthCheck[] }> {
     const checks = await this.runAllChecks();
     const systemHealth = this.getSystemHealth();
-    
+
     return {
       status: systemHealth.status,
       timestamp: new Date().toISOString(),
@@ -445,10 +445,10 @@ export class HealthMonitor {
 
     // Calculate response time percentiles
     const sortedResponseTimes = [...this.metrics.responseTimes].sort((a, b) => a - b);
-    const averageResponseTime = sortedResponseTimes.length > 0 
-      ? sortedResponseTimes.reduce((sum, time) => sum + time, 0) / sortedResponseTimes.length 
+    const averageResponseTime = sortedResponseTimes.length > 0
+      ? sortedResponseTimes.reduce((sum, time) => sum + time, 0) / sortedResponseTimes.length
       : 0;
-      
+
     const responseTimeStats = {
       min: sortedResponseTimes[0] || 0,
       max: sortedResponseTimes[sortedResponseTimes.length - 1] || 0,

@@ -1,14 +1,14 @@
 /**
  * PR-46: Escalation Management Service
- * 
+ *
  * Service for managing escalation rules, events, and intelligent escalation
  */
 
-import { 
-  EscalationRule, 
-  EscalationEvent, 
-  EscalationCondition, 
-  EscalationAction, 
+import {
+  EscalationRule,
+  EscalationEvent,
+  EscalationCondition,
+  EscalationAction,
   EscalationTimeout,
   EscalationParticipant,
   EscalationHistoryEntry,
@@ -33,7 +33,7 @@ export class EscalationService {
   async getEscalationRules(organizationId: string): Promise<EscalationRule[]> {
     const rules = Array.from(this.rules.values())
       .filter(rule => rule.organizationId === organizationId);
-    
+
     return rules.sort((a, b) => a.priority - b.priority);
   }
 
@@ -105,9 +105,9 @@ export class EscalationService {
   async triggerEscalation(request: TriggerEscalationRequest): Promise<EscalationEvent | null> {
     const organizationId = 'org_1'; // In production, get from context
     const rules = await this.getEscalationRules(organizationId);
-    
+
     // Find matching rules
-    const matchingRules = rules.filter(rule => 
+    const matchingRules = rules.filter(rule =>
       rule.enabled && this.evaluateConditions(rule.conditions, request)
     );
 
@@ -136,10 +136,10 @@ export class EscalationService {
     };
 
     this.events.set(eventId, event);
-    
+
     // Start escalation process
     await this.processEscalation(event);
-    
+
     return event;
   }
 
@@ -148,11 +148,11 @@ export class EscalationService {
    */
   async getEscalationStatus(organizationId: string): Promise<EscalationEvent[]> {
     const events = Array.from(this.events.values())
-      .filter(event => 
+      .filter(event =>
         event.organizationId === organizationId &&
         (event.status === 'pending' || event.status === 'escalating')
       );
-    
+
     return events;
   }
 
@@ -198,16 +198,16 @@ export class EscalationService {
   async getEscalationStats(organizationId: string): Promise<EscalationStats> {
     const rules = await this.getEscalationRules(organizationId);
     const activeRules = rules.filter(r => r.enabled);
-    
+
     const allEvents = Array.from(this.events.values())
       .filter(event => event.organizationId === organizationId);
 
     const resolvedEvents = allEvents.filter(e => e.status === 'resolved');
     const timeoutEvents = allEvents.filter(e => e.status === 'timeout');
-    
+
     const averageEscalationTime = resolvedEvents.length > 0
       ? resolvedEvents.reduce((sum, event) => {
-          const escalationTime = event.resolvedAt 
+          const escalationTime = event.resolvedAt
             ? event.resolvedAt.getTime() - event.startTime.getTime()
             : 0;
           return sum + escalationTime;
@@ -245,7 +245,7 @@ export class EscalationService {
     const currentTimeout = rule.timeouts.find(t => t.level === event.currentLevel);
     if (currentTimeout) {
       await this.executeActions(currentTimeout.action, event);
-      
+
       // Schedule next escalation
       if (event.currentLevel < rule.timeouts.length - 1) {
         event.currentLevel++;
@@ -264,7 +264,7 @@ export class EscalationService {
    */
   private async executeActions(action: EscalationAction, event: EscalationEvent): Promise<void> {
     const now = new Date();
-    
+
     // Add participant
     const participant: EscalationParticipant = {
       userId: action.target,

@@ -76,7 +76,7 @@ export class InMemoryServiceRegistry implements ServiceRegistry {
   register(service: Omit<ServiceInstance, 'id' | 'lastHeartbeat' | 'createdAt' | 'updatedAt'>): string {
     const id = `service_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date();
-    
+
     const serviceInstance: ServiceInstance = {
       ...service,
       id,
@@ -86,7 +86,7 @@ export class InMemoryServiceRegistry implements ServiceRegistry {
     };
 
     this.services.set(id, serviceInstance);
-    
+
     // Indexar por nombre
     if (!this.serviceIndex.has(service.name)) {
       this.serviceIndex.set(service.name, new Set());
@@ -148,7 +148,7 @@ export class InMemoryServiceRegistry implements ServiceRegistry {
       return [];
     }
 
-    return Array.from(serviceIds)
+    return Array.from(serviceIds);
       .map(id => this.services.get(id))
       .filter((service): service is ServiceInstance => service !== undefined);
   }
@@ -287,7 +287,7 @@ export class ServiceDiscoveryImpl implements ServiceDiscovery {
 
   getLoadBalancedInstance(serviceName: string, strategy: LoadBalancingStrategy = 'round-robin'): ServiceInstance | null {
     const healthyInstances = this.getHealthyInstances(serviceName);
-    
+
     if (healthyInstances.length === 0) {
       return null;
     }
@@ -347,14 +347,14 @@ export class ServiceDiscoveryImpl implements ServiceDiscovery {
   private roundRobinSelection(serviceName: string, instances: ServiceInstance[]): ServiceInstance {
     const currentIndex = this.loadBalancerIndex.get(serviceName) || 0;
     const selectedInstance = instances[currentIndex % instances.length];
-    
+
     this.loadBalancerIndex.set(serviceName, (currentIndex + 1) % instances.length);
-    
+
     return selectedInstance;
   }
 
   private leastConnectionsSelection(instances: ServiceInstance[]): ServiceInstance {
-    return instances.reduce((min, instance) => 
+    return instances.reduce((min, instance) => ;
       instance.metadata.load < min.metadata.load ? instance : min
     );
   }
@@ -363,14 +363,14 @@ export class ServiceDiscoveryImpl implements ServiceDiscovery {
     // Usar CPU como peso (menor CPU = mayor peso)
     const totalWeight = instances.reduce((sum, instance) => sum + (100 - instance.metadata.cpu), 0);
     let random = Math.random() * totalWeight;
-    
+
     for (const instance of instances) {
       random -= (100 - instance.metadata.cpu);
       if (random <= 0) {
         return instance;
       }
     }
-    
+
     return instances[0];
   }
 

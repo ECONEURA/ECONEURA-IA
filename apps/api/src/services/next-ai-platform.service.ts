@@ -75,10 +75,10 @@ export class NextAIPlatformService {
 
       // Initialize platform tables
       await this.initializePlatformTables();
-      
+
       // Register AI models
       await this.registerAIModels();
-      
+
       // Start background processing
       this.startBackgroundProcessing();
 
@@ -170,17 +170,17 @@ export class NextAIPlatformService {
 
       // Create indexes
       await this.db.query(`
-        CREATE INDEX IF NOT EXISTS idx_next_ai_sessions_org 
+        CREATE INDEX IF NOT EXISTS idx_next_ai_sessions_org
         ON next_ai_sessions(organization_id, created_at);
       `);
 
       await this.db.query(`
-        CREATE INDEX IF NOT EXISTS idx_next_ai_requests_session 
+        CREATE INDEX IF NOT EXISTS idx_next_ai_requests_session
         ON next_ai_requests(session_id, created_at);
       `);
 
       await this.db.query(`
-        CREATE INDEX IF NOT EXISTS idx_next_ai_models_type 
+        CREATE INDEX IF NOT EXISTS idx_next_ai_models_type
         ON next_ai_models(model_type, availability);
       `);
 
@@ -303,7 +303,7 @@ export class NextAIPlatformService {
 
   async processRequest(request: NextAIRequest): Promise<NextAIResponse> {
     const startTime = Date.now();
-    
+
     try {
       structuredLogger.info('Processing Next AI request', {
         service: 'next-ai-platform',
@@ -314,7 +314,7 @@ export class NextAIPlatformService {
 
       // Get or create session
       const session = await this.getOrCreateSession(request);
-      
+
       // Process based on request type
       let result: any;
       switch (request.requestType) {
@@ -403,10 +403,10 @@ export class NextAIPlatformService {
   private async processChatRequest(request: NextAIRequest, session: any): Promise<any> {
     const { input, options } = request;
     const model = options?.model || 'gpt-4o-mini';
-    
+
     // Simulate chat processing
     const response = await this.simulateAIResponse(input.text || '', 'chat', model);
-    
+
     return {
       output: {
         message: response.text,
@@ -426,10 +426,10 @@ export class NextAIPlatformService {
   private async processAnalysisRequest(request: NextAIRequest, session: any): Promise<any> {
     const { input, options } = request;
     const model = options?.model || 'gpt-4o';
-    
+
     // Simulate analysis processing
     const response = await this.simulateAIResponse(JSON.stringify(input.data || {}), 'analysis', model);
-    
+
     return {
       output: {
         analysis: response.analysis,
@@ -449,10 +449,10 @@ export class NextAIPlatformService {
   private async processPredictionRequest(request: NextAIRequest, session: any): Promise<any> {
     const { input, options } = request;
     const model = options?.model || 'gpt-4o';
-    
+
     // Simulate prediction processing
     const response = await this.simulateAIResponse(JSON.stringify(input.data || {}), 'prediction', model);
-    
+
     return {
       output: {
         predictions: response.predictions,
@@ -473,10 +473,10 @@ export class NextAIPlatformService {
   private async processGenerationRequest(request: NextAIRequest, session: any): Promise<any> {
     const { input, options } = request;
     const model = options?.model || 'gpt-4o-mini';
-    
+
     // Simulate generation processing
     const response = await this.simulateAIResponse(input.text || '', 'generation', model);
-    
+
     return {
       output: {
         generated: response.generated,
@@ -497,10 +497,10 @@ export class NextAIPlatformService {
   private async processOptimizationRequest(request: NextAIRequest, session: any): Promise<any> {
     const { input, options } = request;
     const model = options?.model || 'gpt-4o';
-    
+
     // Simulate optimization processing
     const response = await this.simulateAIResponse(JSON.stringify(input.data || {}), 'optimization', model);
-    
+
     return {
       output: {
         optimized: response.optimized,
@@ -520,10 +520,10 @@ export class NextAIPlatformService {
   private async processInsightsRequest(request: NextAIRequest, session: any): Promise<any> {
     const { input, options } = request;
     const model = options?.model || 'gpt-4o';
-    
+
     // Simulate insights processing
     const response = await this.simulateAIResponse(JSON.stringify(input.data || {}), 'insights', model);
-    
+
     return {
       output: {
         insights: response.insights,
@@ -613,7 +613,7 @@ export class NextAIPlatformService {
     try {
       // Check if session exists
       const existingSession = await this.db.query(`
-        SELECT * FROM next_ai_sessions 
+        SELECT * FROM next_ai_sessions
         WHERE session_id = $1 AND status = 'active'
       `, [request.sessionId]);
 
@@ -624,7 +624,7 @@ export class NextAIPlatformService {
       // Create new session
       const newSession = await this.db.query(`
         INSERT INTO next_ai_sessions (
-          session_id, user_id, organization_id, session_type, 
+          session_id, user_id, organization_id, session_type,
           session_data, context, preferences, expires_at
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING *
@@ -691,8 +691,8 @@ export class NextAIPlatformService {
     try {
       // Get organizations with recent activity
       const orgsResult = await this.db.query(`
-        SELECT DISTINCT organization_id 
-        FROM next_ai_requests 
+        SELECT DISTINCT organization_id
+        FROM next_ai_requests
         WHERE created_at >= NOW() - INTERVAL '24 hours'
       `);
 
@@ -711,7 +711,7 @@ export class NextAIPlatformService {
     try {
       // Analyze usage patterns
       const usageResult = await this.db.query(`
-        SELECT 
+        SELECT
           request_type,
           COUNT(*) as request_count,
           AVG(processing_time_ms) as avg_processing_time,
@@ -776,13 +776,13 @@ export class NextAIPlatformService {
   private async cleanupExpiredSessions(): Promise<void> {
     try {
       await this.db.query(`
-        UPDATE next_ai_sessions 
-        SET status = 'expired' 
+        UPDATE next_ai_sessions
+        SET status = 'expired'
         WHERE expires_at < NOW() AND status = 'active'
       `);
 
       await this.db.query(`
-        DELETE FROM next_ai_insights 
+        DELETE FROM next_ai_insights
         WHERE expires_at < NOW()
       `);
 
@@ -814,8 +814,8 @@ export class NextAIPlatformService {
   async getAvailableModels(): Promise<any[]> {
     try {
       const result = await this.db.query(`
-        SELECT * FROM next_ai_models 
-        WHERE availability = true 
+        SELECT * FROM next_ai_models
+        WHERE availability = true
         ORDER BY model_type, model_name
       `);
 
@@ -838,9 +838,9 @@ export class NextAIPlatformService {
   async getSessionHistory(sessionId: string): Promise<any[]> {
     try {
       const result = await this.db.query(`
-        SELECT * FROM next_ai_requests 
-        WHERE session_id = $1 
-        ORDER BY created_at DESC 
+        SELECT * FROM next_ai_requests
+        WHERE session_id = $1
+        ORDER BY created_at DESC
         LIMIT 50
       `, [sessionId]);
 
@@ -869,10 +869,10 @@ export class NextAIPlatformService {
   async getInsights(organizationId: string, limit: number = 20): Promise<any[]> {
     try {
       const result = await this.db.query(`
-        SELECT * FROM next_ai_insights 
-        WHERE organization_id = $1 
+        SELECT * FROM next_ai_insights
+        WHERE organization_id = $1
           AND (expires_at IS NULL OR expires_at > NOW())
-        ORDER BY confidence_score DESC, created_at DESC 
+        ORDER BY confidence_score DESC, created_at DESC
         LIMIT $2
       `, [organizationId, limit]);
 
@@ -926,7 +926,7 @@ export class NextAIPlatformService {
 
       const healthyServices = Object.values(services).filter(Boolean).length;
       const totalServices = Object.keys(services).length;
-      
+
       let status: 'healthy' | 'degraded' | 'unhealthy';
       if (healthyServices === totalServices) {
         status = 'healthy';

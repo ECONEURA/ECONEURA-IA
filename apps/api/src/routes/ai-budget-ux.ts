@@ -441,7 +441,7 @@ router.post('/grace-period/:organizationId/activate', async (req: Request, res: 
 router.get('/dashboard/:organizationId', async (req: Request, res: Response) => {
   try {
     const { organizationId } = req.params;
-    
+
     const progress = aiBudgetUXService.getBudgetProgress(organizationId);
     const insights = aiBudgetUXService.getBudgetInsights(organizationId);
     const config = aiBudgetUXService.getBudgetConfig(organizationId);

@@ -5,11 +5,11 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // POST /api/gateway/test-route - Probar ruta del gateway
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): void {
   try {
     const { path, method, headers, query } = await request.json();
     const route = webApiGateway.findRoute(path, method, headers || {}, query || {});
-    
+
     if (!route) {
       return NextResponse.json({
         success: false,
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     }
 
     const service = webApiGateway.getService(route.serviceId);
-    
+
     return NextResponse.json({
       success: true,
       data: {
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Failed to test route:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Internal server error' },
       { status: 500 }
     );

@@ -1,6 +1,6 @@
 /**
  * PR-50: Connection Pooling Service
- * 
+ *
  * Sistema avanzado de gestión de pools de conexiones con:
  * - Pool de conexiones PostgreSQL optimizado
  * - Pool de conexiones Redis para cache
@@ -214,7 +214,7 @@ export class ConnectionPoolService {
     if (!pool) return;
 
     const { minConnections } = pool.config;
-    
+
     for (let i = 0; i < minConnections; i++) {
       await this.createConnection(poolName);
     }
@@ -274,7 +274,7 @@ export class ConnectionPoolService {
 
     } catch (error) {
       pool.metrics.failed++;
-      
+
       structuredLogger.error('Failed to create connection', {
         poolName,
         connectionId,
@@ -308,7 +308,7 @@ export class ConnectionPoolService {
     try {
       // Buscar conexión idle
       let connection = this.findIdleConnection(poolName);
-      
+
       if (!connection) {
         // Crear nueva conexión si no hay idle y no se ha alcanzado el máximo
         if (pool.metrics.total < pool.config.maxConnections) {
@@ -345,7 +345,7 @@ export class ConnectionPoolService {
 
     } catch (error) {
       pool.metrics.failed++;
-      
+
       structuredLogger.error('Failed to acquire connection', {
         poolName,
         error: error instanceof Error ? error.message : String(error),
@@ -398,7 +398,7 @@ export class ConnectionPoolService {
     if (connectionIndex === -1) return;
 
     const connection = pool.connections[connectionIndex];
-    
+
     try {
       // Simular destrucción de conexión
       await this.simulateConnectionDestruction(poolName);
@@ -406,7 +406,7 @@ export class ConnectionPoolService {
       pool.connections.splice(connectionIndex, 1);
       pool.metrics.total--;
       pool.metrics.destroyed++;
-      
+
       if (connection.status === 'active') {
         pool.metrics.active--;
       } else {
@@ -554,7 +554,7 @@ export class ConnectionPoolService {
     }
 
     pool.metrics.loadBalanced++;
-    
+
     structuredLogger.info('Load balancing performed', {
       poolName,
       strategy,
@@ -598,7 +598,7 @@ export class ConnectionPoolService {
       const connectionsToDestroy: string[] = [];
 
       for (const connection of pool.connections) {
-        if (connection.status === 'idle' && 
+        if (connection.status === 'idle' &&
             now - connection.lastUsed > pool.config.idleTimeout) {
           connectionsToDestroy.push(connection.id);
         }
@@ -629,22 +629,22 @@ export class ConnectionPoolService {
 
   private async waitForConnection(poolName: string, timeout: number): Promise<Connection | null> {
     const startTime = Date.now();
-    
+
     while (Date.now() - startTime < timeout) {
       const connection = this.findIdleConnection(poolName);
       if (connection) return connection;
-      
+
       await new Promise(resolve => setTimeout(resolve, 100));
     }
-    
+
     return null;
   }
 
   private shouldDestroyConnection(connection: Connection, config: PoolConfig): boolean {
     const now = Date.now();
     const idleTime = now - connection.lastUsed;
-    
-    return connection.errorCount > config.retryAttempts || 
+
+    return connection.errorCount > config.retryAttempts || ;
            idleTime > config.idleTimeout ||
            connection.healthStatus === 'unhealthy';
   }
@@ -668,7 +668,7 @@ export class ConnectionPoolService {
   private recordCircuitBreakerFailure(poolName: string): void {
     const breaker = this.circuitBreakers.get(poolName);
     const config = this.getPoolConfig(poolName);
-    
+
     if (!breaker || !config) return;
 
     breaker.failures++;
@@ -694,7 +694,7 @@ export class ConnectionPoolService {
   }
 
   private leastConnectionsSelection(connections: Connection[]): Connection {
-    return connections.reduce((min, conn) => 
+    return connections.reduce((min, conn) => ;
       conn.errorCount < min.errorCount ? conn : min
     );
   }
@@ -795,7 +795,7 @@ export class ConnectionPoolService {
     if (!pool) return;
 
     pool.config = { ...pool.config, ...config };
-    
+
     structuredLogger.info('Pool configuration updated', {
       poolName,
       config: pool.config,
@@ -808,7 +808,7 @@ export class ConnectionPoolService {
    */
   stop(): void {
     this.isMonitoring = false;
-    
+
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;

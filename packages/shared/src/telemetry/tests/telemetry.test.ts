@@ -3,8 +3,8 @@
 // ============================================================================
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { 
-  TelemetryService, 
+import {
+  TelemetryService,
   TelemetryConfigSchema,
   TelemetryEventSchema,
   PerformanceMetricsSchema,
@@ -122,7 +122,7 @@ describe('TelemetryService', () => {
   describe('Event Tracking', () => {
     it('should track custom event', () => {
       telemetry.trackEvent('custom', 'test_event', { key: 'value' }, { metric: 100 });
-      
+
       // Since we can't easily access private events array, we'll test the method doesn't throw
       expect(() => {
         telemetry.trackEvent('custom', 'test_event', { key: 'value' });
@@ -396,7 +396,7 @@ describe('Schema Validation', () => {
 describe('Edge Cases', () => {
   it('should handle empty properties and metrics', () => {
     const telemetry = new TelemetryService({ enabled: true });
-    
+
     expect(() => {
       telemetry.trackEvent('custom', 'test', {}, {});
     }).not.toThrow();
@@ -406,7 +406,7 @@ describe('Edge Cases', () => {
 
   it('should handle undefined user information', () => {
     const telemetry = new TelemetryService({ enabled: true });
-    
+
     expect(() => {
       telemetry.trackEvent('custom', 'test');
     }).not.toThrow();
@@ -417,7 +417,7 @@ describe('Edge Cases', () => {
   it('should handle large property objects', () => {
     const telemetry = new TelemetryService({ enabled: true });
     const largeProperties: Record<string, any> = {};
-    
+
     for (let i = 0; i < 1000; i++) {
       largeProperties[`key${i}`] = `value${i}`;
     }

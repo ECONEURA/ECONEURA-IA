@@ -1,8 +1,8 @@
 /**
  * DATA ANALYTICS DASHBOARD SERVICE
- * 
+ *
  * PR-36: Sistema completo de analytics y dashboards de datos
- * 
+ *
  * Funcionalidades:
  * - Dashboard de analytics en tiempo real
  * - Visualizaciones interactivas
@@ -325,7 +325,7 @@ export class DataAnalyticsDashboardService {
         dashboards = dashboards.filter(d => d.isActive === filters.isActive);
       }
       if (filters.tags && filters.tags.length > 0) {
-        dashboards = dashboards.filter(d => 
+        dashboards = dashboards.filter(d =>
           filters.tags!.some(tag => d.tags.includes(tag))
         );
       }
@@ -511,7 +511,7 @@ export class DataAnalyticsDashboardService {
   // REPORTS
   // ============================================================================
 
-  async createReport(name: string, description: string, type: Report['type'], 
+  async createReport(name: string, description: string, type: Report['type'],
                     organizationId: string, filters?: Record<string, any>): Promise<Report> {
     const report: Report = {
       id: this.generateId(),
@@ -544,7 +544,7 @@ export class DataAnalyticsDashboardService {
   }
 
   async getReports(organizationId: string): Promise<Report[]> {
-    return Array.from(this.reports.values())
+    return Array.from(this.reports.values());
       .filter(r => r.organizationId === organizationId);
   }
 
@@ -593,7 +593,7 @@ export class DataAnalyticsDashboardService {
   }
 
   async getAlerts(organizationId: string): Promise<Alert[]> {
-    return Array.from(this.alerts.values())
+    return Array.from(this.alerts.values());
       .filter(a => a.organizationId === organizationId);
   }
 
@@ -705,20 +705,20 @@ export class DataAnalyticsDashboardService {
   private generateTrendData(type: string, days: number): Array<{ date: string; value: number }> {
     const data = [];
     const baseValue = type === 'revenue' ? 3000 : type === 'conversions' ? 150 : type === 'sessions' ? 800 : 500;
-    
+
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
-      
+
       const variation = (Math.random() - 0.5) * 0.3; // ±15% variation
       const value = Math.max(0, baseValue * (1 + variation));
-      
+
       data.push({
         date: date.toISOString().split('T')[0],
         value: Math.round(value)
       });
     }
-    
+
     return data;
   }
 
@@ -786,7 +786,7 @@ export class DataAnalyticsDashboardService {
 
   private filterTrendsByTimeRange(trends: AnalyticsData['trends'], timeRange: string): AnalyticsData['trends'] {
     const days = timeRange === '1h' ? 1 : timeRange === '24h' ? 1 : timeRange === '7d' ? 7 : 30;
-    
+
     return {
       users: trends.users.slice(-days),
       sessions: trends.sessions.slice(-days),
@@ -797,20 +797,20 @@ export class DataAnalyticsDashboardService {
 
   private filterMetrics(metrics: AnalyticsData['metrics'], allowedMetrics: string[]): AnalyticsData['metrics'] {
     const filtered: Partial<AnalyticsData['metrics']> = {};
-    
+
     for (const metric of allowedMetrics) {
       if (metric in metrics) {
         (filtered as any)[metric] = (metrics as any)[metric];
       }
     }
-    
+
     return filtered as AnalyticsData['metrics'];
   }
 
   private generateChartData(widget: DashboardWidget, data: AnalyticsData): any {
     const chartType = widget.configuration.chartType || 'line';
     const metrics = widget.configuration.metrics;
-    
+
     if (chartType === 'line' && metrics.includes('users')) {
       return {
         labels: data.trends.users.map(d => d.date),
@@ -823,7 +823,7 @@ export class DataAnalyticsDashboardService {
         }]
       };
     }
-    
+
     if (chartType === 'pie' && metrics.includes('trafficSources')) {
       return {
         labels: data.trafficSources.map(s => s.source),
@@ -833,14 +833,14 @@ export class DataAnalyticsDashboardService {
         }]
       };
     }
-    
+
     return { labels: [], datasets: [] };
   }
 
   private generateMetricData(widget: DashboardWidget, data: AnalyticsData): any {
     const metrics = widget.configuration.metrics;
     const metric = metrics[0];
-    
+
     return {
       value: (data.metrics as any)[metric] || 0,
       label: widget.title,
@@ -862,7 +862,7 @@ export class DataAnalyticsDashboardService {
         ])
       };
     }
-    
+
     return { columns: [], rows: [] };
   }
 
@@ -870,7 +870,7 @@ export class DataAnalyticsDashboardService {
     const metrics = widget.configuration.metrics;
     const metric = metrics[0];
     const value = (data.metrics as any)[metric] || 0;
-    
+
     return {
       value,
       min: 0,
@@ -882,7 +882,7 @@ export class DataAnalyticsDashboardService {
 
   private generateTrendData(widget: DashboardWidget, data: AnalyticsData): any {
     const metrics = widget.configuration.metrics;
-    
+
     if (metrics.includes('users')) {
       return {
         current: data.metrics.totalUsers,
@@ -892,7 +892,7 @@ export class DataAnalyticsDashboardService {
         data: data.trends.users.slice(-7)
       };
     }
-    
+
     return { current: 0, previous: 0, change: 0, trend: 'stable', data: [] };
   }
 
@@ -909,7 +909,7 @@ export class DataAnalyticsDashboardService {
       ['Cost Per Acquisition', data.metrics.costPerAcquisition],
       ['Return On Investment', data.metrics.returnOnInvestment]
     ];
-    
+
     return [headers, ...rows].map(row => row.join(',')).join('\n');
   }
 

@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  Users, 
+import {
+  Users,
   Plus,
   Search,
   BarChart3,
@@ -44,7 +44,7 @@ interface PipelineStats {
   averageDealSize: number;
 }
 
-function MediterraneanDeals() {
+function MediterraneanDeals(): void {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,10 +67,10 @@ function MediterraneanDeals() {
   useEffect(() => {
     const loadDeals = async () => {
       setLoading(true);
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       const mockDeals: Deal[] = [
         {
           id: '1',
@@ -163,16 +163,16 @@ function MediterraneanDeals() {
           assignee: 'María García'
         }
       ];
-      
+
       setDeals(mockDeals);
-      
+
       // Calculate pipeline stats
       const totalValue = mockDeals.reduce((sum, deal) => sum + deal.value, 0);
       const activeDeals = mockDeals.filter(d => !['closed-won', 'closed-lost'].includes(d.stage));
       const wonDeals = mockDeals.filter(d => d.stage === 'closed-won');
       const lostDeals = mockDeals.filter(d => d.stage === 'closed-lost');
       const closedDeals = wonDeals.length + lostDeals.length;
-      
+
       setPipelineStats({
         totalValue,
         totalDeals: mockDeals.length,
@@ -181,10 +181,10 @@ function MediterraneanDeals() {
         winRate: closedDeals > 0 ? (wonDeals.length / closedDeals) * 100 : 0,
         averageDealSize: mockDeals.length > 0 ? totalValue / mockDeals.length : 0
       });
-      
+
       setLoading(false);
     };
-    
+
     loadDeals();
   }, []);
 
@@ -195,7 +195,7 @@ function MediterraneanDeals() {
                          deal.contact.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStage = selectedStage === 'all' || deal.stage === selectedStage;
     const matchesPriority = selectedPriority === 'all' || deal.priority === selectedPriority;
-    
+
     return matchesSearch && matchesStage && matchesPriority;
   });
 
@@ -255,7 +255,7 @@ function MediterraneanDeals() {
   };
 
   if (loading) {
-    return (
+    return (;
       <div className="min-h-screen bg-gradient-to-br from-mediterranean-50 via-white to-coral-50 flex items-center justify-center">
         <div className="text-center">
           <div className="relative">
@@ -268,13 +268,13 @@ function MediterraneanDeals() {
     );
   }
 
-  return (
+  return (;
     <div className="min-h-screen bg-gradient-to-br from-mediterranean-50 via-white to-coral-50">
       {/* Mediterranean Header */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-terracotta-600 via-terracotta-500 to-mediterranean-500 opacity-90"></div>
         <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-20"></div>
-        
+
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
             <div>
@@ -285,7 +285,7 @@ function MediterraneanDeals() {
                 {filteredDeals.length} oportunidades activas • {formatCurrency(pipelineStats?.totalValue || 0)} en pipeline
               </p>
             </div>
-            
+
             <div className="flex items-center gap-4">
               <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
                 <Plus className="w-4 h-4" />
@@ -306,35 +306,35 @@ function MediterraneanDeals() {
               </div>
               <div className="text-sm text-mediterranean-600">Total Deals</div>
             </div>
-            
+
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600 font-playfair">
                 {pipelineStats?.wonDeals || 0}
               </div>
               <div className="text-sm text-mediterranean-600">Ganados</div>
             </div>
-            
+
             <div className="text-center">
               <div className="text-2xl font-bold text-red-600 font-playfair">
                 {pipelineStats?.lostDeals || 0}
               </div>
               <div className="text-sm text-mediterranean-600">Perdidos</div>
             </div>
-            
+
             <div className="text-center">
               <div className="text-2xl font-bold text-terracotta-600 font-playfair">
                 {pipelineStats?.winRate.toFixed(1) || 0}%
               </div>
               <div className="text-sm text-mediterranean-600">Win Rate</div>
             </div>
-            
+
             <div className="text-center">
               <div className="text-2xl font-bold text-olive-600 font-playfair">
                 €{((pipelineStats?.averageDealSize || 0) / 1000).toFixed(0)}K
               </div>
               <div className="text-sm text-mediterranean-600">Tamaño Promedio</div>
             </div>
-            
+
             <div className="text-center">
               <div className="text-2xl font-bold text-coral-600 font-playfair">
                 €{((pipelineStats?.totalValue || 0) / 1000000).toFixed(1)}M
@@ -360,7 +360,7 @@ function MediterraneanDeals() {
                 className="w-full pl-10 pr-4 py-3 border border-mediterranean-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500"
               />
             </div>
-            
+
             {/* Filters */}
             <div className="flex flex-wrap items-center gap-4">
               {/* Stage Filter */}
@@ -377,7 +377,7 @@ function MediterraneanDeals() {
                   ))}
                 </select>
               </div>
-              
+
               {/* Priority Filter */}
               <select
                 value={selectedPriority}
@@ -390,14 +390,14 @@ function MediterraneanDeals() {
                 <option value="medium">Media</option>
                 <option value="low">Baja</option>
               </select>
-              
+
               {/* View Mode */}
               <div className="flex bg-mediterranean-100 rounded-xl p-1">
                 <button
                   onClick={() => setViewMode('kanban')}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    viewMode === 'kanban' 
-                      ? 'bg-white text-mediterranean-600 shadow-sm' 
+                    viewMode === 'kanban'
+                      ? 'bg-white text-mediterranean-600 shadow-sm'
                       : 'text-mediterranean-600 hover:bg-mediterranean-50'
                   }`}
                 >
@@ -406,8 +406,8 @@ function MediterraneanDeals() {
                 <button
                   onClick={() => setViewMode('list')}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    viewMode === 'list' 
-                      ? 'bg-white text-mediterranean-600 shadow-sm' 
+                    viewMode === 'list'
+                      ? 'bg-white text-mediterranean-600 shadow-sm'
                       : 'text-mediterranean-600 hover:bg-mediterranean-50'
                   }`}
                 >
@@ -436,13 +436,13 @@ function MediterraneanDeals() {
                     </span>
                   </div>
                 </div>
-                
+
                 {/* Stage Content */}
                 <div className="bg-white/60 backdrop-blur-sm rounded-b-2xl min-h-96 p-4 space-y-4">
                   {dealsByStage[stage.id]?.map((deal) => {
                     const daysUntilClose = getDaysUntilClose(deal.expectedCloseDate);
-                    
-                    return (
+
+                    return (;
                       <div
                         key={deal.id}
                         className="bg-white rounded-xl shadow-sm p-4 hover:shadow-md transition-all duration-200 border border-mediterranean-100"
@@ -456,7 +456,7 @@ function MediterraneanDeals() {
                             <MoreVertical className="w-4 h-4 text-mediterranean-400" />
                           </button>
                         </div>
-                        
+
                         {/* Deal Details */}
                         <div className="space-y-2 mb-3">
                           <div className="text-xs text-mediterranean-600">
@@ -466,7 +466,7 @@ function MediterraneanDeals() {
                             {deal.contact}
                           </div>
                         </div>
-                        
+
                         {/* Value and Probability */}
                         <div className="flex items-center justify-between mb-3">
                           <div className="text-lg font-bold text-mediterranean-800">
@@ -476,13 +476,13 @@ function MediterraneanDeals() {
                             {deal.probability}% prob.
                           </div>
                         </div>
-                        
+
                         {/* Priority and Close Date */}
                         <div className="flex items-center justify-between">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(deal.priority)}`}>
                             {getPriorityLabel(deal.priority)}
                           </span>
-                          
+
                           <div className={`text-xs ${
                             daysUntilClose < 0 ? 'text-red-600' :
                             daysUntilClose <= 7 ? 'text-orange-600' :
@@ -497,7 +497,7 @@ function MediterraneanDeals() {
                       </div>
                     );
                   })}
-                  
+
                   {/* Empty State for Stage */}
                   {(!dealsByStage[stage.id] || dealsByStage[stage.id].length === 0) && (
                     <div className="text-center py-8 text-mediterranean-400">
@@ -545,7 +545,7 @@ function MediterraneanDeals() {
                 <tbody className="divide-y divide-mediterranean-100">
                   {filteredDeals.map((deal) => {
                     const daysUntilClose = getDaysUntilClose(deal.expectedCloseDate);
-                    return (
+                    return (;
                       <tr key={deal.id} className="hover:bg-mediterranean-50 transition-colors">
                         <td className="px-6 py-4">
                           <div>
@@ -570,8 +570,8 @@ function MediterraneanDeals() {
                           <div className="flex items-center">
                             <span className="text-mediterranean-800 mr-2">{deal.probability}%</span>
                             <div className="w-16 bg-mediterranean-200 rounded-full h-2">
-                              <div 
-                                className="bg-terracotta-500 h-2 rounded-full" 
+                              <div
+                                className="bg-terracotta-500 h-2 rounded-full"
                                 style={{ width: `${deal.probability}%` }}
                               ></div>
                             </div>
@@ -643,8 +643,8 @@ function MediterraneanDeals() {
   );
 }
 
-export default function DealsPage() {
-  return (
+export default function DealsPage(): void {
+  return (;
     <ProtectedRoute requiredPermission="crm:deals:view">
       <MediterraneanDeals />
     </ProtectedRoute>

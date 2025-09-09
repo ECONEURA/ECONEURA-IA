@@ -197,7 +197,7 @@ export function createChildSpan(
   operationName: string
 ): CorrelationContext {
   const childSpanId = generateSpanId();
-  
+
   return {
     ...parentContext,
     spanId: childSpanId,
@@ -240,7 +240,7 @@ export function withCorrelationContext<T>(
   fn: () => T
 ): T {
   const originalContext = correlationStore.get(context.correlationId);
-  
+
   try {
     correlationStore.set(context.correlationId, context);
     return fn();
@@ -275,7 +275,7 @@ export class CorrelationFetch {
 
   async fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
     const headers = new Headers(init?.headers);
-    
+
     // Add correlation headers
     headers.set('X-Correlation-ID', this.baseContext.correlationId);
     headers.set('X-Request-ID', this.baseContext.requestId || '');
@@ -286,7 +286,7 @@ export class CorrelationFetch {
     }
 
     const startTime = Date.now();
-    
+
     try {
       const response = await fetch(input, {
         ...init,

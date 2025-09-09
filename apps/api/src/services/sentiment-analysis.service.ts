@@ -91,7 +91,7 @@ export class SentimentAnalysisService {
       enableAuditLog: true,
       ...config
     };
-    
+
     this.db = getDatabaseService();
     this.initializeLanguageModels();
     this.startCacheCleanup();
@@ -109,7 +109,7 @@ export class SentimentAnalysisService {
       { code: 'nl', name: 'Dutch', accuracy: 0.85 },
       { code: 'sv', name: 'Swedish', accuracy: 0.83 }
     ];
-    
+
     languages.forEach(lang => {
       this.languageModels.set(lang.code, {
         name: lang.name,
@@ -123,7 +123,7 @@ export class SentimentAnalysisService {
 
   private startCacheCleanup(): void {
     if (!this.config.enableCaching) return;
-    
+
     setInterval(() => {
       const now = Date.now();
       for (const [key, value] of this.cache.entries()) {
@@ -135,20 +135,20 @@ export class SentimentAnalysisService {
   }
 
   async analyzeSentiment(
-    text: string, 
-    source?: string, 
-    organizationId?: string, 
+    text: string,
+    source?: string,
+    organizationId?: string,
     userId?: string,
     metadata?: Record<string, any>
   ): Promise<SentimentResult> {
     const startTime = Date.now();
-    
+
     try {
       // Input validation
       if (!text || text.trim().length === 0) {
         throw new Error('Text cannot be empty');
       }
-      
+
       if (text.length > this.config.maxTextLength) {
         throw new Error(`Text exceeds maximum length of ${this.config.maxTextLength} characters`);
       }
@@ -167,14 +167,14 @@ export class SentimentAnalysisService {
       const language = this.detectLanguage(text);
       const sentiment = this.classifySentiment(text);
       const confidence = this.calculateConfidence(text, sentiment);
-      
-      const emotions = this.config.enableEmotionAnalysis ? 
+
+      const emotions = this.config.enableEmotionAnalysis ?
         this.analyzeEmotions(text) : this.getDefaultEmotions();
-      
-      const keywords = this.config.enableKeywordExtraction ? 
+
+      const keywords = this.config.enableKeywordExtraction ?
         this.extractKeywords(text) : [];
-      
-      const topics = this.config.enableTopicExtraction ? 
+
+      const topics = this.config.enableTopicExtraction ?
         this.identifyTopics(text) : [];
 
       const processingTime = Date.now() - startTime;
@@ -225,7 +225,7 @@ export class SentimentAnalysisService {
       return result;
     } catch (error) {
       const processingTime = Date.now() - startTime;
-      
+
       structuredLogger.error('Failed to analyze sentiment', {
         error: error instanceof Error ? error.message : 'Unknown error',
         text: text.substring(0, 100),
@@ -233,7 +233,7 @@ export class SentimentAnalysisService {
         source,
         organizationId
       });
-      
+
       throw error;
     }
   }
@@ -268,8 +268,8 @@ export class SentimentAnalysisService {
   }
 
   private async logSentimentAnalysis(
-    result: SentimentResult, 
-    organizationId: string, 
+    result: SentimentResult,
+    organizationId: string,
     userId?: string
   ): Promise<void> {
     try {
@@ -296,7 +296,7 @@ export class SentimentAnalysisService {
   async analyzeBatch(texts: string[], source?: string): Promise<BatchSentimentResult> {
     try {
       const results: SentimentResult[] = [];
-      
+
       for (const text of texts) {
         const result = await this.analyzeSentiment(text, source);
         results.push(result);
@@ -327,7 +327,7 @@ export class SentimentAnalysisService {
     try {
       const historical = this.historicalData.get(source) || [];
       const periodData = this.filterByPeriod(historical, period);
-      
+
       const sentimentTrend = this.calculateSentimentTrend(periodData);
       const averageSentiment = this.calculateAverageSentiment(periodData);
       const keyTopics = this.extractKeyTopics(periodData);
@@ -363,7 +363,7 @@ export class SentimentAnalysisService {
   }> {
     try {
       let data = this.historicalData.get(source) || [];
-      
+
       if (period) {
         data = this.filterByPeriod(data, period);
       }
@@ -390,7 +390,7 @@ export class SentimentAnalysisService {
   }> {
     try {
       let data = this.historicalData.get(source) || [];
-      
+
       if (period) {
         data = this.filterByPeriod(data, period);
       }
@@ -413,7 +413,7 @@ export class SentimentAnalysisService {
   private detectLanguage(text: string): string {
     // Simple language detection based on common words
     const words = text.toLowerCase().split(' ');
-    
+
     const languageIndicators = {
       en: ['the', 'and', 'is', 'in', 'to', 'of', 'a', 'that', 'it', 'with'],
       es: ['el', 'la', 'de', 'que', 'y', 'a', 'en', 'un', 'es', 'se'],
@@ -425,10 +425,10 @@ export class SentimentAnalysisService {
     let detectedLanguage = 'en';
 
     for (const [lang, indicators] of Object.entries(languageIndicators)) {
-      const score = indicators.reduce((sum, indicator) => 
+      const score = indicators.reduce((sum, indicator) =>
         sum + (words.includes(indicator) ? 1 : 0), 0
       );
-      
+
       if (score > maxScore) {
         maxScore = score;
         detectedLanguage = lang;
@@ -441,17 +441,17 @@ export class SentimentAnalysisService {
   private classifySentiment(text: string): 'positive' | 'negative' | 'neutral' {
     const positiveWords = ['good', 'great', 'excellent', 'amazing', 'wonderful', 'fantastic', 'love', 'best', 'perfect', 'awesome'];
     const negativeWords = ['bad', 'terrible', 'awful', 'horrible', 'hate', 'worst', 'disappointed', 'angry', 'frustrated', 'sad'];
-    
+
     const words = text.toLowerCase().split(' ');
-    
-    const positiveScore = words.reduce((sum, word) => 
+
+    const positiveScore = words.reduce((sum, word) =>
       sum + (positiveWords.includes(word) ? 1 : 0), 0
     );
-    
-    const negativeScore = words.reduce((sum, word) => 
+
+    const negativeScore = words.reduce((sum, word) =>
       sum + (negativeWords.includes(word) ? 1 : 0), 0
     );
-    
+
     if (positiveScore > negativeScore) return 'positive';
     if (negativeScore > positiveScore) return 'negative';
     return 'neutral';
@@ -462,7 +462,7 @@ export class SentimentAnalysisService {
     const baseConfidence = 0.7;
     const lengthFactor = Math.min(text.length / 100, 1) * 0.2;
     const sentimentFactor = Math.random() * 0.1;
-    
+
     return Math.min(baseConfidence + lengthFactor + sentimentFactor, 1.0);
   }
 
@@ -488,7 +488,7 @@ export class SentimentAnalysisService {
     };
 
     for (const [emotion, keywords] of Object.entries(emotionKeywords)) {
-      const score = keywords.reduce((sum, keyword) => 
+      const score = keywords.reduce((sum, keyword) =>
         sum + (words.includes(keyword) ? 1 : 0), 0
       );
       emotions[emotion as keyof EmotionAnalysis] = Math.min(score / keywords.length, 1.0);
@@ -503,13 +503,13 @@ export class SentimentAnalysisService {
       .replace(/[^\w\s]/g, '')
       .split(' ')
       .filter(word => word.length > 3);
-    
+
     const wordCount = words.reduce((count, word) => {
       count[word] = (count[word] || 0) + 1;
       return count;
     }, {} as Record<string, number>);
-    
-    return Object.entries(wordCount)
+
+    return Object.entries(wordCount);
       .sort(([,a], [,b]) => b - a)
       .slice(0, 10)
       .map(([word]) => word);
@@ -529,10 +529,10 @@ export class SentimentAnalysisService {
     const topics: string[] = [];
 
     for (const [topic, keywords] of Object.entries(topicKeywords)) {
-      const score = keywords.reduce((sum, keyword) => 
+      const score = keywords.reduce((sum, keyword) =>
         sum + (words.includes(keyword) ? 1 : 0), 0
       );
-      
+
       if (score > 0) {
         topics.push(topic);
       }
@@ -567,14 +567,14 @@ export class SentimentAnalysisService {
     const now = new Date();
     const periodMs = this.parsePeriod(period);
     const cutoff = new Date(now.getTime() - periodMs);
-    
+
     return data.filter(result => result.timestamp >= cutoff);
   }
 
   private parsePeriod(period: string): number {
     const unit = period.slice(-1);
     const value = parseInt(period.slice(0, -1));
-    
+
     switch (unit) {
       case 'd': return value * 24 * 60 * 60 * 1000;
       case 'w': return value * 7 * 24 * 60 * 60 * 1000;
@@ -585,15 +585,15 @@ export class SentimentAnalysisService {
 
   private calculateSentimentTrend(data: SentimentResult[]): 'improving' | 'declining' | 'stable' {
     if (data.length < 2) return 'stable';
-    
+
     const recent = data.slice(-Math.floor(data.length / 3));
     const older = data.slice(0, Math.floor(data.length / 3));
-    
+
     const recentPositive = recent.filter(r => r.sentiment === 'positive').length / recent.length;
     const olderPositive = older.filter(r => r.sentiment === 'positive').length / older.length;
-    
+
     const change = recentPositive - olderPositive;
-    
+
     if (change > 0.1) return 'improving';
     if (change < -0.1) return 'declining';
     return 'stable';
@@ -601,7 +601,7 @@ export class SentimentAnalysisService {
 
   private calculateAverageSentiment(data: SentimentResult[]): number {
     if (data.length === 0) return 0;
-    
+
     const sentimentValues = data.map(r => {
       switch (r.sentiment) {
         case 'positive': return 1;
@@ -609,20 +609,20 @@ export class SentimentAnalysisService {
         default: return 0;
       }
     });
-    
+
     return sentimentValues.reduce((sum, val) => sum + val, 0) / data.length;
   }
 
   private extractKeyTopics(data: SentimentResult[]): string[] {
     const topicCount: Record<string, number> = {};
-    
+
     data.forEach(result => {
       result.topics.forEach(topic => {
         topicCount[topic] = (topicCount[topic] || 0) + 1;
       });
     });
-    
-    return Object.entries(topicCount)
+
+    return Object.entries(topicCount);
       .sort(([,a], [,b]) => b - a)
       .slice(0, 5)
       .map(([topic]) => topic);
@@ -630,19 +630,19 @@ export class SentimentAnalysisService {
 
   private calculateEmotionChanges(data: SentimentResult[]): Record<string, number> {
     if (data.length < 2) return {};
-    
+
     const recent = data.slice(-Math.floor(data.length / 2));
     const older = data.slice(0, Math.floor(data.length / 2));
-    
+
     const recentEmotions = this.aggregateEmotions(recent);
     const olderEmotions = this.aggregateEmotions(older);
-    
+
     const changes: Record<string, number> = {};
-    
+
     Object.keys(recentEmotions).forEach(emotion => {
       changes[emotion] = recentEmotions[emotion] - olderEmotions[emotion];
     });
-    
+
     return changes;
   }
 
@@ -655,24 +655,24 @@ export class SentimentAnalysisService {
       surprise: 0,
       disgust: 0
     };
-    
+
     data.forEach(result => {
       Object.keys(emotions).forEach(emotion => {
         emotions[emotion] += result.emotions[emotion as keyof EmotionAnalysis];
       });
     });
-    
+
     // Normalize by data length
     Object.keys(emotions).forEach(emotion => {
       emotions[emotion] = emotions[emotion] / data.length;
     });
-    
+
     return emotions;
   }
 
   private findDominantEmotion(emotions: Record<string, number>): string {
-    return Object.entries(emotions)
-      .reduce((dominant, [emotion, value]) => 
+    return Object.entries(emotions);
+      .reduce((dominant, [emotion, value]) =>
         value > emotions[dominant] ? emotion : dominant
       );
   }
@@ -683,7 +683,7 @@ export class SentimentAnalysisService {
 
   private aggregateKeywords(data: SentimentResult[]): Array<{ word: string; frequency: number; sentiment: string }> {
     const keywordCount: Record<string, { count: number; sentiments: string[] }> = {};
-    
+
     data.forEach(result => {
       result.keywords.forEach(keyword => {
         if (!keywordCount[keyword]) {
@@ -693,8 +693,8 @@ export class SentimentAnalysisService {
         keywordCount[keyword].sentiments.push(result.sentiment);
       });
     });
-    
-    return Object.entries(keywordCount)
+
+    return Object.entries(keywordCount);
       .map(([word, data]) => ({
         word,
         frequency: data.count,
@@ -709,43 +709,43 @@ export class SentimentAnalysisService {
     const midpoint = Math.floor(data.length / 2);
     const recent = data.slice(midpoint);
     const older = data.slice(0, midpoint);
-    
+
     const recentKeywords = this.aggregateKeywords(recent);
     const olderKeywords = this.aggregateKeywords(older);
-    
+
     const trending: string[] = [];
-    
+
     recentKeywords.forEach(recent => {
       const older = olderKeywords.find(o => o.word === recent.word);
       if (!older || recent.frequency > older.frequency * 1.5) {
         trending.push(recent.word);
       }
     });
-    
+
     return trending.slice(0, 10);
   }
 
   private calculateSentimentByKeyword(data: SentimentResult[]): Record<string, number> {
     const keywordSentiments: Record<string, number[]> = {};
-    
+
     data.forEach(result => {
       result.keywords.forEach(keyword => {
         if (!keywordSentiments[keyword]) {
           keywordSentiments[keyword] = [];
         }
-        
-        const sentimentValue = result.sentiment === 'positive' ? 1 : 
+
+        const sentimentValue = result.sentiment === 'positive' ? 1 :
                               result.sentiment === 'negative' ? -1 : 0;
         keywordSentiments[keyword].push(sentimentValue);
       });
     });
-    
+
     const sentimentByKeyword: Record<string, number> = {};
-    
+
     Object.entries(keywordSentiments).forEach(([keyword, sentiments]) => {
       sentimentByKeyword[keyword] = sentiments.reduce((sum, val) => sum + val, 0) / sentiments.length;
     });
-    
+
     return sentimentByKeyword;
   }
 
@@ -753,7 +753,7 @@ export class SentimentAnalysisService {
     const positive = sentiments.filter(s => s === 'positive').length;
     const negative = sentiments.filter(s => s === 'negative').length;
     const neutral = sentiments.filter(s => s === 'neutral').length;
-    
+
     if (positive > negative && positive > neutral) return 'positive';
     if (negative > positive && negative > neutral) return 'negative';
     return 'neutral';

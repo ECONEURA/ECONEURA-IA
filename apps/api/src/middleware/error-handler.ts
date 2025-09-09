@@ -45,14 +45,14 @@ const defaultConfig: ErrorHandlerConfig = {
   rateLimitMax: 100,
 };
 
-export function createErrorHandler(config: Partial<ErrorHandlerConfig> = {}) {
+export function createErrorHandler(config: Partial<ErrorHandlerConfig> = {}): void {
   const finalConfig = { ...defaultConfig, ...config };
 
   return (error: unknown, req: Request, res: Response, next: NextFunction): void => {
     try {
       // Generate trace ID if not present
       const traceId = req.headers['x-correlation-id'] as string || generateTraceId();
-      
+
       // Add trace ID to response headers
       res.setHeader('X-Correlation-ID', traceId);
 
@@ -65,7 +65,7 @@ export function createErrorHandler(config: Partial<ErrorHandlerConfig> = {}) {
       }
 
       // Sanitize error for production
-      const sanitizedError = finalConfig.sanitizeErrors 
+      const sanitizedError = finalConfig.sanitizeErrors
         ? sanitizeError(appError, finalConfig.includeStack)
         : appError;
 
@@ -87,7 +87,7 @@ export function createErrorHandler(config: Partial<ErrorHandlerConfig> = {}) {
     } catch (handlerError) {
       // Fallback error handler
       console.error('Error handler failed:', handlerError);
-      
+
       res.status(500).json({
         success: false,
   error: {
@@ -148,7 +148,7 @@ function mapErrorToAppError(error: unknown, traceId: string, req: Request): AppE
 
   // Generic error
   const errorMessage = error instanceof Error ? error.message : String(error);
-  return new AppError(
+  return new AppError(;
     ERROR_CODES.INTERNAL_SERVER_ERROR,
     errorMessage,
     { originalError: errorMessage },
@@ -224,7 +224,7 @@ function sanitizeDetails(details: Record<string, unknown>): Record<string, unkno
   const sensitiveKeys = ['password', 'token', 'secret', 'key', 'auth', 'credential'];
 
   for (const [key, value] of Object.entries(details)) {
-    const isSensitive = sensitiveKeys.some(sensitiveKey => 
+    const isSensitive = sensitiveKeys.some(sensitiveKey =>
       key.toLowerCase().includes(sensitiveKey)
     );
 
@@ -244,12 +244,12 @@ function sanitizeDetails(details: Record<string, unknown>): Record<string, unkno
 // NOT FOUND HANDLER
 // ============================================================================
 
-export function createNotFoundHandler() {
+export function createNotFoundHandler(): void {
   return (req: Request, res: Response, next: NextFunction): void => {
     const traceId = req.headers['x-correlation-id'] as string || generateTraceId();
-    
+
     res.setHeader('X-Correlation-ID', traceId);
-    
+
     const error = new ResourceNotFoundError(`Route ${req.path}`, traceId);
 
   const errorResponse: ErrorResponse = {
@@ -296,7 +296,7 @@ export function errorBoundary<T extends any[], R>(
     } catch (error) {
       // Log the error
       console.error('Error in route handler:', error);
-      
+
       // Re-throw to be handled by error middleware
       throw error;
     }
@@ -307,7 +307,7 @@ export function errorBoundary<T extends any[], R>(
 // HEALTH CHECK ERROR HANDLER
 // ============================================================================
 
-export function createHealthCheckErrorHandler() {
+export function createHealthCheckErrorHandler(): void {
   return (error: unknown, req: Request, res: Response, next: NextFunction): void => {
     // For health check endpoints, always return 503 for errors
     if (req.path.includes('/health')) {

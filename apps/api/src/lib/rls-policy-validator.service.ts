@@ -1,9 +1,9 @@
 // RLS Policy Validator Service for PR-44
-import { 
-  RLSPolicy, 
-  PolicyValidationResult, 
+import {
+  RLSPolicy,
+  PolicyValidationResult,
   ValidationIssue,
-  ValidationConfig 
+  ValidationConfig
 } from './rls-types';
 import { logger } from './logger.js';
 
@@ -107,9 +107,9 @@ export class RLSPolicyValidatorService {
 
       return results;
     } catch (error) {
-      logger.error('Policy validation failed', { 
-        policyId: policy.id, 
-        error: (error as Error).message 
+      logger.error('Policy validation failed', {
+        policyId: policy.id,
+        error: (error as Error).message
       });
       throw error;
     }
@@ -478,7 +478,7 @@ export class RLSPolicyValidatorService {
       /personal/i
     ];
 
-    const hasPersonalData = personalDataPatterns.some(pattern => 
+    const hasPersonalData = personalDataPatterns.some(pattern =>
       pattern.test(policy.condition) || pattern.test(policy.tableName)
     );
 
@@ -515,19 +515,19 @@ export class RLSPolicyValidatorService {
     // Simple complexity calculation based on operators and functions
     const operators = ['AND', 'OR', 'NOT', '=', '!=', '<', '>', '<=', '>='];
     const functions = ['COUNT', 'SUM', 'AVG', 'MAX', 'MIN', 'SUBSTRING', 'LENGTH'];
-    
+
     let complexity = 0;
-    
+
     operators.forEach(op => {
       const matches = condition.match(new RegExp(`\\b${op}\\b`, 'gi'));
       if (matches) complexity += matches.length;
     });
-    
+
     functions.forEach(func => {
       const matches = condition.match(new RegExp(`\\b${func}\\b`, 'gi'));
       if (matches) complexity += matches.length * 2;
     });
-    
+
     return complexity;
   }
 
@@ -539,22 +539,22 @@ export class RLSPolicyValidatorService {
       /created_at\s*>/i,
       /updated_at\s*>/i
     ];
-    
+
     return indexablePatterns.some(pattern => pattern.test(condition));
   }
 
   private analyzeConditionPerformance(condition: string): number {
     // Simple performance analysis
     let score = 100;
-    
+
     // Penalize expensive operations
     if (/like\s+'.*%.*'/i.test(condition)) score -= 20;
     if (/regexp/i.test(condition)) score -= 30;
     if (/substring/i.test(condition)) score -= 15;
-    
+
     // Reward simple conditions
     if (/^\w+\s*=\s*\w+$/i.test(condition)) score += 10;
-    
+
     return Math.max(0, Math.min(100, score));
   }
 
@@ -580,7 +580,7 @@ export class RLSPolicyValidatorService {
       /or\s+true/i,
       /union\s+select/i
     ];
-    
+
     return bypassPatterns.some(pattern => pattern.test(policy.condition));
   }
 
@@ -592,8 +592,8 @@ export class RLSPolicyValidatorService {
       /credit_card/i,
       /bank_account/i
     ];
-    
-    return sensitivePatterns.some(pattern => 
+
+    return sensitivePatterns.some(pattern => ;
       pattern.test(policy.condition) || pattern.test(policy.tableName)
     );
   }
@@ -605,22 +605,22 @@ export class RLSPolicyValidatorService {
 
   private generateRecommendations(issues: ValidationIssue[]): string[] {
     const recommendations: string[] = [];
-    
+
     const criticalIssues = issues.filter(i => i.severity === 'critical');
     const highIssues = issues.filter(i => i.severity === 'high');
-    
+
     if (criticalIssues.length > 0) {
       recommendations.push('Fix all critical issues before deploying the policy');
     }
-    
+
     if (highIssues.length > 0) {
       recommendations.push('Address high-severity issues for better security');
     }
-    
+
     if (issues.some(i => i.type === 'warning')) {
       recommendations.push('Consider addressing warnings for optimal performance');
     }
-    
+
     return recommendations;
   }
 
@@ -667,8 +667,8 @@ export class RLSPolicyValidatorService {
     const passed = this.validationResults.filter(r => r.status === 'passed').length;
     const failed = this.validationResults.filter(r => r.status === 'failed').length;
     const warning = this.validationResults.filter(r => r.status === 'warning').length;
-    const averageScore = total > 0 
-      ? this.validationResults.reduce((sum, r) => sum + r.score, 0) / total 
+    const averageScore = total > 0
+      ? this.validationResults.reduce((sum, r) => sum + r.score, 0) / total
       : 0;
 
     const validationsByType = this.validationResults.reduce((acc, result) => {

@@ -54,8 +54,8 @@ export default function PerformanceChart({ data }: PerformanceChartProps): JSX.E
     if (!data?.metrics) return;
 
     // Filter performance metrics
-    const performanceMetrics = data.metrics.filter(metric => 
-      metric.name.includes('api_request_duration') || 
+    const performanceMetrics = data.metrics.filter(metric =>
+      metric.name.includes('api_request_duration') ||
       metric.name.includes('api_requests_total') ||
       metric.name.includes('response_time') ||
       metric.name.includes('db_queries_total')
@@ -109,7 +109,7 @@ export default function PerformanceChart({ data }: PerformanceChartProps): JSX.E
 
   const renderSimpleChart = (): JSX.Element => {
     if (!chartData || chartData.datasets.length === 0) {
-      return (
+      return (;
         <div className="flex items-center justify-center h-64 text-gray-500">
           No performance data available
         </div>
@@ -120,7 +120,7 @@ export default function PerformanceChart({ data }: PerformanceChartProps): JSX.E
     const minValue = Math.min(...chartData.datasets.flatMap(dataset => dataset.data));
     const range = maxValue - minValue;
 
-    return (
+    return (;
       <div className="space-y-4">
         {chartData.datasets.map((dataset, index) => (
           <div key={index} className="bg-white p-4 rounded-lg border">
@@ -130,11 +130,11 @@ export default function PerformanceChart({ data }: PerformanceChartProps): JSX.E
                 {dataset.data.length} data points
               </span>
             </div>
-            
+
             <div className="flex items-end space-x-1 h-32">
               {dataset.data.map((value, valueIndex) => {
                 const height = range > 0 ? ((value - minValue) / range) * 100 : 50;
-                return (
+                return (;
                   <div
                     key={valueIndex}
                     className="flex-1 bg-blue-200 rounded-t"
@@ -144,7 +144,7 @@ export default function PerformanceChart({ data }: PerformanceChartProps): JSX.E
                 );
               })}
             </div>
-            
+
             <div className="flex justify-between text-xs text-gray-500 mt-2">
               <span>Min: {minValue.toFixed(2)}</span>
               <span>Max: {maxValue.toFixed(2)}</span>
@@ -159,14 +159,14 @@ export default function PerformanceChart({ data }: PerformanceChartProps): JSX.E
   const renderMetricCards = (): JSX.Element => {
     if (!data?.metrics) return <div>No data available</div>;
 
-    const performanceMetrics = data.metrics.filter(metric => 
-      metric.name.includes('api_request_duration') || 
+    const performanceMetrics = data.metrics.filter(metric =>
+      metric.name.includes('api_request_duration') ||
       metric.name.includes('api_requests_total') ||
       metric.name.includes('response_time') ||
       metric.name.includes('db_queries_total')
     );
 
-    return (
+    return (;
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {performanceMetrics.map((metric, index) => (
           <div key={index} className="bg-white p-4 rounded-lg border">
@@ -189,7 +189,7 @@ export default function PerformanceChart({ data }: PerformanceChartProps): JSX.E
   // RENDER
   // ============================================================================
 
-  return (
+  return (;
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">

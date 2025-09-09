@@ -17,17 +17,11 @@ echo "🔨 Fixing imports in TypeScript files..."
 
 # Fix relative imports
 find . -name "*.ts" -o -name "*.tsx" | grep -v node_modules | grep -v dist | grep -v ".next" | while read file; do
-    # Fix relative imports from .js to .ts
-    sed -i '' 's/from '\''\.\/\([^'\'']*\)\.js'\''/from '\''\.\/\1.ts'\''/g' "$file"
-    sed -i '' 's/from '\''\.\.\/\([^'\'']*\)\.js'\''/from '\''\.\.\/\1.ts'\''/g' "$file"
-    sed -i '' 's/from '\''\.\.\/\.\.\/\([^'\'']*\)\.js'\''/from '\''\.\.\/\.\.\/\1.ts'\''/g' "$file"
-    sed -i '' 's/from '\''\.\.\/\.\.\/\.\.\/\([^'\'']*\)\.js'\''/from '\''\.\.\/\.\.\/\.\.\/\1.ts'\''/g' "$file"
-    
-    # Fix imports without extension (add .ts)
-    sed -i '' 's/from '\''\.\/\([^'\'']*\)'\''/from '\''\.\/\1.ts'\''/g' "$file"
-    sed -i '' 's/from '\''\.\.\/\([^'\'']*\)'\''/from '\''\.\.\/\1.ts'\''/g' "$file"
-    sed -i '' 's/from '\''\.\.\/\.\.\/\([^'\'']*\)'\''/from '\''\.\.\/\.\.\/\1.ts'\''/g' "$file"
-    sed -i '' 's/from '\''\.\.\/\.\.\/\.\.\/\([^'\'']*\)'\''/from '\''\.\.\/\.\.\/\.\.\/\1.ts'\''/g' "$file"
+    # Fix relative imports from .js to no extension (TypeScript will resolve)
+    sed -i 's/from '\''\.\/\([^'\'']*\)\.js'\''/from '\''\.\/\1'\''/g' "$file"
+    sed -i 's/from '\''\.\.\/\([^'\'']*\)\.js'\''/from '\''\.\.\/\1'\''/g' "$file"
+    sed -i 's/from '\''\.\.\/\.\.\/\([^'\'']*\)\.js'\''/from '\''\.\.\/\.\.\/\1'\''/g' "$file"
+    sed -i 's/from '\''\.\.\/\.\.\/\.\.\/\([^'\'']*\)\.js'\''/from '\''\.\.\/\.\.\/\.\.\/\1'\''/g' "$file"
 done
 
 # Fix specific problematic imports

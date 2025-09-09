@@ -19,13 +19,13 @@ export class AuthResource {
     const response = await this.client.post<LoginResponse>('/api/v1/auth/login', data, {
       skipAuth: true,
     });
-    
+
     // Automatically set tokens in the client
     if (response.data.tokens) {
       this.client.setAccessToken(response.data.tokens.accessToken);
       this.client.setRefreshToken(response.data.tokens.refreshToken);
     }
-    
+
     return response.data;
   }
 
@@ -36,13 +36,13 @@ export class AuthResource {
     const response = await this.client.post<RefreshTokenResponse>('/api/v1/auth/refresh', data, {
       skipAuth: true,
     });
-    
+
     // Automatically update tokens in the client
     if (response.data.tokens) {
       this.client.setAccessToken(response.data.tokens.accessToken);
       this.client.setRefreshToken(response.data.tokens.refreshToken);
     }
-    
+
     return response.data;
   }
 

@@ -4,10 +4,10 @@ import { WebCacheManager } from '@/lib/cache';
 // Inicializar cache manager (singleton)
 const cacheManager = new WebCacheManager();
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE(request: NextRequest): void {
   try {
     await cacheManager.getAICache().clear();
-    
+
     return NextResponse.json({
       success: true,
       data: {
@@ -16,7 +16,7 @@ export async function DELETE(request: NextRequest) {
     });
   } catch (error) {
     console.error('Failed to clear AI cache:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Internal server error' },
       { status: 500 }
     );

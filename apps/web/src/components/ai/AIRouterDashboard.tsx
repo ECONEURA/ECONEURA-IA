@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   Cpu,
   BarChart3,
   AlertTriangle,
@@ -44,7 +44,7 @@ interface CostAlert {
   timestamp: Date;
 }
 
-export function AIRouterDashboard() {
+export function AIRouterDashboard(): void {
   const [usage, setUsage] = useState<AIUsageStats | null>(null);
   const [providers, setProviders] = useState<AIProviderStatus[]>([]);
   const [alerts, setAlerts] = useState<CostAlert[]>([]);
@@ -54,7 +54,7 @@ export function AIRouterDashboard() {
   const fetchData = async (isRefresh = false) => {
     try {
       if (isRefresh) setRefreshing(true);
-      
+
       // Fetch AI usage stats
       const usageResponse = await fetch('/api/econeura/ai/usage', {
         headers: {
@@ -131,7 +131,7 @@ export function AIRouterDashboard() {
 
   useEffect(() => {
     fetchData();
-    
+
     // Set up periodic refresh
     const interval = setInterval(() => fetchData(false), 30000); // Refresh every 30 seconds
     return () => clearInterval(interval);
@@ -142,14 +142,14 @@ export function AIRouterDashboard() {
   };
 
   if (loading) {
-    return (
+    return (;
       <div className="flex justify-center items-center h-64">
         <LoadingSpinner />
       </div>
     );
   }
 
-  return (
+  return (;
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">

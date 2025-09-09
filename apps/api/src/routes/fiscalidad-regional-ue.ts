@@ -1,6 +1,6 @@
 /**
  * PR-55: Fiscalidad Regional UE Routes
- * 
+ *
  * Endpoints para el sistema de gestión de fiscalidad regional UE
  */
 
@@ -49,7 +49,7 @@ const updateConfigSchema = z.object({
 router.get('/stats', async (req, res) => {
   try {
     const stats = fiscalidadRegionalUEService.getStats();
-    
+
     res.json({
       success: true,
       data: stats,
@@ -60,7 +60,7 @@ router.get('/stats', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get fiscalidad stats',
@@ -76,9 +76,9 @@ router.get('/stats', async (req, res) => {
 router.post('/calculate', async (req, res) => {
   try {
     const validatedData = calculateTaxSchema.parse(req.body);
-    
+
     const calculation = await fiscalidadRegionalUEService.calculateTax(validatedData);
-    
+
     structuredLogger.info('Tax calculation completed', {
       calculationId: calculation.id,
       customerRegion: validatedData.customerRegion,
@@ -88,7 +88,7 @@ router.post('/calculate', async (req, res) => {
       taxAmount: calculation.taxAmount,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       data: calculation,
@@ -100,7 +100,7 @@ router.post('/calculate', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to calculate tax',
@@ -116,7 +116,7 @@ router.post('/calculate', async (req, res) => {
 router.get('/regions', async (req, res) => {
   try {
     const regions = fiscalidadRegionalUEService.getTaxRegions();
-    
+
     res.json({
       success: true,
       data: regions,
@@ -128,7 +128,7 @@ router.get('/regions', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get tax regions',
@@ -144,17 +144,17 @@ router.get('/regions', async (req, res) => {
 router.get('/regions/:regionCode', async (req, res) => {
   try {
     const { regionCode } = req.params;
-    
+
     const regions = fiscalidadRegionalUEService.getTaxRegions();
     const region = regions.find(r => r.country === regionCode.toUpperCase());
-    
+
     if (!region) {
       return res.status(404).json({
         success: false,
         error: 'Tax region not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: region,
@@ -166,7 +166,7 @@ router.get('/regions/:regionCode', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get tax region',
@@ -182,7 +182,7 @@ router.get('/regions/:regionCode', async (req, res) => {
 router.get('/rules', async (req, res) => {
   try {
     const rules = fiscalidadRegionalUEService.getTaxRules();
-    
+
     res.json({
       success: true,
       data: rules,
@@ -194,7 +194,7 @@ router.get('/rules', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get tax rules',
@@ -210,9 +210,9 @@ router.get('/rules', async (req, res) => {
 router.get('/calculations', async (req, res) => {
   try {
     const { limit = 100, offset = 0 } = req.query;
-    
+
     const calculations = fiscalidadRegionalUEService.getTaxCalculations(Number(limit));
-    
+
     res.json({
       success: true,
       data: {
@@ -230,7 +230,7 @@ router.get('/calculations', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get tax calculations',
@@ -246,7 +246,7 @@ router.get('/calculations', async (req, res) => {
 router.get('/compliance', async (req, res) => {
   try {
     const compliance = fiscalidadRegionalUEService.getComplianceStatus();
-    
+
     res.json({
       success: true,
       data: compliance,
@@ -258,7 +258,7 @@ router.get('/compliance', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get compliance status',
@@ -274,7 +274,7 @@ router.get('/compliance', async (req, res) => {
 router.post('/process', async (req, res) => {
   try {
     const { organizationId } = req.body;
-    
+
     if (!organizationId) {
       return res.status(400).json({
         success: false,
@@ -283,14 +283,14 @@ router.post('/process', async (req, res) => {
     }
 
     const stats = await fiscalidadRegionalUEService.processComplianceMonitoring();
-    
+
     structuredLogger.info('Fiscalidad compliance processing completed', {
       organizationId,
       totalRegions: stats.totalRegions,
       complianceRate: stats.complianceRate,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       data: stats,
@@ -302,7 +302,7 @@ router.post('/process', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to process fiscalidad compliance',
@@ -318,14 +318,14 @@ router.post('/process', async (req, res) => {
 router.put('/config', async (req, res) => {
   try {
     const validatedData = updateConfigSchema.parse(req.body);
-    
+
     fiscalidadRegionalUEService.updateConfig(validatedData);
-    
+
     structuredLogger.info('Fiscalidad configuration updated', {
       config: validatedData,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       message: 'Fiscalidad configuration updated successfully',
@@ -337,7 +337,7 @@ router.put('/config', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to update fiscalidad configuration',
@@ -371,7 +371,7 @@ router.get('/config', async (req, res) => {
         deadline: 7
       }
     };
-    
+
     res.json({
       success: true,
       data: config,
@@ -382,7 +382,7 @@ router.get('/config', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get fiscalidad configuration',
@@ -398,7 +398,7 @@ router.get('/config', async (req, res) => {
 router.get('/reports/vat', async (req, res) => {
   try {
     const { organizationId, period, format = 'json' } = req.query;
-    
+
     if (!organizationId) {
       return res.status(400).json({
         success: false,
@@ -418,7 +418,7 @@ router.get('/reports/vat', async (req, res) => {
       netVAT: 0,
       generatedAt: new Date().toISOString()
     };
-    
+
     res.json({
       success: true,
       data: report,
@@ -429,7 +429,7 @@ router.get('/reports/vat', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to generate VAT report',
@@ -445,7 +445,7 @@ router.get('/reports/vat', async (req, res) => {
 router.get('/reports/compliance', async (req, res) => {
   try {
     const { organizationId, region } = req.query;
-    
+
     if (!organizationId) {
       return res.status(400).json({
         success: false,
@@ -455,7 +455,7 @@ router.get('/reports/compliance', async (req, res) => {
 
     const compliance = fiscalidadRegionalUEService.getComplianceStatus();
     const stats = fiscalidadRegionalUEService.getStats();
-    
+
     const report = {
       organizationId,
       region,
@@ -466,7 +466,7 @@ router.get('/reports/compliance', async (req, res) => {
       complianceDetails: compliance,
       generatedAt: new Date().toISOString()
     };
-    
+
     res.json({
       success: true,
       data: report,
@@ -477,7 +477,7 @@ router.get('/reports/compliance', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to generate compliance report',
@@ -493,7 +493,7 @@ router.get('/reports/compliance', async (req, res) => {
 router.post('/validate', async (req, res) => {
   try {
     const { transaction } = req.body;
-    
+
     if (!transaction) {
       return res.status(400).json({
         success: false,
@@ -509,7 +509,7 @@ router.post('/validate', async (req, res) => {
       recommendations: [],
       validatedAt: new Date().toISOString()
     };
-    
+
     res.json({
       success: true,
       data: validation,
@@ -520,7 +520,7 @@ router.post('/validate', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to validate transaction',

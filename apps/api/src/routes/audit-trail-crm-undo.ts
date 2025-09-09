@@ -1,6 +1,6 @@
 /**
  * PR-65: Audit Trail CRM + Undo Routes
- * 
+ *
  * Endpoints para el sistema de auditoría CRM con capacidades de undo y revert
  */
 
@@ -157,9 +157,9 @@ router.get('/entries', async (req, res) => {
 router.get('/entries/:entryId', async (req, res) => {
   try {
     const { entryId } = req.params;
-    
+
     const auditEntry = await auditTrailCRMUndoService.getAuditEntry(entryId);
-    
+
     if (!auditEntry) {
       return res.status(404).json({
         success: false,

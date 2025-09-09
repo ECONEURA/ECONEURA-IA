@@ -184,11 +184,11 @@ export class ConfigurationService {
   // Feature Flags
   async getFeatureFlags(environment?: string): Promise<FeatureFlag[]> {
     let flags = Array.from(this.featureFlags.values());
-    
+
     if (environment) {
       flags = flags.filter(flag => flag.environment === environment);
     }
-    
+
     return flags;
   }
 
@@ -203,7 +203,7 @@ export class ConfigurationService {
       createdAt: new Date(),
       updatedAt: new Date()
     };
-    
+
     this.featureFlags.set(newFlag.id!, newFlag);
     return newFlag;
   }
@@ -211,13 +211,13 @@ export class ConfigurationService {
   async updateFeatureFlag(id: string, updates: Partial<FeatureFlag>): Promise<FeatureFlag | null> {
     const existing = this.featureFlags.get(id);
     if (!existing) return null;
-    
+
     const updated: FeatureFlag = {
       ...existing,
       ...updates,
       updatedAt: new Date()
     };
-    
+
     this.featureFlags.set(id, updated);
     return updated;
   }
@@ -228,50 +228,50 @@ export class ConfigurationService {
 
   async checkFeatureFlag(flagName: string, context: FeatureFlagCheck): Promise<{ isEnabled: boolean; reason?: string }> {
     const flag = Array.from(this.featureFlags.values()).find(f => f.name === flagName);
-    
+
     if (!flag) {
       return { isEnabled: false, reason: 'Feature flag not found' };
     }
-    
+
     if (!flag.enabled) {
       return { isEnabled: false, reason: 'Feature flag disabled' };
     }
-    
+
     // Verificar rollout percentage
     if (flag.rolloutPercentage < 100) {
       const hash = this.hashString(`${context.userId || 'anonymous'}_${flagName}`);
       const percentage = (hash % 100) + 1;
-      
+
       if (percentage > flag.rolloutPercentage) {
         return { isEnabled: false, reason: 'Not in rollout percentage' };
       }
     }
-    
+
     // Verificar usuarios objetivo
     if (flag.targetUsers.length > 0 && context.userId) {
       if (!flag.targetUsers.includes(context.userId)) {
         return { isEnabled: false, reason: 'User not in target list' };
       }
     }
-    
+
     // Verificar organizaciones objetivo
     if (flag.targetOrganizations.length > 0 && context.organizationId) {
       if (!flag.targetOrganizations.includes(context.organizationId)) {
         return { isEnabled: false, reason: 'Organization not in target list' };
       }
     }
-    
+
     // Verificar condiciones
     if (flag.conditions.length > 0 && context.customAttributes) {
       for (const condition of flag.conditions) {
         const value = context.customAttributes[condition.field];
-        
+
         if (!this.evaluateCondition(value, condition.operator, condition.value)) {
           return { isEnabled: false, reason: `Condition not met: ${condition.field}` };
         }
       }
     }
-    
+
     return { isEnabled: true };
   }
 
@@ -287,13 +287,13 @@ export class ConfigurationService {
   async updateEnvironment(name: string, updates: Partial<Environment>): Promise<Environment | null> {
     const existing = this.environments.get(name);
     if (!existing) return null;
-    
+
     const updated: Environment = {
       ...existing,
       ...updates,
       updatedAt: new Date()
     };
-    
+
     this.environments.set(name, updated);
     return updated;
   }
@@ -301,21 +301,21 @@ export class ConfigurationService {
   // Config Values
   async getConfigValue(key: string, environment?: string): Promise<ConfigValue | null> {
     const searchKey = environment ? `${key}_${environment}` : key;
-    
+
     // Buscar por key específica primero
     let config = this.configValues.get(searchKey);
-    
+
     // Si no se encuentra y hay environment, buscar sin environment
     if (!config && environment) {
       config = this.configValues.get(key);
     }
-    
+
     return config || null;
   }
 
   async setConfigValue(key: string, value: any, environment?: string): Promise<ConfigValue> {
     const configKey = environment ? `${key}_${environment}` : key;
-    
+
     const config: ConfigValue = {
       key,
       value,
@@ -324,7 +324,7 @@ export class ConfigurationService {
       createdAt: new Date(),
       updatedAt: new Date()
     };
-    
+
     this.configValues.set(configKey, config);
     return config;
   }
@@ -356,18 +356,18 @@ export class ConfigurationService {
   }> {
     const featureFlagsByEnvironment: Record<string, number> = {};
     const configValuesByEnvironment: Record<string, number> = {};
-    
+
     // Contar feature flags por environment
     for (const flag of this.featureFlags.values()) {
       featureFlagsByEnvironment[flag.environment] = (featureFlagsByEnvironment[flag.environment] || 0) + 1;
     }
-    
+
     // Contar config values por environment
     for (const config of this.configValues.values()) {
       const env = config.environment || 'default';
       configValuesByEnvironment[env] = (configValuesByEnvironment[env] || 0) + 1;
     }
-    
+
     return {
       totalFeatureFlags: this.featureFlags.size,
       totalEnvironments: this.environments.size,
@@ -386,32 +386,32 @@ export class ConfigurationService {
   }> {
     const errors: string[] = [];
     const warnings: string[] = [];
-    
+
     // Validar feature flags
     for (const flag of this.featureFlags.values()) {
       if (!flag.name || flag.name.length === 0) {
         errors.push(`Feature flag ${flag.id} has empty name`);
       }
-      
+
       if (flag.rolloutPercentage < 0 || flag.rolloutPercentage > 100) {
         errors.push(`Feature flag ${flag.name} has invalid rollout percentage`);
       }
     }
-    
+
     // Validar environments
     for (const env of this.environments.values()) {
       if (!env.name || env.name.length === 0) {
         errors.push(`Environment ${env.name} has empty name`);
       }
     }
-    
+
     // Validar config values
     for (const config of this.configValues.values()) {
       if (!config.key || config.key.length === 0) {
         errors.push(`Config value has empty key`);
       }
     }
-    
+
     return {
       isValid: errors.length === 0,
       errors,
@@ -427,10 +427,10 @@ export class ConfigurationService {
       this.environments.clear();
       this.configValues.clear();
       this.secrets.clear();
-      
+
       // Reinicializar con datos por defecto
       this.initializeDefaultData();
-      
+
       return {
         success: true,
         message: 'Configuration reloaded successfully'

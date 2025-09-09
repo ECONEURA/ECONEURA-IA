@@ -156,7 +156,7 @@ export class HandlebarsEngine implements ITemplateEngine {
       // Compile template if not cached
       const compiledKey = `${template.id}_${template.language}_${template.version}`;
       let compiledTemplate = this.compiledTemplates.get(compiledKey);
-      
+
       if (!compiledTemplate) {
         compiledTemplate = this.compileHandlebarsTemplate(template);
         this.compiledTemplates.set(compiledKey, compiledTemplate);
@@ -240,7 +240,7 @@ export class HandlebarsEngine implements ITemplateEngine {
       const declaredVariables = template.variables || [];
       const usedVariables = this.extractHandlebarsVariables(template.body);
       const missingVariables = usedVariables.filter(v => !declaredVariables.includes(v));
-      
+
       if (missingVariables.length > 0) {
         errors.push(`Undeclared variables: ${missingVariables.join(', ')}`);
       }
@@ -288,11 +288,11 @@ export class HandlebarsEngine implements ITemplateEngine {
     // Simulate Handlebars compilation
     const compiled = (context: any) => {
       let result = template.body;
-      
+
       // Replace variables
       for (const [key, value] of Object.entries(context)) {
         if (key.startsWith('_')) continue; // Skip meta variables
-        
+
         const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
         result = result.replace(regex, String(value || ''));
       }
@@ -306,19 +306,19 @@ export class HandlebarsEngine implements ITemplateEngine {
       result = result.replace(/\{\{#each\s+(\w+)\}\}(.*?)\{\{\/each\}\}/gs, (match, variable, content) => {
         const array = context[variable];
         if (!Array.isArray(array)) return '';
-        
+
         return array.map((item, index) => {
           let itemContent = content;
           itemContent = itemContent.replace(/\{\{@index\}\}/g, String(index));
           itemContent = itemContent.replace(/\{\{this\}\}/g, String(item));
-          
+
           if (typeof item === 'object') {
             for (const [key, value] of Object.entries(item)) {
               const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
               itemContent = itemContent.replace(regex, String(value || ''));
             }
           }
-          
+
           return itemContent;
         }).join('');
       });
@@ -331,7 +331,7 @@ export class HandlebarsEngine implements ITemplateEngine {
 
   private extractHandlebarsVariables(template: string): string[] {
     const variables = new Set<string>();
-    
+
     // Extract simple variables {{variable}}
     const simpleMatches = template.match(/\{\{(\w+)\}\}/g);
     if (simpleMatches) {
@@ -436,7 +436,7 @@ export class HandlebarsEngine implements ITemplateEngine {
     for (const template of defaultTemplates) {
       const id = `template_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const now = new Date();
-      
+
       const newTemplate: Template = {
         ...template,
         id,
@@ -610,19 +610,19 @@ export class MustacheEngine implements ITemplateEngine {
     result = result.replace(/\{\{#(\w+)\}\}(.*?)\{\{\/\1\}\}/gs, (match, variable, content) => {
       const array = context[variable];
       if (!Array.isArray(array)) return '';
-      
+
       return array.map((item, index) => {
         let itemContent = content;
         itemContent = itemContent.replace(/\{\{@index\}\}/g, String(index));
         itemContent = itemContent.replace(/\{\{\.\}\}/g, String(item));
-        
+
         if (typeof item === 'object') {
           for (const [key, value] of Object.entries(item)) {
             const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
             itemContent = itemContent.replace(regex, String(value || ''));
           }
         }
-        
+
         return itemContent;
       }).join('');
     });
@@ -663,7 +663,7 @@ export class MustacheEngine implements ITemplateEngine {
     for (const template of defaultTemplates) {
       const id = `template_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const now = new Date();
-      
+
       const newTemplate: Template = {
         ...template,
         id,

@@ -1,6 +1,6 @@
 /**
  * PR-56: Database Optimization & Indexing Service
- * 
+ *
  * Sistema avanzado de optimización de base de datos con índices compuestos,
  * particionado de tablas, optimización de queries y connection pooling.
  */
@@ -406,12 +406,12 @@ export class DatabaseOptimizerService {
    */
   public async optimizeQuery(query: string, params: any[] = []): Promise<QueryOptimization> {
     const startTime = Date.now();
-    
+
     try {
       // Verificar caché de consultas
       const cacheKey = this.generateQueryCacheKey(query, params);
       const cachedResult = this.queryCache.get(cacheKey);
-      
+
       if (cachedResult && this.isQueryCacheValid(cachedResult)) {
         return cachedResult;
       }
@@ -420,7 +420,7 @@ export class DatabaseOptimizerService {
       const analysis = await this.analyzeQuery(query);
       const recommendations = this.generateRecommendations(analysis);
       const optimizedQuery = this.optimizeQueryString(query, recommendations);
-      
+
       const executionTime = Date.now() - startTime;
 
       // Detectar consultas lentas
@@ -456,7 +456,7 @@ export class DatabaseOptimizerService {
         query: query.substring(0, 200),
         error: error instanceof Error ? error.message : String(error)
       });
-      
+
       return {
         query,
         originalPlan: null,
@@ -474,7 +474,7 @@ export class DatabaseOptimizerService {
   public async createIndex(indexDef: IndexDefinition): Promise<boolean> {
     try {
       const sql = this.generateCreateIndexSQL(indexDef);
-      
+
       // En un sistema real, ejecutaríamos la consulta SQL
       structuredLogger.info('Index created', {
         name: indexDef.name,
@@ -484,7 +484,7 @@ export class DatabaseOptimizerService {
       });
 
       this.indexes.set(indexDef.name, indexDef);
-      
+
       // Métricas
       metrics.databaseIndexesCreated.inc({
         table: indexDef.table,
@@ -508,7 +508,7 @@ export class DatabaseOptimizerService {
     try {
       for (const partition of partitionConfig.partitions) {
         const sql = this.generateCreatePartitionSQL(partitionConfig.table, partition);
-        
+
         // En un sistema real, ejecutaríamos la consulta SQL
         structuredLogger.info('Partition created', {
           table: partitionConfig.table,
@@ -518,7 +518,7 @@ export class DatabaseOptimizerService {
       }
 
       this.partitions.set(partitionConfig.table, partitionConfig);
-      
+
       // Métricas
       metrics.databasePartitionsCreated.inc({
         table: partitionConfig.table,
@@ -541,13 +541,13 @@ export class DatabaseOptimizerService {
   public async performVacuum(table?: string): Promise<boolean> {
     try {
       const sql = table ? `VACUUM ANALYZE ${table}` : 'VACUUM ANALYZE';
-      
+
       // En un sistema real, ejecutaríamos VACUUM
       structuredLogger.info('Vacuum performed', { table: table || 'all tables' });
-      
+
       // Métricas
       metrics.databaseVacuumPerformed.inc({ table: table || 'all' });
-      
+
       return true;
     } catch (error) {
       structuredLogger.error('Vacuum failed', {
@@ -564,13 +564,13 @@ export class DatabaseOptimizerService {
   public async performAnalyze(table?: string): Promise<boolean> {
     try {
       const sql = table ? `ANALYZE ${table}` : 'ANALYZE';
-      
+
       // En un sistema real, ejecutaríamos ANALYZE
       structuredLogger.info('Analyze performed', { table: table || 'all tables' });
-      
+
       // Métricas
       metrics.databaseAnalyzePerformed.inc({ table: table || 'all' });
-      
+
       return true;
     } catch (error) {
       structuredLogger.error('Analyze failed', {
@@ -606,7 +606,7 @@ export class DatabaseOptimizerService {
       structuredLogger.error('Failed to get database stats', {
         error: error instanceof Error ? error.message : String(error)
       });
-      
+
       return {
         totalTables: 0,
         totalIndexes: 0,
@@ -675,12 +675,12 @@ export class DatabaseOptimizerService {
 
   private calculateImprovement(analysis: any): number {
     if (!analysis.originalPlan || !analysis.optimizedPlan) return 0;
-    
+
     const originalCost = analysis.originalPlan.cost;
     const optimizedCost = analysis.optimizedPlan.cost;
-    
+
     if (originalCost === 0) return 0;
-    
+
     return Math.round(((originalCost - optimizedCost) / originalCost) * 100);
   }
 
@@ -701,7 +701,7 @@ export class DatabaseOptimizerService {
     const concurrent = indexDef.concurrent ? 'CONCURRENTLY ' : '';
     const include = indexDef.include ? ` INCLUDE (${indexDef.include.join(', ')})` : '';
     const partial = indexDef.partial ? ` WHERE ${indexDef.partial}` : '';
-    
+
     return `CREATE ${unique}INDEX ${concurrent}${indexDef.name} ON ${indexDef.table} USING ${indexDef.type} (${indexDef.columns.join(', ')})${include}${partial};`;
   }
 

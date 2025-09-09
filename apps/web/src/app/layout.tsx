@@ -7,17 +7,17 @@ import { Navigation } from '@/components/layout/Navigation'
 import { cn } from '@/lib/utils'
 import SystemStatus from '@/components/SystemStatus';
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter'
 })
 
-const playfair = Playfair_Display({ 
+const playfair = Playfair_Display({
   subsets: ['latin'],
   variable: '--font-playfair'
 })
 
-const montserrat = Montserrat({ 
+const montserrat = Montserrat({
   subsets: ['latin'],
   variable: '--font-montserrat'
 })
@@ -38,7 +38,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  return (
+  return (;
     <html lang="es" className="h-full">
       <head>
         {/* Security Headers */}

@@ -61,7 +61,7 @@ export const customMetrics = {
 }
 
 // Mock utility functions
-export function createSpan(name: string, attributes?: Record<string, any>) {
+export function createSpan(name: string, attributes?: Record<string, any>): void {
   return {
     setAttribute: (key: string, value: any) => {},
     setStatus: (status: any) => {},
@@ -69,7 +69,7 @@ export function createSpan(name: string, attributes?: Record<string, any>) {
   }
 }
 
-export function createTracer(name: string) {
+export function createTracer(name: string): void {
   return {
     startSpan: (spanName: string, options?: any) => ({
       setAttribute: (key: string, value: any) => {},
@@ -81,7 +81,7 @@ export function createTracer(name: string) {
   }
 }
 
-export function createMeter(name: string) {
+export function createMeter(name: string): void {
   return {
     createCounter: (counterName: string, options?: any) => ({
       add: (value: number, attributes?: Record<string, any>) => {},
@@ -95,18 +95,18 @@ export function createMeter(name: string) {
   }
 }
 
-export function recordException(span: any, error: Error, attributes?: Record<string, any>) {}
-export function addEvent(span: any, name: string, attributes?: Record<string, any>) {}
-export function setAttributes(span: any, attributes: Record<string, any>) {}
-export function getCurrentSpan() { return null }
-export function getTraceId() { return 'mock-trace-id' }
-export function getSpanId() { return 'mock-span-id' }
+export function recordException(span: any, error: Error, attributes?: Record<string, any>): void {}
+export function addEvent(span: any, name: string, attributes?: Record<string, any>): void {}
+export function setAttributes(span: any, attributes: Record<string, any>): void {}
+export function getCurrentSpan(): void { return null }
+export function getTraceId(): void { return 'mock-trace-id' }
+export function getSpanId(): void { return 'mock-span-id' }
 
 // Mock metric recording functions
 // All recording functions are exported from ./metrics/index to avoid conflicts
-export function recordIdempotencyConflict(key: string, orgId?: string) {}
-export function recordRateLimitExceeded(route: string, orgId?: string) {}
-export function recordOrgCost(orgId: string, costEUR: number, budgetEUR: number) {}
+export function recordIdempotencyConflict(key: string, orgId?: string): void {}
+export function recordRateLimitExceeded(route: string, orgId?: string): void {}
+export function recordOrgCost(orgId: string, costEUR: number, budgetEUR: number): void {}
 
 // Mock SDK
 export const sdk = {

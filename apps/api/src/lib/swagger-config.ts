@@ -187,7 +187,7 @@ export const swaggerConfig: OpenAPIV3.Document = {
           }
         }
       },
-      
+
       // Health schemas
       HealthStatus: {
         type: 'object',

@@ -29,7 +29,7 @@ class TestUseCase extends BaseUseCase<TestRequest, TestResponse> {
     this.validateBaseRequest(request);
     this.validateString(request.name, 'Name', 1, 100);
     this.validateEmail(request.email);
-    
+
     if (request.age !== undefined) {
       if (request.age < 0 || request.age > 150) {
         throw new Error('Age must be between 0 and 150');
@@ -224,7 +224,7 @@ describe('BaseUseCase', () => {
     describe('generateId()', () => {
       it('should generate valid UUID', () => {
         const id = useCase.generateId();
-        
+
         expect(typeof id).toBe('string');
         expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
       });
@@ -232,7 +232,7 @@ describe('BaseUseCase', () => {
       it('should generate unique IDs', () => {
         const id1 = useCase.generateId();
         const id2 = useCase.generateId();
-        
+
         expect(id1).not.toBe(id2);
       });
     });
@@ -240,7 +240,7 @@ describe('BaseUseCase', () => {
     describe('getCurrentTimestamp()', () => {
       it('should return current date', () => {
         const timestamp = useCase.getCurrentTimestamp();
-        
+
         expect(timestamp).toBeInstanceOf(Date);
         expect(timestamp.getTime()).toBeLessThanOrEqual(Date.now());
       });
@@ -262,9 +262,9 @@ describe('BaseUseCase', () => {
       it('should create success response', () => {
         const data = { test: 'data' };
         const message = 'Success message';
-        
+
         const response = useCase.createSuccessResponse(data, message);
-        
+
         expect(response.success).toBe(true);
         expect(response.data).toEqual(data);
         expect(response.message).toBe(message);
@@ -272,9 +272,9 @@ describe('BaseUseCase', () => {
 
       it('should create success response without message', () => {
         const data = { test: 'data' };
-        
+
         const response = useCase.createSuccessResponse(data);
-        
+
         expect(response.success).toBe(true);
         expect(response.data).toEqual(data);
         expect(response.message).toBeUndefined();
@@ -286,9 +286,9 @@ describe('BaseUseCase', () => {
         const code = 'TEST_ERROR';
         const message = 'Test error message';
         const details = { field: 'test' };
-        
+
         const response = useCase.createErrorResponse(code, message, details);
-        
+
         expect(response.success).toBe(false);
         expect(response.error.code).toBe(code);
         expect(response.error.message).toBe(message);
@@ -298,9 +298,9 @@ describe('BaseUseCase', () => {
       it('should create error response without details', () => {
         const code = 'TEST_ERROR';
         const message = 'Test error message';
-        
+
         const response = useCase.createErrorResponse(code, message);
-        
+
         expect(response.success).toBe(false);
         expect(response.error.code).toBe(code);
         expect(response.error.message).toBe(message);

@@ -39,14 +39,14 @@ function generateRequestId(): string {
 
 function addFinOpsHeaders(response: NextResponse, startTime: number): NextResponse {
   const latency = Date.now() - startTime;
-  
+
   response.headers.set('X-Request-Id', generateRequestId());
   response.headers.set('X-Org-Id', 'demo-org');
   response.headers.set('X-Latency-ms', latency.toString());
   response.headers.set('X-AI-Provider', 'none');
   response.headers.set('X-AI-Model', 'none');
   response.headers.set('X-Est-Cost-EUR', '0.00');
-  
+
   return response;
 }
 
@@ -60,14 +60,14 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   const startTime = Date.now();
-  
+
   try {
     const { id } = params;
 
     // Llamar al backend
     const apiUrl = `${process.env.API_BASE_URL || 'http://localhost:4000'}/v1/inventory/products/${id}`;
     const response = await fetch(apiUrl);
-    
+
     if (!response.ok) {
       if (response.status === 404) {
         const errorResponse = NextResponse.json(
@@ -80,10 +80,10 @@ export async function GET(
     }
 
     const product = await response.json();
-    
+
     const nextResponse = NextResponse.json(product);
     return addFinOpsHeaders(nextResponse, startTime);
-    
+
   } catch (error) {
     console.error('Error fetching product:', error);
     const errorResponse = NextResponse.json(
@@ -100,14 +100,14 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   const startTime = Date.now();
-  
+
   try {
     const { id } = params;
     const body = await request.json();
-    
+
     // Validar datos de entrada
     const validatedData = UpdateProductSchema.parse(body);
-    
+
     // Convertir fecha de expiración si existe
     if (validatedData.expiryDate) {
       validatedData.expiryDate = new Date(validatedData.expiryDate).toISOString();
@@ -131,19 +131,19 @@ export async function PUT(
         );
         return addFinOpsHeaders(errorResponse, startTime);
       }
-      
+
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.error || `Backend error: ${response.statusText}`);
     }
 
     const product = await response.json();
-    
+
     const nextResponse = NextResponse.json(product);
     return addFinOpsHeaders(nextResponse, startTime);
-    
+
   } catch (error) {
     console.error('Error updating product:', error);
-    
+
     if (error instanceof z.ZodError) {
       const errorResponse = NextResponse.json(
         { error: 'Validation error', details: error.errors },
@@ -151,7 +151,7 @@ export async function PUT(
       );
       return addFinOpsHeaders(errorResponse, startTime);
     }
-    
+
     const errorResponse = NextResponse.json(
       { error: 'Failed to update product' },
       { status: 500 }
@@ -166,7 +166,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   const startTime = Date.now();
-  
+
   try {
     const { id } = params;
 
@@ -189,7 +189,7 @@ export async function DELETE(
 
     const nextResponse = NextResponse.json({ message: 'Product deleted successfully' });
     return addFinOpsHeaders(nextResponse, startTime);
-    
+
   } catch (error) {
     console.error('Error deleting product:', error);
     const errorResponse = NextResponse.json(

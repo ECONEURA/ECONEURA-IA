@@ -72,10 +72,10 @@ export class HealthCheckService extends EventEmitter {
     checkFunction: () => Promise<{ status: 'healthy' | 'unhealthy' | 'degraded'; message: string; metadata?: Record<string, any> }>
   ): void {
     this.checks.set(name, config);
-    
+
     // Store the check function
     (this as any)[`check_${name}`] = checkFunction;
-    
+
     // Start the check if service is running
     if (this.isRunning) {
       this.startCheck(name);
@@ -153,7 +153,7 @@ export class HealthCheckService extends EventEmitter {
 
       const checkResult = await Promise.race([
         checkFunction(),
-        new Promise<never>((_, reject) => 
+        new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('Check timeout')), config.timeout)
         )
       ]);
@@ -208,7 +208,7 @@ export class HealthCheckService extends EventEmitter {
 
   private updateMetrics(name: string, type: string, status: string, duration: number): void {
     const statusValue = status === 'healthy' ? 2 : status === 'degraded' ? 1 : 0;
-    
+
     prometheus.register.getSingleMetric('health_check_status')?.set({
       check_name: name,
       check_type: type
@@ -239,10 +239,10 @@ export class HealthCheckService extends EventEmitter {
    */
   getSystemHealth(): SystemHealth {
     const checks = Array.from(this.results.values());
-    
+
     // Determine overall status
     let overall: 'healthy' | 'unhealthy' | 'degraded' = 'healthy';
-    
+
     const criticalChecks = checks.filter(check => {
       const config = this.checks.get(check.name);
       return config?.critical;

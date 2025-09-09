@@ -159,11 +159,11 @@ export function correlationLoggingMiddleware(req: CorrelationRequest, res: Corre
 export function correlationPropagationMiddleware(req: CorrelationRequest, res: CorrelationResponse, next: NextFunction): void {
   // Add correlation headers to all outgoing requests
   const originalFetch = global.fetch;
-  
+
   if (originalFetch) {
     global.fetch = function(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
       const headers = new Headers(init?.headers);
-      
+
       // Add correlation headers
       headers.set('X-Correlation-ID', req.correlationId);
       headers.set('X-Request-ID', req.requestId);
@@ -257,7 +257,7 @@ export function addCorrelationToResponse(res: CorrelationResponse, data: any): a
       spanId: res.spanId,
     };
   }
-  
+
   return data;
 }
 

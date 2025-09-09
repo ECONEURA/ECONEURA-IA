@@ -1,10 +1,10 @@
 /**
  * GDPR EXPORT/ERASE CONSOLIDATED SERVICE
- * 
+ *
  * Este servicio consolida las mejores funcionalidades de:
  * - PR-28: GDPR Export/Erase (100%)
  * - PR-51: GDPR Export/Erase (95%)
- * 
+ *
  * Funcionalidades consolidadas:
  * - Exportación de datos GDPR
  * - Borrado de datos GDPR
@@ -15,11 +15,11 @@
  * - Análisis y estadísticas
  */
 
-import { 
-  GDPRRequest, 
-  DataExport, 
-  DataErase, 
-  LegalHold, 
+import {
+  GDPRRequest,
+  DataExport,
+  DataErase,
+  LegalHold,
   DataCategory,
   ConsentRecord,
   DataProcessingActivity,
@@ -240,10 +240,10 @@ export class GDPRConsolidatedService {
 
       // Collect data based on categories
       const exportData = await this.collectUserData(dataExport.userId, dataExport.dataCategories);
-      
+
       // Generate file based on format
       const filePath = await this.generateFile(dataExport, exportData);
-      
+
       // Update export record
       const exportRecord = this.dataExports.get(dataExport.id);
       if (exportRecord) {
@@ -285,7 +285,7 @@ export class GDPRConsolidatedService {
   }
 
   async getUserExports(userId: string): Promise<DataExport[]> {
-    return Array.from(this.dataExports.values())
+    return Array.from(this.dataExports.values());
       .filter(e => e.userId === userId);
   }
 
@@ -414,7 +414,7 @@ export class GDPRConsolidatedService {
   }
 
   async getUserErasures(userId: string): Promise<DataErase[]> {
-    return Array.from(this.dataErasures.values())
+    return Array.from(this.dataErasures.values());
       .filter(e => e.userId === userId);
   }
 
@@ -495,7 +495,7 @@ export class GDPRConsolidatedService {
 
   async deleteLegalHold(holdId: string): Promise<boolean> {
     const deleted = this.legalHolds.delete(holdId);
-    
+
     if (deleted) {
       structuredLogger.info('Legal hold deleted', {
         holdId,
@@ -598,7 +598,7 @@ export class GDPRConsolidatedService {
   }
 
   async getDataProcessingActivities(): Promise<DataProcessingActivity[]> {
-    return Array.from(this.dataProcessingActivities.values())
+    return Array.from(this.dataProcessingActivities.values());
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
@@ -717,7 +717,7 @@ export class GDPRConsolidatedService {
     // Calculate average processing time
     const completedRequestsWithTimes = Array.from(this.gdprRequests.values())
       .filter(r => r.status === 'completed' && r.completedAt);
-    
+
     const averageProcessingTime = completedRequestsWithTimes.length > 0
       ? completedRequestsWithTimes.reduce((sum, r) => {
           const processingTime = r.completedAt!.getTime() - r.requestedAt.getTime();
@@ -1059,9 +1059,9 @@ export class GDPRConsolidatedService {
   private async generateFile(dataExport: DataExport, data: Record<string, unknown>): Promise<string> {
     const fileName = `gdpr_export_${dataExport.id}.${dataExport.format}`;
     const filePath = `/tmp/exports/${fileName}`;
-    
+
     structuredLogger.info('File generated', { filePath, format: dataExport.format, requestId: '' });
-    
+
     return filePath;
   }
 
@@ -1090,8 +1090,8 @@ export class GDPRConsolidatedService {
   }
 
   private checkLegalHolds(userId: string, dataCategories: string[]): LegalHold[] {
-    const activeHolds = Array.from(this.legalHolds.values()).filter(hold => 
-      hold.status === 'active' && 
+    const activeHolds = Array.from(this.legalHolds.values()).filter(hold =>
+      hold.status === 'active' &&
       (hold.userId === userId || !hold.userId) &&
       hold.dataCategories.some(cat => dataCategories.includes(cat))
     );
@@ -1101,7 +1101,7 @@ export class GDPRConsolidatedService {
 
   private async countRecordsToErase(userId: string, dataCategories: string[]): Promise<number> {
     let count = 0;
-    
+
     for (const category of dataCategories) {
       switch (category) {
         case 'personal_info':
@@ -1127,13 +1127,13 @@ export class GDPRConsolidatedService {
 
   private async createBackup(dataErase: DataErase): Promise<string> {
     const backupPath = `/backups/gdpr/${dataErase.id}_${Date.now()}.backup`;
-    
-    structuredLogger.info('Backup created', { 
-      eraseId: dataErase.id, 
+
+    structuredLogger.info('Backup created', {
+      eraseId: dataErase.id,
       backupPath,
       requestId: ''
     });
-    
+
     return backupPath;
   }
 
@@ -1170,42 +1170,42 @@ export class GDPRConsolidatedService {
 
   private generateRecommendations(stats: GDPRStats, breaches: BreachRecord[]): string[] {
     const recommendations: string[] = [];
-    
+
     if (stats.failedRequests > 0) {
       recommendations.push('Review and address failed GDPR requests to improve compliance');
     }
-    
+
     if (breaches.length > 0) {
       recommendations.push('Implement additional security measures to prevent data breaches');
     }
-    
+
     if (stats.averageProcessingTime > 7 * 24 * 60 * 60 * 1000) { // 7 days
       recommendations.push('Optimize GDPR request processing to meet regulatory deadlines');
     }
-    
+
     recommendations.push('Regularly review and update data processing activities');
     recommendations.push('Ensure all legal holds are properly documented and maintained');
-    
+
     return recommendations;
   }
 
   private calculateComplianceScore(stats: GDPRStats, breaches: BreachRecord[]): number {
     let score = 100;
-    
+
     // Deduct points for failed requests
     if (stats.totalRequests > 0) {
       const failureRate = stats.failedRequests / stats.totalRequests;
       score -= failureRate * 20;
     }
-    
+
     // Deduct points for breaches
     score -= breaches.length * 10;
-    
+
     // Deduct points for slow processing
     if (stats.averageProcessingTime > 7 * 24 * 60 * 60 * 1000) {
       score -= 15;
     }
-    
+
     return Math.max(0, Math.round(score));
   }
 
@@ -1245,7 +1245,7 @@ export class GDPRConsolidatedService {
     };
   }> {
     const gdprStats = await this.getGDPRStats();
-    
+
     const exports = Array.from(this.dataExports.values());
     const erasures = Array.from(this.dataErasures.values());
 
@@ -1257,8 +1257,8 @@ export class GDPRConsolidatedService {
         readyExports: exports.filter(e => e.status === 'ready').length,
         downloadedExports: exports.filter(e => e.status === 'downloaded').length,
         expiredExports: exports.filter(e => e.status === 'expired').length,
-        averageFileSize: exports.length > 0 
-          ? exports.reduce((sum, e) => sum + e.fileSize, 0) / exports.length 
+        averageFileSize: exports.length > 0
+          ? exports.reduce((sum, e) => sum + e.fileSize, 0) / exports.length
           : 0
       },
       erasures: {

@@ -1,6 +1,6 @@
 /**
  * PR-54: Advanced Security Routes
- * 
+ *
  * Endpoints para gestión avanzada de seguridad y compliance
  */
 
@@ -67,15 +67,15 @@ const ThreatDetectionRuleSchema = z.object({
  */
 router.get('/events', async (req, res) => {
   const traceId = `trace_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
+
   try {
-    const { 
-      type, 
-      severity, 
-      userId, 
-      startDate, 
-      endDate, 
-      limit = 50 
+    const {
+      type,
+      severity,
+      userId,
+      startDate,
+      endDate,
+      limit = 50
     } = req.query;
 
     const filters = {
@@ -88,7 +88,7 @@ router.get('/events', async (req, res) => {
     };
 
     const events = await securityComplianceEnhanced.getSecurityEvents(filters);
-    
+
     structuredLogger.info('Security events requested', {
       traceId,
       filters,
@@ -126,11 +126,11 @@ router.get('/events', async (req, res) => {
  */
 router.post('/events', async (req, res) => {
   const traceId = `trace_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
+
   try {
     const eventData = SecurityEventSchema.parse(req.body);
     const event = await securityComplianceEnhanced.recordSecurityEvent(eventData);
-    
+
     structuredLogger.info('Security event recorded', {
       traceId,
       eventId: event.id,
@@ -174,7 +174,7 @@ router.post('/events', async (req, res) => {
  */
 router.get('/compliance/rules', async (req, res) => {
   const traceId = `trace_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
+
   try {
     const { framework, enabled, limit = 50 } = req.query;
 
@@ -185,7 +185,7 @@ router.get('/compliance/rules', async (req, res) => {
     };
 
     const rules = await securityComplianceEnhanced.getComplianceRules(filters);
-    
+
     structuredLogger.info('Compliance rules requested', {
       traceId,
       filters,
@@ -223,11 +223,11 @@ router.get('/compliance/rules', async (req, res) => {
  */
 router.post('/compliance/rules', async (req, res) => {
   const traceId = `trace_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
+
   try {
     const ruleData = ComplianceRuleSchema.parse(req.body);
     const rule = await securityComplianceEnhanced.createComplianceRule(ruleData);
-    
+
     structuredLogger.info('Compliance rule created', {
       traceId,
       ruleId: rule.id,
@@ -271,7 +271,7 @@ router.post('/compliance/rules', async (req, res) => {
  */
 router.get('/threat-detection/rules', async (req, res) => {
   const traceId = `trace_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
+
   try {
     const { enabled, riskScore, limit = 50 } = req.query;
 
@@ -282,7 +282,7 @@ router.get('/threat-detection/rules', async (req, res) => {
     };
 
     const rules = await securityComplianceEnhanced.getThreatDetectionRules(filters);
-    
+
     structuredLogger.info('Threat detection rules requested', {
       traceId,
       filters,
@@ -320,11 +320,11 @@ router.get('/threat-detection/rules', async (req, res) => {
  */
 router.post('/threat-detection/rules', async (req, res) => {
   const traceId = `trace_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
+
   try {
     const ruleData = ThreatDetectionRuleSchema.parse(req.body);
     const rule = await securityComplianceEnhanced.createThreatDetectionRule(ruleData);
-    
+
     structuredLogger.info('Threat detection rule created', {
       traceId,
       ruleId: rule.id,
@@ -368,10 +368,10 @@ router.post('/threat-detection/rules', async (req, res) => {
  */
 router.get('/dashboard', async (req, res) => {
   const traceId = `trace_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
+
   try {
     const dashboard = await securityComplianceEnhanced.getSecurityDashboard();
-    
+
     structuredLogger.info('Security dashboard requested', {
       traceId
     });
@@ -403,10 +403,10 @@ router.get('/dashboard', async (req, res) => {
  */
 router.get('/health', async (req, res) => {
   const traceId = `trace_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
+
   try {
     const health = await securityComplianceEnhanced.getHealthStatus();
-    
+
     const isHealthy = health.status === 'healthy';
     const statusCode = isHealthy ? 200 : 503;
 

@@ -356,7 +356,7 @@ class StructuredLogger {
   request(method: string, path: string, statusCode: number, duration: number, context?: LogContext): void {
     const level = statusCode >= 400 ? 'error' : statusCode >= 300 ? 'warn' : 'info';
     const message = `${method} ${path} - ${statusCode} (${duration}ms)`;
-    
+
     this[level](message, {
       ...context,
       method,

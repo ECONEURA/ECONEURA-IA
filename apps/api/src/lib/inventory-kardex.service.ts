@@ -393,8 +393,8 @@ class InventoryKardexService {
     };
 
     this.products.set(newProduct.id, newProduct);
-    structuredLogger.info('Product created', { 
-      productId: newProduct.id, 
+    structuredLogger.info('Product created', {
+      productId: newProduct.id,
       organizationId: newProduct.organizationId,
       sku: newProduct.sku,
       name: newProduct.name
@@ -431,7 +431,7 @@ class InventoryKardexService {
 
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
-      products = products.filter(p => 
+      products = products.filter(p =>
         p.name.toLowerCase().includes(searchLower) ||
         p.sku.toLowerCase().includes(searchLower) ||
         p.description.toLowerCase().includes(searchLower)
@@ -456,15 +456,15 @@ class InventoryKardexService {
     };
 
     this.kardexEntries.set(newEntry.id, newEntry);
-    
+
     // Recalculate stock levels
     this.calculateStockLevels();
-    
+
     // Check for alerts
     await this.checkAlerts(newEntry.productId);
 
-    structuredLogger.info('Kardex entry created', { 
-      entryId: newEntry.id, 
+    structuredLogger.info('Kardex entry created', {
+      entryId: newEntry.id,
       organizationId: newEntry.organizationId,
       productId: newEntry.productId,
       transactionType: newEntry.transactionType,
@@ -550,7 +550,7 @@ class InventoryKardexService {
   async checkAlerts(productId: string): Promise<void> {
     const product = this.products.get(productId);
     const stockLevel = this.stockLevels.get(productId);
-    
+
     if (!product || !stockLevel) return;
 
     // Check low stock alert
@@ -628,8 +628,8 @@ class InventoryKardexService {
     };
 
     this.alerts.set(newAlert.id, newAlert);
-    structuredLogger.warn('Inventory alert created', { 
-      alertId: newAlert.id, 
+    structuredLogger.warn('Inventory alert created', {
+      alertId: newAlert.id,
       organizationId: newAlert.organizationId,
       productId: newAlert.productId,
       alertType: newAlert.alertType,
@@ -682,8 +682,8 @@ class InventoryKardexService {
     alert.updatedAt = new Date().toISOString();
 
     this.alerts.set(alertId, alert);
-    structuredLogger.info('Alert acknowledged', { 
-      alertId, 
+    structuredLogger.info('Alert acknowledged', {
+      alertId,
       acknowledgedBy,
       alertType: alert.alertType
     });
@@ -703,8 +703,8 @@ class InventoryKardexService {
     };
 
     this.cycleCounts.set(newCycleCount.id, newCycleCount);
-    structuredLogger.info('Cycle count created', { 
-      cycleCountId: newCycleCount.id, 
+    structuredLogger.info('Cycle count created', {
+      cycleCountId: newCycleCount.id,
       organizationId: newCycleCount.organizationId,
       productId: newCycleCount.productId,
       scheduledDate: newCycleCount.scheduledDate
@@ -752,12 +752,12 @@ class InventoryKardexService {
 
     cycleCount.actualQuantity = actualQuantity;
     cycleCount.variance = actualQuantity - cycleCount.expectedQuantity;
-    cycleCount.variancePercentage = cycleCount.expectedQuantity > 0 ? 
+    cycleCount.variancePercentage = cycleCount.expectedQuantity > 0 ?
       (cycleCount.variance / cycleCount.expectedQuantity) * 100 : 0;
     cycleCount.status = 'completed';
     cycleCount.actualDate = new Date().toISOString();
     cycleCount.updatedAt = new Date().toISOString();
-    
+
     if (notes) {
       cycleCount.notes = notes;
     }
@@ -785,8 +785,8 @@ class InventoryKardexService {
       }
     }
 
-    structuredLogger.info('Cycle count completed', { 
-      cycleCountId, 
+    structuredLogger.info('Cycle count completed', {
+      cycleCountId,
       expectedQuantity: cycleCount.expectedQuantity,
       actualQuantity,
       variance: cycleCount.variance
@@ -837,17 +837,17 @@ class InventoryKardexService {
         const allStockLevels = await this.getStockLevels(organizationId);
         const sortedByValue = allStockLevels.sort((a, b) => b.totalValue - a.totalValue);
         const totalValue = sortedByValue.reduce((sum, s) => sum + s.totalValue, 0);
-        
+
         let cumulativeValue = 0;
         const abcAnalysis = sortedByValue.map((stock, index) => {
           cumulativeValue += stock.totalValue;
           const percentage = (stock.totalValue / totalValue) * 100;
           const cumulativePercentage = (cumulativeValue / totalValue) * 100;
-          
+
           let category = 'C';
           if (cumulativePercentage <= 80) category = 'A';
           else if (cumulativePercentage <= 95) category = 'B';
-          
+
           return {
             productId: stock.productId,
             product: this.products.get(stock.productId),
@@ -881,8 +881,8 @@ class InventoryKardexService {
       createdAt: new Date().toISOString()
     };
 
-    structuredLogger.info('Inventory report generated', { 
-      reportId: report.id, 
+    structuredLogger.info('Inventory report generated', {
+      reportId: report.id,
       organizationId,
       reportType,
       period: `${startDate} to ${endDate}`

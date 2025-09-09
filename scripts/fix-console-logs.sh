@@ -16,28 +16,26 @@ fi
 echo "🔨 Replacing console.log with structured logger..."
 
 find . -name "*.ts" -o -name "*.tsx" | grep -v node_modules | grep -v dist | grep -v ".next" | while read file; do
-    # Check if file already imports logger
-    if ! grep -q "import.*logger" "$file"; then
-        # Add logger import at the top
-        sed -i '' '1i\
-import { logger } from '\''@econeura/shared/monitoring/logger'\'';
-' "$file"
+    # Check if file has console statements and needs logger import
+    if grep -q "console\." "$file" && ! grep -q "import.*logger" "$file"; then
+        # Add logger import at the top after existing imports
+        sed -i '1i\import { logger } from '\''@econeura/shared/monitoring/logger'\'';' "$file"
     fi
     
     # Replace console.log with logger.info
-    sed -i '' 's/console\.log(/logger.info(/g' "$file"
+    sed -i 's/console\.log(/logger.info(/g' "$file"
     
     # Replace console.error with logger.error
-    sed -i '' 's/console\.error(/logger.error(/g' "$file"
+    sed -i 's/console\.error(/logger.error(/g' "$file"
     
     # Replace console.warn with logger.warn
-    sed -i '' 's/console\.warn(/logger.warn(/g' "$file"
+    sed -i 's/console\.warn(/logger.warn(/g' "$file"
     
     # Replace console.info with logger.info
-    sed -i '' 's/console\.info(/logger.info(/g' "$file"
+    sed -i 's/console\.info(/logger.info(/g' "$file"
     
     # Replace console.debug with logger.debug
-    sed -i '' 's/console\.debug(/logger.debug(/g' "$file"
+    sed -i 's/console\.debug(/logger.debug(/g' "$file"
 done
 
 # Count remaining console statements

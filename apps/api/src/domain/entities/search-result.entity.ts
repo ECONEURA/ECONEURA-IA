@@ -3,7 +3,7 @@ import { BaseEntity } from './base.entity';
 
 /**
  * Search Result Entity - Resultado de búsqueda inteligente
- * 
+ *
  * Representa un resultado de búsqueda con metadatos, scoring y contexto
  * para búsquedas semánticas y filtros avanzados.
  */
@@ -13,26 +13,26 @@ export interface SearchResult extends BaseEntity {
   type: SearchResultType;
   entityId: string;
   entityType: string;
-  
+
   // Contenido del resultado
   title: string;
   description: string;
   content: string;
   tags: string[];
-  
+
   // Metadatos de búsqueda
   score: number;
   relevance: number;
   confidence: number;
-  
+
   // Contexto y filtros
   category: string;
   subcategory?: string;
   metadata: Record<string, any>;
-  
+
   // Información de la entidad original
   entityData: Record<string, any>;
-  
+
   // Timestamps
   createdAt: Date;
   updatedAt: Date;
@@ -57,15 +57,15 @@ export interface SearchQuery {
   // Términos de búsqueda
   query: string;
   filters?: SearchFilters;
-  
+
   // Paginación
   page?: number;
   limit?: number;
-  
+
   // Ordenamiento
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
-  
+
   // Configuración de búsqueda
   searchType?: SearchType;
   includeMetadata?: boolean;
@@ -75,27 +75,27 @@ export interface SearchQuery {
 export interface SearchFilters {
   // Filtros por tipo
   types?: SearchResultType[];
-  
+
   // Filtros por categoría
   categories?: string[];
   subcategories?: string[];
-  
+
   // Filtros por fechas
   dateFrom?: Date;
   dateTo?: Date;
-  
+
   // Filtros por usuario/organización
   userId?: string;
   organizationId?: string;
-  
+
   // Filtros por tags
   tags?: string[];
-  
+
   // Filtros por score
   minScore?: number;
   minRelevance?: number;
   minConfidence?: number;
-  
+
   // Filtros personalizados
   customFilters?: Record<string, any>;
 }

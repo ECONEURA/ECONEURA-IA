@@ -67,7 +67,7 @@ app.get('/health', async (req, res) => {
   try {
     const redisStatus = redis.status === 'ready' ? 'connected' : redis.status;
     const jobStats = await jobQueue.getStats();
-    
+
     res.json(createApiResponse(true, {
       status: 'healthy',
       service: 'workers',
@@ -120,14 +120,14 @@ app.post('/listen', async (req, res) => {
 
     // Process Graph webhook notification
     const notifications = req.body.value || [];
-    
+
     for (const notification of notifications) {
       logger.info('Graph notification received', {
         changeType: notification.changeType,
         resource: notification.resource,
         subscriptionId: notification.subscriptionId
       });
-      
+
       // Add to monitoring queue for processing
       await jobQueue.addMonitorJob('system', {
         subscriptionId: notification.subscriptionId,
@@ -159,7 +159,7 @@ app.post('/jobs/:jobType', async (req, res) => {
     }
 
     let jobId: string;
-    
+
     // Route to appropriate job method
     switch (jobType) {
       case 'email:classify':
@@ -189,7 +189,7 @@ app.post('/jobs/:jobType', async (req, res) => {
       default:
         return res.status(400).json(createApiResponse(false, null, 'Invalid job type'));
     }
-    
+
     res.json(createApiResponse(true, {
       jobId,
       jobType,
@@ -208,11 +208,11 @@ app.get('/jobs/:jobId', async (req, res) => {
   try {
     const { jobId } = req.params;
     const status = await jobQueue.getJobStatus(jobId);
-    
+
     if (status.status === 'not_found') {
       return res.status(404).json(createApiResponse(false, null, 'Job not found'));
     }
-    
+
     res.json(createApiResponse(true, status));
   } catch (error) {
     logger.error('Job status error', { jobId: req.params.jobId, error: error instanceof Error ? error.message : 'Unknown error' });
@@ -223,7 +223,7 @@ app.get('/jobs/:jobId', async (req, res) => {
 app.get('/jobs/stats', async (req, res) => {
   try {
     const stats = await jobQueue.getStats();
-    
+
     res.json(createApiResponse(true, {
       stats,
       timestamp: new Date().toISOString()
@@ -239,13 +239,13 @@ app.get('/jobs/stats', async (req, res) => {
 app.post('/subscriptions', async (req, res) => {
   try {
     const { mailbox, changeTypes = ['created', 'updated'] } = req.body;
-    
+
     if (!mailbox) {
       return res.status(400).json(createApiResponse(false, null, 'Mailbox is required'));
     }
 
     const subscription = await graphService.createSubscription(mailbox, changeTypes);
-    
+
     res.json(createApiResponse(true, {
       subscriptionId: subscription.id,
       mailbox,
@@ -263,7 +263,7 @@ app.post('/subscriptions', async (req, res) => {
 app.get('/subscriptions', async (req, res) => {
   try {
     const subscriptions = await graphService.listSubscriptions();
-    
+
     res.json(createApiResponse(true, {
       subscriptions: subscriptions.map(sub => ({
         id: sub.id,
@@ -284,9 +284,9 @@ app.get('/subscriptions', async (req, res) => {
 app.delete('/subscriptions/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     await graphService.deleteSubscription(id);
-    
+
     res.json(createApiResponse(true, {
       message: 'Subscription deleted',
       subscriptionId: id
@@ -302,9 +302,9 @@ app.delete('/subscriptions/:id', async (req, res) => {
 app.post('/delta/:mailbox', async (req, res) => {
   try {
     const { mailbox } = req.params;
-    
+
     const result = await graphService.executeDeltaQuery(mailbox);
-    
+
     res.json(createApiResponse(true, {
       mailbox,
       newMessages: result.messages?.length || 0,
@@ -337,7 +337,7 @@ app.get('/workers/status', async (req, res) => {
   try {
     const jobStats = await jobQueue.getStats();
     const subscriptions = await graphService.listSubscriptions();
-    
+
     res.json(createApiResponse(true, {
       service: 'outlook-workers',
       jobProcessing: jobStats,
@@ -403,11 +403,11 @@ cron.schedule('*/15 * * * *', async () => {
   try {
     logger.info('Starting inbox monitoring cycle');
     const mailboxes = await graphService.getMonitoredMailboxes();
-    
+
     for (const mailbox of mailboxes) {
       await jobQueue.addMonitorJob(mailbox, { priority: 3 });
     }
-    
+
     logger.info('Inbox monitoring jobs queued', { count: mailboxes.length });
   } catch (error) {
     logger.error('Inbox monitoring failed', { error: error instanceof Error ? error.message : 'Unknown error' });
@@ -438,16 +438,16 @@ app.get('/cron/jobs/:jobId', async (req, res) => {
   try {
     const { jobId } = req.params;
     const job = cronService.getJobStatus(jobId);
-    
+
     if (!job) {
       return res.status(404).json(createApiResponse(false, null, 'Cron job not found'));
     }
-    
+
     res.json(createApiResponse(true, { job }));
   } catch (error) {
-    logger.error('Failed to get cron job', { 
+    logger.error('Failed to get cron job', {
       jobId: req.params.jobId,
-      error: error instanceof Error ? error.message : 'Unknown error' 
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
     res.status(500).json(createApiResponse(false, null, 'Failed to get cron job'));
   }
@@ -459,9 +459,9 @@ app.post('/cron/jobs/:jobId/enable', async (req, res) => {
     cronService.enableJob(jobId);
     res.json(createApiResponse(true, { message: 'Cron job enabled' }));
   } catch (error) {
-    logger.error('Failed to enable cron job', { 
+    logger.error('Failed to enable cron job', {
       jobId: req.params.jobId,
-      error: error instanceof Error ? error.message : 'Unknown error' 
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
     res.status(500).json(createApiResponse(false, null, 'Failed to enable cron job'));
   }
@@ -473,9 +473,9 @@ app.post('/cron/jobs/:jobId/disable', async (req, res) => {
     cronService.disableJob(jobId);
     res.json(createApiResponse(true, { message: 'Cron job disabled' }));
   } catch (error) {
-    logger.error('Failed to disable cron job', { 
+    logger.error('Failed to disable cron job', {
       jobId: req.params.jobId,
-      error: error instanceof Error ? error.message : 'Unknown error' 
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
     res.status(500).json(createApiResponse(false, null, 'Failed to disable cron job'));
   }
@@ -495,7 +495,7 @@ app.get('/cron/stats', async (req, res) => {
 app.post('/emails/process', async (req, res) => {
   try {
     const { messageId, organizationId } = req.body;
-    
+
     if (!messageId || !organizationId) {
       return res.status(400).json(createApiResponse(false, null, 'messageId and organizationId are required'));
     }
@@ -503,8 +503,8 @@ app.post('/emails/process', async (req, res) => {
     const result = await emailProcessor.processEmail(messageId, organizationId);
     res.json(createApiResponse(true, { result }));
   } catch (error) {
-    logger.error('Failed to process email', { 
-      error: error instanceof Error ? error.message : 'Unknown error' 
+    logger.error('Failed to process email', {
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
     res.status(500).json(createApiResponse(false, null, 'Failed to process email'));
   }
@@ -513,7 +513,7 @@ app.post('/emails/process', async (req, res) => {
 app.post('/emails/process/bulk', async (req, res) => {
   try {
     const { messageIds, organizationId } = req.body;
-    
+
     if (!messageIds || !Array.isArray(messageIds) || !organizationId) {
       return res.status(400).json(createApiResponse(false, null, 'messageIds array and organizationId are required'));
     }
@@ -521,20 +521,20 @@ app.post('/emails/process/bulk', async (req, res) => {
     const results = await emailProcessor.processBulkEmails(messageIds, organizationId);
     res.json(createApiResponse(true, { results }));
   } catch (error) {
-    logger.error('Failed to process bulk emails', { 
-      error: error instanceof Error ? error.message : 'Unknown error' 
+    logger.error('Failed to process bulk emails', {
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
     res.status(500).json(createApiResponse(false, null, 'Failed to process bulk emails'));
   }
 });
 
 // Initialize job queue and start the server
-async function startServer() {
+async function startServer(): void {
   try {
     // Initialize job queue
     await jobQueue.initialize();
     logger.info('Job queue initialized successfully');
-    
+
     // Start the server
     app.listen(port, () => {
       logger.info('ECONEURA Workers started', {
@@ -552,7 +552,7 @@ async function startServer() {
         },
         features: [
           'Microsoft Graph subscriptions with auto-renewal',
-          'Delta queries with deltaLink persistence', 
+          'Delta queries with deltaLink persistence',
           'Job processing: email:classify, email:draft, email:extract, monitor:inbox',
           'Exponential backoff for 429/5xx errors',
           'Idempotency via internetMessageId',

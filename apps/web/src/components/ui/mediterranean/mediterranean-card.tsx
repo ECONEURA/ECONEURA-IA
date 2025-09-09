@@ -17,7 +17,7 @@ export function MediterraneanCard({
   hover = true,
 }: MediterraneanCardProps) {
   const baseClasses = 'rounded-2xl transition-all duration-300'
-  
+
   const variantClasses = {
     default: 'bg-white border border-sand-200/50 shadow-soft',
     elevated: 'bg-white border border-sand-200/50 shadow-mediterranean',
@@ -32,11 +32,11 @@ export function MediterraneanCard({
     sand: 'hover:shadow-soft',
   }
 
-  const hoverClasses = hover 
-    ? 'transform hover:scale-[1.02] cursor-pointer' 
+  const hoverClasses = hover
+    ? 'transform hover:scale-[1.02] cursor-pointer'
     : ''
 
-  return (
+  return (;
     <div
       className={cn(
         baseClasses,

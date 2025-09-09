@@ -90,7 +90,7 @@ export class GDPRExportService {
   ): Promise<DataExport> {
     try {
       const requestId = `gdpr_export_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+
       // Validate data categories
       const validCategories = this.validateDataCategories(dataCategories);
       if (validCategories.length === 0) {
@@ -122,9 +122,9 @@ export class GDPRExportService {
 
       // Start export generation in background
       this.generateExport(dataExport).catch(error => {
-        logger.error('Export generation failed', { 
-          exportId: dataExport.id, 
-          error: (error as Error).message 
+        logger.error('Export generation failed', {
+          exportId: dataExport.id,
+          error: (error as Error).message
         });
       });
 
@@ -138,9 +138,9 @@ export class GDPRExportService {
 
       return dataExport;
     } catch (error) {
-      logger.error('Failed to create export request', { 
-        userId, 
-        error: (error as Error).message 
+      logger.error('Failed to create export request', {
+        userId,
+        error: (error as Error).message
       });
       throw error;
     }
@@ -153,10 +153,10 @@ export class GDPRExportService {
 
       // Collect data based on categories
       const exportData = await this.collectUserData(dataExport.userId, dataExport.dataCategories);
-      
+
       // Generate file based on format
       const filePath = await this.generateFile(dataExport, exportData);
-      
+
       // Update export record
       const exportRecord = this.exports.find(e => e.id === dataExport.id);
       if (exportRecord) {
@@ -181,9 +181,9 @@ export class GDPRExportService {
         exportRecord.updatedAt = new Date();
       }
 
-      logger.error('Export generation failed', { 
-        exportId: dataExport.id, 
-        error: (error as Error).message 
+      logger.error('Export generation failed', {
+        exportId: dataExport.id,
+        error: (error as Error).message
       });
       throw error;
     }
@@ -326,10 +326,10 @@ export class GDPRExportService {
     // Simulate file generation
     const fileName = `gdpr_export_${dataExport.id}.${dataExport.format}`;
     const filePath = `/tmp/exports/${fileName}`;
-    
+
     // In a real implementation, this would generate the actual file
     logger.info('File generated', { filePath, format: dataExport.format });
-    
+
     return filePath;
   }
 
@@ -360,7 +360,7 @@ export class GDPRExportService {
   }
 
   private validateDataCategories(categoryIds: string[]): DataCategory[] {
-    return categoryIds
+    return categoryIds;
       .map(id => this.dataCategories.find(cat => cat.id === id))
       .filter((cat): cat is DataCategory => cat !== undefined);
   }
@@ -402,8 +402,8 @@ export class GDPRExportService {
     const ready = this.exports.filter(e => e.status === 'ready').length;
     const downloaded = this.exports.filter(e => e.status === 'downloaded').length;
     const expired = this.exports.filter(e => e.status === 'expired').length;
-    const averageFileSize = total > 0 
-      ? this.exports.reduce((sum, e) => sum + e.fileSize, 0) / total 
+    const averageFileSize = total > 0
+      ? this.exports.reduce((sum, e) => sum + e.fileSize, 0) / total
       : 0;
 
     return {

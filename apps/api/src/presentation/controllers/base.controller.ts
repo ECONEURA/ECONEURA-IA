@@ -112,7 +112,7 @@ export abstract class BaseController {
     requiredFields: string[]
   ): { isValid: boolean; missingFields: string[] } {
     const missingFields: string[] = [];
-    
+
     for (const field of requiredFields) {
       if (!data[field] || (typeof data[field] === 'string' && data[field].trim().length === 0)) {
         missingFields.push(field);

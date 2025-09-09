@@ -3,13 +3,13 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { createMake } from '@/lib/make';
 import type { RunOrder, AgentEvent } from '@/lib/models';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): void {
   const make = createMake();
 
   try {
     if (req.method === 'POST') {
       const order: RunOrder = req.body;
-      
+
       if (!order || !order.idempotencyKey) {
         res.status(400).json({ ok: false, error: 'RunOrder with idempotencyKey is required' });
         return;
@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method === 'GET') {
       const idempotencyKey = String(req.query.idempotencyKey || '');
-      
+
       if (!idempotencyKey) {
         res.status(400).json({ ok: false, error: 'idempotencyKey is required' });
         return;

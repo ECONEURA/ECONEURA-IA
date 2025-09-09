@@ -3,7 +3,7 @@ import { CreateInteractionUseCase } from '../../application/use-cases/interactio
 import { UpdateInteractionUseCase } from '../../application/use-cases/interaction/update-interaction.use-case.js';
 import { InteractionRepository } from '../../domain/repositories/interaction.repository.js';
 import { createErrorResponse } from '../../../shared/utils/error.utils.js';
-import { 
+import {
   CreateInteractionRequest,
   UpdateInteractionRequest,
   InteractionSearchQuery,

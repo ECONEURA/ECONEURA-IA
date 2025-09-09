@@ -26,16 +26,16 @@ export class WebCache {
 
   constructor(config: CacheConfig) {
     this.config = config;
-    console.log('Web cache system initialized', { 
-      type: config.type, 
+    console.log('Web cache system initialized', {
+      type: config.type,
       ttl: config.ttl,
-      maxSize: config.maxSize 
+      maxSize: config.maxSize
     });
   }
 
   async get<T>(key: string): Promise<T | null> {
     const item = this.memoryCache.get(key);
-    
+
     if (!item) {
       this.stats.misses++;
       return null;
@@ -96,15 +96,15 @@ export class WebCache {
 
   async warmup(patterns: Array<{ key: string; value: any; ttl?: number }>): Promise<void> {
     console.log('Starting web cache warmup', { patternsCount: patterns.length });
-    
+
     for (const pattern of patterns) {
       await this.set(pattern.key, pattern.value, pattern.ttl);
       this.stats.warmupItems++;
     }
 
-    console.log('Web cache warmup completed', { 
+    console.log('Web cache warmup completed', {
       warmupItems: this.stats.warmupItems,
-      totalItems: this.memoryCache.size 
+      totalItems: this.memoryCache.size
     });
   }
 
@@ -124,7 +124,7 @@ export class WebCache {
     for (const [key, item] of this.memoryCache.entries()) {
       // Score based on access count and last access time
       const score = item.accessCount * 0.3 + (Date.now() - item.lastAccessed) * 0.7;
-      
+
       if (score < leastUsedScore) {
         leastUsedScore = score;
         leastUsedKey = key;
@@ -292,7 +292,7 @@ export class WebCacheManager {
 
   async warmupAll(): Promise<void> {
     console.log('Starting comprehensive web cache warmup');
-    
+
     await Promise.all([
       this.aiCache.warmupAI(),
       this.searchCache.warmupSearch(),

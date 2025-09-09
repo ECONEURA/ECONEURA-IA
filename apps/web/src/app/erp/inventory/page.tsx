@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  Store, 
+import {
+  Store,
   Plus,
   Search,
   Box,
@@ -48,7 +48,7 @@ interface StockMovement {
   reference?: string;
 }
 
-function MediterraneanInventory() {
+function MediterraneanInventory(): void {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [movements, setMovements] = useState<StockMovement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,10 +62,10 @@ function MediterraneanInventory() {
   useEffect(() => {
     const loadInventoryData = async () => {
       setLoading(true);
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1200));
-      
+
       const mockInventory: InventoryItem[] = [
         {
           id: '1',
@@ -210,12 +210,12 @@ function MediterraneanInventory() {
           reference: 'PO-2024-0891'
         }
       ];
-      
+
       setInventory(mockInventory);
       setMovements(mockMovements);
       setLoading(false);
     };
-    
+
     loadInventoryData();
   }, []);
 
@@ -229,7 +229,7 @@ function MediterraneanInventory() {
                          item.category.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
     const matchesStatus = selectedStatus === 'all' || item.status === selectedStatus;
-    
+
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
@@ -287,7 +287,7 @@ function MediterraneanInventory() {
   const totalItems = inventory.reduce((sum, item) => sum + item.currentStock, 0);
 
   if (loading) {
-    return (
+    return (;
       <div className="min-h-screen bg-gradient-to-br from-mediterranean-50 via-white to-coral-50 flex items-center justify-center">
         <div className="text-center">
           <div className="relative">
@@ -300,13 +300,13 @@ function MediterraneanInventory() {
     );
   }
 
-  return (
+  return (;
     <div className="min-h-screen bg-gradient-to-br from-mediterranean-50 via-white to-coral-50">
       {/* Mediterranean Header */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-olive-600 via-olive-500 to-terracotta-500 opacity-90"></div>
         <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-20"></div>
-        
+
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
             <div>
@@ -317,16 +317,16 @@ function MediterraneanInventory() {
                 {filteredInventory.length} productos • €{totalValue.toLocaleString()} valor total • {lowStockItems.length} alertas
               </p>
             </div>
-            
+
             <div className="flex items-center gap-4">
-              <button 
+              <button
                 onClick={() => setShowMovements(!showMovements)}
                 className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2"
               >
                 <BarChart3 className="w-4 h-4" />
                 {showMovements ? 'Ver Inventario' : 'Ver Movimientos'}
               </button>
-              
+
               <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
                 <Plus className="w-4 h-4" />
                 Ajuste Stock
@@ -366,7 +366,7 @@ function MediterraneanInventory() {
             }
           ].map((stat, index) => {
             const IconComponent = stat.icon;
-            return (
+            return (;
               <div
                 key={stat.label}
                 className={`relative overflow-hidden rounded-2xl p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 ${
@@ -409,7 +409,7 @@ function MediterraneanInventory() {
                     className="w-full pl-10 pr-4 py-3 border border-mediterranean-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-olive-500 focus:border-olive-500"
                   />
                 </div>
-                
+
                 {/* Filters */}
                 <div className="flex flex-wrap items-center gap-4">
                   {/* Category Filter */}
@@ -426,7 +426,7 @@ function MediterraneanInventory() {
                       ))}
                     </select>
                   </div>
-                  
+
                   {/* Status Filter */}
                   <select
                     value={selectedStatus}
@@ -439,14 +439,14 @@ function MediterraneanInventory() {
                     <option value="out-of-stock">Sin Stock</option>
                     <option value="overstock">Sobrestock</option>
                   </select>
-                  
+
                   {/* View Mode */}
                   <div className="flex bg-mediterranean-100 rounded-xl p-1">
                     <button
                       onClick={() => setViewMode('list')}
                       className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        viewMode === 'list' 
-                          ? 'bg-white text-mediterranean-600 shadow-sm' 
+                        viewMode === 'list'
+                          ? 'bg-white text-mediterranean-600 shadow-sm'
                           : 'text-mediterranean-600 hover:bg-mediterranean-50'
                       }`}
                     >
@@ -455,8 +455,8 @@ function MediterraneanInventory() {
                     <button
                       onClick={() => setViewMode('grid')}
                       className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        viewMode === 'grid' 
-                          ? 'bg-white text-mediterranean-600 shadow-sm' 
+                        viewMode === 'grid'
+                          ? 'bg-white text-mediterranean-600 shadow-sm'
                           : 'text-mediterranean-600 hover:bg-mediterranean-50'
                       }`}
                     >
@@ -584,7 +584,7 @@ function MediterraneanInventory() {
                           {item.category}
                         </p>
                       </div>
-                      
+
                       <button className="p-1 hover:bg-mediterranean-50 rounded-full transition-colors">
                         <MoreVertical className="w-4 h-4 text-mediterranean-400" />
                       </button>
@@ -598,21 +598,21 @@ function MediterraneanInventory() {
                           {item.currentStock}
                         </span>
                       </div>
-                      
+
                       <div className="w-full bg-mediterranean-100 rounded-full h-2 mb-2">
-                        <div 
+                        <div
                           className={`h-2 rounded-full transition-all duration-300 ${
                             item.currentStock === 0 ? 'bg-red-500' :
                             item.currentStock <= item.minStock ? 'bg-orange-500' :
                             item.currentStock >= item.maxStock ? 'bg-purple-500' :
                             'bg-green-500'
                           }`}
-                          style={{ 
-                            width: `${Math.min((item.currentStock / item.maxStock) * 100, 100)}%` 
+                          style={{
+                            width: `${Math.min((item.currentStock / item.maxStock) * 100, 100)}%`
                           }}
                         ></div>
                       </div>
-                      
+
                       <div className="flex justify-between text-xs text-mediterranean-600">
                         <span>Min: {item.minStock}</span>
                         <span>Max: {item.maxStock}</span>
@@ -627,7 +627,7 @@ function MediterraneanInventory() {
                           €{item.totalValue.toLocaleString()}
                         </span>
                       </div>
-                      
+
                       <div className="flex justify-between items-center">
                         <span className="text-mediterranean-600 text-sm">Costo Unitario</span>
                         <span className="text-mediterranean-700">
@@ -641,7 +641,7 @@ function MediterraneanInventory() {
                       <div className="text-xs text-mediterranean-600">
                         📍 {item.location}
                       </div>
-                      
+
                       <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(item.status)}`}>
                         {getStatusLabel(item.status)}
                       </span>
@@ -691,16 +691,16 @@ function MediterraneanInventory() {
             <h3 className="text-xl font-bold text-mediterranean-800 font-playfair mb-6">
               Movimientos de Stock Recientes
             </h3>
-            
+
             <div className="space-y-4">
               {movements.map((movement) => {
                 const IconComponent = getMovementIcon(movement.type);
-                return (
+                return (;
                   <div key={movement.id} className="flex items-start gap-4 p-4 border border-mediterranean-100 rounded-xl hover:bg-mediterranean-50 transition-colors">
                     <div className={`p-2 rounded-full ${getMovementColor(movement.type)}`}>
                       <IconComponent className="w-5 h-5" />
                     </div>
-                    
+
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -719,7 +719,7 @@ function MediterraneanInventory() {
                             </p>
                           )}
                         </div>
-                        
+
                         <div className="text-right">
                           <div className={`text-lg font-bold ${
                             movement.type === 'in' ? 'text-green-600' :
@@ -748,8 +748,8 @@ function MediterraneanInventory() {
   );
 }
 
-export default function InventoryPage() {
-  return (
+export default function InventoryPage(): void {
+  return (;
     <ProtectedRoute requiredPermission="erp:inventory:view">
       <MediterraneanInventory />
     </ProtectedRoute>

@@ -22,7 +22,7 @@ export type {
   Role,
   Permission,
   DeviceSession,
-  
+
   // CRM types
   Company,
   CreateCompany,
@@ -40,7 +40,7 @@ export type {
   Activity,
   CreateActivity,
   UpdateActivity,
-  
+
   // ERP types
   Product,
   CreateProduct,
@@ -60,7 +60,7 @@ export type {
   CreateInventoryAdjustment,
   PurchaseOrder,
   CreatePurchaseOrder,
-  
+
   // Finance types
   Invoice,
   CreateInvoice,
@@ -73,7 +73,7 @@ export type {
   CreateExpense,
   UpdateExpense,
   FinancialSummary,
-  
+
   // Common types
   PaginationRequest,
   PaginationResponse,

@@ -1,6 +1,6 @@
 /**
  * PR-56: Partition Manager Service
- * 
+ *
  * Gestión avanzada de particionado de tablas con creación automática,
  * mantenimiento y optimización de particiones.
  */
@@ -116,7 +116,7 @@ export class PartitionManagerService {
     try {
       // En un sistema real, ejecutaríamos CREATE TABLE ... PARTITION OF ...
       const sql = `CREATE TABLE ${partitionName} PARTITION OF ${tableName} FOR VALUES ${condition};`;
-      
+
       structuredLogger.info('Partition created', {
         tableName,
         partitionName,
@@ -165,7 +165,7 @@ export class PartitionManagerService {
     try {
       // En un sistema real, ejecutaríamos DROP TABLE
       const sql = `DROP TABLE ${partitionName};`;
-      
+
       structuredLogger.info('Partition dropped', {
         tableName,
         partitionName
@@ -238,7 +238,7 @@ export class PartitionManagerService {
           const date = new Date(now.getTime() + i * 24 * 60 * 60 * 1000);
           const partitionName = `${strategy.tableName}_${date.toISOString().split('T')[0]}`;
           const condition = `FROM ('${date.toISOString().split('T')[0]}') TO ('${new Date(date.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]}')`;
-          
+
           if (await this.createPartition(strategy.tableName, partitionName, condition, strategy.partitionType)) {
             createdCount++;
           }
@@ -252,7 +252,7 @@ export class PartitionManagerService {
           const endDate = new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
           const partitionName = `${strategy.tableName}_week_${startDate.getFullYear()}_${startDate.getWeek()}`;
           const condition = `FROM ('${startDate.toISOString().split('T')[0]}') TO ('${endDate.toISOString().split('T')[0]}')`;
-          
+
           if (await this.createPartition(strategy.tableName, partitionName, condition, strategy.partitionType)) {
             createdCount++;
           }
@@ -266,7 +266,7 @@ export class PartitionManagerService {
           const nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
           const partitionName = `${strategy.tableName}_${date.getFullYear()}_${String(date.getMonth() + 1).padStart(2, '0')}`;
           const condition = `FROM ('${date.toISOString().split('T')[0]}') TO ('${nextMonth.toISOString().split('T')[0]}')`;
-          
+
           if (await this.createPartition(strategy.tableName, partitionName, condition, strategy.partitionType)) {
             createdCount++;
           }
@@ -283,7 +283,7 @@ export class PartitionManagerService {
           const endDate = new Date(year, month + 3, 1);
           const partitionName = `${strategy.tableName}_q${quarter % 4 + 1}_${year}`;
           const condition = `FROM ('${startDate.toISOString().split('T')[0]}') TO ('${endDate.toISOString().split('T')[0]}')`;
-          
+
           if (await this.createPartition(strategy.tableName, partitionName, condition, strategy.partitionType)) {
             createdCount++;
           }
@@ -305,7 +305,7 @@ export class PartitionManagerService {
         if (!strategy.autoDrop) continue;
 
         const expiredPartitions = await this.getExpiredPartitions(tableName, strategy.retentionPeriod);
-        
+
         for (const partition of expiredPartitions) {
           if (await this.dropPartition(tableName, partition.partitionName)) {
             droppedCount++;
@@ -330,7 +330,7 @@ export class PartitionManagerService {
   private async getExpiredPartitions(tableName: string, retentionPeriod: number): Promise<PartitionInfo[]> {
     const cutoffDate = new Date(Date.now() - retentionPeriod * 24 * 60 * 60 * 1000);
     const tablePartitions = this.partitions.get(tableName) || [];
-    
+
     return tablePartitions.filter(partition => {
       // Extraer fecha de la condición de partición
       const dateMatch = partition.condition.match(/'(\d{4}-\d{2}-\d{2})'/);
@@ -402,7 +402,7 @@ export class PartitionManagerService {
       }
 
       structuredLogger.info('Partition maintenance completed', { partitionName: partitionName || 'all' });
-      
+
       // Métricas
       metrics.databasePartitionMaintenance.inc({ partition: partitionName || 'all' });
 
@@ -419,7 +419,7 @@ export class PartitionManagerService {
   private async maintainSpecificPartition(partitionName: string): Promise<void> {
     // En un sistema real, ejecutaríamos VACUUM y ANALYZE
     structuredLogger.info('Partition maintenance performed', { partitionName });
-    
+
     // Actualizar información de mantenimiento
     const maintenance = this.maintenance.get(partitionName);
     if (maintenance) {

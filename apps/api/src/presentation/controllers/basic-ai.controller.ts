@@ -45,11 +45,11 @@ const CreateSessionSchema = z.object({
 // ============================================================================
 
 export class BasicAIController {
-  
+
   // ============================================================================
   // POST /api/ai/generate - Generate AI Response
   // ============================================================================
-  
+
   async generateResponse(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validar request
@@ -139,7 +139,7 @@ export class BasicAIController {
   // ============================================================================
   // POST /api/ai/sessions - Create New Session
   // ============================================================================
-  
+
   async createSession(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const validationResult = CreateSessionSchema.safeParse(req.body);
@@ -207,7 +207,7 @@ export class BasicAIController {
   // ============================================================================
   // GET /api/ai/sessions/:sessionId/history - Get Session History
   // ============================================================================
-  
+
   async getSessionHistory(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { sessionId } = req.params;
@@ -259,7 +259,7 @@ export class BasicAIController {
   // ============================================================================
   // DELETE /api/ai/sessions/:sessionId - Clear Session
   // ============================================================================
-  
+
   async clearSession(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { sessionId } = req.params;
@@ -313,12 +313,12 @@ export class BasicAIController {
   // ============================================================================
   // GET /api/ai/health - Health Check
   // ============================================================================
-  
+
   async getHealthStatus(req: Request, res: Response): Promise<void> {
     try {
       const healthStatus = await basicAIService.getHealthStatus();
 
-      const statusCode = healthStatus.status === 'healthy' ? 200 : 
+      const statusCode = healthStatus.status === 'healthy' ? 200 :
                         healthStatus.status === 'degraded' ? 200 : 503;
 
       res.status(statusCode).json({
@@ -340,7 +340,7 @@ export class BasicAIController {
   // ============================================================================
   // GET /api/ai/capabilities - Get AI Capabilities
   // ============================================================================
-  
+
   async getCapabilities(req: Request, res: Response): Promise<void> {
     try {
       const capabilities = {

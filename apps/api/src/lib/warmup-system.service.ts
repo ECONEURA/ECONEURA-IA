@@ -1,6 +1,6 @@
 /**
  * PR-47: Warmup System Service
- * 
+ *
  * Sistema de pre-carga de servicios críticos para optimizar
  * el rendimiento y reducir latencia en producción.
  */
@@ -95,7 +95,7 @@ export class WarmupSystemService {
         this.warmupAnalytics(),
         this.warmupSecurity(),
         this.warmupFinOps(),
-        this.warmupHealthMonitor()
+        this.warmupHealthMonitor();
       ]);
 
       // Warmup de endpoints críticos
@@ -123,7 +123,7 @@ export class WarmupSystemService {
         error: error instanceof Error ? error.message : String(error),
         traceId
       });
-      
+
       metrics.warmupErrors.inc({ error_type: 'system_error' });
     } finally {
       this.isWarmingUp = false;
@@ -138,14 +138,14 @@ export class WarmupSystemService {
   private async warmupDatabase(): Promise<void> {
     const startTime = Date.now();
     const service = 'database';
-    
+
     try {
       // Simular conexión y query básica
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       // Pre-cargar esquemas y políticas RLS
       await this.preloadDatabaseSchemas();
-      
+
       const duration = Date.now() - startTime;
       this.results.set(service, {
         service,
@@ -182,11 +182,11 @@ export class WarmupSystemService {
   private async warmupCache(): Promise<void> {
     const startTime = Date.now();
     const service = 'cache';
-    
+
     try {
       // Pre-cargar caché con datos frecuentes
       await this.preloadCacheData();
-      
+
       const duration = Date.now() - startTime;
       this.results.set(service, {
         service,
@@ -223,11 +223,11 @@ export class WarmupSystemService {
   private async warmupAIRouter(): Promise<void> {
     const startTime = Date.now();
     const service = 'ai-router';
-    
+
     try {
       // Pre-cargar modelos y configuraciones
       await this.preloadAIModels();
-      
+
       const duration = Date.now() - startTime;
       this.results.set(service, {
         service,
@@ -264,11 +264,11 @@ export class WarmupSystemService {
   private async warmupAnalytics(): Promise<void> {
     const startTime = Date.now();
     const service = 'analytics';
-    
+
     try {
       // Pre-cargar métricas y dashboards
       await this.preloadAnalyticsData();
-      
+
       const duration = Date.now() - startTime;
       this.results.set(service, {
         service,
@@ -305,11 +305,11 @@ export class WarmupSystemService {
   private async warmupSecurity(): Promise<void> {
     const startTime = Date.now();
     const service = 'security';
-    
+
     try {
       // Pre-cargar políticas de seguridad
       await this.preloadSecurityPolicies();
-      
+
       const duration = Date.now() - startTime;
       this.results.set(service, {
         service,
@@ -346,11 +346,11 @@ export class WarmupSystemService {
   private async warmupFinOps(): Promise<void> {
     const startTime = Date.now();
     const service = 'finops';
-    
+
     try {
       // Pre-cargar presupuestos y costos
       await this.preloadFinOpsData();
-      
+
       const duration = Date.now() - startTime;
       this.results.set(service, {
         service,
@@ -387,11 +387,11 @@ export class WarmupSystemService {
   private async warmupHealthMonitor(): Promise<void> {
     const startTime = Date.now();
     const service = 'health-monitor';
-    
+
     try {
       // Pre-cargar monitores de salud
       await this.preloadHealthMonitors();
-      
+
       const duration = Date.now() - startTime;
       this.results.set(service, {
         service,
@@ -428,11 +428,11 @@ export class WarmupSystemService {
   private async warmupEndpoints(): Promise<void> {
     const startTime = Date.now();
     const service = 'endpoints';
-    
+
     try {
       // Pre-cargar endpoints críticos
       await this.preloadCriticalEndpoints();
-      
+
       const duration = Date.now() - startTime;
       this.results.set(service, {
         service,

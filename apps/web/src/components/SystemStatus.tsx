@@ -19,7 +19,7 @@ interface SystemStatus {
   };
 }
 
-export default function SystemStatus() {
+export default function SystemStatus(): void {
   const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
@@ -86,7 +86,7 @@ export default function SystemStatus() {
   };
 
   if (loading) {
-    return (
+    return (;
       <div className="fixed top-4 right-4 bg-white border rounded-lg shadow-lg p-4 min-w-[300px]">
         <div className="flex items-center justify-center">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
@@ -100,10 +100,10 @@ export default function SystemStatus() {
     return null;
   }
 
-  const overallStatus = systemStatus.web.status === 'ok' && systemStatus.api.status === 'ok' ? 'ok' : 
+  const overallStatus = systemStatus.web.status === 'ok' && systemStatus.api.status === 'ok' ? 'ok' :
                        systemStatus.web.status === 'down' || systemStatus.api.status === 'down' ? 'down' : 'degraded';
 
-  return (
+  return (;
     <div className="fixed top-4 right-4 bg-white border rounded-lg shadow-lg p-4 min-w-[300px] z-50">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold">System Status</h3>
@@ -111,7 +111,7 @@ export default function SystemStatus() {
           <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(overallStatus)}`}>
             {getStatusIcon(overallStatus)} {overallStatus.toUpperCase()}
           </span>
-          <button 
+          <button
             onClick={fetchSystemStatus}
             className="text-xs text-gray-500 hover:text-gray-700"
           >

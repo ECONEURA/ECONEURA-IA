@@ -30,7 +30,7 @@ export class IntelligentSearchUseCase implements UseCase<IntelligentSearchReques
 
   async execute(request: IntelligentSearchRequest): Promise<IntelligentSearchResponse> {
     const startTime = Date.now();
-    
+
     // Validar query
     if (!request.query || request.query.trim().length === 0) {
       throw new Error('Query is required');
@@ -51,7 +51,7 @@ export class IntelligentSearchUseCase implements UseCase<IntelligentSearchReques
 
     // Ejecutar búsqueda
     const results = await this.searchRepository.search(searchQuery);
-    
+
     // Obtener sugerencias si hay pocos resultados
     let suggestions: string[] = [];
     if (results.length < 5) {

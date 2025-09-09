@@ -337,8 +337,8 @@ export class CRMClient extends BaseClient {
     activities_by_type: Array<{ type: string; count: number }>;
     completion_rate: number;
   }> {
-    return this.get('/v1/crm/reports/activities', { 
-      params: { startDate, endDate } 
+    return this.get('/v1/crm/reports/activities', {
+      params: { startDate, endDate }
     });
   }
 }

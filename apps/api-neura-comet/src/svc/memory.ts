@@ -28,7 +28,7 @@ export function persona(dept: string): string {
     cso: "Eres NEURA, asistente de ventas del CSO. Ayudas con estrategias de ventas, análisis de pipeline y crecimiento de ingresos. Eres orientado a resultados.",
     cco: "Eres NEURA, asistente de cumplimiento del CCO. Ayudas con regulaciones, compliance y gestión de riesgos. Eres detallista y preciso."
   };
-  
+
   return personas[dept as keyof typeof personas] || "Eres NEURA, asistente inteligente. Ayudas con análisis, recomendaciones y automatización de tareas.";
 }
 
@@ -37,7 +37,7 @@ export async function loadShort(userId: string, dept: string, limit: number = 8)
   try {
     const key = `chat:${userId}:${dept}`;
     const messages = await redis.lRange(key, -limit, -1);
-    
+
     return messages.map(msg => {
       const parsed = JSON.parse(msg);
       return { role: parsed.role, content: parsed.content };
@@ -54,13 +54,13 @@ export async function recall(userId: string, dept: string, query: string, limit:
     // For demo purposes, we'll use a simple text search
     // In production, you'd generate embeddings for the query and use vector similarity
     const result = await pgPool.query(`
-      SELECT content 
-      FROM chat_memory 
-      WHERE user_id = $1 AND dept = $2 
-      ORDER BY ts DESC 
+      SELECT content
+      FROM chat_memory
+      WHERE user_id = $1 AND dept = $2
+      ORDER BY ts DESC
       LIMIT $3
     `, [userId, dept, limit]);
-    
+
     return result.rows.map(row => row.content);
   } catch (error) {
     console.error('❌ Error recalling memories:', error);
@@ -72,11 +72,11 @@ export async function recall(userId: string, dept: string, query: string, limit:
 export async function getSummary(userId: string, dept: string): Promise<{summary: string}> {
   try {
     const result = await pgPool.query(`
-      SELECT summary 
-      FROM chat_summaries 
+      SELECT summary
+      FROM chat_summaries
       WHERE user_id = $1 AND dept = $2
     `, [userId, dept]);
-    
+
     return { summary: result.rows[0]?.summary || "" };
   } catch (error) {
     console.error('❌ Error getting summary:', error);
@@ -93,13 +93,13 @@ export async function persistTurn(userId: string, dept: string, role: 'user' | '
     await redis.lPush(key, message);
     await redis.lTrim(key, 0, 19); // Keep last 20 messages
     await redis.expire(key, 86400); // Expire after 24 hours
-    
+
     // Store in PostgreSQL for long-term storage
     await pgPool.query(`
       INSERT INTO chat_messages (user_id, dept, role, content)
       VALUES ($1, $2, $3, $4)
     `, [userId, dept, role, content]);
-    
+
     // Store important memories
     if (role === 'assistant' && content.length > 50) {
       await pgPool.query(`
@@ -124,26 +124,26 @@ export async function upsertSummary(userId: string, dept: string): Promise<void>
   try {
     // Get recent messages for summarization
     const result = await pgPool.query(`
-      SELECT role, content 
-      FROM chat_messages 
-      WHERE user_id = $1 AND dept = $2 
-      ORDER BY ts DESC 
+      SELECT role, content
+      FROM chat_messages
+      WHERE user_id = $1 AND dept = $2
+      ORDER BY ts DESC
       LIMIT 20
     `, [userId, dept]);
-    
+
     if (result.rows.length === 0) return;
-    
+
     // Create a simple summary (in production, use AI summarization)
     const messages = result.rows.reverse();
     const summary = `Conversación con ${messages.length} mensajes. Último tema: ${messages[messages.length - 1]?.content?.substring(0, 100)}...`;
-    
+
     await pgPool.query(`
       INSERT INTO chat_summaries (user_id, dept, summary)
       VALUES ($1, $2, $3)
       ON CONFLICT (user_id, dept)
       DO UPDATE SET summary = $3, updated_at = now()
     `, [userId, dept, summary]);
-    
+
   } catch (error) {
     console.error('❌ Error updating summary:', error);
   }

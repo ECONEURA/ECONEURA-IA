@@ -1,8 +1,8 @@
 /**
  * DOCUMENT MANAGEMENT ROUTES
- * 
+ *
  * PR-54: Rutas API para gestión de documentos avanzado
- * 
+ *
  * Endpoints:
  * - POST /documents - Crear documento
  * - GET /documents - Listar documentos

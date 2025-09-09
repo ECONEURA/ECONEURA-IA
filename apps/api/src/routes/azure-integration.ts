@@ -63,7 +63,7 @@ const TTSRequestSchema = z.object({
 router.post('/chat/completions', async (req, res) => {
   try {
     const validatedData = ChatRequestSchema.parse(req.body);
-    
+
     structuredLogger.info('Chat completion request received', {
       userId: req.user?.id,
       messageCount: validatedData.messages.length,
@@ -115,7 +115,7 @@ router.post('/chat/completions', async (req, res) => {
 router.post('/images/generations', async (req, res) => {
   try {
     const validatedData = ImageRequestSchema.parse(req.body);
-    
+
     structuredLogger.info('Image generation request received', {
       userId: req.user?.id,
       prompt: validatedData.prompt.substring(0, 100) + '...',
@@ -167,7 +167,7 @@ router.post('/images/generations', async (req, res) => {
 router.post('/speech/synthesis', async (req, res) => {
   try {
     const validatedData = TTSRequestSchema.parse(req.body);
-    
+
     structuredLogger.info('Speech synthesis request received', {
       userId: req.user?.id,
       textLength: validatedData.text.length,
@@ -216,12 +216,12 @@ router.post('/speech/synthesis', async (req, res) => {
 router.get('/health', async (req, res) => {
   try {
     const healthStatus = await azureIntegration.checkServiceHealth();
-    
+
     const services = Array.from(healthStatus.values());
-    const overallStatus = services.every(s => s.status === 'healthy') 
-      ? 'healthy' 
-      : services.some(s => s.status === 'unhealthy') 
-        ? 'unhealthy' 
+    const overallStatus = services.every(s => s.status === 'healthy')
+      ? 'healthy'
+      : services.some(s => s.status === 'unhealthy')
+        ? 'unhealthy'
         : 'degraded';
 
     res.json({
@@ -290,7 +290,7 @@ router.get('/status', async (req, res) => {
 router.get('/config', async (req, res) => {
   try {
     const config = azureIntegration.getConfiguration();
-    
+
     res.json({
       success: true,
       data: {
@@ -323,7 +323,7 @@ router.get('/config', async (req, res) => {
 router.get('/demo/chat', async (req, res) => {
   try {
     const { message } = req.query;
-    
+
     if (!message || typeof message !== 'string') {
       return res.status(400).json({
         success: false,
@@ -367,7 +367,7 @@ router.get('/demo/chat', async (req, res) => {
 router.get('/demo/image', async (req, res) => {
   try {
     const { prompt } = req.query;
-    
+
     if (!prompt || typeof prompt !== 'string') {
       return res.status(400).json({
         success: false,

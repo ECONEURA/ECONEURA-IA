@@ -206,9 +206,9 @@ export class SecurityService {
 
       let encrypted = cipher.update(data, 'utf8', 'hex');
       encrypted += cipher.final('hex');
-      
+
       const authTag = cipher.getAuthTag();
-      
+
       return `${iv.toString('hex')}:${authTag.toString('hex')}:${encrypted}`;
     } catch (error) {
       structuredLogger.error('Data encryption error', error as Error);
@@ -221,17 +221,17 @@ export class SecurityService {
       const algorithm = 'aes-256-gcm';
       const key = crypto.scryptSync(this.config.dataEncryptionKey, 'salt', 32);
       const [ivHex, authTagHex, encrypted] = encryptedData.split(':');
-      
+
       const iv = Buffer.from(ivHex, 'hex');
       const authTag = Buffer.from(authTagHex, 'hex');
-      
+
       const decipher = crypto.createDecipher(algorithm, key);
       decipher.setAAD(Buffer.from('econeura', 'utf8'));
       decipher.setAuthTag(authTag);
-      
+
       let decrypted = decipher.update(encrypted, 'hex', 'utf8');
       decrypted += decipher.final('utf8');
-      
+
       return decrypted;
     } catch (error) {
       structuredLogger.error('Data decryption error', error as Error);
@@ -297,7 +297,7 @@ export class SecurityService {
       // Validación básica de tipos
       for (const [field, rules] of Object.entries(schema)) {
         const value = data[field];
-        
+
         if (rules.required && (value === undefined || value === null || value === '')) {
           errors.push(`${field} is required`);
           continue;
@@ -348,7 +348,7 @@ export class SecurityService {
   }
 
   sanitizeInput(input: string): string {
-    return input
+    return input;
       .trim()
       .replace(/[<>]/g, '') // Remover tags HTML básicos
       .replace(/javascript:/gi, '') // Remover javascript: URLs
@@ -373,7 +373,7 @@ export class SecurityService {
     try {
       // Aquí se implementaría el envío de alertas (email, Slack, etc.)
       structuredLogger.error('SECURITY ALERT', event);
-      
+
       // Ejemplo de implementación con webhook
       // await fetch(process.env.SECURITY_WEBHOOK_URL, {
       //   method: 'POST',
@@ -401,7 +401,7 @@ export class SecurityService {
     try {
       const redis = getRedisService();
       const keys = await redis.keys('blocked_ip:*');
-      
+
       for (const key of keys) {
         const ttl = await redis.ttl(key);
         if (ttl === -1) { // Sin expiración

@@ -17,7 +17,7 @@ export function MediterraneanBadge({
   className,
 }: MediterraneanBadgeProps) {
   const baseClasses = 'inline-flex items-center font-medium rounded-full'
-  
+
   const sizeClasses = {
     sm: 'px-2 py-1 text-xs',
     md: 'px-2.5 py-1 text-sm',
@@ -37,12 +37,12 @@ export function MediterraneanBadge({
     info: 'bg-mediterranean-100 text-mediterranean-700',
   }
 
-  return (
+  return (;
     <span
       className={cn(
         baseClasses,
         sizeClasses[size],
-        variant === 'default' 
+        variant === 'default'
           ? variantClasses.default[color]
           : variantClasses[variant],
         className

@@ -39,7 +39,7 @@ export class CronService {
     this.jobQueue = new JobQueue();
     this.emailProcessor = new EmailProcessor();
     this.graphService = new GraphService();
-    
+
     this.initializeDefaultJobs();
   }
 
@@ -180,7 +180,7 @@ export class CronService {
 
   private async executeJob(job: CronJob): Promise<void> {
     const startTime = Date.now();
-    
+
     try {
       logger.info('Executing cron job', {
         jobId: job.id,
@@ -193,7 +193,7 @@ export class CronService {
       await job.task();
 
       const duration = Date.now() - startTime;
-      
+
       this.cronCounter.inc({
         job_id: job.id,
         status: 'success'
@@ -213,9 +213,9 @@ export class CronService {
 
     } catch (error) {
       const duration = Date.now() - startTime;
-      
+
       job.errorCount++;
-      
+
       this.cronCounter.inc({
         job_id: job.id,
         status: 'error'
@@ -243,10 +243,10 @@ export class CronService {
 
       // Get pending email processing jobs
       const stats = await this.jobQueue.getStats();
-      
+
       if (stats.pending > 0) {
         logger.info('Found pending email jobs', { count: stats.pending });
-        
+
         // Process emails in batches
         const batchSize = 10;
         for (let i = 0; i < Math.min(stats.pending, batchSize); i++) {
@@ -282,7 +282,7 @@ export class CronService {
 
       // Simulate Graph data synchronization
       // In a real implementation, this would sync calendar events, contacts, etc.
-      
+
       const syncResults = {
         calendarEvents: 0,
         contacts: 0,
@@ -306,10 +306,10 @@ export class CronService {
 
       // Clean up completed jobs older than 24 hours
       const clearedJobs = await this.jobQueue.clearCompletedJobs(24);
-      
+
       // Clean up old logs (simulated)
       const clearedLogs = 0; // In a real implementation, this would clean old log files
-      
+
       // Clean up temporary files (simulated)
       const clearedFiles = 0; // In a real implementation, this would clean temp files
 
@@ -331,10 +331,10 @@ export class CronService {
     try {
       // Check Redis connection
       const redisHealthy = true; // In a real implementation, ping Redis
-      
+
       // Check Graph API connection
       const graphHealthy = true; // In a real implementation, ping Graph API
-      
+
       // Check job queue health
       const queueStats = await this.jobQueue.getStats();
       const queueHealthy = queueStats.failed < 100; // Threshold for healthy queue
@@ -364,7 +364,7 @@ export class CronService {
 
       // Enqueue report generation jobs
       const reportTypes = ['email_summary', 'job_statistics', 'system_health'];
-      
+
       for (const reportType of reportTypes) {
         await this.jobQueue.enqueue({
           type: 'report_generation',
@@ -430,7 +430,7 @@ export class CronService {
     totalErrors: number;
   } {
     const jobs = Array.from(this.jobs.values());
-    
+
     return {
       total: jobs.length,
       enabled: jobs.filter(j => j.enabled).length,

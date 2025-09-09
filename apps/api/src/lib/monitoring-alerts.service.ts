@@ -1,6 +1,6 @@
 /**
  * MEJORA 4: Sistema de Monitoreo y Alertas Avanzado
- * 
+ *
  * Sistema completo de monitoreo con alertas inteligentes,
  * thresholds dinámicos, y notificaciones multi-canal.
  */
@@ -338,7 +338,7 @@ export class MonitoringAlertsService {
 
       try {
         const shouldTrigger = await this.evaluateRule(rule);
-        
+
         if (shouldTrigger) {
           await this.triggerAlert(rule);
         } else {
@@ -375,7 +375,7 @@ export class MonitoringAlertsService {
 
   private aggregateValues(data: Array<{value: number, timestamp: number}>, aggregation: string): number {
     const values = data.map(item => item.value);
-    
+
     switch (aggregation) {
       case 'avg':
         return values.reduce((sum, val) => sum + val, 0) / values.length;
@@ -413,7 +413,7 @@ export class MonitoringAlertsService {
 
   private async triggerAlert(rule: AlertRule): Promise<void> {
     const existingAlert = this.activeAlerts.get(rule.id);
-    
+
     // Verificar cooldown
     if (existingAlert && existingAlert.status === AlertStatus.ACTIVE) {
       const timeSinceLastTrigger = Date.now() - existingAlert.triggeredAt.getTime();
@@ -584,7 +584,7 @@ export class MonitoringAlertsService {
 
   private async sendResolutionNotification(alert: Alert): Promise<void> {
     const message = `✅ Resuelto: ${alert.title}`;
-    
+
     // Enviar solo a canales de baja prioridad para resolución
     await this.sendNotification(NotificationChannel.IN_APP, message, ['dashboard'], alert);
   }
@@ -595,7 +595,7 @@ export class MonitoringAlertsService {
   public getMonitoringStats(): MonitoringStats {
     const totalAlerts = this.alertHistory.length;
     const activeAlerts = this.activeAlerts.size;
-    
+
     const alertsBySeverity: Record<AlertSeverity, number> = {
       [AlertSeverity.INFO]: 0,
       [AlertSeverity.WARNING]: 0,

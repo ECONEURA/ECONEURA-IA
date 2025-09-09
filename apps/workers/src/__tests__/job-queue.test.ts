@@ -406,7 +406,7 @@ describe('JobQueue', () => {
         expect(mockRedis.zadd).toHaveBeenCalledWith(
           'queue:email_processing',
           testCase.expectedScore,
-          expect.any(String)
+          expect.any(String);
         );
       }
     });

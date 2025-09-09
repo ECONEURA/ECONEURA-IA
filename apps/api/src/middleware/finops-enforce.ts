@@ -56,7 +56,7 @@ export class FinOpsEnforcementMiddleware {
 
   private handleCostAlert(alert: any) {
     const { orgId, currentCost, limit, period } = alert;
-    
+
     logger.warn('Cost alert triggered', {
       org_id: orgId,
       current_cost: currentCost,
@@ -73,7 +73,7 @@ export class FinOpsEnforcementMiddleware {
 
   private activateKillSwitch(orgId: string) {
     this.killSwitch.set(orgId, true);
-    
+
     logger.error('Kill switch activated', {
       org_id: orgId,
       reason: 'Emergency cost threshold exceeded'
@@ -151,7 +151,7 @@ export class FinOpsEnforcementMiddleware {
           req.provider,
           req.model
         );
-        
+
         return res.status(402).json(response);
       }
 
@@ -216,7 +216,7 @@ export class FinOpsEnforcementMiddleware {
     // Rough estimation: 1 token ≈ 4 characters, $0.002 per 1K tokens
     const estimatedTokens = Math.ceil(totalSize / 4);
     const costPerToken = 0.002 / 1000; // $0.002 per 1K tokens
-    
+
     return estimatedTokens * costPerToken;
   }
 

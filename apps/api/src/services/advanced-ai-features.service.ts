@@ -82,10 +82,10 @@ export class AdvancedAIFeaturesService {
 
       // Initialize advanced features tables
       await this.initializeAdvancedTables();
-      
+
       // Register advanced AI models
       await this.registerAdvancedModels();
-      
+
       // Start background processing
       this.startBackgroundProcessing();
 
@@ -178,17 +178,17 @@ export class AdvancedAIFeaturesService {
 
       // Create indexes
       await this.db.query(`
-        CREATE INDEX IF NOT EXISTS idx_advanced_ai_features_org 
+        CREATE INDEX IF NOT EXISTS idx_advanced_ai_features_org
         ON advanced_ai_features(organization_id, created_at);
       `);
 
       await this.db.query(`
-        CREATE INDEX IF NOT EXISTS idx_advanced_ai_features_type 
+        CREATE INDEX IF NOT EXISTS idx_advanced_ai_features_type
         ON advanced_ai_features(feature_type, created_at);
       `);
 
       await this.db.query(`
-        CREATE INDEX IF NOT EXISTS idx_advanced_ai_models_type 
+        CREATE INDEX IF NOT EXISTS idx_advanced_ai_models_type
         ON advanced_ai_models(model_type, availability);
       `);
 
@@ -342,7 +342,7 @@ export class AdvancedAIFeaturesService {
 
   async processAdvancedFeature(request: AdvancedAIRequest): Promise<AdvancedAIResponse> {
     const startTime = Date.now();
-    
+
     try {
       structuredLogger.info('Processing Advanced AI feature request', {
         service: 'advanced-ai-features',
@@ -466,10 +466,10 @@ export class AdvancedAIFeaturesService {
   private async processMultimodalRequest(request: AdvancedAIRequest): Promise<any> {
     const { input, options } = request;
     const model = options?.model || 'gpt-4o-vision';
-    
+
     // Simulate multimodal processing
     const response = await this.simulateAdvancedAIResponse(input, 'multimodal', model);
-    
+
     return {
       output: {
         textAnalysis: response.textAnalysis,
@@ -493,10 +493,10 @@ export class AdvancedAIFeaturesService {
   private async processReasoningRequest(request: AdvancedAIRequest): Promise<any> {
     const { input, options } = request;
     const model = options?.model || 'gpt-4o-reasoning';
-    
+
     // Simulate reasoning processing
     const response = await this.simulateAdvancedAIResponse(input, 'reasoning', model);
-    
+
     return {
       output: {
         reasoning: response.reasoning,
@@ -521,10 +521,10 @@ export class AdvancedAIFeaturesService {
   private async processCodeGenerationRequest(request: AdvancedAIRequest): Promise<any> {
     const { input, options } = request;
     const model = options?.model || 'gpt-4o-code';
-    
+
     // Simulate code generation processing
     const response = await this.simulateAdvancedAIResponse(input, 'code-generation', model);
-    
+
     return {
       output: {
         generatedCode: response.generatedCode,
@@ -549,10 +549,10 @@ export class AdvancedAIFeaturesService {
   private async processDocumentAnalysisRequest(request: AdvancedAIRequest): Promise<any> {
     const { input, options } = request;
     const model = options?.model || 'gpt-4o-document';
-    
+
     // Simulate document analysis processing
     const response = await this.simulateAdvancedAIResponse(input, 'document-analysis', model);
-    
+
     return {
       output: {
         documentSummary: response.documentSummary,
@@ -577,10 +577,10 @@ export class AdvancedAIFeaturesService {
   private async processVoiceProcessingRequest(request: AdvancedAIRequest): Promise<any> {
     const { input, options } = request;
     const model = options?.model || 'whisper-advanced';
-    
+
     // Simulate voice processing
     const response = await this.simulateAdvancedAIResponse(input, 'voice-processing', model);
-    
+
     return {
       output: {
         transcription: response.transcription,
@@ -605,10 +605,10 @@ export class AdvancedAIFeaturesService {
   private async processImageAnalysisRequest(request: AdvancedAIRequest): Promise<any> {
     const { input, options } = request;
     const model = options?.model || 'dall-e-advanced';
-    
+
     // Simulate image analysis processing
     const response = await this.simulateAdvancedAIResponse(input, 'image-analysis', model);
-    
+
     return {
       output: {
         imageDescription: response.imageDescription,
@@ -633,10 +633,10 @@ export class AdvancedAIFeaturesService {
   private async processNLPAdvancedRequest(request: AdvancedAIRequest): Promise<any> {
     const { input, options } = request;
     const model = options?.model || 'gpt-4o-nlp';
-    
+
     // Simulate NLP advanced processing
     const response = await this.simulateAdvancedAIResponse(input, 'nlp-advanced', model);
-    
+
     return {
       output: {
         sentiment: response.sentiment,
@@ -661,10 +661,10 @@ export class AdvancedAIFeaturesService {
   private async processAutomationRequest(request: AdvancedAIRequest): Promise<any> {
     const { input, options } = request;
     const model = options?.model || 'gpt-4o-automation';
-    
+
     // Simulate automation processing
     const response = await this.simulateAdvancedAIResponse(input, 'automation', model);
-    
+
     return {
       output: {
         workflow: response.workflow,
@@ -720,7 +720,7 @@ export class AdvancedAIFeaturesService {
         advancedMetrics: { reasoningQuality: 0.87, logicalConsistency: 0.90 },
       },
       'code-generation': {
-        generatedCode: '// Generated code with best practices\nfunction example() {\n  return "Hello World";\n}',
+        generatedCode: '// Generated code with best practices\nfunction example(): void {\n  return "Hello World";\n}',
         codeExplanation: 'This code implements a simple function that returns a greeting message',
         testCases: ['Test case 1: Normal input', 'Test case 2: Edge case handling'],
         optimizationSuggestions: ['Use const instead of let', 'Add error handling'],
@@ -808,14 +808,14 @@ export class AdvancedAIFeaturesService {
 
   private estimateAdvancedTokens(input: any): number {
     let totalTokens = 0;
-    
+
     if (input.text) totalTokens += Math.ceil(input.text.length / 4);
     if (input.code) totalTokens += Math.ceil(input.code.length / 4);
     if (input.data) totalTokens += Math.ceil(JSON.stringify(input.data).length / 4);
     if (input.images) totalTokens += input.images.length * 100; // Estimate for images
     if (input.audio) totalTokens += 50; // Estimate for audio
     if (input.documents) totalTokens += input.documents.length * 200; // Estimate for documents
-    
+
     return totalTokens;
   }
 
@@ -846,8 +846,8 @@ export class AdvancedAIFeaturesService {
     try {
       // Get organizations with recent advanced AI activity
       const orgsResult = await this.db.query(`
-        SELECT DISTINCT organization_id 
-        FROM advanced_ai_features 
+        SELECT DISTINCT organization_id
+        FROM advanced_ai_features
         WHERE created_at >= NOW() - INTERVAL '24 hours'
       `);
 
@@ -866,7 +866,7 @@ export class AdvancedAIFeaturesService {
     try {
       // Analyze advanced AI usage patterns
       const usageResult = await this.db.query(`
-        SELECT 
+        SELECT
           feature_type,
           COUNT(*) as usage_count,
           AVG(confidence_score) as avg_confidence,
@@ -932,13 +932,13 @@ export class AdvancedAIFeaturesService {
     try {
       // Keep only last 60 days of advanced AI features data
       await this.db.query(`
-        DELETE FROM advanced_ai_features 
+        DELETE FROM advanced_ai_features
         WHERE created_at < NOW() - INTERVAL '60 days'
       `);
 
       // Clean expired insights
       await this.db.query(`
-        DELETE FROM advanced_ai_insights 
+        DELETE FROM advanced_ai_insights
         WHERE expires_at < NOW()
       `);
 
@@ -999,8 +999,8 @@ export class AdvancedAIFeaturesService {
   async getAvailableAdvancedModels(): Promise<any[]> {
     try {
       const result = await this.db.query(`
-        SELECT * FROM advanced_ai_models 
-        WHERE availability = true 
+        SELECT * FROM advanced_ai_models
+        WHERE availability = true
         ORDER BY model_type, model_name
       `);
 
@@ -1024,10 +1024,10 @@ export class AdvancedAIFeaturesService {
   async getAdvancedInsights(organizationId: string, limit: number = 20): Promise<any[]> {
     try {
       const result = await this.db.query(`
-        SELECT * FROM advanced_ai_insights 
-        WHERE organization_id = $1 
+        SELECT * FROM advanced_ai_insights
+        WHERE organization_id = $1
           AND (expires_at IS NULL OR expires_at > NOW())
-        ORDER BY confidence_score DESC, created_at DESC 
+        ORDER BY confidence_score DESC, created_at DESC
         LIMIT $2
       `, [organizationId, limit]);
 
@@ -1082,7 +1082,7 @@ export class AdvancedAIFeaturesService {
 
       const healthyServices = Object.values(services).filter(Boolean).length;
       const totalServices = Object.keys(services).length;
-      
+
       let status: 'healthy' | 'degraded' | 'unhealthy';
       if (healthyServices === totalServices) {
         status = 'healthy';

@@ -140,7 +140,7 @@ export default function AuditTrail({ data }: AuditTrailProps): JSX.Element {
     if (filter.dateRange !== 'all') {
       const now = new Date();
       const cutoff = new Date();
-      
+
       switch (filter.dateRange) {
         case '1h':
           cutoff.setHours(now.getHours() - 1);
@@ -155,13 +155,13 @@ export default function AuditTrail({ data }: AuditTrailProps): JSX.Element {
           cutoff.setDate(now.getDate() - 30);
           break;
       }
-      
+
       filtered = filtered.filter(entry => new Date(entry.timestamp) >= cutoff);
     }
 
     // Filter by search
     if (filter.search) {
-      filtered = filtered.filter(entry => 
+      filtered = filtered.filter(entry =>
         entry.user.toLowerCase().includes(filter.search.toLowerCase()) ||
         entry.action.toLowerCase().includes(filter.search.toLowerCase()) ||
         entry.resource.toLowerCase().includes(filter.search.toLowerCase()) ||
@@ -209,45 +209,45 @@ export default function AuditTrail({ data }: AuditTrailProps): JSX.Element {
   const getActionIcon = (action: string): JSX.Element => {
     switch (action) {
       case 'create':
-        return (
+        return (;
           <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
           </svg>
         );
       case 'update':
-        return (
+        return (;
           <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
             <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
           </svg>
         );
       case 'delete':
-        return (
+        return (;
           <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clipRule="evenodd" />
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
           </svg>
         );
       case 'login':
-        return (
+        return (;
           <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm7.707 3.293a1 1 0 010 1.414L9.414 9H17a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0z" clipRule="evenodd" />
           </svg>
         );
       case 'logout':
-        return (
+        return (;
           <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" />
           </svg>
         );
       case 'view':
-        return (
+        return (;
           <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
             <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
             <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
           </svg>
         );
       default:
-        return (
+        return (;
           <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
           </svg>
@@ -262,7 +262,7 @@ export default function AuditTrail({ data }: AuditTrailProps): JSX.Element {
           <div className={`p-1 rounded-full ${getActionColor(entry.action)}`}>
             {getActionIcon(entry.action)}
           </div>
-          
+
           <div className="flex-1">
             <div className="flex items-center space-x-2 mb-1">
               <h4 className="font-medium text-gray-900">
@@ -272,15 +272,15 @@ export default function AuditTrail({ data }: AuditTrailProps): JSX.Element {
                 {entry.action.toUpperCase()}
               </span>
             </div>
-            
+
             <p className="text-sm text-gray-600 mb-2">
               {entry.ipAddress} • {entry.userAgent.split(' ')[0]}...
             </p>
-            
+
             <p className="text-xs text-gray-500 mb-2">
               {new Date(entry.timestamp).toLocaleString()}
             </p>
-            
+
             {Object.keys(entry.details).length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1">
                 {Object.entries(entry.details).map(([key, value]) => (
@@ -295,7 +295,7 @@ export default function AuditTrail({ data }: AuditTrailProps): JSX.Element {
             )}
           </div>
         </div>
-        
+
         <div className="flex space-x-2">
           <button className="text-gray-400 hover:text-gray-600">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -312,7 +312,7 @@ export default function AuditTrail({ data }: AuditTrailProps): JSX.Element {
   // RENDER
   // ============================================================================
 
-  return (
+  return (;
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
@@ -338,7 +338,7 @@ export default function AuditTrail({ data }: AuditTrailProps): JSX.Element {
               <option value="manager@econeura.com">Manager</option>
             </select>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Action</label>
             <select
@@ -355,7 +355,7 @@ export default function AuditTrail({ data }: AuditTrailProps): JSX.Element {
               <option value="view">View</option>
             </select>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Resource</label>
             <select
@@ -371,7 +371,7 @@ export default function AuditTrail({ data }: AuditTrailProps): JSX.Element {
               <option value="dashboard">Dashboard</option>
             </select>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
             <select
@@ -386,7 +386,7 @@ export default function AuditTrail({ data }: AuditTrailProps): JSX.Element {
               <option value="30d">Last 30 Days</option>
             </select>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
             <input
@@ -397,7 +397,7 @@ export default function AuditTrail({ data }: AuditTrailProps): JSX.Element {
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
             />
           </div>
-          
+
           <div className="flex items-end">
             <button
               onClick={handleClearFilters}
@@ -419,7 +419,7 @@ export default function AuditTrail({ data }: AuditTrailProps): JSX.Element {
             <p>No audit entries found matching your filters</p>
           </div>
         ) : (
-          filteredEntries.map(renderAuditEntry)
+          filteredEntries.map(renderAuditEntry);
         )}
       </div>
 

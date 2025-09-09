@@ -17,7 +17,7 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>
 
-export default function LoginPage() {
+export default function LoginPage(): void {
   const router = useRouter()
   const { login } = useAuth()
   const [error, setError] = useState<string | null>(null)
@@ -38,15 +38,15 @@ export default function LoginPage() {
     try {
       setIsLoading(true)
       setError(null)
-      
+
       await login({
         email: data.email,
         password: data.password,
         rememberMe: false
       })
-      
+
       // Redirigir al dashboard después del login exitoso
-      router.push('/dashboard')
+      router.push('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al iniciar sesión')
     } finally {
@@ -54,7 +54,7 @@ export default function LoginPage() {
     }
   }
 
-  return (
+  return (;
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
@@ -68,7 +68,7 @@ export default function LoginPage() {
             </Link>
           </p>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
@@ -88,7 +88,7 @@ export default function LoginPage() {
                 <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>
               )}
             </div>
-            
+
             <div>
               <label htmlFor="password" className="sr-only">
                 Contraseña
@@ -148,8 +148,8 @@ export default function LoginPage() {
               type="submit"
               disabled={isLoading}
               className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
-                isLoading 
-                  ? 'bg-gray-400 cursor-not-allowed' 
+                isLoading
+                  ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
               }`}
             >

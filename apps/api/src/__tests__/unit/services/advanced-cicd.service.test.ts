@@ -1,6 +1,6 @@
 /**
  * Unit tests for AdvancedCICDService
- * 
+ *
  * This test suite covers all functionality of the advanced CI/CD system
  * including deployment orchestration, rollback mechanisms, and analytics.
  */
@@ -73,7 +73,7 @@ describe('AdvancedCICDService', () => {
 
     it('should throw error when executing non-existent deployment', async () => {
       await expect(
-        service.executeDeployment('non-existent-id')
+        service.executeDeployment('non-existent-id');
       ).rejects.toThrow('Deployment non-existent-id not found');
     });
 
@@ -105,7 +105,7 @@ describe('AdvancedCICDService', () => {
 
     it('should throw error when rolling back non-existent deployment', async () => {
       await expect(
-        service.rollbackDeployment('non-existent-id', 'Test rollback')
+        service.rollbackDeployment('non-existent-id', 'Test rollback');
       ).rejects.toThrow('Deployment non-existent-id not found');
     });
   });
@@ -193,7 +193,7 @@ describe('AdvancedCICDService', () => {
 
       expect(executedDeployment.healthChecks).toBeDefined();
       expect(executedDeployment.healthChecks.length).toBeGreaterThan(0);
-      
+
       const healthCheck = executedDeployment.healthChecks[0];
       expect(healthCheck.name).toBeDefined();
       expect(healthCheck.url).toBeDefined();
@@ -345,7 +345,7 @@ describe('AdvancedCICDService', () => {
       const updates = { strategy: 'blue_green' as DeploymentStrategy };
 
       await expect(
-        service.updateDeploymentConfig('non-existent' as Environment, updates)
+        service.updateDeploymentConfig('non-existent' as Environment, updates);
       ).rejects.toThrow('No configuration found for environment non-existent');
     });
   });
@@ -425,7 +425,7 @@ describe('AdvancedCICDService', () => {
       // Mock a failure scenario by creating a deployment with invalid strategy
       // In a real implementation, this would be handled by the deployment strategy execution
       const executedDeployment = await service.executeDeployment(deployment.id);
-      
+
       // The service should handle failures gracefully
       expect(executedDeployment).toBeDefined();
       expect(['completed', 'failed']).toContain(executedDeployment.status);
@@ -486,7 +486,7 @@ describe('AdvancedCICDService', () => {
       const deployments = await Promise.all([
         service.createDeployment('v1.0.0', 'staging', 'blue_green', 'admin', 'abc1', 'main', '1', { api: 'a1', web: 'w1', workers: 'wr1' }),
         service.createDeployment('v1.0.1', 'dev', 'recreate', 'ci', 'def2', 'develop', '2', { api: 'a2', web: 'w2', workers: 'wr2' }),
-        service.createDeployment('v1.0.2', 'prod', 'canary', 'admin', 'ghi3', 'main', '3', { api: 'a3', web: 'w3', workers: 'wr3' })
+        service.createDeployment('v1.0.2', 'prod', 'canary', 'admin', 'ghi3', 'main', '3', { api: 'a3', web: 'w3', workers: 'wr3' });
       ]);
 
       expect(deployments).toHaveLength(3);

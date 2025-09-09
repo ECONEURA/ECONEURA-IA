@@ -1,12 +1,12 @@
 /**
  * PR-46: Notification Intelligence Service
- * 
+ *
  * Service for intelligent notification management, preferences, and analytics
  */
 
-import { 
-  NotificationPreferences, 
-  NotificationChannel, 
+import {
+  NotificationPreferences,
+  NotificationChannel,
   NotificationFilter,
   QuietHoursNotificationSettings,
   EscalationNotificationSettings,
@@ -42,8 +42,8 @@ export class NotificationIntelligenceService {
    * Update notification preferences for a user
    */
   async updateNotificationPreferences(
-    userId: string, 
-    organizationId: string, 
+    userId: string,
+    organizationId: string,
     request: UpdateNotificationPreferencesRequest
   ): Promise<NotificationPreferences> {
     const key = `${userId}_${organizationId}`;
@@ -75,10 +75,10 @@ export class NotificationIntelligenceService {
 
     // Get user preferences
     const preferences = await this.getNotificationPreferences(request.userId, 'org_1');
-    
+
     // Determine channels based on preferences and request
     const channels = this.determineChannels(request, preferences);
-    
+
     // Check quiet hours restrictions
     const allowedChannels = await this.filterChannelsByQuietHours(channels, preferences);
 
@@ -99,10 +99,10 @@ export class NotificationIntelligenceService {
     };
 
     this.notifications.set(notificationId, notification);
-    
+
     // Send notification through channels
     await this.deliverNotification(notification);
-    
+
     return notification;
   }
 
@@ -158,7 +158,7 @@ export class NotificationIntelligenceService {
    */
   async getNotificationStats(organizationId: string): Promise<NotificationStats> {
     const analytics = await this.getNotificationAnalytics(organizationId);
-    
+
     const channelEffectiveness: Record<string, number> = {};
     analytics.channelStats.forEach(stat => {
       channelEffectiveness[stat.channel] = stat.deliveryRate;
@@ -239,7 +239,7 @@ export class NotificationIntelligenceService {
   }
 
   private getDefaultChannels(): NotificationChannel[] {
-    return [
+    return [;
       {
         type: 'email',
         enabled: true,
@@ -316,12 +316,12 @@ export class NotificationIntelligenceService {
     // Filter channels based on severity and user preferences
     return preferences.channels.filter(channel => {
       if (!channel.enabled) return false;
-      
+
       // Check severity filters
       if (channel.filters && channel.filters.length > 0) {
         return channel.filters.some(filter => this.evaluateFilter(filter, request));
       }
-      
+
       return true;
     });
   }
@@ -332,14 +332,14 @@ export class NotificationIntelligenceService {
         const severityLevels = { low: 1, medium: 2, high: 3, critical: 4 };
         const requestLevel = severityLevels[request.severity] || 0;
         const filterLevel = severityLevels[filter.value as keyof typeof severityLevels] || 0;
-        
+
         switch (filter.operator) {
           case 'equals': return requestLevel === filterLevel;
           case 'greater_than': return requestLevel > filterLevel;
           case 'less_than': return requestLevel < filterLevel;
           default: return false;
         }
-      
+
       case 'service':
         if (!request.metadata?.service) return false;
         switch (filter.operator) {
@@ -347,14 +347,14 @@ export class NotificationIntelligenceService {
           case 'contains': return request.metadata.service.includes(filter.value);
           default: return false;
         }
-      
+
       default:
         return true;
     }
   }
 
   private async filterChannelsByQuietHours(
-    channels: NotificationChannel[], 
+    channels: NotificationChannel[],
     preferences?: NotificationPreferences
   ): Promise<NotificationChannel[]> {
     if (!preferences?.quietHours.enabled) {
@@ -363,7 +363,7 @@ export class NotificationIntelligenceService {
 
     // Check if we're in quiet hours (simplified check)
     const isQuietHours = this.isQuietHours();
-    
+
     if (!isQuietHours) {
       return channels;
     }
@@ -373,12 +373,12 @@ export class NotificationIntelligenceService {
       if (preferences.quietHours.channels.includes(channel.type)) {
         return true;
       }
-      
+
       // Allow critical notifications on any channel
       if (preferences.quietHours.allowCritical) {
         return true; // Simplified - in production, check actual severity
       }
-      
+
       return false;
     });
   }
@@ -397,7 +397,7 @@ export class NotificationIntelligenceService {
       } catch (error) {
         console.error(`Failed to deliver notification ${notification.id} to channel ${channel.type}:`, error);
         notification.retryCount++;
-        
+
         if (notification.retryCount < notification.maxRetries) {
           // Schedule retry
           setTimeout(() => this.deliverToChannel(notification, channel), 5000);
@@ -418,48 +418,48 @@ export class NotificationIntelligenceService {
   private async deliverToChannel(notification: Notification, channel: NotificationChannel): Promise<void> {
     // Simulate delivery delay
     await new Promise(resolve => setTimeout(resolve, Math.random() * 1000));
-    
+
     // Simulate delivery success/failure
     const success = Math.random() > 0.1; // 90% success rate
-    
+
     if (!success) {
       throw new Error(`Delivery failed to ${channel.type}`);
     }
-    
+
     console.log(`Notification ${notification.id} delivered to ${channel.type}: ${channel.address}`);
   }
 
   private calculateAverageDeliveryTime(notifications: Notification[]): number {
     const deliveredNotifications = notifications.filter(n => n.deliveredAt);
     if (deliveredNotifications.length === 0) return 0;
-    
+
     const totalTime = deliveredNotifications.reduce((sum, n) => {
       if (n.deliveredAt) {
         return sum + (n.deliveredAt.getTime() - n.createdAt.getTime());
       }
       return sum;
     }, 0);
-    
+
     return totalTime / deliveredNotifications.length / 1000; // seconds
   }
 
   private calculateAverageReadTime(notifications: Notification[]): number {
     const readNotifications = notifications.filter(n => n.readAt);
     if (readNotifications.length === 0) return 0;
-    
+
     const totalTime = readNotifications.reduce((sum, n) => {
       if (n.readAt && n.deliveredAt) {
         return sum + (n.readAt.getTime() - n.deliveredAt.getTime());
       }
       return sum;
     }, 0);
-    
+
     return totalTime / readNotifications.length / 1000; // seconds
   }
 
   private calculateChannelStats(notifications: Notification[]): ChannelStats[] {
     const channelMap = new Map<string, ChannelStats>();
-    
+
     notifications.forEach(notification => {
       notification.channels.forEach(channel => {
         const existing = channelMap.get(channel.type) || {
@@ -470,30 +470,30 @@ export class NotificationIntelligenceService {
           deliveryRate: 0,
           averageDeliveryTime: 0
         };
-        
+
         existing.sent++;
         if (notification.status === 'delivered') {
           existing.delivered++;
         } else if (notification.status === 'failed') {
           existing.failed++;
         }
-        
+
         channelMap.set(channel.type, existing);
       });
     });
-    
+
     // Calculate rates and averages
     channelMap.forEach(stats => {
       stats.deliveryRate = stats.sent > 0 ? (stats.delivered / stats.sent) * 100 : 0;
       stats.averageDeliveryTime = 1.5; // Simplified - in production, calculate actual time
     });
-    
+
     return Array.from(channelMap.values());
   }
 
   private calculateTimeStats(notifications: Notification[]): TimeStats[] {
     const hourMap = new Map<number, TimeStats>();
-    
+
     // Initialize all hours
     for (let hour = 0; hour < 24; hour++) {
       hourMap.set(hour, {
@@ -505,11 +505,11 @@ export class NotificationIntelligenceService {
         readRate: 0
       });
     }
-    
+
     notifications.forEach(notification => {
       const hour = notification.createdAt.getHours();
       const stats = hourMap.get(hour)!;
-      
+
       stats.sent++;
       if (notification.status === 'delivered') {
         stats.delivered++;
@@ -518,19 +518,19 @@ export class NotificationIntelligenceService {
         stats.read++;
       }
     });
-    
+
     // Calculate rates
     hourMap.forEach(stats => {
       stats.deliveryRate = stats.sent > 0 ? (stats.delivered / stats.sent) * 100 : 0;
       stats.readRate = stats.delivered > 0 ? (stats.read / stats.delivered) * 100 : 0;
     });
-    
+
     return Array.from(hourMap.values());
   }
 
   private calculateErrorStats(notifications: Notification[]): ErrorStats[] {
     const errorMap = new Map<string, ErrorStats>();
-    
+
     notifications.forEach(notification => {
       if (notification.status === 'failed') {
         const error = 'Delivery failed'; // Simplified - in production, track actual errors
@@ -540,23 +540,23 @@ export class NotificationIntelligenceService {
           percentage: 0,
           lastOccurred: notification.createdAt
         };
-        
+
         existing.count++;
         if (notification.createdAt > existing.lastOccurred) {
           existing.lastOccurred = notification.createdAt;
         }
-        
+
         errorMap.set(error, existing);
       }
     });
-    
+
     const totalErrors = Array.from(errorMap.values()).reduce((sum, stats) => sum + stats.count, 0);
-    
+
     // Calculate percentages
     errorMap.forEach(stats => {
       stats.percentage = totalErrors > 0 ? (stats.count / totalErrors) * 100 : 0;
     });
-    
+
     return Array.from(errorMap.values());
   }
 
@@ -565,9 +565,9 @@ export class NotificationIntelligenceService {
     const highCount = notifications.filter(n => n.severity === 'high').length;
     const mediumCount = notifications.filter(n => n.severity === 'medium').length;
     const lowCount = notifications.filter(n => n.severity === 'low').length;
-    
-    return `Daily Notification Digest:
-    
+
+    return `Daily Notification Digest:;
+
 📊 Summary:
 - Critical: ${criticalCount}
 - High: ${highCount}

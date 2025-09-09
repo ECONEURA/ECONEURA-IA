@@ -379,8 +379,8 @@ export class AdvancedConfigurationManagementService {
 
   async getConfigByName(name: string, environment?: string): Promise<AdvancedConfig | null> {
     const configs = Array.from(this.configs.values());
-    return configs.find(c => 
-      c.name === name && 
+    return configs.find(c => ;
+      c.name === name &&
       (c.environment === environment || c.environment === 'all')
     ) || null;
   }
@@ -400,7 +400,7 @@ export class AdvancedConfigurationManagementService {
     };
 
     this.configs.set(newConfig.id!, newConfig);
-    
+
     // Registrar en audit log
     this.auditLog.push({
       id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -443,7 +443,7 @@ export class AdvancedConfigurationManagementService {
     };
 
     this.configs.set(id, updated);
-    
+
     // Registrar en audit log
     this.auditLog.push({
       id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -455,7 +455,7 @@ export class AdvancedConfigurationManagementService {
       userId,
       timestamp: new Date(),
       reason: updates.reason || 'Configuration updated',
-      metadata: { 
+      metadata: {
         changedFields: Object.keys(updates),
         category: updated.category,
         type: updated.type
@@ -480,7 +480,7 @@ export class AdvancedConfigurationManagementService {
     if (!existing) return false;
 
     this.configs.delete(id);
-    
+
     // Registrar en audit log
     this.auditLog.push({
       id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -491,7 +491,7 @@ export class AdvancedConfigurationManagementService {
       userId,
       timestamp: new Date(),
       reason: 'Configuration deleted',
-      metadata: { 
+      metadata: {
         name: existing.name,
         category: existing.category,
         type: existing.type
@@ -554,26 +554,26 @@ export class AdvancedConfigurationManagementService {
     // Validar reglas personalizadas
     if (config.validation) {
       const validation = config.validation;
-      
+
       if (validation.min !== undefined && typeof config.value === 'number' && config.value < validation.min) {
         errors.push(`Value must be at least ${validation.min}`);
       }
-      
+
       if (validation.max !== undefined && typeof config.value === 'number' && config.value > validation.max) {
         errors.push(`Value must be at most ${validation.max}`);
       }
-      
+
       if (validation.pattern && typeof config.value === 'string') {
         const regex = new RegExp(validation.pattern);
         if (!regex.test(config.value)) {
           errors.push(`Value does not match required pattern: ${validation.pattern}`);
         }
       }
-      
+
       if (validation.enum && !validation.enum.includes(config.value)) {
         errors.push(`Value must be one of: ${validation.enum.join(', ')}`);
       }
-      
+
       if (validation.custom) {
         const customValidator = this.validationRules.get(validation.custom);
         if (customValidator && !customValidator(config.value)) {
@@ -643,7 +643,7 @@ export class AdvancedConfigurationManagementService {
         name: key,
         description: `Generated from template: ${template.name}`,
         category: template.category,
-        type: typeof processedValue === 'string' ? 'string' : 
+        type: typeof processedValue === 'string' ? 'string' :
               typeof processedValue === 'number' ? 'number' :
               typeof processedValue === 'boolean' ? 'boolean' : 'object',
         value: processedValue,
@@ -708,7 +708,7 @@ export class AdvancedConfigurationManagementService {
         userId,
         timestamp: new Date(),
         reason: 'Configuration deployed',
-        metadata: { 
+        metadata: {
           deploymentName: deployment.name,
           configsCount: deployment.configs.length,
           strategy: deployment.deploymentStrategy
@@ -804,7 +804,7 @@ export class AdvancedConfigurationManagementService {
   // Cache y performance
   async getConfigValue(name: string, environment?: string): Promise<any> {
     const cacheKey = `${name}_${environment || 'default'}`;
-    
+
     if (this.configCache.has(cacheKey)) {
       return this.configCache.get(cacheKey);
     }
@@ -845,7 +845,7 @@ export class AdvancedConfigurationManagementService {
           name,
           description: `Imported configuration: ${name}`,
           category: 'system',
-          type: typeof value === 'string' ? 'string' : 
+          type: typeof value === 'string' ? 'string' :
                 typeof value === 'number' ? 'number' :
                 typeof value === 'boolean' ? 'boolean' : 'object',
           value,

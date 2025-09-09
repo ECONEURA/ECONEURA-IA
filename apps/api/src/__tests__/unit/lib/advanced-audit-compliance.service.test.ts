@@ -32,7 +32,7 @@ describe('AdvancedAuditComplianceService', () => {
       };
 
       const event = await service.logAuditEvent(eventData);
-      
+
       expect(event).toBeDefined();
       expect(event.id).toBeDefined();
       expect(event.timestamp).toBeDefined();
@@ -62,7 +62,7 @@ describe('AdvancedAuditComplianceService', () => {
       };
 
       const event = await service.logAuditEvent(eventData);
-      
+
       expect(event).toBeDefined();
       expect(event.id).toBeDefined();
       expect(event.timestamp).toBeDefined();
@@ -75,7 +75,7 @@ describe('AdvancedAuditComplianceService', () => {
   describe('getAuditEvents', () => {
     it('should return all audit events without filters', async () => {
       const result = await service.getAuditEvents();
-      
+
       expect(result).toBeDefined();
       expect(result).toHaveProperty('events');
       expect(result).toHaveProperty('total');
@@ -85,21 +85,21 @@ describe('AdvancedAuditComplianceService', () => {
 
     it('should filter events by organization', async () => {
       const result = await service.getAuditEvents({ organizationId: 'org-001' });
-      
+
       expect(result).toBeDefined();
       expect(result.events.every(e => e.organizationId === 'org-001')).toBe(true);
     });
 
     it('should filter events by severity', async () => {
       const result = await service.getAuditEvents({ severity: 'high' });
-      
+
       expect(result).toBeDefined();
       expect(result.events.every(e => e.severity === 'high')).toBe(true);
     });
 
     it('should respect pagination parameters', async () => {
       const result = await service.getAuditEvents({ limit: 5, offset: 0 });
-      
+
       expect(result).toBeDefined();
       expect(result.events.length).toBeLessThanOrEqual(5);
     });
@@ -108,11 +108,11 @@ describe('AdvancedAuditComplianceService', () => {
   describe('getComplianceRules', () => {
     it('should return all compliance rules', async () => {
       const rules = await service.getComplianceRules();
-      
+
       expect(rules).toBeDefined();
       expect(Array.isArray(rules)).toBe(true);
       expect(rules.length).toBeGreaterThan(0);
-      
+
       // Check structure of first rule
       const firstRule = rules[0];
       expect(firstRule).toHaveProperty('id');
@@ -149,7 +149,7 @@ describe('AdvancedAuditComplianceService', () => {
       };
 
       const rule = await service.createComplianceRule(ruleData);
-      
+
       expect(rule).toBeDefined();
       expect(rule.id).toBeDefined();
       expect(rule.name).toBe(ruleData.name);
@@ -166,7 +166,7 @@ describe('AdvancedAuditComplianceService', () => {
   describe('getViolations', () => {
     it('should return all violations without filters', async () => {
       const result = await service.getViolations();
-      
+
       expect(result).toBeDefined();
       expect(result).toHaveProperty('violations');
       expect(result).toHaveProperty('total');
@@ -176,14 +176,14 @@ describe('AdvancedAuditComplianceService', () => {
 
     it('should filter violations by status', async () => {
       const result = await service.getViolations({ status: 'open' });
-      
+
       expect(result).toBeDefined();
       expect(result.violations.every(v => v.status === 'open')).toBe(true);
     });
 
     it('should filter violations by severity', async () => {
       const result = await service.getViolations({ severity: 'high' });
-      
+
       expect(result).toBeDefined();
       expect(result.violations.every(v => v.severity === 'high')).toBe(true);
     });
@@ -209,19 +209,19 @@ describe('AdvancedAuditComplianceService', () => {
       };
 
       await service.logAuditEvent(eventData);
-      
+
       // Get violations to find one to update
       const { violations } = await service.getViolations();
       if (violations.length > 0) {
         const violation = violations[0];
-        
+
         const updatedViolation = await service.updateViolationStatus(
           violation.id,
           'investigating',
           'Under investigation',
           'admin-001'
         );
-        
+
         expect(updatedViolation).toBeDefined();
         expect(updatedViolation.id).toBe(violation.id);
         expect(updatedViolation.status).toBe('investigating');
@@ -232,7 +232,7 @@ describe('AdvancedAuditComplianceService', () => {
 
     it('should throw error for non-existing violation', async () => {
       await expect(
-        service.updateViolationStatus('non-existing-id', 'resolved')
+        service.updateViolationStatus('non-existing-id', 'resolved');
       ).rejects.toThrow('Violation not found');
     });
   });
@@ -255,7 +255,7 @@ describe('AdvancedAuditComplianceService', () => {
       };
 
       const report = await service.generateAuditReport(reportData);
-      
+
       expect(report).toBeDefined();
       expect(report.id).toBeDefined();
       expect(report.name).toBe(reportData.name);
@@ -265,7 +265,7 @@ describe('AdvancedAuditComplianceService', () => {
       expect(report.filters).toEqual(reportData.filters);
       expect(report.generatedBy).toBe(reportData.generatedBy);
       expect(report.generatedAt).toBeDefined();
-      
+
       // Check metrics structure
       expect(report.metrics).toHaveProperty('totalEvents');
       expect(report.metrics).toHaveProperty('violations');
@@ -275,7 +275,7 @@ describe('AdvancedAuditComplianceService', () => {
       expect(report.metrics).toHaveProperty('topResources');
       expect(report.metrics).toHaveProperty('severityDistribution');
       expect(report.metrics).toHaveProperty('frameworkCompliance');
-      
+
       expect(typeof report.metrics.totalEvents).toBe('number');
       expect(typeof report.metrics.violations).toBe('number');
       expect(typeof report.metrics.riskScore).toBe('number');
@@ -290,7 +290,7 @@ describe('AdvancedAuditComplianceService', () => {
   describe('getAuditReports', () => {
     it('should return reports for organization', async () => {
       const reports = await service.getAuditReports('org-001');
-      
+
       expect(reports).toBeDefined();
       expect(Array.isArray(reports)).toBe(true);
       expect(reports.every(r => r.organizationId === 'org-001')).toBe(true);
@@ -298,7 +298,7 @@ describe('AdvancedAuditComplianceService', () => {
 
     it('should return empty array for non-existing organization', async () => {
       const reports = await service.getAuditReports('non-existing-org');
-      
+
       expect(reports).toBeDefined();
       expect(Array.isArray(reports)).toBe(true);
       expect(reports.length).toBe(0);
@@ -308,7 +308,7 @@ describe('AdvancedAuditComplianceService', () => {
   describe('getComplianceMetrics', () => {
     it('should return compliance metrics for organization', async () => {
       const metrics = await service.getComplianceMetrics('org-001');
-      
+
       expect(metrics).toBeDefined();
       expect(metrics).toHaveProperty('totalEvents');
       expect(metrics).toHaveProperty('totalViolations');
@@ -317,7 +317,7 @@ describe('AdvancedAuditComplianceService', () => {
       expect(metrics).toHaveProperty('riskScore');
       expect(metrics).toHaveProperty('frameworkCompliance');
       expect(metrics).toHaveProperty('recentViolations');
-      
+
       expect(typeof metrics.totalEvents).toBe('number');
       expect(typeof metrics.totalViolations).toBe('number');
       expect(typeof metrics.openViolations).toBe('number');
@@ -332,7 +332,7 @@ describe('AdvancedAuditComplianceService', () => {
     it('should have GDPR rule initialized', async () => {
       const rules = await service.getComplianceRules();
       const gdprRule = rules.find(r => r.framework === 'gdpr');
-      
+
       expect(gdprRule).toBeDefined();
       expect(gdprRule?.name).toBe('GDPR Data Access Monitoring');
       expect(gdprRule?.isActive).toBe(true);
@@ -341,7 +341,7 @@ describe('AdvancedAuditComplianceService', () => {
     it('should have SOX rule initialized', async () => {
       const rules = await service.getComplianceRules();
       const soxRule = rules.find(r => r.framework === 'sox');
-      
+
       expect(soxRule).toBeDefined();
       expect(soxRule?.name).toBe('SOX Financial Data Access');
       expect(soxRule?.isActive).toBe(true);
@@ -350,7 +350,7 @@ describe('AdvancedAuditComplianceService', () => {
     it('should have PCI rule initialized', async () => {
       const rules = await service.getComplianceRules();
       const pciRule = rules.find(r => r.framework === 'pci');
-      
+
       expect(pciRule).toBeDefined();
       expect(pciRule?.name).toBe('PCI Card Data Protection');
       expect(pciRule?.isActive).toBe(true);
@@ -377,7 +377,7 @@ describe('AdvancedAuditComplianceService', () => {
           riskScore: 85
         });
       }
-      
+
       // Check if violations were created
       const { violations } = await service.getViolations();
       expect(violations.length).toBeGreaterThan(0);

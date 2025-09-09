@@ -96,7 +96,7 @@ describe('Inventory Kardex API Integration Tests', () => {
     it('should filter products by category', async () => {
       const response = await request(app)
         .get('/v1/inventory-kardex/products')
-        .query({ 
+        .query({
           organizationId: 'demo-org-1',
           category: 'Electronics',
           limit: 10
@@ -112,7 +112,7 @@ describe('Inventory Kardex API Integration Tests', () => {
     it('should search products by name', async () => {
       const response = await request(app)
         .get('/v1/inventory-kardex/products')
-        .query({ 
+        .query({
           organizationId: 'demo-org-1',
           search: 'Laptop',
           limit: 10
@@ -122,7 +122,7 @@ describe('Inventory Kardex API Integration Tests', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data.products).toBeDefined();
       expect(Array.isArray(response.body.data.products)).toBe(true);
-      expect(response.body.data.products.every((p: any) => 
+      expect(response.body.data.products.every((p: any) =>
         p.name.toLowerCase().includes('laptop')
       )).toBe(true);
     });
@@ -180,7 +180,7 @@ describe('Inventory Kardex API Integration Tests', () => {
     it('should filter kardex entries by product', async () => {
       const response = await request(app)
         .get('/v1/inventory-kardex/kardex')
-        .query({ 
+        .query({
           organizationId: 'demo-org-1',
           productId: testProductId,
           limit: 10
@@ -196,7 +196,7 @@ describe('Inventory Kardex API Integration Tests', () => {
     it('should filter kardex entries by transaction type', async () => {
       const response = await request(app)
         .get('/v1/inventory-kardex/kardex')
-        .query({ 
+        .query({
           organizationId: 'demo-org-1',
           transactionType: 'in',
           limit: 10
@@ -250,7 +250,7 @@ describe('Inventory Kardex API Integration Tests', () => {
     it('should filter low stock items', async () => {
       const response = await request(app)
         .get('/v1/inventory-kardex/stock-levels')
-        .query({ 
+        .query({
           organizationId: 'demo-org-1',
           lowStock: true,
           limit: 10
@@ -265,7 +265,7 @@ describe('Inventory Kardex API Integration Tests', () => {
     it('should filter overstock items', async () => {
       const response = await request(app)
         .get('/v1/inventory-kardex/stock-levels')
-        .query({ 
+        .query({
           organizationId: 'demo-org-1',
           overstock: true,
           limit: 10
@@ -369,7 +369,7 @@ describe('Inventory Kardex API Integration Tests', () => {
     it('should filter alerts by type', async () => {
       const response = await request(app)
         .get('/v1/inventory-kardex/alerts')
-        .query({ 
+        .query({
           organizationId: 'demo-org-1',
           alertType: 'low_stock',
           limit: 10
@@ -385,7 +385,7 @@ describe('Inventory Kardex API Integration Tests', () => {
     it('should filter alerts by severity', async () => {
       const response = await request(app)
         .get('/v1/inventory-kardex/alerts')
-        .query({ 
+        .query({
           organizationId: 'demo-org-1',
           severity: 'high',
           limit: 10
@@ -401,7 +401,7 @@ describe('Inventory Kardex API Integration Tests', () => {
     it('should filter active alerts', async () => {
       const response = await request(app)
         .get('/v1/inventory-kardex/alerts')
-        .query({ 
+        .query({
           organizationId: 'demo-org-1',
           isActive: true,
           limit: 10
@@ -411,7 +411,7 @@ describe('Inventory Kardex API Integration Tests', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data.alerts).toBeDefined();
       expect(Array.isArray(response.body.data.alerts)).toBe(true);
-      expect(response.body.data.alerts.every((a: any) => a.isActive === true)).toBe(true);
+      expect(response.body.data.alerts.every((a: any) => a.isActive =)).toBe(true);
     });
   });
 
@@ -462,7 +462,7 @@ describe('Inventory Kardex API Integration Tests', () => {
     it('should complete a cycle count', async () => {
       const response = await request(app)
         .post(`/v1/inventory-kardex/cycle-counts/${testCycleCountId}/complete`)
-        .send({ 
+        .send({
           actualQuantity: 9,
           notes: 'Found 9 units during count'
         })
@@ -483,7 +483,7 @@ describe('Inventory Kardex API Integration Tests', () => {
     it('should filter cycle counts by status', async () => {
       const response = await request(app)
         .get('/v1/inventory-kardex/cycle-counts')
-        .query({ 
+        .query({
           organizationId: 'demo-org-1',
           status: 'scheduled',
           limit: 10

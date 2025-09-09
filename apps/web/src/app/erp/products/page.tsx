@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  Box, 
+import {
+  Box,
   Plus,
   Search,
   Image,
@@ -48,7 +48,7 @@ interface Product {
   monthlySales: number;
 }
 
-function MediterraneanProducts() {
+function MediterraneanProducts(): void {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -63,10 +63,10 @@ function MediterraneanProducts() {
   useEffect(() => {
     const loadProducts = async () => {
       setLoading(true);
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       const mockProducts: Product[] = [
         {
           id: '1',
@@ -237,11 +237,11 @@ function MediterraneanProducts() {
           monthlySales: 0
         }
       ];
-      
+
       setProducts(mockProducts);
       setLoading(false);
     };
-    
+
     loadProducts();
   }, []);
 
@@ -258,12 +258,12 @@ function MediterraneanProducts() {
       const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
       const matchesBrand = selectedBrand === 'all' || product.brand === selectedBrand;
       const matchesStatus = selectedStatus === 'all' || product.status === selectedStatus;
-      
+
       return matchesSearch && matchesCategory && matchesBrand && matchesStatus;
     })
     .sort((a, b) => {
       let aValue, bValue;
-      
+
       switch (sortBy) {
         case 'name':
           aValue = a.name.toLowerCase();
@@ -284,7 +284,7 @@ function MediterraneanProducts() {
         default:
           return 0;
       }
-      
+
       if (sortOrder === 'asc') {
         return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
       } else {
@@ -294,7 +294,7 @@ function MediterraneanProducts() {
 
   const toggleFeatured = (productId: string) => {
     setProducts(prev => prev.map(product =>
-      product.id === productId 
+      product.id === productId
         ? { ...product, featured: !product.featured }
         : product
     ));
@@ -335,7 +335,7 @@ function MediterraneanProducts() {
   const lowStockProducts = products.filter(p => p.currentStock <= p.minStock).length;
 
   if (loading) {
-    return (
+    return (;
       <div className="min-h-screen bg-gradient-to-br from-mediterranean-50 via-white to-coral-50 flex items-center justify-center">
         <div className="text-center">
           <div className="relative">
@@ -348,13 +348,13 @@ function MediterraneanProducts() {
     );
   }
 
-  return (
+  return (;
     <div className="min-h-screen bg-gradient-to-br from-mediterranean-50 via-white to-coral-50">
       {/* Mediterranean Header */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-coral-600 via-coral-500 to-terracotta-500 opacity-90"></div>
         <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-20"></div>
-        
+
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
             <div>
@@ -365,13 +365,13 @@ function MediterraneanProducts() {
                 {filteredAndSortedProducts.length} productos • {activeProducts} activos • €{(totalValue/1000).toFixed(0)}K valor inventario
               </p>
             </div>
-            
+
             <div className="flex items-center gap-4">
               <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
                 <RefreshCw className="w-4 h-4" />
                 Sincronizar
               </button>
-              
+
               <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
                 <Plus className="w-4 h-4" />
                 Nuevo Producto
@@ -411,7 +411,7 @@ function MediterraneanProducts() {
             }
           ].map((stat, index) => {
             const IconComponent = stat.icon;
-            return (
+            return (;
               <div
                 key={stat.label}
                 className={`relative overflow-hidden rounded-2xl p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 ${
@@ -452,7 +452,7 @@ function MediterraneanProducts() {
                 className="w-full pl-10 pr-4 py-3 border border-mediterranean-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-coral-500 focus:border-coral-500"
               />
             </div>
-            
+
             {/* Filters */}
             <div className="flex flex-wrap items-center gap-4">
               {/* Category Filter */}
@@ -469,7 +469,7 @@ function MediterraneanProducts() {
                   ))}
                 </select>
               </div>
-              
+
               {/* Brand Filter */}
               <select
                 value={selectedBrand}
@@ -481,7 +481,7 @@ function MediterraneanProducts() {
                   <option key={brand} value={brand}>{brand}</option>
                 ))}
               </select>
-              
+
               {/* Status Filter */}
               <select
                 value={selectedStatus}
@@ -493,7 +493,7 @@ function MediterraneanProducts() {
                 <option value="inactive">Inactivo</option>
                 <option value="discontinued">Descontinuado</option>
               </select>
-              
+
               {/* Sort */}
               <select
                 value={`${sortBy}-${sortOrder}`}
@@ -512,14 +512,14 @@ function MediterraneanProducts() {
                 <option value="stock-desc">Stock mayor</option>
                 <option value="sales-desc">Más vendidos</option>
               </select>
-              
+
               {/* View Mode */}
               <div className="flex bg-mediterranean-100 rounded-xl p-1">
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    viewMode === 'grid' 
-                      ? 'bg-white text-mediterranean-600 shadow-sm' 
+                    viewMode === 'grid'
+                      ? 'bg-white text-mediterranean-600 shadow-sm'
                       : 'text-mediterranean-600 hover:bg-mediterranean-50'
                   }`}
                 >
@@ -528,8 +528,8 @@ function MediterraneanProducts() {
                 <button
                   onClick={() => setViewMode('list')}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    viewMode === 'list' 
-                      ? 'bg-white text-mediterranean-600 shadow-sm' 
+                    viewMode === 'list'
+                      ? 'bg-white text-mediterranean-600 shadow-sm'
                       : 'text-mediterranean-600 hover:bg-mediterranean-50'
                   }`}
                 >
@@ -557,7 +557,7 @@ function MediterraneanProducts() {
                     <div className="w-full h-32 bg-mediterranean-100 rounded-xl mb-3 flex items-center justify-center">
                       <Image className="w-8 h-8 text-mediterranean-400" />
                     </div>
-                    
+
                     <h3 className="font-bold text-mediterranean-800 text-sm font-playfair line-clamp-2">
                       {product.name}
                     </h3>
@@ -568,7 +568,7 @@ function MediterraneanProducts() {
                       {product.category} • {product.brand}
                     </p>
                   </div>
-                  
+
                   <div className="flex items-center gap-1 ml-2">
                     <button
                       onClick={() => toggleFeatured(product.id)}
@@ -580,7 +580,7 @@ function MediterraneanProducts() {
                         <Star className="w-4 h-4 text-mediterranean-400" />
                       )}
                     </button>
-                    
+
                     <button className="p-1 hover:bg-mediterranean-50 rounded-full transition-colors">
                       <MoreVertical className="w-4 h-4 text-mediterranean-400" />
                     </button>
@@ -595,21 +595,21 @@ function MediterraneanProducts() {
                       €{product.salePrice.toFixed(2)}
                     </span>
                   </div>
-                  
+
                   <div className="flex justify-between items-center">
                     <span className="text-mediterranean-600 text-sm">Stock</span>
                     <span className={`font-bold ${getStockStatusColor(product.currentStock, product.minStock)}`}>
                       {product.currentStock}
                     </span>
                   </div>
-                  
+
                   <div className="flex justify-between items-center">
                     <span className="text-mediterranean-600 text-sm">Margen</span>
                     <span className="text-mediterranean-700">
                       {product.margin.toFixed(1)}%
                     </span>
                   </div>
-                  
+
                   <div className="flex justify-between items-center">
                     <span className="text-mediterranean-600 text-sm">Ventas/mes</span>
                     <span className="text-mediterranean-700">
@@ -777,8 +777,8 @@ function MediterraneanProducts() {
   );
 }
 
-export default function ProductsPage() {
-  return (
+export default function ProductsPage(): void {
+  return (;
     <ProtectedRoute requiredPermission="erp:products:view">
       <MediterraneanProducts />
     </ProtectedRoute>

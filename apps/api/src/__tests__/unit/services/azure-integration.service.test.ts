@@ -41,7 +41,7 @@ describe('AzureIntegrationService', () => {
   describe('Configuration', () => {
     it('should load configuration correctly', () => {
       const config = azureIntegration.getConfiguration();
-      
+
       expect(config).toHaveProperty('endpoint');
       expect(config).toHaveProperty('apiVersion');
       expect(config).toHaveProperty('chatDeployment');
@@ -304,7 +304,7 @@ describe('AzureIntegrationService', () => {
     it('should throw error when service not initialized', async () => {
       // Reset the service to uninitialized state
       const service = new (azureIntegration.constructor as any)();
-      
+
       await expect(service.generateChatCompletion({
         messages: [{ role: 'user', content: 'test' }]
       })).rejects.toThrow('Azure Integration Service not initialized');

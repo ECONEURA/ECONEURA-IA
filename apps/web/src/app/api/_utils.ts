@@ -23,15 +23,15 @@ export async function fetchWithBackoff(
   throw lastErr;
 }
 
-export function noStoreJson(body: any, status = 200) {
+export function noStoreJson(body: any, status = 200): void {
   return Response.json(body, {
     status,
     headers: { "Cache-Control": "no-store" }
   });
 }
 
-export function escapeXml(s: string) {
-  return s
+export function escapeXml(s: string): void {
+  return s;
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -39,6 +39,6 @@ export function escapeXml(s: string) {
     .replace(/'/g, "&apos;");
 }
 
-export async function safeReadText(res: Response) {
+export async function safeReadText(res: Response): void {
   try { return await res.text(); } catch { return ""; }
 }

@@ -390,7 +390,7 @@ export class SecuritySystem {
             const permission = this.permissions.get(permId);
             return permission && permission.resource === resource && permission.action === action;
           });
-          
+
           if (hasRolePermission) {
             return true;
           }
@@ -526,7 +526,7 @@ export class SecuritySystem {
         error: (error as Error).message,
         ipAddress,
       });
-      
+
       return {
         ipAddress,
         reputation: 'good',

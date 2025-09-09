@@ -83,7 +83,7 @@ export class WebRateLimiter {
     };
 
     this.organizations.set(organizationId, organization);
-    
+
     // Initialize state
     this.states.set(organizationId, {
       tokens: fullConfig.burstSize || fullConfig.maxRequests,
@@ -101,11 +101,11 @@ export class WebRateLimiter {
   removeOrganization(organizationId: string): boolean {
     const removed = this.organizations.delete(organizationId);
     this.states.delete(organizationId);
-    
+
     if (removed) {
       console.log('Web organization rate limit removed', { organizationId });
     }
-    
+
     return removed;
   }
 
@@ -199,12 +199,12 @@ export class WebRateLimiter {
   private tokenBucketStrategy(state: RateLimitState, config: RateLimitConfig, now: number): RateLimitResult {
     const timePassed = now - state.lastRefill;
     const tokensToAdd = Math.floor(timePassed / 1000) * (config.refillRate || 1);
-    
+
     state.tokens = Math.min(
       config.burstSize || config.maxRequests,
       state.tokens + tokensToAdd
     );
-    
+
     const allowed = state.tokens > 0;
     const remaining = allowed ? state.tokens - 1 : 0;
     const resetTime = now + (1000 / (config.refillRate || 1));
@@ -215,7 +215,7 @@ export class WebRateLimiter {
 
   private slidingWindowStrategy(state: RateLimitState, config: RateLimitConfig, now: number): RateLimitResult {
     const windowStart = now - config.windowMs;
-    
+
     if (state.windowStart < windowStart) {
       // Reset window
       state.requestCount = 0;

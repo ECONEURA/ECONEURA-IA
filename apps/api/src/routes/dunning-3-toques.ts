@@ -1,6 +1,6 @@
 /**
  * PR-54: Dunning 3-toques Routes
- * 
+ *
  * Endpoints para el sistema de gestión de cobranza con 3 toques
  */
 
@@ -48,7 +48,7 @@ const updateConfigSchema = z.object({
 router.get('/stats', async (req, res) => {
   try {
     const stats = dunning3ToquesService.getStats();
-    
+
     res.json({
       success: true,
       data: stats,
@@ -59,7 +59,7 @@ router.get('/stats', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get dunning stats',
@@ -75,16 +75,16 @@ router.get('/stats', async (req, res) => {
 router.post('/process', async (req, res) => {
   try {
     const validatedData = processDunningCampaignsSchema.parse(req.body);
-    
+
     const stats = await dunning3ToquesService.processDunningCampaigns();
-    
+
     structuredLogger.info('Dunning campaigns processing completed', {
       organizationId: validatedData.organizationId,
       overdueInvoices: stats.overdueInvoices,
       activeCampaigns: stats.activeCampaigns,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       data: stats,
@@ -96,7 +96,7 @@ router.post('/process', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to process dunning campaigns',
@@ -112,7 +112,7 @@ router.post('/process', async (req, res) => {
 router.get('/campaigns/active', async (req, res) => {
   try {
     const activeCampaigns = dunning3ToquesService.getActiveCampaigns();
-    
+
     res.json({
       success: true,
       data: activeCampaigns,
@@ -124,7 +124,7 @@ router.get('/campaigns/active', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get active dunning campaigns',
@@ -140,18 +140,18 @@ router.get('/campaigns/active', async (req, res) => {
 router.get('/campaigns/:campaignId', async (req, res) => {
   try {
     const { campaignId } = req.params;
-    
+
     const campaign = dunning3ToquesService.getCampaign(campaignId);
-    
+
     if (!campaign) {
       return res.status(404).json({
         success: false,
         error: 'Campaign not found'
       });
     }
-    
+
     const steps = dunning3ToquesService.getCampaignSteps(campaignId);
-    
+
     res.json({
       success: true,
       data: {
@@ -166,7 +166,7 @@ router.get('/campaigns/:campaignId', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get dunning campaign',
@@ -182,9 +182,9 @@ router.get('/campaigns/:campaignId', async (req, res) => {
 router.get('/campaigns/:campaignId/steps', async (req, res) => {
   try {
     const { campaignId } = req.params;
-    
+
     const steps = dunning3ToquesService.getCampaignSteps(campaignId);
-    
+
     res.json({
       success: true,
       data: steps,
@@ -197,7 +197,7 @@ router.get('/campaigns/:campaignId/steps', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get dunning campaign steps',
@@ -217,18 +217,18 @@ router.post('/invoices/:invoiceId/mark-paid', async (req, res) => {
       invoiceId,
       ...req.body
     });
-    
+
     await dunning3ToquesService.markInvoiceAsPaid(
-      validatedData.invoiceId, 
+      validatedData.invoiceId,
       validatedData.paymentDate
     );
-    
+
     structuredLogger.info('Invoice marked as paid', {
       invoiceId: validatedData.invoiceId,
       paymentDate: validatedData.paymentDate,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       message: 'Invoice marked as paid successfully',
@@ -247,7 +247,7 @@ router.post('/invoices/:invoiceId/mark-paid', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to mark invoice as paid',
@@ -263,7 +263,7 @@ router.post('/invoices/:invoiceId/mark-paid', async (req, res) => {
 router.get('/invoices/overdue', async (req, res) => {
   try {
     const { organizationId, limit = 100, offset = 0 } = req.query;
-    
+
     if (!organizationId) {
       return res.status(400).json({
         success: false,
@@ -273,7 +273,7 @@ router.get('/invoices/overdue', async (req, res) => {
 
     // En un sistema real, esto vendría de la base de datos
     const overdueInvoices = []; // dunning3ToquesService.getOverdueInvoices(organizationId as string, Number(limit), Number(offset));
-    
+
     res.json({
       success: true,
       data: {
@@ -291,7 +291,7 @@ router.get('/invoices/overdue', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get overdue invoices',
@@ -307,14 +307,14 @@ router.get('/invoices/overdue', async (req, res) => {
 router.put('/config', async (req, res) => {
   try {
     const validatedData = updateConfigSchema.parse(req.body);
-    
+
     dunning3ToquesService.updateConfig(validatedData);
-    
+
     structuredLogger.info('Dunning configuration updated', {
       config: validatedData,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       message: 'Dunning configuration updated successfully',
@@ -326,7 +326,7 @@ router.put('/config', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to update dunning configuration',
@@ -357,7 +357,7 @@ router.get('/config', async (req, res) => {
       maxOverdueDays: 90,
       notificationEnabled: true
     };
-    
+
     res.json({
       success: true,
       data: config,
@@ -368,7 +368,7 @@ router.get('/config', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get dunning configuration',
@@ -385,9 +385,9 @@ router.post('/campaigns/:campaignId/cancel', async (req, res) => {
   try {
     const { campaignId } = req.params;
     const { reason } = req.body;
-    
+
     const campaign = dunning3ToquesService.getCampaign(campaignId);
-    
+
     if (!campaign) {
       return res.status(404).json({
         success: false,
@@ -406,13 +406,13 @@ router.post('/campaigns/:campaignId/cancel', async (req, res) => {
     // campaign.status = 'cancelled';
     // campaign.endDate = new Date().toISOString();
     // campaign.notes.push(`Campaign cancelled: ${reason || 'No reason provided'}`);
-    
+
     structuredLogger.info('Dunning campaign cancelled', {
       campaignId,
       reason,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       message: 'Dunning campaign cancelled successfully',
@@ -429,7 +429,7 @@ router.post('/campaigns/:campaignId/cancel', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to cancel dunning campaign',
@@ -445,7 +445,7 @@ router.post('/campaigns/:campaignId/cancel', async (req, res) => {
 router.get('/reports/effectiveness', async (req, res) => {
   try {
     const { organizationId, period = '30d' } = req.query;
-    
+
     if (!organizationId) {
       return res.status(400).json({
         success: false,
@@ -454,7 +454,7 @@ router.get('/reports/effectiveness', async (req, res) => {
     }
 
     const stats = dunning3ToquesService.getStats();
-    
+
     res.json({
       success: true,
       data: {
@@ -471,7 +471,7 @@ router.get('/reports/effectiveness', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get dunning effectiveness report',

@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { apiClient } from '@/lib/api-client';
-import { 
-  BarChart3, 
-  TrendingUp, 
-  AlertTriangle, 
-  Package, 
+import {
+  BarChart3,
+  TrendingUp,
+  AlertTriangle,
+  Package,
   Building2,
   DollarSign,
   Calendar,
@@ -69,7 +69,7 @@ interface InventoryAnalytics {
   }>;
 }
 
-export default function InventoryAnalyticsPage() {
+export default function InventoryAnalyticsPage(): void {
   const { user } = useAuth();
   const api = apiClient;
   const [analytics, setAnalytics] = useState<InventoryAnalytics | null>(null);
@@ -132,7 +132,7 @@ export default function InventoryAnalyticsPage() {
   };
 
   if (loading && !analytics) {
-    return (
+    return (;
       <div className="min-h-screen bg-gradient-to-br from-sand-50 via-white to-mediterranean-50 flex items-center justify-center">
         <div className="text-center">
           <BarChart3 className="w-8 h-8 text-mediterranean-600 animate-pulse mx-auto mb-4" />
@@ -143,7 +143,7 @@ export default function InventoryAnalyticsPage() {
   }
 
   if (!analytics) {
-    return (
+    return (;
       <div className="min-h-screen bg-gradient-to-br from-sand-50 via-white to-mediterranean-50 flex items-center justify-center">
         <div className="text-center">
           <AlertTriangle className="w-8 h-8 text-red-500 mx-auto mb-4" />
@@ -153,7 +153,7 @@ export default function InventoryAnalyticsPage() {
     );
   }
 
-  return (
+  return (;
     <div className="min-h-screen bg-gradient-to-br from-sand-50 via-white to-mediterranean-50">
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-sand-200">
@@ -297,7 +297,7 @@ export default function InventoryAnalyticsPage() {
               {analytics.category_distribution.slice(0, 5).map((category, index) => (
                 <div key={category.category} className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <div 
+                    <div
                       className="w-3 h-3 rounded-full mr-3"
                       style={{
                         backgroundColor: `hsl(${index * 60}, 70%, 50%)`
@@ -426,16 +426,16 @@ export default function InventoryAnalyticsPage() {
             {analytics.stock_movements.slice(-7).map((movement, index) => (
               <div key={movement.date} className="flex-1 flex flex-col items-center">
                 <div className="w-full flex flex-col space-y-1">
-                  <div 
+                  <div
                     className="bg-green-500 rounded-t"
-                    style={{ 
+                    style={{
                       height: `${(movement.in_movements / 50) * 100}%`,
                       minHeight: '4px'
                     }}
                   />
-                  <div 
+                  <div
                     className="bg-red-500 rounded-b"
-                    style={{ 
+                    style={{
                       height: `${(movement.out_movements / 50) * 100}%`,
                       minHeight: '4px'
                     }}

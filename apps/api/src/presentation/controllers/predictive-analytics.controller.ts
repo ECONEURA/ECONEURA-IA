@@ -114,7 +114,7 @@ export class PredictiveAnalyticsController extends BaseController {
       const query = PredictiveAnalyticsSearchQuerySchema.parse(req.query);
 
       const result = await this.predictiveAnalyticsRepository.findByOrganizationId(organizationId, query);
-      
+
       const response: PredictiveAnalyticsListResponse = {
         data: result.data.map(predictiveAnalytics => this.transformPredictiveAnalyticsToResponse(predictiveAnalytics)),
         pagination: result.pagination
@@ -130,7 +130,7 @@ export class PredictiveAnalyticsController extends BaseController {
       const query = PredictiveAnalyticsSearchQuerySchema.parse(req.query);
 
       const result = await this.predictiveAnalyticsRepository.search(query.search || '', organizationId, query);
-      
+
       const response: PredictiveAnalyticsListResponse = {
         data: result.data.map(predictiveAnalytics => this.transformPredictiveAnalyticsToResponse(predictiveAnalytics)),
         pagination: result.pagination
@@ -162,7 +162,7 @@ export class PredictiveAnalyticsController extends BaseController {
       const query = PredictiveAnalyticsSearchQuerySchema.parse(req.query);
 
       const result = await this.predictiveAnalyticsRepository.findByType(type, organizationId, query);
-      
+
       const response: PredictiveAnalyticsListResponse = {
         data: result.data.map(predictiveAnalytics => this.transformPredictiveAnalyticsToResponse(predictiveAnalytics)),
         pagination: result.pagination
@@ -179,7 +179,7 @@ export class PredictiveAnalyticsController extends BaseController {
       const query = PredictiveAnalyticsSearchQuerySchema.parse(req.query);
 
       const result = await this.predictiveAnalyticsRepository.findByStatus(status, organizationId, query);
-      
+
       const response: PredictiveAnalyticsListResponse = {
         data: result.data.map(predictiveAnalytics => this.transformPredictiveAnalyticsToResponse(predictiveAnalytics)),
         pagination: result.pagination
@@ -195,7 +195,7 @@ export class PredictiveAnalyticsController extends BaseController {
       const query = PredictiveAnalyticsSearchQuerySchema.parse(req.query);
 
       const result = await this.predictiveAnalyticsRepository.findActiveModels(organizationId, query);
-      
+
       const response: PredictiveAnalyticsListResponse = {
         data: result.data.map(predictiveAnalytics => this.transformPredictiveAnalyticsToResponse(predictiveAnalytics)),
         pagination: result.pagination
@@ -211,7 +211,7 @@ export class PredictiveAnalyticsController extends BaseController {
       const query = PredictiveAnalyticsSearchQuerySchema.parse(req.query);
 
       const result = await this.predictiveAnalyticsRepository.findNeedsRetraining(organizationId, query);
-      
+
       const response: PredictiveAnalyticsListResponse = {
         data: result.data.map(predictiveAnalytics => this.transformPredictiveAnalyticsToResponse(predictiveAnalytics)),
         pagination: result.pagination

@@ -92,7 +92,7 @@ export class TwilioProvider implements ISMSProvider {
     this.config = config;
     this.accountSid = config.accountSid || process.env.TWILIO_ACCOUNT_SID || '';
     this.authToken = config.authToken || process.env.TWILIO_AUTH_TOKEN || '';
-    
+
     if (!this.accountSid || !this.authToken) {
       throw new Error('Twilio Account SID and Auth Token are required');
     }
@@ -106,7 +106,7 @@ export class TwilioProvider implements ISMSProvider {
           message: message.message.substring(0, 50) + '...',
           provider: 'twilio'
         });
-        
+
         return {
           messageId: `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           success: true,
@@ -172,7 +172,7 @@ export class TwilioProvider implements ISMSProvider {
 
   async sendBulk(messages: SMSMessage[]): Promise<SMSResult[]> {
     const results: SMSResult[] = [];
-    
+
     // Process in batches of 10
     const batchSize = 10;
     for (let i = 0; i < messages.length; i += batchSize) {
@@ -206,7 +206,7 @@ export class TwilioProvider implements ISMSProvider {
     // Simulate status check
     const statuses = ['queued', 'sent', 'delivered', 'failed', 'undelivered'];
     const status = statuses[Math.floor(Math.random() * statuses.length)];
-    
+
     return {
       status,
       errorCode: status === 'failed' ? '30008' : undefined
@@ -233,7 +233,7 @@ export class AWSSNSProvider implements ISMSProvider {
           message: message.message.substring(0, 50) + '...',
           provider: 'aws_sns'
         });
-        
+
         return {
           messageId: `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           success: true,
@@ -301,7 +301,7 @@ export class AWSSNSProvider implements ISMSProvider {
 
   async sendBulk(messages: SMSMessage[]): Promise<SMSResult[]> {
     const results: SMSResult[] = [];
-    
+
     // Process in batches of 20
     const batchSize = 20;
     for (let i = 0; i < messages.length; i += batchSize) {
@@ -335,7 +335,7 @@ export class AWSSNSProvider implements ISMSProvider {
     // Simulate status check
     const statuses = ['sent', 'delivered', 'failed'];
     const status = statuses[Math.floor(Math.random() * statuses.length)];
-    
+
     return {
       status,
       errorCode: status === 'failed' ? 'EndpointDisabled' : undefined
@@ -356,7 +356,7 @@ export class VonageProvider implements ISMSProvider {
     this.config = config;
     this.apiKey = config.apiKey || process.env.VONAGE_API_KEY || '';
     this.apiSecret = config.apiSecret || process.env.VONAGE_API_SECRET || '';
-    
+
     if (!this.apiKey || !this.apiSecret) {
       throw new Error('Vonage API Key and Secret are required');
     }
@@ -370,7 +370,7 @@ export class VonageProvider implements ISMSProvider {
           message: message.message.substring(0, 50) + '...',
           provider: 'vonage'
         });
-        
+
         return {
           messageId: `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           success: true,
@@ -433,7 +433,7 @@ export class VonageProvider implements ISMSProvider {
 
   async sendBulk(messages: SMSMessage[]): Promise<SMSResult[]> {
     const results: SMSResult[] = [];
-    
+
     // Process in batches of 15
     const batchSize = 15;
     for (let i = 0; i < messages.length; i += batchSize) {
@@ -467,7 +467,7 @@ export class VonageProvider implements ISMSProvider {
     // Simulate status check
     const statuses = ['accepted', 'delivered', 'failed', 'rejected'];
     const status = statuses[Math.floor(Math.random() * statuses.length)];
-    
+
     return {
       status,
       errorCode: status === 'failed' ? '1' : undefined

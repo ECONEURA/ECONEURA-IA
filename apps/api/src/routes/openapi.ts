@@ -70,7 +70,7 @@ router.get('/info', (req, res) => {
         totalSchemas: Object.keys(openApiSpec.components?.schemas || {}).length
       }
     };
-    
+
     res.json({
       success: true,
       data: info
@@ -87,7 +87,7 @@ router.get('/info', (req, res) => {
 // Helper functions
 function jsonToYaml(obj: any, indent = 0): string {
   const spaces = '  '.repeat(indent);
-  
+
   if (typeof obj === 'string') {
     return `"${obj}"`;
   } else if (typeof obj === 'number' || typeof obj === 'boolean') {
@@ -104,7 +104,7 @@ function jsonToYaml(obj: any, indent = 0): string {
       return `${spaces}${key}: ${jsonToYaml(value, indent + 1)}`;
     }).join('\n');
   }
-  
+
   return String(obj);
 }
 
@@ -121,7 +121,7 @@ function countEndpoints(paths: any): number {
 }
 
 function generateDocsHTML(): string {
-  return `
+  return `;
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -222,7 +222,7 @@ function generateDocsHTML(): string {
         <p>ERP/CRM + IA + 60 agentes en Azure</p>
         <p>API completa con Analytics, Security, FinOps y más</p>
     </div>
-    
+
     <div class="info-grid">
         <div class="info-card">
             <h3>📊 API Statistics</h3>
@@ -230,7 +230,7 @@ function generateDocsHTML(): string {
             <p><strong>API Version:</strong> ${openApiSpec.info.version}</p>
             <p><strong>OpenAPI Version:</strong> ${openApiSpec.openapi}</p>
         </div>
-        
+
         <div class="info-card">
             <h3>🏷️ Tags</h3>
             <p><strong>Total Tags:</strong> ${openApiSpec.tags?.length || 0}</p>
@@ -238,14 +238,14 @@ function generateDocsHTML(): string {
                 ${openApiSpec.tags?.map(tag => `<li>${tag.name}</li>`).join('') || ''}
             </ul>
         </div>
-        
+
         <div class="info-card">
             <h3>🔧 Servers</h3>
             <ul>
                 ${openApiSpec.servers?.map(server => `<li>${server.url} (${server.description})</li>`).join('') || ''}
             </ul>
         </div>
-        
+
         <div class="info-card">
             <h3>📞 Contact</h3>
             <p><strong>Name:</strong> ${openApiSpec.info.contact?.name}</p>
@@ -253,12 +253,12 @@ function generateDocsHTML(): string {
             <p><strong>URL:</strong> ${openApiSpec.info.contact?.url}</p>
         </div>
     </div>
-    
+
     <div class="endpoint-list">
         <h3>🔗 Available Endpoints</h3>
         ${generateEndpointList()}
     </div>
-    
+
     <div class="links">
         <a href="/v1/openapi/openapi.json" target="_blank">📄 OpenAPI JSON</a>
         <a href="/v1/openapi/openapi.yaml" target="_blank">📄 OpenAPI YAML</a>
@@ -271,7 +271,7 @@ function generateDocsHTML(): string {
 
 function generateEndpointList(): string {
   const endpoints: string[] = [];
-  
+
   for (const path in openApiSpec.paths) {
     for (const method in openApiSpec.paths[path]) {
       if (typeof openApiSpec.paths[path][method] === 'object') {
@@ -292,7 +292,7 @@ function generateEndpointList(): string {
       }
     }
   }
-  
+
   return endpoints.join('');
 }
 

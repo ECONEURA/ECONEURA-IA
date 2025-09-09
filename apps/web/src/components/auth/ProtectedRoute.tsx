@@ -11,23 +11,23 @@ interface ProtectedRouteProps {
   fallback?: React.ReactNode
 }
 
-export function ProtectedRoute({ 
-  children, 
-  requiredPermission, 
-  fallback 
+export function ProtectedRoute({
+  children,
+  requiredPermission,
+  fallback
 }: ProtectedRouteProps) {
   const { user, isLoading, hasPermission } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
     if (!isLoading && !user) {
-      router.push('/login')
+      router.push('/login');
     }
   }, [user, isLoading, router])
 
   // Show loading spinner while checking authentication
   if (isLoading) {
-    return (
+    return (;
       <div className="flex items-center justify-center h-screen">
         <LoadingSpinner size="lg" />
       </div>
@@ -36,12 +36,12 @@ export function ProtectedRoute({
 
   // Redirect to login if not authenticated
   if (!user) {
-    return null
+    return null;
   }
 
   // Check permission if required
   if (requiredPermission && !hasPermission(requiredPermission)) {
-    return (
+    return (;
       fallback || (
         <div className="flex items-center justify-center h-screen">
           <div className="text-center">

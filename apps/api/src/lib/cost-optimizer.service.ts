@@ -1,9 +1,9 @@
 // Cost Optimizer Service for PR-45
-import { 
-  OptimizationRecommendation, 
-  CostOptimization, 
+import {
+  OptimizationRecommendation,
+  CostOptimization,
   OptimizationLog,
-  ResourceUtilization 
+  ResourceUtilization
 } from './finops-types';
 import { structuredLogger } from './structured-logger.js';
 import { ErrorHandler } from './error-handler.js';

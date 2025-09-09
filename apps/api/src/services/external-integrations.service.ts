@@ -133,7 +133,7 @@ export class ExternalIntegrationsService {
     this.initializeDefaultProviders();
     this.startHealthChecks();
     this.startRateLimitCleanup();
-    
+
     logger.info('External Integrations Service initialized', {
       shippingProviders: this.shippingProviders.size,
       paymentProviders: this.paymentProviders.size,
@@ -164,13 +164,13 @@ export class ExternalIntegrationsService {
 
     try {
       const startTime = Date.now();
-      
+
       // Simulate API call to shipping provider
       const quote = await this.simulateShippingAPI(provider, origin, destination, weight, dimensions);
-      
+
       const responseTime = Date.now() - startTime;
       this.updateHealthCheck(providerId, 'healthy', responseTime);
-      
+
       structuredLogger.info('Shipping quote retrieved', {
         providerId,
         origin,
@@ -195,13 +195,13 @@ export class ExternalIntegrationsService {
 
     try {
       const startTime = Date.now();
-      
+
       // Simulate tracking API call
       const tracking = await this.simulateTrackingAPI(provider, trackingNumber);
-      
+
       const responseTime = Date.now() - startTime;
       this.updateHealthCheck(providerId, 'healthy', responseTime);
-      
+
       return tracking;
     } catch (error) {
       this.updateHealthCheck(providerId, 'down', 0, true);
@@ -231,13 +231,13 @@ export class ExternalIntegrationsService {
 
     try {
       const startTime = Date.now();
-      
+
       // Simulate payment processing
       const result = await this.simulatePaymentAPI(provider, amount, currency, paymentMethod, metadata);
-      
+
       const responseTime = Date.now() - startTime;
       this.updateHealthCheck(providerId, 'healthy', responseTime);
-      
+
       structuredLogger.info('Payment processed', {
         providerId,
         amount,
@@ -262,13 +262,13 @@ export class ExternalIntegrationsService {
 
     try {
       const startTime = Date.now();
-      
+
       // Simulate refund API call
       const result = await this.simulateRefundAPI(provider, transactionId, amount);
-      
+
       const responseTime = Date.now() - startTime;
       this.updateHealthCheck(providerId, 'healthy', responseTime);
-      
+
       return result;
     } catch (error) {
       this.updateHealthCheck(providerId, 'down', 0, true);
@@ -292,13 +292,13 @@ export class ExternalIntegrationsService {
 
     try {
       const startTime = Date.now();
-      
+
       // Simulate market data API call
       const data = await this.simulateMarketDataAPI(provider, symbol);
-      
+
       const responseTime = Date.now() - startTime;
       this.updateHealthCheck(providerId, 'healthy', responseTime);
-      
+
       return data;
     } catch (error) {
       this.updateHealthCheck(providerId, 'down', 0, true);
@@ -318,15 +318,15 @@ export class ExternalIntegrationsService {
 
     try {
       const startTime = Date.now();
-      
+
       // Simulate batch market data API call
       const results = await Promise.all(
         symbols.map(symbol => this.simulateMarketDataAPI(provider, symbol))
       );
-      
+
       const responseTime = Date.now() - startTime;
       this.updateHealthCheck(providerId, 'healthy', responseTime);
-      
+
       return results;
     } catch (error) {
       this.updateHealthCheck(providerId, 'down', 0, true);
@@ -350,13 +350,13 @@ export class ExternalIntegrationsService {
 
     try {
       const startTime = Date.now();
-      
+
       // Simulate weather API call
       const data = await this.simulateWeatherAPI(provider, location);
-      
+
       const responseTime = Date.now() - startTime;
       this.updateHealthCheck(providerId, 'healthy', responseTime);
-      
+
       return data;
     } catch (error) {
       this.updateHealthCheck(providerId, 'down', 0, true);
@@ -376,13 +376,13 @@ export class ExternalIntegrationsService {
 
     try {
       const startTime = Date.now();
-      
+
       // Simulate weather forecast API call
       const data = await this.simulateWeatherForecastAPI(provider, location, days);
-      
+
       const responseTime = Date.now() - startTime;
       this.updateHealthCheck(providerId, 'healthy', responseTime);
-      
+
       return data;
     } catch (error) {
       this.updateHealthCheck(providerId, 'down', 0, true);
@@ -397,10 +397,10 @@ export class ExternalIntegrationsService {
   addShippingProvider(provider: Omit<ShippingProvider, 'id'>): string {
     const id = `shipping_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const newProvider: ShippingProvider = { ...provider, id };
-    
+
     this.shippingProviders.set(id, newProvider);
     this.initializeHealthCheck(id);
-    
+
     logger.info('Shipping provider added', { providerId: id, name: provider.name });
     return id;
   }
@@ -408,10 +408,10 @@ export class ExternalIntegrationsService {
   addPaymentProvider(provider: Omit<PaymentProvider, 'id'>): string {
     const id = `payment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const newProvider: PaymentProvider = { ...provider, id };
-    
+
     this.paymentProviders.set(id, newProvider);
     this.initializeHealthCheck(id);
-    
+
     logger.info('Payment provider added', { providerId: id, name: provider.name });
     return id;
   }
@@ -419,10 +419,10 @@ export class ExternalIntegrationsService {
   addMarketDataProvider(provider: Omit<MarketDataProvider, 'id'>): string {
     const id = `market_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const newProvider: MarketDataProvider = { ...provider, id };
-    
+
     this.marketDataProviders.set(id, newProvider);
     this.initializeHealthCheck(id);
-    
+
     logger.info('Market data provider added', { providerId: id, name: provider.name });
     return id;
   }
@@ -430,10 +430,10 @@ export class ExternalIntegrationsService {
   addWeatherProvider(provider: Omit<WeatherProvider, 'id'>): string {
     const id = `weather_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const newProvider: WeatherProvider = { ...provider, id };
-    
+
     this.weatherProviders.set(id, newProvider);
     this.initializeHealthCheck(id);
-    
+
     logger.info('Weather provider added', { providerId: id, name: provider.name });
     return id;
   }
@@ -457,13 +457,13 @@ export class ExternalIntegrationsService {
   private checkRateLimit(providerId: string, limit: number): boolean {
     const now = Date.now();
     const key = `${providerId}_${Math.floor(now / 60000)}`; // Per minute
-    
+
     const current = this.rateLimiters.get(key) || { count: 0, resetTime: now + 60000 };
-    
+
     if (current.count >= limit) {
       return false;
     }
-    
+
     current.count++;
     this.rateLimiters.set(key, current);
     return true;
@@ -476,7 +476,7 @@ export class ExternalIntegrationsService {
     health.status = status;
     health.responseTime = responseTime;
     health.lastCheck = new Date();
-    
+
     if (isError) {
       health.errorRate = Math.min(health.errorRate + 0.1, 1.0);
     } else {
@@ -541,10 +541,10 @@ export class ExternalIntegrationsService {
   ): Promise<ShippingQuote> {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, Math.random() * 500 + 100));
-    
+
     const baseCost = weight * 0.5 + (dimensions.length * dimensions.width * dimensions.height) * 0.01;
     const cost = baseCost * (1 + Math.random() * 0.5);
-    
+
     return {
       provider: provider.name,
       service: 'Standard',
@@ -557,7 +557,7 @@ export class ExternalIntegrationsService {
 
   private async simulateTrackingAPI(provider: ShippingProvider, trackingNumber: string): Promise<any> {
     await new Promise(resolve => setTimeout(resolve, Math.random() * 300 + 50));
-    
+
     return {
       trackingNumber,
       status: 'In Transit',
@@ -586,10 +586,10 @@ export class ExternalIntegrationsService {
     metadata?: Record<string, any>
   ): Promise<PaymentResult> {
     await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 200));
-    
+
     const success = Math.random() > 0.05; // 95% success rate
     const fees = amount * 0.029 + 0.30; // Typical payment processing fees
-    
+
     return {
       provider: provider.name,
       transactionId: `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -604,7 +604,7 @@ export class ExternalIntegrationsService {
 
   private async simulateRefundAPI(provider: PaymentProvider, transactionId: string, amount?: number): Promise<PaymentResult> {
     await new Promise(resolve => setTimeout(resolve, Math.random() * 800 + 150));
-    
+
     return {
       provider: provider.name,
       transactionId: `refund_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -618,11 +618,11 @@ export class ExternalIntegrationsService {
 
   private async simulateMarketDataAPI(provider: MarketDataProvider, symbol: string): Promise<MarketData> {
     await new Promise(resolve => setTimeout(resolve, Math.random() * 400 + 100));
-    
+
     const basePrice = 100 + Math.random() * 200;
     const change = (Math.random() - 0.5) * 10;
     const changePercent = (change / basePrice) * 100;
-    
+
     return {
       symbol,
       price: Math.round(basePrice * 100) / 100,
@@ -636,7 +636,7 @@ export class ExternalIntegrationsService {
 
   private async simulateWeatherAPI(provider: WeatherProvider, location: string): Promise<WeatherData> {
     await new Promise(resolve => setTimeout(resolve, Math.random() * 300 + 100));
-    
+
     return {
       location,
       temperature: Math.round((20 + Math.random() * 20) * 10) / 10,
@@ -649,7 +649,7 @@ export class ExternalIntegrationsService {
 
   private async simulateWeatherForecastAPI(provider: WeatherProvider, location: string, days: number): Promise<WeatherData> {
     await new Promise(resolve => setTimeout(resolve, Math.random() * 500 + 200));
-    
+
     const forecast = [];
     for (let i = 1; i <= days; i++) {
       forecast.push({
@@ -658,7 +658,7 @@ export class ExternalIntegrationsService {
         description: ['Sunny', 'Cloudy', 'Rainy', 'Partly Cloudy'][Math.floor(Math.random() * 4)]
       });
     }
-    
+
     return {
       location,
       temperature: Math.round((20 + Math.random() * 20) * 10) / 10,

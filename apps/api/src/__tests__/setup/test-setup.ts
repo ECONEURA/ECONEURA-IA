@@ -14,15 +14,15 @@ import { structuredLogger } from '../../lib/structured-logger.js';
 beforeAll(async () => {
   // Configurar logger para tests
   structuredLogger.level = 'error'; // Solo errores en tests
-  
+
   // Inicializar servicios de base de datos
   try {
     const db = getDatabaseService();
     await db.initialize();
-    
+
     const redis = getRedisService();
     await redis.connect();
-    
+
     console.log('✅ Test setup completed');
   } catch (error) {
     console.error('❌ Test setup failed:', error);
@@ -35,10 +35,10 @@ afterAll(async () => {
   try {
     const db = getDatabaseService();
     await db.close();
-    
+
     const redis = getRedisService();
     await redis.disconnect();
-    
+
     console.log('✅ Test cleanup completed');
   } catch (error) {
     console.error('❌ Test cleanup failed:', error);
@@ -138,11 +138,11 @@ export const mockExternalServices = {
       emotions: ['joy', 'satisfaction']
     })
   },
-  
+
   emailService: {
     sendEmail: vi.fn().mockResolvedValue({ success: true, messageId: 'mock-id' })
   },
-  
+
   smsService: {
     sendSMS: vi.fn().mockResolvedValue({ success: true, messageId: 'mock-id' })
   }

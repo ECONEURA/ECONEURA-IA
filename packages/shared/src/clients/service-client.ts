@@ -1,6 +1,6 @@
 /**
  * Service Client for ECONEURA
- * 
+ *
  * Handles communication between services with automatic service discovery,
  * load balancing, retry logic, and circuit breakers
  */
@@ -117,7 +117,7 @@ export class ServiceClient {
    */
   private selectService(): ServiceInfo | null {
     const healthyServices = serviceDiscovery.getHealthyServicesByType(this.config.serviceType);
-    
+
     if (healthyServices.length === 0) {
       return null;
     }
@@ -170,7 +170,7 @@ export class ServiceClient {
   private async makeRequest(service: ServiceInfo, request: ServiceRequest): Promise<AxiosResponse> {
     const axiosInstance = this.getAxiosInstance(service);
     const url = serviceDiscovery.getServiceUrl(service.id, request.endpoint);
-    
+
     if (!url) {
       throw new Error(`Cannot construct URL for service ${service.id}`);
     }
@@ -331,7 +331,7 @@ export class ServiceClient {
     connectionCounts: Record<string, number>;
   } {
     const healthyServices = serviceDiscovery.getHealthyServicesByType(this.config.serviceType);
-    
+
     return {
       serviceType: this.config.serviceType,
       availableServices: healthyServices.length,

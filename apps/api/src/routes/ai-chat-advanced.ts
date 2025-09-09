@@ -123,7 +123,7 @@ aiChatAdvancedRouter.post('/conversations', async (req, res) => {
   try {
     const conversationData = CreateConversationSchema.parse(req.body);
     const conversation = await aiChatAdvancedService.createConversation(conversationData);
-    
+
     res.status(201).json({
       success: true,
       data: conversation,
@@ -149,7 +149,7 @@ aiChatAdvancedRouter.get('/conversations', async (req, res) => {
       tags: filters.tags ? filters.tags.split(',').map(t => t.trim()) : undefined,
       limit: filters.limit
     });
-    
+
     res.json({
       success: true,
       data: {
@@ -174,14 +174,14 @@ aiChatAdvancedRouter.get('/conversations/:id', async (req, res) => {
   try {
     const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
     const conversation = await aiChatAdvancedService.getConversation(id);
-    
+
     if (!conversation) {
       return res.status(404).json({
         success: false,
         error: 'Conversation not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: conversation,
@@ -202,16 +202,16 @@ aiChatAdvancedRouter.put('/conversations/:id', async (req, res) => {
   try {
     const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
     const updates = UpdateConversationSchema.parse(req.body);
-    
+
     const conversation = await aiChatAdvancedService.updateConversation(id, updates);
-    
+
     if (!conversation) {
       return res.status(404).json({
         success: false,
         error: 'Conversation not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: conversation,
@@ -231,16 +231,16 @@ aiChatAdvancedRouter.put('/conversations/:id', async (req, res) => {
 aiChatAdvancedRouter.delete('/conversations/:id', async (req, res) => {
   try {
     const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
-    
+
     const success = await aiChatAdvancedService.deleteConversation(id);
-    
+
     if (!success) {
       return res.status(404).json({
         success: false,
         error: 'Conversation not found'
       });
     }
-    
+
     res.json({
       success: true,
       message: 'Conversation deleted successfully',
@@ -265,13 +265,13 @@ aiChatAdvancedRouter.get('/conversations/:id/messages', async (req, res) => {
   try {
     const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
     const filters = GetMessagesSchema.parse({ ...req.query, conversationId: id });
-    
+
     const messages = await aiChatAdvancedService.getMessages(id, {
       limit: filters.limit,
       offset: filters.offset,
       role: filters.role
     });
-    
+
     res.json({
       success: true,
       data: {
@@ -297,7 +297,7 @@ aiChatAdvancedRouter.post('/messages', async (req, res) => {
   try {
     const messageData = CreateMessageSchema.parse(req.body);
     const message = await aiChatAdvancedService.createMessage(messageData);
-    
+
     res.status(201).json({
       success: true,
       data: message,
@@ -318,14 +318,14 @@ aiChatAdvancedRouter.get('/messages/:id', async (req, res) => {
   try {
     const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
     const message = await aiChatAdvancedService.getMessage(id);
-    
+
     if (!message) {
       return res.status(404).json({
         success: false,
         error: 'Message not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: message,
@@ -355,7 +355,7 @@ aiChatAdvancedRouter.post('/chat/process', async (req, res) => {
       chatData.userId,
       chatData.organizationId
     );
-    
+
     res.status(201).json({
       success: true,
       data: response,
@@ -378,9 +378,9 @@ aiChatAdvancedRouter.post('/chat/analyze', async (req, res) => {
       content: z.string().min(1).max(10000),
       context: z.record(z.any()).optional()
     }).parse(req.body);
-    
+
     const analysis = await aiChatAdvancedService.analyzeMessage(content, context);
-    
+
     res.json({
       success: true,
       data: analysis,
@@ -405,7 +405,7 @@ aiChatAdvancedRouter.post('/sessions', async (req, res) => {
   try {
     const sessionData = CreateSessionSchema.parse(req.body);
     const session = await aiChatAdvancedService.createSession(sessionData);
-    
+
     res.status(201).json({
       success: true,
       data: session,
@@ -426,14 +426,14 @@ aiChatAdvancedRouter.get('/sessions/:id', async (req, res) => {
   try {
     const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
     const session = await aiChatAdvancedService.getSession(id);
-    
+
     if (!session) {
       return res.status(404).json({
         success: false,
         error: 'Session not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: session,
@@ -454,16 +454,16 @@ aiChatAdvancedRouter.put('/sessions/:id', async (req, res) => {
   try {
     const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
     const updates = UpdateSessionSchema.parse(req.body);
-    
+
     const session = await aiChatAdvancedService.updateSession(id, updates);
-    
+
     if (!session) {
       return res.status(404).json({
         success: false,
         error: 'Session not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: session,
@@ -492,7 +492,7 @@ aiChatAdvancedRouter.get('/statistics', async (req, res) => {
       startDate: filters.startDate,
       endDate: filters.endDate
     });
-    
+
     res.json({
       success: true,
       data: statistics,
@@ -516,7 +516,7 @@ aiChatAdvancedRouter.get('/statistics', async (req, res) => {
 aiChatAdvancedRouter.get('/health', async (req, res) => {
   try {
     const stats = await aiChatAdvancedService.getChatStatistics('demo-org-1');
-    
+
     res.json({
       success: true,
       data: {

@@ -1,6 +1,6 @@
 /**
  * Webhook Manager for ECONEURA
- * 
+ *
  * Manages webhook subscriptions, delivery, retries, and security
  */
 
@@ -124,7 +124,7 @@ export class WebhookManager extends EventEmitter {
    * Get all subscriptions for an event type
    */
   getSubscriptionsForEvent(eventType: string): WebhookSubscription[] {
-    return Array.from(this.subscriptions.values()).filter(
+    return Array.from(this.subscriptions.values()).filter(;
       sub => sub.active && sub.events.includes(eventType)
     );
   }
@@ -143,7 +143,7 @@ export class WebhookManager extends EventEmitter {
 
     // Find all subscriptions for this event type
     const subscriptions = this.getSubscriptionsForEvent(fullEvent.type);
-    
+
     if (subscriptions.length === 0) {
       console.log(`No webhook subscriptions found for event: ${fullEvent.type}`);
       return;
@@ -200,7 +200,7 @@ export class WebhookManager extends EventEmitter {
       };
 
       const signature = this.generateSignature(JSON.stringify(payload), subscription.secret);
-      
+
       const response = await this.axiosInstance.post(subscription.url, payload, {
         headers: {
           'Content-Type': 'application/json',
@@ -261,9 +261,9 @@ export class WebhookManager extends EventEmitter {
    */
   verifySignature(payload: string, signature: string, secret: string): boolean {
     const expectedSignature = this.generateSignature(payload, secret);
-    return crypto.timingSafeEqual(
+    return crypto.timingSafeEqual(;
       Buffer.from(signature),
-      Buffer.from(expectedSignature)
+      Buffer.from(expectedSignature);
     );
   }
 
@@ -282,8 +282,8 @@ export class WebhookManager extends EventEmitter {
   private async processRetries(): Promise<void> {
     const now = new Date();
     const pendingDeliveries = Array.from(this.deliveries.values()).filter(
-      delivery => delivery.status === 'retrying' && 
-                  delivery.nextRetryAt && 
+      delivery => delivery.status === 'retrying' &&
+                  delivery.nextRetryAt &&
                   delivery.nextRetryAt <= now
     );
 

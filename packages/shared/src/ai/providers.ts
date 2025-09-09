@@ -410,8 +410,8 @@ export class LLMProviderManager {
    * Get providers with specific capability
    */
   getProvidersWithCapability(capability: keyof ProviderCapabilities): LLMProvider[] {
-    return Array.from(this.providers.values()).filter(p => 
-      p.enabled && p.capabilities[capability] === true
+    return Array.from(this.providers.values()).filter(p => ;
+      p.enabled && p.capabilities[capability] =
     );
   }
 
@@ -434,7 +434,7 @@ export class LLMProviderManager {
 
         // Check capabilities
         if (requirements.capabilities) {
-          const hasAllCapabilities = requirements.capabilities.every(cap => 
+          const hasAllCapabilities = requirements.capabilities.every(cap =>
             provider.models.some(model => model.capabilities.includes(cap))
           );
           if (!hasAllCapabilities) return false;
@@ -442,7 +442,7 @@ export class LLMProviderManager {
 
         // Check languages
         if (requirements.languages) {
-          const supportsAllLanguages = requirements.languages.every(lang => 
+          const supportsAllLanguages = requirements.languages.every(lang =>
             provider.capabilities.languages.includes(lang)
           );
           if (!supportsAllLanguages) return false;
@@ -470,14 +470,14 @@ export class LLMProviderManager {
       // Prefer healthy providers
       const healthA = this.healthStatus.get(a.id);
       const healthB = this.healthStatus.get(b.id);
-      
+
       if (healthA?.status === 'healthy' && healthB?.status !== 'healthy') return -1;
       if (healthB?.status === 'healthy' && healthA?.status !== 'healthy') return 1;
 
       // Prefer lower cost
       const costA = Math.min(...a.models.map(m => m.inputCostPer1KTokens));
       const costB = Math.min(...b.models.map(m => m.inputCostPer1KTokens));
-      
+
       return costA - costB;
     })[0];
   }
@@ -496,9 +496,9 @@ export class LLMProviderManager {
     }
 
     const now = Date.now();
-    const counter = this.requestCounters.get(providerId) || { 
-      requests: 0, 
-      tokens: 0, 
+    const counter = this.requestCounters.get(providerId) || {
+      requests: 0,
+      tokens: 0,
       resetTime: now + 60000 // Reset every minute
     };
 
@@ -511,18 +511,18 @@ export class LLMProviderManager {
 
     // Check limits
     if (counter.requests >= provider.rateLimits.requestsPerMinute) {
-      return { 
-        allowed: false, 
+      return {
+        allowed: false,
         reason: 'Request rate limit exceeded',
-        resetTime: counter.resetTime 
+        resetTime: counter.resetTime
       };
     }
 
     if (counter.tokens + tokensRequested > provider.rateLimits.tokensPerMinute) {
-      return { 
-        allowed: false, 
+      return {
+        allowed: false,
         reason: 'Token rate limit exceeded',
-        resetTime: counter.resetTime 
+        resetTime: counter.resetTime
       };
     }
 
@@ -566,7 +566,7 @@ export class LLMProviderManager {
    */
   private async checkAllProviderHealth(): Promise<void> {
     const providers = this.getEnabledProviders();
-    
+
     await Promise.allSettled(
       providers.map(provider => this.checkProviderHealth(provider))
     );
@@ -577,7 +577,7 @@ export class LLMProviderManager {
    */
   private async checkProviderHealth(provider: LLMProvider): Promise<void> {
     const startTime = Date.now();
-    
+
     try {
       let isHealthy = false;
       let responseTime = 0;
@@ -586,15 +586,15 @@ export class LLMProviderManager {
         // For edge providers with health endpoints
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 5000);
-        
+
         const response = await fetch(
           `${provider.config.baseUrl}${provider.healthEndpoint}`,
-          { 
+          {
             signal: controller.signal,
             headers: provider.config.headers,
           }
         );
-        
+
         clearTimeout(timeout);
         responseTime = Date.now() - startTime;
         isHealthy = response.ok;
@@ -650,9 +650,9 @@ export class LLMProviderManager {
    * Estimate cost for a request
    */
   estimateCost(
-    providerId: string, 
-    modelId: string, 
-    inputTokens: number, 
+    providerId: string,
+    modelId: string,
+    inputTokens: number,
     outputTokens: number,
     extras?: {
       images?: number;
@@ -666,7 +666,7 @@ export class LLMProviderManager {
     if (!model) return 0;
 
     let cost = 0;
-    
+
     // Base token costs
     cost += (inputTokens / 1000) * model.inputCostPer1KTokens;
     cost += (outputTokens / 1000) * model.outputCostPer1KTokens;

@@ -87,7 +87,7 @@ export class AutoMLService {
     try {
       const selectedAlgorithm = algorithm || this.selectBestAlgorithm(data);
       const hyperparameters = this.optimizeHyperparameters(selectedAlgorithm, data);
-      
+
       // Simulate model training
       const model: MLModel = {
         id: modelId,
@@ -168,7 +168,7 @@ export class AutoMLService {
       const precision = Math.random() * 0.2 + 0.8;
       const recall = Math.random() * 0.2 + 0.8;
       const f1Score = (2 * precision * recall) / (precision + recall);
-      
+
       const confusionMatrix = [
         [Math.floor(Math.random() * 100) + 50, Math.floor(Math.random() * 20) + 5],
         [Math.floor(Math.random() * 20) + 5, Math.floor(Math.random() * 100) + 50]
@@ -215,7 +215,7 @@ export class AutoMLService {
     try {
       this.models.delete(modelId);
       this.trainingData.delete(modelId);
-      
+
       structuredLogger.info('Model deleted', { modelId });
     } catch (error) {
       structuredLogger.error('Failed to delete model', error as Error, { modelId });
@@ -232,7 +232,7 @@ export class AutoMLService {
 
       // Retrain with new data
       const retrainedModel = await this.trainModel(modelId, newData, existingModel.algorithm);
-      
+
       structuredLogger.info('Model retrained', {
         modelId,
         newAccuracy: retrainedModel.accuracy,
@@ -248,7 +248,7 @@ export class AutoMLService {
 
   private selectBestAlgorithm(data: TrainingData): 'linear' | 'random_forest' | 'neural_network' | 'xgboost' {
     const algorithms = ['linear', 'random_forest', 'neural_network', 'xgboost'];
-    
+
     // Simple algorithm selection based on data characteristics
     if (data.features.length < 1000) {
       return 'linear';
@@ -316,7 +316,7 @@ export class AutoMLService {
     worstModel: MLModel | null;
   }> {
     const models = Array.from(this.models.values());
-    
+
     if (models.length === 0) {
       return {
         totalModels: 0,
@@ -327,10 +327,10 @@ export class AutoMLService {
     }
 
     const averageAccuracy = models.reduce((sum, model) => sum + model.accuracy, 0) / models.length;
-    const bestModel = models.reduce((best, current) => 
+    const bestModel = models.reduce((best, current) =>
       current.accuracy > best.accuracy ? current : best
     );
-    const worstModel = models.reduce((worst, current) => 
+    const worstModel = models.reduce((worst, current) =>
       current.accuracy < worst.accuracy ? current : worst
     );
 
@@ -345,7 +345,7 @@ export class AutoMLService {
   async exportModel(modelId: string): Promise<{ model: MLModel; trainingData: TrainingData | null }> {
     const model = this.models.get(modelId);
     const trainingData = this.trainingData.get(modelId) || null;
-    
+
     if (!model) {
       throw new Error(`Model ${modelId} not found`);
     }

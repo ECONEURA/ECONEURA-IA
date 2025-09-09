@@ -145,7 +145,7 @@ describe('SupplierScorecardService - PR-69', () => {
       expect(alerts).toBeDefined();
       expect(alerts.length).toBeGreaterThan(0);
 
-      const otifAlert = alerts.find(a => 
+      const otifAlert = alerts.find(a =>
         a.alerts.some(alert => alert.type === 'otif_decline')
       );
 
@@ -212,7 +212,7 @@ describe('SupplierScorecardService - PR-69', () => {
       expect(alerts).toBeDefined();
       expect(alerts.length).toBeGreaterThan(0);
 
-      const leadTimeAlert = alerts.find(a => 
+      const leadTimeAlert = alerts.find(a =>
         a.alerts.some(alert => alert.type === 'lead_time_increase')
       );
 
@@ -279,7 +279,7 @@ describe('SupplierScorecardService - PR-69', () => {
       expect(alerts).toBeDefined();
       expect(alerts.length).toBeGreaterThan(0);
 
-      const ppvAlert = alerts.find(a => 
+      const ppvAlert = alerts.find(a =>
         a.alerts.some(alert => alert.type === 'ppv_variance')
       );
 
@@ -346,7 +346,7 @@ describe('SupplierScorecardService - PR-69', () => {
       expect(alerts).toBeDefined();
       expect(alerts.length).toBeGreaterThan(0);
 
-      const slAlert = alerts.find(a => 
+      const slAlert = alerts.find(a =>
         a.alerts.some(alert => alert.type === 'service_level_decline')
       );
 
@@ -477,7 +477,7 @@ describe('SupplierScorecardService - PR-69', () => {
       const alerts = await supplierScorecardService.generateVendorScorecardAlerts('test-org-6');
 
       expect(alerts).toBeDefined();
-      
+
       const goodSupplierAlert = alerts.find(a => a.supplierName === 'Good Supplier');
       expect(goodSupplierAlert).toBeUndefined(); // Should not have any alerts
     });

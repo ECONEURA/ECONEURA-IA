@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  Package, 
-  AlertTriangle, 
-  TrendingUp, 
+import {
+  Package,
+  AlertTriangle,
+  TrendingUp,
   TrendingDown,
   BarChart3,
   Clock,
@@ -148,7 +148,7 @@ export default function InventoryKardexDashboard({
   const loadData = async () => {
     try {
       setLoading(true);
-      
+
       // Load all data in parallel
       const [productsRes, kardexRes, stockRes, alertsRes, statsRes] = await Promise.all([
         fetch('/api/inventory/products?organizationId=demo-org-1'),
@@ -163,7 +163,7 @@ export default function InventoryKardexDashboard({
         kardexRes.json(),
         stockRes.json(),
         alertsRes.json(),
-        statsRes.json()
+        statsRes.json();
       ]);
 
       if (productsData.success) setProducts(productsData.data.products || []);
@@ -214,7 +214,7 @@ export default function InventoryKardexDashboard({
   const filteredAlerts = alerts.filter(alert => alert.isActive);
 
   if (loading && !stats) {
-    return (
+    return (;
       <div className={`animate-pulse ${className}`}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -231,7 +231,7 @@ export default function InventoryKardexDashboard({
   }
 
   if (error) {
-    return (
+    return (;
       <div className={`text-center py-12 ${className}`}>
         <div className="text-red-600 mb-4">
           <AlertTriangle className="w-12 h-12 mx-auto mb-2" />
@@ -249,7 +249,7 @@ export default function InventoryKardexDashboard({
     );
   }
 
-  return (
+  return (;
     <div className={`space-y-6 ${className}`}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -437,7 +437,7 @@ export default function InventoryKardexDashboard({
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredProducts.map((product) => {
                     const stockLevel = stockLevels.find(s => s.productId === product.id);
-                    return (
+                    return (;
                       <tr key={product.id}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>

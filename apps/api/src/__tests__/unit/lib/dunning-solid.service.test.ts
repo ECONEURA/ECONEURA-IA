@@ -134,7 +134,7 @@ describe('DunningSolidService', () => {
 
       // Esperar un poco para asegurar que el timestamp sea diferente
       await new Promise(resolve => setTimeout(resolve, 1));
-      
+
       const updatedSegment = await service.updateSegment(segment.id, updates);
 
       expect(updatedSegment.name).toBe('Updated Segment');
@@ -150,7 +150,7 @@ describe('DunningSolidService', () => {
       };
 
       await expect(
-        service.updateSegment('non-existent-id', updates)
+        service.updateSegment('non-existent-id', updates);
       ).rejects.toThrow('Segment not found');
     });
   });
@@ -161,7 +161,7 @@ describe('DunningSolidService', () => {
 
       expect(Array.isArray(segments)).toBe(true);
       expect(segments.length).toBeGreaterThan(0);
-      
+
       // Verificar que incluye los segmentos por defecto
       const segmentNames = segments.map(s => s.name);
       expect(segmentNames).toContain('Low Risk - Small Amounts');
@@ -287,7 +287,7 @@ describe('DunningSolidService', () => {
 
     it('should throw error for non-existent DLQ message', async () => {
       await expect(
-        service.retryDLQMessage('non-existent-id')
+        service.retryDLQMessage('non-existent-id');
       ).rejects.toThrow('DLQ message not found');
     });
 
@@ -306,7 +306,7 @@ describe('DunningSolidService', () => {
       dlqMessage.retryCount = dlqMessage.maxRetries;
 
       await expect(
-        service.retryDLQMessage(dlqMessage.id)
+        service.retryDLQMessage(dlqMessage.id);
       ).rejects.toThrow('Maximum retries exceeded');
     });
   });

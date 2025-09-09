@@ -281,8 +281,8 @@ export class ERPClient extends BaseClient {
     average_invoice_value: number;
     top_products: Array<{ product_id: string; name: string; quantity_sold: number; revenue: number }>;
   }> {
-    return this.get('/v1/erp/reports/sales', { 
-      params: { startDate, endDate } 
+    return this.get('/v1/erp/reports/sales', {
+      params: { startDate, endDate }
     });
   }
 }

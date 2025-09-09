@@ -146,9 +146,9 @@ const recordPerformanceSchema = z.object({
 router.post('/generate', authMiddleware, validate(generateAnalyticsSchema), async (req, res) => {
   try {
     const analyticsRequest = req.body;
-    
+
     const result = await aiAnalyticsService.generateAnalytics(analyticsRequest);
-    
+
     res.status(200).json(result);
   } catch (error) {
     console.error('Error generating analytics:', error);
@@ -223,9 +223,9 @@ router.post('/generate', authMiddleware, validate(generateAnalyticsSchema), asyn
 router.post('/usage', authMiddleware, validate(recordUsageSchema), async (req, res) => {
   try {
     const usageData = req.body;
-    
+
     await aiAnalyticsService.recordUsage(usageData);
-    
+
     res.status(200).json({
       success: true,
       message: 'Usage recorded successfully',
@@ -285,9 +285,9 @@ router.post('/usage', authMiddleware, validate(recordUsageSchema), async (req, r
 router.post('/performance', authMiddleware, validate(recordPerformanceSchema), async (req, res) => {
   try {
     const performanceData = req.body;
-    
+
     await aiAnalyticsService.recordPerformance(performanceData);
-    
+
     res.status(200).json({
       success: true,
       message: 'Performance metrics recorded successfully',
@@ -377,7 +377,7 @@ router.post('/performance', authMiddleware, validate(recordPerformanceSchema), a
 router.get('/insights', authMiddleware, async (req, res) => {
   try {
     const { organizationId, limit = 50, type, impact } = req.query;
-    
+
     if (!organizationId) {
       return res.status(400).json({
         success: false,
@@ -386,31 +386,31 @@ router.get('/insights', authMiddleware, async (req, res) => {
     }
 
     let query = `
-      SELECT 
+      SELECT
         id, insight_type, insight_title, insight_description,
         insight_data, confidence_score, impact_level, actionable, created_at
       FROM ai_analytics_insights
       WHERE organization_id = $1
         AND (expires_at IS NULL OR expires_at > NOW())
     `;
-    
+
     const params: any[] = [organizationId];
-    
+
     if (type) {
       query += ` AND insight_type = $${params.length + 1}`;
       params.push(type);
     }
-    
+
     if (impact) {
       query += ` AND impact_level = $${params.length + 1}`;
       params.push(impact);
     }
-    
+
     query += ` ORDER BY confidence_score DESC, created_at DESC LIMIT $${params.length + 1}`;
     params.push(parseInt(limit as string));
 
     const result = await aiAnalyticsService['db'].query(query, params);
-    
+
     const insights = result.rows.map(row => ({
       id: row.id,
       type: row.insight_type,
@@ -422,7 +422,7 @@ router.get('/insights', authMiddleware, async (req, res) => {
       actionable: row.actionable,
       createdAt: row.created_at,
     }));
-    
+
     res.status(200).json({
       success: true,
       data: insights,
@@ -502,7 +502,7 @@ router.get('/insights', authMiddleware, async (req, res) => {
 router.get('/trends', authMiddleware, async (req, res) => {
   try {
     const { organizationId, trendType, period } = req.query;
-    
+
     if (!organizationId) {
       return res.status(400).json({
         success: false,
@@ -511,28 +511,28 @@ router.get('/trends', authMiddleware, async (req, res) => {
     }
 
     let query = `
-      SELECT 
+      SELECT
         id, trend_name, trend_type, trend_data, trend_period, created_at
       FROM ai_analytics_trends
       WHERE organization_id = $1
     `;
-    
+
     const params: any[] = [organizationId];
-    
+
     if (trendType) {
       query += ` AND trend_type = $${params.length + 1}`;
       params.push(trendType);
     }
-    
+
     if (period) {
       query += ` AND trend_period = $${params.length + 1}`;
       params.push(period);
     }
-    
+
     query += ` ORDER BY created_at DESC`;
 
     const result = await aiAnalyticsService['db'].query(query, params);
-    
+
     const trends = result.rows.map(row => ({
       id: row.id,
       name: row.trend_name,
@@ -541,7 +541,7 @@ router.get('/trends', authMiddleware, async (req, res) => {
       period: row.trend_period,
       createdAt: row.created_at,
     }));
-    
+
     res.status(200).json({
       success: true,
       data: trends,
@@ -615,7 +615,7 @@ router.get('/trends', authMiddleware, async (req, res) => {
 router.get('/metrics', authMiddleware, async (req, res) => {
   try {
     const { organizationId, timeRange = '24h' } = req.query;
-    
+
     if (!organizationId) {
       return res.status(400).json({
         success: false,
@@ -643,7 +643,7 @@ router.get('/metrics', authMiddleware, async (req, res) => {
     }
 
     const query = `
-      SELECT 
+      SELECT
         COUNT(*) as total_requests,
         SUM(tokens_used) as total_tokens,
         SUM(cost_usd) as total_cost,
@@ -658,7 +658,7 @@ router.get('/metrics', authMiddleware, async (req, res) => {
     const row = result.rows[0];
 
     const topServicesQuery = `
-      SELECT 
+      SELECT
         service_name,
         COUNT(*) as request_count,
         AVG(response_time_ms) as avg_response_time
@@ -684,7 +684,7 @@ router.get('/metrics', authMiddleware, async (req, res) => {
         avgResponseTime: parseFloat(service.avg_response_time),
       })),
     };
-    
+
     res.status(200).json({
       success: true,
       data: metrics,
@@ -733,7 +733,7 @@ router.get('/metrics', authMiddleware, async (req, res) => {
 router.get('/health', async (req, res) => {
   try {
     const healthStatus = await aiAnalyticsService.getHealthStatus();
-    
+
     res.status(200).json({
       success: true,
       data: healthStatus,

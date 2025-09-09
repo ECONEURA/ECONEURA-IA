@@ -156,16 +156,16 @@ export interface IWorkflowEngine {
   updateWorkflow(id: string, updates: Partial<Workflow>): Promise<Workflow>;
   deleteWorkflow(id: string): Promise<void>;
   listWorkflows(filters?: WorkflowFilters): Promise<Workflow[]>;
-  
+
   startWorkflow(workflowId: string, context?: Record<string, any>, metadata?: Record<string, any>): Promise<WorkflowInstance>;
   getInstance(instanceId: string): Promise<WorkflowInstance | null>;
   listInstances(filters?: InstanceFilters): Promise<WorkflowInstance[]>;
-  
+
   pauseInstance(instanceId: string): Promise<void>;
   resumeInstance(instanceId: string): Promise<void>;
   cancelInstance(instanceId: string): Promise<void>;
   executeAction(instanceId: string, actionId: string): Promise<void>;
-  
+
   getStats(): Promise<WorkflowStats>;
 }
 
@@ -231,7 +231,7 @@ class WorkflowEngineImpl implements IWorkflowEngine {
   async createWorkflow(workflow: Omit<Workflow, 'id' | 'createdAt' | 'updatedAt'>): Promise<Workflow> {
     const id = `wf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date();
-    
+
     const newWorkflow: Workflow = {
       ...workflow,
       id,
@@ -297,7 +297,7 @@ class WorkflowEngineImpl implements IWorkflowEngine {
     }
 
     if (filters?.tags && filters.tags.length > 0) {
-      workflows = workflows.filter(w => 
+      workflows = workflows.filter(w =>
         w.metadata.tags?.some(tag => filters.tags!.includes(tag))
       );
     }
@@ -576,47 +576,47 @@ class WorkflowEngineImpl implements IWorkflowEngine {
 
   private async executeFunctionAction(action: Action, context: Record<string, any>): Promise<any> {
     const { functionName, parameters } = action.config;
-    
+
     // Simular ejecución de función
     console.log(`Executing function: ${functionName} with parameters:`, parameters);
-    
+
     // Aquí se ejecutaría la función real
     return { success: true, functionName, parameters };
   }
 
   private async executeHttpAction(action: Action, context: Record<string, any>): Promise<any> {
     const { url, method, headers, body } = action.config;
-    
+
     // Simular llamada HTTP
     console.log(`Making HTTP ${method} request to: ${url}`);
-    
+
     // Aquí se haría la llamada HTTP real
     return { success: true, status: 200, url, method };
   }
 
   private async executeDelayAction(action: Action): Promise<any> {
     const { duration } = action.config;
-    
+
     console.log(`Delaying for ${duration}ms`);
     await new Promise(resolve => setTimeout(resolve, duration));
-    
+
     return { success: true, duration };
   }
 
   private async executeConditionAction(action: Action, context: Record<string, any>): Promise<any> {
     const { expression } = action.config;
-    
+
     // Evaluar condición
     const result = this.evaluateCondition(expression, context);
-    
+
     return { success: true, condition: expression, result };
   }
 
   private async executeNotificationAction(action: Action, context: Record<string, any>): Promise<any> {
     const { type, recipient, message, template } = action.config;
-    
+
     console.log(`Sending ${type} notification to: ${recipient}`);
-    
+
     // Aquí se enviaría la notificación real
     return { success: true, type, recipient, message };
   }
@@ -630,8 +630,8 @@ class WorkflowEngineImpl implements IWorkflowEngine {
         .replace(/\b\w+\b/g, (match) => {
           return context[match] !== undefined ? JSON.stringify(context[match]) : 'false';
         });
-      
-      return eval(safeExpression) === true;
+
+      return eval(safeExpression) =;
     } catch (error) {
       console.error('Error evaluating condition:', expression, error);
       return false;
@@ -640,12 +640,12 @@ class WorkflowEngineImpl implements IWorkflowEngine {
 
   private async handleRetry(instance: WorkflowInstance, action: Action): Promise<void> {
     const retryCount = instance.context[`retry_${action.id}`] || 0;
-    
+
     if (retryCount < action.retry!.maxAttempts) {
       instance.context[`retry_${action.id}`] = retryCount + 1;
-      
+
       const delay = this.calculateRetryDelay(action.retry!, retryCount);
-      
+
       instance.history.push({
         timestamp: new Date(),
         action: 'action_retry',
@@ -692,7 +692,7 @@ class WorkflowEngineImpl implements IWorkflowEngine {
   private async advanceBpmnWorkflow(instance: WorkflowInstance, workflow: Workflow): Promise<void> {
     const bpmnDef = workflow.definition as BpmnWorkflow;
     const currentElement = bpmnDef.elements.find(e => e.id === instance.currentElement);
-    
+
     if (!currentElement) {
       instance.status = 'failed';
       instance.updatedAt = new Date();
@@ -714,7 +714,7 @@ class WorkflowEngineImpl implements IWorkflowEngine {
 
     // Encontrar siguiente elemento
     const outgoingFlows = bpmnDef.flows.filter(f => f.source === instance.currentElement);
-    
+
     if (outgoingFlows.length === 0) {
       instance.status = 'failed';
       instance.updatedAt = new Date();
@@ -747,7 +747,7 @@ class WorkflowEngineImpl implements IWorkflowEngine {
   private async advanceStateMachineWorkflow(instance: WorkflowInstance, workflow: Workflow): Promise<void> {
     const stateDef = workflow.definition as StateMachineWorkflow;
     const currentState = stateDef.states.find(s => s.id === instance.currentState);
-    
+
     if (!currentState) {
       instance.status = 'failed';
       instance.updatedAt = new Date();
@@ -769,7 +769,7 @@ class WorkflowEngineImpl implements IWorkflowEngine {
 
     // Encontrar transiciones disponibles
     const availableTransitions = stateDef.transitions.filter(t => t.from === instance.currentState);
-    
+
     if (availableTransitions.length === 0) {
       // Si no hay transiciones, verificar timeout
       if (currentState.timeout) {
@@ -872,7 +872,7 @@ class WorkflowEngineImpl implements IWorkflowEngine {
 
     // Obtener actividad reciente
     const recentActivity = instances
-      .flatMap(instance => 
+      .flatMap(instance =>
         instance.history
           .filter(h => h.timestamp > new Date(Date.now() - 24 * 60 * 60 * 1000)) // Últimas 24h
           .map(h => ({

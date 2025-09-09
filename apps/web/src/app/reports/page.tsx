@@ -2,14 +2,14 @@
 
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 
-function ReportsContent() {
-  return (
+function ReportsContent(): void {
+  return (;
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Reportes y Análisis</h1>
         <p className="text-gray-600">Informes detallados de rendimiento financiero y operativo.</p>
       </div>
-      
+
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
         <div className="text-center">
           <div className="w-16 h-16 mx-auto mb-4 text-green-500">
@@ -31,8 +31,8 @@ function ReportsContent() {
   )
 }
 
-export default function ReportsPage() {
-  return (
+export default function ReportsPage(): void {
+  return (;
     <ProtectedRoute requiredPermission="reports:view">
       <ReportsContent />
     </ProtectedRoute>

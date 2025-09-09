@@ -220,10 +220,10 @@ export class AdvancedDeploymentAutomationService {
 
   private async initializeService(): Promise<void> {
     logger.info('Initializing Advanced Deployment Automation Service');
-    
+
     // Initialize demo data
     await this.initializeDemoData();
-    
+
     logger.info('Advanced Deployment Automation Service initialized');
   }
 
@@ -662,7 +662,7 @@ export class AdvancedDeploymentAutomationService {
 
       for (let i = 0; i < stage.steps.length; i++) {
         const step = stage.steps[i];
-        
+
         await this.updateJobStatus(job.id, 'running', {
           currentStep: i + 1,
           totalSteps: stage.steps.length,
@@ -727,19 +727,19 @@ export class AdvancedDeploymentAutomationService {
   private async simulateBuildStep(step: any, job: DeploymentJob): Promise<void> {
     // Simulate build process
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
     job.artifacts.buildId = `build_${Date.now()}`;
     job.artifacts.imageTag = `v${Date.now()}`;
-    
+
     this.jobs.set(job.id, job);
   }
 
   private async simulateTestStep(step: any, job: DeploymentJob): Promise<void> {
     // Simulate test execution
     await new Promise(resolve => setTimeout(resolve, 3000));
-    
+
     job.artifacts.testResults = 'test-results.json';
-    
+
     this.jobs.set(job.id, job);
   }
 
@@ -766,44 +766,44 @@ export class AdvancedDeploymentAutomationService {
 
   private async simulateBlueGreenDeployment(job: DeploymentJob): Promise<void> {
     await new Promise(resolve => setTimeout(resolve, 5000));
-    
+
     job.metrics.deploymentMetrics.instancesDeployed = 3;
     job.metrics.deploymentMetrics.instancesHealthy = 3;
     job.metrics.deploymentMetrics.instancesUnhealthy = 0;
-    
+
     this.jobs.set(job.id, job);
   }
 
   private async simulateCanaryDeployment(job: DeploymentJob): Promise<void> {
     const strategy = this.strategies.get(job.strategyId);
     const canaryPercentage = strategy?.config.canaryPercentage || 10;
-    
+
     await new Promise(resolve => setTimeout(resolve, 4000));
-    
+
     job.metrics.deploymentMetrics.instancesDeployed = 3;
     job.metrics.deploymentMetrics.instancesHealthy = Math.floor(3 * (canaryPercentage / 100));
     job.metrics.deploymentMetrics.instancesUnhealthy = 0;
-    
+
     this.jobs.set(job.id, job);
   }
 
   private async simulateRollingDeployment(job: DeploymentJob): Promise<void> {
     await new Promise(resolve => setTimeout(resolve, 6000));
-    
+
     job.metrics.deploymentMetrics.instancesDeployed = 3;
     job.metrics.deploymentMetrics.instancesHealthy = 3;
     job.metrics.deploymentMetrics.instancesUnhealthy = 0;
-    
+
     this.jobs.set(job.id, job);
   }
 
   private async simulateRecreateDeployment(job: DeploymentJob): Promise<void> {
     await new Promise(resolve => setTimeout(resolve, 3000));
-    
+
     job.metrics.deploymentMetrics.instancesDeployed = 3;
     job.metrics.deploymentMetrics.instancesHealthy = 3;
     job.metrics.deploymentMetrics.instancesUnhealthy = 0;
-    
+
     this.jobs.set(job.id, job);
   }
 
@@ -873,7 +873,7 @@ export class AdvancedDeploymentAutomationService {
     }, {} as Record<string, number>);
 
     const completedJobs = jobs.filter(j => j.status === 'completed' && j.metrics.duration);
-    const averageDeploymentTime = completedJobs.length > 0 
+    const averageDeploymentTime = completedJobs.length > 0
       ? completedJobs.reduce((sum, job) => sum + (job.metrics.duration || 0), 0) / completedJobs.length
       : 0;
 

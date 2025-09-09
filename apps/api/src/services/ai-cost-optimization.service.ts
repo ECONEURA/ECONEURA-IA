@@ -170,7 +170,7 @@ export class AICostOptimizationService {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       )`,
-      
+
       // Tabla de análisis de costos
       `CREATE TABLE IF NOT EXISTS ai_cost_analyses (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -181,7 +181,7 @@ export class AICostOptimizationService {
         recommendations JSONB NOT NULL DEFAULT '[]',
         generated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       )`,
-      
+
       // Tabla de alertas de costos
       `CREATE TABLE IF NOT EXISTS ai_cost_alerts (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -197,7 +197,7 @@ export class AICostOptimizationService {
         resolved_at TIMESTAMP WITH TIME ZONE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       )`,
-      
+
       // Tabla de métricas de costos
       `CREATE TABLE IF NOT EXISTS ai_cost_metrics (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -221,7 +221,7 @@ export class AICostOptimizationService {
     try {
       const result = await this.db.query('SELECT * FROM ai_cost_optimization_rules WHERE is_active = true');
       this.rulesCache.clear();
-      
+
       for (const row of result.rows) {
         this.rulesCache.set(row.id, {
           id: row.id,
@@ -235,7 +235,7 @@ export class AICostOptimizationService {
           updatedAt: row.updated_at
         });
       }
-      
+
       logger.info(`Loaded ${this.rulesCache.size} cost optimization rules`);
     } catch (error: any) {
       logger.error('Failed to load cost optimization rules', { error: error.message });
@@ -358,7 +358,7 @@ export class AICostOptimizationService {
 
       const newRule = result.rows[0];
       this.rulesCache.set(newRule.id, newRule);
-      
+
       logger.info('Cost optimization rule created', { ruleId: newRule.id, name: newRule.name });
       return {
         id: newRule.id,
@@ -401,7 +401,7 @@ export class AICostOptimizationService {
   async generateCostAnalysis(organizationId: string, analysisType: CostAnalysis['analysisType'], period: { start: Date; end: Date }): Promise<CostAnalysis> {
     try {
       const metrics = await this.getCostMetrics(organizationId, period);
-      
+
       const summary = {
         totalCost: metrics.reduce((sum, m) => sum + m.cost_eur, 0),
         totalRequests: metrics.length,
@@ -432,14 +432,14 @@ export class AICostOptimizationService {
           analysisType,
           JSON.stringify(period),
           JSON.stringify(summary),
-          JSON.stringify(recommendations)
+          JSON.stringify(recommendations);
         ]
       );
 
-      logger.info('Cost analysis generated', { 
-        analysisId: analysis.id, 
-        organizationId, 
-        analysisType 
+      logger.info('Cost analysis generated', {
+        analysisId: analysis.id,
+        organizationId,
+        analysisType
       });
 
       return analysis;
@@ -452,12 +452,12 @@ export class AICostOptimizationService {
   private async getCostMetrics(organizationId: string, period: { start: Date; end: Date }): Promise<any[]> {
     try {
       const result = await this.db.query(
-        `SELECT * FROM ai_cost_metrics 
+        `SELECT * FROM ai_cost_metrics
          WHERE organization_id = $1 AND timestamp BETWEEN $2 AND $3
          ORDER BY timestamp DESC`,
         [organizationId, period.start, period.end]
       );
-      
+
       return result.rows;
     } catch (error: any) {
       logger.error('Failed to get cost metrics', { error: error.message });
@@ -467,17 +467,17 @@ export class AICostOptimizationService {
 
   private calculateCostEfficiency(metrics: any[]): number {
     if (metrics.length === 0) return 0;
-    
+
     const totalCost = metrics.reduce((sum, m) => sum + parseFloat(m.cost_eur), 0);
     const totalTokens = metrics.reduce((sum, m) => sum + m.input_tokens + m.output_tokens, 0);
-    
+
     // Eficiencia = tokens por euro
     return totalCost > 0 ? totalTokens / totalCost : 0;
   }
 
   private getTopModels(metrics: any[]): CostAnalysis['summary']['topModels'] {
     const modelStats = new Map<string, { cost: number; requests: number; tokens: number }>();
-    
+
     for (const metric of metrics) {
       const existing = modelStats.get(metric.model) || { cost: 0, requests: 0, tokens: 0 };
       modelStats.set(metric.model, {
@@ -487,7 +487,7 @@ export class AICostOptimizationService {
       });
     }
 
-    return Array.from(modelStats.entries())
+    return Array.from(modelStats.entries());
       .map(([model, stats]) => ({
         model,
         cost: stats.cost,
@@ -500,7 +500,7 @@ export class AICostOptimizationService {
 
   private getTopProviders(metrics: any[]): CostAnalysis['summary']['topProviders'] {
     const providerStats = new Map<string, { cost: number; requests: number; tokens: number }>();
-    
+
     for (const metric of metrics) {
       const existing = providerStats.get(metric.provider) || { cost: 0, requests: 0, tokens: 0 };
       providerStats.set(metric.provider, {
@@ -510,7 +510,7 @@ export class AICostOptimizationService {
       });
     }
 
-    return Array.from(providerStats.entries())
+    return Array.from(providerStats.entries());
       .map(([provider, stats]) => ({
         provider,
         cost: stats.cost,
@@ -526,10 +526,10 @@ export class AICostOptimizationService {
 
     // Recomendación de modelo más eficiente
     if (summary.topModels.length > 0) {
-      const mostEfficient = summary.topModels.reduce((prev, current) => 
+      const mostEfficient = summary.topModels.reduce((prev, current) =>
         current.efficiency > prev.efficiency ? current : prev
       );
-      const leastEfficient = summary.topModels.reduce((prev, current) => 
+      const leastEfficient = summary.topModels.reduce((prev, current) =>
         current.efficiency < prev.efficiency ? current : prev
       );
 
@@ -565,7 +565,7 @@ export class AICostOptimizationService {
 
     // Recomendación de provider switching
     if (summary.topProviders.length > 1) {
-      const cheapest = summary.topProviders.reduce((prev, current) => 
+      const cheapest = summary.topProviders.reduce((prev, current) =>
         current.cost / current.requests < prev.cost / prev.requests ? current : prev
       );
       recommendations.push({
@@ -593,11 +593,11 @@ export class AICostOptimizationService {
       if (analysis.inefficientModels.length > 0) {
         const mostEfficient = analysis.efficientModels[0];
         const leastEfficient = analysis.inefficientModels[0];
-        
+
         actions.push({
           type: 'switch_to_cheaper_model',
-          parameters: { 
-            from: leastEfficient.model, 
+          parameters: {
+            from: leastEfficient.model,
             to: mostEfficient.model,
             provider: mostEfficient.provider
           },
@@ -611,8 +611,8 @@ export class AICostOptimizationService {
       if (request.currentUsage.requests > 100) {
         actions.push({
           type: 'enable_batching',
-          parameters: { 
-            batchSize: 10, 
+          parameters: {
+            batchSize: 10,
             maxWaitTime: 5000,
             enabledModels: request.currentUsage.models
           },
@@ -626,8 +626,8 @@ export class AICostOptimizationService {
       if (request.currentCost > 5) {
         actions.push({
           type: 'enable_caching',
-          parameters: { 
-            ttl: 3600, 
+          parameters: {
+            ttl: 3600,
             maxSize: 1000,
             cacheKeyStrategy: 'prompt_hash'
           },
@@ -641,8 +641,8 @@ export class AICostOptimizationService {
       if (analysis.cheaperProvider) {
         actions.push({
           type: 'switch_to_cheaper_provider',
-          parameters: { 
-            from: analysis.currentProvider, 
+          parameters: {
+            from: analysis.currentProvider,
             to: analysis.cheaperProvider.provider,
             fallbackModel: analysis.cheaperProvider.model
           },
@@ -667,7 +667,7 @@ export class AICostOptimizationService {
         recommendations.push('Continue monitoring for optimization opportunities');
       }
 
-      logger.info('Cost optimization completed', { 
+      logger.info('Cost optimization completed', {
         organizationId: request.organizationId,
         beforeCost,
         afterCost,
@@ -740,20 +740,20 @@ export class AICostOptimizationService {
           alert.message,
           alert.currentValue,
           alert.threshold,
-          JSON.stringify(alert.metadata || {})
+          JSON.stringify(alert.metadata || {});
         ]
       );
 
       const newAlert = result.rows[0];
       this.alertsCache.set(newAlert.id, newAlert);
-      
-      logger.warn('Cost alert created', { 
-        alertId: newAlert.id, 
+
+      logger.warn('Cost alert created', {
+        alertId: newAlert.id,
         type: newAlert.type,
         severity: newAlert.severity,
         organizationId: newAlert.organization_id
       });
-      
+
       return {
         id: newAlert.id,
         organizationId: newAlert.organization_id,
@@ -778,16 +778,16 @@ export class AICostOptimizationService {
     try {
       let query = 'SELECT * FROM ai_cost_alerts';
       const params: any[] = [];
-      
+
       if (organizationId) {
         query += ' WHERE organization_id = $1';
         params.push(organizationId);
       }
-      
+
       query += ' ORDER BY triggered_at DESC';
 
       const result = await this.db.query(query, params);
-      
+
       return result.rows.map(row => ({
         id: row.id,
         organizationId: row.organization_id,
@@ -815,14 +815,14 @@ export class AICostOptimizationService {
       startDate.setDate(startDate.getDate() - days);
 
       const result = await this.db.query(
-        `SELECT 
+        `SELECT
            DATE(timestamp) as period,
            SUM(cost_eur) as cost,
            COUNT(*) as requests,
            AVG(efficiency_score) as efficiency,
            MODE() WITHIN GROUP (ORDER BY model) as top_model,
            MODE() WITHIN GROUP (ORDER BY provider) as top_provider
-         FROM ai_cost_metrics 
+         FROM ai_cost_metrics
          WHERE organization_id = $1 AND timestamp >= $2
          GROUP BY DATE(timestamp)
          ORDER BY period DESC`,
@@ -848,13 +848,13 @@ export class AICostOptimizationService {
     try {
       // Analizar tendencias de costos y detectar anomalías
       const organizations = await this.getActiveOrganizations();
-      
+
       for (const orgId of organizations) {
         const trends = await this.getCostTrends(orgId, 7);
         if (trends.length > 1) {
           const recentCost = trends[0].cost;
           const averageCost = trends.reduce((sum, t) => sum + t.cost, 0) / trends.length;
-          
+
           // Detectar picos de costos
           if (recentCost > averageCost * 2) {
             await this.createCostAlert({
@@ -865,8 +865,8 @@ export class AICostOptimizationService {
               message: `Cost spike detected: €${recentCost.toFixed(2)} vs average €${averageCost.toFixed(2)}`,
               currentValue: recentCost,
               threshold: averageCost * 2,
-              metadata: { 
-                averageCost, 
+              metadata: {
+                averageCost,
                 trend: trends.slice(0, 3).map(t => ({ period: t.period, cost: t.cost }))
               }
             });
@@ -901,10 +901,10 @@ export class AICostOptimizationService {
   }
 
   private async executeOptimizationAction(rule: CostOptimizationRule): Promise<void> {
-    logger.info('Executing cost optimization action', { 
-      ruleId: rule.id, 
-      ruleName: rule.name, 
-      actionType: rule.action.type 
+    logger.info('Executing cost optimization action', {
+      ruleId: rule.id,
+      ruleName: rule.name,
+      actionType: rule.action.type
     });
   }
 
@@ -912,7 +912,7 @@ export class AICostOptimizationService {
     try {
       // Generar insights automáticos de costos
       const organizations = await this.getActiveOrganizations();
-      
+
       for (const orgId of organizations) {
         const analysis = await this.generateCostAnalysis(orgId, 'daily', {
           start: new Date(Date.now() - 24 * 60 * 60 * 1000),
@@ -929,7 +929,7 @@ export class AICostOptimizationService {
             message: `Found ${analysis.recommendations.length} cost optimization opportunities`,
             currentValue: analysis.summary.totalCost,
             threshold: analysis.summary.totalCost * 0.8,
-            metadata: { 
+            metadata: {
               recommendations: analysis.recommendations,
               analysisId: analysis.id
             }
@@ -964,7 +964,7 @@ export class AICostOptimizationService {
 
       const healthyServices = Object.values(services).filter(Boolean).length;
       const totalServices = Object.keys(services).length;
-      
+
       let status: 'healthy' | 'degraded' | 'unhealthy';
       if (healthyServices === totalServices) {
         status = 'healthy';

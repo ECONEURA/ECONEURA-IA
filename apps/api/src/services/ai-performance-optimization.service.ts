@@ -148,7 +148,7 @@ export class AIPerformanceOptimizationService {
         timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         metadata JSONB DEFAULT '{}'
       )`,
-      
+
       // Tabla de reglas de optimización
       `CREATE TABLE IF NOT EXISTS ai_optimization_rules (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -160,7 +160,7 @@ export class AIPerformanceOptimizationService {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       )`,
-      
+
       // Tabla de alertas de performance
       `CREATE TABLE IF NOT EXISTS ai_performance_alerts (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -176,7 +176,7 @@ export class AIPerformanceOptimizationService {
         message TEXT NOT NULL,
         metadata JSONB DEFAULT '{}'
       )`,
-      
+
       // Tabla de reportes de optimización
       `CREATE TABLE IF NOT EXISTS ai_optimization_reports (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -198,7 +198,7 @@ export class AIPerformanceOptimizationService {
     try {
       const result = await this.db.query('SELECT * FROM ai_optimization_rules WHERE is_active = true');
       this.rulesCache.clear();
-      
+
       for (const row of result.rows) {
         this.rulesCache.set(row.id, {
           id: row.id,
@@ -211,7 +211,7 @@ export class AIPerformanceOptimizationService {
           updatedAt: row.updated_at
         });
       }
-      
+
       logger.info(`Loaded ${this.rulesCache.size} optimization rules`);
     } catch (error: any) {
       logger.error('Failed to load optimization rules', { error: error.message });
@@ -382,25 +382,25 @@ export class AIPerformanceOptimizationService {
       );
 
       const newMetric = result.rows[0];
-      
+
       // Actualizar cache
       const cacheKey = `${metric.serviceName}_${metric.metricType}`;
       if (!this.metricsCache.has(cacheKey)) {
         this.metricsCache.set(cacheKey, []);
       }
       this.metricsCache.get(cacheKey)!.push(newMetric);
-      
+
       // Mantener solo los últimos 100 registros en cache
       if (this.metricsCache.get(cacheKey)!.length > 100) {
         this.metricsCache.get(cacheKey)!.shift();
       }
-      
-      logger.debug('Performance metric recorded', { 
-        serviceName: metric.serviceName, 
-        metricType: metric.metricType, 
-        value: metric.value 
+
+      logger.debug('Performance metric recorded', {
+        serviceName: metric.serviceName,
+        metricType: metric.metricType,
+        value: metric.value
       });
-      
+
       return {
         id: newMetric.id,
         serviceName: newMetric.service_name,
@@ -436,7 +436,7 @@ export class AIPerformanceOptimizationService {
       params.push(limit);
 
       const result = await this.db.query(query, params);
-      
+
       return result.rows.map(row => ({
         id: row.id,
         serviceName: row.service_name,
@@ -470,7 +470,7 @@ export class AIPerformanceOptimizationService {
 
       const newRule = result.rows[0];
       this.rulesCache.set(newRule.id, newRule);
-      
+
       logger.info('Optimization rule created', { ruleId: newRule.id, name: newRule.name });
       return {
         id: newRule.id,
@@ -521,7 +521,7 @@ export class AIPerformanceOptimizationService {
 
         if (metrics.length === 0) continue;
 
-        const recentMetrics = metrics.filter(m => 
+        const recentMetrics = metrics.filter(m =>
           Date.now() - m.timestamp.getTime() < rule.condition.duration * 1000
         );
 
@@ -571,9 +571,9 @@ export class AIPerformanceOptimizationService {
       // Ejecutar acción de optimización
       await this.executeOptimizationAction(rule.action, alert);
 
-      logger.warn('Optimization action triggered', { 
-        ruleId: rule.id, 
-        ruleName: rule.name, 
+      logger.warn('Optimization action triggered', {
+        ruleId: rule.id,
+        ruleName: rule.name,
         actionType: rule.action.type,
         alertId: alert.id
       });
@@ -653,19 +653,19 @@ export class AIPerformanceOptimizationService {
           alert.severity,
           alert.status,
           alert.message,
-          JSON.stringify(alert.metadata || {})
+          JSON.stringify(alert.metadata || {});
         ]
       );
 
       const newAlert = result.rows[0];
       this.alertsCache.set(newAlert.id, newAlert);
-      
-      logger.warn('Performance alert created', { 
-        alertId: newAlert.id, 
+
+      logger.warn('Performance alert created', {
+        alertId: newAlert.id,
         severity: newAlert.severity,
         message: newAlert.message
       });
-      
+
       return {
         id: newAlert.id,
         ruleId: newAlert.rule_id,
@@ -691,7 +691,7 @@ export class AIPerformanceOptimizationService {
       const result = await this.db.query(
         'SELECT * FROM ai_performance_alerts ORDER BY triggered_at DESC'
       );
-      
+
       return result.rows.map(row => ({
         id: row.id,
         ruleId: row.rule_id,
@@ -764,7 +764,7 @@ export class AIPerformanceOptimizationService {
       const totalImpact = actions.reduce((sum, action) => sum + action.impact, 0);
       const afterValue = beforeValue * (1 - totalImpact);
 
-      logger.info('Performance optimization completed', { 
+      logger.info('Performance optimization completed', {
         serviceName: request.serviceName,
         metricType: request.metricType,
         beforeValue,
@@ -792,7 +792,7 @@ export class AIPerformanceOptimizationService {
   async generateOptimizationReport(serviceName: string, reportType: OptimizationReport['reportType'], period: { start: Date; end: Date }): Promise<OptimizationReport> {
     try {
       const metrics = await this.getPerformanceMetrics(serviceName, undefined, 1000);
-      const periodMetrics = metrics.filter(m => 
+      const periodMetrics = metrics.filter(m =>
         m.timestamp >= period.start && m.timestamp <= period.end
       );
 
@@ -846,14 +846,14 @@ export class AIPerformanceOptimizationService {
           reportType,
           JSON.stringify(period),
           JSON.stringify(summary),
-          JSON.stringify(optimizations)
+          JSON.stringify(optimizations);
         ]
       );
 
-      logger.info('Optimization report generated', { 
-        reportId: report.id, 
-        serviceName, 
-        reportType 
+      logger.info('Optimization report generated', {
+        reportId: report.id,
+        serviceName,
+        reportType
       });
 
       return report;
@@ -880,7 +880,7 @@ export class AIPerformanceOptimizationService {
 
       const healthyServices = Object.values(services).filter(Boolean).length;
       const totalServices = Object.keys(services).length;
-      
+
       let status: 'healthy' | 'degraded' | 'unhealthy';
       if (healthyServices === totalServices) {
         status = 'healthy';

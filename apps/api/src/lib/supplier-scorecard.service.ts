@@ -503,8 +503,8 @@ class SupplierScorecardService {
     };
 
     this.suppliers.set(newSupplier.id, newSupplier);
-    structuredLogger.info('Supplier created', { 
-      supplierId: newSupplier.id, 
+    structuredLogger.info('Supplier created', {
+      supplierId: newSupplier.id,
       organizationId: newSupplier.organizationId,
       name: newSupplier.name,
       code: newSupplier.code
@@ -551,7 +551,7 @@ class SupplierScorecardService {
 
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
-      suppliers = suppliers.filter(s => 
+      suppliers = suppliers.filter(s =>
         s.name.toLowerCase().includes(searchLower) ||
         s.code.toLowerCase().includes(searchLower) ||
         s.contactInfo.email.toLowerCase().includes(searchLower)
@@ -590,8 +590,8 @@ class SupplierScorecardService {
       this.suppliers.set(supplier.id, supplier);
     }
 
-    structuredLogger.info('Supplier evaluation created', { 
-      evaluationId: newEvaluation.id, 
+    structuredLogger.info('Supplier evaluation created', {
+      evaluationId: newEvaluation.id,
       supplierId: newEvaluation.supplierId,
       overallScore: newEvaluation.scores.overall,
       grade: this.calculateGrade(newEvaluation.scores.overall)
@@ -700,8 +700,8 @@ class SupplierScorecardService {
     });
 
     this.comparisons.set(newComparison.id, newComparison);
-    structuredLogger.info('Supplier comparison created', { 
-      comparisonId: newComparison.id, 
+    structuredLogger.info('Supplier comparison created', {
+      comparisonId: newComparison.id,
       organizationId: newComparison.organizationId,
       suppliersCount: newComparison.suppliers.length
     });
@@ -733,9 +733,9 @@ class SupplierScorecardService {
     let data: any = {};
 
     const suppliers = Array.from(this.suppliers.values()).filter(s => s.organizationId === organizationId);
-    const evaluations = Array.from(this.evaluations.values()).filter(e => 
-      e.organizationId === organizationId && 
-      e.evaluationDate >= startDate && 
+    const evaluations = Array.from(this.evaluations.values()).filter(e =>
+      e.organizationId === organizationId &&
+      e.evaluationDate >= startDate &&
       e.evaluationDate <= endDate
     );
 
@@ -799,8 +799,8 @@ class SupplierScorecardService {
       createdAt: new Date().toISOString()
     };
 
-    structuredLogger.info('Supplier report generated', { 
-      reportId: report.id, 
+    structuredLogger.info('Supplier report generated', {
+      reportId: report.id,
       organizationId,
       reportType,
       period: `${startDate} to ${endDate}`
@@ -872,7 +872,7 @@ class SupplierScorecardService {
 
   private analyzeRiskFactors(suppliers: Supplier[]): Record<string, number> {
     const riskFactors: Record<string, number> = {};
-    
+
     suppliers.forEach(supplier => {
       supplier.riskAssessment.riskFactors.forEach(factor => {
         riskFactors[factor] = (riskFactors[factor] || 0) + 1;
@@ -898,7 +898,7 @@ class SupplierScorecardService {
   }[]> {
     const suppliers = Array.from(this.suppliers.values())
       .filter(s => s.organizationId === organizationId);
-    
+
     const alerts: {
       supplierId: string;
       supplierName: string;
@@ -913,7 +913,7 @@ class SupplierScorecardService {
       if (supplier.performanceMetrics.otif < 90) {
         supplierAlerts.push({
           type: 'otif_decline',
-          severity: supplier.performanceMetrics.otif < 80 ? 'critical' : 
+          severity: supplier.performanceMetrics.otif < 80 ? 'critical' :
                    supplier.performanceMetrics.otif < 85 ? 'high' : 'medium',
           message: `OTIF below target: ${supplier.performanceMetrics.otif}% (target: 90%)`,
           threshold: 90,
@@ -927,7 +927,7 @@ class SupplierScorecardService {
       if (supplier.performanceMetrics.leadTime > 10) {
         supplierAlerts.push({
           type: 'lead_time_increase',
-          severity: supplier.performanceMetrics.leadTime > 15 ? 'critical' : 
+          severity: supplier.performanceMetrics.leadTime > 15 ? 'critical' :
                    supplier.performanceMetrics.leadTime > 12 ? 'high' : 'medium',
           message: `Lead time above target: ${supplier.performanceMetrics.leadTime} days (target: 10 days)`,
           threshold: 10,
@@ -941,7 +941,7 @@ class SupplierScorecardService {
       if (supplier.performanceMetrics.ppv > 5) {
         supplierAlerts.push({
           type: 'ppv_variance',
-          severity: supplier.performanceMetrics.ppv > 10 ? 'critical' : 
+          severity: supplier.performanceMetrics.ppv > 10 ? 'critical' :
                    supplier.performanceMetrics.ppv > 7 ? 'high' : 'medium',
           message: `PPV above target: ${supplier.performanceMetrics.ppv}% (target: <5%)`,
           threshold: 5,
@@ -955,7 +955,7 @@ class SupplierScorecardService {
       if (supplier.performanceMetrics.sl < 95) {
         supplierAlerts.push({
           type: 'service_level_decline',
-          severity: supplier.performanceMetrics.sl < 90 ? 'critical' : 
+          severity: supplier.performanceMetrics.sl < 90 ? 'critical' :
                    supplier.performanceMetrics.sl < 93 ? 'high' : 'medium',
           message: `Service level below target: ${supplier.performanceMetrics.sl}% (target: 95%)`,
           threshold: 95,
@@ -974,7 +974,7 @@ class SupplierScorecardService {
       }
     });
 
-    structuredLogger.info('Vendor scorecard alerts generated', { 
+    structuredLogger.info('Vendor scorecard alerts generated', {
       organizationId,
       totalSuppliers: suppliers.length,
       suppliersWithAlerts: alerts.length,

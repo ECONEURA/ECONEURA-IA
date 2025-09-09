@@ -1,6 +1,6 @@
 /**
  * PR-52: Contacts Dedupe Proactivo Service
- * 
+ *
  * Sistema avanzado de deduplicación proactiva de contactos
  */
 
@@ -106,10 +106,10 @@ export class ContactsDedupeService {
     try {
       // Detectar duplicados exactos
       const exactDuplicates = await this.findExactDuplicates();
-      
+
       // Detectar duplicados por email
       const emailDuplicates = await this.findEmailDuplicates();
-      
+
       // Detectar duplicados por teléfono
       const phoneDuplicates = await this.findPhoneDuplicates();
 
@@ -331,7 +331,7 @@ export class ContactsDedupeService {
   }
 
   private isExactDuplicate(contact1: Contact, contact2: Contact): boolean {
-    return (
+    return (;
       contact1.firstName === contact2.firstName &&
       contact1.lastName === contact2.lastName &&
       contact1.email === contact2.email &&
@@ -350,7 +350,7 @@ export class ContactsDedupeService {
         const contact2 = contacts[j];
 
         const similarity = this.calculateSimilarity(contact1, contact2);
-        
+
         if (similarity >= this.config.similarityThreshold) {
           duplicates.push({
             contactId: contact1.id,
@@ -379,7 +379,7 @@ export class ContactsDedupeService {
         const contact2 = contacts[j];
 
         const mlScore = await this.calculateMLScore(contact1, contact2);
-        
+
         if (mlScore >= this.config.confidenceThreshold) {
           duplicates.push({
             contactId: contact1.id,
@@ -485,8 +485,8 @@ export class ContactsDedupeService {
     ).length;
 
     const allDuplicates = Array.from(this.duplicates.values()).flat();
-    const averageConfidence = allDuplicates.length > 0 
-      ? allDuplicates.reduce((sum, dup) => sum + dup.confidence, 0) / allDuplicates.length 
+    const averageConfidence = allDuplicates.length > 0
+      ? allDuplicates.reduce((sum, dup) => sum + dup.confidence, 0) / allDuplicates.length
       : 0;
 
     const fuzzyMatches = allDuplicates.filter(d => d.matchType === 'similarity').length;
@@ -517,7 +517,7 @@ export class ContactsDedupeService {
   }
 
   getPendingMerges(): MergeOperation[] {
-    return Array.from(this.mergeOperations.values()).filter(
+    return Array.from(this.mergeOperations.values()).filter(;
       op => op.status === 'pending'
     );
   }
@@ -602,7 +602,7 @@ export class ContactsDedupeService {
   async getHealthStatus(): Promise<{ status: string; details: any }> {
     const stats = this.getStats();
     const pendingMerges = this.getPendingMerges().length;
-    
+
     let status = 'healthy';
     if (pendingMerges > 10) {
       status = 'warning';
@@ -632,7 +632,7 @@ export class ContactsDedupeService {
     for (const contact of contacts) {
       this.contacts.set(contact.id, contact);
     }
-    
+
     structuredLogger.info('Contacts imported for deduplication', {
       count: contacts.length,
       requestId: ''
@@ -643,7 +643,7 @@ export class ContactsDedupeService {
     this.contacts.clear();
     this.duplicates.clear();
     this.mergeOperations.clear();
-    
+
     structuredLogger.info('All deduplication data cleared', {
       requestId: ''
     });

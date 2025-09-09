@@ -163,7 +163,7 @@ export class AutomatedTestingService {
 
     try {
       logger.info(`Starting test suite execution: ${suiteId}`);
-      
+
       // Ejecutar tests en paralelo (limitado por config)
       const testPromises = suite.tests.map(test => this.executeTest(test, execution.id));
       const results = await Promise.allSettled(testPromises);
@@ -211,14 +211,14 @@ export class AutomatedTestingService {
 
   private async executeTest(test: TestResult, executionId: string): Promise<TestResult> {
     const startTime = Date.now();
-    
+
     try {
       // Simular ejecución de test
       await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500));
-      
+
       // Simular diferentes tipos de tests
       const testResult = await this.runSpecificTest(test.testName);
-      
+
       return {
         ...test,
         status: testResult.status,
@@ -265,7 +265,7 @@ export class AutomatedTestingService {
       // Simular verificación de secretos
       const secrets = await keyVault.listSecrets();
       const hasSecrets = secrets.secrets.length > 0;
-      
+
       return {
         status: hasSecrets ? 'PASSED' : 'FAILED',
         message: hasSecrets ? 'Secrets are properly configured' : 'No secrets found in Key Vault',
@@ -371,7 +371,7 @@ export class AutomatedTestingService {
       .filter(rotation => rotation.nextRotation <= now && rotation.status !== 'IN_PROGRESS');
 
     const results: SecretRotation[] = [];
-    
+
     for (const rotation of dueRotations) {
       try {
         const result = await this.executeSecretRotation(rotation.id);
@@ -440,7 +440,7 @@ export class AutomatedTestingService {
   private getSecurityCheckStatus(category: string): 'PASSED' | 'FAILED' | 'WARNING' | 'NOT_APPLICABLE' {
     // Simular diferentes resultados basados en la categoría
     const random = Math.random();
-    
+
     switch (category) {
       case 'SECRETS':
         return random > 0.1 ? 'PASSED' : 'WARNING';
@@ -461,7 +461,7 @@ export class AutomatedTestingService {
 
   async executeQuarterlySecurityAudit(): Promise<SecurityChecklist[]> {
     logger.info('Starting quarterly security audit');
-    
+
     const allChecklists = Array.from(this.securityChecklist.values());
     const results: SecurityChecklist[] = [];
 
@@ -497,17 +497,17 @@ export class AutomatedTestingService {
     const totalExecutions = executions.length;
     const successfulExecutions = executions.filter(e => e.status === 'COMPLETED').length;
     const successRate = totalExecutions > 0 ? (successfulExecutions / totalExecutions) * 100 : 0;
-    
+
     const totalExecutionTime = executions.reduce((sum, e) => {
       if (e.endTime) {
         return sum + (e.endTime.getTime() - e.startTime.getTime());
       }
       return sum;
     }, 0);
-    
+
     const averageExecutionTime = totalExecutions > 0 ? totalExecutionTime / totalExecutions : 0;
 
-    const lastExecution = executions.length > 0 
+    const lastExecution = executions.length > 0
       ? new Date(Math.max(...executions.map(e => e.startTime.getTime())))
       : null;
 
@@ -550,13 +550,13 @@ export class AutomatedTestingService {
       totalTests: allTestResults.length,
       passedTests: allTestResults.filter(t => t.status === 'PASSED').length,
       failedTests: allTestResults.filter(t => t.status === 'FAILED').length,
-      successRate: allTestResults.length > 0 
-        ? (allTestResults.filter(t => t.status === 'PASSED').length / allTestResults.length) * 100 
+      successRate: allTestResults.length > 0
+        ? (allTestResults.filter(t => t.status === 'PASSED').length / allTestResults.length) * 100
         : 0,
       secretRotations: periodRotations.length,
       securityChecks: periodChecks.length,
-      averageTestDuration: allTestResults.length > 0 
-        ? allTestResults.reduce((sum, t) => sum + t.duration, 0) / allTestResults.length 
+      averageTestDuration: allTestResults.length > 0
+        ? allTestResults.reduce((sum, t) => sum + t.duration, 0) / allTestResults.length
         : 0
     };
 

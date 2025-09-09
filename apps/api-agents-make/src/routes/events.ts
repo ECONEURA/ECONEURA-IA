@@ -23,13 +23,13 @@ router.post("/events", express.raw({ type: "application/json" }), async (req, re
     const raw = req.body as Buffer;
     const signature = req.header("x-signature") || "";
     const idempotencyKey = req.header("x-idempotency-key") || "";
-    
+
     // Verify HMAC signature
     const expectedSignature = crypto
       .createHmac("sha256", process.env.MAKE_HMAC_SECRET || "")
       .update(raw)
       .digest("hex");
-    
+
     if (signature !== expectedSignature) {
       console.error("❌ Invalid HMAC signature");
       return res.status(401).json({ error: "Invalid signature" });
@@ -43,7 +43,7 @@ router.post("/events", express.raw({ type: "application/json" }), async (req, re
 
     // Parse and validate event
     const event = EventSchema.parse(JSON.parse(raw.toString()));
-    
+
     // Update run status
     await upsertRun({
       run_id: event.runId,
@@ -68,8 +68,8 @@ router.post("/events", express.raw({ type: "application/json" }), async (req, re
       "X-Correlation-Id": req.header("x-correlation-id") || crypto.randomUUID()
     });
 
-    res.status(200).json({ 
-      ok: true, 
+    res.status(200).json({
+      ok: true,
       message: "Event processed successfully",
       runId: event.runId,
       status: event.status
@@ -77,7 +77,7 @@ router.post("/events", express.raw({ type: "application/json" }), async (req, re
 
   } catch (error) {
     console.error("❌ Event processing error:", error);
-    
+
     res.status(400).json({
       error: "Event processing failed",
       message: error instanceof Error ? error.message : "Unknown error"

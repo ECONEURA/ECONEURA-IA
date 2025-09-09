@@ -14,25 +14,25 @@ export interface RLSRequest extends Request {
 export function rlsMiddleware(req: RLSRequest, res: Response, next: NextFunction): void {
   try {
     // Extraer información de contexto de los headers o tokens
-    const organizationId = req.headers['x-organization-id'] as string || 
-                          req.headers['x-tenant-id'] as string || 
+    const organizationId = req.headers['x-organization-id'] as string ||
+                          req.headers['x-tenant-id'] as string ||
                           'default';
-    
-    const userId = req.headers['x-user-id'] as string || 
+
+    const userId = req.headers['x-user-id'] as string ||
                    req.headers['x-subject'] as string;
-    
-    const role = req.headers['x-user-role'] as string || 
-                 req.headers['x-role'] as string || 
+
+    const role = req.headers['x-user-role'] as string ||
+                 req.headers['x-role'] as string ||
                  'user';
-    
-    const permissions = req.headers['x-permissions'] as string ? 
-                       (req.headers['x-permissions'] as string).split(',') : 
+
+    const permissions = req.headers['x-permissions'] as string ?
+                       (req.headers['x-permissions'] as string).split(',') :
                        undefined;
-    
-    const tenantId = req.headers['x-tenant-id'] as string || 
+
+    const tenantId = req.headers['x-tenant-id'] as string ||
                      organizationId;
-    
-    const requestId = req.headers['x-request-id'] as string || 
+
+    const requestId = req.headers['x-request-id'] as string ||
                       `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // Crear contexto RLS
@@ -47,7 +47,7 @@ export function rlsMiddleware(req: RLSRequest, res: Response, next: NextFunction
 
     // Establecer contexto en el sistema RLS
     rlsSystem.setContext(rlsContext);
-    
+
     // Agregar contexto a la request para uso posterior
     req.rlsContext = rlsContext;
     req.organizationId = organizationId;
@@ -76,12 +76,12 @@ export function rlsMiddleware(req: RLSRequest, res: Response, next: NextFunction
   }
 }
 
-export function rlsAccessControlMiddleware(resource: string, action: string) {
+export function rlsAccessControlMiddleware(resource: string, action: string): void {
   return (req: RLSRequest, res: Response, next: NextFunction): void => {
     try {
       // Verificar acceso usando el sistema RLS
       const hasAccess = rlsSystem.checkAccess(resource, action);
-      
+
       if (!hasAccess) {
         logger.warn('Access denied by RLS', {
           resource,
@@ -118,7 +118,7 @@ export function rlsAccessControlMiddleware(resource: string, action: string) {
         path: req.path,
         method: req.method,
       });
-      
+
       res.status(500).json({
         error: 'Internal server error',
         message: 'Access control system error',
@@ -127,14 +127,14 @@ export function rlsAccessControlMiddleware(resource: string, action: string) {
   };
 }
 
-export function rlsDataSanitizationMiddleware(table: string) {
+export function rlsDataSanitizationMiddleware(table: string): void {
   return (req: RLSRequest, res: Response, next: NextFunction): void => {
     try {
       // Sanitizar datos de entrada
       if (req.body && Object.keys(req.body).length > 0) {
         const sanitizedData = rlsSystem.sanitizeInput(req.body, table);
         req.body = sanitizedData;
-        
+
         logger.debug('Input data sanitized', {
           table,
           organizationId: req.organizationId,
@@ -157,7 +157,7 @@ export function rlsDataSanitizationMiddleware(table: string) {
         path: req.path,
         method: req.method,
       });
-      
+
       res.status(400).json({
         error: 'Bad request',
         message: 'Data sanitization failed',
@@ -166,7 +166,7 @@ export function rlsDataSanitizationMiddleware(table: string) {
   };
 }
 
-export function rlsResponseValidationMiddleware(table: string) {
+export function rlsResponseValidationMiddleware(table: string): void {
   return (req: RLSRequest, res: Response, next: NextFunction): void => {
     const originalSend = res.send;
 
@@ -175,7 +175,7 @@ export function rlsResponseValidationMiddleware(table: string) {
         // Validar datos de salida
         if (data && typeof data === 'object') {
           const isValid = rlsSystem.validateOutput(data, table);
-          
+
           if (!isValid) {
             logger.warn('RLS output validation failed', {
               table,
@@ -199,7 +199,7 @@ export function rlsResponseValidationMiddleware(table: string) {
           path: req.path,
           method: req.method,
         });
-        
+
         return originalSend.call(this, data);
       }
     };

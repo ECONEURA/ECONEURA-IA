@@ -39,7 +39,7 @@ contactsStore.set('cont-2', {
 router.get('/', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string || 'org-demo';
-    
+
     // Filter contacts by org (simulate RLS)
     const contacts = Array.from(contactsStore.values())
       .filter(contact => contact.orgId === orgId && !contact.deletedAt);
@@ -72,10 +72,10 @@ router.get('/', async (req, res) => {
     structuredLogger.error('Failed to retrieve contacts', error as Error, {
       orgId: req.headers['x-org-id']
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to retrieve contacts',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -85,11 +85,11 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const orgId = req.headers['x-org-id'] as string || 'org-demo';
-    
+
     const contact = contactsStore.get(id);
 
     if (!contact || contact.orgId !== orgId || contact.deletedAt) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Contact not found',
         message: `Contact with ID ${id} not found or access denied`
       });
@@ -107,10 +107,10 @@ router.get('/:id', async (req, res) => {
       orgId: req.headers['x-org-id'],
       contactId: req.params.id
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to retrieve contact',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });

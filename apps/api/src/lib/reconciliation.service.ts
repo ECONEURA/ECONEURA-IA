@@ -32,10 +32,10 @@ export class ReconciliationService {
 
     // Process reconciliation results
     const results: ReconciliationResult[] = [];
-    
+
     for (const sepaTransaction of sepaTransactions) {
       const matchingResult = matchingResults.find(r => r.transactionId === sepaTransaction.id);
-      
+
       if (matchingResult) {
         // Create reconciliation result
         const reconciliationResult: ReconciliationResult = {
@@ -98,7 +98,7 @@ export class ReconciliationService {
     userId: string
   ): Promise<ReconciliationResult | null> {
     const existingResult = this.reconciliationResults.find(r => r.transactionId === transactionId);
-    
+
     if (existingResult) {
       // Update existing result
       existingResult.matchedTransactionId = matchedTransactionId;
@@ -128,7 +128,7 @@ export class ReconciliationService {
     userId: string
   ): Promise<ReconciliationResult | null> {
     const existingResult = this.reconciliationResults.find(r => r.transactionId === transactionId);
-    
+
     if (existingResult) {
       existingResult.status = 'disputed';
       existingResult.updatedAt = new Date();
@@ -143,7 +143,7 @@ export class ReconciliationService {
     userId: string
   ): Promise<ReconciliationResult | null> {
     const existingResult = this.reconciliationResults.find(r => r.transactionId === transactionId);
-    
+
     if (existingResult) {
       existingResult.status = existingResult.status === 'manual' ? 'auto' : existingResult.status;
       existingResult.updatedAt = new Date();
@@ -176,8 +176,8 @@ export class ReconciliationService {
     const pending = this.reconciliationResults.filter(r => r.status === 'pending').length;
     const disputed = this.reconciliationResults.filter(r => r.status === 'disputed').length;
     const successRate = total > 0 ? (autoReconciled + manualReconciled) / total : 0;
-    const averageScore = total > 0 
-      ? this.reconciliationResults.reduce((sum, r) => sum + r.score, 0) / total 
+    const averageScore = total > 0
+      ? this.reconciliationResults.reduce((sum, r) => sum + r.score, 0) / total
       : 0;
 
     return {

@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import AutomatedTestingService, { 
-  TestSuite, 
-  SecretRotation, 
-  SecurityChecklist, 
-  AutomatedTestingConfig 
+import AutomatedTestingService, {
+  TestSuite,
+  SecretRotation,
+  SecurityChecklist,
+  AutomatedTestingConfig
 } from '../lib/automated-testing.service.js';
 import { logger } from '../lib/logger.js';
 
@@ -87,7 +87,7 @@ router.get('/test-suites/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const suite = await testingService.getTestSuite(id);
-    
+
     if (!suite) {
       return res.status(404).json({
         success: false,
@@ -113,7 +113,7 @@ router.get('/test-suites/:id', async (req: Request, res: Response) => {
 router.post('/test-suites', async (req: Request, res: Response) => {
   try {
     const validatedData = CreateTestSuiteSchema.parse(req.body);
-    
+
     const suite = await testingService.createTestSuite({
       name: validatedData.name,
       description: validatedData.description,
@@ -157,9 +157,9 @@ router.put('/test-suites/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const updates = req.body;
-    
+
     const updatedSuite = await testingService.updateTestSuite(id, updates);
-    
+
     if (!updatedSuite) {
       return res.status(404).json({
         success: false,
@@ -187,7 +187,7 @@ router.delete('/test-suites/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const deleted = await testingService.deleteTestSuite(id);
-    
+
     if (!deleted) {
       return res.status(404).json({
         success: false,
@@ -214,7 +214,7 @@ router.post('/test-suites/:id/execute', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const execution = await testingService.executeTestSuite(id);
-    
+
     res.json({
       success: true,
       data: execution,
@@ -256,7 +256,7 @@ router.get('/secret-rotations/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const rotation = await testingService.getSecretRotation(id);
-    
+
     if (!rotation) {
       return res.status(404).json({
         success: false,
@@ -282,7 +282,7 @@ router.get('/secret-rotations/:id', async (req: Request, res: Response) => {
 router.post('/secret-rotations', async (req: Request, res: Response) => {
   try {
     const validatedData = CreateSecretRotationSchema.parse(req.body);
-    
+
     const rotation = await testingService.createSecretRotation({
       secretName: validatedData.secretName,
       currentVersion: validatedData.currentVersion,
@@ -320,7 +320,7 @@ router.post('/secret-rotations/:id/execute', async (req: Request, res: Response)
   try {
     const { id } = req.params;
     const rotation = await testingService.executeSecretRotation(id);
-    
+
     res.json({
       success: true,
       data: rotation,
@@ -340,7 +340,7 @@ router.post('/secret-rotations/:id/execute', async (req: Request, res: Response)
 router.post('/secret-rotations/schedule', async (req: Request, res: Response) => {
   try {
     const rotations = await testingService.scheduleSecretRotations();
-    
+
     res.json({
       success: true,
       data: rotations,
@@ -383,7 +383,7 @@ router.get('/security-checklist/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const checklist = await testingService.getSecurityChecklist(id);
-    
+
     if (!checklist) {
       return res.status(404).json({
         success: false,
@@ -409,7 +409,7 @@ router.get('/security-checklist/:id', async (req: Request, res: Response) => {
 router.post('/security-checklist', async (req: Request, res: Response) => {
   try {
     const validatedData = CreateSecurityChecklistSchema.parse(req.body);
-    
+
     const checklist = await testingService.createSecurityChecklist({
       name: validatedData.name,
       category: validatedData.category,
@@ -449,7 +449,7 @@ router.post('/security-checklist/:id/execute', async (req: Request, res: Respons
   try {
     const { id } = req.params;
     const checklist = await testingService.executeSecurityCheck(id);
-    
+
     res.json({
       success: true,
       data: checklist,
@@ -469,7 +469,7 @@ router.post('/security-checklist/:id/execute', async (req: Request, res: Respons
 router.post('/security-checklist/quarterly-audit', async (req: Request, res: Response) => {
   try {
     const results = await testingService.executeQuarterlySecurityAudit();
-    
+
     res.json({
       success: true,
       data: results,
@@ -492,7 +492,7 @@ router.post('/security-checklist/quarterly-audit', async (req: Request, res: Res
 router.get('/statistics', async (req: Request, res: Response) => {
   try {
     const statistics = await testingService.getTestingStatistics();
-    
+
     res.json({
       success: true,
       data: statistics
@@ -511,7 +511,7 @@ router.get('/statistics', async (req: Request, res: Response) => {
 router.get('/reports/:period', async (req: Request, res: Response) => {
   try {
     const { period } = req.params;
-    
+
     if (!['daily', 'weekly', 'monthly', 'quarterly'].includes(period)) {
       return res.status(400).json({
         success: false,
@@ -520,7 +520,7 @@ router.get('/reports/:period', async (req: Request, res: Response) => {
     }
 
     const report = await testingService.generateTestingReport(period as 'daily' | 'weekly' | 'monthly' | 'quarterly');
-    
+
     res.json({
       success: true,
       data: report
@@ -558,10 +558,10 @@ router.get('/config', async (req: Request, res: Response) => {
 router.put('/config', async (req: Request, res: Response) => {
   try {
     const validatedData = UpdateConfigSchema.parse(req.body);
-    
+
     // Actualizar configuración (en una implementación real, esto se persistiría)
     Object.assign(defaultConfig, validatedData);
-    
+
     res.json({
       success: true,
       data: defaultConfig,
@@ -591,7 +591,7 @@ router.put('/config', async (req: Request, res: Response) => {
 router.get('/health', async (req: Request, res: Response) => {
   try {
     const statistics = await testingService.getTestingStatistics();
-    
+
     const health = {
       status: 'healthy',
       timestamp: new Date().toISOString(),

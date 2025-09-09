@@ -67,30 +67,30 @@ export class EmailProcessor {
 
   async processEmail(messageId: string, organizationId: string): Promise<EmailProcessingResult> {
     const startTime = Date.now();
-    
+
     try {
       logger.info('Starting email processing', { messageId, organizationId });
 
       // Fetch email from Microsoft Graph
       const email = await this.graphService.getEmail(messageId);
-      
+
       if (!email) {
         throw new Error(`Email ${messageId} not found`);
       }
 
       // Process email content
       const result = await this.analyzeEmail(email, organizationId);
-      
+
       // Apply actions based on analysis
       await this.applyEmailActions(email, result, organizationId);
 
       const processingTime = Date.now() - startTime;
-      
+
       // Record metrics
       this.processingCounter.inc({
         action: result.action,
         category: result.metadata.category || 'unknown',
-        status: 'success' 
+        status: 'success'
       });
 
       this.processingDuration.observe(
@@ -112,13 +112,13 @@ export class EmailProcessor {
 
     } catch (error) {
       const processingTime = Date.now() - startTime;
-      
+
       this.processingCounter.inc({
         action: 'error',
         category: 'unknown',
-        status: 'error' 
+        status: 'error'
       });
-      
+
       logger.error('Email processing failed', {
         messageId,
         organizationId,
@@ -132,12 +132,12 @@ export class EmailProcessor {
 
   private async analyzeEmail(email: EmailMessage, organizationId: string): Promise<EmailProcessingResult> {
     const startTime = Date.now();
-    
+
     // Simulate AI-powered email analysis
     const analysis = await this.performEmailAnalysis(email, organizationId);
-    
+
     const processingTime = Date.now() - startTime;
-    
+
     return {
       messageId: email.id,
       processed: true,
@@ -162,14 +162,14 @@ export class EmailProcessor {
     // Simulate AI analysis based on email content
     const subject = email.subject.toLowerCase();
     const body = email.body.content.toLowerCase();
-    
+
     // Determine category based on content
     let category = 'general';
     let action: 'categorize' | 'respond' | 'forward' | 'archive' | 'none' = 'none';
     let confidence = 0.5;
     let sentiment: 'positive' | 'negative' | 'neutral' = 'neutral';
     let urgency: 'low' | 'medium' | 'high' = 'low';
-    
+
     // Business logic for email categorization
     if (subject.includes('invoice') || subject.includes('factura') || body.includes('payment')) {
       category = 'finance';
@@ -201,10 +201,10 @@ export class EmailProcessor {
     // Determine sentiment
     const positiveWords = ['thank', 'thanks', 'great', 'excellent', 'good', 'happy', 'pleased'];
     const negativeWords = ['problem', 'issue', 'error', 'bad', 'wrong', 'disappointed', 'angry'];
-    
+
     const positiveCount = positiveWords.filter(word => body.includes(word)).length;
     const negativeCount = negativeWords.filter(word => body.includes(word)).length;
-    
+
     if (positiveCount > negativeCount) {
       sentiment = 'positive';
     } else if (negativeCount > positiveCount) {
@@ -230,28 +230,28 @@ export class EmailProcessor {
   private extractEntities(email: EmailMessage): string[] {
     const entities: string[] = [];
     const content = `${email.subject} ${email.body.content}`.toLowerCase();
-    
+
     // Extract email addresses
     const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
     const emails = content.match(emailRegex) || [];
     entities.push(...emails);
-    
+
     // Extract phone numbers (Spanish format)
     const phoneRegex = /(\+34|0034)?[6-9]\d{8}/g;
     const phones = content.match(phoneRegex) || [];
     entities.push(...phones);
-    
+
     // Extract amounts (EUR)
     const amountRegex = /€?\s*\d+[.,]\d{2}/g;
     const amounts = content.match(amountRegex) || [];
     entities.push(...amounts);
-    
+
     return entities;
   }
 
   private async applyEmailActions(
-    email: EmailMessage, 
-    result: EmailProcessingResult, 
+    email: EmailMessage,
+    result: EmailProcessingResult,
     organizationId: string
   ): Promise<void> {
     try {
@@ -259,19 +259,19 @@ export class EmailProcessor {
         case 'categorize':
           await this.categorizeEmail(email, result.metadata.category!, organizationId);
           break;
-          
+
         case 'respond':
           await this.generateResponse(email, organizationId);
           break;
-          
+
         case 'forward':
           await this.forwardEmail(email, result.metadata.category!, organizationId);
           break;
-          
+
         case 'archive':
           await this.archiveEmail(email, organizationId);
           break;
-          
+
         case 'none':
         default:
           logger.info('No action required for email', { messageId: email.id });
@@ -319,7 +319,7 @@ export class EmailProcessor {
 
   async processBulkEmails(messageIds: string[], organizationId: string): Promise<EmailProcessingResult[]> {
     const results: EmailProcessingResult[] = [];
-    
+
     logger.info('Starting bulk email processing', {
       count: messageIds.length,
       organizationId
@@ -328,9 +328,9 @@ export class EmailProcessor {
     // Process emails in parallel with concurrency limit
     const concurrencyLimit = 5;
     const chunks = this.chunkArray(messageIds, concurrencyLimit);
-    
+
     for (const chunk of chunks) {
-      const chunkPromises = chunk.map(messageId => 
+      const chunkPromises = chunk.map(messageId =>
         this.processEmail(messageId, organizationId).catch(error => {
           logger.error('Bulk processing error', {
             messageId,
@@ -347,7 +347,7 @@ export class EmailProcessor {
           };
         })
       );
-      
+
       const chunkResults = await Promise.all(chunkPromises);
       results.push(...chunkResults);
     }

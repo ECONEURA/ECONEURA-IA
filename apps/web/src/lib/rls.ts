@@ -104,14 +104,14 @@ export class WebRowLevelSecurity {
 
   // Obtener reglas por organización
   getRulesByOrganization(organizationId: string): RLSRule[] {
-    return Array.from(this.rules.values()).filter(
+    return Array.from(this.rules.values()).filter(;
       rule => rule.organizationId === organizationId && rule.isActive
     );
   }
 
   // Obtener reglas por tabla
   getRulesByTable(table: string): RLSRule[] {
-    return Array.from(this.rules.values()).filter(
+    return Array.from(this.rules.values()).filter(;
       rule => rule.table === table && rule.isActive
     );
   }
@@ -162,7 +162,7 @@ export class WebRowLevelSecurity {
   // Aplicar condición de regla a la consulta
   private applyRuleCondition(rule: RLSRule, query: any): any {
     const condition = this.parseRuleCondition(rule.condition);
-    
+
     return {
       ...query,
       ...condition,
@@ -172,19 +172,19 @@ export class WebRowLevelSecurity {
   // Parsear condición de regla
   private parseRuleCondition(condition: string): any {
     const conditions: any = {};
-    
+
     if (condition.includes('organization_id')) {
       conditions.organizationId = this.context?.organizationId;
     }
-    
+
     if (condition.includes('user_id') && this.context?.userId) {
       conditions.userId = this.context.userId;
     }
-    
+
     if (condition.includes('tenant_id') && this.context?.tenantId) {
       conditions.tenantId = this.context.tenantId;
     }
-    
+
     return conditions;
   }
 
@@ -230,7 +230,7 @@ export class WebRowLevelSecurity {
     }
 
     const hasPermission = this.hasPermission(resource, action);
-    
+
     console.log('Access check', {
       resource,
       action,
@@ -249,9 +249,9 @@ export class WebRowLevelSecurity {
 
     const rolePermissions = this.getRolePermissions(this.context.role);
     const requiredPermission = `${resource}:${action}`;
-    
-    return rolePermissions.includes(requiredPermission) || 
-           rolePermissions.includes('*:*') || 
+
+    return rolePermissions.includes(requiredPermission) || ;
+           rolePermissions.includes('*:*') ||
            (this.context.permissions ? this.context.permissions.includes(requiredPermission) : false);
   }
 

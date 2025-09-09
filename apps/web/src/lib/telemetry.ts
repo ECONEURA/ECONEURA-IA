@@ -2,15 +2,15 @@
 // WEB TELEMETRY INTEGRATION - NEXT.JS SPECIFIC
 // ============================================================================
 
-import { 
-  initializeTelemetry, 
-  getTelemetry, 
-  trackPageView, 
-  trackUserAction, 
-  trackError, 
+import {
+  initializeTelemetry,
+  getTelemetry,
+  trackPageView,
+  trackUserAction,
+  trackError,
   trackCustom,
   setTelemetryUser,
-  TelemetryConfig 
+  TelemetryConfig
 } from '@econeura/shared/telemetry';
 
 // ============================================================================
@@ -105,7 +105,7 @@ function setupRouteTracking(): void {
 
 import { useEffect, useCallback } from 'react';
 
-export function useTelemetry() {
+export function useTelemetry(): void {
   const track = useCallback((action: string, element?: string, context?: Record<string, any>) => {
     trackUserAction(action, element, context);
   }, []);
@@ -125,13 +125,13 @@ export function useTelemetry() {
   };
 }
 
-export function usePageTracking(page: string, properties?: Record<string, any>) {
+export function usePageTracking(page: string, properties?: Record<string, any>): void {
   useEffect(() => {
     trackPageView(page, properties);
   }, [page, properties]);
 }
 
-export function useUserTracking(userId: string, organizationId?: string) {
+export function useUserTracking(userId: string, organizationId?: string): void {
   useEffect(() => {
     setTelemetryUser(userId, organizationId);
   }, [userId, organizationId]);
@@ -151,7 +151,7 @@ export function withTelemetry<T extends Record<string, any>>(
     trackProps?: (props: T) => Record<string, any>;
   }
 ) {
-  return function TelemetryWrappedComponent(props: T) {
+  return function TelemetryWrappedComponent(props: T): void {
     const { track } = useTelemetry();
 
     useEffect(() => {
@@ -179,7 +179,7 @@ export function withTelemetry<T extends Record<string, any>>(
 // FORM TRACKING
 // ============================================================================
 
-export function useFormTracking(formName: string) {
+export function useFormTracking(formName: string): void {
   const { track } = useTelemetry();
 
   const trackFormStart = useCallback(() => {
@@ -231,7 +231,7 @@ export function useFormTracking(formName: string) {
 // PERFORMANCE TRACKING
 // ============================================================================
 
-export function usePerformanceTracking() {
+export function usePerformanceTracking(): void {
   const { trackCustom } = useTelemetry();
 
   const trackRenderTime = useCallback((componentName: string, renderTime: number) => {
@@ -243,9 +243,9 @@ export function usePerformanceTracking() {
   }, [trackCustom]);
 
   const trackApiCall = useCallback((
-    endpoint: string, 
-    method: string, 
-    duration: number, 
+    endpoint: string,
+    method: string,
+    duration: number,
     success: boolean,
     statusCode?: number
   ) => {

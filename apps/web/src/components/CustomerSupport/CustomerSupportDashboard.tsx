@@ -1,8 +1,8 @@
 /**
  * CUSTOMER SUPPORT DASHBOARD
- * 
+ *
  * PR-58: Dashboard completo para sistema de soporte al cliente
- * 
+ *
  * Funcionalidades:
  * - Gestión de tickets de soporte
  * - Chat en vivo
@@ -22,13 +22,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  MessageSquare, 
-  Users, 
-  BookOpen, 
-  BarChart3, 
-  Plus, 
-  Search, 
+import {
+  MessageSquare,
+  Users,
+  BookOpen,
+  BarChart3,
+  Plus,
+  Search,
   Filter,
   Clock,
   CheckCircle,
@@ -167,7 +167,7 @@ const SOURCES = [
   { value: 'social', label: 'Social' }
 ];
 
-export default function CustomerSupportDashboard() {
+export default function CustomerSupportDashboard(): void {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [articles, setArticles] = useState<KnowledgeBaseArticle[]>([]);
@@ -220,7 +220,7 @@ export default function CustomerSupportDashboard() {
   const loadData = async () => {
     try {
       setLoading(true);
-      
+
       // Load tickets
       const ticketsResponse = await fetch('/api/support/tickets');
       const ticketsData = await ticketsResponse.json();
@@ -405,14 +405,14 @@ export default function CustomerSupportDashboard() {
   });
 
   if (loading) {
-    return (
+    return (;
       <div className="flex items-center justify-center h-64">
         <div className="text-lg">Loading customer support data...</div>
       </div>
     );
   }
 
-  return (
+  return (;
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -644,7 +644,7 @@ export default function CustomerSupportDashboard() {
                         {ticket.description}
                       </p>
                     </div>
-                    
+
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <User className="w-4 h-4" />
@@ -693,8 +693,8 @@ export default function CustomerSupportDashboard() {
                       {messages.map((message) => (
                         <div key={message.id} className={`flex ${message.senderType === 'agent' ? 'justify-end' : 'justify-start'}`}>
                           <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                            message.senderType === 'agent' 
-                              ? 'bg-blue-500 text-white' 
+                            message.senderType === 'agent'
+                              ? 'bg-blue-500 text-white'
                               : 'bg-gray-200 text-gray-900'
                           }`}>
                             <p className="text-sm">{message.message}</p>
@@ -705,7 +705,7 @@ export default function CustomerSupportDashboard() {
                         </div>
                       ))}
                     </div>
-                    
+
                     <div className="flex gap-2 mt-4">
                       <Input
                         placeholder="Type your message..."
@@ -740,7 +740,7 @@ export default function CustomerSupportDashboard() {
                         </Badge>
                       </div>
                     </div>
-                    
+
                     <div>
                       <Label className="text-sm font-medium">Priority</Label>
                       <div className="mt-1">
@@ -749,17 +749,17 @@ export default function CustomerSupportDashboard() {
                         </Badge>
                       </div>
                     </div>
-                    
+
                     <div>
                       <Label className="text-sm font-medium">Category</Label>
                       <p className="text-sm capitalize mt-1">{selectedTicket.category}</p>
                     </div>
-                    
+
                     <div>
                       <Label className="text-sm font-medium">Source</Label>
                       <p className="text-sm capitalize mt-1">{selectedTicket.source}</p>
                     </div>
-                    
+
                     <div>
                       <Label className="text-sm font-medium">Created</Label>
                       <p className="text-sm mt-1">{formatTime(selectedTicket.createdAt)}</p>
@@ -772,24 +772,24 @@ export default function CustomerSupportDashboard() {
                     <CardTitle>Quick Actions</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    <Button 
-                      className="w-full" 
+                    <Button
+                      className="w-full"
                       variant="outline"
                       onClick={() => handleUpdateTicketStatus(selectedTicket.id, 'in_progress')}
                     >
                       <Clock className="w-4 h-4 mr-2" />
                       Mark In Progress
                     </Button>
-                    <Button 
-                      className="w-full" 
+                    <Button
+                      className="w-full"
                       variant="outline"
                       onClick={() => handleUpdateTicketStatus(selectedTicket.id, 'resolved')}
                     >
                       <CheckCircle className="w-4 h-4 mr-2" />
                       Mark Resolved
                     </Button>
-                    <Button 
-                      className="w-full" 
+                    <Button
+                      className="w-full"
                       variant="outline"
                       onClick={() => handleUpdateTicketStatus(selectedTicket.id, 'closed')}
                     >
@@ -837,7 +837,7 @@ export default function CustomerSupportDashboard() {
                   <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
                     {article.content}
                   </p>
-                  
+
                   {article.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-4">
                       {article.tags.map((tag, index) => (

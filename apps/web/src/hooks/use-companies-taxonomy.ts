@@ -36,7 +36,7 @@ export interface CompanyClassification {
 }
 
 // Hooks
-export function useTaxonomies() {
+export function useTaxonomies(): void {
   return useQuery({
     queryKey: ['companies-taxonomy', 'taxonomies'],
     queryFn: async () => {
@@ -48,7 +48,7 @@ export function useTaxonomies() {
   });
 }
 
-export function useClassifyCompany() {
+export function useClassifyCompany(): void {
   return useMutation({
     mutationFn: async (companyData: {
       name: string;
@@ -75,7 +75,7 @@ export function useClassifyCompany() {
   });
 }
 
-export function useViews(organizationId: string) {
+export function useViews(organizationId: string): void {
   return useQuery({
     queryKey: ['companies-taxonomy', 'views', organizationId],
     queryFn: async () => {
@@ -88,9 +88,9 @@ export function useViews(organizationId: string) {
   });
 }
 
-export function useCreateView() {
+export function useCreateView(): void {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (viewData: {
       name: string;
@@ -112,8 +112,8 @@ export function useCreateView() {
       return data.data.view as CompanyView;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['companies-taxonomy', 'views', variables.organizationId] 
+      queryClient.invalidateQueries({
+        queryKey: ['companies-taxonomy', 'views', variables.organizationId]
       });
       toast.success('View created successfully');
     },
@@ -135,7 +135,7 @@ export function useCompaniesByView(viewId: string, organizationId: string, optio
       if (options?.page) params.set('page', options.page.toString());
       if (options?.limit) params.set('limit', options.limit.toString());
       if (options?.search) params.set('search', options.search);
-      
+
       const response = await fetch(
         `/api/companies-taxonomy/views/${organizationId}/${viewId}/companies?${params}`
       );
@@ -147,7 +147,7 @@ export function useCompaniesByView(viewId: string, organizationId: string, optio
   });
 }
 
-export function useTaxonomyHealth() {
+export function useTaxonomyHealth(): void {
   return useQuery({
     queryKey: ['companies-taxonomy', 'health'],
     queryFn: async () => {

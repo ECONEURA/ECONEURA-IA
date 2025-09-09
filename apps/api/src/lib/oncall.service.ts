@@ -1,13 +1,13 @@
 /**
  * PR-46: On-Call Management Service
- * 
+ *
  * Service for managing on-call schedules, rotations, and shifts
  */
 
-import { 
-  OnCallSchedule, 
-  OnCallRotation, 
-  OnCallShift, 
+import {
+  OnCallSchedule,
+  OnCallRotation,
+  OnCallShift,
   OnCallOverride,
   OnCallParticipant,
   RotationPattern,
@@ -32,7 +32,7 @@ export class OnCallService {
   async getOnCallSchedules(organizationId: string): Promise<OnCallSchedule[]> {
     const schedules = Array.from(this.schedules.values())
       .filter(schedule => schedule.organizationId === organizationId);
-    
+
     return schedules;
   }
 
@@ -63,10 +63,10 @@ export class OnCallService {
     };
 
     this.schedules.set(id, schedule);
-    
+
     // Generate initial shifts
     await this.generateShifts(schedule);
-    
+
     return schedule;
   }
 
@@ -90,12 +90,12 @@ export class OnCallService {
     };
 
     this.schedules.set(id, updatedSchedule);
-    
+
     // Regenerate shifts if schedule changed
     if (request.schedule || request.rotationType) {
       await this.generateShifts(updatedSchedule);
     }
-    
+
     return updatedSchedule;
   }
 
@@ -106,9 +106,9 @@ export class OnCallService {
     // Delete associated shifts
     const shiftsToDelete = Array.from(this.shifts.values())
       .filter(shift => shift.scheduleId === id);
-    
+
     shiftsToDelete.forEach(shift => this.shifts.delete(shift.id));
-    
+
     return this.schedules.delete(id);
   }
 
@@ -118,7 +118,7 @@ export class OnCallService {
   async getCurrentOnCall(scheduleId: string): Promise<OnCallParticipant | null> {
     const now = new Date();
     const currentShift = Array.from(this.shifts.values())
-      .find(shift => 
+      .find(shift =>
         shift.scheduleId === scheduleId &&
         shift.startTime <= now &&
         shift.endTime >= now &&
@@ -212,7 +212,7 @@ export class OnCallService {
   async getOnCallStats(organizationId: string): Promise<OnCallStats> {
     const schedules = await this.getOnCallSchedules(organizationId);
     const activeSchedules = schedules.filter(s => s.enabled);
-    
+
     const allShifts = Array.from(this.shifts.values())
       .filter(shift => schedules.some(s => s.id === shift.scheduleId));
 
@@ -375,7 +375,7 @@ export class OnCallService {
     };
 
     this.schedules.set(defaultSchedule.id, defaultSchedule);
-    
+
     // Generate initial shifts
     this.generateShifts(defaultSchedule);
   }
@@ -386,7 +386,7 @@ export class OnCallService {
 
   private getActiveOverride(scheduleId: string, now: Date): OnCallOverride | null {
     const overrides = Array.from(this.overrides.values())
-      .filter(override => 
+      .filter(override =>
         override.scheduleId === scheduleId &&
         override.status === 'active' &&
         now >= override.startTime &&
@@ -403,7 +403,7 @@ export class OnCallService {
 
     const totalSchedules = schedules.length;
     const activeSchedules = schedules.filter(s => s.enabled).length;
-    
+
     return (activeSchedules / totalSchedules) * 100;
   }
 }

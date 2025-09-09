@@ -271,7 +271,7 @@ class WebWorkflowSystem {
 
   async listWorkflows(filters?: WorkflowFilters): Promise<Workflow[]> {
     const params = new URLSearchParams();
-    
+
     if (filters?.type) params.append('type', filters.type);
     if (filters?.status) params.append('status', filters.status);
     if (filters?.category) params.append('category', filters.category);
@@ -333,7 +333,7 @@ class WebWorkflowSystem {
 
   async listInstances(filters?: InstanceFilters): Promise<WorkflowInstance[]> {
     const params = new URLSearchParams();
-    
+
     if (filters?.workflowId) params.append('workflowId', filters.workflowId);
     if (filters?.status) params.append('status', filters.status);
     if (filters?.userId) params.append('userId', filters.userId);

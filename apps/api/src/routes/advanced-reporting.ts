@@ -1,6 +1,6 @@
 /**
  * Advanced Reporting API Routes
- * 
+ *
  * This module provides comprehensive API endpoints for the advanced reporting system,
  * including report management, generation, scheduling, templates, and analytics.
  */
@@ -67,15 +67,15 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     const organizationId = (req as any).user?.organizationId || 'default';
     const createdBy = (req as any).user?.id || 'system';
-    
+
     const validatedData = CreateReportSchema.parse(req.body);
-    
+
     const report = await reportingService.createReport(
       validatedData,
       organizationId,
       createdBy
     );
-    
+
     structuredLogger.info('Report created', {
       operation: 'report_create',
       reportId: report.id,
@@ -84,7 +84,7 @@ router.post('/', async (req: Request, res: Response) => {
       organizationId,
       createdBy
     });
-    
+
     res.status(201).json({
       success: true,
       data: report
@@ -94,7 +94,7 @@ router.post('/', async (req: Request, res: Response) => {
       operation: 'report_create',
       body: req.body
     });
-    
+
     if (error instanceof z.ZodError) {
       res.status(400).json({
         success: false,
@@ -118,16 +118,16 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const organizationId = (req as any).user?.organizationId || 'default';
     const { type, createdBy, isActive, isPublic } = req.query;
-    
+
     const filters = {
       type: type as string,
       createdBy: createdBy as string,
       isActive: isActive ? isActive === 'true' : undefined,
       isPublic: isPublic ? isPublic === 'true' : undefined
     };
-    
+
     const reports = await reportingService.getReports(organizationId, filters);
-    
+
     res.json({
       success: true,
       data: reports,
@@ -138,7 +138,7 @@ router.get('/', async (req: Request, res: Response) => {
       operation: 'reports_get',
       query: req.query
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get reports'
@@ -153,16 +153,16 @@ router.get('/', async (req: Request, res: Response) => {
 router.get('/:reportId', async (req: Request, res: Response) => {
   try {
     const { reportId } = req.params;
-    
+
     const report = await reportingService.getReport(reportId);
-    
+
     if (!report) {
       return res.status(404).json({
         success: false,
         error: 'Report not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: report
@@ -172,7 +172,7 @@ router.get('/:reportId', async (req: Request, res: Response) => {
       operation: 'report_get',
       reportId: req.params.reportId
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get report'
@@ -188,22 +188,22 @@ router.put('/:reportId', async (req: Request, res: Response) => {
   try {
     const { reportId } = req.params;
     const validatedData = UpdateReportSchema.parse(req.body);
-    
+
     const updatedReport = await reportingService.updateReport(reportId, validatedData);
-    
+
     if (!updatedReport) {
       return res.status(404).json({
         success: false,
         error: 'Report not found'
       });
     }
-    
+
     structuredLogger.info('Report updated', {
       operation: 'report_update',
       reportId,
       updates: Object.keys(validatedData)
     });
-    
+
     res.json({
       success: true,
       data: updatedReport
@@ -214,7 +214,7 @@ router.put('/:reportId', async (req: Request, res: Response) => {
       reportId: req.params.reportId,
       body: req.body
     });
-    
+
     if (error instanceof z.ZodError) {
       res.status(400).json({
         success: false,
@@ -237,21 +237,21 @@ router.put('/:reportId', async (req: Request, res: Response) => {
 router.delete('/:reportId', async (req: Request, res: Response) => {
   try {
     const { reportId } = req.params;
-    
+
     const deleted = await reportingService.deleteReport(reportId);
-    
+
     if (!deleted) {
       return res.status(404).json({
         success: false,
         error: 'Report not found'
       });
     }
-    
+
     structuredLogger.info('Report deleted', {
       operation: 'report_delete',
       reportId
     });
-    
+
     res.json({
       success: true,
       message: 'Report deleted successfully'
@@ -261,7 +261,7 @@ router.delete('/:reportId', async (req: Request, res: Response) => {
       operation: 'report_delete',
       reportId: req.params.reportId
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to delete report'
@@ -282,20 +282,20 @@ router.post('/:reportId/generate', async (req: Request, res: Response) => {
     const { reportId } = req.params;
     const generatedBy = (req as any).user?.id || 'system';
     const validatedData = GenerateReportSchema.parse(req.body);
-    
+
     const generation = await reportingService.generateReport(
       reportId,
       generatedBy,
       validatedData.parameters
     );
-    
+
     structuredLogger.info('Report generation started', {
       operation: 'report_generate',
       reportId,
       generationId: generation.id,
       generatedBy
     });
-    
+
     res.status(202).json({
       success: true,
       data: generation
@@ -306,7 +306,7 @@ router.post('/:reportId/generate', async (req: Request, res: Response) => {
       reportId: req.params.reportId,
       body: req.body
     });
-    
+
     if (error instanceof z.ZodError) {
       res.status(400).json({
         success: false,
@@ -329,16 +329,16 @@ router.post('/:reportId/generate', async (req: Request, res: Response) => {
 router.get('/generations/:generationId', async (req: Request, res: Response) => {
   try {
     const { generationId } = req.params;
-    
+
     const generation = await reportingService.getReportGeneration(generationId);
-    
+
     if (!generation) {
       return res.status(404).json({
         success: false,
         error: 'Generation not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: generation
@@ -348,7 +348,7 @@ router.get('/generations/:generationId', async (req: Request, res: Response) => 
       operation: 'generation_get',
       generationId: req.params.generationId
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get generation status'
@@ -363,9 +363,9 @@ router.get('/generations/:generationId', async (req: Request, res: Response) => 
 router.get('/:reportId/generations', async (req: Request, res: Response) => {
   try {
     const { reportId } = req.params;
-    
+
     const generations = await reportingService.getReportGenerations(reportId);
-    
+
     res.json({
       success: true,
       data: generations,
@@ -376,7 +376,7 @@ router.get('/:reportId/generations', async (req: Request, res: Response) => {
       operation: 'generations_get',
       reportId: req.params.reportId
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get report generations'
@@ -395,7 +395,7 @@ router.get('/:reportId/generations', async (req: Request, res: Response) => {
 router.get('/templates', async (req: Request, res: Response) => {
   try {
     const templates = await reportingService.getReportTemplates();
-    
+
     res.json({
       success: true,
       data: templates,
@@ -405,7 +405,7 @@ router.get('/templates', async (req: Request, res: Response) => {
     structuredLogger.error('Failed to get report templates', error as Error, {
       operation: 'templates_get'
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get report templates'
@@ -424,9 +424,9 @@ router.get('/templates', async (req: Request, res: Response) => {
 router.get('/analytics', async (req: Request, res: Response) => {
   try {
     const organizationId = (req as any).user?.organizationId || 'default';
-    
+
     const analytics = await reportingService.getReportAnalytics(organizationId);
-    
+
     res.json({
       success: true,
       data: analytics
@@ -436,7 +436,7 @@ router.get('/analytics', async (req: Request, res: Response) => {
       operation: 'analytics_get',
       organizationId: (req as any).user?.organizationId
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get report analytics'
@@ -451,7 +451,7 @@ router.get('/analytics', async (req: Request, res: Response) => {
 router.get('/stats', async (req: Request, res: Response) => {
   try {
     const stats = await reportingService.getServiceStats();
-    
+
     res.json({
       success: true,
       data: stats
@@ -460,7 +460,7 @@ router.get('/stats', async (req: Request, res: Response) => {
     structuredLogger.error('Failed to get service stats', error as Error, {
       operation: 'stats_get'
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get service stats'

@@ -83,16 +83,16 @@ export interface DashboardPermissions {
   admin: string[];
 }
 
-export type WidgetType = 
-  | 'metric' 
-  | 'chart' 
-  | 'table' 
-  | 'gauge' 
-  | 'heatmap' 
-  | 'log' 
-  | 'alert' 
-  | 'health' 
-  | 'map' 
+export type WidgetType =
+  | 'metric'
+  | 'chart'
+  | 'table'
+  | 'gauge'
+  | 'heatmap'
+  | 'log'
+  | 'alert'
+  | 'health'
+  | 'map'
   | 'text';
 
 export class DashboardService {

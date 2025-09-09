@@ -5,7 +5,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // POST /api/events/commands - Ejecutar comando
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): void {
   try {
     const { type, aggregateId, data } = await request.json();
     const userId = request.headers.get('x-user-id') || undefined;
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Failed to execute command:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: (error as Error).message },
       { status: 400 }
     );

@@ -1,6 +1,6 @@
 /**
  * PR-56: Advanced Observability - Integration Tests
- * 
+ *
  * Pruebas de integración para el sistema de observabilidad avanzada:
  * - Métricas en tiempo real
  * - Logs estructurados

@@ -118,7 +118,7 @@ export class Interaction {
   updateStatus(status: InteractionStatus): void {
     this.props.status = status;
     this.props.updatedAt = new Date();
-    
+
     if (status === 'COMPLETED') {
       this.props.completedAt = new Date();
     }
@@ -203,7 +203,7 @@ export class Interaction {
   // ========================================================================
 
   validate(): boolean {
-    return (
+    return (;
       this.props.id.length > 0 &&
       this.props.organizationId.length > 0 &&
       this.props.contactId.length > 0 &&

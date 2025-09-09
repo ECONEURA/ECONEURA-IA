@@ -90,7 +90,7 @@ export class MakeQuotasService {
 
   async checkQuota(orgId: string): Promise<{ allowed: boolean; quota: MakeQuota | null }> {
     const quota = this.quotas.get(orgId);
-    
+
     if (!quota) {
       return { allowed: false, quota: null };
     }
@@ -102,19 +102,19 @@ export class MakeQuotasService {
     }
 
     const allowed = quota.currentUsage < quota.monthlyLimit;
-    
+
     return { allowed, quota };
   }
 
   async consumeQuota(orgId: string, amount: number = 1): Promise<boolean> {
     const { allowed, quota } = await this.checkQuota(orgId);
-    
+
     if (!allowed || !quota) {
       return false;
     }
 
     quota.currentUsage += amount;
-    
+
     structuredLogger.info('Quota consumed', {
       orgId,
       amount,
@@ -149,7 +149,7 @@ export class MakeQuotasService {
 
   async checkIdempotency(key: string, orgId: string): Promise<any | null> {
     const record = this.idempotencyStore.get(key);
-    
+
     if (!record) {
       return null;
     }
@@ -186,12 +186,12 @@ export class MakeQuotasService {
       const expectedSignature = createHmac('sha256', this.hmacSecret)
         .update(payload)
         .digest('hex');
-      
+
       const providedSignature = signature.replace('sha256=', '');
-      
-      return timingSafeEqual(
+
+      return timingSafeEqual(;
         Buffer.from(expectedSignature, 'hex'),
-        Buffer.from(providedSignature, 'hex')
+        Buffer.from(providedSignature, 'hex');
       );
     } catch (error) {
       structuredLogger.error('Webhook signature verification failed', error as Error);
@@ -217,7 +217,7 @@ export class MakeQuotasService {
 
   async getOrgUsage(orgId: string): Promise<{ current: number; limit: number; percentage: number }> {
     const quota = this.quotas.get(orgId);
-    
+
     if (!quota) {
       return { current: 0, limit: 0, percentage: 0 };
     }
@@ -233,11 +233,11 @@ export class MakeQuotasService {
 
   async resetQuota(orgId: string): Promise<void> {
     const quota = this.quotas.get(orgId);
-    
+
     if (quota) {
       quota.currentUsage = 0;
       quota.resetDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-      
+
       structuredLogger.info('Quota reset', { orgId });
     }
   }

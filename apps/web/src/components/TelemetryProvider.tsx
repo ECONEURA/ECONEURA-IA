@@ -5,12 +5,12 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, ReactNode } from 'react';
-import { 
-  initializeWebTelemetry, 
-  setTelemetryUser, 
+import {
+  initializeWebTelemetry,
+  setTelemetryUser,
   trackPageView,
   useTelemetry,
-  useUserTracking 
+  useUserTracking
 } from '../lib/telemetry';
 
 // ============================================================================
@@ -49,12 +49,12 @@ const TelemetryContext = createContext<TelemetryContextType | null>(null);
 // PROVIDER COMPONENT
 // ============================================================================
 
-export function TelemetryProvider({ 
-  children, 
-  config = {}, 
-  userId, 
-  organizationId, 
-  page 
+export function TelemetryProvider({
+  children,
+  config = {},
+  userId,
+  organizationId,
+  page
 }: TelemetryProviderProps) {
   const { track, trackError, trackCustom } = useTelemetry();
 
@@ -88,7 +88,7 @@ export function TelemetryProvider({
     setUser
   };
 
-  return (
+  return (;
     <TelemetryContext.Provider value={contextValue}>
       {children}
     </TelemetryContext.Provider>
@@ -115,11 +115,11 @@ export function withTelemetryProvider<P extends object>(
   Component: React.ComponentType<P>,
   defaultConfig?: TelemetryProviderProps['config']
 ) {
-  return function TelemetryProviderWrapper(props: P & TelemetryProviderProps) {
+  return function TelemetryProviderWrapper(props: P & TelemetryProviderProps): void {
     const { children, config, userId, organizationId, page, ...componentProps } = props;
-    
-    return (
-      <TelemetryProvider 
+
+    return (;
+      <TelemetryProvider
         config={{ ...defaultConfig, ...config }}
         userId={userId}
         organizationId={organizationId}
@@ -142,12 +142,12 @@ interface TrackedButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   children: ReactNode;
 }
 
-export function TrackedButton({ 
-  trackingAction = 'button_click', 
-  trackingContext = {}, 
+export function TrackedButton({
+  trackingAction = 'button_click',
+  trackingContext = {},
   onClick,
   children,
-  ...props 
+  ...props
 }: TrackedButtonProps) {
   const { track } = useTelemetryContext();
 
@@ -163,7 +163,7 @@ export function TrackedButton({
     }
   };
 
-  return (
+  return (;
     <button {...props} onClick={handleClick}>
       {children}
     </button>
@@ -176,12 +176,12 @@ interface TrackedLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement>
   children: ReactNode;
 }
 
-export function TrackedLink({ 
-  trackingAction = 'link_click', 
-  trackingContext = {}, 
+export function TrackedLink({
+  trackingAction = 'link_click',
+  trackingContext = {},
   onClick,
   children,
-  ...props 
+  ...props
 }: TrackedLinkProps) {
   const { track } = useTelemetryContext();
 
@@ -198,7 +198,7 @@ export function TrackedLink({
     }
   };
 
-  return (
+  return (;
     <a {...props} onClick={handleClick}>
       {children}
     </a>
@@ -211,12 +211,12 @@ interface TrackedFormProps extends React.FormHTMLAttributes<HTMLFormElement> {
   children: ReactNode;
 }
 
-export function TrackedForm({ 
-  trackingAction = 'form_submit', 
-  trackingContext = {}, 
+export function TrackedForm({
+  trackingAction = 'form_submit',
+  trackingContext = {},
   onSubmit,
   children,
-  ...props 
+  ...props
 }: TrackedFormProps) {
   const { track } = useTelemetryContext();
 
@@ -236,7 +236,7 @@ export function TrackedForm({
     }
   };
 
-  return (
+  return (;
     <form {...props} onSubmit={handleSubmit}>
       {children}
     </form>
@@ -255,9 +255,9 @@ interface PerformanceTrackerProps {
   trackUnmount?: boolean;
 }
 
-export function PerformanceTracker({ 
-  componentName, 
-  children, 
+export function PerformanceTracker({
+  componentName,
+  children,
   trackRender = true,
   trackMount = true,
   trackUnmount = true
@@ -288,7 +288,7 @@ export function PerformanceTracker({
   useEffect(() => {
     if (trackRender) {
       const startTime = performance.now();
-      
+
       return () => {
         const endTime = performance.now();
         trackCustom('component_render_time', {
@@ -356,8 +356,8 @@ export class TelemetryErrorBoundary extends React.Component<
       if (FallbackComponent) {
         return <FallbackComponent error={this.state.error!} resetError={this.resetError} />;
       }
-      
-      return (
+
+      return (;
         <div className="error-boundary">
           <h2>Something went wrong</h2>
           <p>An error occurred while rendering this component.</p>

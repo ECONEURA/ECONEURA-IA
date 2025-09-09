@@ -1,6 +1,6 @@
 /**
  * Advanced Analytics Service
- * 
+ *
  * This service provides comprehensive analytics capabilities including real-time
  * data processing, statistical analysis, trend analysis, and anomaly detection.
  */
@@ -107,7 +107,7 @@ export class AdvancedAnalyticsService {
         metrics = metrics.filter(m => m.status === filters.status);
       }
       if (filters.tags && filters.tags.length > 0) {
-        metrics = metrics.filter(m => 
+        metrics = metrics.filter(m =>
           filters.tags!.some(tag => m.tags.includes(tag))
         );
       }
@@ -208,7 +208,7 @@ export class AdvancedAnalyticsService {
   private async updateTrendAnalysis(metric: AnalyticsMetric): Promise<void> {
     const trendKey = `${metric.id}_daily`;
     const trend = this.trends.get(trendKey);
-    
+
     if (trend) {
       const updatedTrend: TrendAnalysis = {
         ...trend,
@@ -252,7 +252,7 @@ export class AdvancedAnalyticsService {
       timestamp.setDate(timestamp.getDate() + i);
 
       let predictedValue = baseValue;
-      
+
       // Apply trend
       switch (trend) {
         case 'increasing':
@@ -286,11 +286,11 @@ export class AdvancedAnalyticsService {
   private async updateForecasts(metric: AnalyticsMetric): Promise<void> {
     // Update forecasts for all periods
     const periods: TrendAnalysis['period'][] = ['daily', 'weekly', 'monthly'];
-    
+
     for (const period of periods) {
       const trendKey = `${metric.id}_${period}`;
       const trend = this.trends.get(trendKey);
-      
+
       if (trend) {
         const updatedTrend: TrendAnalysis = {
           ...trend,
@@ -309,7 +309,7 @@ export class AdvancedAnalyticsService {
   private async analyzeSeasonality(metric: AnalyticsMetric, period: TrendAnalysis['period']): Promise<SeasonalityData> {
     // Simulate seasonality analysis
     const hasSeasonality = Math.random() > 0.5;
-    
+
     return {
       hasSeasonality,
       period: hasSeasonality ? 7 : 0,
@@ -324,11 +324,11 @@ export class AdvancedAnalyticsService {
 
   private async detectAnomalies(metric: AnalyticsMetric): Promise<void> {
     const anomalies = this.anomalies.get(metric.id) || [];
-    
+
     // Simple anomaly detection based on value deviation
     const expectedValue = this.calculateExpectedValue(metric);
     const deviation = Math.abs(metric.value - expectedValue) / expectedValue;
-    
+
     if (deviation > 0.3) { // 30% deviation threshold
       const anomaly: AnomalyData = {
         id: this.generateId(),
@@ -342,7 +342,7 @@ export class AdvancedAnalyticsService {
         impact: this.assessImpact(deviation),
         recommendations: this.generateRecommendations(deviation)
       };
-      
+
       anomalies.push(anomaly);
       this.anomalies.set(metric.id, anomalies);
     }
@@ -379,7 +379,7 @@ export class AdvancedAnalyticsService {
 
   private generateRecommendations(deviation: number): string[] {
     const recommendations = [];
-    
+
     if (deviation > 1.0) {
       recommendations.push('Investigate root cause immediately');
       recommendations.push('Consider implementing alerts');
@@ -389,7 +389,7 @@ export class AdvancedAnalyticsService {
     } else {
       recommendations.push('Continue monitoring');
     }
-    
+
     return recommendations;
   }
 
@@ -411,21 +411,21 @@ export class AdvancedAnalyticsService {
     const mode = this.calculateMode(dataPoints);
     const variance = this.calculateVariance(dataPoints, mean);
     const standardDeviation = Math.sqrt(variance);
-    
+
     // Advanced statistics
     const skewness = this.calculateSkewness(dataPoints, mean, standardDeviation);
     const kurtosis = this.calculateKurtosis(dataPoints, mean, standardDeviation);
-    
+
     // Quartiles
     const quartiles = {
       q1: this.calculatePercentile(sorted, 25),
       q2: median,
       q3: this.calculatePercentile(sorted, 75)
     };
-    
+
     // Outliers (IQR method)
     const iqr = quartiles.q3 - quartiles.q1;
-    const outliers = dataPoints.filter(val => 
+    const outliers = dataPoints.filter(val =>
       val < quartiles.q1 - 1.5 * iqr || val > quartiles.q3 + 1.5 * iqr
     );
 
@@ -459,17 +459,17 @@ export class AdvancedAnalyticsService {
     data.forEach(val => {
       frequency[val] = (frequency[val] || 0) + 1;
     });
-    
+
     let maxFreq = 0;
     let mode = data[0];
-    
+
     Object.entries(frequency).forEach(([val, freq]) => {
       if (freq > maxFreq) {
         maxFreq = freq;
         mode = Number(val);
       }
     });
-    
+
     return mode;
   }
 
@@ -499,7 +499,7 @@ export class AdvancedAnalyticsService {
     const lower = Math.floor(index);
     const upper = Math.ceil(index);
     const weight = index - lower;
-    
+
     if (upper >= sorted.length) return sorted[sorted.length - 1];
     return sorted[lower] * (1 - weight) + sorted[upper] * weight;
   }
@@ -510,7 +510,7 @@ export class AdvancedAnalyticsService {
 
   async executeQuery(query: AnalyticsQuery): Promise<AnalyticsResult> {
     const startTime = Date.now();
-    
+
     // Filter metrics based on query
     let metrics = Array.from(this.metrics.values())
       .filter(m => query.metrics.includes(m.id))
@@ -592,7 +592,7 @@ export class AdvancedAnalyticsService {
     }
 
     const groups: Record<string, AnalyticsMetric[]> = {};
-    
+
     metrics.forEach(metric => {
       const key = groupBy.map(field => this.getFilterValue(metric, field)).join('|');
       if (!groups[key]) groups[key] = [];
@@ -618,7 +618,7 @@ export class AdvancedAnalyticsService {
 
   private performAggregation(metrics: AnalyticsMetric[], aggregation: string): Record<string, number> {
     const values = metrics.map(m => m.value);
-    
+
     let result: number;
     switch (aggregation) {
       case 'sum': result = values.reduce((sum, val) => sum + val, 0); break;
@@ -635,7 +635,7 @@ export class AdvancedAnalyticsService {
 
   private calculateAggregations(groups: any[]): Record<string, number> {
     const allValues = groups.flatMap(g => g.metrics.map((m: AnalyticsMetric) => m.value));
-    
+
     return {
       total: allValues.reduce((sum, val) => sum + val, 0),
       average: allValues.reduce((sum, val) => sum + val, 0) / allValues.length,
@@ -647,23 +647,23 @@ export class AdvancedAnalyticsService {
 
   private async calculateTrendsForQuery(query: AnalyticsQuery): Promise<TrendAnalysis[]> {
     const trends: TrendAnalysis[] = [];
-    
+
     for (const metricId of query.metrics) {
       const trend = await this.analyzeTrends(metricId, 'daily');
       trends.push(trend);
     }
-    
+
     return trends;
   }
 
   private async getAnomaliesForQuery(query: AnalyticsQuery): Promise<AnomalyData[]> {
     const anomalies: AnomalyData[] = [];
-    
+
     for (const metricId of query.metrics) {
       const metricAnomalies = this.anomalies.get(metricId) || [];
       anomalies.push(...metricAnomalies);
     }
-    
+
     return anomalies;
   }
 
@@ -681,14 +681,14 @@ export class AdvancedAnalyticsService {
 
   async getAllAnomalies(organizationId: string): Promise<AnomalyData[]> {
     const allAnomalies: AnomalyData[] = [];
-    
+
     for (const [metricId, anomalies] of this.anomalies.entries()) {
       const metric = this.metrics.get(metricId);
       if (metric && metric.organizationId === organizationId) {
         allAnomalies.push(...anomalies);
       }
     }
-    
+
     return allAnomalies;
   }
 

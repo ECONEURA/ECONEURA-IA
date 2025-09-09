@@ -259,7 +259,7 @@ export class MonitoringService {
         const result = await check();
         result.duration = Date.now() - startTime;
         checks.push(result);
-        
+
         if (result.status === 'pass') {
           healthyCount++;
         }
@@ -304,7 +304,7 @@ export class MonitoringService {
    */
   updatePerformanceMetrics(data: Partial<PerformanceMetrics>): void {
     this.performanceData = { ...this.performanceData, ...data };
-    
+
     // Registrar métricas
     this.setGauge('response_time_p50', this.performanceData.responseTime.p50);
     this.setGauge('response_time_p95', this.performanceData.responseTime.p95);
@@ -352,8 +352,8 @@ export class MonitoringService {
       const latest = metrics[metrics.length - 1];
       if (!latest) continue;
 
-      const labels = latest.labels ? 
-        Object.entries(latest.labels)
+      const labels = latest.labels ?
+        Object.entries(latest.labels);
           .map(([k, v]) => `${k}="${v}"`)
           .join(',') : '';
 
@@ -474,7 +474,7 @@ export class MonitoringService {
     this.registerHealthCheck('memory', async () => {
       const memUsage = process.memoryUsage();
       const usagePercent = (memUsage.heapUsed / memUsage.heapTotal) * 100;
-      
+
       return {
         name: 'memory',
         status: usagePercent > 90 ? 'fail' : usagePercent > 80 ? 'warn' : 'pass',
@@ -492,7 +492,7 @@ export class MonitoringService {
     this.registerHealthCheck('disk', async () => {
       // Simular check de disco
       const diskUsage = 75; // 75%
-      
+
       return {
         name: 'disk',
         status: diskUsage > 95 ? 'fail' : diskUsage > 85 ? 'warn' : 'pass',
@@ -526,14 +526,14 @@ export class MonitoringService {
 
         this.activeAlerts.set(alertKey, alert);
         this.executeAlertActions(alert, rule.actions);
-        
+
         logger.warn('Alert fired', { alertId: alert.id, ruleId: rule.id, value, threshold: rule.threshold });
       } else if (!shouldFire && existingAlert) {
         // Resolver alerta
         existingAlert.status = 'resolved';
         existingAlert.resolvedAt = new Date();
         this.activeAlerts.set(alertKey, existingAlert);
-        
+
         logger.info('Alert resolved', { alertId: existingAlert.id, ruleId: rule.id });
       }
     }
@@ -568,10 +568,10 @@ export class MonitoringService {
             break;
         }
       } catch (error) {
-        logger.error('Failed to execute alert action', { 
-          alertId: alert.id, 
-          actionType: action.type, 
-          error: (error as Error).message 
+        logger.error('Failed to execute alert action', {
+          alertId: alert.id,
+          actionType: action.type,
+          error: (error as Error).message
         });
       }
     }
@@ -611,7 +611,7 @@ export class MonitoringService {
 
   private getMetricTrends(since: number): Record<string, any> {
     const trends: Record<string, any> = {};
-    
+
     for (const [name, metrics] of this.metrics.entries()) {
       const recentMetrics = metrics.filter(m => m.timestamp >= since);
       if (recentMetrics.length === 0) continue;
@@ -631,15 +631,15 @@ export class MonitoringService {
 
   private calculateTrend(values: number[]): 'up' | 'down' | 'stable' {
     if (values.length < 2) return 'stable';
-    
+
     const firstHalf = values.slice(0, Math.floor(values.length / 2));
     const secondHalf = values.slice(Math.floor(values.length / 2));
-    
+
     const firstAvg = firstHalf.reduce((sum, val) => sum + val, 0) / firstHalf.length;
     const secondAvg = secondHalf.reduce((sum, val) => sum + val, 0) / secondHalf.length;
-    
+
     const change = ((secondAvg - firstAvg) / firstAvg) * 100;
-    
+
     if (change > 5) return 'up';
     if (change < -5) return 'down';
     return 'stable';
@@ -659,7 +659,7 @@ export class MonitoringService {
 
   private cleanupOldMetrics(): void {
     const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
-    
+
     for (const [name, metrics] of this.metrics.entries()) {
       const filtered = metrics.filter(m => m.timestamp >= oneDayAgo);
       this.metrics.set(name, filtered);
@@ -679,22 +679,22 @@ export const monitoringService = new MonitoringService();
 // Middleware para métricas de Express
 export const metricsMiddleware = (req: any, res: any, next: any) => {
   const startTime = Date.now();
-  
+
   res.on('finish', () => {
     const duration = Date.now() - startTime;
-    
+
     monitoringService.recordHistogram('http_request_duration', duration, {
       method: req.method,
       route: req.route?.path || req.path,
       status: res.statusCode.toString()
     });
-    
+
     monitoringService.incrementCounter('http_requests_total', {
       method: req.method,
       route: req.route?.path || req.path,
       status: res.statusCode.toString()
     });
-    
+
     if (res.statusCode >= 400) {
       monitoringService.incrementCounter('http_errors_total', {
         method: req.method,
@@ -703,6 +703,6 @@ export const metricsMiddleware = (req: any, res: any, next: any) => {
       });
     }
   });
-  
+
   next();
 };

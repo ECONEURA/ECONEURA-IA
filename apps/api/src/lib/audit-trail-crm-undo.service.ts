@@ -1,6 +1,6 @@
 /**
  * PR-65: Audit Trail CRM + Undo Service
- * 
+ *
  * Sistema de auditoría completa para CRM con capacidades de undo y revert
  * Incluye diffs detallados y capacidad de revertir cambios hasta 24 horas
  */
@@ -121,7 +121,7 @@ export class AuditTrailCRMUndoService {
     };
 
     this.startCleanupProcess();
-    
+
     structuredLogger.info('Audit Trail CRM Undo service initialized', {
       config: this.config,
       requestId: ''
@@ -258,8 +258,8 @@ export class AuditTrailCRMUndoService {
     }
 
     // Verificar si hay cambios en campos sensibles
-    const hasSensitiveChanges = Object.keys(diff).some(field => 
-      this.config.sensitiveFields.some(sensitive => 
+    const hasSensitiveChanges = Object.keys(diff).some(field =>
+      this.config.sensitiveFields.some(sensitive =>
         field.toLowerCase().includes(sensitive.toLowerCase())
       )
     );
@@ -269,7 +269,7 @@ export class AuditTrailCRMUndoService {
     }
 
     // Verificar si hay cambios en campos trackeados
-    const hasTrackedChanges = Object.keys(diff).some(field => 
+    const hasTrackedChanges = Object.keys(diff).some(field =>
       this.config.trackFields.includes(field)
     );
 
@@ -278,7 +278,7 @@ export class AuditTrailCRMUndoService {
 
   private sanitizeData(data: Record<string, any>): Record<string, any> {
     const sanitized = { ...data };
-    
+
     // Remover campos sensibles
     for (const field of this.config.sensitiveFields) {
       if (sanitized[field]) {
@@ -296,7 +296,7 @@ export class AuditTrailCRMUndoService {
     metadata: Record<string, any> = {}
   ): Promise<UndoOperation> {
     const auditEntry = this.auditEntries.get(auditTrailId);
-    
+
     if (!auditEntry) {
       throw new Error('Audit entry not found');
     }
@@ -334,7 +334,7 @@ export class AuditTrailCRMUndoService {
     try {
       // Simular la operación de undo
       await this.executeUndoOperation(undoOperation, auditEntry);
-      
+
       undoOperation.status = 'completed';
       auditEntry.status = 'reverted';
       auditEntry.revertedAt = timestamp;
@@ -358,7 +358,7 @@ export class AuditTrailCRMUndoService {
     } catch (error) {
       undoOperation.status = 'failed';
       undoOperation.errorMessage = error instanceof Error ? error.message : String(error);
-      
+
       this.undoOperations.set(undoId, undoOperation);
 
       structuredLogger.error('Failed to undo change', {
@@ -378,7 +378,7 @@ export class AuditTrailCRMUndoService {
 
     // En un sistema real, aquí se ejecutaría la lógica para revertir los cambios
     // Por ejemplo, actualizar la base de datos con los valores anteriores
-    
+
     structuredLogger.info('Undo operation executed', {
       undoId: undoOperation.id,
       resource: undoOperation.resource,
@@ -519,17 +519,17 @@ export class AuditTrailCRMUndoService {
 
   private updateStats(auditEntry: AuditTrailEntry): void {
     this.stats.totalEntries++;
-    
+
     // Actualizar contadores por recurso
-    this.stats.entriesByResource[auditEntry.resource] = 
+    this.stats.entriesByResource[auditEntry.resource] =
       (this.stats.entriesByResource[auditEntry.resource] || 0) + 1;
-    
+
     // Actualizar contadores por acción
-    this.stats.entriesByAction[auditEntry.action] = 
+    this.stats.entriesByAction[auditEntry.action] =
       (this.stats.entriesByAction[auditEntry.action] || 0) + 1;
-    
+
     // Actualizar contadores por usuario
-    this.stats.entriesByUser[auditEntry.userId] = 
+    this.stats.entriesByUser[auditEntry.userId] =
       (this.stats.entriesByUser[auditEntry.userId] || 0) + 1;
 
     if (auditEntry.isReversible) {
@@ -543,15 +543,15 @@ export class AuditTrailCRMUndoService {
     // Actualizar contadores por período
     const now = new Date();
     const entryDate = new Date(auditEntry.timestamp);
-    
+
     if (now.getTime() - entryDate.getTime() <= 24 * 60 * 60 * 1000) {
       this.stats.last24Hours++;
     }
-    
+
     if (now.getTime() - entryDate.getTime() <= 7 * 24 * 60 * 60 * 1000) {
       this.stats.last7Days++;
     }
-    
+
     if (now.getTime() - entryDate.getTime() <= 30 * 24 * 60 * 60 * 1000) {
       this.stats.last30Days++;
     }
@@ -579,13 +579,13 @@ export class AuditTrailCRMUndoService {
 
   updateConfig(newConfig: Partial<AuditTrailConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    
+
     // Reiniciar proceso de limpieza si cambió la configuración
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
       this.startCleanupProcess();
     }
-    
+
     structuredLogger.info('Audit trail configuration updated', {
       config: this.config,
       requestId: ''
@@ -597,7 +597,7 @@ export class AuditTrailCRMUndoService {
       clearInterval(this.cleanupInterval);
       this.cleanupInterval = null;
     }
-    
+
     structuredLogger.info('Audit Trail CRM Undo service stopped', { requestId: '' });
   }
 }

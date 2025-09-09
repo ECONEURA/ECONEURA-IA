@@ -147,10 +147,10 @@ export class AutomatedDocumentationService {
     const doc = this.documentation.get(docId);
     if (!doc) return null;
 
-    const updatedDoc = { 
-      ...doc, 
-      ...updates, 
-      updatedAt: new Date() 
+    const updatedDoc = {
+      ...doc,
+      ...updates,
+      updatedAt: new Date()
     };
     this.documentation.set(docId, updatedDoc);
     logger.info(`Documentation updated: ${docId}`);
@@ -189,7 +189,7 @@ export class AutomatedDocumentationService {
 
       // Generar documentación para endpoints principales
       const apiEndpoints = await this.scanAPIEndpoints();
-      
+
       for (const endpoint of apiEndpoints) {
         const apiDoc = await this.generateEndpointDocumentation(endpoint);
         this.apiDocs.set(apiDoc.id, apiDoc);
@@ -234,7 +234,7 @@ export class AutomatedDocumentationService {
 
       // Generar documentación de componentes
       const components = await this.scanArchitectureComponents();
-      
+
       for (const component of components) {
         const archDoc = await this.generateComponentDocumentation(component);
         this.architectureDocs.set(archDoc.id, archDoc);
@@ -283,7 +283,7 @@ export class AutomatedDocumentationService {
 
       // Generar guías para diferentes módulos
       const modules = await this.scanUserModules();
-      
+
       for (const module of modules) {
         const userGuide = await this.generateModuleUserGuide(module);
         await this.createDocumentation({
@@ -337,7 +337,7 @@ export class AutomatedDocumentationService {
 
       // Generar runbooks para diferentes procedimientos
       const procedures = await this.scanSystemProcedures();
-      
+
       for (const procedure of procedures) {
         const runbook = await this.generateProcedureRunbook(procedure);
         this.runbooks.set(runbook.id, runbook);
@@ -368,11 +368,11 @@ export class AutomatedDocumentationService {
       this.generateAPIDocumentation(),
       this.generateArchitectureDocumentation(),
       this.generateUserGuides(),
-      this.generateRunbooks()
+      this.generateRunbooks();
     ]);
 
     const results: DocumentationGeneration[] = [];
-    
+
     for (const result of generations) {
       if (result.status === 'fulfilled') {
         results.push(result.value);
@@ -430,7 +430,7 @@ export class AutomatedDocumentationService {
 
   async generateAPIFiles(): Promise<string[]> {
     const files: string[] = [];
-    
+
     try {
       // Generar OpenAPI/Swagger spec
       const openAPISpec = await this.generateOpenAPISpec();
@@ -459,7 +459,7 @@ export class AutomatedDocumentationService {
 
   async generateArchitectureFiles(): Promise<string[]> {
     const files: string[] = [];
-    
+
     try {
       // Generar documentación de arquitectura
       const archDoc = await this.generateArchitectureDocumentationHTML();
@@ -484,11 +484,11 @@ export class AutomatedDocumentationService {
 
   async generateUserGuideFiles(): Promise<string[]> {
     const files: string[] = [];
-    
+
     try {
       // Generar guías de usuario
       const userGuides = await this.listDocumentation('USER_GUIDE');
-      
+
       for (const guide of userGuides) {
         const guideFile = path.join(this.config.outputDirectory, 'user-guides', `${guide.id}.md`);
         await this.writeFile(guideFile, guide.content);
@@ -510,11 +510,11 @@ export class AutomatedDocumentationService {
 
   async generateRunbookFiles(): Promise<string[]> {
     const files: string[] = [];
-    
+
     try {
       // Generar runbooks
       const runbooks = await this.listRunbooks();
-      
+
       for (const runbook of runbooks) {
         const runbookFile = path.join(this.config.outputDirectory, 'runbooks', `${runbook.id}.md`);
         const content = await this.generateRunbookContent(runbook);
@@ -539,7 +539,7 @@ export class AutomatedDocumentationService {
 
   private async scanAPIEndpoints(): Promise<any[]> {
     // Simular escaneo de endpoints de API
-    return [
+    return [;
       { path: '/api/health', method: 'GET', description: 'Health check endpoint' },
       { path: '/api/users', method: 'GET', description: 'Get all users' },
       { path: '/api/users', method: 'POST', description: 'Create new user' },
@@ -587,7 +587,7 @@ export class AutomatedDocumentationService {
 
   private async scanArchitectureComponents(): Promise<any[]> {
     // Simular escaneo de componentes de arquitectura
-    return [
+    return [;
       { name: 'API Gateway', description: 'Main API gateway component' },
       { name: 'User Service', description: 'User management service' },
       { name: 'Database', description: 'Main database component' },
@@ -620,7 +620,7 @@ export class AutomatedDocumentationService {
 
   private async scanUserModules(): Promise<any[]> {
     // Simular escaneo de módulos de usuario
-    return [
+    return [;
       { name: 'User Management', description: 'User management module' },
       { name: 'Inventory', description: 'Inventory management module' },
       { name: 'Reports', description: 'Reporting module' }
@@ -638,7 +638,7 @@ export class AutomatedDocumentationService {
 
   private async scanSystemProcedures(): Promise<any[]> {
     // Simular escaneo de procedimientos del sistema
-    return [
+    return [;
       { name: 'Deployment', description: 'System deployment procedure' },
       { name: 'Backup', description: 'System backup procedure' },
       { name: 'Monitoring', description: 'System monitoring setup' }
@@ -676,7 +676,7 @@ export class AutomatedDocumentationService {
 
   private async generateOpenAPISpec(): Promise<any> {
     const apiDocs = Array.from(this.apiDocs.values());
-    
+
     return {
       openapi: '3.0.0',
       info: {
@@ -710,8 +710,8 @@ export class AutomatedDocumentationService {
 
   private async generateAPIDocumentationHTML(): Promise<string> {
     const apiDocs = Array.from(this.apiDocs.values());
-    
-    return `
+
+    return `;
 <!DOCTYPE html>
 <html>
 <head>
@@ -725,7 +725,7 @@ export class AutomatedDocumentationService {
 <body>
     <h1>ECONEURA API Documentation</h1>
     <p>Automatically generated API documentation</p>
-    
+
     ${apiDocs.map(doc => `
         <div class="endpoint">
             <h2><span class="method">${doc.method}</span> ${doc.endpoint}</h2>
@@ -750,8 +750,8 @@ export class AutomatedDocumentationService {
 
   private async generateAPIDocumentationMarkdown(): Promise<string> {
     const apiDocs = Array.from(this.apiDocs.values());
-    
-    return `# ECONEURA API Documentation
+
+    return `# ECONEURA API Documentation;
 
 Automatically generated API documentation
 
@@ -774,8 +774,8 @@ ${doc.responses.map(response => `- **${response.status}** - ${response.descripti
 
   private async generateArchitectureDocumentationHTML(): Promise<string> {
     const archDocs = Array.from(this.architectureDocs.values());
-    
-    return `
+
+    return `;
 <!DOCTYPE html>
 <html>
 <head>
@@ -788,7 +788,7 @@ ${doc.responses.map(response => `- **${response.status}** - ${response.descripti
 <body>
     <h1>ECONEURA Architecture Documentation</h1>
     <p>Automatically generated architecture documentation</p>
-    
+
     ${archDocs.map(doc => `
         <div class="component">
             <h2>${doc.component}</h2>
@@ -808,7 +808,7 @@ ${doc.responses.map(response => `- **${response.status}** - ${response.descripti
   }
 
   private async generateArchitectureDiagrams(): Promise<any[]> {
-    return [
+    return [;
       {
         name: 'system-overview',
         content: `graph TD\n    A[API Gateway] --> B[User Service]\n    A --> C[Inventory Service]\n    B --> D[Database]\n    C --> D\n    B --> E[Cache Layer]\n    C --> E`,
@@ -824,8 +824,8 @@ ${doc.responses.map(response => `- **${response.status}** - ${response.descripti
 
   private async generateUserGuideIndex(): Promise<string> {
     const userGuides = await this.listDocumentation('USER_GUIDE');
-    
-    return `# User Guides
+
+    return `# User Guides;
 
 This directory contains user guides for different modules of the ECONEURA system.
 
@@ -846,8 +846,8 @@ For additional help, please contact the support team.`;
 
   private async generateRunbookIndex(): Promise<string> {
     const runbooks = await this.listRunbooks();
-    
-    return `# Runbooks
+
+    return `# Runbooks;
 
 This directory contains operational runbooks for the ECONEURA system.
 
@@ -915,7 +915,7 @@ If you encounter issues during this procedure, contact the operations team.`;
       // Crear directorio si no existe
       const dir = path.dirname(filePath);
       await mkdir(dir, { recursive: true });
-      
+
       // Escribir archivo
       await writeFile(filePath, content, 'utf8');
       logger.info(`File written: ${filePath}`);
@@ -952,7 +952,7 @@ If you encounter issues during this procedure, contact the operations team.`;
     const successfulGenerations = generations.filter(g => g.status === 'COMPLETED').length;
     const failedGenerations = generations.filter(g => g.status === 'FAILED').length;
 
-    const lastGeneration = generations.length > 0 
+    const lastGeneration = generations.length > 0
       ? new Date(Math.max(...generations.map(g => g.startTime.getTime())))
       : null;
 
@@ -984,7 +984,7 @@ If you encounter issues during this procedure, contact the operations team.`;
 
     const periodGenerations = Array.from(this.generations.values())
       .filter(g => g.startTime >= cutoffDate);
-    
+
     const periodDocuments = Array.from(this.documentation.values())
       .filter(d => d.createdAt >= cutoffDate);
 
@@ -996,8 +996,8 @@ If you encounter issues during this procedure, contact the operations team.`;
       failedGenerations: periodGenerations.filter(g => g.status === 'FAILED').length,
       totalDocuments: periodDocuments.length,
       totalRunbooks: allRunbooks.length,
-      successRate: periodGenerations.length > 0 
-        ? (periodGenerations.filter(g => g.status === 'COMPLETED').length / periodGenerations.length) * 100 
+      successRate: periodGenerations.length > 0
+        ? (periodGenerations.filter(g => g.status === 'COMPLETED').length / periodGenerations.length) * 100
         : 0
     };
 

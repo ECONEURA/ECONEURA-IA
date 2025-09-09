@@ -27,7 +27,7 @@ interface CompanyFormProps {
   onSuccess: () => void
 }
 
-export function CompanyForm({ company, onClose, onSuccess }: CompanyFormProps) {
+export function CompanyForm({ company, onClose, onSuccess }: CompanyFormProps): void {
   const createCompany = useCreateCompany()
   const updateCompany = useUpdateCompany()
   const isEdit = !!company
@@ -52,15 +52,15 @@ export function CompanyForm({ company, onClose, onSuccess }: CompanyFormProps) {
       }
       onSuccess()
     } catch (error) {
-      console.error('Error saving company:', error)
+      console.error('Error saving company:', error);
     }
   }
 
-  return (
+  return (;
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75" onClick={onClose} />
-        
+
         <div className="relative bg-white rounded-lg max-w-2xl w-full p-6">
           <h2 className="text-2xl font-bold mb-6">
             {isEdit ? 'Editar Empresa' : 'Nueva Empresa'}

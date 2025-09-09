@@ -1,6 +1,6 @@
 /**
  * PR-49: Memory Management Routes
- * 
+ *
  * Endpoints para gestionar el sistema de gestión de memoria
  * y monitorear métricas de memoria en tiempo real.
  */
@@ -40,7 +40,7 @@ router.get('/status', async (req, res) => {
 
   try {
     const status = memoryManager.getStatus();
-    
+
     structuredLogger.info('Memory status requested', {
       traceId,
       spanId,
@@ -91,7 +91,7 @@ router.get('/metrics', async (req, res) => {
 
   try {
     const status = memoryManager.getStatus();
-    
+
     // Análisis detallado de métricas de memoria
     const analysis = {
       memory: {
@@ -99,7 +99,7 @@ router.get('/metrics', async (req, res) => {
         total: status.metrics.total,
         free: status.metrics.free,
         utilization: (status.metrics.used / status.metrics.total) * 100,
-        status: status.metrics.used > status.config.maxMemoryMB * 0.9 ? 'critical' : 
+        status: status.metrics.used > status.config.maxMemoryMB * 0.9 ? 'critical' :
                 status.metrics.used > status.config.gcThreshold ? 'warning' : 'healthy'
       },
       heap: {
@@ -114,7 +114,7 @@ router.get('/metrics', async (req, res) => {
         minor: status.metrics.gc.minor,
         lastGC: status.metrics.gc.lastGC,
         duration: status.metrics.gc.duration,
-        frequency: status.gcHistory.length > 0 ? 
+        frequency: status.gcHistory.length > 0 ?
           status.gcHistory.reduce((acc, gc) => acc + gc.duration, 0) / status.gcHistory.length : 0
       },
       cache: {
@@ -180,7 +180,7 @@ router.post('/optimize', async (req, res) => {
 
   try {
     const { type } = req.body;
-    
+
     // Validar tipo de optimización
     if (type && !OptimizationTypeSchema.safeParse(type).success) {
       return res.status(400).json({
@@ -202,7 +202,7 @@ router.post('/optimize', async (req, res) => {
     const duration = Date.now() - startTime;
 
     const status = memoryManager.getStatus();
-    
+
     structuredLogger.info('Manual memory optimization completed', {
       traceId,
       spanId,
@@ -249,7 +249,7 @@ router.put('/config', async (req, res) => {
 
   try {
     const configData = MemoryConfigSchema.parse(req.body);
-    
+
     structuredLogger.info('Memory config update requested', {
       traceId,
       spanId,
@@ -257,7 +257,7 @@ router.put('/config', async (req, res) => {
     });
 
     memoryManager.updateConfig(configData);
-    
+
     const newStatus = memoryManager.getStatus();
 
     structuredLogger.info('Memory config updated', {
@@ -311,7 +311,7 @@ router.get('/leaks', async (req, res) => {
   try {
     const { type, severity } = req.query;
     const status = memoryManager.getStatus();
-    
+
     let leaks = status.leaks;
 
     // Filtrar por tipo
@@ -338,7 +338,7 @@ router.get('/leaks', async (req, res) => {
         low: status.leaks.filter(leak => leak.size <= 50).length
       },
       totalSize: status.leaks.reduce((acc, leak) => acc + leak.size, 0),
-      averageAge: status.leaks.length > 0 ? 
+      averageAge: status.leaks.length > 0 ?
         status.leaks.reduce((acc, leak) => acc + (Date.now() - leak.firstDetected), 0) / status.leaks.length : 0
     };
 
@@ -386,7 +386,7 @@ router.get('/gc-history', async (req, res) => {
   try {
     const { limit = 50, type } = req.query;
     const status = memoryManager.getStatus();
-    
+
     let gcHistory = status.gcHistory;
 
     // Filtrar por tipo
@@ -405,10 +405,10 @@ router.get('/gc-history', async (req, res) => {
         acc[gc.type] = (acc[gc.type] || 0) + 1;
         return acc;
       }, {} as Record<string, number>),
-      averageDuration: status.gcHistory.length > 0 ? 
+      averageDuration: status.gcHistory.length > 0 ?
         status.gcHistory.reduce((acc, gc) => acc + gc.duration, 0) / status.gcHistory.length : 0,
       totalFreed: status.gcHistory.reduce((acc, gc) => acc + gc.freed, 0),
-      averageFreed: status.gcHistory.length > 0 ? 
+      averageFreed: status.gcHistory.length > 0 ?
         status.gcHistory.reduce((acc, gc) => acc + gc.freed, 0) / status.gcHistory.length : 0
     };
 
@@ -455,7 +455,7 @@ router.get('/health', async (req, res) => {
 
   try {
     const status = memoryManager.getStatus();
-    
+
     // Evaluar salud de la memoria
     const healthChecks = {
       memory: status.metrics.used <= status.config.maxMemoryMB * 0.9,

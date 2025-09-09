@@ -219,7 +219,7 @@ class ReportesMensualesService {
   constructor() {
     this.initializePlantillas();
     this.initializeReportesDemo();
-    
+
     structuredLogger.info('Reportes Mensuales Service initialized', {
       reportesCount: this.reportes.size,
       plantillasCount: this.plantillas.size
@@ -412,7 +412,7 @@ class ReportesMensualesService {
     };
 
     this.reportes.set(reporte.id, reporte);
-    
+
     structuredLogger.info('Reporte creado', {
       reporteId: reporte.id,
       nombre: reporte.nombre,
@@ -425,7 +425,7 @@ class ReportesMensualesService {
 
   async obtenerReportes(organizacionId?: string): Promise<ReporteConfig[]> {
     let reportes = Array.from(this.reportes.values());
-    
+
     if (organizacionId) {
       reportes = reportes.filter(r => r.organizacionId === organizacionId);
     }
@@ -448,7 +448,7 @@ class ReportesMensualesService {
     };
 
     this.reportes.set(id, reporteActualizado);
-    
+
     structuredLogger.info('Reporte actualizado', {
       reporteId: id,
       cambios: Object.keys(updates)
@@ -459,7 +459,7 @@ class ReportesMensualesService {
 
   async eliminarReporte(id: string): Promise<boolean> {
     const eliminado = this.reportes.delete(id);
-    
+
     if (eliminado) {
       structuredLogger.info('Reporte eliminado', { reporteId: id });
     }
@@ -474,7 +474,7 @@ class ReportesMensualesService {
     }
 
     const generacionId = `gen_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    
+
     const generacion: GeneracionReporte = {
       id: generacionId,
       reporteId,
@@ -513,30 +513,30 @@ class ReportesMensualesService {
 
   private async procesarGeneracion(generacionId: string, reporte: ReporteConfig, periodo: { mes: number; año: number }): Promise<void> {
     const generacion = this.generaciones.get(generacionId)!;
-    
+
     // Simular procesamiento paso a paso
     generacion.estado = 'procesando';
     generacion.progreso = 10;
     this.generaciones.set(generacionId, generacion);
-    
+
     // Paso 1: Recopilar datos
     await this.delay(1000);
     generacion.progreso = 30;
     generacion.estadisticas.datosProcesados = 1500;
     this.generaciones.set(generacionId, generacion);
-    
+
     // Paso 2: Generar gráficos
     await this.delay(1500);
     generacion.progreso = 60;
     generacion.estadisticas.graficosGenerados = 8;
     this.generaciones.set(generacionId, generacion);
-    
+
     // Paso 3: Generar PDF
     await this.delay(2000);
     generacion.progreso = 90;
     generacion.estadisticas.paginasGeneradas = 15;
     this.generaciones.set(generacionId, generacion);
-    
+
     // Paso 4: Finalizar
     await this.delay(500);
     generacion.progreso = 100;
@@ -544,7 +544,7 @@ class ReportesMensualesService {
     generacion.fin = new Date().toISOString();
     generacion.duracion = Math.floor((new Date(generacion.fin).getTime() - new Date(generacion.inicio).getTime()) / 1000);
     generacion.estadisticas.tiempoGeneracion = generacion.duracion;
-    
+
     // Simular archivo generado
     generacion.archivo = {
       nombre: `reporte_${reporte.nombre.replace(/\s+/g, '_')}_${periodo.año}_${periodo.mes.toString().padStart(2, '0')}.pdf`,
@@ -552,9 +552,9 @@ class ReportesMensualesService {
       tamaño: 2048576, // 2MB
       formato: 'pdf'
     };
-    
+
     this.generaciones.set(generacionId, generacion);
-    
+
     structuredLogger.info('Reporte generado exitosamente', {
       generacionId,
       reporteId: reporte.id,
@@ -565,7 +565,7 @@ class ReportesMensualesService {
 
   async obtenerGeneraciones(reporteId?: string): Promise<GeneracionReporte[]> {
     let generaciones = Array.from(this.generaciones.values());
-    
+
     if (reporteId) {
       generaciones = generaciones.filter(g => g.reporteId === reporteId);
     }
@@ -745,7 +745,7 @@ class ReportesMensualesService {
     };
 
     this.reportes.set(reporteId, reporte);
-    
+
     structuredLogger.info('Reporte programado', {
       reporteId,
       programacion: reporte.programacion
@@ -831,7 +831,7 @@ class ReportesMensualesService {
 
   // Métodos de estadísticas
   async obtenerEstadisticas(organizacionId?: string): Promise<any> {
-    const reportes = organizacionId ? 
+    const reportes = organizacionId ?
       Array.from(this.reportes.values()).filter(r => r.organizacionId === organizacionId) :
       Array.from(this.reportes.values());
 

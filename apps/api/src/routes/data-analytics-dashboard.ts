@@ -481,7 +481,7 @@ router.get('/reports/:id/export', async (req, res) => {
 
     const data = await dataAnalyticsDashboard.exportReport(reportId, format);
 
-    const contentType = format === 'csv' ? 'text/csv' : 
+    const contentType = format === 'csv' ? 'text/csv' :
                        format === 'pdf' ? 'application/pdf' : 'application/json';
     const filename = `report-${reportId}-${new Date().toISOString().split('T')[0]}.${format}`;
 

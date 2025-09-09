@@ -35,7 +35,7 @@ interface AuthConfig {
 
 export const authenticateToken = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   const startTime = Date.now();
-  
+
   try {
     // Check for API key first
     const apiKey = req.headers['x-api-key'] as string;
@@ -147,7 +147,7 @@ export const authenticateToken = async (req: AuthenticatedRequest, res: Response
 
   } catch (error) {
     const processingTime = Date.now() - startTime;
-    
+
     structuredLogger.error('Authentication failed', {
       error: error instanceof Error ? error.message : 'Unknown error',
       processingTime,
@@ -248,7 +248,7 @@ export const requirePermission = (permission: string) => {
 
 export const requireRole = (roles: string | string[]) => {
   const allowedRoles = Array.isArray(roles) ? roles : [roles];
-  
+
   return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
       res.status(401).json({
@@ -291,7 +291,7 @@ export const requireOrganization = (req: AuthenticatedRequest, res: Response, ne
   }
 
   const requestedOrgId = req.headers['x-organization-id'] as string || req.params.organizationId;
-  
+
   if (requestedOrgId && requestedOrgId !== req.user.organizationId) {
     structuredLogger.warn('Organization access denied', {
       userId: req.user.id,
@@ -412,7 +412,7 @@ export const validateSession = async (req: AuthenticatedRequest, res: Response, 
 
     // Update last activity
     await db.update(sessions)
-      .set({ 
+      .set({
         lastActivityAt: new Date(),
         updatedAt: new Date()
       })

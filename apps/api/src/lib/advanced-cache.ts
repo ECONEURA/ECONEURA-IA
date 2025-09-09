@@ -193,7 +193,7 @@ export class AdvancedCache {
 
   get<T>(key: string): T | null {
     const item = this.cache.get(key);
-    
+
     if (!item) {
       this.stats.misses++;
       this.updateStats();
@@ -218,7 +218,7 @@ export class AdvancedCache {
 
     this.stats.hits++;
     this.updateStats();
-    
+
     const value = this.deserialize(item.value);
     structuredLogger.cache('GET', key, true);
     return value;
@@ -357,13 +357,13 @@ export class AdvancedCache {
         invalidated++;
       }
     }
-    
+
     if (invalidated > 0) {
       this.stats.deletes += invalidated;
       this.updateStats();
       structuredLogger.cache('INVALIDATE_PATTERN', pattern.source, true, { count: invalidated });
     }
-    
+
     return invalidated;
   }
 
@@ -393,13 +393,13 @@ export class AdvancedCache {
     }
 
     this.tags.delete(tag);
-    
+
     if (invalidated > 0) {
       this.stats.deletes += invalidated;
       this.updateStats();
       structuredLogger.cache('INVALIDATE_TAG', tag, true, { count: invalidated });
     }
-    
+
     return invalidated;
   }
 

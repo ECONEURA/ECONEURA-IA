@@ -2,8 +2,8 @@
 import React from 'react';
 import { ui } from '@/lib/palette';
 
-export default function Header() {
-  return (
+export default function Header(): void {
+  return (;
     <header style={{
       backgroundColor: ui.bg,
       borderBottom: `${ui.bw}px solid ${ui.border}`,
@@ -13,9 +13,9 @@ export default function Header() {
       justifyContent: 'space-between'
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <img 
-          src="/logo-econeura.png" 
-          alt="ECONEURA" 
+        <img
+          src="/logo-econeura.png"
+          alt="ECONEURA"
           style={{ height: '32px', width: 'auto' }}
         />
         <h1 style={{
@@ -27,7 +27,7 @@ export default function Header() {
           ECONEURA Cockpit
         </h1>
       </div>
-      
+
       <div style={{
         display: 'flex',
         alignItems: 'center',

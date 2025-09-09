@@ -155,7 +155,7 @@ app.get("/", (req, res) => {
     features: [
       "PR-22: Health modes (live/ready/degraded)",
       "PR-23: Observability coherente (logs + métricas + traces)",
-      "PR-24: Analytics events with Zod validation", 
+      "PR-24: Analytics events with Zod validation",
       "PR-27: Validación Zod integral en routers",
       "PR-28: Security middlewares (Helmet + CORS + CSP)",
       "PR-29: Rate limiting + Budget guard",
@@ -167,7 +167,7 @@ app.get("/", (req, res) => {
     ],
     endpoints: [
       "GET /health - Basic health check",
-      "GET /health/live - Liveness probe (PR-22)", 
+      "GET /health/live - Liveness probe (PR-22)",
       "GET /health/ready - Readiness probe (PR-22)",
       "GET /metrics - Prometheus metrics (PR-23)",
       "POST /v1/analytics/events - Track analytics events (PR-24)",
@@ -240,7 +240,7 @@ const server = app.listen(PORT, () => {
     features: [
       'PR-22: Health modes (live/ready/degraded)',
       'PR-23: Observability coherente (logs + métricas + traces)',
-      'PR-24: Analytics events with Zod validation', 
+      'PR-24: Analytics events with Zod validation',
       'PR-27: Validación Zod integral en routers',
       'PR-28: Security middlewares (Helmet + CORS + CSP)',
       'PR-29: Rate limiting + Budget guard',

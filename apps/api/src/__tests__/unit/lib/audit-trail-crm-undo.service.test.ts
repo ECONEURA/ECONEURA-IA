@@ -213,7 +213,7 @@ describe('AuditTrailCRMUndoService', () => {
 
     it('should throw error for non-existent audit entry', async () => {
       await expect(
-        service.undoChange('non-existent-id', 'user-456', 'Test undo')
+        service.undoChange('non-existent-id', 'user-456', 'Test undo');
       ).rejects.toThrow('Audit entry not found');
     });
 
@@ -231,7 +231,7 @@ describe('AuditTrailCRMUndoService', () => {
       );
 
       await expect(
-        service.undoChange(auditEntry.id, 'user-456', 'Test undo')
+        service.undoChange(auditEntry.id, 'user-456', 'Test undo');
       ).rejects.toThrow('This change is not reversible');
     });
 
@@ -251,7 +251,7 @@ describe('AuditTrailCRMUndoService', () => {
       await service.undoChange(auditEntry.id, 'user-456', 'First undo');
 
       await expect(
-        service.undoChange(auditEntry.id, 'user-456', 'Second undo')
+        service.undoChange(auditEntry.id, 'user-456', 'Second undo');
       ).rejects.toThrow('Audit entry is not active');
     });
   });

@@ -141,7 +141,7 @@ describe('ContactsDedupeService', () => {
       service.updateConfig({ autoMerge: true });
       await service.processDeduplication();
       const pendingMerges = service.getPendingMerges();
-      
+
       if (pendingMerges.length > 0) {
         const mergeId = pendingMerges[0].id;
         await service.approveMerge(mergeId, 'user-1');
@@ -154,7 +154,7 @@ describe('ContactsDedupeService', () => {
       service.updateConfig({ autoMerge: true });
       await service.processDeduplication();
       const pendingMerges = service.getPendingMerges();
-      
+
       if (pendingMerges.length > 0) {
         const mergeId = pendingMerges[0].id;
         await service.executeMerge(mergeId, 'user-1');
@@ -167,7 +167,7 @@ describe('ContactsDedupeService', () => {
       service.updateConfig({ autoMerge: true });
       await service.processDeduplication();
       const pendingMerges = service.getPendingMerges();
-      
+
       if (pendingMerges.length > 0) {
         const mergeId = pendingMerges[0].id;
         await service.revertMerge(mergeId, 'user-1');
@@ -184,7 +184,7 @@ describe('ContactsDedupeService', () => {
         similarityThreshold: 0.8,
         fuzzyMatching: true
       };
-      
+
       service.updateConfig(newConfig);
       const stats = service.getStats();
       expect(stats).toBeDefined();
@@ -255,12 +255,12 @@ describe('ContactsDedupeService', () => {
       await service.addContact(mockContact1);
       await service.addContact(mockContact2);
       await service.processDeduplication();
-      
+
       const pendingMerges = service.getPendingMerges();
       if (pendingMerges.length > 0) {
         const mergeId = pendingMerges[0].id;
         await service.executeMerge(mergeId, 'user-1');
-        
+
         await expect(service.executeMerge(mergeId, 'user-1'))
           .rejects.toThrow('Merge operation is not pending');
       }
@@ -281,12 +281,12 @@ describe('ContactsDedupeService', () => {
           updatedAt: '2024-01-01T00:00:00Z'
         });
       }
-      
+
       await service.importContacts(largeContactList);
       const startTime = Date.now();
       await service.processDeduplication();
       const endTime = Date.now();
-      
+
       expect(endTime - startTime).toBeLessThan(5000); // Should complete within 5 seconds
     });
   });

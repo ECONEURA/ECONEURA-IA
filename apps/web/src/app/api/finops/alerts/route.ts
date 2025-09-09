@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { webFinOpsSystem } from '@/lib/finops';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): void {
   try {
     const { searchParams } = new URL(request.url);
     const organizationId = searchParams.get('organizationId') || undefined;
-    
+
     const alerts = webFinOpsSystem.getActiveAlerts(organizationId || undefined);
-    
+
     return NextResponse.json({
       success: true,
       data: {
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Failed to get budget alerts:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Internal server error' },
       { status: 500 }
     );

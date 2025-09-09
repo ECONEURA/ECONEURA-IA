@@ -1,6 +1,6 @@
 /**
  * Threat Detection Service
- * 
+ *
  * This service provides comprehensive threat detection capabilities including
  * AI-powered threat detection, behavioral analysis, anomaly detection, and
  * automated incident response.
@@ -167,35 +167,35 @@ export class ThreatDetectionService {
   private async checkThreatIntelligence(indicators: any[]): Promise<number> {
     // Simulate threat intelligence check
     let matchScore = 0;
-    
+
     for (const indicator of indicators) {
       if (this.threatIntelligence.has(indicator.value)) {
         matchScore += 0.2;
       }
     }
-    
+
     return Math.min(1.0, matchScore);
   }
 
   private async analyzeBehavior(threatData: any): Promise<number> {
     // Simulate behavioral analysis
     let behaviorScore = 0;
-    
+
     // Check for unusual patterns
     if (threatData.metadata.unusualPattern) {
       behaviorScore += 0.3;
     }
-    
+
     // Check for known attack patterns
     if (threatData.metadata.knownPattern) {
       behaviorScore += 0.4;
     }
-    
+
     // Check for timing anomalies
     if (threatData.metadata.timingAnomaly) {
       behaviorScore += 0.2;
     }
-    
+
     return Math.min(1.0, behaviorScore);
   }
 
@@ -286,7 +286,7 @@ export class ThreatDetectionService {
   }
 
   private getThreatReferences(threatData: any): string[] {
-    return [
+    return [;
       'https://attack.mitre.org/',
       'https://www.cisa.gov/known-exploited-vulnerabilities-catalog',
       'https://www.malware-traffic-analysis.net/'
@@ -433,7 +433,7 @@ export class ThreatDetectionService {
   private async performBehavioralAnalysis(detection: ThreatDetection): Promise<void> {
     // Simulate behavioral analysis
     console.log(`Performing behavioral analysis for threat ${detection.id}`);
-    
+
     // In a real implementation, this would:
     // 1. Analyze user behavior patterns
     // 2. Compare against baseline behavior
@@ -444,7 +444,7 @@ export class ThreatDetectionService {
   private async performAnomalyDetection(detection: ThreatDetection): Promise<void> {
     // Simulate anomaly detection
     console.log(`Performing anomaly detection for threat ${detection.id}`);
-    
+
     // In a real implementation, this would:
     // 1. Analyze system behavior patterns
     // 2. Identify statistical anomalies
@@ -531,7 +531,7 @@ export class ThreatDetectionService {
   private async performThreatHunting(detection: ThreatDetection): Promise<void> {
     // Simulate threat hunting
     console.log(`Performing threat hunting for threat ${detection.id}`);
-    
+
     // In a real implementation, this would:
     // 1. Search for related indicators across the environment
     // 2. Analyze historical data for similar patterns
@@ -695,19 +695,19 @@ export class ThreatDetectionService {
   private calculateThreatTrend(threats: ThreatDetection[]): Array<{ date: string; count: number }> {
     const trend: Array<{ date: string; count: number }> = [];
     const now = new Date();
-    
+
     for (let i = 29; i >= 0; i--) {
       const date = new Date(now);
       date.setDate(date.getDate() - i);
       const dateStr = date.toISOString().split('T')[0];
-      
-      const dayThreats = threats.filter(t => 
+
+      const dayThreats = threats.filter(t =>
         t.timestamp.toISOString().split('T')[0] === dateStr
       );
-      
+
       trend.push({ date: dateStr, count: dayThreats.length });
     }
-    
+
     return trend;
   }
 

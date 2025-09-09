@@ -105,7 +105,7 @@ router.post('/events', async (req, res) => {
 
   try {
     const eventData = AuditEventSchema.parse(req.body);
-    
+
     structuredLogger.info('Audit event logging requested', {
       traceId,
       spanId,
@@ -167,7 +167,7 @@ router.get('/events', async (req, res) => {
 
   try {
     const filters = AuditFiltersSchema.parse(req.query);
-    
+
     structuredLogger.info('Audit events requested', {
       traceId,
       spanId,
@@ -228,7 +228,7 @@ router.get('/rules', async (req, res) => {
 
   try {
     const rules = await advancedAuditComplianceService.getComplianceRules();
-    
+
     structuredLogger.info('Compliance rules requested', {
       traceId,
       spanId,
@@ -270,7 +270,7 @@ router.post('/rules', async (req, res) => {
 
   try {
     const ruleData = ComplianceRuleSchema.parse(req.body);
-    
+
     structuredLogger.info('Compliance rule creation requested', {
       traceId,
       spanId,
@@ -331,7 +331,7 @@ router.get('/violations', async (req, res) => {
 
   try {
     const filters = ViolationFiltersSchema.parse(req.query);
-    
+
     structuredLogger.info('Compliance violations requested', {
       traceId,
       spanId,
@@ -393,7 +393,7 @@ router.put('/violations/:id', async (req, res) => {
 
   try {
     const updateData = ViolationUpdateSchema.parse(req.body);
-    
+
     structuredLogger.info('Violation status update requested', {
       traceId,
       spanId,
@@ -468,7 +468,7 @@ router.post('/reports', async (req, res) => {
 
   try {
     const reportData = AuditReportSchema.parse(req.body);
-    
+
     structuredLogger.info('Audit report generation requested', {
       traceId,
       spanId,
@@ -531,7 +531,7 @@ router.get('/reports/:organizationId', async (req, res) => {
 
   try {
     const reports = await advancedAuditComplianceService.getAuditReports(organizationId);
-    
+
     structuredLogger.info('Audit reports requested', {
       traceId,
       spanId,
@@ -578,7 +578,7 @@ router.get('/metrics/:organizationId', async (req, res) => {
 
   try {
     const metrics = await advancedAuditComplianceService.getComplianceMetrics(organizationId);
-    
+
     structuredLogger.info('Compliance metrics requested', {
       traceId,
       spanId,
@@ -624,7 +624,7 @@ router.get('/health', async (req, res) => {
 
   try {
     const rules = await advancedAuditComplianceService.getComplianceRules();
-    
+
     const healthChecks = {
       hasRules: rules.length > 0,
       serviceInitialized: true,

@@ -819,23 +819,23 @@ export class Contact {
 
   static validateName(firstName: string, lastName: string): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
-    
+
     if (!firstName || firstName.trim().length === 0) {
       errors.push('First name is required');
     }
-    
+
     if (!lastName || lastName.trim().length === 0) {
       errors.push('Last name is required');
     }
-    
+
     if (firstName.length > 100) {
       errors.push('First name cannot exceed 100 characters');
     }
-    
+
     if (lastName.length > 100) {
       errors.push('Last name cannot exceed 100 characters');
     }
-    
+
     return {
       isValid: errors.length === 0,
       errors
@@ -865,7 +865,7 @@ export class Contact {
     try {
       const urlObj = new URL(url);
       const domain = urlObj.hostname.toLowerCase();
-      
+
       switch (platform.toLowerCase()) {
         case 'linkedin':
           return domain.includes('linkedin.com');

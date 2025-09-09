@@ -100,7 +100,7 @@ class SecurityManagerService {
     this.securityStats = this.initializeStats();
     this.startCleanupInterval();
     this.startSecurityMonitoring();
-    
+
     structuredLogger.info('Security Manager Service initialized', {
       config: {
         jwt: { enabled: true, expiry: this.config.jwt.accessTokenExpiry },
@@ -191,7 +191,7 @@ class SecurityManagerService {
   // JWT Token Management
   generateTokens(payload: any): { accessToken: string; refreshToken: string } {
     const now = Math.floor(Date.now() / 1000);
-    
+
     const accessTokenPayload = {
       ...payload,
       iat: now,
@@ -200,7 +200,7 @@ class SecurityManagerService {
       aud: this.config.jwt.audience,
       type: 'access'
     };
-    
+
     const refreshTokenPayload = {
       ...payload,
       iat: now,
@@ -209,10 +209,10 @@ class SecurityManagerService {
       aud: this.config.jwt.audience,
       type: 'refresh'
     };
-    
+
     const accessToken = this.signJWT(accessTokenPayload, this.config.jwt.secret);
     const refreshToken = this.signJWT(refreshTokenPayload, this.config.jwt.refreshSecret);
-    
+
     return { accessToken, refreshToken };
   }
 
@@ -220,11 +220,11 @@ class SecurityManagerService {
     try {
       const secret = type === 'access' ? this.config.jwt.secret : this.config.jwt.refreshSecret;
       const payload = this.verifyJWT(token, secret);
-      
+
       if (payload.type !== type) {
         throw new Error('Invalid token type');
       }
-      
+
       return payload;
     } catch (error) {
       this.recordSecurityEvent({
@@ -247,32 +247,32 @@ class SecurityManagerService {
       .createHmac('sha256', secret)
       .update(`${encodedHeader}.${encodedPayload}`)
       .digest('base64url');
-    
+
     return `${encodedHeader}.${encodedPayload}.${signature}`;
   }
 
   private verifyJWT(token: string, secret: string): any {
     const [header, payload, signature] = token.split('.');
-    
+
     if (!header || !payload || !signature) {
       throw new Error('Invalid token format');
     }
-    
+
     const expectedSignature = crypto
       .createHmac('sha256', secret)
       .update(`${header}.${payload}`)
       .digest('base64url');
-    
+
     if (signature !== expectedSignature) {
       throw new Error('Invalid signature');
     }
-    
+
     const decodedPayload = JSON.parse(Buffer.from(payload, 'base64url').toString());
-    
+
     if (decodedPayload.exp && decodedPayload.exp < Math.floor(Date.now() / 1000)) {
       throw new Error('Token expired');
     }
-    
+
     return decodedPayload;
   }
 
@@ -281,9 +281,9 @@ class SecurityManagerService {
     const limit = maxRequests || this.config.rateLimiting.maxRequests;
     const now = Date.now();
     const windowStart = now - this.config.rateLimiting.windowMs;
-    
+
     let rateLimitInfo = this.rateLimitStore.get(key);
-    
+
     if (!rateLimitInfo || rateLimitInfo.resetTime < now) {
       rateLimitInfo = {
         key,
@@ -292,7 +292,7 @@ class SecurityManagerService {
         blocked: false
       };
     }
-    
+
     if (rateLimitInfo.blocked && rateLimitInfo.resetTime > now) {
       this.recordSecurityEvent({
         type: 'rate_limit',
@@ -302,17 +302,17 @@ class SecurityManagerService {
         blocked: true,
         action: 'rate_limited'
       });
-      
+
       return {
         allowed: false,
         remaining: 0,
         resetTime: rateLimitInfo.resetTime
       };
     }
-    
+
     rateLimitInfo.count++;
     this.rateLimitStore.set(key, rateLimitInfo);
-    
+
     if (rateLimitInfo.count > limit) {
       rateLimitInfo.blocked = true;
       this.recordSecurityEvent({
@@ -323,14 +323,14 @@ class SecurityManagerService {
         blocked: true,
         action: 'blocked'
       });
-      
+
       return {
         allowed: false,
         remaining: 0,
         resetTime: rateLimitInfo.resetTime
       };
     }
-    
+
     return {
       allowed: true,
       remaining: Math.max(0, limit - rateLimitInfo.count),
@@ -345,7 +345,7 @@ class SecurityManagerService {
 
   verifyCSRFToken(token: string, sessionToken: string): boolean {
     if (!this.config.csrf.enabled) return true;
-    
+
     if (!token || !sessionToken) {
       this.recordSecurityEvent({
         type: 'csrf',
@@ -357,12 +357,12 @@ class SecurityManagerService {
       });
       return false;
     }
-    
+
     const isValid = crypto.timingSafeEqual(
       Buffer.from(token, 'hex'),
-      Buffer.from(sessionToken, 'hex')
+      Buffer.from(sessionToken, 'hex');
     );
-    
+
     if (!isValid) {
       this.recordSecurityEvent({
         type: 'csrf',
@@ -373,14 +373,14 @@ class SecurityManagerService {
         action: 'blocked'
       });
     }
-    
+
     return isValid;
   }
 
   // Input Sanitization
   sanitizeInput(input: string): string {
     if (!this.config.sanitization.enabled) return input;
-    
+
     if (input.length > this.config.sanitization.maxLength) {
       this.recordSecurityEvent({
         type: 'xss',
@@ -392,7 +392,7 @@ class SecurityManagerService {
       });
       return input.substring(0, this.config.sanitization.maxLength);
     }
-    
+
     // Remover caracteres peligrosos
     let sanitized = input
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
@@ -401,7 +401,7 @@ class SecurityManagerService {
       .replace(/<iframe\b[^>]*>/gi, '')
       .replace(/<object\b[^>]*>/gi, '')
       .replace(/<embed\b[^>]*>/gi, '');
-    
+
     // Detectar intentos de inyección
     const injectionPatterns = [
       /union\s+select/i,
@@ -412,7 +412,7 @@ class SecurityManagerService {
       /exec\s*\(/i,
       /eval\s*\(/i
     ];
-    
+
     for (const pattern of injectionPatterns) {
       if (pattern.test(sanitized)) {
         this.recordSecurityEvent({
@@ -426,7 +426,7 @@ class SecurityManagerService {
         return '';
       }
     }
-    
+
     return sanitized;
   }
 
@@ -435,12 +435,12 @@ class SecurityManagerService {
     const iv = crypto.randomBytes(this.config.encryption.ivLength);
     const cipher = crypto.createCipher(this.config.encryption.algorithm, this.config.jwt.secret);
     cipher.setAAD(Buffer.from('econeura'));
-    
+
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    
+
     const tag = cipher.getAuthTag();
-    
+
     return {
       encrypted,
       iv: iv.toString('hex'),
@@ -452,10 +452,10 @@ class SecurityManagerService {
     const decipher = crypto.createDecipher(this.config.encryption.algorithm, this.config.jwt.secret);
     decipher.setAAD(Buffer.from('econeura'));
     decipher.setAuthTag(Buffer.from(tag, 'hex'));
-    
+
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
-    
+
     return decrypted;
   }
 
@@ -466,23 +466,23 @@ class SecurityManagerService {
       ...event,
       timestamp: new Date().toISOString()
     };
-    
+
     this.securityEvents.push(securityEvent);
-    
+
     // Actualizar estadísticas
     this.securityStats.total++;
     this.securityStats.byType[event.type] = (this.securityStats.byType[event.type] || 0) + 1;
     this.securityStats.bySeverity[event.severity] = (this.securityStats.bySeverity[event.severity] || 0) + 1;
     this.securityStats.bySource[event.source.ip] = (this.securityStats.bySource[event.source.ip] || 0) + 1;
-    
+
     if (event.blocked) {
       this.securityStats.blocked++;
     }
-    
+
     if (event.action === 'rate_limited') {
       this.securityStats.rateLimited++;
     }
-    
+
     // Log del evento
     const logLevel = this.getLogLevelForSeverity(event.severity);
     structuredLogger[logLevel]('Security event recorded', {
@@ -494,7 +494,7 @@ class SecurityManagerService {
       blocked: event.blocked,
       action: event.action
     });
-    
+
     // Bloquear IP si es crítico
     if (event.severity === 'critical' && event.blocked) {
       this.blockedIPs.add(event.source.ip);
@@ -532,7 +532,7 @@ class SecurityManagerService {
   private analyzeSecurityThreats(): void {
     const now = Date.now();
     const oneHourAgo = now - 60 * 60 * 1000;
-    
+
     // Analizar IPs sospechosas
     for (const [ip, info] of this.suspiciousIPs) {
       if (info.lastSeen < oneHourAgo) {
@@ -542,12 +542,12 @@ class SecurityManagerService {
         this.suspiciousIPs.delete(ip);
       }
     }
-    
+
     // Analizar eventos recientes
     const recentEvents = this.securityEvents.filter(
       event => new Date(event.timestamp).getTime() > oneHourAgo
     );
-    
+
     const criticalEvents = recentEvents.filter(event => event.severity === 'critical');
     if (criticalEvents.length > 5) {
       structuredLogger.error('High number of critical security events detected', {

@@ -2,8 +2,8 @@
 import React from 'react';
 import { ui } from '@/lib/palette';
 
-export default function Footer() {
-  return (
+export default function Footer(): void {
+  return (;
     <footer style={{
       backgroundColor: ui.bg,
       borderTop: `${ui.bw}px solid ${ui.border}`,
@@ -34,7 +34,7 @@ export default function Footer() {
           <span>•</span>
           <span>(ISO 27001 alineado)</span>
         </div>
-        
+
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -48,7 +48,7 @@ export default function Footer() {
             <div>© 2024 ECONEURA</div>
             <div>Versión 7.0</div>
           </div>
-          
+
           <div style={{
             display: 'flex',
             alignItems: 'center',

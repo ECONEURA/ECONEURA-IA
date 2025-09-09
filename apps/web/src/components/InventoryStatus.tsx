@@ -80,7 +80,7 @@ interface StockAlert {
 // COMPONENTE PRINCIPAL
 // ============================================================================
 
-export default function InventoryStatus() {
+export default function InventoryStatus(): void {
   const [report, setReport] = useState<InventoryReport | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [alerts, setAlerts] = useState<StockAlert[]>([]);
@@ -212,7 +212,7 @@ export default function InventoryStatus() {
   };
 
   if (loading) {
-    return (
+    return (;
       <div className="space-y-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-lg">Loading inventory data...</div>
@@ -222,7 +222,7 @@ export default function InventoryStatus() {
   }
 
   if (error) {
-    return (
+    return (;
       <div className="space-y-6">
         <Card>
           <CardContent className="pt-6">
@@ -239,7 +239,7 @@ export default function InventoryStatus() {
     );
   }
 
-  return (
+  return (;
     <div className="space-y-6">
       {/* Resumen del Inventario */}
       {report && (
@@ -380,8 +380,8 @@ export default function InventoryStatus() {
                           Reorder: {product.reorderPoint}
                         </div>
                       </div>
-                      <Progress 
-                        value={(product.currentStock / product.maxStock) * 100} 
+                      <Progress
+                        value={(product.currentStock / product.maxStock) * 100}
                         className="w-20"
                       />
                     </div>

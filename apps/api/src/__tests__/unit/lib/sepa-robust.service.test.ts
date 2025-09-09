@@ -109,7 +109,7 @@ describe('SEPARobustService - PR-70', () => {
       expect(rules).toBeDefined();
       expect(Array.isArray(rules)).toBe(true);
       expect(rules.length).toBeGreaterThan(0);
-      expect(rules.every(r => r.enabled === true)).toBe(true);
+      expect(rules.every(r => r.enabled =)).toBe(true);
     });
   });
 

@@ -112,7 +112,7 @@ export class StructuredLogger {
   apiCall(method: string, endpoint: string, statusCode: number, duration: number, context?: LogContext): void {
     const level = statusCode >= 400 ? 'warn' : 'info';
     const message = `API: ${method} ${endpoint} - ${statusCode}`;
-    
+
     this[level](message, { ...context, operation: 'api_call' }, {
       method,
       endpoint,

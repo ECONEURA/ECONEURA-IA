@@ -25,10 +25,10 @@ describe('NextAIPlatformService', () => {
     mockDb = {
       query: vi.fn(),
     };
-    
+
     // Reset all mocks
     vi.clearAllMocks();
-    
+
     // Mock the database service
     vi.mocked(nextAIPlatformService['db']).query = mockDb.query;
   });
@@ -441,7 +441,7 @@ describe('NextAIPlatformService', () => {
 
     it('should return unhealthy status when most services are failing', async () => {
       mockDb.query.mockRejectedValueOnce(new Error('Database connection failed'));
-      
+
       // Mock cache to be empty (simulating failure)
       nextAIPlatformService['sessionCache'].clear();
       nextAIPlatformService['modelRegistry'].clear();
@@ -502,7 +502,7 @@ describe('NextAIPlatformService', () => {
     it('should estimate tokens correctly', () => {
       const text = 'Hello world';
       const tokens = nextAIPlatformService['estimateTokens'](text);
-      
+
       // Rough estimation: 1 token ≈ 4 characters
       expect(tokens).toBe(Math.ceil(text.length / 4));
     });

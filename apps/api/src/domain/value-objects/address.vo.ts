@@ -32,7 +32,7 @@ export class Address {
   static fromString(addressString: string): Address {
     // Simple parsing - in production, use a proper address parsing library
     const parts = addressString.split(',').map(part => part.trim());
-    
+
     if (parts.length < 3) {
       throw new Error('Invalid address format');
     }
@@ -328,7 +328,7 @@ export class Address {
   // ========================================================================
 
   equals(other: Address): boolean {
-    return (
+    return (;
       this.props.street === other.props.street &&
       this.props.city === other.props.city &&
       this.props.state === other.props.state &&

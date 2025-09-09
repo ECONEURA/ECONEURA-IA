@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import AdvancedMetricsAlertsService, { 
-  Metric, 
-  AlertRule, 
-  Alert, 
-  SLA, 
-  MetricTrend, 
-  MetricsAlertsConfig 
+import AdvancedMetricsAlertsService, {
+  Metric,
+  AlertRule,
+  Alert,
+  SLA,
+  MetricTrend,
+  MetricsAlertsConfig
 } from '../../lib/advanced-metrics-alerts.service.ts';
 
 // Mock del logger
@@ -68,7 +68,7 @@ describe('AdvancedMetricsAlertsService', () => {
 
       const trends = await service.getMetricTrends('http_requests_total', '24h');
       expect(Array.isArray(trends)).toBe(true);
-      
+
       if (trends.length > 0) {
         const trend = trends[0];
         expect(trend.metric).toBe('http_requests_total');
@@ -425,7 +425,7 @@ describe('AdvancedMetricsAlertsService', () => {
     it('should initialize with default alert rules', async () => {
       const rules = await service.listAlertRules();
       expect(rules.length).toBeGreaterThan(0);
-      
+
       const highErrorRateRule = rules.find(r => r.name === 'High Error Rate');
       expect(highErrorRateRule).toBeDefined();
       expect(highErrorRateRule?.severity).toBe('HIGH');
@@ -434,7 +434,7 @@ describe('AdvancedMetricsAlertsService', () => {
     it('should initialize with default SLAs', async () => {
       const slas = await service.listSLAs();
       expect(slas.length).toBeGreaterThan(0);
-      
+
       const apiAvailabilitySLA = slas.find(s => s.name === 'API Availability');
       expect(apiAvailabilitySLA).toBeDefined();
       expect(apiAvailabilitySLA?.target).toBe(99.9);

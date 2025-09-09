@@ -10,46 +10,46 @@ export enum ErrorCode {
   MISSING_REQUIRED_FIELD = 1002,
   INVALID_FORMAT = 1003,
   OUT_OF_RANGE = 1004,
-  
+
   // Errores de autenticación (2000-2999)
   UNAUTHORIZED = 2000,
   INVALID_TOKEN = 2001,
   TOKEN_EXPIRED = 2002,
   INSUFFICIENT_PERMISSIONS = 2003,
   INVALID_CREDENTIALS = 2004,
-  
+
   // Errores de autorización (3000-3999)
   FORBIDDEN = 3000,
   ACCESS_DENIED = 3001,
   RESOURCE_NOT_ACCESSIBLE = 3002,
   RATE_LIMIT_EXCEEDED = 3003,
-  
+
   // Errores de recursos (4000-4999)
   NOT_FOUND = 4000,
   RESOURCE_NOT_FOUND = 4001,
   USER_NOT_FOUND = 4002,
   ORGANIZATION_NOT_FOUND = 4003,
   SERVICE_NOT_FOUND = 4004,
-  
+
   // Errores de conflicto (5000-5999)
   CONFLICT = 5000,
   DUPLICATE_RESOURCE = 5001,
   RESOURCE_ALREADY_EXISTS = 5002,
   CONCURRENT_MODIFICATION = 5003,
-  
+
   // Errores de servidor (6000-6999)
   INTERNAL_ERROR = 6000,
   DATABASE_ERROR = 6001,
   EXTERNAL_SERVICE_ERROR = 6002,
   TIMEOUT_ERROR = 6003,
   SERVICE_UNAVAILABLE = 6004,
-  
+
   // Errores de negocio (7000-7999)
   BUSINESS_RULE_VIOLATION = 7000,
   INSUFFICIENT_FUNDS = 7001,
   QUOTA_EXCEEDED = 7002,
   OPERATION_NOT_ALLOWED = 7003,
-  
+
   // Errores de integración (8000-8999)
   INTEGRATION_ERROR = 8000,
   API_ERROR = 8001,
@@ -139,7 +139,7 @@ class ErrorManagerService {
     this.initializeRetryPolicies();
     this.initializeErrorStats();
     this.startCleanupInterval();
-    
+
     structuredLogger.info('Error Manager Service initialized', {
       retryPolicies: this.retryPolicies.size,
       circuitBreakers: this.circuitBreakers.size
@@ -259,16 +259,16 @@ class ErrorManagerService {
     }
 
     let lastError: ErrorDetails | null = null;
-    
+
     for (let attempt = 0; attempt <= policy.maxRetries; attempt++) {
       try {
         const result = await operation();
-        
+
         // Si es un reintento exitoso, actualizar estadísticas
         if (attempt > 0) {
           this.updateRetrySuccessRate(true);
         }
-        
+
         return result;
       } catch (error) {
         lastError = this.createError(
@@ -284,11 +284,11 @@ class ErrorManagerService {
             policy.baseDelay * Math.pow(policy.backoffMultiplier, attempt),
             policy.maxDelay
           );
-          
+
           await this.delay(delay);
           continue;
         }
-        
+
         // Actualizar estadísticas de fallo
         this.updateRetrySuccessRate(false);
         break;
@@ -354,15 +354,15 @@ class ErrorManagerService {
 
   private recordError(error: ErrorDetails): void {
     this.errorHistory.push(error);
-    
+
     // Actualizar estadísticas
     this.errorStats.total++;
     this.errorStats.byCode[error.code] = (this.errorStats.byCode[error.code] || 0) + 1;
     this.errorStats.bySeverity[error.severity]++;
     this.errorStats.byCategory[error.category]++;
-    
+
     if (error.context.service) {
-      this.errorStats.byService[error.context.service] = 
+      this.errorStats.byService[error.context.service] =
         (this.errorStats.byService[error.context.service] || 0) + 1;
     }
 
@@ -477,8 +477,8 @@ class ErrorManagerService {
   private updateRetrySuccessRate(success: boolean): void {
     // Simulación de actualización de tasa de éxito
     const currentRate = this.errorStats.retrySuccessRate;
-    const newRate = success ? 
-      Math.min(100, currentRate + 1) : 
+    const newRate = success ?
+      Math.min(100, currentRate + 1) :
       Math.max(0, currentRate - 1);
     this.errorStats.retrySuccessRate = newRate;
   }

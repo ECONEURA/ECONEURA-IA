@@ -14,39 +14,39 @@ class AdvancedE2ETester {
 
   async runAdvancedTests(): Promise<void> {
     console.log('🚀 ECONEURA - E2E Testing Suite for Advanced PRs\n');
-    
+
     // Test FinOps workflow
     await this.testFinOpsWorkflow();
-    
+
     // Test GDPR compliance workflow
     await this.testGDPRWorkflow();
-    
+
     // Test SEPA integration workflow
     await this.testSEPAWorkflow();
-    
+
     // Test Analytics workflow
     await this.testAnalyticsWorkflow();
-    
+
     // Test Prompts workflow
     await this.testPromptsWorkflow();
-    
+
     this.printResults();
   }
 
   private async testFinOpsWorkflow(): Promise<void> {
     console.log('💰 Testing FinOps Workflow...');
-    
+
     try {
       // 1. Get current budgets
       const budgetsResponse = await fetch(`${API_BASE}/v1/finops/budgets`, {
         headers: { 'X-Org-ID': 'test-org' }
       });
       const budgets = await budgetsResponse.json();
-      
+
       // 2. Create new budget
       const newBudget = await fetch(`${API_BASE}/v1/finops/budgets`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'X-Org-ID': 'test-org'
         },
@@ -62,21 +62,21 @@ class AdvancedE2ETester {
           isActive: true
         })
       });
-      
+
       // 3. Get cost tracking
       const costsResponse = await fetch(`${API_BASE}/v1/finops/costs`, {
         headers: { 'X-Org-ID': 'test-org' }
       });
-      
+
       this.testResults.push({
         test: 'FinOps Workflow',
         status: 'PASSED',
         steps: ['Get budgets', 'Create budget', 'Get costs'],
         details: { budgets: budgets.success, newBudget: newBudget.ok, costs: costsResponse.ok }
       });
-      
+
       console.log('  ✅ FinOps workflow completed successfully');
-      
+
     } catch (error) {
       this.testResults.push({
         test: 'FinOps Workflow',
@@ -89,7 +89,7 @@ class AdvancedE2ETester {
 
   private async testGDPRWorkflow(): Promise<void> {
     console.log('🔒 Testing GDPR Workflow...');
-    
+
     try {
       // 1. Request data export
       const exportResponse = await fetch(`${API_BASE}/v1/gdpr/export`, {
@@ -101,29 +101,29 @@ class AdvancedE2ETester {
         })
       });
       const exportResult = await exportResponse.json();
-      
+
       // 2. Get audit logs
       const auditResponse = await fetch(`${API_BASE}/v1/gdpr/audit?userId=test-user-123`);
       const auditLogs = await auditResponse.json();
-      
+
       // 3. Test data erasure
       const eraseResponse = await fetch(`${API_BASE}/v1/gdpr/erase/test-user-123`, {
         method: 'DELETE'
       });
-      
+
       this.testResults.push({
         test: 'GDPR Workflow',
         status: 'PASSED',
         steps: ['Data export', 'Audit logs', 'Data erasure'],
-        details: { 
-          export: exportResult.success, 
+        details: {
+          export: exportResult.success,
           audit: auditLogs.success,
-          erase: eraseResponse.ok 
+          erase: eraseResponse.ok
         }
       });
-      
+
       console.log('  ✅ GDPR workflow completed successfully');
-      
+
     } catch (error) {
       this.testResults.push({
         test: 'GDPR Workflow',
@@ -136,7 +136,7 @@ class AdvancedE2ETester {
 
   private async testSEPAWorkflow(): Promise<void> {
     console.log('💳 Testing SEPA Workflow...');
-    
+
     try {
       // 1. Parse SEPA XML
       const parseResponse = await fetch(`${API_BASE}/v1/sepa/parse`, {
@@ -148,23 +148,23 @@ class AdvancedE2ETester {
         })
       });
       const parseResult = await parseResponse.json();
-      
+
       // 2. Get transactions
       const transactionsResponse = await fetch(`${API_BASE}/v1/sepa/transactions`);
       const transactions = await transactionsResponse.json();
-      
+
       this.testResults.push({
         test: 'SEPA Workflow',
         status: 'PASSED',
         steps: ['Parse XML', 'Get transactions'],
-        details: { 
+        details: {
           parse: parseResult.success,
           transactions: transactions.success
         }
       });
-      
+
       console.log('  ✅ SEPA workflow completed successfully');
-      
+
     } catch (error) {
       this.testResults.push({
         test: 'SEPA Workflow',
@@ -177,12 +177,12 @@ class AdvancedE2ETester {
 
   private async testAnalyticsWorkflow(): Promise<void> {
     console.log('📊 Testing Analytics Workflow...');
-    
+
     try {
       // 1. Track event
       const trackResponse = await fetch(`${API_BASE}/v1/analytics/events`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'X-Org-ID': 'test-org'
         },
@@ -193,28 +193,28 @@ class AdvancedE2ETester {
         })
       });
       const trackResult = await trackResponse.json();
-      
+
       // 2. Query events
       const queryResponse = await fetch(`${API_BASE}/v1/analytics/events?eventTypes=user_action&limit=5`);
       const queryResult = await queryResponse.json();
-      
+
       // 3. Get metrics
       const metricsResponse = await fetch(`${API_BASE}/v1/analytics/metrics`);
       const metrics = await metricsResponse.json();
-      
+
       this.testResults.push({
         test: 'Analytics Workflow',
         status: 'PASSED',
         steps: ['Track event', 'Query events', 'Get metrics'],
-        details: { 
+        details: {
           track: trackResult.success,
           query: queryResult.success,
           metrics: metrics.success
         }
       });
-      
+
       console.log('  ✅ Analytics workflow completed successfully');
-      
+
     } catch (error) {
       this.testResults.push({
         test: 'Analytics Workflow',
@@ -227,16 +227,16 @@ class AdvancedE2ETester {
 
   private async testPromptsWorkflow(): Promise<void> {
     console.log('📝 Testing Prompts Workflow...');
-    
+
     try {
       // 1. Get prompt library
       const libraryResponse = await fetch(`${API_BASE}/v1/prompts`);
       const library = await libraryResponse.json();
-      
+
       // 2. Create new prompt
       const createResponse = await fetch(`${API_BASE}/v1/prompts`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'X-User-ID': 'test-user'
         },
@@ -248,19 +248,19 @@ class AdvancedE2ETester {
         })
       });
       const createResult = await createResponse.json();
-      
+
       this.testResults.push({
         test: 'Prompts Workflow',
         status: 'PASSED',
         steps: ['Get library', 'Create prompt'],
-        details: { 
+        details: {
           library: library.success,
           create: createResult.success
         }
       });
-      
+
       console.log('  ✅ Prompts workflow completed successfully');
-      
+
     } catch (error) {
       this.testResults.push({
         test: 'Prompts Workflow',
@@ -274,19 +274,19 @@ class AdvancedE2ETester {
   private printResults(): void {
     const passed = this.testResults.filter(r => r.status === 'PASSED').length;
     const failed = this.testResults.filter(r => r.status === 'FAILED').length;
-    
+
     console.log('\n📊 E2E Test Results:');
     console.log(`✅ Passed: ${passed}`);
     console.log(`❌ Failed: ${failed}`);
     console.log(`🎯 Success Rate: ${Math.round((passed / this.testResults.length) * 100)}%`);
-    
+
     if (failed > 0) {
       console.log('\n❌ Failed Tests:');
       this.testResults
         .filter(r => r.status === 'FAILED')
         .forEach(r => console.log(`  - ${r.test}: ${r.error}`));
     }
-    
+
     structuredLogger.info('E2E testing completed', {
       totalTests: this.testResults.length,
       passed,

@@ -1,6 +1,6 @@
 /**
  * Workers Integration Service
- * 
+ *
  * Handles communication between API and Workers services
  */
 

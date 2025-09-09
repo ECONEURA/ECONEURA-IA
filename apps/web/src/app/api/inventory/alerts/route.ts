@@ -39,14 +39,14 @@ function generateRequestId(): string {
 
 function addFinOpsHeaders(response: NextResponse, startTime: number): NextResponse {
   const latency = Date.now() - startTime;
-  
+
   response.headers.set('X-Request-Id', generateRequestId());
   response.headers.set('X-Org-Id', 'demo-org');
   response.headers.set('X-Latency-ms', latency.toString());
   response.headers.set('X-AI-Provider', 'none');
   response.headers.set('X-AI-Model', 'none');
   response.headers.set('X-Est-Cost-EUR', '0.00');
-  
+
   return response;
 }
 
@@ -55,12 +55,12 @@ function addFinOpsHeaders(response: NextResponse, startTime: number): NextRespon
 // ============================================================================
 
 // GET /api/inventory/alerts - Listar alertas
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): void {
   const startTime = Date.now();
-  
+
   try {
     const { searchParams } = new URL(request.url);
-    
+
     // Construir filtros
     const filters: any = {};
     const productId = searchParams.get('productId');
@@ -86,16 +86,16 @@ export async function GET(request: NextRequest) {
     });
 
     const response = await fetch(apiUrl.toString());
-    
+
     if (!response.ok) {
       throw new Error(`Backend error: ${response.statusText}`);
     }
 
     const alerts = await response.json();
-    
+
     const nextResponse = NextResponse.json(alerts);
     return addFinOpsHeaders(nextResponse, startTime);
-    
+
   } catch (error) {
     console.error('Error fetching alerts:', error);
     const errorResponse = NextResponse.json(
@@ -107,12 +107,12 @@ export async function GET(request: NextRequest) {
 }
 
 // POST /api/inventory/alerts - Crear alerta
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): void {
   const startTime = Date.now();
-  
+
   try {
     const body = await request.json();
-    
+
     // Validar datos de entrada
     const validatedData = CreateAlertSchema.parse(body);
 
@@ -132,13 +132,13 @@ export async function POST(request: NextRequest) {
     }
 
     const alert = await response.json();
-    
+
     const nextResponse = NextResponse.json(alert, { status: 201 });
     return addFinOpsHeaders(nextResponse, startTime);
-    
+
   } catch (error) {
     console.error('Error creating alert:', error);
-    
+
     if (error instanceof z.ZodError) {
       const errorResponse = NextResponse.json(
         { error: 'Validation error', details: error.errors },
@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
       );
       return addFinOpsHeaders(errorResponse, startTime);
     }
-    
+
     const errorResponse = NextResponse.json(
       { error: 'Failed to create alert' },
       { status: 500 }

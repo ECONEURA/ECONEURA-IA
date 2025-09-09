@@ -95,7 +95,7 @@ graphChaosLightRouter.get('/stats', async (req, res) => {
 graphChaosLightRouter.post('/simulate', async (req, res) => {
   try {
     const validation = SimulateApiCallSchema.safeParse(req.body);
-    
+
     if (!validation.success) {
       res.status(400).json({
         success: false,
@@ -127,7 +127,7 @@ graphChaosLightRouter.post('/simulate', async (req, res) => {
 graphChaosLightRouter.put('/config', async (req, res) => {
   try {
     const validation = UpdateConfigSchema.safeParse(req.body);
-    
+
     if (!validation.success) {
       res.status(400).json({
         success: false,

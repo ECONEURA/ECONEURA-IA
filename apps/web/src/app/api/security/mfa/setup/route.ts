@@ -10,7 +10,7 @@ const MFASetupSchema = z.object({
   }),
 });
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): void {
   try {
     const body = await request.json();
     const validatedData = MFASetupSchema.parse(body);
@@ -35,14 +35,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
+      return NextResponse.json(;
         { error: 'Invalid MFA setup data', details: error.errors },
         { status: 400 }
       );
     }
 
     console.error('MFA setup failed:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'MFA setup failed' },
       { status: 500 }
     );

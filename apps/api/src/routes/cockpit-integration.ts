@@ -74,7 +74,7 @@ router.post('/agent-action', async (req, res) => {
 router.get('/metrics/:department', async (req, res) => {
   try {
     const department = req.params.department as any;
-    
+
     if (!['ceo', 'ia', 'cso', 'cto', 'ciso', 'coo', 'chro', 'cgo', 'cfo', 'cdo'].includes(department)) {
       return res.status(400).json({
         success: false,
@@ -188,7 +188,7 @@ router.get('/agent-status/:agentId', async (req, res) => {
 router.get('/chat-history/:department', async (req, res) => {
   try {
     const department = req.params.department as any;
-    
+
     if (!['ceo', 'ia', 'cso', 'cto', 'ciso', 'coo', 'chro', 'cgo', 'cfo', 'cdo'].includes(department)) {
       return res.status(400).json({
         success: false,
@@ -272,7 +272,7 @@ router.get('/departments', async (req, res) => {
 router.get('/agents/:department', async (req, res) => {
   try {
     const department = req.params.department as any;
-    
+
     if (!['ceo', 'ia', 'cso', 'cto', 'ciso', 'coo', 'chro', 'cgo', 'cfo', 'cdo'].includes(department)) {
       return res.status(400).json({
         success: false,

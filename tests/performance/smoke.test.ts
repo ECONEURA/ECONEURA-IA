@@ -56,11 +56,11 @@ const PERFORMANCE_THRESHOLDS = {
   GOOD: 500,      // < 500ms - Good
   ACCEPTABLE: 1000, // < 1000ms - Acceptable
   SLOW: 2000,     // < 2000ms - Slow but tolerable
-  
+
   // Throughput thresholds (requests per second)
   MIN_THROUGHPUT: 10,  // Minimum 10 RPS
   TARGET_THROUGHPUT: 50, // Target 50 RPS
-  
+
   // Error rate thresholds
   MAX_ERROR_RATE: 0.01, // Maximum 1% error rate
   TARGET_ERROR_RATE: 0.001, // Target 0.1% error rate
@@ -100,10 +100,10 @@ async function makeConcurrentRequests(
 
   // Create batches of concurrent requests
   const batches = Math.ceil(totalRequests / concurrency);
-  
+
   for (let batch = 0; batch < batches; batch++) {
     const batchSize = Math.min(concurrency, totalRequests - batch * concurrency);
-    const batchPromises = Array.from({ length: batchSize }, () => 
+    const batchPromises = Array.from({ length: batchSize }, () =>
       requestFn().catch(error => {
         errorCount++;
         return { error: error.message };
@@ -116,7 +116,7 @@ async function makeConcurrentRequests(
 
   const totalTime = Date.now() - startTime;
   const successfulResponses = responses.filter(r => !r.error);
-  const averageResponseTime = successfulResponses.reduce((sum, r) => 
+  const averageResponseTime = successfulResponses.reduce((sum, r) =>
     sum + (r.responseTime || 0), 0) / successfulResponses.length;
   const throughput = calculateThroughput(totalRequests, totalTime);
   const errorRate = calculateErrorRate(errorCount, totalRequests);
@@ -138,7 +138,7 @@ async function makeConcurrentRequests(
 describe('Health Check Performance', () => {
   it('should respond to health check quickly', async () => {
     const startTime = Date.now();
-    
+
     const response = await request(app)
       .get('/health');
 
@@ -150,7 +150,7 @@ describe('Health Check Performance', () => {
 
   it('should handle concurrent health checks', async () => {
     const requestFn = () => request(app).get('/health');
-    
+
     const result = await makeConcurrentRequests(requestFn, 10, 50);
 
     expect(result.errorRate).toBeLessThan(PERFORMANCE_THRESHOLDS.MAX_ERROR_RATE);
@@ -166,7 +166,7 @@ describe('Health Check Performance', () => {
 describe('Authentication Performance', () => {
   it('should login quickly', async () => {
     const startTime = Date.now();
-    
+
     const response = await request(app)
       .post('/auth/login')
       .send({
@@ -189,7 +189,7 @@ describe('Authentication Performance', () => {
         password: 'password123',
         organizationId: testOrganization.id
       });
-    
+
     const result = await makeConcurrentRequests(requestFn, 5, 20);
 
     expect(result.errorRate).toBeLessThan(PERFORMANCE_THRESHOLDS.MAX_ERROR_RATE);
@@ -198,7 +198,7 @@ describe('Authentication Performance', () => {
 
   it('should validate tokens quickly', async () => {
     const startTime = Date.now();
-    
+
     const response = await request(app)
       .get('/auth/me')
       .set('Authorization', `Bearer ${authToken}`);
@@ -217,7 +217,7 @@ describe('Authentication Performance', () => {
 describe('API Endpoint Performance', () => {
   it('should list users quickly', async () => {
     const startTime = Date.now();
-    
+
     const response = await request(app)
       .get('/users')
       .set('Authorization', `Bearer ${authToken}`)
@@ -234,7 +234,7 @@ describe('API Endpoint Performance', () => {
       .get('/users')
       .set('Authorization', `Bearer ${authToken}`)
       .query({ page: 1, limit: 10 });
-    
+
     const result = await makeConcurrentRequests(requestFn, 10, 30);
 
     expect(result.errorRate).toBeLessThan(PERFORMANCE_THRESHOLDS.MAX_ERROR_RATE);
@@ -243,7 +243,7 @@ describe('API Endpoint Performance', () => {
 
   it('should create users efficiently', async () => {
     const startTime = Date.now();
-    
+
     const response = await request(app)
       .post('/users')
       .set('Authorization', `Bearer ${authToken}`)
@@ -268,7 +268,7 @@ describe('API Endpoint Performance', () => {
 describe('CRM Performance', () => {
   it('should create contacts efficiently', async () => {
     const startTime = Date.now();
-    
+
     const response = await request(app)
       .post('/contacts')
       .set('Authorization', `Bearer ${authToken}`)
@@ -289,7 +289,7 @@ describe('CRM Performance', () => {
 
   it('should list contacts quickly', async () => {
     const startTime = Date.now();
-    
+
     const response = await request(app)
       .get('/contacts')
       .set('Authorization', `Bearer ${authToken}`)
@@ -306,7 +306,7 @@ describe('CRM Performance', () => {
       .get('/contacts')
       .set('Authorization', `Bearer ${authToken}`)
       .query({ page: 1, limit: 10 });
-    
+
     const result = await makeConcurrentRequests(requestFn, 8, 24);
 
     expect(result.errorRate).toBeLessThan(PERFORMANCE_THRESHOLDS.MAX_ERROR_RATE);
@@ -321,7 +321,7 @@ describe('CRM Performance', () => {
 describe('ERP Performance', () => {
   it('should create products efficiently', async () => {
     const startTime = Date.now();
-    
+
     const response = await request(app)
       .post('/products')
       .set('Authorization', `Bearer ${authToken}`)
@@ -341,7 +341,7 @@ describe('ERP Performance', () => {
 
   it('should list products quickly', async () => {
     const startTime = Date.now();
-    
+
     const response = await request(app)
       .get('/products')
       .set('Authorization', `Bearer ${authToken}`)
@@ -361,7 +361,7 @@ describe('ERP Performance', () => {
 describe('AI Performance', () => {
   it('should process AI requests within acceptable time', async () => {
     const startTime = Date.now();
-    
+
     const response = await request(app)
       .post('/ai/chat')
       .set('Authorization', `Bearer ${authToken}`)
@@ -390,11 +390,11 @@ describe('Rate Limiting Performance', () => {
     const requestFn = () => request(app)
       .get('/users')
       .set('Authorization', `Bearer ${authToken}`);
-    
+
     const result = await makeConcurrentRequests(requestFn, 20, 100);
 
     // Some requests should be rate limited (429 status)
-    const rateLimitedResponses = result.responses.filter(r => 
+    const rateLimitedResponses = result.responses.filter(r =>
       r.status === 429 || (r.error && r.error.includes('429'))
     );
 
@@ -410,17 +410,17 @@ describe('Rate Limiting Performance', () => {
 describe('Memory and Resource Usage', () => {
   it('should not leak memory during concurrent requests', async () => {
     const initialMemory = process.memoryUsage();
-    
+
     const requestFn = () => request(app)
       .get('/users')
       .set('Authorization', `Bearer ${authToken}`);
-    
+
     // Make many requests to test for memory leaks
     const result = await makeConcurrentRequests(requestFn, 10, 100);
-    
+
     const finalMemory = process.memoryUsage();
     const memoryIncrease = finalMemory.heapUsed - initialMemory.heapUsed;
-    
+
     // Memory increase should be reasonable (less than 50MB)
     expect(memoryIncrease).toBeLessThan(50 * 1024 * 1024);
     expect(result.errorRate).toBeLessThan(PERFORMANCE_THRESHOLDS.MAX_ERROR_RATE);
@@ -443,7 +443,7 @@ describe('Memory and Resource Usage', () => {
     };
 
     const startTime = Date.now();
-    
+
     const response = await request(app)
       .post('/contacts')
       .set('Authorization', `Bearer ${authToken}`)
@@ -464,7 +464,7 @@ describe('Stress Tests', () => {
   it('should handle high concurrency', async () => {
     const requestFn = () => request(app)
       .get('/health');
-    
+
     const result = await makeConcurrentRequests(requestFn, 50, 200);
 
     expect(result.errorRate).toBeLessThan(PERFORMANCE_THRESHOLDS.MAX_ERROR_RATE);
@@ -476,7 +476,7 @@ describe('Stress Tests', () => {
       .get('/users')
       .set('Authorization', `Bearer ${authToken}`)
       .query({ page: 1, limit: 10 });
-    
+
     const result = await makeConcurrentRequests(requestFn, 20, 100);
 
     expect(result.errorRate).toBeLessThan(PERFORMANCE_THRESHOLDS.MAX_ERROR_RATE);
@@ -503,7 +503,7 @@ describe('Performance Summary', () => {
       const startTime = Date.now();
       const response = await test.fn();
       const responseTime = measureResponseTime(startTime);
-      
+
       results.push({
         name: test.name,
         status: response.status,

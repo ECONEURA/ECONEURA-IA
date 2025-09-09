@@ -1,8 +1,8 @@
 /**
  * SOCIAL MEDIA MANAGEMENT DASHBOARD
- * 
+ *
  * PR-57: Dashboard completo para gestión de redes sociales
- * 
+ *
  * Funcionalidades:
  * - Gestión de cuentas sociales
  * - Creación y programación de posts
@@ -147,7 +147,7 @@ const POST_STATUSES = [
   { value: 'deleted', label: 'Deleted', color: 'bg-gray-700' }
 ];
 
-export default function SocialMediaManagementDashboard() {
+export default function SocialMediaManagementDashboard(): void {
   const [accounts, setAccounts] = useState<SocialAccount[]>([]);
   const [posts, setPosts] = useState<SocialPost[]>([]);
   const [mentions, setMentions] = useState<SocialMention[]>([]);
@@ -185,7 +185,7 @@ export default function SocialMediaManagementDashboard() {
   const loadData = async () => {
     try {
       setLoading(true);
-      
+
       // Load accounts
       const accountsResponse = await fetch('/api/social-media/accounts');
       const accountsData = await accountsResponse.json();
@@ -322,14 +322,14 @@ export default function SocialMediaManagementDashboard() {
   };
 
   if (loading) {
-    return (
+    return (;
       <div className="flex items-center justify-center h-64">
         <div className="text-lg">Loading social media data...</div>
       </div>
     );
   }
 
-  return (
+  return (;
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -576,7 +576,7 @@ export default function SocialMediaManagementDashboard() {
                 </CardHeader>
                 <CardContent>
                   <p className="mb-4">{post.content}</p>
-                  
+
                   {post.mediaUrls.length > 0 && (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
                       {post.mediaUrls.map((url, index) => (

@@ -1,6 +1,6 @@
 /**
  * PR-54: Dunning 3-toques Service
- * 
+ *
  * Sistema de gestión de cobranza con 3 toques automáticos
  */
 
@@ -171,13 +171,13 @@ export class Dunning3ToquesService {
 
       // 1. Identificar facturas vencidas
       const overdueInvoices = this.getOverdueInvoices();
-      
+
       // 2. Crear campañas para facturas sin campaña activa
       const newCampaigns = await this.createNewCampaigns(overdueInvoices);
-      
+
       // 3. Procesar campañas activas
       const processedCampaigns = await this.processActiveCampaigns();
-      
+
       // 4. Actualizar estadísticas
       this.stats = this.calculateStats(startTime);
 
@@ -205,7 +205,7 @@ export class Dunning3ToquesService {
   private getOverdueInvoices(): Invoice[] {
     const now = new Date();
     const gracePeriodMs = this.config.gracePeriod * 24 * 60 * 60 * 1000;
-    
+
     return Array.from(this.invoices.values()).filter(invoice => {
       if (invoice.status === 'paid' || invoice.status === 'cancelled') {
         return false;
@@ -213,7 +213,7 @@ export class Dunning3ToquesService {
 
       const dueDate = new Date(invoice.dueDate);
       const overdueDate = new Date(dueDate.getTime() + gracePeriodMs);
-      
+
       return now > overdueDate;
     });
   }
@@ -255,7 +255,7 @@ export class Dunning3ToquesService {
     for (let i = 0; i < this.config.maxSteps; i++) {
       const stepType = this.getStepType(i);
       const scheduledDate = this.getScheduledDate(i);
-      
+
       const step: DunningStep = {
         id: `${campaignId}_step_${i + 1}`,
         invoiceId: invoice.id,
@@ -309,11 +309,11 @@ export class Dunning3ToquesService {
   private generateStepContent(stepType: string, invoice: Invoice, stepNumber: number): string {
     const templates = {
       email: `Estimado/a ${invoice.customerName},\n\nLe recordamos que tiene una factura pendiente de pago:\n\nFactura: ${invoice.invoiceNumber}\nMonto: ${invoice.amount} ${invoice.currency}\nVencimiento: ${invoice.dueDate}\n\nPor favor, proceda con el pago lo antes posible para evitar cargos adicionales.\n\nSaludos cordiales,\nEquipo de Cobranza`,
-      
+
       call: `Llamada de seguimiento para factura ${invoice.invoiceNumber} por ${invoice.amount} ${invoice.currency}. Verificar estado de pago y ofrecer opciones de pago.`,
-      
+
       letter: `Carta formal de cobranza para factura ${invoice.invoiceNumber} por ${invoice.amount} ${invoice.currency}. Incluir advertencia de acciones legales.`,
-      
+
       legal: `Notificación legal para factura ${invoice.invoiceNumber} por ${invoice.amount} ${invoice.currency}. Iniciar proceso de cobranza legal.`
     };
 
@@ -367,7 +367,7 @@ export class Dunning3ToquesService {
     // Verificar si es hora de ejecutar el paso
     if (now >= scheduledDate && currentStep.status === 'pending') {
       await this.executeStep(currentStep);
-      
+
       // Actualizar campaña
       campaign.currentStep++;
       campaign.updatedAt = new Date().toISOString();
@@ -422,7 +422,7 @@ export class Dunning3ToquesService {
   private async sendStep(step: DunningStep): Promise<void> {
     // En un sistema real, esto enviaría el paso a través del canal correspondiente
     // Por ahora, solo simulamos el envío
-    
+
     switch (step.stepType) {
       case 'email':
         // Enviar email
@@ -484,7 +484,7 @@ export class Dunning3ToquesService {
    * Obtiene campañas activas
    */
   getActiveCampaigns(): DunningCampaign[] {
-    return Array.from(this.campaigns.values()).filter(
+    return Array.from(this.campaigns.values()).filter(;
       campaign => campaign.status === 'active'
     );
   }

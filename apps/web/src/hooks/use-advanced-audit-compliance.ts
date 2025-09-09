@@ -122,7 +122,7 @@ export function useAuditEvents(filters?: {
           if (value !== undefined) params.set(key, value.toString());
         });
       }
-      
+
       const response = await fetch(`/api/advanced-audit-compliance/events?${params}`);
       const data = await response.json();
       if (!data.success) throw new Error(data.error);
@@ -131,7 +131,7 @@ export function useAuditEvents(filters?: {
   });
 }
 
-export function useLogAuditEvent() {
+export function useLogAuditEvent(): void {
   return useMutation({
     mutationFn: async (eventData: Omit<AuditEvent, 'id' | 'timestamp'>) => {
       const response = await fetch('/api/advanced-audit-compliance/events', {
@@ -152,7 +152,7 @@ export function useLogAuditEvent() {
   });
 }
 
-export function useComplianceRules() {
+export function useComplianceRules(): void {
   return useQuery({
     queryKey: ['compliance-rules'],
     queryFn: async () => {
@@ -164,9 +164,9 @@ export function useComplianceRules() {
   });
 }
 
-export function useCreateComplianceRule() {
+export function useCreateComplianceRule(): void {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (ruleData: Omit<ComplianceRule, 'id' | 'createdAt' | 'updatedAt'>) => {
       const response = await fetch('/api/advanced-audit-compliance/rules', {
@@ -205,7 +205,7 @@ export function useComplianceViolations(filters?: {
           if (value !== undefined) params.set(key, value.toString());
         });
       }
-      
+
       const response = await fetch(`/api/advanced-audit-compliance/violations?${params}`);
       const data = await response.json();
       if (!data.success) throw new Error(data.error);
@@ -214,20 +214,20 @@ export function useComplianceViolations(filters?: {
   });
 }
 
-export function useUpdateViolationStatus() {
+export function useUpdateViolationStatus(): void {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async ({ 
-      violationId, 
-      status, 
-      resolution, 
-      assignedTo 
-    }: { 
-      violationId: string; 
-      status: string; 
-      resolution?: string; 
-      assignedTo?: string; 
+    mutationFn: async ({
+      violationId,
+      status,
+      resolution,
+      assignedTo
+    }: {
+      violationId: string;
+      status: string;
+      resolution?: string;
+      assignedTo?: string;
     }) => {
       const response = await fetch(`/api/advanced-audit-compliance/violations/${violationId}`, {
         method: 'PUT',
@@ -248,9 +248,9 @@ export function useUpdateViolationStatus() {
   });
 }
 
-export function useGenerateAuditReport() {
+export function useGenerateAuditReport(): void {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (reportData: {
       name: string;
@@ -284,7 +284,7 @@ export function useGenerateAuditReport() {
   });
 }
 
-export function useAuditReports(organizationId: string) {
+export function useAuditReports(organizationId: string): void {
   return useQuery({
     queryKey: ['audit-reports', organizationId],
     queryFn: async () => {
@@ -297,7 +297,7 @@ export function useAuditReports(organizationId: string) {
   });
 }
 
-export function useComplianceMetrics(organizationId: string) {
+export function useComplianceMetrics(organizationId: string): void {
   return useQuery({
     queryKey: ['compliance-metrics', organizationId],
     queryFn: async () => {
@@ -311,7 +311,7 @@ export function useComplianceMetrics(organizationId: string) {
   });
 }
 
-export function useAuditComplianceHealth() {
+export function useAuditComplianceHealth(): void {
   return useQuery({
     queryKey: ['audit-compliance-health'],
     queryFn: async () => {

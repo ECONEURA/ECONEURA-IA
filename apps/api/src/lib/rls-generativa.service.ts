@@ -20,7 +20,7 @@ interface RLSPolicy {
   tableName: string;
   policyName: string;
   description?: string;
-  
+
   // Configuración de la política
   configuration: {
     operation: 'SELECT' | 'INSERT' | 'UPDATE' | 'DELETE' | 'ALL';
@@ -28,7 +28,7 @@ interface RLSPolicy {
     priority: number; // 1-10, mayor = más prioridad
     bypassRLS: boolean; // Para superusuarios
   };
-  
+
   // Condiciones de la política
   conditions: {
     type: 'simple' | 'complex' | 'function' | 'template';
@@ -36,7 +36,7 @@ interface RLSPolicy {
     parameters?: Record<string, any>;
     dependencies?: string[]; // IDs de otras políticas
   };
-  
+
   // Reglas de acceso
   accessRules: {
     roles: string[]; // Roles que pueden usar esta política
@@ -54,7 +54,7 @@ interface RLSPolicy {
       allowedRanges?: string[]; // CIDR notation
     };
   };
-  
+
   // Metadatos
   metadata: {
     createdBy: string;
@@ -63,7 +63,7 @@ interface RLSPolicy {
     tags?: string[];
     documentation?: string;
   };
-  
+
   createdAt: string;
   updatedAt: string;
 }
@@ -73,7 +73,7 @@ interface RLSRule {
   organizationId: string;
   ruleName: string;
   description?: string;
-  
+
   // Configuración de la regla
   configuration: {
     isActive: boolean;
@@ -81,7 +81,7 @@ interface RLSRule {
     evaluationOrder: number;
     stopOnMatch: boolean; // Si debe parar al encontrar coincidencia
   };
-  
+
   // Condiciones de activación
   conditions: {
     context: {
@@ -106,14 +106,14 @@ interface RLSRule {
       };
     };
   };
-  
+
   // Acciones de la regla
   actions: {
     type: 'allow' | 'deny' | 'modify' | 'log' | 'redirect';
     parameters: Record<string, any>;
     message?: string;
   };
-  
+
   // Metadatos
   metadata: {
     createdBy: string;
@@ -121,7 +121,7 @@ interface RLSRule {
     version: number;
     tags?: string[];
   };
-  
+
   createdAt: string;
   updatedAt: string;
 }
@@ -131,7 +131,7 @@ interface RLSValidation {
   organizationId: string;
   validationName: string;
   description?: string;
-  
+
   // Configuración de validación
   configuration: {
     isActive: boolean;
@@ -139,7 +139,7 @@ interface RLSValidation {
     autoFix: boolean;
     notificationEnabled: boolean;
   };
-  
+
   // Reglas de validación
   validationRules: {
     type: 'data_integrity' | 'access_control' | 'performance' | 'compliance';
@@ -147,14 +147,14 @@ interface RLSValidation {
     expectedResult: any;
     errorMessage: string;
   }[];
-  
+
   // Metadatos
   metadata: {
     createdBy: string;
     lastModifiedBy: string;
     version: number;
   };
-  
+
   createdAt: string;
   updatedAt: string;
 }
@@ -164,7 +164,7 @@ interface RLSAuditLog {
   organizationId: string;
   userId: string;
   sessionId: string;
-  
+
   // Información de la operación
   operation: {
     type: 'SELECT' | 'INSERT' | 'UPDATE' | 'DELETE';
@@ -172,7 +172,7 @@ interface RLSAuditLog {
     recordId?: string;
     columns?: string[];
   };
-  
+
   // Contexto de seguridad
   securityContext: {
     ipAddress: string;
@@ -182,7 +182,7 @@ interface RLSAuditLog {
     policiesApplied: string[];
     rulesEvaluated: string[];
   };
-  
+
   // Resultado
   result: {
     allowed: boolean;
@@ -192,7 +192,7 @@ interface RLSAuditLog {
     policiesMatched: number;
     rulesMatched: number;
   };
-  
+
   // Metadatos
   timestamp: string;
   requestId?: string;
@@ -206,7 +206,7 @@ interface RLSReport {
     startDate: string;
     endDate: string;
   };
-  
+
   // Datos del reporte
   data: {
     summary: Record<string, any>;
@@ -214,7 +214,7 @@ interface RLSReport {
     charts?: Record<string, any>;
     recommendations?: string[];
   };
-  
+
   // Metadatos
   generatedAt: string;
   generatedBy: string;
@@ -324,7 +324,7 @@ class RLSGenerativaService {
       conditions: {
         type: 'complex',
         expression: 'organization_id = $1 AND (created_by = $2 OR role = $3)',
-        parameters: { 
+        parameters: {
           organizationId: 'demo-org-1',
           createdBy: 'user_1',
           role: 'admin'
@@ -533,9 +533,9 @@ class RLSGenerativaService {
     };
 
     this.rlsContexts.set(context.sessionId, context);
-    
-    structuredLogger.info('RLS context created', { 
-      sessionId: context.sessionId, 
+
+    structuredLogger.info('RLS context created', {
+      sessionId: context.sessionId,
       userId: context.userId,
       organizationId: context.organizationId,
       role: context.role
@@ -587,9 +587,9 @@ class RLSGenerativaService {
     };
 
     this.rlsPolicies.set(policy.id, policy);
-    
-    structuredLogger.info('RLS policy created', { 
-      policyId: policy.id, 
+
+    structuredLogger.info('RLS policy created', {
+      policyId: policy.id,
       organizationId: policy.organizationId,
       tableName: policy.tableName,
       policyName: policy.policyName
@@ -612,7 +612,7 @@ class RLSGenerativaService {
     }
 
     if (filters.role) {
-      rules = rules.filter(r => 
+      rules = rules.filter(r =>
         r.conditions.context.role === filters.role ||
         r.conditions.context.role === undefined
       );
@@ -635,9 +635,9 @@ class RLSGenerativaService {
     };
 
     this.rlsRules.set(rule.id, rule);
-    
-    structuredLogger.info('RLS rule created', { 
-      ruleId: rule.id, 
+
+    structuredLogger.info('RLS rule created', {
+      ruleId: rule.id,
       organizationId: rule.organizationId,
       ruleName: rule.ruleName
     });
@@ -678,7 +678,7 @@ class RLSGenerativaService {
     // Evaluar reglas primero
     for (const rule of applicableRules) {
       rulesEvaluated.push(rule.id);
-      
+
       if (this.evaluateRule(rule, context, operation)) {
         if (rule.actions.type === 'allow') {
           const executionTime = Date.now() - startTime;
@@ -709,7 +709,7 @@ class RLSGenerativaService {
     // Evaluar políticas
     for (const policy of applicablePolicies) {
       policiesApplied.push(policy.id);
-      
+
       if (this.evaluatePolicy(policy, context, operation)) {
         const executionTime = Date.now() - startTime;
         return {
@@ -786,7 +786,7 @@ class RLSGenerativaService {
         }
       }
 
-      if (policy.accessRules.timeRestrictions.daysOfWeek && 
+      if (policy.accessRules.timeRestrictions.daysOfWeek &&
           !policy.accessRules.timeRestrictions.daysOfWeek.includes(currentDay)) {
         return false;
       }
@@ -795,13 +795,13 @@ class RLSGenerativaService {
     // Verificar restricciones de IP
     if (policy.accessRules.ipRestrictions) {
       const userIP = context.ipAddress;
-      
-      if (policy.accessRules.ipRestrictions.blockedIPs && 
+
+      if (policy.accessRules.ipRestrictions.blockedIPs &&
           policy.accessRules.ipRestrictions.blockedIPs.includes(userIP)) {
         return false;
       }
 
-      if (policy.accessRules.ipRestrictions.allowedIPs && 
+      if (policy.accessRules.ipRestrictions.allowedIPs &&
           !policy.accessRules.ipRestrictions.allowedIPs.includes(userIP)) {
         return false;
       }
@@ -820,9 +820,9 @@ class RLSGenerativaService {
     };
 
     this.rlsAuditLogs.set(auditLog.id, auditLog);
-    
-    structuredLogger.info('RLS access logged', { 
-      auditId: auditLog.id, 
+
+    structuredLogger.info('RLS access logged', {
+      auditId: auditLog.id,
       userId: auditLog.userId,
       operation: auditLog.operation.type,
       tableName: auditLog.operation.tableName,
@@ -850,29 +850,29 @@ class RLSGenerativaService {
       activeRules: rules.filter(r => r.configuration.isActive).length,
       totalValidations: validations.length,
       activeValidations: validations.filter(v => v.configuration.isActive).length,
-      
+
       // Estadísticas de acceso
       accessStats: {
         totalAccessAttempts: auditLogs.length,
         allowedAccess: auditLogs.filter(a => a.result.allowed).length,
         deniedAccess: auditLogs.filter(a => !a.result.allowed).length,
-        averageExecutionTime: auditLogs.length > 0 ? 
+        averageExecutionTime: auditLogs.length > 0 ?
           auditLogs.reduce((sum, a) => sum + a.result.executionTime, 0) / auditLogs.length : 0
       },
-      
+
       // Estadísticas por período
       last24Hours: {
         accessAttempts: auditLogs.filter(a => new Date(a.timestamp) >= last24Hours).length,
         allowedAccess: auditLogs.filter(a => a.result.allowed && new Date(a.timestamp) >= last24Hours).length,
         deniedAccess: auditLogs.filter(a => !a.result.allowed && new Date(a.timestamp) >= last24Hours).length
       },
-      
+
       last7Days: {
         accessAttempts: auditLogs.filter(a => new Date(a.timestamp) >= last7Days).length,
         allowedAccess: auditLogs.filter(a => a.result.allowed && new Date(a.timestamp) >= last7Days).length,
         deniedAccess: auditLogs.filter(a => !a.result.allowed && new Date(a.timestamp) >= last7Days).length
       },
-      
+
       // Estadísticas por operación
       byOperation: {
         SELECT: auditLogs.filter(a => a.operation.type === 'SELECT').length,
@@ -880,16 +880,16 @@ class RLSGenerativaService {
         UPDATE: auditLogs.filter(a => a.operation.type === 'UPDATE').length,
         DELETE: auditLogs.filter(a => a.operation.type === 'DELETE').length
       },
-      
+
       // Estadísticas por tabla
       byTable: this.getTableStats(auditLogs),
-      
+
       // Estadísticas por usuario
       byUser: this.getUserStats(auditLogs),
-      
+
       // Políticas más utilizadas
       topPolicies: this.getTopPolicies(auditLogs),
-      
+
       // Reglas más utilizadas
       topRules: this.getTopRules(auditLogs)
     };
@@ -918,8 +918,8 @@ class RLSGenerativaService {
         policyCounts[policyId] = (policyCounts[policyId] || 0) + 1;
       });
     });
-    
-    return Object.entries(policyCounts)
+
+    return Object.entries(policyCounts);
       .map(([policyId, count]) => ({ policyId, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
@@ -932,8 +932,8 @@ class RLSGenerativaService {
         ruleCounts[ruleId] = (ruleCounts[ruleId] || 0) + 1;
       });
     });
-    
-    return Object.entries(ruleCounts)
+
+    return Object.entries(ruleCounts);
       .map(([ruleId, count]) => ({ ruleId, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
@@ -948,7 +948,7 @@ class RLSGenerativaService {
   }): Promise<RLSPolicy> {
     const policyName = `${tableName}_${requirements.accessLevel}_access`;
     const description = `Política generada automáticamente para ${tableName} con nivel de acceso ${requirements.accessLevel}`;
-    
+
     let expression = '';
     let parameters: Record<string, any> = {};
 

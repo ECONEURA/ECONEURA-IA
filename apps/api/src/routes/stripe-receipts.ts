@@ -86,7 +86,7 @@ stripeReceiptsRouter.get('/receipts', async (req, res) => {
   try {
     const filters = GetReceiptsSchema.parse(req.query);
     const receipts = await stripeReceiptsService.getReceipts(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -111,14 +111,14 @@ stripeReceiptsRouter.get('/receipts/:id', async (req, res) => {
   try {
     const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
     const receipt = await stripeReceiptsService.getReceipt(id);
-    
+
     if (!receipt) {
       return res.status(404).json({
         success: false,
         error: 'Receipt not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: receipt,
@@ -139,7 +139,7 @@ stripeReceiptsRouter.post('/receipts', async (req, res) => {
   try {
     const receiptData = CreateReceiptSchema.parse(req.body);
     const receipt = await stripeReceiptsService.createReceipt(receiptData);
-    
+
     res.status(201).json({
       success: true,
       data: receipt,
@@ -160,7 +160,7 @@ stripeReceiptsRouter.post('/webhooks', async (req, res) => {
   try {
     const event = ProcessWebhookSchema.parse(req.body);
     const result = await stripeReceiptsService.processWebhookEvent(event);
-    
+
     res.json({
       success: true,
       data: result,
@@ -181,21 +181,21 @@ stripeReceiptsRouter.post('/receipts/:id/reconcile', async (req, res) => {
   try {
     const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
     const reconcileData = ManualReconcileSchema.parse(req.body);
-    
+
     const receipt = await stripeReceiptsService.manualReconcileReceipt(
       id,
       reconcileData.bankTransactionId,
       reconcileData.bankReference,
       reconcileData.notes
     );
-    
+
     if (!receipt) {
       return res.status(404).json({
         success: false,
         error: 'Receipt not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: receipt,
@@ -216,7 +216,7 @@ stripeReceiptsRouter.post('/receipts/:id/auto-reconcile', async (req, res) => {
   try {
     const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
     const reconciled = await stripeReceiptsService.autoReconcileReceipt(id);
-    
+
     res.json({
       success: true,
       data: { reconciled },
@@ -237,7 +237,7 @@ stripeReceiptsRouter.get('/reconciliation-rules', async (req, res) => {
   try {
     const { organizationId } = z.object({ organizationId: z.string().min(1) }).parse(req.query);
     const rules = await stripeReceiptsService.getReconciliationRules(organizationId);
-    
+
     res.json({
       success: true,
       data: {
@@ -261,7 +261,7 @@ stripeReceiptsRouter.post('/reconciliation-rules', async (req, res) => {
   try {
     const ruleData = CreateReconciliationRuleSchema.parse(req.body);
     const rule = await stripeReceiptsService.createReconciliationRule(ruleData);
-    
+
     res.status(201).json({
       success: true,
       data: rule,
@@ -287,7 +287,7 @@ stripeReceiptsRouter.post('/reports/reconciliation', async (req, res) => {
       reportData.endDate,
       reportData.generatedBy
     );
-    
+
     res.status(201).json({
       success: true,
       data: report,
@@ -308,7 +308,7 @@ stripeReceiptsRouter.get('/stats', async (req, res) => {
   try {
     const { organizationId } = GetStatsSchema.parse(req.query);
     const stats = await stripeReceiptsService.getReconciliationStats(organizationId);
-    
+
     res.json({
       success: true,
       data: stats,
@@ -328,7 +328,7 @@ stripeReceiptsRouter.get('/stats', async (req, res) => {
 stripeReceiptsRouter.get('/health', async (req, res) => {
   try {
     const stats = await stripeReceiptsService.getReconciliationStats('demo-org-1');
-    
+
     res.json({
       success: true,
       data: {

@@ -1,13 +1,13 @@
 /**
  * PR-47: Smart Cache Service
- * 
+ *
  * Service for intelligent caching with advanced strategies and optimization
  */
 
-import { 
-  CacheConfig, 
-  CacheEntry, 
-  CacheMetrics, 
+import {
+  CacheConfig,
+  CacheEntry,
+  CacheMetrics,
   CacheWarmingRequest,
   CacheWarmingStatus,
   CacheInvalidationRequest,
@@ -31,7 +31,7 @@ export class SmartCacheService {
   async getCacheConfigs(organizationId: string): Promise<CacheConfig[]> {
     const configs = Array.from(this.caches.values())
       .filter(config => config.organizationId === organizationId);
-    
+
     return configs;
   }
 
@@ -292,7 +292,7 @@ export class SmartCacheService {
    */
   async getCacheStats(organizationId: string): Promise<CacheStats> {
     const configs = await this.getCacheConfigs(organizationId);
-    
+
     let totalSize = 0;
     let totalHitRate = 0;
     let totalCompressionRatio = 0;
@@ -406,21 +406,21 @@ export class SmartCacheService {
   }
 
   private getLRUEntries(entries: Map<string, CacheEntry>, count: number): string[] {
-    return Array.from(entries.entries())
+    return Array.from(entries.entries());
       .sort((a, b) => a[1].lastAccessed.getTime() - b[1].lastAccessed.getTime())
       .slice(0, count)
       .map(([key]) => key);
   }
 
   private getLFUEntries(entries: Map<string, CacheEntry>, count: number): string[] {
-    return Array.from(entries.entries())
+    return Array.from(entries.entries());
       .sort((a, b) => a[1].accessCount - b[1].accessCount)
       .slice(0, count)
       .map(([key]) => key);
   }
 
   private getTTLEntries(entries: Map<string, CacheEntry>, count: number): string[] {
-    return Array.from(entries.entries())
+    return Array.from(entries.entries());
       .filter(([_, entry]) => this.isEntryExpired(entry))
       .slice(0, count)
       .map(([key]) => key);

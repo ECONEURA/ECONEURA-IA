@@ -7,16 +7,16 @@ export class MigrationManager {
   async runMigrations(): Promise<void> {
     try {
       structuredLogger.info('Starting database migrations');
-      
+
       // Apply Prisma migrations
       await this.applyPrismaMigrations();
-      
+
       // Apply RLS policies
       await this.applyRLSPolicies();
-      
+
       // Seed initial data
       await this.seedInitialData();
-      
+
       structuredLogger.info('Database migrations completed successfully');
     } catch (error) {
       structuredLogger.error('Migration failed', error as Error);
@@ -33,34 +33,34 @@ export class MigrationManager {
     const policies = [
       // Organizations RLS
       `CREATE POLICY organizations_rls ON organizations FOR ALL USING (id = current_setting('app.org_id')::uuid)`,
-      
+
       // Users RLS
       `CREATE POLICY users_rls ON users FOR ALL USING (
         EXISTS (
-          SELECT 1 FROM user_organizations uo 
-          WHERE uo.user_id = users.id 
+          SELECT 1 FROM user_organizations uo
+          WHERE uo.user_id = users.id
           AND uo.organization_id = current_setting('app.org_id')::uuid
         )
       )`,
-      
+
       // Companies RLS
       `CREATE POLICY companies_rls ON companies FOR ALL USING (org_id = current_setting('app.org_id')::uuid)`,
-      
+
       // Contacts RLS
       `CREATE POLICY contacts_rls ON contacts FOR ALL USING (org_id = current_setting('app.org_id')::uuid)`,
-      
+
       // Deals RLS
       `CREATE POLICY deals_rls ON deals FOR ALL USING (org_id = current_setting('app.org_id')::uuid)`,
-      
+
       // Products RLS
       `CREATE POLICY products_rls ON products FOR ALL USING (org_id = current_setting('app.org_id')::uuid)`,
-      
+
       // Invoices RLS
       `CREATE POLICY invoices_rls ON invoices FOR ALL USING (org_id = current_setting('app.org_id')::uuid)`,
-      
+
       // Payments RLS
       `CREATE POLICY payments_rls ON payments FOR ALL USING (org_id = current_setting('app.org_id')::uuid)`,
-      
+
       // Audit logs RLS
       `CREATE POLICY audit_logs_rls ON audit_logs FOR ALL USING (org_id = current_setting('app.org_id')::uuid)`
     ];
@@ -77,8 +77,8 @@ export class MigrationManager {
 
     // Enable RLS on all tables
     const tables = [
-      'organizations', 'users', 'user_organizations', 'companies', 'contacts', 
-      'deals', 'products', 'suppliers', 'warehouses', 'inventories', 
+      'organizations', 'users', 'user_organizations', 'companies', 'contacts',
+      'deals', 'products', 'suppliers', 'warehouses', 'inventories',
       'invoices', 'payments', 'expenses', 'activities', 'audit_logs'
     ];
 
@@ -120,11 +120,11 @@ export class MigrationManager {
 
       for (const role of roles) {
         await prisma.role.upsert({
-          where: { 
-            slug_organizationId: { 
-              slug: role.slug, 
-              organizationId: defaultOrg.id 
-            } 
+          where: {
+            slug_organizationId: {
+              slug: role.slug,
+              organizationId: defaultOrg.id
+            }
           },
           update: {},
           create: {
@@ -141,37 +141,37 @@ export class MigrationManager {
         { name: 'Create Companies', slug: 'crm:companies:create', resource: 'crm:companies', action: 'create' },
         { name: 'Edit Companies', slug: 'crm:companies:edit', resource: 'crm:companies', action: 'edit' },
         { name: 'Delete Companies', slug: 'crm:companies:delete', resource: 'crm:companies', action: 'delete' },
-        
+
         { name: 'View Contacts', slug: 'crm:contacts:view', resource: 'crm:contacts', action: 'view' },
         { name: 'Create Contacts', slug: 'crm:contacts:create', resource: 'crm:contacts', action: 'create' },
         { name: 'Edit Contacts', slug: 'crm:contacts:edit', resource: 'crm:contacts', action: 'edit' },
         { name: 'Delete Contacts', slug: 'crm:contacts:delete', resource: 'crm:contacts', action: 'delete' },
-        
+
         { name: 'View Deals', slug: 'crm:deals:view', resource: 'crm:deals', action: 'view' },
         { name: 'Create Deals', slug: 'crm:deals:create', resource: 'crm:deals', action: 'create' },
         { name: 'Edit Deals', slug: 'crm:deals:edit', resource: 'crm:deals', action: 'edit' },
         { name: 'Delete Deals', slug: 'crm:deals:delete', resource: 'crm:deals', action: 'delete' },
-        
+
         // ERP permissions
         { name: 'View Products', slug: 'erp:products:view', resource: 'erp:products', action: 'view' },
         { name: 'Create Products', slug: 'erp:products:create', resource: 'erp:products', action: 'create' },
         { name: 'Edit Products', slug: 'erp:products:edit', resource: 'erp:products', action: 'edit' },
-        
+
         { name: 'View Inventory', slug: 'erp:inventory:view', resource: 'erp:inventory', action: 'view' },
         { name: 'Manage Inventory', slug: 'erp:inventory:manage', resource: 'erp:inventory', action: 'manage' },
-        
+
         // Finance permissions
         { name: 'View Invoices', slug: 'finance:invoices:view', resource: 'finance:invoices', action: 'view' },
         { name: 'Create Invoices', slug: 'finance:invoices:create', resource: 'finance:invoices', action: 'create' },
         { name: 'Approve Invoices', slug: 'finance:invoices:approve', resource: 'finance:invoices', action: 'approve' },
-        
+
         { name: 'View Payments', slug: 'finance:payments:view', resource: 'finance:payments', action: 'view' },
         { name: 'Process Payments', slug: 'finance:payments:process', resource: 'finance:payments', action: 'process' },
-        
+
         // Analytics permissions
         { name: 'View Analytics', slug: 'analytics:view', resource: 'analytics', action: 'view' },
         { name: 'Export Data', slug: 'analytics:export', resource: 'analytics', action: 'export' },
-        
+
         // Admin permissions
         { name: 'All Permissions', slug: '*:*', resource: '*', action: '*' }
       ];
@@ -189,7 +189,7 @@ export class MigrationManager {
         rolesCreated: roles.length,
         permissionsCreated: permissions.length
       });
-      
+
     } catch (error) {
       structuredLogger.error('Seed data failed', error as Error);
       throw error;

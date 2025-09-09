@@ -11,7 +11,7 @@ interface Interaction {
   direction: 'inbound' | 'outbound';
   status: 'active' | 'completed' | 'cancelled' | 'escalated' | 'resolved';
   priority: 'low' | 'medium' | 'high' | 'urgent';
-  
+
   // Participants
   participants: {
     customerId?: string;
@@ -21,7 +21,7 @@ interface Interaction {
     agentName?: string;
     department?: string;
   };
-  
+
   // Content
   content: {
     subject?: string;
@@ -30,7 +30,7 @@ interface Interaction {
     attachments?: string[];
     tags?: string[];
   };
-  
+
   // Timing
   timing: {
     startTime: string;
@@ -39,7 +39,7 @@ interface Interaction {
     responseTime?: number; // in seconds
     waitTime?: number; // in seconds
   };
-  
+
   // Sentiment Analysis (SAS)
   sentimentAnalysis: {
     overallSentiment: 'positive' | 'neutral' | 'negative';
@@ -68,7 +68,7 @@ interface Interaction {
       confidence: number;
     }[];
   };
-  
+
   // Voice Analysis (AV)
   voiceAnalysis?: {
     audioQuality: {
@@ -103,7 +103,7 @@ interface Interaction {
       volume: number; // 0-1
     };
   };
-  
+
   // Outcomes
   outcomes: {
     resolution?: string;
@@ -113,7 +113,7 @@ interface Interaction {
     actionItems?: string[];
     nextSteps?: string[];
   };
-  
+
   // Metadata
   metadata: {
     source: string;
@@ -123,7 +123,7 @@ interface Interaction {
     ticketId?: string;
     customFields?: Record<string, any>;
   };
-  
+
   createdAt: string;
   updatedAt: string;
 }
@@ -546,12 +546,12 @@ class InteractionsSasAvService {
     };
 
     this.interactions.set(newInteraction.id, newInteraction);
-    
+
     // Generate insights
     await this.generateInsights(newInteraction);
 
-    structuredLogger.info('Interaction created', { 
-      interactionId: newInteraction.id, 
+    structuredLogger.info('Interaction created', {
+      interactionId: newInteraction.id,
       organizationId: newInteraction.organizationId,
       type: newInteraction.type,
       sentiment: newInteraction.sentimentAnalysis.overallSentiment
@@ -633,23 +633,23 @@ class InteractionsSasAvService {
     // Simulate sentiment analysis
     const positiveWords = ['excelente', 'perfecto', 'gracias', 'útil', 'genial', 'fantástico', 'maravilloso'];
     const negativeWords = ['error', 'problema', 'urgente', 'malo', 'terrible', 'horrible', 'frustrado'];
-    
+
     const words = text.toLowerCase().split(/\s+/);
     let positiveScore = 0;
     let negativeScore = 0;
-    
+
     words.forEach(word => {
       if (positiveWords.some(pw => word.includes(pw))) positiveScore++;
       if (negativeWords.some(nw => word.includes(nw))) negativeScore++;
     });
-    
+
     const totalWords = words.length;
     const positiveRatio = positiveScore / totalWords;
     const negativeRatio = negativeScore / totalWords;
-    
+
     let overallSentiment: 'positive' | 'neutral' | 'negative';
     let confidence: number;
-    
+
     if (positiveRatio > negativeRatio && positiveRatio > 0.1) {
       overallSentiment = 'positive';
       confidence = Math.min(0.9, positiveRatio * 2);
@@ -660,7 +660,7 @@ class InteractionsSasAvService {
       overallSentiment = 'neutral';
       confidence = 0.5;
     }
-    
+
     return {
       overallSentiment,
       confidence,
@@ -724,7 +724,7 @@ class InteractionsSasAvService {
   // Insights Management
   async generateInsights(interaction: Interaction): Promise<void> {
     // Generate sentiment insights
-    if (interaction.sentimentAnalysis.overallSentiment === 'negative' && 
+    if (interaction.sentimentAnalysis.overallSentiment === 'negative' &&
         interaction.sentimentAnalysis.confidence > 0.8) {
       await this.createSentimentInsight({
         organizationId: interaction.organizationId,
@@ -791,8 +791,8 @@ class InteractionsSasAvService {
     };
 
     this.sentimentInsights.set(newInsight.id, newInsight);
-    structuredLogger.warn('Sentiment insight created', { 
-      insightId: newInsight.id, 
+    structuredLogger.warn('Sentiment insight created', {
+      insightId: newInsight.id,
       type: newInsight.type,
       severity: newInsight.severity
     });
@@ -810,8 +810,8 @@ class InteractionsSasAvService {
     };
 
     this.voiceInsights.set(newInsight.id, newInsight);
-    structuredLogger.info('Voice insight created', { 
-      insightId: newInsight.id, 
+    structuredLogger.info('Voice insight created', {
+      insightId: newInsight.id,
       type: newInsight.type,
       severity: newInsight.severity
     });
@@ -877,9 +877,9 @@ class InteractionsSasAvService {
 
   // Reports
   async generateInteractionReport(organizationId: string, reportType: string, startDate: string, endDate: string, generatedBy: string): Promise<InteractionReport> {
-    const interactions = Array.from(this.interactions.values()).filter(i => 
-      i.organizationId === organizationId && 
-      i.timing.startTime >= startDate && 
+    const interactions = Array.from(this.interactions.values()).filter(i =>
+      i.organizationId === organizationId &&
+      i.timing.startTime >= startDate &&
       i.timing.startTime <= endDate
     );
 
@@ -896,7 +896,7 @@ class InteractionsSasAvService {
         const totalInteractions = interactions.length;
         const positiveInteractions = sentimentCounts.positive || 0;
         const negativeInteractions = sentimentCounts.negative || 0;
-        const averageSentiment = totalInteractions > 0 ? 
+        const averageSentiment = totalInteractions > 0 ?
           (positiveInteractions - negativeInteractions) / totalInteractions : 0;
 
         summary = {
@@ -940,8 +940,8 @@ class InteractionsSasAvService {
       createdAt: new Date().toISOString()
     };
 
-    structuredLogger.info('Interaction report generated', { 
-      reportId: report.id, 
+    structuredLogger.info('Interaction report generated', {
+      reportId: report.id,
       organizationId,
       reportType,
       period: `${startDate} to ${endDate}`
@@ -974,7 +974,7 @@ class InteractionsSasAvService {
       positiveInteractions: interactions.filter(i => i.sentimentAnalysis.overallSentiment === 'positive').length,
       negativeInteractions: interactions.filter(i => i.sentimentAnalysis.overallSentiment === 'negative').length,
       activeInsights: sentimentInsights.filter(si => si.isActive).length + voiceInsights.filter(vi => vi.isActive).length,
-      highPriorityInsights: sentimentInsights.filter(si => si.severity === 'high' || si.severity === 'critical').length + 
+      highPriorityInsights: sentimentInsights.filter(si => si.severity === 'high' || si.severity === 'critical').length +
                            voiceInsights.filter(vi => vi.severity === 'high' || vi.severity === 'critical').length,
       last24Hours: {
         interactions: recentInteractions.length,
@@ -987,7 +987,7 @@ class InteractionsSasAvService {
       },
       last7Days: {
         interactions: interactions.filter(i => new Date(i.timing.startTime) >= last7Days).length,
-        newInsights: sentimentInsights.filter(si => new Date(si.createdAt) >= last7Days).length + 
+        newInsights: sentimentInsights.filter(si => new Date(si.createdAt) >= last7Days).length +
                     voiceInsights.filter(vi => new Date(vi.createdAt) >= last7Days).length
       },
       byType: interactions.reduce((acc, i) => {

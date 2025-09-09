@@ -8,14 +8,14 @@
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Pool, type PoolConfig } from 'pg';
 import { logger } from '@econeura/shared/utils/logger.js';
-import { 
-  organizations, 
-  users, 
-  companies, 
-  contacts, 
-  interactions, 
-  products, 
-  invoices, 
+import {
+  organizations,
+  users,
+  companies,
+  contacts,
+  interactions,
+  products,
+  invoices,
   invoiceItems,
   auditLog,
   sessions,
@@ -92,7 +92,7 @@ export class DatabaseService {
 
     // Pool event handlers
     this.pool.on('connect', (client) => {
-      logger.info('Database client connected', { 
+      logger.info('Database client connected', {
         totalCount: this.pool.totalCount,
         idleCount: this.pool.idleCount,
         waitingCount: this.pool.waitingCount
@@ -105,7 +105,7 @@ export class DatabaseService {
     });
 
     this.pool.on('remove', (client) => {
-      logger.info('Database client removed', { 
+      logger.info('Database client removed', {
         totalCount: this.pool.totalCount,
         idleCount: this.pool.idleCount,
         waitingCount: this.pool.waitingCount
@@ -148,7 +148,7 @@ export class DatabaseService {
       });
     } catch (error) {
       this.isConnected = false;
-      logger.error('Database connection failed', { 
+      logger.error('Database connection failed', {
         error: error instanceof Error ? error.message : 'Unknown error',
         host: this.config.host,
         port: this.config.port,
@@ -163,12 +163,12 @@ export class DatabaseService {
       if (this.healthCheckInterval) {
         clearInterval(this.healthCheckInterval);
       }
-      
+
       await this.pool.end();
       this.isConnected = false;
       logger.info('Database disconnected successfully');
     } catch (error) {
-      logger.error('Database disconnection error', { 
+      logger.error('Database disconnection error', {
         error: error instanceof Error ? error.message : 'Unknown error'
       });
       throw error;
@@ -190,7 +190,7 @@ export class DatabaseService {
       } catch (error) {
         if (this.isConnected) {
           this.isConnected = false;
-          logger.error('Database health check: Connection lost', { 
+          logger.error('Database health check: Connection lost', {
             error: error instanceof Error ? error.message : 'Unknown error'
           });
         }
@@ -200,11 +200,11 @@ export class DatabaseService {
 
   async getHealth(): Promise<DatabaseHealth> {
     const startTime = Date.now();
-    
+
     try {
       await this.pool.query('SELECT 1');
       const responseTime = Date.now() - startTime;
-      
+
       return {
         status: 'healthy',
         responseTime,
@@ -214,7 +214,7 @@ export class DatabaseService {
       };
     } catch (error) {
       const responseTime = Date.now() - startTime;
-      
+
       return {
         status: 'unhealthy',
         responseTime,
@@ -247,7 +247,7 @@ export class DatabaseService {
 
   async withTransaction<T>(callback: (db: NodePgDatabase) => Promise<T>): Promise<T> {
     const client = await this.pool.connect();
-    
+
     try {
       await client.query('BEGIN');
       const db = drizzle(client);
@@ -271,7 +271,7 @@ export class DatabaseService {
       const result = await this.pool.query(query, params);
       return result.rows;
     } catch (error) {
-      logger.error('Database query error', { 
+      logger.error('Database query error', {
         query,
         params,
         error: error instanceof Error ? error.message : 'Unknown error'

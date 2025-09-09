@@ -94,9 +94,9 @@ router.use(authMiddleware);
 router.post('/templates', async (req, res) => {
   try {
     const templateData = CreateTemplateSchema.parse(req.body);
-    
+
     const template = await notificationSystem.createTemplate(templateData);
-    
+
     logger.info('Template created', {
       templateId: template.id,
       name: template.name,
@@ -126,9 +126,9 @@ router.post('/templates', async (req, res) => {
 router.get('/templates/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const template = await notificationSystem.getTemplate(id);
-    
+
     if (!template) {
       return res.status(404).json({
         success: false,
@@ -158,7 +158,7 @@ router.get('/templates/:id', async (req, res) => {
 router.get('/templates', async (req, res) => {
   try {
     const orgId = req.user?.orgId || req.query.orgId as string;
-    
+
     if (!orgId) {
       return res.status(400).json({
         success: false,
@@ -167,7 +167,7 @@ router.get('/templates', async (req, res) => {
     }
 
     const templates = await notificationSystem.listTemplates(orgId);
-    
+
     res.json({
       success: true,
       data: templates,
@@ -191,9 +191,9 @@ router.put('/templates/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const updates = CreateTemplateSchema.partial().parse(req.body);
-    
+
     const template = await notificationSystem.updateTemplate(id, updates);
-    
+
     logger.info('Template updated', {
       templateId: id,
       userId: req.user?.id
@@ -222,9 +222,9 @@ router.put('/templates/:id', async (req, res) => {
 router.delete('/templates/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     await notificationSystem.deleteTemplate(id);
-    
+
     logger.info('Template deleted', {
       templateId: id,
       userId: req.user?.id
@@ -256,9 +256,9 @@ router.delete('/templates/:id', async (req, res) => {
 router.post('/notifications', async (req, res) => {
   try {
     const notificationData = CreateNotificationSchema.parse(req.body);
-    
+
     const notification = await notificationSystem.createNotification(notificationData);
-    
+
     logger.info('Notification created', {
       notificationId: notification.id,
       userId: notification.userId,
@@ -288,9 +288,9 @@ router.post('/notifications', async (req, res) => {
 router.get('/notifications/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const notification = await notificationSystem.getNotification(id);
-    
+
     if (!notification) {
       return res.status(404).json({
         success: false,
@@ -321,7 +321,7 @@ router.get('/notifications', async (req, res) => {
   try {
     const userId = req.user?.id || req.query.userId as string;
     const orgId = req.user?.orgId || req.query.orgId as string;
-    
+
     if (!userId || !orgId) {
       return res.status(400).json({
         success: false,
@@ -330,9 +330,9 @@ router.get('/notifications', async (req, res) => {
     }
 
     const filters = NotificationFiltersSchema.parse(req.query);
-    
+
     const notifications = await notificationSystem.listNotifications(userId, orgId, filters);
-    
+
     res.json({
       success: true,
       data: notifications,
@@ -357,9 +357,9 @@ router.put('/notifications/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const updates = CreateNotificationSchema.partial().parse(req.body);
-    
+
     const notification = await notificationSystem.updateNotification(id, updates);
-    
+
     logger.info('Notification updated', {
       notificationId: id,
       userId: req.user?.id
@@ -388,9 +388,9 @@ router.put('/notifications/:id', async (req, res) => {
 router.delete('/notifications/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     await notificationSystem.deleteNotification(id);
-    
+
     logger.info('Notification deleted', {
       notificationId: id,
       userId: req.user?.id
@@ -418,9 +418,9 @@ router.delete('/notifications/:id', async (req, res) => {
 router.patch('/notifications/:id/read', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const notification = await notificationSystem.markAsRead(id);
-    
+
     logger.info('Notification marked as read', {
       notificationId: id,
       userId: req.user?.id
@@ -450,7 +450,7 @@ router.patch('/notifications/read-all', async (req, res) => {
   try {
     const userId = req.user?.id || req.body.userId;
     const orgId = req.user?.orgId || req.body.orgId;
-    
+
     if (!userId || !orgId) {
       return res.status(400).json({
         success: false,
@@ -459,7 +459,7 @@ router.patch('/notifications/read-all', async (req, res) => {
     }
 
     await notificationSystem.markAllAsRead(userId, orgId);
-    
+
     logger.info('All notifications marked as read', {
       userId,
       orgId
@@ -490,7 +490,7 @@ router.patch('/notifications/read-all', async (req, res) => {
 router.post('/send', async (req, res) => {
   try {
     const sendData = SendNotificationSchema.parse(req.body);
-    
+
     // If template is provided, render it
     if (sendData.templateId && sendData.templateVariables) {
       const templateEngine = TemplateEngineFactory.create({
@@ -513,7 +513,7 @@ router.post('/send', async (req, res) => {
     }
 
     const notification = await notificationSystem.sendNotification(sendData);
-    
+
     logger.info('Notification sent', {
       notificationId: notification.id,
       userId: notification.userId,
@@ -544,9 +544,9 @@ router.post('/send', async (req, res) => {
 router.post('/send/bulk', async (req, res) => {
   try {
     const notifications = z.array(SendNotificationSchema).parse(req.body);
-    
+
     const results = await notificationSystem.sendBulkNotifications(notifications);
-    
+
     logger.info('Bulk notifications sent', {
       total: notifications.length,
       successful: results.filter(r => r.status === 'sent').length,
@@ -580,7 +580,7 @@ router.post('/send/bulk', async (req, res) => {
 router.post('/schedule', async (req, res) => {
   try {
     const { notification, scheduledAt } = req.body;
-    
+
     if (!scheduledAt) {
       return res.status(400).json({
         success: false,
@@ -590,7 +590,7 @@ router.post('/schedule', async (req, res) => {
 
     const notificationData = CreateNotificationSchema.parse(notification);
     const scheduledDate = new Date(scheduledAt);
-    
+
     if (scheduledDate <= new Date()) {
       return res.status(400).json({
         success: false,
@@ -599,7 +599,7 @@ router.post('/schedule', async (req, res) => {
     }
 
     const scheduledNotification = await notificationSystem.scheduleNotification(notificationData, scheduledDate);
-    
+
     logger.info('Notification scheduled', {
       notificationId: scheduledNotification.id,
       scheduledAt: scheduledDate.toISOString(),
@@ -633,7 +633,7 @@ router.get('/preferences', async (req, res) => {
   try {
     const userId = req.user?.id || req.query.userId as string;
     const orgId = req.user?.orgId || req.query.orgId as string;
-    
+
     if (!userId || !orgId) {
       return res.status(400).json({
         success: false,
@@ -642,7 +642,7 @@ router.get('/preferences', async (req, res) => {
     }
 
     const preferences = await notificationSystem.getPreferences(userId, orgId);
-    
+
     res.json({
       success: true,
       data: preferences
@@ -665,7 +665,7 @@ router.put('/preferences', async (req, res) => {
   try {
     const userId = req.user?.id || req.body.userId;
     const orgId = req.user?.orgId || req.body.orgId;
-    
+
     if (!userId || !orgId) {
       return res.status(400).json({
         success: false,
@@ -674,9 +674,9 @@ router.put('/preferences', async (req, res) => {
     }
 
     const updates = UpdatePreferencesSchema.parse(req.body);
-    
+
     const preferences = await notificationSystem.updatePreferences(userId, orgId, updates);
-    
+
     logger.info('Preferences updated', {
       userId,
       orgId
@@ -708,7 +708,7 @@ router.put('/preferences', async (req, res) => {
 router.get('/statistics', async (req, res) => {
   try {
     const orgId = req.user?.orgId || req.query.orgId as string;
-    
+
     if (!orgId) {
       return res.status(400).json({
         success: false,
@@ -717,7 +717,7 @@ router.get('/statistics', async (req, res) => {
     }
 
     const stats = await notificationSystem.getStatistics(orgId);
-    
+
     res.json({
       success: true,
       data: stats
@@ -740,7 +740,7 @@ router.get('/unread-count', async (req, res) => {
   try {
     const userId = req.user?.id || req.query.userId as string;
     const orgId = req.user?.orgId || req.query.orgId as string;
-    
+
     if (!userId || !orgId) {
       return res.status(400).json({
         success: false,
@@ -749,7 +749,7 @@ router.get('/unread-count', async (req, res) => {
     }
 
     const count = await notificationSystem.getUnreadCount(userId, orgId);
-    
+
     res.json({
       success: true,
       data: { count }
@@ -775,10 +775,10 @@ router.get('/unread-count', async (req, res) => {
 router.post('/providers/email/test', async (req, res) => {
   try {
     const { config, message } = req.body;
-    
+
     const provider = EmailProviderFactory.create(config);
     const result = await provider.send(message);
-    
+
     res.json({
       success: true,
       data: result,
@@ -801,10 +801,10 @@ router.post('/providers/email/test', async (req, res) => {
 router.post('/providers/sms/test', async (req, res) => {
   try {
     const { config, message } = req.body;
-    
+
     const provider = SMSProviderFactory.create(config);
     const result = await provider.send(message);
-    
+
     res.json({
       success: true,
       data: result,
@@ -827,10 +827,10 @@ router.post('/providers/sms/test', async (req, res) => {
 router.post('/providers/push/test', async (req, res) => {
   try {
     const { config, message } = req.body;
-    
+
     const provider = PushProviderFactory.create(config);
     const result = await provider.send(message);
-    
+
     res.json({
       success: true,
       data: result,
@@ -857,7 +857,7 @@ router.post('/providers/push/test', async (req, res) => {
 router.post('/templates/render', async (req, res) => {
   try {
     const { templateId, language, variables, context, options } = req.body;
-    
+
     const templateEngine = TemplateEngineFactory.create({
       engine: 'handlebars',
       defaultLanguage: 'es',
@@ -875,7 +875,7 @@ router.post('/templates/render', async (req, res) => {
       context,
       options
     });
-    
+
     res.json({
       success: true,
       data: result,
@@ -898,7 +898,7 @@ router.post('/templates/render', async (req, res) => {
 router.post('/templates/validate', async (req, res) => {
   try {
     const template = req.body;
-    
+
     const templateEngine = TemplateEngineFactory.create({
       engine: 'handlebars',
       defaultLanguage: 'es',
@@ -910,7 +910,7 @@ router.post('/templates/validate', async (req, res) => {
     });
 
     const result = await templateEngine.validateTemplate(template);
-    
+
     res.json({
       success: true,
       data: result,

@@ -29,18 +29,18 @@ export class GracefulShutdownService extends EventEmitter {
     this.isShuttingDown = true;
 
     console.log(`🔄 Received ${signal}, starting graceful shutdown...`);
-    
+
     try {
       // Execute cleanup tasks
       for (const task of this.cleanupTasks) {
         await Promise.race([
           task(),
-          new Promise((_, reject) => 
+          new Promise((_, reject) =>
             setTimeout(() => reject(new Error('Cleanup timeout')), this.config.timeout)
           )
         ]);
       }
-      
+
       console.log('✅ Graceful shutdown completed');
       process.exit(0);
     } catch (error) {

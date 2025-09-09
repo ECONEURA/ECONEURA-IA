@@ -2,10 +2,10 @@ import { z } from 'zod';
 import { logger } from '../lib/logger';
 import { db } from '../lib/db';
 import { eq, desc, gte, and } from 'drizzle-orm';
-import { 
-  aiCostOptimization, 
-  aiCostPrediction, 
-  aiAnalytics, 
+import {
+  aiCostOptimization,
+  aiCostPrediction,
+  aiAnalytics,
   aiModelManagement,
   aiTrainingJobs,
   aiSecurityCompliance,
@@ -133,7 +133,7 @@ export class AIDashboardConsolidationService {
     try {
       const validatedInput = DashboardMetricsSchema.parse(input);
       const cacheKey = `${validatedInput.department}-${validatedInput.timeframe}`;
-      
+
       // Verificar cache
       const cached = this.metricsCache.get(cacheKey);
       if (cached && (Date.now() - cached.timestamp.getTime()) < this.cacheTimeout) {
@@ -146,10 +146,10 @@ export class AIDashboardConsolidationService {
       });
 
       const data = await this.generateConsolidatedData(validatedInput);
-      
+
       // Actualizar cache
       this.metricsCache.set(cacheKey, data);
-      
+
       return data;
     } catch (error) {
       logger.error('Error getting dashboard metrics', { error, input });
@@ -163,7 +163,7 @@ export class AIDashboardConsolidationService {
   async getRealTimeMetrics(input: RealTimeMetrics): Promise<ConsolidatedDashboardData> {
     try {
       const validatedInput = RealTimeMetricsSchema.parse(input);
-      
+
       logger.info('Getting real-time metrics', {
         department: validatedInput.department,
         agentId: validatedInput.agentId,
@@ -189,7 +189,7 @@ export class AIDashboardConsolidationService {
 
       // Aquí se actualizaría la base de datos con el estado del agente
       // Por ahora simulamos la actualización
-      
+
       // Notificar a conexiones WebSocket en tiempo real
       this.notifyRealTimeConnections(agentStatus.department, {
         type: 'agent_status_update',
@@ -228,17 +228,17 @@ export class AIDashboardConsolidationService {
 
     // Obtener métricas de costos
     const costMetrics = await this.getCostMetrics(input.department, since);
-    
+
     // Obtener métricas de predicción si está habilitado
-    const predictions = input.includePredictions ? 
+    const predictions = input.includePredictions ?
       await this.getPredictionMetrics(input.department) : undefined;
-    
+
     // Obtener métricas de optimización si está habilitado
-    const optimizations = input.includeOptimizations ? 
+    const optimizations = input.includeOptimizations ?
       await this.getOptimizationMetrics(input.department) : undefined;
-    
+
     // Obtener métricas de seguridad si está habilitado
-    const security = input.includeSecurity ? 
+    const security = input.includeSecurity ?
       await this.getSecurityMetrics(input.department) : undefined;
 
     // Obtener métricas de rendimiento

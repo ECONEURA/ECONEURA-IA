@@ -59,7 +59,7 @@ export class WebMicroservicesSystem {
   register(service: Omit<ServiceInstance, 'id' | 'lastHeartbeat' | 'createdAt' | 'updatedAt'>): string {
     const id = `service_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date();
-    
+
     const serviceInstance: ServiceInstance = {
       ...service,
       id,
@@ -69,7 +69,7 @@ export class WebMicroservicesSystem {
     };
 
     this.services.set(id, serviceInstance);
-    
+
     console.log('Service registered in web system', {
       serviceId: id,
       serviceName: service.name,
@@ -152,7 +152,7 @@ export class WebMicroservicesSystem {
 
   getLoadBalancedInstance(serviceName: string, strategy: string = 'round-robin'): ServiceInstance | null {
     const healthyInstances = this.getHealthyInstances(serviceName);
-    
+
     if (healthyInstances.length === 0) {
       return null;
     }
@@ -176,17 +176,17 @@ export class WebMicroservicesSystem {
 
     try {
       const serviceInstance = this.getLoadBalancedInstance(serviceName);
-      
+
       if (!serviceInstance) {
         throw new Error(`No healthy instances available for service: ${serviceName}`);
       }
 
       // Simular request al servicio
       const response = await this.executeRequest(serviceInstance, request);
-      
+
       // Registrar éxito
       this.recordSuccess(serviceName, Date.now() - startTime);
-      
+
       return response;
     } catch (error) {
       // Registrar fallo
@@ -201,10 +201,10 @@ export class WebMicroservicesSystem {
     const totalRequests = allStats.reduce((sum, stats) => sum + stats.total, 0);
     const successfulRequests = allStats.reduce((sum, stats) => sum + stats.success, 0);
     const failedRequests = allStats.reduce((sum, stats) => sum + stats.failed, 0);
-    
+
     const allResponseTimes = allStats.flatMap(stats => stats.responseTimes);
-    const averageResponseTime = allResponseTimes.length > 0 
-      ? allResponseTimes.reduce((sum, time) => sum + time, 0) / allResponseTimes.length 
+    const averageResponseTime = allResponseTimes.length > 0
+      ? allResponseTimes.reduce((sum, time) => sum + time, 0) / allResponseTimes.length
       : 0;
 
     const serviceMeshStats: ServiceMeshStats = {
@@ -256,7 +256,7 @@ export class WebMicroservicesSystem {
   }
 
   private leastConnectionsSelection(instances: ServiceInstance[]): ServiceInstance {
-    return instances.reduce((min, instance) => 
+    return instances.reduce((min, instance) => ;
       instance.metadata.load < min.metadata.load ? instance : min
     );
   }
@@ -269,7 +269,7 @@ export class WebMicroservicesSystem {
   private async executeRequest(serviceInstance: ServiceInstance, request: any): Promise<any> {
     // Simular request al servicio
     const url = `${serviceInstance.url}${request.path}`;
-    
+
     console.log('Executing service request in web system', {
       serviceName: request.serviceName,
       serviceInstance: serviceInstance.id,
@@ -292,11 +292,11 @@ export class WebMicroservicesSystem {
     stats.total++;
     stats.success++;
     stats.responseTimes.push(responseTime);
-    
+
     if (stats.responseTimes.length > 100) {
       stats.responseTimes.shift();
     }
-    
+
     this.requestStats.set(serviceName, stats);
   }
 

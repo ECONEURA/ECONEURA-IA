@@ -323,7 +323,7 @@ class AIChatAdvancedService {
     }
 
     if (filters.tags && filters.tags.length > 0) {
-      conversations = conversations.filter(c => 
+      conversations = conversations.filter(c =>
         filters.tags!.some(tag => c.tags.includes(tag))
       );
     }
@@ -509,19 +509,19 @@ class AIChatAdvancedService {
 
   private extractIntent(content: string): string {
     const lowerContent = content.toLowerCase();
-    
+
     if (lowerContent.includes('análisis') || lowerContent.includes('analizar')) return 'analysis_request';
     if (lowerContent.includes('optimizar') || lowerContent.includes('mejorar')) return 'optimization_request';
     if (lowerContent.includes('reporte') || lowerContent.includes('informe')) return 'report_request';
     if (lowerContent.includes('ayuda') || lowerContent.includes('cómo')) return 'help_request';
     if (lowerContent.includes('explicar') || lowerContent.includes('qué es')) return 'explanation_request';
-    
+
     return 'general_inquiry';
   }
 
   private extractEntities(content: string): Array<{ type: string; value: string; confidence: number }> {
     const entities: Array<{ type: string; value: string; confidence: number }> = [];
-    
+
     // Extract periods
     const periodRegex = /(Q[1-4]|trimestre|semestre|año|mes)/gi;
     const periods = content.match(periodRegex);
@@ -603,7 +603,7 @@ class AIChatAdvancedService {
     // Get conversation context
     const conversation = await this.getConversation(conversationId);
     const recentMessages = await this.getMessages(conversationId, { limit: 10 });
-    
+
     // Analyze the message
     const analysis = await this.analyzeMessage(content, conversation?.context);
 

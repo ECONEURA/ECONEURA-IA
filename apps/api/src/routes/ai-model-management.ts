@@ -141,7 +141,7 @@ const RollbackSchema = z.object({
 router.post('/models', async (req, res) => {
   try {
     const validatedData = ModelSchema.parse(req.body);
-    
+
     structuredLogger.info('AI model creation request received', {
       userId: req.user?.id,
       modelName: validatedData.name,
@@ -195,7 +195,7 @@ router.get('/models', async (req, res) => {
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = parseInt(req.query.offset as string) || 0;
     const status = req.query.status as string;
-    
+
     const models = await aiModelManagementService.listModels(limit, offset, status);
 
     res.json({
@@ -230,7 +230,7 @@ router.get('/models', async (req, res) => {
 router.get('/models/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const model = await aiModelManagementService.getModel(id);
 
     if (!model) {
@@ -310,7 +310,7 @@ router.patch('/models/:id/performance', async (req, res) => {
   try {
     const { id } = req.params;
     const validatedData = ModelPerformanceSchema.partial().parse(req.body);
-    
+
     await aiModelManagementService.updateModelPerformance(id, validatedData);
 
     res.json({
@@ -356,7 +356,7 @@ router.post('/models/:id/deploy', async (req, res) => {
   try {
     const { id } = req.params;
     const validatedData = DeploymentConfigSchema.parse(req.body);
-    
+
     structuredLogger.info('Model deployment request received', {
       userId: req.user?.id,
       modelId: id,
@@ -404,7 +404,7 @@ router.get('/deployments', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = parseInt(req.query.offset as string) || 0;
-    
+
     const deployments = await aiModelManagementService.listDeployments(limit, offset);
 
     res.json({
@@ -438,7 +438,7 @@ router.get('/deployments', async (req, res) => {
 router.get('/deployments/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const deployment = await aiModelManagementService.getDeployment(id);
 
     if (!deployment) {
@@ -480,7 +480,7 @@ router.get('/deployments/:id', async (req, res) => {
 router.post('/ab-tests', async (req, res) => {
   try {
     const validatedData = ABTestSchema.parse(req.body);
-    
+
     structuredLogger.info('A/B test creation request received', {
       userId: req.user?.id,
       testName: validatedData.name,
@@ -529,7 +529,7 @@ router.post('/ab-tests', async (req, res) => {
 router.post('/ab-tests/:id/start', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     structuredLogger.info('A/B test start request received', {
       userId: req.user?.id,
       testId: id
@@ -571,7 +571,7 @@ router.post('/models/:id/rollback', async (req, res) => {
   try {
     const { id } = req.params;
     const validatedData = RollbackSchema.parse(req.body);
-    
+
     structuredLogger.info('Model rollback request received', {
       userId: req.user?.id,
       modelId: id,
@@ -630,7 +630,7 @@ router.post('/models/:id/rollback', async (req, res) => {
 router.get('/health', async (req, res) => {
   try {
     const healthStatus = await aiModelManagementService.getHealthStatus();
-    
+
     res.json({
       success: true,
       data: healthStatus,
@@ -659,7 +659,7 @@ router.get('/health', async (req, res) => {
 router.get('/status', async (req, res) => {
   try {
     const healthStatus = await aiModelManagementService.getHealthStatus();
-    
+
     res.json({
       success: true,
       data: {

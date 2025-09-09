@@ -1,8 +1,8 @@
 /**
  * CONTENT MANAGEMENT ROUTES
- * 
+ *
  * PR-55: Rutas API para gestión de contenido avanzado
- * 
+ *
  * Endpoints:
  * - POST /content - Crear contenido
  * - GET /content - Listar contenido

@@ -1,6 +1,6 @@
 /**
  * Service Discovery for ECONEURA
- * 
+ *
  * Manages service registration, health checks, and inter-service communication
  */
 
@@ -158,13 +158,13 @@ export class ServiceDiscovery extends EventEmitter {
    */
   private async performHealthChecks(): Promise<void> {
     const services = Array.from(this.services.values());
-    
+
     for (const service of services) {
       try {
         const isHealthy = await this.checkServiceHealth(service);
         const previousStatus = service.status;
         service.status = isHealthy ? 'healthy' : 'unhealthy';
-        
+
         if (previousStatus !== service.status) {
           this.emit('serviceStatusChanged', {
             service,
@@ -221,7 +221,7 @@ export class ServiceDiscovery extends EventEmitter {
     const services = Array.from(this.services.values());
     const healthyServices = services.filter(s => s.status === 'healthy').length;
     const unhealthyServices = services.filter(s => s.status === 'unhealthy').length;
-    
+
     const servicesByType = services.reduce((acc, service) => {
       acc[service.type] = (acc[service.type] || 0) + 1;
       return acc;

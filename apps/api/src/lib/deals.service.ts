@@ -3,10 +3,10 @@
 
 import { logger } from './logger.js';
 import { z } from 'zod';
-import { 
-  DealSchema, 
-  CreateDealSchema, 
-  UpdateDealSchema, 
+import {
+  DealSchema,
+  CreateDealSchema,
+  UpdateDealSchema,
   DealFilterSchema,
   MoveDealStageSchema,
   DealAnalyticsSchema,
@@ -164,7 +164,7 @@ export class DealsService {
   async createDeal(orgId: string, userId: string, data: CreateDeal): Promise<Deal> {
     try {
       const validatedData = CreateDealSchema.parse(data);
-      
+
       const deal: Deal = {
         id: `deal-${this.nextId++}`,
         orgId,
@@ -199,14 +199,14 @@ export class DealsService {
   async getDeals(orgId: string, filters: DealFilter & { limit?: number; offset?: number }): Promise<{ deals: Deal[]; total: number }> {
     try {
       const validatedFilters = DealFilterSchema.parse(filters);
-      
+
       let filteredDeals = Array.from(this.deals.values())
         .filter(deal => deal.orgId === orgId);
 
       // Aplicar filtros
       if (validatedFilters.q) {
         const query = validatedFilters.q.toLowerCase();
-        filteredDeals = filteredDeals.filter(deal => 
+        filteredDeals = filteredDeals.filter(deal =>
           deal.name.toLowerCase().includes(query) ||
           (deal.description && deal.description.toLowerCase().includes(query))
         );
@@ -234,18 +234,18 @@ export class DealsService {
       }
       if (validatedFilters.expectedCloseDateFrom) {
         const fromDate = new Date(validatedFilters.expectedCloseDateFrom);
-        filteredDeals = filteredDeals.filter(deal => 
+        filteredDeals = filteredDeals.filter(deal =>
           deal.expectedCloseDate && new Date(deal.expectedCloseDate) >= fromDate
         );
       }
       if (validatedFilters.expectedCloseDateTo) {
         const toDate = new Date(validatedFilters.expectedCloseDateTo);
-        filteredDeals = filteredDeals.filter(deal => 
+        filteredDeals = filteredDeals.filter(deal =>
           deal.expectedCloseDate && new Date(deal.expectedCloseDate) <= toDate
         );
       }
       if (validatedFilters.tags && validatedFilters.tags.length > 0) {
-        filteredDeals = filteredDeals.filter(deal => 
+        filteredDeals = filteredDeals.filter(deal =>
           validatedFilters.tags!.some(tag => deal.tags.includes(tag))
         );
       }
@@ -279,7 +279,7 @@ export class DealsService {
   async getDealById(orgId: string, dealId: string): Promise<Deal | null> {
     try {
       const deal = this.deals.get(dealId);
-      
+
       if (!deal || deal.orgId !== orgId) {
         return null;
       }
@@ -304,7 +304,7 @@ export class DealsService {
     try {
       const validatedData = UpdateDealSchema.parse(data);
       const deal = this.deals.get(dealId);
-      
+
       if (!deal || deal.orgId !== orgId) {
         return null;
       }
@@ -341,7 +341,7 @@ export class DealsService {
     try {
       const validatedData = MoveDealStageSchema.parse(data);
       const deal = this.deals.get(dealId);
-      
+
       if (!deal || deal.orgId !== orgId) {
         return null;
       }
@@ -392,7 +392,7 @@ export class DealsService {
   async deleteDeal(orgId: string, dealId: string, userId: string): Promise<boolean> {
     try {
       const deal = this.deals.get(dealId);
-      
+
       if (!deal || deal.orgId !== orgId) {
         return false;
       }
@@ -438,10 +438,10 @@ export class DealsService {
       const winRate = closedTotal > 0 ? (closedWon / closedTotal) * 100 : 0;
 
       // Calcular ciclo de ventas promedio
-      const closedDeals = deals.filter(deal => 
+      const closedDeals = deals.filter(deal =>
         deal.stage === 'closed_won' || deal.stage === 'closed_lost'
       );
-      const averageSalesCycle = closedDeals.length > 0 
+      const averageSalesCycle = closedDeals.length > 0
         ? closedDeals.reduce((sum, deal) => {
             const created = new Date(deal.createdAt!).getTime();
             const closed = new Date(deal.updatedAt!).getTime();
@@ -466,10 +466,10 @@ export class DealsService {
       for (let i = 11; i >= 0; i--) {
         const date = new Date(currentYear, currentMonth - i, 1);
         const monthKey = date.toISOString().substring(0, 7); // YYYY-MM
-        
+
         const monthDeals = deals.filter(deal => {
           const dealDate = new Date(deal.createdAt!);
-          return dealDate.getFullYear() === date.getFullYear() && 
+          return dealDate.getFullYear() === date.getFullYear() && ;
                  dealDate.getMonth() === date.getMonth();
         });
 
@@ -505,15 +505,15 @@ export class DealsService {
       const topPerformers = Object.values(performerStats)
         .map((performer: any) => ({
           ...performer,
-          winRate: (performer.closedWon + performer.closedLost) > 0 
-            ? (performer.closedWon / (performer.closedWon + performer.closedLost)) * 100 
+          winRate: (performer.closedWon + performer.closedLost) > 0
+            ? (performer.closedWon / (performer.closedWon + performer.closedLost)) * 100
             : 0
         }))
         .sort((a, b) => b.totalValue - a.totalValue)
         .slice(0, 5);
 
       // Pipeline health
-      const openDeals = deals.filter(deal => 
+      const openDeals = deals.filter(deal =>
         !['closed_won', 'closed_lost'].includes(deal.stage)
       );
       const staleDeals = openDeals.filter(deal => {
@@ -576,7 +576,7 @@ export class DealsService {
         .filter(deal => deal.orgId === orgId);
 
       // Calcular métricas adicionales
-      const openDeals = deals.filter(deal => 
+      const openDeals = deals.filter(deal =>
         !['closed_won', 'closed_lost'].includes(deal.stage)
       );
       const closedWon = deals.filter(deal => deal.stage === 'closed_won');
@@ -588,7 +588,7 @@ export class DealsService {
         const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
         const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
         const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
-        
+
         const count = deals.filter(deal => {
           const created = new Date(deal.createdAt!);
           return created >= dayStart && created < dayEnd;

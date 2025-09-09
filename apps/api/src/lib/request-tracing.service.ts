@@ -16,7 +16,7 @@ export class RequestTracingService {
   createTrace(operation: string, metadata: Record<string, any> = {}): TraceContext {
     const traceId = uuidv4();
     const spanId = uuidv4();
-    
+
     const trace: TraceContext = {
       traceId,
       spanId,
@@ -53,7 +53,7 @@ export class RequestTracingService {
     if (!trace) return;
 
     const duration = Date.now() - trace.startTime;
-    
+
     // Update metrics
     prometheus.register.getSingleMetric('request_duration_seconds')?.observe({
       operation: trace.operation

@@ -100,7 +100,7 @@ sepaRobustRouter.get('/transactions', async (req, res) => {
   try {
     const filters = GetTransactionsSchema.parse(req.query);
     const transactions = await sepaRobustService.getTransactions(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -124,14 +124,14 @@ sepaRobustRouter.get('/transactions/:id', async (req, res) => {
   try {
     const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
     const transaction = await sepaRobustService.getTransaction(id);
-    
+
     if (!transaction) {
       return res.status(404).json({
         success: false,
         error: 'Transaction not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: transaction,
@@ -151,7 +151,7 @@ sepaRobustRouter.post('/transactions', async (req, res) => {
   try {
     const transactionData = CreateTransactionSchema.parse(req.body);
     const transaction = await sepaRobustService.createTransaction(transactionData);
-    
+
     res.status(201).json({
       success: true,
       data: transaction,
@@ -172,7 +172,7 @@ sepaRobustRouter.get('/rules', async (req, res) => {
   try {
     const filters = GetRulesSchema.parse(req.query);
     const rules = await sepaRobustService.getRules(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -196,7 +196,7 @@ sepaRobustRouter.post('/rules', async (req, res) => {
   try {
     const ruleData = CreateRuleSchema.parse(req.body);
     const rule = await sepaRobustService.createRule(ruleData);
-    
+
     res.status(201).json({
       success: true,
       data: rule,
@@ -217,7 +217,7 @@ sepaRobustRouter.get('/exceptions', async (req, res) => {
   try {
     const filters = GetExceptionsSchema.parse(req.query);
     const exceptions = await sepaRobustService.getExceptions(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -241,7 +241,7 @@ sepaRobustRouter.post('/exceptions', async (req, res) => {
   try {
     const exceptionData = CreateExceptionSchema.parse(req.body);
     const exception = await sepaRobustService.createException(exceptionData);
-    
+
     res.status(201).json({
       success: true,
       data: exception,
@@ -268,7 +268,7 @@ sepaRobustRouter.post('/reports', async (req, res) => {
       reportData.endDate,
       reportData.generatedBy
     );
-    
+
     res.status(201).json({
       success: true,
       data: report,
@@ -289,7 +289,7 @@ sepaRobustRouter.get('/stats', async (req, res) => {
   try {
     const { organizationId } = GetStatsSchema.parse(req.query);
     const stats = await sepaRobustService.getStats(organizationId);
-    
+
     res.json({
       success: true,
       data: stats,
@@ -309,7 +309,7 @@ sepaRobustRouter.get('/stats', async (req, res) => {
 sepaRobustRouter.get('/health', async (req, res) => {
   try {
     const stats = await sepaRobustService.getStats('demo-org-1');
-    
+
     res.json({
       success: true,
       data: {

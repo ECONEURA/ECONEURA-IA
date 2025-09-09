@@ -40,7 +40,7 @@ export class GDPREraseService {
   ): Promise<DataErase> {
     try {
       const requestId = `gdpr_erase_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+
       // Check for legal holds
       const conflictingHolds = this.checkLegalHolds(userId, dataCategories);
       if (conflictingHolds.length > 0) {
@@ -71,9 +71,9 @@ export class GDPREraseService {
 
       // Start erase process in background
       this.processErase(dataErase).catch(error => {
-        logger.error('Erase process failed', { 
-          eraseId: dataErase.id, 
-          error: (error as Error).message 
+        logger.error('Erase process failed', {
+          eraseId: dataErase.id,
+          error: (error as Error).message
         });
       });
 
@@ -88,9 +88,9 @@ export class GDPREraseService {
 
       return dataErase;
     } catch (error) {
-      logger.error('Failed to create erase request', { 
-        userId, 
-        error: (error as Error).message 
+      logger.error('Failed to create erase request', {
+        userId,
+        error: (error as Error).message
       });
       throw error;
     }
@@ -142,9 +142,9 @@ export class GDPREraseService {
         eraseRecord.updatedAt = new Date();
       }
 
-      logger.error('Erase process failed', { 
-        eraseId: dataErase.id, 
-        error: (error as Error).message 
+      logger.error('Erase process failed', {
+        eraseId: dataErase.id,
+        error: (error as Error).message
       });
       throw error;
     }
@@ -152,7 +152,7 @@ export class GDPREraseService {
 
   private async countRecordsToErase(userId: string, dataCategories: string[]): Promise<number> {
     let count = 0;
-    
+
     for (const category of dataCategories) {
       switch (category) {
         case 'personal_info':
@@ -204,12 +204,12 @@ export class GDPREraseService {
   private async createBackup(dataErase: DataErase): Promise<string> {
     // Simulate backup creation
     const backupPath = `/backups/gdpr/${dataErase.id}_${Date.now()}.backup`;
-    
-    logger.info('Backup created', { 
-      eraseId: dataErase.id, 
-      backupPath 
+
+    logger.info('Backup created', {
+      eraseId: dataErase.id,
+      backupPath
     });
-    
+
     return backupPath;
   }
 
@@ -242,65 +242,65 @@ export class GDPREraseService {
   private async erasePersonalInfo(userId: string, type: string): Promise<number> {
     // Simulate personal info erasure
     const count = Math.floor(Math.random() * 10) + 1;
-    
-    logger.info('Personal info erased', { 
-      userId, 
-      type, 
-      count 
+
+    logger.info('Personal info erased', {
+      userId,
+      type,
+      count
     });
-    
+
     return count;
   }
 
   private async eraseFinancialData(userId: string, type: string): Promise<number> {
     // Simulate financial data erasure
     const count = Math.floor(Math.random() * 50) + 1;
-    
-    logger.info('Financial data erased', { 
-      userId, 
-      type, 
-      count 
+
+    logger.info('Financial data erased', {
+      userId,
+      type,
+      count
     });
-    
+
     return count;
   }
 
   private async eraseSEPAData(userId: string, type: string): Promise<number> {
     // Simulate SEPA data erasure
     const count = Math.floor(Math.random() * 100) + 1;
-    
-    logger.info('SEPA data erased', { 
-      userId, 
-      type, 
-      count 
+
+    logger.info('SEPA data erased', {
+      userId,
+      type,
+      count
     });
-    
+
     return count;
   }
 
   private async eraseCRMData(userId: string, type: string): Promise<number> {
     // Simulate CRM data erasure
     const count = Math.floor(Math.random() * 20) + 1;
-    
-    logger.info('CRM data erased', { 
-      userId, 
-      type, 
-      count 
+
+    logger.info('CRM data erased', {
+      userId,
+      type,
+      count
     });
-    
+
     return count;
   }
 
   private async eraseAuditLogs(userId: string, type: string): Promise<number> {
     // Simulate audit logs erasure
     const count = Math.floor(Math.random() * 200) + 1;
-    
-    logger.info('Audit logs erased', { 
-      userId, 
-      type, 
-      count 
+
+    logger.info('Audit logs erased', {
+      userId,
+      type,
+      count
     });
-    
+
     return count;
   }
 
@@ -311,8 +311,8 @@ export class GDPREraseService {
   }
 
   private checkLegalHolds(userId: string, dataCategories: string[]): LegalHold[] {
-    const activeHolds = this.legalHolds.filter(hold => 
-      hold.status === 'active' && 
+    const activeHolds = this.legalHolds.filter(hold =>
+      hold.status === 'active' &&
       (hold.userId === userId || !hold.userId) &&
       hold.dataCategories.some(cat => dataCategories.includes(cat))
     );
@@ -401,7 +401,7 @@ export class GDPREraseService {
     const completed = this.erasures.filter(e => e.status === 'completed').length;
     const failed = this.erasures.filter(e => e.status === 'failed').length;
     const totalRecordsErased = this.erasures.reduce((sum, e) => sum + e.erasedCount, 0);
-    
+
     // Calculate average processing time
     const completedErasures = this.erasures.filter(e => e.completedAt);
     const averageProcessingTime = completedErasures.length > 0

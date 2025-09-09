@@ -70,7 +70,7 @@ export class GeneratePredictionUseCase extends BaseUseCase<GeneratePredictionReq
     // Validate input data against expected features
     const expectedFeatures = existingPredictiveAnalytics.settings.features;
     const inputFeatures = Object.keys(request.inputData);
-    
+
     const missingFeatures = expectedFeatures.filter(feature => !inputFeatures.includes(feature));
     if (missingFeatures.length > 0) {
       throw new Error(`Missing required features: ${missingFeatures.join(', ')}`);

@@ -14,7 +14,7 @@ const DEMO_SILENT_WAV_B64 =
 const DEMO_TINY_PNG_B64 =
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBg8q6jSkAAAAASUVORK5CYII=";
 
-export async function POST(req: Request) {
+export async function POST(req: Request): void {
   // Enforce method
   if (req.method !== "POST") return noStoreJson({ ok: false, error: "Method not allowed" }, 405);
 

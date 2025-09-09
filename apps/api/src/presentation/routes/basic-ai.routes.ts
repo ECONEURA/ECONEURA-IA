@@ -41,7 +41,7 @@ router.use(responseMiddleware);
  * @access Private
  * @body { prompt: string, sessionId?: string, options?: object }
  */
-router.post('/generate', 
+router.post('/generate',
   validationMiddleware({
     body: {
       prompt: { type: 'string', required: true, minLength: 1, maxLength: 5000 },

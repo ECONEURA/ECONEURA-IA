@@ -1,6 +1,6 @@
 /**
  * PR-55: Fiscalidad Regional UE Service
- * 
+ *
  * Sistema de gestión de fiscalidad regional para la Unión Europea
  */
 
@@ -290,10 +290,10 @@ export class FiscalidadRegionalUEService {
 
       // 1. Verificar cumplimiento por región
       const complianceChecks = await this.checkComplianceByRegion();
-      
+
       // 2. Actualizar estadísticas de cálculos
       const calculationStats = await this.updateCalculationStats();
-      
+
       // 3. Generar reportes si es necesario
       if (this.config.reportingEnabled) {
         await this.generateReports();
@@ -339,7 +339,7 @@ export class FiscalidadRegionalUEService {
   private async checkRegionCompliance(region: TaxRegion): Promise<TaxCompliance | null> {
     const now = new Date();
     const nextQuarter = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3 + 3, 1);
-    
+
     const compliance: TaxCompliance = {
       id: `compliance_${region.country}_${Date.now()}`,
       organizationId: 'default',
@@ -404,8 +404,8 @@ export class FiscalidadRegionalUEService {
       (sum, calc) => sum + calc.taxAmount, 0
     );
 
-    const averageTaxRate = totalCalculations > 0 
-      ? Array.from(this.calculations.values()).reduce((sum, calc) => sum + calc.taxRate, 0) / totalCalculations 
+    const averageTaxRate = totalCalculations > 0
+      ? Array.from(this.calculations.values()).reduce((sum, calc) => sum + calc.taxRate, 0) / totalCalculations
       : 0;
 
     const pendingCompliance = Array.from(this.compliance.values()).filter(

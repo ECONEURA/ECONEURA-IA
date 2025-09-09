@@ -52,7 +52,7 @@ function shouldAffectPath(path: string, config: ChaosConfig): boolean {
   return true;
 }
 
-export function chaosMiddleware(config: Partial<ChaosConfig> = {}) {
+export function chaosMiddleware(config: Partial<ChaosConfig> = {}): void {
   const cfg: ChaosConfig = { ...defaultConfig, ...config };
 
   return async function(req: Request, res: Response, next: NextFunction) {
@@ -89,10 +89,10 @@ export function chaosMiddleware(config: Partial<ChaosConfig> = {}) {
   };
 }
 
-export function createChaosToggleEndpoints(app: any) {
+export function createChaosToggleEndpoints(app: any): void {
   app.post('/v1/chaos/toggle', (req: any, res: any) => {
     const { enabled } = req.body || {};
-    if (enabled === true || enabled === false) {
+    if (enabled = || enabled =) {
       process.env.CHAOS_ENABLED = String(enabled);
       return res.json({ success: true, enabled });
     }

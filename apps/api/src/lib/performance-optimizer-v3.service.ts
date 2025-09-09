@@ -1,6 +1,6 @@
 /**
  * PERFORMANCE OPTIMIZER V3 - MEJORA CRÍTICA 1
- * 
+ *
  * Sistema avanzado de optimización de performance con:
  * - Cache inteligente con TTL dinámico
  * - Compresión automática de respuestas
@@ -167,7 +167,7 @@ export class PerformanceOptimizerV3Service {
     try {
       const memUsage = process.memoryUsage();
       const cpuUsage = await this.getCPUUsage();
-      
+
       this.metrics = {
         responseTime: await this.getAverageResponseTime(),
         memoryUsage: (memUsage.heapUsed / memUsage.heapTotal) * 100,
@@ -180,7 +180,7 @@ export class PerformanceOptimizerV3Service {
       };
 
       this.performanceHistory.push({ ...this.metrics });
-      
+
       // Keep only last 100 metrics
       if (this.performanceHistory.length > 100) {
         this.performanceHistory = this.performanceHistory.slice(-100);
@@ -200,7 +200,7 @@ export class PerformanceOptimizerV3Service {
     const startUsage = process.cpuUsage();
     await new Promise(resolve => setTimeout(resolve, 100));
     const endUsage = process.cpuUsage(startUsage);
-    
+
     const totalUsage = (endUsage.user + endUsage.system) / 1000000; // Convert to seconds
     return Math.min(totalUsage * 100, 100); // Convert to percentage
   }
@@ -253,7 +253,7 @@ export class PerformanceOptimizerV3Service {
           });
 
           await rule.action();
-          
+
           structuredLogger.info('Optimization rule completed', {
             ruleId: rule.id,
             ruleName: rule.name
@@ -452,7 +452,7 @@ export class PerformanceOptimizerV3Service {
 
     Object.assign(rule, updates);
     this.optimizationRules.set(ruleId, rule);
-    
+
     structuredLogger.info('Optimization rule updated', {
       ruleId,
       updates

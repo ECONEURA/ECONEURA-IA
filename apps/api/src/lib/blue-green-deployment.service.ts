@@ -502,11 +502,11 @@ class BlueGreenDeploymentService {
 
     environment.metrics = { ...environment.metrics, ...metrics };
     this.environments.set(environmentId, environment);
-    
-    structuredLogger.info('Environment metrics updated', { 
-      environmentId, 
+
+    structuredLogger.info('Environment metrics updated', {
+      environmentId,
       environment: environment.name,
-      metrics 
+      metrics
     });
 
     return environment;
@@ -554,9 +554,9 @@ class BlueGreenDeploymentService {
     };
 
     this.gates.set(gate.id, gate);
-    
-    structuredLogger.info('Deployment gate created', { 
-      gateId: gate.id, 
+
+    structuredLogger.info('Deployment gate created', {
+      gateId: gate.id,
       name: gate.name,
       type: gate.type,
       priority: gate.priority
@@ -571,22 +571,22 @@ class BlueGreenDeploymentService {
 
     gate.status = 'running';
     gate.results.startTime = new Date().toISOString();
-    
+
     // Simular ejecución del gate
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     const success = Math.random() > 0.1; // 90% de éxito
     gate.status = success ? 'passed' : 'failed';
     gate.results.endTime = new Date().toISOString();
     gate.results.duration = Date.now() - new Date(gate.results.startTime).getTime();
     gate.results.success = success;
     gate.results.message = success ? 'Gate passed successfully' : 'Gate failed';
-    
+
     gate.updatedAt = new Date().toISOString();
     this.gates.set(gateId, gate);
-    
-    structuredLogger.info('Gate executed', { 
-      gateId, 
+
+    structuredLogger.info('Gate executed', {
+      gateId,
       name: gate.name,
       status: gate.status,
       duration: gate.results.duration
@@ -608,8 +608,8 @@ class BlueGreenDeploymentService {
     }
 
     if (filters.environment) {
-      pipelines = pipelines.filter(p => 
-        p.sourceEnvironment === filters.environment || 
+      pipelines = pipelines.filter(p =>
+        p.sourceEnvironment === filters.environment ||
         p.targetEnvironment === filters.environment
       );
     }
@@ -657,9 +657,9 @@ class BlueGreenDeploymentService {
     };
 
     this.pipelines.set(pipeline.id, pipeline);
-    
-    structuredLogger.info('Deployment pipeline created', { 
-      pipelineId: pipeline.id, 
+
+    structuredLogger.info('Deployment pipeline created', {
+      pipelineId: pipeline.id,
       name: pipeline.name,
       sourceEnvironment: pipeline.sourceEnvironment,
       targetEnvironment: pipeline.targetEnvironment,
@@ -675,9 +675,9 @@ class BlueGreenDeploymentService {
 
     pipeline.status = 'running';
     pipeline.updatedAt = new Date().toISOString();
-    
-    structuredLogger.info('Pipeline execution started', { 
-      pipelineId, 
+
+    structuredLogger.info('Pipeline execution started', {
+      pipelineId,
       name: pipeline.name
     });
 
@@ -685,14 +685,14 @@ class BlueGreenDeploymentService {
     for (const stage of pipeline.stages) {
       stage.status = 'running';
       stage.startTime = new Date().toISOString();
-      
+
       // Simular tiempo de ejecución
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       stage.status = 'completed';
       stage.endTime = new Date().toISOString();
       stage.duration = Date.now() - new Date(stage.startTime).getTime();
-      
+
       pipeline.metrics.gatesPassed += stage.gates.length;
     }
 
@@ -701,11 +701,11 @@ class BlueGreenDeploymentService {
     pipeline.completedAt = new Date().toISOString();
     pipeline.metrics.totalDuration = Date.now() - new Date(pipeline.createdAt).getTime();
     pipeline.updatedAt = new Date().toISOString();
-    
+
     this.pipelines.set(pipelineId, pipeline);
-    
-    structuredLogger.info('Pipeline execution completed', { 
-      pipelineId, 
+
+    structuredLogger.info('Pipeline execution completed', {
+      pipelineId,
       name: pipeline.name,
       status: pipeline.status,
       totalDuration: pipeline.metrics.totalDuration
@@ -736,8 +736,8 @@ class BlueGreenDeploymentService {
     };
 
     this.rollbacks.set(rollback.id, rollback);
-    
-    structuredLogger.info('Rollback triggered', { 
+
+    structuredLogger.info('Rollback triggered', {
       rollbackId: rollback.id,
       pipelineId,
       reason,
@@ -748,7 +748,7 @@ class BlueGreenDeploymentService {
 
     // Simular rollback
     await new Promise(resolve => setTimeout(resolve, 5000));
-    
+
     rollback.status = 'completed';
     rollback.endTime = new Date().toISOString();
     rollback.duration = Date.now() - new Date(rollback.startTime).getTime();
@@ -757,10 +757,10 @@ class BlueGreenDeploymentService {
     rollback.logs.push('Rollback initiated');
     rollback.logs.push('Traffic switched to previous environment');
     rollback.logs.push('Rollback completed');
-    
+
     this.rollbacks.set(rollback.id, rollback);
-    
-    structuredLogger.info('Rollback completed', { 
+
+    structuredLogger.info('Rollback completed', {
       rollbackId: rollback.id,
       success: rollback.success,
       duration: rollback.duration
@@ -786,41 +786,41 @@ class BlueGreenDeploymentService {
       totalGates: gates.length,
       totalRollbacks: rollbacks.length,
       activeEnvironments: environments.filter(e => e.status === 'active').length,
-      
+
       // Estadísticas de pipelines
       pipelineStats: {
         completed: pipelines.filter(p => p.status === 'completed').length,
         failed: pipelines.filter(p => p.status === 'failed').length,
         running: pipelines.filter(p => p.status === 'running').length,
-        averageDuration: pipelines.length > 0 ? 
+        averageDuration: pipelines.length > 0 ?
           pipelines.reduce((sum, p) => sum + p.metrics.totalDuration, 0) / pipelines.length : 0
       },
-      
+
       // Estadísticas de gates
       gateStats: {
         passed: gates.filter(g => g.status === 'passed').length,
         failed: gates.filter(g => g.status === 'failed').length,
         running: gates.filter(g => g.status === 'running').length,
-        averageExecutionTime: gates.length > 0 ? 
+        averageExecutionTime: gates.length > 0 ?
           gates.reduce((sum, g) => sum + (g.results.duration || 0), 0) / gates.length : 0
       },
-      
+
       // Estadísticas por período
       last24Hours: {
         deployments: pipelines.filter(p => new Date(p.createdAt) >= last24Hours).length,
         rollbacks: rollbacks.filter(r => new Date(r.startTime) >= last24Hours).length,
         gateExecutions: gates.filter(g => new Date(g.updatedAt) >= last24Hours).length
       },
-      
+
       last7Days: {
         deployments: pipelines.filter(p => new Date(p.createdAt) >= last7Days).length,
         rollbacks: rollbacks.filter(r => new Date(r.startTime) >= last7Days).length,
         gateExecutions: gates.filter(g => new Date(g.updatedAt) >= last7Days).length
       },
-      
+
       // Estadísticas por tipo de gate
       gateTypes: this.getGateTypeStats(gates),
-      
+
       // Estadísticas de rollback
       rollbackStats: {
         total: rollbacks.length,
@@ -828,7 +828,7 @@ class BlueGreenDeploymentService {
         failed: rollbacks.filter(r => !r.success).length,
         byReason: this.getRollbackReasonStats(rollbacks)
       },
-      
+
       // Métricas de entorno
       environmentMetrics: environments.map(env => ({
         name: env.name,

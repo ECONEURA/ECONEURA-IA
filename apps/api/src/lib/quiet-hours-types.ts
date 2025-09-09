@@ -1,6 +1,6 @@
 /**
  * PR-46: Quiet Hours + On-Call Management Types
- * 
+ *
  * TypeScript interfaces and types for the Quiet Hours and On-Call system
  */
 

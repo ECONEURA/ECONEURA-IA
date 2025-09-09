@@ -1,10 +1,10 @@
 // RLS CI/CD Integration Service for PR-44
-import { 
-  CICDConfig, 
+import {
+  CICDConfig,
   CICDIntegration,
   ValidationConfig,
   DeploymentConfig,
-  NotificationConfig 
+  NotificationConfig
 } from './rls-types';
 import { logger } from './logger.js';
 
@@ -101,9 +101,9 @@ export class RLSCICDService {
 
       return config;
     } catch (error) {
-      logger.error('Failed to create CI/CD configuration', { 
-        name, 
-        error: (error as Error).message 
+      logger.error('Failed to create CI/CD configuration', {
+        name,
+        error: (error as Error).message
       });
       throw error;
     }
@@ -151,9 +151,9 @@ export class RLSCICDService {
 
       return integration;
     } catch (error) {
-      logger.error('Failed to create CI/CD integration', { 
-        name, 
-        error: (error as Error).message 
+      logger.error('Failed to create CI/CD integration', {
+        name,
+        error: (error as Error).message
       });
       throw error;
     }
@@ -212,10 +212,10 @@ export class RLSCICDService {
         repository: integration.repository
       });
     } catch (error) {
-      logger.error('Failed to process webhook event', { 
-        integrationId, 
-        eventType, 
-        error: (error as Error).message 
+      logger.error('Failed to process webhook event', {
+        integrationId,
+        eventType,
+        error: (error as Error).message
       });
       throw error;
     }
@@ -233,7 +233,7 @@ export class RLSCICDService {
 
     // Check for RLS policy changes
     const files = payload.commits as any[] || [];
-    const rlsPolicyFiles = files.filter(commit => 
+    const rlsPolicyFiles = files.filter(commit =>
       commit.modified?.some((file: string) => file.includes('rls-policies/')) ||
       commit.added?.some((file: string) => file.includes('rls-policies/'))
     );
@@ -255,7 +255,7 @@ export class RLSCICDService {
 
     // Check for RLS policy changes in PR
     const files = payload.pull_request?.files as any[] || [];
-    const rlsPolicyFiles = files.filter((file: any) => 
+    const rlsPolicyFiles = files.filter((file: any) =>
       file.filename.includes('rls-policies/')
     );
 
@@ -344,17 +344,17 @@ export class RLSCICDService {
 
       return pipelineConfig;
     } catch (error) {
-      logger.error('Failed to generate pipeline configuration', { 
-        integrationId, 
-        configType, 
-        error: (error as Error).message 
+      logger.error('Failed to generate pipeline configuration', {
+        integrationId,
+        configType,
+        error: (error as Error).message
       });
       throw error;
     }
   }
 
   private generateGitHubActionsConfig(integration: CICDIntegration): string {
-    return `name: RLS Policy Deployment
+    return `name: RLS Policy Deployment;
 
 on:
   push:
@@ -371,18 +371,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Validate RLS policies
         run: npm run validate:rls-policies
-      
+
       - name: Run policy tests
         run: npm run test:rls-policies
 
@@ -392,10 +392,10 @@ jobs:
     if: github.ref == 'refs/heads/${integration.branch}'
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Deploy to staging
         run: npm run deploy:rls-policies:staging
-      
+
       - name: Deploy to production
         if: github.event_name == 'release'
         run: npm run deploy:rls-policies:production
@@ -403,7 +403,7 @@ jobs:
   }
 
   private generateGitLabCIConfig(integration: CICDIntegration): string {
-    return `stages:
+    return `stages:;
   - validate
   - deploy
 
@@ -444,14 +444,14 @@ deploy-production:
   private generateJenkinsConfig(integration: CICDIntegration): string {
     return `pipeline {
     agent any
-    
+
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
-        
+
         stage('Validate Policies') {
             steps {
                 sh 'npm ci'
@@ -459,7 +459,7 @@ deploy-production:
                 sh 'npm run test:rls-policies'
             }
         }
-        
+
         stage('Deploy to Staging') {
             when {
                 branch '${integration.branch}'
@@ -468,7 +468,7 @@ deploy-production:
                 sh 'npm run deploy:rls-policies:staging'
             }
         }
-        
+
         stage('Deploy to Production') {
             when {
                 tag '*'
@@ -478,7 +478,7 @@ deploy-production:
             }
         }
     }
-    
+
     post {
         always {
             cleanWs()
@@ -495,7 +495,7 @@ deploy-production:
   }
 
   private generateAzureDevOpsConfig(integration: CICDIntegration): string {
-    return `trigger:
+    return `trigger:;
   branches:
     include:
       - ${integration.branch}
@@ -517,7 +517,7 @@ stages:
       inputs:
         versionSpec: '18.x'
       displayName: 'Install Node.js'
-    
+
     - script: |
         npm ci
         npm run validate:rls-policies
@@ -538,7 +538,7 @@ stages:
           steps:
           - script: npm run deploy:rls-policies:staging
             displayName: 'Deploy to Staging'
-  
+
   - deployment: DeployToProduction
     displayName: 'Deploy to Production'
     environment: 'production'

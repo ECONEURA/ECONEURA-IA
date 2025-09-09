@@ -1,6 +1,6 @@
 /**
  * PR-53: Deals NBA Explicable Service
- * 
+ *
  * Sistema de Next Best Action (NBA) explicable para deals
  */
 
@@ -186,7 +186,7 @@ export class DealsNBAService {
 
       for (const deal of this.deals.values()) {
         const recommendations = await this.generateRecommendations(deal);
-        
+
         if (recommendations.length > 0) {
           this.recommendations.set(deal.id, recommendations);
           totalRecommendations += recommendations.length;
@@ -235,10 +235,10 @@ export class DealsNBAService {
   async generateRecommendations(deal: Deal): Promise<NBARecommendation[]> {
     const recommendations: NBARecommendation[] = [];
     const possibleActions = this.getPossibleActions(deal);
-    
+
     for (const action of possibleActions) {
       const recommendation = await this.createRecommendation(deal, action);
-      
+
       if (recommendation.confidence >= this.config.confidenceThreshold) {
         recommendations.push(recommendation);
       }
@@ -248,11 +248,11 @@ export class DealsNBAService {
       const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
       const aPriority = priorityOrder[a.priority];
       const bPriority = priorityOrder[b.priority];
-      
+
       if (aPriority !== bPriority) {
         return bPriority - aPriority;
       }
-      
+
       return b.confidence - a.confidence;
     });
 
@@ -283,7 +283,7 @@ export class DealsNBAService {
         actions.push('follow_up', 'call', 'email');
     }
 
-    return actions.filter(action => 
+    return actions.filter(action => ;
       this.config.actions[action as keyof typeof this.config.actions]?.enabled
     );
   }
@@ -523,7 +523,7 @@ export class DealsNBAService {
 
   async executeRecommendation(recommendationId: string, executedBy: string): Promise<void> {
     this.stats.recommendationsExecuted++;
-    
+
     structuredLogger.info('NBA recommendation executed', {
       recommendationId,
       executedBy,

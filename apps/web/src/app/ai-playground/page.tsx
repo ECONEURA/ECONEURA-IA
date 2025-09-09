@@ -6,8 +6,8 @@ export const metadata: Metadata = {
   description: 'Test AI Router functionality with real-time cost monitoring',
 };
 
-export default function AIPlaygroundPage() {
-  return (
+export default function AIPlaygroundPage(): void {
+  return (;
     <div className="h-screen bg-gray-50">
       <div className="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow h-full">

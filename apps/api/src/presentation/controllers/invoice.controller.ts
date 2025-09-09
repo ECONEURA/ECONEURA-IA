@@ -108,7 +108,7 @@ export class InvoiceController extends BaseController {
       const query = InvoiceSearchQuerySchema.parse(req.query);
 
       const result = await this.invoiceRepository.findByOrganizationId(organizationId, query);
-      
+
       const response: InvoiceListResponse = {
         data: result.data.map(invoice => this.transformInvoiceToResponse(invoice)),
         pagination: result.pagination
@@ -124,7 +124,7 @@ export class InvoiceController extends BaseController {
       const query = InvoiceSearchQuerySchema.parse(req.query);
 
       const result = await this.invoiceRepository.search(query.search || '', organizationId, query);
-      
+
       const response: InvoiceListResponse = {
         data: result.data.map(invoice => this.transformInvoiceToResponse(invoice)),
         pagination: result.pagination
@@ -156,7 +156,7 @@ export class InvoiceController extends BaseController {
       const query = InvoiceSearchQuerySchema.parse(req.query);
 
       const result = await this.invoiceRepository.findByType(type, organizationId, query);
-      
+
       const response: InvoiceListResponse = {
         data: result.data.map(invoice => this.transformInvoiceToResponse(invoice)),
         pagination: result.pagination
@@ -173,7 +173,7 @@ export class InvoiceController extends BaseController {
       const query = InvoiceSearchQuerySchema.parse(req.query);
 
       const result = await this.invoiceRepository.findByStatus(status, organizationId, query);
-      
+
       const response: InvoiceListResponse = {
         data: result.data.map(invoice => this.transformInvoiceToResponse(invoice)),
         pagination: result.pagination
@@ -190,7 +190,7 @@ export class InvoiceController extends BaseController {
       const query = InvoiceSearchQuerySchema.parse(req.query);
 
       const result = await this.invoiceRepository.findByPaymentStatus(paymentStatus, organizationId, query);
-      
+
       const response: InvoiceListResponse = {
         data: result.data.map(invoice => this.transformInvoiceToResponse(invoice)),
         pagination: result.pagination
@@ -207,7 +207,7 @@ export class InvoiceController extends BaseController {
       const query = InvoiceSearchQuerySchema.parse(req.query);
 
       const result = await this.invoiceRepository.findByCompanyId(companyId, organizationId, query);
-      
+
       const response: InvoiceListResponse = {
         data: result.data.map(invoice => this.transformInvoiceToResponse(invoice)),
         pagination: result.pagination
@@ -223,7 +223,7 @@ export class InvoiceController extends BaseController {
       const query = InvoiceSearchQuerySchema.parse(req.query);
 
       const result = await this.invoiceRepository.findOverdueInvoices(organizationId, query);
-      
+
       const response: InvoiceListResponse = {
         data: result.data.map(invoice => this.transformInvoiceToResponse(invoice)),
         pagination: result.pagination
@@ -240,7 +240,7 @@ export class InvoiceController extends BaseController {
       const query = InvoiceSearchQuerySchema.parse(req.query);
 
       const result = await this.invoiceRepository.findInvoicesDueSoon(organizationId, parseInt(days), query);
-      
+
       const response: InvoiceListResponse = {
         data: result.data.map(invoice => this.transformInvoiceToResponse(invoice)),
         pagination: result.pagination

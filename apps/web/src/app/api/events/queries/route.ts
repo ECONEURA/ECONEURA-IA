@@ -5,7 +5,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // POST /api/events/queries - Ejecutar query
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): void {
   try {
     const { type, data } = await request.json();
     const userId = request.headers.get('x-user-id') || undefined;
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Failed to execute query:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: (error as Error).message },
       { status: 400 }
     );

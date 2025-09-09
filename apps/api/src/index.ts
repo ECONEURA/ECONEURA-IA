@@ -26,9 +26,9 @@ import configurationRouter from './routes/configuration.js';
 import workflowsRouter from './routes/workflows.js';
 
 // Importar middlewares de mejora
-import { 
-  performanceMiddleware, 
-  cacheMiddleware, 
+import {
+  performanceMiddleware,
+  cacheMiddleware,
   compressionMiddleware,
   advancedRateLimitMiddleware,
   resourceMonitoringMiddleware,
@@ -234,11 +234,11 @@ import { monitoringRouter } from './routes/monitoring.js';
 // notifications
 import { notificationsRouter } from './routes/notifications.js';
 // intelligent-reporting
-import { intelligentReportingRouter } from './routes/intelligent-reporting.js'; 
+import { intelligentReportingRouter } from './routes/intelligent-reporting.js';
 // business-intelligence
 import { businessIntelligenceRouter } from './routes/business-intelligence.js';
 // quiet-hours
-import { quietHoursRouter } from './routes/quiet-hours.js'; 
+import { quietHoursRouter } from './routes/quiet-hours.js';
 // oncall
 import { oncallRouter } from './routes/oncall.js';
 // escalation
@@ -345,19 +345,19 @@ app.use((req, res, next) => {
   const now = Date.now();
   const windowMs = 15 * 60 * 1000; // 15 minutes
   const maxRequests = 100;
-  
+
   if (!rateLimitStore.has(ip)) {
     rateLimitStore.set(ip, { count: 1, resetTime: now + windowMs });
     return next();
   }
-  
+
   const record = rateLimitStore.get(ip);
   if (now > record.resetTime) {
     record.count = 1;
     record.resetTime = now + windowMs;
     return next();
   }
-  
+
   if (record.count >= maxRequests) {
     return res.status(429).json({
       error: 'Too Many Requests',
@@ -370,7 +370,7 @@ app.use((req, res, next) => {
       }
     });
   }
-  
+
   record.count++;
   res.set({
     'X-RateLimit-Limit': maxRequests.toString(),
@@ -455,7 +455,7 @@ app.get("/metrics", async (req, res) => {
     const cacheStats = cacheManager.getAllStats();
     const memoryUsage = process.memoryUsage();
     const uptime = process.uptime();
-    
+
     const metrics = `
 # HELP econeura_api_info API information
 # TYPE econeura_api_info gauge
@@ -485,7 +485,7 @@ econeura_uptime_seconds ${uptime}
 # TYPE econeura_rate_limit_requests_total counter
 econeura_rate_limit_requests_total ${rateLimitStore.size}
 `;
-    
+
     res.set('Content-Type', 'text/plain');
     res.send(metrics.trim());
   } catch (error) {
@@ -506,9 +506,9 @@ app.get("/cache/stats", (req, res) => {
       totalSize: Object.values(stats).reduce((sum: number, cache: any) => sum + (cache?.size || 0), 0),
       overallHitRate: 0
     };
-    
+
     systemStats.overallHitRate = systemStats.totalHits / (systemStats.totalHits + systemStats.totalMisses) || 0;
-    
+
     res.json({
       success: true,
       data: {
@@ -534,7 +534,7 @@ app.get("/v1/finops/budgets", async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string || 'demo-org';
     const budgets = finOpsConsolidatedService.getBudgetsByOrganization(orgId);
-    
+
     res.set({
       'X-Est-Cost-EUR': '0.0020',
       'X-Budget-Pct': '0.3',
@@ -542,7 +542,7 @@ app.get("/v1/finops/budgets", async (req, res) => {
       'X-Route': 'local',
       'X-Correlation-Id': `req_${Date.now()}`
     });
-    
+
     res.json({
       success: true,
       data: budgets,
@@ -565,7 +565,7 @@ app.get("/v1/finops/budgets", async (req, res) => {
 app.post("/v1/finops/budgets", async (req, res) => {
   try {
     const budget = await finOpsConsolidatedService.createBudget(req.body);
-    
+
     res.set({
       'X-Est-Cost-EUR': '0.0050',
       'X-Budget-Pct': '0.8',
@@ -573,7 +573,7 @@ app.post("/v1/finops/budgets", async (req, res) => {
       'X-Route': 'local',
       'X-Correlation-Id': `req_${Date.now()}`
     });
-    
+
     res.status(201).json({
       success: true,
       data: budget,
@@ -594,7 +594,7 @@ app.get("/v1/finops/costs", async (req, res) => {
     const costMetrics = finOpsConsolidatedService.getCostMetrics(orgId);
     const costs = finOpsConsolidatedService.getCosts({ organizationId: orgId });
     const anomalies = finOpsConsolidatedService.getCostAnomalies(orgId);
-    
+
     res.set({
       'X-Est-Cost-EUR': '0.0030',
       'X-Budget-Pct': '0.5',
@@ -602,7 +602,7 @@ app.get("/v1/finops/costs", async (req, res) => {
       'X-Route': 'local',
       'X-Correlation-Id': `req_${Date.now()}`
     });
-    
+
     res.json({
       success: true,
       data: {
@@ -637,7 +637,7 @@ app.get("/v1/system/consolidated-status", async (req, res) => {
     const securityStats = securityConsolidated.getStats();
     const quietHoursStats = quietHoursOnCallConsolidated.getStats();
     const gdprStats = gdprConsolidated.getStats();
-    
+
     res.set({
       'X-Est-Cost-EUR': '0.0010',
       'X-Budget-Pct': '0.1',
@@ -645,7 +645,7 @@ app.get("/v1/system/consolidated-status", async (req, res) => {
       'X-Route': 'local',
       'X-Correlation-Id': `req_${Date.now()}`
     });
-    
+
     res.json({
       success: true,
       data: {
@@ -712,13 +712,13 @@ app.post("/v1/gdpr/export", async (req, res) => {
     downloadUrl: null,
     timestamp: new Date().toISOString()
   };
-  
+
   structuredLogger.info('GDPR data export initiated', {
     exportId: exportResult.exportId,
     userId,
     dataTypes: exportResult.dataTypes
   });
-  
+
   res.json({
     success: true,
     data: exportResult,
@@ -737,13 +737,13 @@ app.delete("/v1/gdpr/erase/:userId", async (req, res) => {
     auditTrail: true,
     timestamp: new Date().toISOString()
   };
-  
+
   structuredLogger.info('GDPR data erasure initiated', {
     eraseId: eraseResult.eraseId,
     userId,
     dataCategories: eraseResult.dataCategories
   });
-  
+
   res.json({
     success: true,
     data: eraseResult,
@@ -765,7 +765,7 @@ app.get("/v1/gdpr/audit", async (req, res) => {
         userAgent: req.headers['user-agent']
       },
       {
-        id: 'audit_002', 
+        id: 'audit_002',
         action: 'privacy_settings_updated',
         userId: userId || 'user123',
         timestamp: new Date(Date.now() - 3600000).toISOString(),
@@ -781,7 +781,7 @@ app.get("/v1/gdpr/audit", async (req, res) => {
       encryptionStatus: 'encrypted'
     }
   };
-  
+
   res.json({
     success: true,
     data: auditLogs
@@ -795,14 +795,14 @@ app.get("/v1/gdpr/audit", async (req, res) => {
 app.post("/v1/sepa/parse", async (req, res) => {
   try {
     const { xmlData, format } = req.body;
-    
+
     let parsedData;
     if (format === 'MT940') {
       parsedData = await sepaParser.parseMT940(xmlData);
     } else {
       parsedData = await sepaParser.parseCAMT(xmlData);
     }
-    
+
     res.json({
       success: true,
       data: parsedData,
@@ -821,7 +821,7 @@ app.post("/v1/sepa/parse", async (req, res) => {
 app.get("/v1/sepa/transactions", async (req, res) => {
   try {
     const transactions = sepaParser.getTransactions();
-    
+
     res.json({
       success: true,
       data: transactions,
@@ -871,7 +871,7 @@ app.get("/v1/quiet-hours", async (req, res) => {
     ],
     lastUpdated: new Date().toISOString()
   };
-  
+
   res.json({
     success: true,
     data: quietHoursConfig
@@ -886,13 +886,13 @@ app.post("/v1/quiet-hours", async (req, res) => {
     lastUpdated: new Date().toISOString(),
     updatedBy: req.headers['x-user-id'] || 'system'
   };
-  
+
   structuredLogger.info('Quiet hours config updated', {
     orgId,
     updatedBy: config.updatedBy,
     enabled: config.enabled
   });
-  
+
   res.json({
     success: true,
     data: config,
@@ -924,21 +924,21 @@ app.get("/v1/on-call/schedule", async (req, res) => {
       startTime: new Date(now.getTime() + 20 * 60 * 60 * 1000).toISOString()
     },
     escalationLevels: [
-      { 
-        level: 1, 
-        timeout: 300, 
+      {
+        level: 1,
+        timeout: 300,
         contacts: ['juan.perez@econeura.com'],
         description: 'Primary on-call engineer'
       },
-      { 
-        level: 2, 
-        timeout: 600, 
+      {
+        level: 2,
+        timeout: 600,
         contacts: ['maria.garcia@econeura.com', '+34 600 789 012'],
         description: 'Secondary engineer + SMS'
       },
-      { 
-        level: 3, 
-        timeout: 900, 
+      {
+        level: 3,
+        timeout: 900,
         contacts: ['escalation@econeura.com', '+34 600 999 999'],
         description: 'Management escalation'
       }
@@ -946,7 +946,7 @@ app.get("/v1/on-call/schedule", async (req, res) => {
     timezone: 'Europe/Madrid',
     lastUpdated: new Date().toISOString()
   };
-  
+
   res.json({
     success: true,
     data: schedule
@@ -972,14 +972,14 @@ app.post("/v1/alerts/escalate", async (req, res) => {
       slack: level >= 3
     }
   };
-  
+
   structuredLogger.info('Alert escalated', {
     alertId,
     escalationId: escalationResult.escalationId,
     level,
     escalatedBy: escalationResult.escalatedBy
   });
-  
+
   res.json({
     success: true,
     data: escalationResult,
@@ -1027,7 +1027,7 @@ app.get("/v1/prompts", async (req, res) => {
     totalApproved: 3,
     totalDraft: 0
   };
-  
+
   res.json({
     success: true,
     data: prompts,
@@ -1047,14 +1047,14 @@ app.post("/v1/prompts", async (req, res) => {
     createdAt: new Date().toISOString(),
     createdBy: req.headers['x-user-id'] || 'system'
   };
-  
+
   structuredLogger.info('Prompt template created', {
     promptId: prompt.id,
     name,
     category,
     approved: prompt.approved
   });
-  
+
   res.status(201).json({
     success: true,
     data: prompt,
@@ -1072,9 +1072,9 @@ app.post("/v1/warmup/ai", async (req, res) => {
     cacheHitImprovement: '15%',
     timestamp: new Date().toISOString()
   };
-  
+
   structuredLogger.info('AI services warmup completed', warmupResult);
-  
+
   res.json({
     success: true,
     data: warmupResult,
@@ -1092,7 +1092,7 @@ app.post("/v1/warmup/search", async (req, res) => {
     searchSpeedImprovement: '25%',
     timestamp: new Date().toISOString()
   };
-  
+
   res.json({
     success: true,
     data: searchWarmup,
@@ -1114,7 +1114,7 @@ app.get("/v1/search/semantic", async (req, res) => {
         category: 'analytics'
       },
       {
-        id: 'result_002', 
+        id: 'result_002',
         title: 'Empresa ABC Corp',
         content: 'Cliente principal con historial de compras...',
         score: 0.87,
@@ -1127,14 +1127,14 @@ app.get("/v1/search/semantic", async (req, res) => {
     suggestions: ['análisis ventas', 'empresa ABC', 'Q4 2024'],
     timestamp: new Date().toISOString()
   };
-  
+
   res.set({
     'X-Est-Cost-EUR': '0.0150',
     'X-Budget-Pct': '2.5',
     'X-Latency-ms': '450',
     'X-Route': 'local'
   });
-  
+
   res.json({
     success: true,
     data: results,
@@ -1178,7 +1178,7 @@ app.get("/v1/performance/optimize", async (req, res) => {
     },
     timestamp: new Date().toISOString()
   };
-  
+
   res.json({
     success: true,
     data: recommendations,
@@ -1245,7 +1245,7 @@ app.get("/", (req, res) => {
     endpoints: {
       health: [
         "GET /health - Basic health check",
-        "GET /health/live - Liveness probe (PR-22)", 
+        "GET /health/live - Liveness probe (PR-22)",
         "GET /health/ready - Readiness probe (PR-22)"
       ],
       observability: [
@@ -1648,7 +1648,7 @@ app.use('/v1/blue-green-deployment', blueGreenDeploymentRouter);
 // semantic-search-crm
 app.use('/v1/semantic-search-crm', semanticSearchCRMRouter);
 // reportes-mensuales
-app.use('/v1/reportes-mensuales', reportesMensualesRouter);  
+app.use('/v1/reportes-mensuales', reportesMensualesRouter);
 // rbac-granular
 app.use('/v1/rbac-granular', rbacGranularRouter);
 // gdpr
@@ -1767,7 +1767,7 @@ const server = app.listen(PORT, async () => {
     structuredLogger.info('Initializing warmup system...', {
       requestId: ''
     });
-    
+
     // Start warmup in background (non-blocking)
     warmupSystem.startWarmup().then((results) => {
       const status = warmupSystem.getWarmupStatus();
@@ -1783,7 +1783,7 @@ const server = app.listen(PORT, async () => {
         requestId: ''
       });
     });
-    
+
   } catch (error) {
     structuredLogger.error('Failed to start warmup system', {
       error: error instanceof Error ? error.message : String(error),
@@ -1796,14 +1796,14 @@ const server = app.listen(PORT, async () => {
     structuredLogger.info('Initializing performance optimizer V2...', {
       requestId: ''
     });
-    
+
     const status = performanceOptimizerV2.getStatus();
     structuredLogger.info('Performance optimizer V2 initialized', {
       enabled: status.enabled,
       config: status.config,
       requestId: ''
     });
-    
+
   } catch (error) {
     structuredLogger.error('Failed to initialize performance optimizer V2', {
       error: error instanceof Error ? error.message : String(error),
@@ -1816,14 +1816,14 @@ const server = app.listen(PORT, async () => {
     structuredLogger.info('Initializing memory manager...', {
       requestId: ''
     });
-    
+
     const status = memoryManager.getStatus();
     structuredLogger.info('Memory manager initialized', {
       enabled: status.enabled,
       config: status.config,
       requestId: ''
     });
-    
+
   } catch (error) {
     structuredLogger.error('Failed to initialize memory manager', {
       error: error instanceof Error ? error.message : String(error),
@@ -1836,14 +1836,14 @@ const server = app.listen(PORT, async () => {
     structuredLogger.info('Initializing connection pool service...', {
       requestId: ''
     });
-    
+
     const stats = connectionPoolService.getStats();
     structuredLogger.info('Connection pool service initialized', {
       poolsCount: stats.size,
       pools: Array.from(stats.keys()),
       requestId: ''
     });
-    
+
   } catch (error) {
     structuredLogger.error('Failed to initialize connection pool service', {
       error: error instanceof Error ? error.message : String(error),
@@ -1856,7 +1856,7 @@ const server = app.listen(PORT, async () => {
     structuredLogger.info('Initializing companies taxonomy service...', {
       requestId: ''
     });
-    
+
     const taxonomies = companiesTaxonomyService.getTaxonomies();
     const views = companiesTaxonomyService.getViews('default');
     structuredLogger.info('Companies taxonomy service initialized', {
@@ -1864,7 +1864,7 @@ const server = app.listen(PORT, async () => {
       viewsCount: views.length,
       requestId: ''
     });
-    
+
   } catch (error) {
     structuredLogger.error('Failed to initialize companies taxonomy service', {
       error: error instanceof Error ? error.message : String(error),

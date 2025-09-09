@@ -15,7 +15,7 @@ beforeAll(async () => {
   process.env.JWT_SECRET = 'test-jwt-secret';
   process.env.AZURE_OPENAI_API_KEY = 'test-azure-key';
   process.env.AZURE_OPENAI_ENDPOINT = 'https://test.openai.azure.com/';
-  
+
   // Start performance test database and services
   // This would typically start Docker containers or test services
 });
@@ -24,7 +24,7 @@ beforeAll(async () => {
 afterAll(async () => {
   // Cleanup performance test environment
   process.env.NODE_ENV = 'development';
-  
+
   // Stop performance test database and services
   // This would typically stop Docker containers or test services
 });

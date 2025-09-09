@@ -90,20 +90,20 @@ const navigation = [
   },
 ]
 
-export function Navigation() {
+export function Navigation(): void {
   const { user, logout, hasPermission } = useAuth()
   const pathname = usePathname()
   const [showUserMenu, setShowUserMenu] = useState(false)
 
   if (!user) {
-    return null
+    return null;
   }
 
-  const filteredNavigation = navigation.filter(item => 
+  const filteredNavigation = navigation.filter(item =>
     hasPermission(item.permission)
   )
 
-  return (
+  return (;
     <nav className="fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-mediterranean-900 via-mediterranean-800 to-mediterranean-900 border-r border-mediterranean-700/50 backdrop-blur-xl shadow-2xl">
       <div className="flex flex-col h-full">
         <div className="flex items-center px-6 py-6 border-b border-mediterranean-700/30">
@@ -122,8 +122,8 @@ export function Navigation() {
           {filteredNavigation.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
             const Icon = item.icon
-            
-            return (
+
+            return (;
               <div key={item.name}>
                 <Link
                   href={item.href}
@@ -145,13 +145,13 @@ export function Navigation() {
                     <div className="ml-auto w-2 h-2 bg-coral-400 rounded-full animate-pulse" />
                   )}
                 </Link>
-                
+
                 {/* Sub-navigation for items with children */}
                 {item.children && (isActive || pathname.startsWith(item.href + '/')) && (
                   <div className="ml-4 mt-2 space-y-1 animate-slide-down">
                     {item.children.map((child) => {
                       const isChildActive = pathname === child.href
-                      return (
+                      return (;
                         <Link
                           key={child.name}
                           href={child.href}
@@ -207,7 +207,7 @@ export function Navigation() {
                     </span>
                   </p>
                 </div>
-                
+
                 <Link
                   href="/settings"
                   className="flex items-center px-4 py-3 text-sm text-mediterranean-700 hover:bg-sand-50/50 transition-colors duration-200 group"
@@ -216,7 +216,7 @@ export function Navigation() {
                   <Settings className="mr-3 h-4 w-4 text-mediterranean-500 group-hover:text-coral-500 transition-colors duration-200" />
                   Configuración
                 </Link>
-                
+
                 <Link
                   href="/notifications"
                   className="flex items-center px-4 py-3 text-sm text-mediterranean-700 hover:bg-sand-50/50 transition-colors duration-200 group"
@@ -225,9 +225,9 @@ export function Navigation() {
                   <Bell className="mr-3 h-4 w-4 text-mediterranean-500 group-hover:text-coral-500 transition-colors duration-200" />
                   Notificaciones
                 </Link>
-                
+
                 <hr className="my-1 border-sand-200/50" />
-                
+
                 <button
                   onClick={() => {
                     setShowUserMenu(false)

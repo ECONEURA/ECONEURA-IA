@@ -5,7 +5,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // GET /api/microservices/services - Obtener servicios
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): void {
   try {
     const { searchParams } = new URL(request.url);
     const name = searchParams.get('name');
@@ -14,9 +14,9 @@ export async function GET(request: NextRequest) {
     const region = searchParams.get('region');
     const health = searchParams.get('health');
     const status = searchParams.get('status');
-    
+
     let services = webMicroservicesSystem.getAllServices();
-    
+
     // Aplicar filtros
     if (name) {
       services = services.filter(s => s.name === name);
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     if (status) {
       services = services.filter(s => s.status === status);
     }
-    
+
     return NextResponse.json({
       success: true,
       data: {
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Failed to get services:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Internal server error' },
       { status: 500 }
     );

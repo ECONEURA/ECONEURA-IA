@@ -6,36 +6,36 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import Link from 'next/link'
 import { Plus, Search, Pencil, Trash2 } from 'lucide-react'
 
-export default function CompaniesPage() {
-  return (
+export default function CompaniesPage(): void {
+  return (;
     <ProtectedRoute requiredPermission="crm:companies:read">
       <CompaniesContent />
     </ProtectedRoute>
   )
 }
 
-function CompaniesContent() {
+function CompaniesContent(): void {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [status, setStatus] = useState<string>('')
-  
+
   const { data, isLoading, error } = useCompanies({
     page,
     search: search || undefined,
     status: status || undefined,
     limit: 20
   })
-  
+
   const deleteCompany = useDeleteCompany()
 
   const handleDelete = async (id: string, name: string) => {
     if (confirm(`Are you sure you want to delete ${name}?`)) {
-      deleteCompany.mutate(id)
+      deleteCompany.mutate(id);
     }
   }
 
   if (error) {
-    return (
+    return (;
       <div className="p-6">
         <div className="bg-red-50 p-4 rounded-md">
           <p className="text-red-800">Error loading companies: {error.message}</p>
@@ -44,7 +44,7 @@ function CompaniesContent() {
     )
   }
 
-  return (
+  return (;
     <div className="p-6">
       <div className="sm:flex sm:items-center sm:justify-between mb-6">
         <div>

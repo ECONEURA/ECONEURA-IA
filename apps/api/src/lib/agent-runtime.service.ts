@@ -87,7 +87,7 @@ export interface AgentRuntimeEvents {
 
 /**
  * Agent Runtime Service
- * 
+ *
  * High-performance execution engine for AI agents with:
  * - Concurrent execution management
  * - Task queuing and prioritization
@@ -113,7 +113,7 @@ export class AgentRuntimeService extends EventEmitter {
     super();
     this.config = AgentRuntimeConfigSchema.parse(config);
     this.aiRouter = new EnhancedAIRouter();
-    
+
     this.metrics = {
       totalExecutions: 0,
       successfulExecutions: 0,
@@ -140,7 +140,7 @@ export class AgentRuntimeService extends EventEmitter {
     }
 
     this.isRunning = true;
-    
+
     // Start health monitoring
     this.healthCheckInterval = setInterval(() => {
       this.performHealthCheck();
@@ -191,7 +191,7 @@ export class AgentRuntimeService extends EventEmitter {
     // Wait for active executions to complete (with timeout)
     const shutdownTimeout = 10000; // 10 seconds
     const startTime = Date.now();
-    
+
     while (this.activeExecutions.size > 0 && (Date.now() - startTime) < shutdownTimeout) {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
@@ -218,7 +218,7 @@ export class AgentRuntimeService extends EventEmitter {
         request.context.idempotencyKey,
         request.context.orgId
       );
-      
+
       if (existingTask) {
         structuredLogger.info('Task already exists (idempotent)', {
           taskId: existingTask.id,
@@ -426,11 +426,11 @@ export class AgentRuntimeService extends EventEmitter {
       const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
       const aPriority = priorityOrder[a.priority];
       const bPriority = priorityOrder[b.priority];
-      
+
       if (aPriority !== bPriority) {
         return bPriority - aPriority;
       }
-      
+
       return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
     });
 
@@ -442,7 +442,7 @@ export class AgentRuntimeService extends EventEmitter {
    */
   private async executeTask(task: AgentTask): Promise<void> {
     const startTime = Date.now();
-    
+
     try {
       // Move from queue to active executions
       this.taskQueue.delete(task.id);
@@ -510,13 +510,13 @@ export class AgentRuntimeService extends EventEmitter {
 
     } catch (error) {
       const executionTime = Date.now() - startTime;
-      
+
       // Handle retry logic
       if (task.retryCount < task.maxRetries) {
         task.retryCount++;
         task.status = 'pending';
         task.updatedAt = new Date().toISOString();
-        
+
         // Add back to queue with delay
         setTimeout(() => {
           this.taskQueue.set(task.id, task);
@@ -763,13 +763,13 @@ export class AgentRuntimeService extends EventEmitter {
   private updateAverageMetrics(task: AgentTask): void {
     if (task.executionTimeMs) {
       const totalExecutions = this.metrics.successfulExecutions + this.metrics.failedExecutions;
-      this.metrics.averageExecutionTime = 
+      this.metrics.averageExecutionTime =
         (this.metrics.averageExecutionTime * (totalExecutions - 1) + task.executionTimeMs) / totalExecutions;
     }
 
     if (task.costEur) {
       const totalExecutions = this.metrics.successfulExecutions + this.metrics.failedExecutions;
-      this.metrics.averageCost = 
+      this.metrics.averageCost =
         (this.metrics.averageCost * (totalExecutions - 1) + task.costEur) / totalExecutions;
     }
   }
@@ -782,7 +782,7 @@ export class AgentRuntimeService extends EventEmitter {
     const successRate = totalExecutions > 0 ? this.metrics.successfulExecutions / totalExecutions : 1;
 
     let systemHealth: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
-    
+
     if (successRate < 0.8) {
       systemHealth = 'unhealthy';
     } else if (successRate < 0.95) {

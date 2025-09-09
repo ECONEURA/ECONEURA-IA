@@ -148,7 +148,7 @@ export class CreateArchitectureUseCase extends BaseUseCase<CreateArchitectureReq
         tags: request.settings.tags,
         notes: request.settings.notes,
       },
-      components: request.settings.layers.flatMap(layer => 
+      components: request.settings.layers.flatMap(layer =>
         layer.components.map(component => ({
           id: component.id,
           name: component.name,

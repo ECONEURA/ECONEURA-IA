@@ -55,10 +55,10 @@ export const securityHeadersMiddleware = helmet({
 
 export const inputValidationMiddleware = (req: Request, res: Response, next: NextFunction): void => {
   const errors = validationResult(req);
-  
+
   if (!errors.isEmpty()) {
     const errorMessages = errors.array().map(error => error.msg);
-    
+
     securityService.recordAuditLog({
       action: 'VALIDATION_ERROR',
       resource: req.path,
@@ -108,7 +108,7 @@ export const sanitizationMiddleware = (req: Request, res: Response, next: NextFu
 export const suspiciousActivityMiddleware = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
   const ipAddress = req.ip || 'unknown';
   const userAgent = req.get('User-Agent') || 'unknown';
-  
+
   // Interceptar respuesta para detectar patrones sospechosos
   const originalSend = res.send;
   res.send = function(data: any) {
@@ -136,16 +136,16 @@ export const suspiciousActivityMiddleware = (req: AuthenticatedRequest, res: Res
 
 export const auditMiddleware = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
   const startTime = Date.now();
-  
+
   // Interceptar respuesta para registrar auditoría
   const originalSend = res.send;
   res.send = function(data: any) {
     const duration = Date.now() - startTime;
-    
+
     // Registrar auditoría para operaciones importantes
-    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method) || 
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method) ||
         res.statusCode >= 400) {
-      
+
       securityService.recordAuditLog({
         userId: req.user?.id,
         organizationId: req.user?.organizationId,
@@ -217,10 +217,10 @@ export const createRateLimitMiddleware = (options: {
 
 export const ipValidationMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const ipAddress = req.ip || 'unknown';
-  
+
   try {
     const isBlocked = await securityService.isIPBlocked(ipAddress);
-    
+
     if (isBlocked) {
       securityService.recordSecurityEvent({
         type: 'UNAUTHORIZED_ACCESS',
@@ -253,7 +253,7 @@ export const ipValidationMiddleware = async (req: Request, res: Response, next: 
 
 export const tokenValidationMiddleware = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
   const token = req.headers.authorization?.replace('Bearer ', '');
-  
+
   if (!token) {
     securityService.recordSecurityEvent({
       type: 'UNAUTHORIZED_ACCESS',

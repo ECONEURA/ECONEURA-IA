@@ -7,7 +7,7 @@ interface TimelineProps {
   events: ActivityEvent[];
 }
 
-export default function Timeline({ events }: TimelineProps) {
+export default function Timeline({ events }: TimelineProps): void {
   const getEventIcon = (kind: string) => {
     switch (kind) {
       case 'ok': return '✅';
@@ -28,7 +28,7 @@ export default function Timeline({ events }: TimelineProps) {
     }
   };
 
-  return (
+  return (;
     <div style={{
       backgroundColor: '#FFFFFF',
       border: `${ui.bw}px solid ${ui.border}`,
@@ -83,7 +83,7 @@ export default function Timeline({ events }: TimelineProps) {
                 }}>
                   {getEventIcon(event.kind)}
                 </div>
-                
+
                 <div style={{ flex: 1 }}>
                   <div style={{
                     fontSize: '14px',
@@ -92,7 +92,7 @@ export default function Timeline({ events }: TimelineProps) {
                   }}>
                     {event.msg}
                   </div>
-                  
+
                   <div style={{
                     fontSize: '12px',
                     color: ui.muted,

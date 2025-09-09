@@ -37,7 +37,7 @@ function azure(): LLMClient {
           })
         }
       );
-      
+
       const data = await response.json();
       return data?.choices?.[0]?.message?.content ?? '';
     }
@@ -62,7 +62,7 @@ function mistral(): LLMClient {
           max_tokens: opts?.maxTokens ?? 512
         })
       });
-      
+
       const data = await response.json();
       return data?.choices?.[0]?.message?.content ?? '';
     }

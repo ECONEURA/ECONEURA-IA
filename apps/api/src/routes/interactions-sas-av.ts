@@ -171,7 +171,7 @@ interactionsSasAvRouter.get('/interactions', async (req, res) => {
   try {
     const filters = GetInteractionsSchema.parse(req.query);
     const interactions = await interactionsSasAvService.getInteractions(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -195,14 +195,14 @@ interactionsSasAvRouter.get('/interactions/:id', async (req, res) => {
   try {
     const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
     const interaction = await interactionsSasAvService.getInteraction(id);
-    
+
     if (!interaction) {
       return res.status(404).json({
         success: false,
         error: 'Interaction not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: interaction,
@@ -222,7 +222,7 @@ interactionsSasAvRouter.post('/interactions', async (req, res) => {
   try {
     const interactionData = CreateInteractionSchema.parse(req.body);
     const interaction = await interactionsSasAvService.createInteraction(interactionData);
-    
+
     res.status(201).json({
       success: true,
       data: interaction,
@@ -243,7 +243,7 @@ interactionsSasAvRouter.post('/analyze/sentiment', async (req, res) => {
   try {
     const { text, audioData } = AnalyzeSentimentSchema.parse(req.body);
     const analysis = await interactionsSasAvService.analyzeSentiment(text, audioData);
-    
+
     res.json({
       success: true,
       data: analysis,
@@ -264,7 +264,7 @@ interactionsSasAvRouter.post('/analyze/voice', async (req, res) => {
   try {
     const { audioData } = AnalyzeVoiceSchema.parse(req.body);
     const analysis = await interactionsSasAvService.analyzeVoice(audioData);
-    
+
     res.json({
       success: true,
       data: analysis,
@@ -285,7 +285,7 @@ interactionsSasAvRouter.get('/insights/sentiment', async (req, res) => {
   try {
     const filters = GetSentimentInsightsSchema.parse(req.query);
     const insights = await interactionsSasAvService.getSentimentInsights(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -310,7 +310,7 @@ interactionsSasAvRouter.get('/insights/voice', async (req, res) => {
   try {
     const filters = GetVoiceInsightsSchema.parse(req.query);
     const insights = await interactionsSasAvService.getVoiceInsights(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -341,7 +341,7 @@ interactionsSasAvRouter.post('/reports', async (req, res) => {
       reportData.endDate,
       reportData.generatedBy
     );
-    
+
     res.status(201).json({
       success: true,
       data: report,
@@ -362,7 +362,7 @@ interactionsSasAvRouter.get('/stats', async (req, res) => {
   try {
     const { organizationId } = GetStatsSchema.parse(req.query);
     const stats = await interactionsSasAvService.getInteractionStats(organizationId);
-    
+
     res.json({
       success: true,
       data: stats,
@@ -382,7 +382,7 @@ interactionsSasAvRouter.get('/stats', async (req, res) => {
 interactionsSasAvRouter.get('/health', async (req, res) => {
   try {
     const stats = await interactionsSasAvService.getInteractionStats('demo-org-1');
-    
+
     res.json({
       success: true,
       data: {

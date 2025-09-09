@@ -20,7 +20,7 @@ describe('AntivirusGlobalService', () => {
   describe('scanItem', () => {
     it('should scan an item successfully', async () => {
       const result = await service.scanItem(mockItem, 'file');
-      
+
       expect(result).toBeDefined();
       expect(result).toHaveProperty('id');
       expect(result).toHaveProperty('moduleId');
@@ -34,7 +34,7 @@ describe('AntivirusGlobalService', () => {
 
     it('should return clean status for safe items', async () => {
       const result = await service.scanItem(mockItem, 'file');
-      
+
       // En la mayoría de casos debería estar limpio (90% de probabilidad)
       expect(['clean', 'infected']).toContain(result.status);
     });
@@ -46,9 +46,9 @@ describe('AntivirusGlobalService', () => {
         content: 'malicious content',
         path: '/suspicious/file.exe'
       };
-      
+
       const result = await service.scanItem(suspiciousItem, 'file');
-      
+
       expect(result).toBeDefined();
       expect(result.threats).toBeDefined();
       expect(Array.isArray(result.threats)).toBe(true);
@@ -56,7 +56,7 @@ describe('AntivirusGlobalService', () => {
 
     it('should include proper metadata in scan result', async () => {
       const result = await service.scanItem(mockItem, 'file');
-      
+
       expect(result.metadata).toBeDefined();
       expect(result.metadata).toHaveProperty('fileSize');
       expect(result.metadata).toHaveProperty('fileType');
@@ -68,7 +68,7 @@ describe('AntivirusGlobalService', () => {
   describe('performGlobalScan', () => {
     it('should perform global scan successfully', async () => {
       const stats = await service.performGlobalScan();
-      
+
       expect(stats).toBeDefined();
       expect(stats).toHaveProperty('totalScans');
       expect(stats).toHaveProperty('cleanScans');
@@ -85,7 +85,7 @@ describe('AntivirusGlobalService', () => {
     it('should update statistics after scan', async () => {
       const initialStats = service.getStats();
       const stats = await service.performGlobalScan();
-      
+
       expect(stats.totalScans).toBeGreaterThanOrEqual(initialStats.totalScans);
       expect(stats.lastScan).toBeDefined();
       expect(new Date(stats.lastScan)).toBeInstanceOf(Date);
@@ -94,9 +94,9 @@ describe('AntivirusGlobalService', () => {
     it('should not run concurrent scans', async () => {
       const scan1 = service.performGlobalScan();
       const scan2 = service.performGlobalScan();
-      
+
       const [result1, result2] = await Promise.all([scan1, scan2]);
-      
+
       // Ambos deberían completarse sin errores
       expect(result1).toBeDefined();
       expect(result2).toBeDefined();
@@ -116,9 +116,9 @@ describe('AntivirusGlobalService', () => {
         action: 'quarantine' as const,
         metadata: {}
       };
-      
+
       const quarantineItem = await service.quarantineItem(mockItem, threat);
-      
+
       expect(quarantineItem).toBeDefined();
       expect(quarantineItem).toHaveProperty('id');
       expect(quarantineItem).toHaveProperty('moduleId');
@@ -131,7 +131,7 @@ describe('AntivirusGlobalService', () => {
       expect(quarantineItem).toHaveProperty('reason');
       expect(quarantineItem).toHaveProperty('status');
       expect(quarantineItem).toHaveProperty('metadata');
-      
+
       expect(quarantineItem.status).toBe('quarantined');
       expect(quarantineItem.threatId).toBe(threat.id);
     });
@@ -155,10 +155,10 @@ describe('AntivirusGlobalService', () => {
         action: 'quarantine' as const,
         metadata: {}
       };
-      
+
       await service.quarantineItem(mockItem, threat);
       const items = service.getQuarantineItems();
-      
+
       expect(items.length).toBeGreaterThan(0);
       expect(items[0].status).toBe('quarantined');
     });
@@ -173,7 +173,7 @@ describe('AntivirusGlobalService', () => {
     it('should return scan results after scanning', async () => {
       await service.scanItem(mockItem, 'file');
       const results = service.getScanResults();
-      
+
       expect(results.length).toBeGreaterThan(0);
       expect(results[0]).toHaveProperty('id');
       expect(results[0]).toHaveProperty('status');
@@ -183,7 +183,7 @@ describe('AntivirusGlobalService', () => {
   describe('getStats', () => {
     it('should return stats object', () => {
       const stats = service.getStats();
-      
+
       expect(stats).toHaveProperty('totalScans');
       expect(stats).toHaveProperty('cleanScans');
       expect(stats).toHaveProperty('infectedScans');
@@ -204,7 +204,7 @@ describe('AntivirusGlobalService', () => {
         scanInterval: 120,
         quarantineEnabled: false
       };
-      
+
       expect(() => service.updateConfig(newConfig)).not.toThrow();
     });
   });
@@ -222,9 +222,9 @@ describe('AntivirusGlobalService', () => {
         action: 'quarantine' as const,
         metadata: {}
       };
-      
+
       const quarantineItem = await service.quarantineItem(mockItem, threat);
-      
+
       await expect(service.restoreFromQuarantine(quarantineItem.id))
         .resolves.not.toThrow();
     });
@@ -248,9 +248,9 @@ describe('AntivirusGlobalService', () => {
         action: 'quarantine' as const,
         metadata: {}
       };
-      
+
       const quarantineItem = await service.quarantineItem(mockItem, threat);
-      
+
       await expect(service.deleteFromQuarantine(quarantineItem.id))
         .resolves.not.toThrow();
     });

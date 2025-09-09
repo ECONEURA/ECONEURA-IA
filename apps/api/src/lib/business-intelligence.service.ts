@@ -1,6 +1,6 @@
 /**
  * Business Intelligence Service
- * 
+ *
  * This service provides comprehensive business intelligence capabilities including
  * KPI management, strategic insights, competitive analysis, ROI analysis, and
  * risk assessment.
@@ -66,10 +66,10 @@ export class BusinessIntelligenceService {
     };
 
     this.kpis.set(kpi.id, kpi);
-    
+
     // Initialize business intelligence for this KPI
     await this.initializeBusinessIntelligence(kpi);
-    
+
     return kpi;
   }
 
@@ -84,10 +84,10 @@ export class BusinessIntelligenceService {
     };
 
     this.kpis.set(kpiId, updatedKPI);
-    
+
     // Update business intelligence
     await this.updateBusinessIntelligence(updatedKPI);
-    
+
     return updatedKPI;
   }
 
@@ -143,10 +143,10 @@ export class BusinessIntelligenceService {
     };
 
     this.kpis.set(kpiId, updatedKPI);
-    
+
     // Update business intelligence
     await this.updateBusinessIntelligence(updatedKPI);
-    
+
     return updatedKPI;
   }
 
@@ -213,7 +213,7 @@ export class BusinessIntelligenceService {
 
   private async generateInsights(kpi: KPI, variancePercentage: number): Promise<string[]> {
     const insights: string[] = [];
-    
+
     if (variancePercentage > 0) {
       insights.push(`KPI is performing ${variancePercentage.toFixed(1)}% above target`);
       insights.push('Strong performance indicates effective strategies');
@@ -243,7 +243,7 @@ export class BusinessIntelligenceService {
 
   private async generateRecommendations(kpi: KPI, variancePercentage: number): Promise<string[]> {
     const recommendations: string[] = [];
-    
+
     if (variancePercentage < -5) {
       recommendations.push('Review current strategies and identify improvement areas');
       recommendations.push('Consider additional resources or process optimization');
@@ -265,7 +265,7 @@ export class BusinessIntelligenceService {
   }
 
   async getAllBusinessIntelligence(organizationId: string): Promise<BusinessIntelligence[]> {
-    return Array.from(this.businessIntelligence.values())
+    return Array.from(this.businessIntelligence.values());
       .filter(bi => bi.organizationId === organizationId);
   }
 
@@ -275,7 +275,7 @@ export class BusinessIntelligenceService {
 
   private async assessRisks(kpi: KPI, variancePercentage: number): Promise<RiskFactor[]> {
     const risks: RiskFactor[] = [];
-    
+
     if (variancePercentage < -15) {
       risks.push({
         id: this.generateId(),
@@ -321,14 +321,14 @@ export class BusinessIntelligenceService {
 
   async getAllRiskFactors(organizationId: string): Promise<RiskFactor[]> {
     const allRisks: RiskFactor[] = [];
-    
+
     for (const [kpiId, risks] of this.riskFactors.entries()) {
       const kpi = this.kpis.get(kpiId);
       if (kpi && kpi.organizationId === organizationId) {
         allRisks.push(...risks);
       }
     }
-    
+
     return allRisks;
   }
 
@@ -349,7 +349,7 @@ export class BusinessIntelligenceService {
 
   private async identifyOpportunities(kpi: KPI, variancePercentage: number): Promise<Opportunity[]> {
     const opportunities: Opportunity[] = [];
-    
+
     if (variancePercentage > 10) {
       opportunities.push({
         id: this.generateId(),
@@ -403,14 +403,14 @@ export class BusinessIntelligenceService {
 
   async getAllOpportunities(organizationId: string): Promise<Opportunity[]> {
     const allOpportunities: Opportunity[] = [];
-    
+
     for (const [kpiId, opportunities] of this.opportunities.entries()) {
       const kpi = this.kpis.get(kpiId);
       if (kpi && kpi.organizationId === organizationId) {
         allOpportunities.push(...opportunities);
       }
     }
-    
+
     return allOpportunities;
   }
 
@@ -421,7 +421,7 @@ export class BusinessIntelligenceService {
   async performCompetitiveAnalysis(organizationId: string, competitors: string[]): Promise<CompetitiveAnalysis[]> {
     const analyses: CompetitiveAnalysis[] = [];
     const kpis = await this.getKPIs(organizationId);
-    
+
     for (const kpi of kpis) {
       for (const competitor of competitors) {
         const analysis: CompetitiveAnalysis = {
@@ -437,15 +437,15 @@ export class BusinessIntelligenceService {
           organizationId,
           analysisDate: new Date()
         };
-        
+
         analyses.push(analysis);
       }
     }
-    
+
     // Store analyses
     const existing = this.competitiveAnalyses.get(organizationId) || [];
     this.competitiveAnalyses.set(organizationId, [...existing, ...analyses]);
-    
+
     return analyses;
   }
 
@@ -463,7 +463,7 @@ export class BusinessIntelligenceService {
 
   private determinePosition(ourValue: number, competitorValue: number): CompetitiveAnalysis['position'] {
     const difference = (ourValue - competitorValue) / competitorValue;
-    
+
     if (difference > 0.1) return 'leading';
     if (difference < -0.1) return 'lagging';
     return 'competitive';
@@ -471,11 +471,11 @@ export class BusinessIntelligenceService {
 
   private generateCompetitiveRecommendations(kpi: KPI, competitor: string): string[] {
     const recommendations: string[] = [];
-    
+
     recommendations.push(`Monitor ${competitor}'s strategies for ${kpi.name}`);
     recommendations.push('Benchmark performance against industry standards');
     recommendations.push('Identify competitive advantages and weaknesses');
-    
+
     return recommendations;
   }
 
@@ -494,13 +494,13 @@ export class BusinessIntelligenceService {
     timeframe: string;
   }>): Promise<ROIAnalysis[]> {
     const analyses: ROIAnalysis[] = [];
-    
+
     for (const initiative of initiatives) {
       const roi = ((initiative.expectedReturns - initiative.investment) / initiative.investment) * 100;
       const paybackPeriod = initiative.investment / (initiative.expectedReturns / 12); // months
       const npv = this.calculateNPV(initiative.investment, initiative.expectedReturns, 0.1);
       const irr = this.calculateIRR(initiative.investment, initiative.expectedReturns);
-      
+
       const analysis: ROIAnalysis = {
         id: this.generateId(),
         initiative: initiative.name,
@@ -515,14 +515,14 @@ export class BusinessIntelligenceService {
         period: initiative.timeframe,
         createdAt: new Date()
       };
-      
+
       analyses.push(analysis);
     }
-    
+
     // Store analyses
     const existing = this.roiAnalyses.get(organizationId) || [];
     this.roiAnalyses.set(organizationId, [...existing, ...analyses]);
-    
+
     return analyses;
   }
 
@@ -563,28 +563,28 @@ export class BusinessIntelligenceService {
     const kpis = await this.getKPIs(organizationId);
     const benchmarkedKPIs = [];
     let totalScore = 0;
-    
+
     for (const kpi of kpis) {
       const benchmark = this.generateBenchmark(kpi.currentValue);
-      const performance = kpi.currentValue > benchmark ? 'above' : 
+      const performance = kpi.currentValue > benchmark ? 'above' :
                          kpi.currentValue < benchmark ? 'below' : 'at';
       const gap = kpi.currentValue - benchmark;
-      
+
       benchmarkedKPIs.push({
         kpi,
         benchmark,
         performance,
         gap
       });
-      
+
       // Calculate score (above = 1, at = 0.5, below = 0)
       const score = performance === 'above' ? 1 : performance === 'at' ? 0.5 : 0;
       totalScore += score;
     }
-    
+
     const overallScore = (totalScore / kpis.length) * 100;
     const recommendations = this.generateBenchmarkRecommendations(benchmarkedKPIs);
-    
+
     return {
       kpis: benchmarkedKPIs,
       overallScore,
@@ -602,17 +602,17 @@ export class BusinessIntelligenceService {
     const recommendations: string[] = [];
     const belowBenchmark = benchmarkedKPIs.filter(b => b.performance === 'below');
     const aboveBenchmark = benchmarkedKPIs.filter(b => b.performance === 'above');
-    
+
     if (belowBenchmark.length > 0) {
       recommendations.push(`Focus on improving ${belowBenchmark.length} KPIs that are below benchmark`);
     }
-    
+
     if (aboveBenchmark.length > 0) {
       recommendations.push(`Leverage success in ${aboveBenchmark.length} KPIs for competitive advantage`);
     }
-    
+
     recommendations.push('Continue monitoring performance against industry standards');
-    
+
     return recommendations;
   }
 
@@ -632,14 +632,14 @@ export class BusinessIntelligenceService {
     const businessIntelligence = await this.getAllBusinessIntelligence(organizationId);
     const risks = await this.getAllRiskFactors(organizationId);
     const opportunities = await this.getAllOpportunities(organizationId);
-    
+
     const summary = this.generateExecutiveSummary(businessIntelligence);
     const keyFindings = this.extractKeyFindings(businessIntelligence);
     const recommendations = this.generateStrategicRecommendations(businessIntelligence, risks, opportunities);
     const riskSummary = this.summarizeRisks(risks);
     const opportunitySummary = this.summarizeOpportunities(opportunities);
     const nextSteps = this.generateNextSteps(businessIntelligence, risks, opportunities);
-    
+
     return {
       summary,
       keyFindings,
@@ -655,43 +655,43 @@ export class BusinessIntelligenceService {
     const atRisk = businessIntelligence.filter(bi => bi.status === 'at-risk').length;
     const offTrack = businessIntelligence.filter(bi => bi.status === 'off-track').length;
     const exceeding = businessIntelligence.filter(bi => bi.status === 'exceeding').length;
-    
+
     return `Business performance analysis shows ${exceeding} KPIs exceeding targets, ${onTrack} on-track, ${atRisk} at-risk, and ${offTrack} off-track. Overall performance requires strategic attention.`;
   }
 
   private extractKeyFindings(businessIntelligence: BusinessIntelligence[]): string[] {
     const findings: string[] = [];
-    
+
     const avgVariance = businessIntelligence.reduce((sum, bi) => sum + bi.variancePercentage, 0) / businessIntelligence.length;
     findings.push(`Average KPI variance: ${avgVariance.toFixed(1)}%`);
-    
+
     const criticalRisks = businessIntelligence.filter(bi => bi.riskFactors.some(rf => rf.severity === 'critical')).length;
     if (criticalRisks > 0) {
       findings.push(`${criticalRisks} KPIs have critical risk factors requiring immediate attention`);
     }
-    
+
     const highOpportunities = businessIntelligence.filter(bi => bi.opportunities.some(o => o.probability > 0.7)).length;
     if (highOpportunities > 0) {
       findings.push(`${highOpportunities} KPIs present high-probability opportunities`);
     }
-    
+
     return findings;
   }
 
   private generateStrategicRecommendations(businessIntelligence: BusinessIntelligence[], risks: RiskFactor[], opportunities: Opportunity[]): string[] {
     const recommendations: string[] = [];
-    
+
     if (risks.some(r => r.severity === 'critical')) {
       recommendations.push('Implement immediate risk mitigation strategies for critical issues');
     }
-    
+
     if (opportunities.some(o => o.probability > 0.7)) {
       recommendations.push('Prioritize high-probability opportunities for quick wins');
     }
-    
+
     recommendations.push('Establish regular KPI review meetings for continuous improvement');
     recommendations.push('Develop contingency plans for at-risk KPIs');
-    
+
     return recommendations;
   }
 
@@ -705,12 +705,12 @@ export class BusinessIntelligenceService {
 
   private generateNextSteps(businessIntelligence: BusinessIntelligence[], risks: RiskFactor[], opportunities: Opportunity[]): string[] {
     const nextSteps: string[] = [];
-    
+
     nextSteps.push('Schedule executive review meeting within 48 hours');
     nextSteps.push('Assign owners for all critical risk mitigation actions');
     nextSteps.push('Develop implementation timeline for high-priority opportunities');
     nextSteps.push('Update KPI targets based on current performance trends');
-    
+
     return nextSteps;
   }
 

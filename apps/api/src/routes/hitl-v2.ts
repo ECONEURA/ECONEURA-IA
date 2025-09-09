@@ -72,7 +72,7 @@ const AddTasksToBatchSchema = z.object({
 router.get('/tasks', async (req, res) => {
   try {
     const { organizationId, status, type, priority, assignedTo, tags } = req.query;
-    
+
     if (!organizationId) {
       res.status(400).json({
         success: false,
@@ -118,7 +118,7 @@ router.get('/tasks', async (req, res) => {
 router.get('/tasks/:taskId', async (req, res) => {
   try {
     const { taskId } = req.params;
-    
+
     const task = await hitlV2Service.getTask(taskId);
 
     if (!task) {
@@ -154,7 +154,7 @@ router.get('/tasks/:taskId', async (req, res) => {
 router.post('/tasks', async (req, res) => {
   try {
     const validatedData = CreateTaskSchema.parse(req.body);
-    
+
     const task = await hitlV2Service.createTask(validatedData);
 
     res.json({
@@ -191,7 +191,7 @@ router.put('/tasks/:taskId', async (req, res) => {
   try {
     const { taskId } = req.params;
     const validatedData = UpdateTaskSchema.parse(req.body);
-    
+
     const task = await hitlV2Service.updateTask(taskId, validatedData);
 
     if (!task) {
@@ -238,7 +238,7 @@ router.post('/tasks/:taskId/comments', async (req, res) => {
   try {
     const { taskId } = req.params;
     const validatedData = AddCommentSchema.parse(req.body);
-    
+
     const comment = await hitlV2Service.addComment(taskId, validatedData);
 
     if (!comment) {
@@ -285,7 +285,7 @@ router.post('/tasks/:taskId/attachments', async (req, res) => {
   try {
     const { taskId } = req.params;
     const validatedData = AddAttachmentSchema.parse(req.body);
-    
+
     const attachment = await hitlV2Service.addAttachment(taskId, validatedData);
 
     if (!attachment) {
@@ -332,7 +332,7 @@ router.post('/tasks/:taskId/workflow/advance', async (req, res) => {
   try {
     const { taskId } = req.params;
     const validatedData = AdvanceWorkflowSchema.parse(req.body);
-    
+
     const task = await hitlV2Service.advanceWorkflow(taskId, validatedData.stepId, validatedData.comments);
 
     if (!task) {
@@ -378,7 +378,7 @@ router.post('/tasks/:taskId/workflow/advance', async (req, res) => {
 router.post('/batches', async (req, res) => {
   try {
     const validatedData = CreateBatchSchema.parse(req.body);
-    
+
     const batch = await hitlV2Service.createBatch(validatedData);
 
     res.json({
@@ -415,7 +415,7 @@ router.post('/batches/:batchId/tasks', async (req, res) => {
   try {
     const { batchId } = req.params;
     const validatedData = AddTasksToBatchSchema.parse(req.body);
-    
+
     const batch = await hitlV2Service.addTasksToBatch(batchId, validatedData.taskIds);
 
     if (!batch) {
@@ -461,7 +461,7 @@ router.post('/batches/:batchId/tasks', async (req, res) => {
 router.get('/stats', async (req, res) => {
   try {
     const { organizationId } = req.query;
-    
+
     if (!organizationId) {
       res.status(400).json({
         success: false,

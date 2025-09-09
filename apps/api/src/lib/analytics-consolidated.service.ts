@@ -1,11 +1,11 @@
 /**
  * ANALYTICS & BI CONSOLIDATED SERVICE
- * 
+ *
  * Este servicio consolida las mejores funcionalidades de:
  * - PR-23: Advanced Analytics & BI (100%)
- * - PR-32: Advanced Analytics & BI (100%) 
+ * - PR-32: Advanced Analytics & BI (100%)
  * - PR-48: Performance Optimization V2 (95%)
- * 
+ *
  * Funcionalidades consolidadas:
  * - Análisis avanzado de métricas
  * - Business Intelligence
@@ -223,7 +223,7 @@ export class AnalyticsConsolidatedService {
     };
 
     this.metrics.set(metric.id, metric);
-    
+
     structuredLogger.info('Analytics metric created', {
       metricId: metric.id,
       name: metric.name,
@@ -246,7 +246,7 @@ export class AnalyticsConsolidatedService {
     };
 
     this.metrics.set(metricId, updatedMetric);
-    
+
     structuredLogger.info('Analytics metric updated', {
       metricId,
       changes: Object.keys(request),
@@ -280,7 +280,7 @@ export class AnalyticsConsolidatedService {
         metrics = metrics.filter(m => m.status === filters.status);
       }
       if (filters.tags && filters.tags.length > 0) {
-        metrics = metrics.filter(m => 
+        metrics = metrics.filter(m =>
           filters.tags!.some(tag => m.tags.includes(tag))
         );
       }
@@ -291,7 +291,7 @@ export class AnalyticsConsolidatedService {
 
   async deleteMetric(metricId: string): Promise<boolean> {
     const deleted = this.metrics.delete(metricId);
-    
+
     if (deleted) {
       structuredLogger.info('Analytics metric deleted', {
         metricId,
@@ -564,7 +564,7 @@ export class AnalyticsConsolidatedService {
     };
 
     this.biDashboards.set(newDashboard.id, newDashboard);
-    
+
     structuredLogger.info('BI Dashboard created', {
       dashboardId: newDashboard.id,
       name: newDashboard.name,
@@ -580,7 +580,7 @@ export class AnalyticsConsolidatedService {
   }
 
   async getBIDashboards(organizationId: string): Promise<BIDashboard[]> {
-    return Array.from(this.biDashboards.values())
+    return Array.from(this.biDashboards.values());
       .filter(d => d.organizationId === organizationId);
   }
 
@@ -595,7 +595,7 @@ export class AnalyticsConsolidatedService {
     };
 
     this.biDashboards.set(dashboardId, updatedDashboard);
-    
+
     structuredLogger.info('BI Dashboard updated', {
       dashboardId,
       changes: Object.keys(updates),
@@ -607,7 +607,7 @@ export class AnalyticsConsolidatedService {
 
   async deleteBIDashboard(dashboardId: string): Promise<boolean> {
     const deleted = this.biDashboards.delete(dashboardId);
-    
+
     if (deleted) {
       structuredLogger.info('BI Dashboard deleted', {
         dashboardId,
@@ -635,18 +635,18 @@ export class AnalyticsConsolidatedService {
     const mode = this.calculateMode(dataPoints);
     const variance = this.calculateVariance(dataPoints, mean);
     const standardDeviation = Math.sqrt(variance);
-    
+
     const skewness = this.calculateSkewness(dataPoints, mean, standardDeviation);
     const kurtosis = this.calculateKurtosis(dataPoints, mean, standardDeviation);
-    
+
     const quartiles = {
       q1: this.calculatePercentile(sorted, 25),
       q2: median,
       q3: this.calculatePercentile(sorted, 75)
     };
-    
+
     const iqr = quartiles.q3 - quartiles.q1;
-    const outliers = dataPoints.filter(val => 
+    const outliers = dataPoints.filter(val =>
       val < quartiles.q1 - 1.5 * iqr || val > quartiles.q3 + 1.5 * iqr
     );
 
@@ -688,17 +688,17 @@ export class AnalyticsConsolidatedService {
     data.forEach(val => {
       frequency[val] = (frequency[val] || 0) + 1;
     });
-    
+
     let maxFreq = 0;
     let mode = data[0];
-    
+
     Object.entries(frequency).forEach(([val, freq]) => {
       if (freq > maxFreq) {
         maxFreq = freq;
         mode = Number(val);
       }
     });
-    
+
     return mode;
   }
 
@@ -728,7 +728,7 @@ export class AnalyticsConsolidatedService {
     const lower = Math.floor(index);
     const upper = Math.ceil(index);
     const weight = index - lower;
-    
+
     if (upper >= sorted.length) return sorted[sorted.length - 1];
     return sorted[lower] * (1 - weight) + sorted[upper] * weight;
   }
@@ -934,10 +934,10 @@ export class AnalyticsConsolidatedService {
     metrics.memoryUsage.labels('heapUsed').set(this.performanceMetrics.memoryUsage.heapUsed);
     metrics.memoryUsage.labels('external').set(this.performanceMetrics.memoryUsage.external);
     metrics.memoryUsage.labels('arrayBuffers').set(this.performanceMetrics.memoryUsage.arrayBuffers);
-    
+
     metrics.cpuUsage.labels('user').set(this.performanceMetrics.cpuUsage.user);
     metrics.cpuUsage.labels('system').set(this.performanceMetrics.cpuUsage.system);
-    
+
     metrics.eventLoopLag.set(this.performanceMetrics.eventLoop.lag);
   }
 
@@ -1014,7 +1014,7 @@ export class AnalyticsConsolidatedService {
     if (performanceConfig) {
       this.performanceConfig = { ...this.performanceConfig, ...performanceConfig };
     }
-    
+
     structuredLogger.info('Analytics consolidated service config updated', {
       analyticsConfig: this.config,
       performanceConfig: this.performanceConfig,

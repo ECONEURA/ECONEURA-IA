@@ -96,7 +96,7 @@ export class TelemetryService {
   constructor(config: Partial<TelemetryConfig> = {}) {
     this.config = TelemetryConfigSchema.parse(config);
     this.sessionId = this.generateSessionId();
-    
+
     if (this.config.enabled) {
       this.startFlushTimer();
       this.setupPerformanceObserver();
@@ -318,7 +318,7 @@ export class TelemetryService {
     }
 
     const sanitized: Record<string, any> = {};
-    
+
     for (const [key, value] of Object.entries(properties)) {
       if (this.isPII(key, value)) {
         sanitized[key] = this.anonymizeValue(value);
@@ -340,7 +340,7 @@ export class TelemetryService {
       /^\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}$/ // Credit card
     ];
 
-    return piiKeys.some(piiKey => key.toLowerCase().includes(piiKey)) ||
+    return piiKeys.some(piiKey => key.toLowerCase().includes(piiKey)) ||;
            piiPatterns.some(pattern => typeof value === 'string' && pattern.test(value));
   }
 

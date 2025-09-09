@@ -27,7 +27,7 @@ export const initFinOps = (req: FinOpsRequest, res: Response, next: NextFunction
   req.correlationId = req.header('x-correlation-id') || `neura-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   req.estimatedCost = 0;
   req.budgetPct = 0;
-  
+
   next();
 };
 
@@ -36,7 +36,7 @@ export const initFinOps = (req: FinOpsRequest, res: Response, next: NextFunction
  */
 export const finalizeFinOps = (req: FinOpsRequest, res: Response, next: NextFunction) => {
   const latency = req.startTime ? Date.now() - req.startTime : 0;
-  
+
   const headers: FinOpsHeaders = {
     'X-Est-Cost-EUR': (req.estimatedCost || 0).toFixed(4),
     'X-Budget-Pct': (req.budgetPct || 0).toFixed(2),
@@ -44,12 +44,12 @@ export const finalizeFinOps = (req: FinOpsRequest, res: Response, next: NextFunc
     'X-Route': req.path,
     'X-Correlation-Id': req.correlationId || 'unknown'
   };
-  
+
   // Set headers
   Object.entries(headers).forEach(([key, value]) => {
     if (value) res.setHeader(key, value);
   });
-  
+
   next();
 };
 
@@ -60,10 +60,10 @@ export const calculatePerplexityCost = (inputTokens: number, outputTokens: numbe
   // Perplexity Sonar Pro pricing (estimated)
   const INPUT_COST_PER_1K = 0.001; // $0.001 per 1K input tokens
   const OUTPUT_COST_PER_1K = 0.003; // $0.003 per 1K output tokens
-  
+
   const inputCost = (inputTokens / 1000) * INPUT_COST_PER_1K;
   const outputCost = (outputTokens / 1000) * OUTPUT_COST_PER_1K;
-  
+
   return inputCost + outputCost;
 };
 
@@ -72,7 +72,7 @@ export const calculatePerplexityCost = (inputTokens: number, outputTokens: numbe
  */
 export const budgetGuard = (req: FinOpsRequest, res: Response, next: NextFunction) => {
   const budgetPct = req.budgetPct || 0;
-  
+
   if (budgetPct >= 90) {
     return res.status(402).json({
       error: 'Budget limit exceeded',
@@ -80,7 +80,7 @@ export const budgetGuard = (req: FinOpsRequest, res: Response, next: NextFunctio
       message: 'Request blocked due to budget constraints'
     });
   }
-  
+
   next();
 };
 

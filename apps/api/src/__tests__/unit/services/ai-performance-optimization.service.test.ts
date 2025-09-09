@@ -71,7 +71,7 @@ describe('AIPerformanceOptimizationService', () => {
           metricData.metricType,
           metricData.value,
           metricData.unit,
-          JSON.stringify(metricData.metadata)
+          JSON.stringify(metricData.metadata);
         ])
       );
     });
@@ -122,7 +122,7 @@ describe('AIPerformanceOptimizationService', () => {
       expect(result[0].metricType).toBe('latency');
       expect(mockDb.query).toHaveBeenCalledWith(
         expect.stringContaining('SELECT * FROM ai_performance_metrics'),
-        expect.arrayContaining(['ai-chat-service', 'latency', 50])
+        expect.arrayContaining(['ai-chat-service', 'latency', 50]);
       );
     });
 
@@ -146,7 +146,7 @@ describe('AIPerformanceOptimizationService', () => {
       expect(result).toHaveLength(1);
       expect(mockDb.query).toHaveBeenCalledWith(
         expect.stringContaining('SELECT * FROM ai_performance_metrics'),
-        expect.arrayContaining([100])
+        expect.arrayContaining([100]);
       );
     });
   });
@@ -281,7 +281,7 @@ describe('AIPerformanceOptimizationService', () => {
           alertData.severity,
           alertData.status,
           alertData.message,
-          JSON.stringify(alertData.metadata)
+          JSON.stringify(alertData.metadata);
         ])
       );
     });

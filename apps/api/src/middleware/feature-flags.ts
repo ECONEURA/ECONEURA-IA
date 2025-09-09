@@ -22,14 +22,14 @@ export const featureFlagMiddleware = (options: FeatureFlagMiddlewareOptions = {}
   return (req: FeatureFlagRequest, res: Response, next: NextFunction): void => {
     try {
       const { flags = [], requireAll = false, contextExtractor } = options;
-      
+
       // Extraer contexto del request
       const context = contextExtractor ? contextExtractor(req) : extractDefaultContext(req);
       req.featureFlagContext = context;
 
       // Verificar feature flags
       const flagResults: { [key: string]: boolean } = {};
-      
+
       for (const flagId of flags) {
         flagResults[flagId] = configurationManager.isFeatureEnabled(flagId, context);
       }
@@ -81,7 +81,7 @@ export const requireFeatureFlag = (flagId: string, contextExtractor?: (req: Requ
       req.featureFlagContext = context;
 
       const isEnabled = configurationManager.isFeatureEnabled(flagId, context);
-      
+
       if (!isEnabled) {
         logger.info('Feature flag access denied', {
           flagId,

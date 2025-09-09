@@ -141,31 +141,31 @@ class IntelligentAlertSystem {
     if (!rule.id || !rule.name || !rule.description) {
       throw new Error('Rule must have id, name, and description');
     }
-    
+
     if (!rule.metric) {
       throw new Error('Rule must specify a metric');
     }
-    
+
     if (!['threshold', 'anomaly', 'trend'].includes(rule.condition)) {
       throw new Error('Rule condition must be threshold, anomaly, or trend');
     }
-    
+
     if (!['gt', 'lt', 'gte', 'lte', 'eq', 'ne'].includes(rule.operator)) {
       throw new Error('Rule operator must be gt, lt, gte, lte, eq, or ne');
     }
-    
+
     if (!['low', 'medium', 'high', 'critical'].includes(rule.severity)) {
       throw new Error('Rule severity must be low, medium, high, or critical');
     }
-    
+
     if (rule.window <= 0) {
       throw new Error('Rule window must be greater than 0');
     }
-    
+
     if (rule.cooldown < 0) {
       throw new Error('Rule cooldown must be non-negative');
     }
-    
+
     if (rule.condition === 'threshold' && rule.threshold === undefined) {
       throw new Error('Threshold condition requires a threshold value');
     }
@@ -194,12 +194,12 @@ class IntelligentAlertSystem {
       if (metricValue === null) continue;
 
       const shouldAlert = this.evaluateCondition(rule, metricValue);
-      
+
       if (shouldAlert && this.shouldCreateAlert(rule.id)) {
         const alert = this.createAlert(rule, metricValue);
         newAlerts.push(alert);
         this.alerts.set(alert.id, alert);
-        
+
         // Crear notificación
         this.createNotification(alert);
       }
@@ -244,7 +244,7 @@ class IntelligentAlertSystem {
 
   private evaluateThreshold(rule: AlertRule, value: number): boolean {
     const threshold = rule.threshold || 0;
-    
+
     switch (rule.operator) {
       case 'gt': return value > threshold;
       case 'lt': return value < threshold;
@@ -261,7 +261,7 @@ class IntelligentAlertSystem {
     // En una implementación real, usaríamos algoritmos más sofisticados
     const threshold = rule.threshold || 0;
     const deviation = Math.abs(value - threshold) / threshold;
-    
+
     return deviation > 0.5; // 50% de desviación
   }
 
@@ -269,7 +269,7 @@ class IntelligentAlertSystem {
     // Implementación básica de detección de tendencias
     // En una implementación real, usaríamos análisis de series temporales
     const threshold = rule.threshold || 0;
-    
+
     // Simular tendencia creciente
     return value > threshold * 1.2; // 20% de incremento
   }
@@ -278,7 +278,7 @@ class IntelligentAlertSystem {
     const now = Date.now();
     const alert = this.alertHistory.get(ruleId);
     const rule = this.rules.get(ruleId);
-    
+
     if (!rule) return false;
 
     if (!alert) {
@@ -297,7 +297,7 @@ class IntelligentAlertSystem {
 
   private createAlert(rule: AlertRule, value: number): Alert {
     const alertId = `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     return {
       id: alertId,
       ruleId: rule.id,
@@ -321,7 +321,7 @@ class IntelligentAlertSystem {
 
   private createNotification(alert: Alert): void {
     const notificationId = `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const notification: AlertNotification = {
       id: notificationId,
       alertId: alert.id,
@@ -338,7 +338,7 @@ class IntelligentAlertSystem {
     };
 
     this.notifications.set(notificationId, notification);
-    
+
     // Procesar notificación
     this.processNotification(notification);
   }
@@ -347,12 +347,12 @@ class IntelligentAlertSystem {
     try {
       // Simular envío de notificación
       await this.sendNotification(notification);
-      
+
       notification.status = 'sent';
     } catch (error) {
       notification.status = 'failed';
       notification.retryCount++;
-      
+
       // Reintentar si no se ha excedido el máximo
       if (notification.retryCount < notification.maxRetries) {
         setTimeout(() => {
@@ -365,7 +365,7 @@ class IntelligentAlertSystem {
   private async sendNotification(notification: AlertNotification): Promise<void> {
     // Simular envío de notificación
     // En una implementación real, aquí se enviaría a Slack, email, webhook, etc.
-    
+
     const alert = this.alerts.get(notification.alertId);
     if (!alert) return;
 
@@ -377,7 +377,7 @@ class IntelligentAlertSystem {
                    `Description: ${alert.description}`;
 
     console.log(`📢 Notification sent:\n${message}`);
-    
+
     // Simular delay de red
     await new Promise(resolve => setTimeout(resolve, 100));
   }
@@ -444,7 +444,7 @@ class IntelligentAlertSystem {
 
   getNotificationStats(): any {
     const notifications = Array.from(this.notifications.values());
-    
+
     return {
       total: notifications.length,
       pending: notifications.filter(n => n.status === 'pending').length,
@@ -462,7 +462,7 @@ class IntelligentAlertSystem {
   // Limpieza de datos antiguos
   private cleanupOldAlerts(): void {
     const cutoff = Date.now() - (24 * 60 * 60 * 1000); // 24 horas
-    
+
     for (const [alertId, alert] of this.alerts) {
       const alertTime = new Date(alert.timestamp).getTime();
       if (alertTime < cutoff && alert.status !== 'active') {

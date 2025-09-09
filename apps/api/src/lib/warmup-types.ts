@@ -1,6 +1,6 @@
 /**
  * PR-47: Warm-up IA/Search Types
- * 
+ *
  * TypeScript interfaces and types for the Warm-up IA/Search system
  */
 

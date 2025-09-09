@@ -1,6 +1,6 @@
 /**
  * PR-56: Advanced Observability Service - Unit Tests
- * 
+ *
  * Pruebas unitarias para el servicio de observabilidad avanzada:
  * - Métricas en tiempo real
  * - Logs estructurados

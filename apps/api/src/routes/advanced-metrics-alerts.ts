@@ -1,12 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import AdvancedMetricsAlertsService, { 
-  Metric, 
-  AlertRule, 
-  Alert, 
-  SLA, 
-  MetricTrend, 
-  MetricsAlertsConfig 
+import AdvancedMetricsAlertsService, {
+  Metric,
+  AlertRule,
+  Alert,
+  SLA,
+  MetricTrend,
+  MetricsAlertsConfig
 } from '../lib/advanced-metrics-alerts.service.js';
 import { logger } from '../lib/logger.js';
 
@@ -76,7 +76,7 @@ const UpdateConfigSchema = z.object({
 router.get('/metrics', async (req: Request, res: Response) => {
   try {
     const { name, type, startTime, endTime } = req.query;
-    
+
     const filter: any = {};
     if (name) filter.name = name as string;
     if (type) filter.type = type as string;
@@ -88,7 +88,7 @@ router.get('/metrics', async (req: Request, res: Response) => {
     }
 
     const metrics = await metricsAlertsService.getMetrics(filter);
-    
+
     res.json({
       success: true,
       data: metrics,
@@ -109,7 +109,7 @@ router.get('/metrics/:name', async (req: Request, res: Response) => {
   try {
     const { name } = req.params;
     const metrics = await metricsAlertsService.getMetricByName(name);
-    
+
     res.json({
       success: true,
       data: metrics,
@@ -130,9 +130,9 @@ router.get('/metrics/:name/trends', async (req: Request, res: Response) => {
   try {
     const { name } = req.params;
     const { period = '24h' } = req.query;
-    
+
     const trends = await metricsAlertsService.getMetricTrends(name, period as string);
-    
+
     res.json({
       success: true,
       data: trends,
@@ -152,7 +152,7 @@ router.get('/metrics/:name/trends', async (req: Request, res: Response) => {
 router.post('/metrics/collect', async (req: Request, res: Response) => {
   try {
     const metrics = await metricsAlertsService.collectMetrics();
-    
+
     res.json({
       success: true,
       data: metrics,
@@ -175,7 +175,7 @@ router.post('/metrics/collect', async (req: Request, res: Response) => {
 router.get('/alert-rules', async (req: Request, res: Response) => {
   try {
     const rules = await metricsAlertsService.listAlertRules();
-    
+
     res.json({
       success: true,
       data: rules,
@@ -196,7 +196,7 @@ router.get('/alert-rules/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const rule = await metricsAlertsService.getAlertRule(id);
-    
+
     if (!rule) {
       return res.status(404).json({
         success: false,
@@ -222,7 +222,7 @@ router.get('/alert-rules/:id', async (req: Request, res: Response) => {
 router.post('/alert-rules', async (req: Request, res: Response) => {
   try {
     const validatedData = CreateAlertRuleSchema.parse(req.body);
-    
+
     const rule = await metricsAlertsService.createAlertRule({
       name: validatedData.name,
       description: validatedData.description,
@@ -263,9 +263,9 @@ router.put('/alert-rules/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const updates = req.body;
-    
+
     const updatedRule = await metricsAlertsService.updateAlertRule(id, updates);
-    
+
     if (!updatedRule) {
       return res.status(404).json({
         success: false,
@@ -293,7 +293,7 @@ router.delete('/alert-rules/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const deleted = await metricsAlertsService.deleteAlertRule(id);
-    
+
     if (!deleted) {
       return res.status(404).json({
         success: false,
@@ -319,7 +319,7 @@ router.delete('/alert-rules/:id', async (req: Request, res: Response) => {
 router.post('/alert-rules/evaluate', async (req: Request, res: Response) => {
   try {
     const alerts = await metricsAlertsService.evaluateAlertRules();
-    
+
     res.json({
       success: true,
       data: alerts,
@@ -342,14 +342,14 @@ router.post('/alert-rules/evaluate', async (req: Request, res: Response) => {
 router.get('/alerts', async (req: Request, res: Response) => {
   try {
     const { status, severity, ruleId } = req.query;
-    
+
     const filter: any = {};
     if (status) filter.status = status as string;
     if (severity) filter.severity = severity as string;
     if (ruleId) filter.ruleId = ruleId as string;
 
     const alerts = await metricsAlertsService.getAlerts(filter);
-    
+
     res.json({
       success: true,
       data: alerts,
@@ -371,7 +371,7 @@ router.get('/alerts/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     const alerts = await metricsAlertsService.getAlerts();
     const alert = alerts.find(a => a.id === id);
-    
+
     if (!alert) {
       return res.status(404).json({
         success: false,
@@ -398,7 +398,7 @@ router.post('/alerts/:id/acknowledge', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { acknowledgedBy } = req.body;
-    
+
     if (!acknowledgedBy) {
       return res.status(400).json({
         success: false,
@@ -407,7 +407,7 @@ router.post('/alerts/:id/acknowledge', async (req: Request, res: Response) => {
     }
 
     const alert = await metricsAlertsService.acknowledgeAlert(id, acknowledgedBy);
-    
+
     if (!alert) {
       return res.status(404).json({
         success: false,
@@ -435,7 +435,7 @@ router.post('/alerts/:id/resolve', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const alert = await metricsAlertsService.resolveAlert(id);
-    
+
     if (!alert) {
       return res.status(404).json({
         success: false,
@@ -464,7 +464,7 @@ router.post('/alerts/:id/resolve', async (req: Request, res: Response) => {
 router.get('/slas', async (req: Request, res: Response) => {
   try {
     const slas = await metricsAlertsService.listSLAs();
-    
+
     res.json({
       success: true,
       data: slas,
@@ -485,7 +485,7 @@ router.get('/slas/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const sla = await metricsAlertsService.getSLA(id);
-    
+
     if (!sla) {
       return res.status(404).json({
         success: false,
@@ -511,7 +511,7 @@ router.get('/slas/:id', async (req: Request, res: Response) => {
 router.post('/slas', async (req: Request, res: Response) => {
   try {
     const validatedData = CreateSLASchema.parse(req.body);
-    
+
     const sla = await metricsAlertsService.createSLA({
       name: validatedData.name,
       description: validatedData.description,
@@ -551,14 +551,14 @@ router.get('/slas/:id/compliance', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { startTime, endTime } = req.query;
-    
+
     const timeRange = startTime && endTime ? {
       start: new Date(startTime as string),
       end: new Date(endTime as string)
     } : undefined;
 
     const compliance = await metricsAlertsService.calculateSLACompliance(id, timeRange);
-    
+
     res.json({
       success: true,
       data: compliance
@@ -579,7 +579,7 @@ router.get('/slas/:id/compliance', async (req: Request, res: Response) => {
 router.get('/statistics', async (req: Request, res: Response) => {
   try {
     const statistics = await metricsAlertsService.getMetricsStatistics();
-    
+
     res.json({
       success: true,
       data: statistics
@@ -598,7 +598,7 @@ router.get('/statistics', async (req: Request, res: Response) => {
 router.get('/reports/:period', async (req: Request, res: Response) => {
   try {
     const { period } = req.params;
-    
+
     if (!['hourly', 'daily', 'weekly', 'monthly'].includes(period)) {
       return res.status(400).json({
         success: false,
@@ -607,7 +607,7 @@ router.get('/reports/:period', async (req: Request, res: Response) => {
     }
 
     const report = await metricsAlertsService.generateMetricsReport(period as 'hourly' | 'daily' | 'weekly' | 'monthly');
-    
+
     res.json({
       success: true,
       data: report
@@ -645,10 +645,10 @@ router.get('/config', async (req: Request, res: Response) => {
 router.put('/config', async (req: Request, res: Response) => {
   try {
     const validatedData = UpdateConfigSchema.parse(req.body);
-    
+
     // Actualizar configuración (en una implementación real, esto se persistiría)
     Object.assign(defaultConfig, validatedData);
-    
+
     res.json({
       success: true,
       data: defaultConfig,
@@ -678,7 +678,7 @@ router.put('/config', async (req: Request, res: Response) => {
 router.get('/health', async (req: Request, res: Response) => {
   try {
     const statistics = await metricsAlertsService.getMetricsStatistics();
-    
+
     const health = {
       status: 'healthy',
       timestamp: new Date().toISOString(),

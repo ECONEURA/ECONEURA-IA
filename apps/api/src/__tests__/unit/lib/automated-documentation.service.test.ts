@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import AutomatedDocumentationService, { 
-  Documentation, 
-  APIDocumentation, 
-  ArchitectureDocumentation, 
-  Runbook, 
-  DocumentationConfig 
+import AutomatedDocumentationService, {
+  Documentation,
+  APIDocumentation,
+  ArchitectureDocumentation,
+  Runbook,
+  DocumentationConfig
 } from '../../lib/automated-documentation.service.ts';
 
 // Mock del logger
@@ -423,7 +423,7 @@ describe('AutomatedDocumentationService', () => {
     it('should initialize with default documentation', async () => {
       const docs = await service.listDocumentation();
       expect(docs.length).toBeGreaterThan(0);
-      
+
       const apiDoc = docs.find(d => d.title === 'API Overview');
       expect(apiDoc).toBeDefined();
       expect(apiDoc?.type).toBe('API');
@@ -432,7 +432,7 @@ describe('AutomatedDocumentationService', () => {
     it('should initialize with default runbooks', async () => {
       const runbooks = await service.listRunbooks();
       expect(runbooks.length).toBeGreaterThan(0);
-      
+
       const deploymentRunbook = runbooks.find(r => r.title === 'System Deployment');
       expect(deploymentRunbook).toBeDefined();
       expect(deploymentRunbook?.procedures.length).toBeGreaterThan(0);

@@ -64,23 +64,23 @@ router.use(rateLimiter);
 router.get('/rules', async (req, res) => {
   try {
     const rules = await aiCostOptimizationService.getOptimizationRules();
-    
-    logger.info('Cost optimization rules retrieved', { 
-      userId: req.user?.id, 
-      count: rules.length 
+
+    logger.info('Cost optimization rules retrieved', {
+      userId: req.user?.id,
+      count: rules.length
     });
-    
+
     res.json({
       success: true,
       data: rules,
       count: rules.length
     });
   } catch (error: any) {
-    logger.error('Failed to get cost optimization rules', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Failed to get cost optimization rules', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve cost optimization rules',
@@ -95,24 +95,24 @@ router.post('/rules',
   async (req, res) => {
     try {
       const rule = await aiCostOptimizationService.createOptimizationRule(req.body);
-      
-      logger.info('Cost optimization rule created', { 
-        ruleId: rule.id, 
+
+      logger.info('Cost optimization rule created', {
+        ruleId: rule.id,
         name: rule.name,
-        userId: req.user?.id 
+        userId: req.user?.id
       });
-      
+
       res.status(201).json({
         success: true,
         data: rule,
         message: 'Cost optimization rule created successfully'
       });
     } catch (error: any) {
-      logger.error('Failed to create cost optimization rule', { 
-        error: error.message, 
-        userId: req.user?.id 
+      logger.error('Failed to create cost optimization rule', {
+        error: error.message,
+        userId: req.user?.id
       });
-      
+
       res.status(500).json({
         success: false,
         error: 'Failed to create cost optimization rule',
@@ -129,24 +129,24 @@ router.put('/rules/:id',
     try {
       const { id } = req.params;
       // Implementar actualización de regla
-      
-      logger.info('Cost optimization rule updated', { 
-        ruleId: id, 
-        userId: req.user?.id 
+
+      logger.info('Cost optimization rule updated', {
+        ruleId: id,
+        userId: req.user?.id
       });
-      
+
       res.json({
         success: true,
         data: { id, ...req.body },
         message: 'Cost optimization rule updated successfully'
       });
     } catch (error: any) {
-      logger.error('Failed to update cost optimization rule', { 
-        error: error.message, 
+      logger.error('Failed to update cost optimization rule', {
+        error: error.message,
         ruleId: req.params.id,
-        userId: req.user?.id 
+        userId: req.user?.id
       });
-      
+
       res.status(500).json({
         success: false,
         error: 'Failed to update cost optimization rule',
@@ -165,32 +165,32 @@ router.post('/analyze',
     try {
       const { organizationId, analysisType, period } = req.body;
       const analysis = await aiCostOptimizationService.generateCostAnalysis(
-        organizationId, 
-        analysisType, 
+        organizationId,
+        analysisType,
         {
           start: new Date(period.start),
           end: new Date(period.end)
         }
       );
-      
-      logger.info('Cost analysis generated', { 
-        analysisId: analysis.id, 
+
+      logger.info('Cost analysis generated', {
+        analysisId: analysis.id,
         organizationId,
         analysisType,
-        userId: req.user?.id 
+        userId: req.user?.id
       });
-      
+
       res.status(201).json({
         success: true,
         data: analysis,
         message: 'Cost analysis generated successfully'
       });
     } catch (error: any) {
-      logger.error('Failed to generate cost analysis', { 
-        error: error.message, 
-        userId: req.user?.id 
+      logger.error('Failed to generate cost analysis', {
+        error: error.message,
+        userId: req.user?.id
       });
-      
+
       res.status(500).json({
         success: false,
         error: 'Failed to generate cost analysis',
@@ -204,37 +204,37 @@ router.post('/analyze',
 router.get('/trends', async (req, res) => {
   try {
     const { organizationId, days = 30 } = req.query;
-    
+
     if (!organizationId) {
       return res.status(400).json({
         success: false,
         error: 'Organization ID is required'
       });
     }
-    
+
     const trends = await aiCostOptimizationService.getCostTrends(
-      organizationId as string, 
+      organizationId as string,
       Number(days)
     );
-    
-    logger.info('Cost trends retrieved', { 
+
+    logger.info('Cost trends retrieved', {
       organizationId,
       days: Number(days),
       count: trends.length,
-      userId: req.user?.id 
+      userId: req.user?.id
     });
-    
+
     res.json({
       success: true,
       data: trends,
       count: trends.length
     });
   } catch (error: any) {
-    logger.error('Failed to get cost trends', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Failed to get cost trends', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve cost trends',
@@ -251,26 +251,26 @@ router.post('/optimize',
   async (req, res) => {
     try {
       const optimization = await aiCostOptimizationService.optimizeCosts(req.body);
-      
-      logger.info('Cost optimization completed', { 
+
+      logger.info('Cost optimization completed', {
         organizationId: req.body.organizationId,
         optimized: optimization.optimized,
         actionsCount: optimization.actions.length,
         estimatedSavings: optimization.metrics.savings,
-        userId: req.user?.id 
+        userId: req.user?.id
       });
-      
+
       res.json({
         success: true,
         data: optimization,
         message: 'Cost optimization completed'
       });
     } catch (error: any) {
-      logger.error('Failed to optimize costs', { 
-        error: error.message, 
-        userId: req.user?.id 
+      logger.error('Failed to optimize costs', {
+        error: error.message,
+        userId: req.user?.id
       });
-      
+
       res.status(500).json({
         success: false,
         error: 'Failed to optimize costs',
@@ -286,28 +286,28 @@ router.post('/optimize',
 router.get('/alerts', async (req, res) => {
   try {
     const { organizationId } = req.query;
-    
+
     const alerts = await aiCostOptimizationService.getCostAlerts(
       organizationId as string
     );
-    
-    logger.info('Cost alerts retrieved', { 
+
+    logger.info('Cost alerts retrieved', {
       organizationId,
       count: alerts.length,
-      userId: req.user?.id 
+      userId: req.user?.id
     });
-    
+
     res.json({
       success: true,
       data: alerts,
       count: alerts.length
     });
   } catch (error: any) {
-    logger.error('Failed to get cost alerts', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Failed to get cost alerts', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve cost alerts',
@@ -320,25 +320,25 @@ router.get('/alerts', async (req, res) => {
 router.put('/alerts/:id/resolve', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // Implementar resolución de alerta
-    logger.info('Cost alert resolved', { 
-      alertId: id, 
-      userId: req.user?.id 
+    logger.info('Cost alert resolved', {
+      alertId: id,
+      userId: req.user?.id
     });
-    
+
     res.json({
       success: true,
       data: { id, status: 'resolved' },
       message: 'Cost alert resolved successfully'
     });
   } catch (error: any) {
-    logger.error('Failed to resolve cost alert', { 
-      error: error.message, 
+    logger.error('Failed to resolve cost alert', {
+      error: error.message,
       alertId: req.params.id,
-      userId: req.user?.id 
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to resolve cost alert',
@@ -353,31 +353,31 @@ router.put('/alerts/:id/resolve', async (req, res) => {
 router.get('/metrics', async (req, res) => {
   try {
     const { organizationId, period = '7d' } = req.query;
-    
+
     if (!organizationId) {
       return res.status(400).json({
         success: false,
         error: 'Organization ID is required'
       });
     }
-    
+
     // Calcular período
     const days = period === '1d' ? 1 : period === '7d' ? 7 : period === '30d' ? 30 : 7;
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
-    
+
     const trends = await aiCostOptimizationService.getCostTrends(
-      organizationId as string, 
+      organizationId as string,
       days
     );
-    
+
     const totalCost = trends.reduce((sum, trend) => sum + trend.cost, 0);
     const totalRequests = trends.reduce((sum, trend) => sum + trend.requests, 0);
-    const averageEfficiency = trends.length > 0 
-      ? trends.reduce((sum, trend) => sum + trend.efficiency, 0) / trends.length 
+    const averageEfficiency = trends.length > 0
+      ? trends.reduce((sum, trend) => sum + trend.efficiency, 0) / trends.length
       : 0;
-    
+
     const metrics = {
       period: {
         start: startDate.toISOString(),
@@ -389,31 +389,31 @@ router.get('/metrics', async (req, res) => {
         totalRequests,
         averageCostPerRequest: totalRequests > 0 ? totalCost / totalRequests : 0,
         averageEfficiency,
-        costTrend: trends.length > 1 ? 
+        costTrend: trends.length > 1 ?
           (trends[0].cost - trends[trends.length - 1].cost) / trends[trends.length - 1].cost : 0
       },
       trends: trends.slice(0, 10) // Últimos 10 días
     };
-    
-    logger.info('Cost metrics retrieved', { 
+
+    logger.info('Cost metrics retrieved', {
       organizationId,
       period,
       totalCost,
       totalRequests,
-      userId: req.user?.id 
+      userId: req.user?.id
     });
-    
+
     res.json({
       success: true,
       data: metrics,
       message: 'Cost metrics retrieved successfully'
     });
   } catch (error: any) {
-    logger.error('Failed to get cost metrics', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Failed to get cost metrics', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve cost metrics',
@@ -428,14 +428,14 @@ router.get('/metrics', async (req, res) => {
 router.get('/recommendations', async (req, res) => {
   try {
     const { organizationId } = req.query;
-    
+
     if (!organizationId) {
       return res.status(400).json({
         success: false,
         error: 'Organization ID is required'
       });
     }
-    
+
     // Generar análisis para obtener recomendaciones
     const analysis = await aiCostOptimizationService.generateCostAnalysis(
       organizationId as string,
@@ -445,7 +445,7 @@ router.get('/recommendations', async (req, res) => {
         end: new Date()
       }
     );
-    
+
     const recommendations = {
       organizationId,
       generatedAt: new Date().toISOString(),
@@ -463,25 +463,25 @@ router.get('/recommendations', async (req, res) => {
         priority: rec.impact > 0.3 ? 'high' : rec.impact > 0.2 ? 'medium' : 'low'
       }))
     };
-    
-    logger.info('Cost recommendations generated', { 
+
+    logger.info('Cost recommendations generated', {
       organizationId,
       recommendationsCount: recommendations.recommendations.length,
       estimatedSavings: recommendations.summary.estimatedSavings,
-      userId: req.user?.id 
+      userId: req.user?.id
     });
-    
+
     res.json({
       success: true,
       data: recommendations,
       message: 'Cost recommendations generated successfully'
     });
   } catch (error: any) {
-    logger.error('Failed to get cost recommendations', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Failed to get cost recommendations', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve cost recommendations',
@@ -539,12 +539,12 @@ router.get('/models', async (req, res) => {
         useCase: 'High quality, complex tasks'
       }
     ];
-    
-    logger.info('Model information retrieved', { 
+
+    logger.info('Model information retrieved', {
       count: models.length,
-      userId: req.user?.id 
+      userId: req.user?.id
     });
-    
+
     res.json({
       success: true,
       data: models,
@@ -552,11 +552,11 @@ router.get('/models', async (req, res) => {
       message: 'Model information retrieved successfully'
     });
   } catch (error: any) {
-    logger.error('Failed to get model information', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Failed to get model information', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve model information',
@@ -571,21 +571,21 @@ router.get('/models', async (req, res) => {
 router.get('/health', async (req, res) => {
   try {
     const health = await aiCostOptimizationService.getHealthStatus();
-    
-    const statusCode = health.status === 'healthy' ? 200 : 
+
+    const statusCode = health.status === 'healthy' ? 200 :
                       health.status === 'degraded' ? 200 : 503;
-    
+
     res.status(statusCode).json({
       success: true,
       data: health,
       message: `Service is ${health.status}`
     });
   } catch (error: any) {
-    logger.error('Health check failed', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Health check failed', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(503).json({
       success: false,
       error: 'Health check failed',
@@ -646,22 +646,22 @@ router.get('/stats', async (req, res) => {
         }
       }
     };
-    
-    logger.info('Cost optimization stats retrieved', { 
-      userId: req.user?.id 
+
+    logger.info('Cost optimization stats retrieved', {
+      userId: req.user?.id
     });
-    
+
     res.json({
       success: true,
       data: stats,
       message: 'Statistics retrieved successfully'
     });
   } catch (error: any) {
-    logger.error('Failed to get statistics', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Failed to get statistics', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve statistics',

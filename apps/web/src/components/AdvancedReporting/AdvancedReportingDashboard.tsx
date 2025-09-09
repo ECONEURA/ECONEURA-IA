@@ -1,20 +1,20 @@
 /**
  * Advanced Reporting Dashboard
- * 
+ *
  * This component provides a comprehensive dashboard for managing advanced reports,
  * including creation, scheduling, generation, templates, and analytics.
  */
 
 import React, { useState, useEffect } from 'react';
-import { 
-  FileText, 
-  Plus, 
-  Play, 
-  Clock, 
-  Download, 
-  Settings, 
-  BarChart3, 
-  PieChart, 
+import {
+  FileText,
+  Plus,
+  Play,
+  Clock,
+  Download,
+  Settings,
+  BarChart3,
+  PieChart,
   TrendingUp,
   Calendar,
   Users,
@@ -271,14 +271,14 @@ export const AdvancedReportingDashboard: React.FC = () => {
   };
 
   if (loading) {
-    return (
+    return (;
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
-  return (
+  return (;
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
@@ -375,7 +375,7 @@ export const AdvancedReportingDashboard: React.FC = () => {
                 <div className="space-y-4">
                   {generations.slice(0, 5).map((generation) => {
                     const report = reports.find(r => r.id === generation.reportId);
-                    return (
+                    return (;
                       <div key={generation.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                         <div className="flex items-center space-x-4">
                           {getStatusIcon(generation.status)}
@@ -389,7 +389,7 @@ export const AdvancedReportingDashboard: React.FC = () => {
                         <div className="flex items-center space-x-2">
                           {generation.status === 'generating' && (
                             <div className="w-16 bg-gray-200 rounded-full h-2">
-                              <div 
+                              <div
                                 className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                                 style={{ width: `${generation.progress}%` }}
                               ></div>
@@ -590,7 +590,7 @@ export const AdvancedReportingDashboard: React.FC = () => {
                 <div className="space-y-4">
                   {generations.map((generation) => {
                     const report = reports.find(r => r.id === generation.reportId);
-                    return (
+                    return (;
                       <div key={generation.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                         <div className="flex items-center space-x-4">
                           {getStatusIcon(generation.status)}

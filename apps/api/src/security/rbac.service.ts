@@ -1,6 +1,6 @@
 /**
  * PR-57: Role-Based Access Control (RBAC) Service
- * 
+ *
  * Sistema avanzado de autorización basado en roles con permisos granulares,
  * herencia de roles, políticas de acceso y auditoría de permisos.
  */
@@ -299,7 +299,7 @@ export class RBACService {
   ): Promise<AccessDecision> {
     try {
       const startTime = Date.now();
-      
+
       // Obtener roles del usuario
       const userRoles = this.getUserRoles(userId, organizationId);
       if (userRoles.length === 0) {
@@ -325,7 +325,7 @@ export class RBACService {
       }
 
       const decision = this.createAccessDecision(false, 'Permission denied', [], [], startTime);
-      
+
       // Registrar en auditoría
       this.recordAuditLog({
         userId,
@@ -354,7 +354,7 @@ export class RBACService {
         permission,
         error: error instanceof Error ? error.message : String(error)
       });
-      
+
       return this.createAccessDecision(false, 'Error checking permission', [], [], Date.now());
     }
   }
@@ -664,18 +664,18 @@ export class RBACService {
     organizationId?: string
   ): Promise<{ allowed: boolean; evaluatedPolicies: string[] }> {
     const evaluatedPolicies: string[] = [];
-    
+
     if (!organizationId) {
       return { allowed: false, evaluatedPolicies };
     }
 
     const policies = this.accessPolicies.get(organizationId) || [];
-    
+
     for (const policy of policies) {
       if (!policy.isActive) continue;
-      
+
       evaluatedPolicies.push(policy.id);
-      
+
       for (const rule of policy.rules) {
         if (rule.resource === resource && rule.actions.includes(permission)) {
           if (rule.effect === 'allow') {
@@ -793,9 +793,9 @@ export class RBACService {
   private cleanupOldAuditLogs(): void {
     const cutoffDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 días
     const initialCount = this.auditLogs.length;
-    
+
     this.auditLogs = this.auditLogs.filter(log => log.timestamp > cutoffDate);
-    
+
     const cleanedCount = initialCount - this.auditLogs.length;
     if (cleanedCount > 0) {
       structuredLogger.info('Old audit logs cleaned up', {

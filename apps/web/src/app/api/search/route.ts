@@ -3,7 +3,7 @@ export const runtime = "nodejs";
 
 import { noStoreJson, fetchWithBackoff } from "@/app/api/_utils";
 
-export async function POST(req: Request) {
+export async function POST(req: Request): void {
   if (req.method !== "POST") return noStoreJson({ ok: false, error: "Method not allowed" }, 405);
   const { query } = await req.json();
 

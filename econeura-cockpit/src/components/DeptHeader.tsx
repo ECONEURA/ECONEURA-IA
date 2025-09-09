@@ -13,11 +13,11 @@ interface DeptHeaderProps {
   };
 }
 
-export default function DeptHeader({ dept, kpis }: DeptHeaderProps) {
+export default function DeptHeader({ dept, kpis }: DeptHeaderProps): void {
   const color = getDeptColor(dept);
   const name = getDeptName(dept);
 
-  return (
+  return (;
     <div style={{
       backgroundColor: ui.bg,
       borderBottom: `${ui.bw}px solid ${ui.border}`,
@@ -44,7 +44,7 @@ export default function DeptHeader({ dept, kpis }: DeptHeaderProps) {
           Dashboard de gestión y monitoreo
         </p>
       </div>
-      
+
       <div style={{
         display: 'flex',
         gap: '24px'
@@ -66,7 +66,7 @@ export default function DeptHeader({ dept, kpis }: DeptHeaderProps) {
             Activos
           </div>
         </div>
-        
+
         <div style={{ textAlign: 'center' }}>
           <div style={{
             fontSize: '24px',
@@ -84,7 +84,7 @@ export default function DeptHeader({ dept, kpis }: DeptHeaderProps) {
             Completados
           </div>
         </div>
-        
+
         <div style={{ textAlign: 'center' }}>
           <div style={{
             fontSize: '24px',
@@ -102,7 +102,7 @@ export default function DeptHeader({ dept, kpis }: DeptHeaderProps) {
             Fallidos
           </div>
         </div>
-        
+
         <div style={{ textAlign: 'center' }}>
           <div style={{
             fontSize: '24px',

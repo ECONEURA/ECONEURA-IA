@@ -70,7 +70,7 @@ export const validateRequest = (schema: ValidationSchema) => {
 
 export const authenticate = (req: Request, res: Response, next: NextFunction): void => {
   const token = req.headers.authorization?.replace('Bearer ', '');
-  
+
   if (!token) {
     res.status(401).json({
       success: false,
@@ -204,7 +204,7 @@ export const asyncHandler = (fn: Function) => {
 
 export const requestLogger = (req: Request, res: Response, next: NextFunction): void => {
   const start = Date.now();
-  
+
   res.on('finish', () => {
     const duration = Date.now() - start;
     console.log(`${req.method} ${req.path} - ${res.statusCode} - ${duration}ms`);
@@ -223,9 +223,9 @@ export const rateLimit = (maxRequests: number = 100, windowMs: number = 15 * 60 
   return (req: Request, res: Response, next: NextFunction): void => {
     const clientId = req.ip || req.connection.remoteAddress || 'unknown';
     const now = Date.now();
-    
+
     const clientData = requests.get(clientId);
-    
+
     if (!clientData || now > clientData.resetTime) {
       requests.set(clientId, {
         count: 1,
@@ -259,11 +259,11 @@ export const corsHandler = (req: Request, res: Response, next: NextFunction): vo
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Organization-ID');
-  
+
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
     return;
   }
-  
+
   next();
 };

@@ -73,7 +73,7 @@ export class AnalyzeDatabaseSchemaUseCase extends BaseUseCase<AnalyzeDatabaseSch
       const daysSinceLastAnalysis = Math.floor(
         (Date.now() - existingDatabaseSchema.metrics.lastAnalysisDate.getTime()) / (1000 * 60 * 60 * 24)
       );
-      
+
       if (daysSinceLastAnalysis < 1) {
         throw new Error('Database schema was analyzed recently. Use forceReanalysis=true to force reanalysis.');
       }
@@ -86,7 +86,7 @@ export class AnalyzeDatabaseSchemaUseCase extends BaseUseCase<AnalyzeDatabaseSch
     const startTime = Date.now();
     const metrics = existingDatabaseSchema.analyzeSchema();
     const endTime = Date.now();
-    
+
     // Update analysis duration
     metrics.analysisDuration = (endTime - startTime) / 1000; // Convert to seconds
 

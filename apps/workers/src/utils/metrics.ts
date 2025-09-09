@@ -272,7 +272,7 @@ export function recordProcessingLatency(component: string, duration: number): vo
 }
 
 // Metrics endpoint handler
-export function getMetricsHandler() {
+export function getMetricsHandler(): void {
   return async (req: any, res: any) => {
     try {
       res.set('Content-Type', register.contentType);
@@ -285,7 +285,7 @@ export function getMetricsHandler() {
 }
 
 // Health check with metrics
-export function getHealthCheckHandler() {
+export function getHealthCheckHandler(): void {
   return async (req: any, res: any) => {
     try {
       const health = {

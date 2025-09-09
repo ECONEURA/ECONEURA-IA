@@ -22,7 +22,7 @@ async function proxyRequest(
   try {
     // Construir URL del API
     const apiUrl = `${API_BASE_URL}${CONFIG_API_PATH}${path}`;
-    
+
     // Headers a enviar
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -58,7 +58,7 @@ async function proxyRequest(
 
     // Obtener respuesta
     const responseData = await response.text();
-    
+
     // Headers de respuesta a copiar
     const responseHeaders: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ async function proxyRequest(
 
   } catch (error) {
     console.error('BFF Proxy Error:', error);
-    
+
     return NextResponse.json({
       success: false,
       error: 'Internal server error',
@@ -106,7 +106,7 @@ export async function GET(
   const path = '/' + params.path.join('/');
   const searchParams = request.nextUrl.searchParams.toString();
   const fullPath = searchParams ? `${path}?${searchParams}` : path;
-  
+
   return proxyRequest(request, fullPath, 'GET');
 }
 
@@ -116,7 +116,7 @@ export async function POST(
   { params }: { params: { path: string[] } }
 ) {
   const path = '/' + params.path.join('/');
-  
+
   return proxyRequest(request, path, 'POST');
 }
 
@@ -126,7 +126,7 @@ export async function PUT(
   { params }: { params: { path: string[] } }
 ) {
   const path = '/' + params.path.join('/');
-  
+
   return proxyRequest(request, path, 'PUT');
 }
 
@@ -136,7 +136,7 @@ export async function DELETE(
   { params }: { params: { path: string[] } }
 ) {
   const path = '/' + params.path.join('/');
-  
+
   return proxyRequest(request, path, 'DELETE');
 }
 
@@ -146,6 +146,6 @@ export async function PATCH(
   { params }: { params: { path: string[] } }
 ) {
   const path = '/' + params.path.join('/');
-  
+
   return proxyRequest(request, path, 'PATCH');
 }

@@ -126,7 +126,7 @@ app.use('/v1/sepa', RateLimitMiddleware.configs.sepa);
 app.use((req, res, next) => {
   const startTime = Date.now();
   const requestId = req.headers['x-request-id'] as string || `req_${Date.now()}`;
-  
+
   structuredLogger.setRequestId(requestId);
   structuredLogger.requestStart(req.method, req.path, {
     requestId,
@@ -160,7 +160,7 @@ import { cockpitRouter } from './routes/cockpit.js';
 app.use('/v1/companies', companiesRouter);
 app.use('/v1/contacts', contactsRouter);
 
-// Mount Agent routes  
+// Mount Agent routes
 app.use('/v1/agents', agentsRouter);
 
 // Mount Analytics routes
@@ -479,7 +479,7 @@ registerDefaultServices();
           fromState: 'processing',
           toState: 'shipped',
           event: 'ship',
-          condition: '${paymentValid} === true && ${inventoryAvailable} === true',
+          condition: '${paymentValid} = && ${inventoryAvailable} ',
           actions: [],
           properties: {},
         },
@@ -552,7 +552,7 @@ app.get("/health/live", async (req, res) => {
   try {
     const result = await healthModeManager.getLivenessProbe();
     const statusCode = result.status === 'ok' ? 200 : 503;
-    
+
     // Add X-System-Mode header
     res.set('X-System-Mode', result.mode);
     res.status(statusCode).json(result);
@@ -574,14 +574,14 @@ app.get("/health/ready", async (req, res) => {
   try {
     const result = await healthModeManager.getReadinessProbe();
     const statusCode = result.status === 'ok' ? 200 : 503;
-    
+
     // Add X-System-Mode header
     res.set('X-System-Mode', result.mode);
     res.status(statusCode).json(result);
   } catch (error) {
     res.status(503).json({
       status: "error",
-      mode: "degraded", 
+      mode: "degraded",
       timestamp: new Date().toISOString(),
       version: process.env.npm_package_version || '1.0.0',
       error: (error as Error).message
@@ -594,10 +594,10 @@ app.get("/health", (req, res) => {
   const ts = new Date().toISOString();
   const version = process.env.npm_package_version || "1.0.0";
   const currentMode = healthModeManager.getCurrentMode();
-  
+
   // Add X-System-Mode header
   res.set('X-System-Mode', currentMode);
-  
+
   res.status(200).json({
     status: "ok",
     ts,
@@ -644,7 +644,7 @@ app.get("/process/info", (req, res) => {
 app.get("/process/health", (req, res) => {
   try {
     const health = processManager.getProcessHealth();
-    const statusCode = health.status === 'healthy' ? 200 : 
+    const statusCode = health.status === 'healthy' ? 200 :
                       health.status === 'degraded' ? 200 : 503;
     res.status(statusCode).json({
       success: true,
@@ -684,7 +684,7 @@ app.get("/cache/stats", (req, res) => {
 app.get("/database/health", async (req, res) => {
   try {
     const health = await databasePool.healthCheck();
-    const statusCode = health.status === 'healthy' ? 200 : 
+    const statusCode = health.status === 'healthy' ? 200 :
                       health.status === 'degraded' ? 200 : 503;
     res.status(statusCode).json({
       success: true,
@@ -720,7 +720,7 @@ app.get("/v1/rate-limit/organizations/:organizationId", (req, res) => {
   try {
     const { organizationId } = req.params;
     const stats = rateLimiter.getOrganizationStats(organizationId);
-    
+
     if (!stats) {
       return res.status(404).json({ error: 'Organization not found' });
     }
@@ -743,13 +743,13 @@ app.get("/v1/rate-limit/organizations/:organizationId", (req, res) => {
 app.post("/v1/rate-limit/organizations", (req, res) => {
   try {
     const { organizationId, config } = req.body;
-    
+
     if (!organizationId) {
       return res.status(400).json({ error: 'Organization ID is required' });
     }
 
     rateLimiter.addOrganization(organizationId, config || {});
-    
+
     return res.status(201).json({
       success: true,
       data: {
@@ -767,9 +767,9 @@ app.put("/v1/rate-limit/organizations/:organizationId", (req, res) => {
   try {
     const { organizationId } = req.params;
     const { config } = req.body;
-    
+
     const updated = rateLimiter.updateOrganization(organizationId, config || {});
-    
+
     if (!updated) {
       return res.status(404).json({ error: 'Organization not found' });
     }
@@ -791,7 +791,7 @@ app.delete("/v1/rate-limit/organizations/:organizationId", (req, res) => {
   try {
     const { organizationId } = req.params;
     const removed = rateLimiter.removeOrganization(organizationId);
-    
+
     if (!removed) {
       return res.status(404).json({ error: 'Organization not found' });
     }
@@ -813,7 +813,7 @@ app.post("/v1/rate-limit/organizations/:organizationId/reset", (req, res) => {
   try {
     const { organizationId } = req.params;
     const reset = rateLimiter.resetOrganization(organizationId);
-    
+
     if (!reset) {
       return res.status(404).json({ error: 'Organization not found' });
     }
@@ -834,7 +834,7 @@ app.post("/v1/rate-limit/organizations/:organizationId/reset", (req, res) => {
 app.get("/v1/rate-limit/stats", (req, res) => {
   try {
     const stats = rateLimiter.getGlobalStats();
-    
+
     return res.json({
       success: true,
       data: {
@@ -898,7 +898,7 @@ app.post("/v1/alerts/rules", rateLimitByEndpoint, (req, res) => {
   try {
     const rule = req.body;
     alertSystem.addRule(rule);
-    
+
     return res.status(201).json({
       success: true,
       data: {
@@ -916,9 +916,9 @@ app.put("/v1/alerts/rules/:ruleId", rateLimitByEndpoint, (req, res) => {
   try {
     const { ruleId } = req.params;
     const updates = req.body;
-    
+
     const updated = alertSystem.updateRule(ruleId, updates);
-    
+
     if (!updated) {
       return res.status(404).json({ error: 'Alert rule not found' });
     }
@@ -940,7 +940,7 @@ app.delete("/v1/alerts/rules/:ruleId", rateLimitByEndpoint, (req, res) => {
   try {
     const { ruleId } = req.params;
     const removed = alertSystem.removeRule(ruleId);
-    
+
     if (!removed) {
       return res.status(404).json({ error: 'Alert rule not found' });
     }
@@ -962,9 +962,9 @@ app.post("/v1/alerts/:alertId/acknowledge", rateLimitByEndpoint, (req, res) => {
   try {
     const { alertId } = req.params;
     const { acknowledgedBy } = req.body;
-    
+
     const acknowledged = alertSystem.acknowledgeAlert(alertId, acknowledgedBy);
-    
+
     if (!acknowledged) {
       return res.status(404).json({ error: 'Alert not found' });
     }
@@ -986,9 +986,9 @@ app.post("/v1/alerts/:alertId/resolve", rateLimitByEndpoint, (req, res) => {
   try {
     const { alertId } = req.params;
     const { resolvedBy } = req.body;
-    
+
     const resolved = alertSystem.resolveAlert(alertId);
-    
+
     if (!resolved) {
       return res.status(404).json({ error: 'Alert not found' });
     }
@@ -1073,7 +1073,7 @@ app.get("/v1/observability/stats", (req, res) => {
       metrics: metrics.getMetricsStats(),
       traces: tracing.getStats()
     };
-    
+
     res.json({
       success: true,
       data: stats
@@ -1199,7 +1199,7 @@ app.get("/v1/finops/costs", (req, res) => {
       organizationId as string,
       period as string
     );
-    
+
     res.json({
       success: true,
       data: metrics
@@ -1213,10 +1213,10 @@ app.get("/v1/finops/costs", (req, res) => {
 app.get("/v1/finops/budgets", (req, res) => {
   try {
     const { organizationId } = req.query;
-    const budgets = organizationId 
+    const budgets = organizationId
       ? finOpsSystem.getBudgetsByOrganization(organizationId as string)
       : Array.from(finOpsSystem['budgets'].values());
-    
+
     res.json({
       success: true,
       data: {
@@ -1234,7 +1234,7 @@ app.post("/v1/finops/budgets", (req, res) => {
   try {
     const budgetData = req.body;
     const budgetId = finOpsSystem.createBudget(budgetData);
-    
+
     res.status(201).json({
       success: true,
       data: {
@@ -1252,9 +1252,9 @@ app.put("/v1/finops/budgets/:budgetId", (req, res) => {
   try {
     const { budgetId } = req.params;
     const updates = req.body;
-    
+
     const updated = finOpsSystem.updateBudget(budgetId, updates);
-    
+
     if (!updated) {
       return res.status(404).json({ error: 'Budget not found' });
     }
@@ -1276,7 +1276,7 @@ app.delete("/v1/finops/budgets/:budgetId", (req, res) => {
   try {
     const { budgetId } = req.params;
     const deleted = finOpsSystem.deleteBudget(budgetId);
-    
+
     if (!deleted) {
       return res.status(404).json({ error: 'Budget not found' });
     }
@@ -1298,7 +1298,7 @@ app.get("/v1/finops/alerts", (req, res) => {
   try {
     const { organizationId } = req.query;
     const alerts = finOpsSystem.getActiveAlerts(organizationId as string);
-    
+
     return res.json({
       success: true,
       data: {
@@ -1316,9 +1316,9 @@ app.post("/v1/finops/alerts/:alertId/acknowledge", (req, res) => {
   try {
     const { alertId } = req.params;
     const { acknowledgedBy } = req.body;
-    
+
     const acknowledged = finOpsSystem.acknowledgeAlert(alertId, acknowledgedBy);
-    
+
     if (!acknowledged) {
       return res.status(404).json({ error: 'Alert not found' });
     }
@@ -1339,7 +1339,7 @@ app.post("/v1/finops/alerts/:alertId/acknowledge", (req, res) => {
 app.get("/v1/finops/stats", (req, res) => {
   try {
     const stats = finOpsSystem.getStats();
-    
+
     return res.json({
       success: true,
       data: stats
@@ -1357,7 +1357,7 @@ app.get("/v1/finops/budgets/:budgetId/usage", (req, res) => {
     const currentSpend = finOpsSystem.getCurrentBudgetSpend(budgetId);
     const usagePercentage = finOpsSystem.getBudgetUsagePercentage(budgetId);
     const budget = finOpsSystem.getBudget(budgetId);
-    
+
     if (!budget) {
       return res.status(404).json({ error: 'Budget not found' });
     }
@@ -1385,7 +1385,7 @@ app.get("/v1/finops/budgets/near-limit", (req, res) => {
   try {
     const { threshold = 80 } = req.query;
     const budgetsNearLimit = finOpsSystem.getBudgetsNearLimit(Number(threshold));
-    
+
     return res.json({
       success: true,
       data: {
@@ -1405,7 +1405,7 @@ app.get("/v1/finops/organizations/:organizationId/cost", (req, res) => {
     const { organizationId } = req.params;
     const { period } = req.query;
     const totalCost = finOpsSystem.getOrganizationCost(organizationId, period as string);
-    
+
     return res.json({
       success: true,
       data: {
@@ -1424,7 +1424,7 @@ app.get("/v1/finops/organizations/:organizationId/cost", (req, res) => {
 app.post("/v1/finops/costs/estimate", (req, res) => {
   try {
     const { operation, service, responseSize, complexity } = req.body;
-    
+
     // Simular cálculo de costo estimado
     const baseCosts: Record<string, number> = {
       'ai': 0.01,
@@ -1433,13 +1433,13 @@ app.post("/v1/finops/costs/estimate", (req, res) => {
       'search': 0.005,
       'unknown': 0.001,
     };
-    
+
     const baseCost = baseCosts[operation] || baseCosts['unknown'];
     const sizeMultiplier = Math.max(1, (responseSize || 1000) / 1000);
     const complexityMultiplier = complexity || 1;
-    
+
     const estimatedCost = baseCost * sizeMultiplier * complexityMultiplier;
-    
+
     res.json({
       success: true,
       data: {
@@ -1463,10 +1463,10 @@ app.post("/v1/finops/costs/estimate", (req, res) => {
 app.get("/v1/rls/rules", rlsAccessControlMiddleware('rls', 'read'), (req, res) => {
   try {
     const { organizationId } = req.query;
-    const rules = organizationId 
+    const rules = organizationId
       ? rlsSystem.getRulesByOrganization(organizationId as string)
       : Array.from(rlsSystem['rules'].values());
-    
+
     res.json({
       success: true,
       data: {
@@ -1484,7 +1484,7 @@ app.post("/v1/rls/rules", rlsAccessControlMiddleware('rls', 'write'), rlsDataSan
   try {
     const ruleData = req.body;
     const ruleId = rlsSystem.createRule(ruleData);
-    
+
     res.status(201).json({
       success: true,
       data: {
@@ -1502,9 +1502,9 @@ app.put("/v1/rls/rules/:ruleId", rlsAccessControlMiddleware('rls', 'write'), rls
   try {
     const { ruleId } = req.params;
     const updates = req.body;
-    
+
     const updated = rlsSystem.updateRule(ruleId, updates);
-    
+
     if (!updated) {
       return res.status(404).json({ error: 'RLS rule not found' });
     }
@@ -1526,7 +1526,7 @@ app.delete("/v1/rls/rules/:ruleId", rlsAccessControlMiddleware('rls', 'write'), 
   try {
     const { ruleId } = req.params;
     const deleted = rlsSystem.deleteRule(ruleId);
-    
+
     if (!deleted) {
       return res.status(404).json({ error: 'RLS rule not found' });
     }
@@ -1547,7 +1547,7 @@ app.delete("/v1/rls/rules/:ruleId", rlsAccessControlMiddleware('rls', 'write'), 
 app.get("/v1/rls/context", (req, res) => {
   try {
     const context = rlsSystem.getContext();
-    
+
     res.json({
       success: true,
       data: context
@@ -1562,7 +1562,7 @@ app.post("/v1/rls/check-access", rlsDataSanitizationMiddleware('access_check'), 
   try {
     const { resource, action } = req.body;
     const hasAccess = rlsSystem.checkAccess(resource, action);
-    
+
     res.json({
       success: true,
       data: {
@@ -1581,7 +1581,7 @@ app.post("/v1/rls/check-access", rlsDataSanitizationMiddleware('access_check'), 
 app.get("/v1/rls/stats", (req, res) => {
   try {
     const stats = rlsSystem.getStats();
-    
+
     res.json({
       success: true,
       data: stats
@@ -1596,7 +1596,7 @@ app.get("/v1/rls/stats", (req, res) => {
 app.get("/v1/gateway/services", (req, res) => {
   try {
     const services = apiGateway.getAllServices();
-    
+
     res.json({
       success: true,
       data: {
@@ -1614,7 +1614,7 @@ app.post("/v1/gateway/services", (req, res) => {
   try {
     const serviceData = req.body;
     const serviceId = apiGateway.addService(serviceData);
-    
+
     res.status(201).json({
       success: true,
       data: {
@@ -1632,7 +1632,7 @@ app.delete("/v1/gateway/services/:serviceId", (req, res) => {
   try {
     const { serviceId } = req.params;
     const deleted = apiGateway.removeService(serviceId);
-    
+
     if (!deleted) {
       return res.status(404).json({ error: 'Service not found' });
     }
@@ -1653,7 +1653,7 @@ app.delete("/v1/gateway/services/:serviceId", (req, res) => {
 app.get("/v1/gateway/routes", (req, res) => {
   try {
     const routes = apiGateway.getAllRoutes();
-    
+
     res.json({
       success: true,
       data: {
@@ -1671,7 +1671,7 @@ app.post("/v1/gateway/routes", (req, res) => {
   try {
     const routeData = req.body;
     const routeId = apiGateway.addRoute(routeData);
-    
+
     res.status(201).json({
       success: true,
       data: {
@@ -1689,7 +1689,7 @@ app.delete("/v1/gateway/routes/:routeId", (req, res) => {
   try {
     const { routeId } = req.params;
     const deleted = apiGateway.removeRoute(routeId);
-    
+
     if (!deleted) {
       return res.status(404).json({ error: 'Route not found' });
     }
@@ -1710,7 +1710,7 @@ app.delete("/v1/gateway/routes/:routeId", (req, res) => {
 app.get("/v1/gateway/stats", (req, res) => {
   try {
     const stats = apiGateway.getStats();
-    
+
     return res.json({
       success: true,
       data: stats
@@ -1725,7 +1725,7 @@ app.post("/v1/gateway/test-route", (req, res) => {
   try {
     const { path, method, headers, query } = req.body;
     const route = apiGateway.findRoute(path, method, headers || {}, query || {});
-    
+
     if (!route) {
       return res.status(404).json({
         success: false,
@@ -1736,7 +1736,7 @@ app.post("/v1/gateway/test-route", (req, res) => {
     }
 
     const service = apiGateway.getService(route.serviceId);
-    
+
     return res.json({
       success: true,
       data: {
@@ -1865,7 +1865,7 @@ app.get("/v1/events/events", async (req, res) => {
 app.post("/v1/events/replay", async (req, res) => {
   try {
     const { fromTimestamp } = req.body;
-    
+
     await eventSourcingSystem.replayEvents(fromTimestamp ? new Date(fromTimestamp) : undefined);
 
     res.json({
@@ -1883,7 +1883,7 @@ app.post("/v1/events/replay", async (req, res) => {
 app.get("/v1/events/stats", async (req, res) => {
   try {
     const stats = eventSourcingSystem.getStatistics();
-    
+
     res.json({
       success: true,
       data: stats
@@ -1899,7 +1899,7 @@ app.post("/v1/microservices/register", (req, res) => {
   try {
     const serviceData = req.body;
     const serviceId = serviceRegistry.register(serviceData);
-    
+
     res.status(201).json({
       success: true,
       data: {
@@ -1917,7 +1917,7 @@ app.delete("/v1/microservices/deregister/:serviceId", (req, res) => {
   try {
     const { serviceId } = req.params;
     const deregistered = serviceRegistry.deregister(serviceId);
-    
+
     if (!deregistered) {
       return res.status(404).json({ error: 'Service not found' });
     }
@@ -1938,9 +1938,9 @@ app.delete("/v1/microservices/deregister/:serviceId", (req, res) => {
 app.get("/v1/microservices/services", (req, res) => {
   try {
     const { name, version, environment, region, health, status } = req.query;
-    
+
     let services = serviceRegistry.getAllServices();
-    
+
     // Aplicar filtros
     if (name) {
       services = services.filter(s => s.name === name);
@@ -1960,7 +1960,7 @@ app.get("/v1/microservices/services", (req, res) => {
     if (status) {
       services = services.filter(s => s.status === status);
     }
-    
+
     res.json({
       success: true,
       data: {
@@ -1978,16 +1978,16 @@ app.get("/v1/microservices/discover/:serviceName", (req, res) => {
   try {
     const { serviceName } = req.params;
     const { version, environment, region, health, status } = req.query;
-    
+
     const filters: any = {};
     if (version) filters.version = version;
     if (environment) filters.environment = environment;
     if (region) filters.region = region;
     if (health) filters.health = health;
     if (status) filters.status = status;
-    
+
     const instances = serviceDiscovery.discover(serviceName, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -2005,7 +2005,7 @@ app.get("/v1/microservices/discover/:serviceName", (req, res) => {
 app.post("/v1/microservices/request", async (req, res) => {
   try {
     const { serviceName, path, method, headers, body, timeout, retries } = req.body;
-    
+
     const response = await serviceMesh.request({
       serviceName,
       path,
@@ -2015,14 +2015,14 @@ app.post("/v1/microservices/request", async (req, res) => {
       timeout,
       retries,
     });
-    
+
     res.json({
       success: true,
       data: response
     });
   } catch (error) {
     logger.error('Service mesh request failed', { error: (error as Error).message });
-    res.status(500).json({ 
+    res.status(500).json({
       error: (error as Error).message,
       code: 'SERVICE_MESH_ERROR'
     });
@@ -2037,7 +2037,7 @@ app.get("/v1/microservices/stats", (req, res) => {
       healthyServices: serviceRegistry.getAllServices().filter(s => s.health === 'healthy').length,
       onlineServices: serviceRegistry.getAllServices().filter(s => s.status === 'online').length,
     };
-    
+
     res.json({
       success: true,
       data: {
@@ -2055,7 +2055,7 @@ app.post("/v1/microservices/heartbeat/:serviceId", (req, res) => {
   try {
     const { serviceId } = req.params;
     const success = serviceRegistry.heartbeat(serviceId);
-    
+
     if (!success) {
       return res.status(404).json({ error: 'Service not found' });
     }
@@ -2077,9 +2077,9 @@ app.put("/v1/microservices/health/:serviceId", (req, res) => {
   try {
     const { serviceId } = req.params;
     const { health } = req.body;
-    
+
     const success = serviceRegistry.updateHealth(serviceId, health);
-    
+
     if (!success) {
       return res.status(404).json({ error: 'Service not found' });
     }
@@ -2102,7 +2102,7 @@ app.post("/v1/microservices/circuit-breaker/reset/:serviceName", (req, res) => {
   try {
     const { serviceName } = req.params;
     const success = serviceMesh.resetCircuitBreaker(serviceName);
-    
+
     if (!success) {
       return res.status(404).json({ error: 'Circuit breaker not found' });
     }
@@ -2124,12 +2124,12 @@ app.post("/v1/microservices/circuit-breaker/reset/:serviceName", (req, res) => {
 app.get("/v1/config/feature-flags", (req, res) => {
   try {
     const { environment } = req.query;
-    
+
     let flags = configurationManager.getAllFeatureFlags();
     if (environment) {
       flags = flags.filter(flag => flag.environment === environment);
     }
-    
+
     res.json({
       success: true,
       data: {
@@ -2147,7 +2147,7 @@ app.post("/v1/config/feature-flags", (req, res) => {
   try {
     const flagData = req.body;
     const flagId = configurationManager.createFeatureFlag(flagData);
-    
+
     res.status(201).json({
       success: true,
       data: {
@@ -2165,9 +2165,9 @@ app.put("/v1/config/feature-flags/:flagId", (req, res) => {
   try {
     const { flagId } = req.params;
     const updates = req.body;
-    
+
     const updated = configurationManager.updateFeatureFlag(flagId, updates);
-    
+
     if (!updated) {
       return res.status(404).json({ error: 'Feature flag not found' });
     }
@@ -2189,7 +2189,7 @@ app.delete("/v1/config/feature-flags/:flagId", (req, res) => {
   try {
     const { flagId } = req.params;
     const deleted = configurationManager.deleteFeatureFlag(flagId);
-    
+
     if (!deleted) {
       return res.status(404).json({ error: 'Feature flag not found' });
     }
@@ -2211,9 +2211,9 @@ app.post("/v1/config/feature-flags/:flagId/check", (req, res) => {
   try {
     const { flagId } = req.params;
     const context = req.body;
-    
+
     const isEnabled = configurationManager.isFeatureEnabled(flagId, context);
-    
+
     return res.json({
       success: true,
       data: {
@@ -2231,13 +2231,13 @@ app.post("/v1/config/feature-flags/:flagId/check", (req, res) => {
 app.get("/v1/config/environments", (req, res) => {
   try {
     const { name } = req.query;
-    
+
     if (name) {
       const config = configurationManager.getEnvironmentConfig(name as string);
       if (!config) {
         return res.status(404).json({ error: 'Environment not found' });
       }
-      
+
       return res.json({
         success: true,
         data: config
@@ -2262,9 +2262,9 @@ app.put("/v1/config/environments/:environment", (req, res) => {
   try {
     const { environment } = req.params;
     const config = req.body;
-    
+
     const updated = configurationManager.setEnvironmentConfig(environment, config);
-    
+
     if (!updated) {
       return res.status(400).json({ error: 'Failed to update environment config' });
     }
@@ -2286,9 +2286,9 @@ app.get("/v1/config/values/:key", (req, res) => {
   try {
     const { key } = req.params;
     const { environment, defaultValue } = req.query;
-    
+
     const value = configurationManager.getConfigValue(key, environment as string, defaultValue);
-    
+
     return res.json({
       success: true,
       data: {
@@ -2307,9 +2307,9 @@ app.put("/v1/config/values/:key", (req, res) => {
   try {
     const { key } = req.params;
     const { value, environment } = req.body;
-    
+
     const set = configurationManager.setConfigValue(key, value, environment);
-    
+
     if (!set) {
       return res.status(400).json({ error: 'Failed to set config value' });
     }
@@ -2333,9 +2333,9 @@ app.get("/v1/config/secrets/:key", (req, res) => {
   try {
     const { key } = req.params;
     const { environment } = req.query;
-    
+
     const secret = configurationManager.getSecret(key, environment as string);
-    
+
     if (!secret) {
       return res.status(404).json({ error: 'Secret not found' });
     }
@@ -2358,9 +2358,9 @@ app.put("/v1/config/secrets/:key", (req, res) => {
   try {
     const { key } = req.params;
     const { value, environment } = req.body;
-    
+
     const set = configurationManager.setSecret(key, value, environment);
-    
+
     if (!set) {
       return res.status(400).json({ error: 'Failed to set secret' });
     }
@@ -2383,7 +2383,7 @@ app.put("/v1/config/secrets/:key", (req, res) => {
 app.get("/v1/config/stats", (req, res) => {
   try {
     const stats = configurationManager.getStats();
-    
+
     return res.json({
       success: true,
       data: stats
@@ -2397,7 +2397,7 @@ app.get("/v1/config/stats", (req, res) => {
 app.post("/v1/config/validate", (req, res) => {
   try {
     const isValid = configurationManager.validateConfiguration();
-    
+
     return res.json({
       success: true,
       data: {
@@ -2414,7 +2414,7 @@ app.post("/v1/config/validate", (req, res) => {
 app.post("/v1/config/reload", (req, res) => {
   try {
     configurationManager.reloadConfiguration();
-    
+
     return res.json({
       success: true,
       data: {
@@ -2447,7 +2447,7 @@ app.get("/v1/config/beta-features", requireFeatureFlag('beta_features'), (req, r
 app.get("/v1/workflows", async (req, res) => {
   try {
     const { type, category, status, tags } = req.query;
-    
+
     const filters: any = {};
     if (type) filters.type = type;
     if (category) filters.category = category;
@@ -2459,9 +2459,9 @@ app.get("/v1/workflows", async (req, res) => {
         filters.tags = [tags];
       }
     }
-    
+
     const workflows = await workflowEngine.listWorkflows(filters);
-    
+
     res.json(workflows);
   } catch (error) {
     logger.error('Failed to get workflows', { error: (error as Error).message });
@@ -2473,7 +2473,7 @@ app.post("/v1/workflows", async (req, res) => {
   try {
     const workflowData = req.body;
     const workflow = await workflowEngine.createWorkflow(workflowData);
-    
+
     res.status(201).json({
       data: workflow,
       message: 'Workflow created successfully'
@@ -2488,7 +2488,7 @@ app.get("/v1/workflows/:workflowId", async (req, res) => {
   try {
     const { workflowId } = req.params;
     const workflow = await workflowEngine.getWorkflow(workflowId);
-    
+
     if (!workflow) {
       return res.status(404).json({ error: 'Workflow not found' });
     }
@@ -2507,9 +2507,9 @@ app.put("/v1/workflows/:workflowId", async (req, res) => {
   try {
     const { workflowId } = req.params;
     const updates = req.body;
-    
+
     const workflow = await workflowEngine.updateWorkflow(workflowId, updates);
-    
+
     res.json({
       data: workflow,
       message: 'Workflow updated successfully'
@@ -2524,7 +2524,7 @@ app.delete("/v1/workflows/:workflowId", async (req, res) => {
   try {
     const { workflowId } = req.params;
     await workflowEngine.deleteWorkflow(workflowId);
-    
+
     res.json({
       message: 'Workflow deleted successfully'
     });
@@ -2538,9 +2538,9 @@ app.post("/v1/workflows/:workflowId/start", async (req, res) => {
   try {
     const { workflowId } = req.params;
     const { context = {}, metadata = {} } = req.body;
-    
+
     const instance = await workflowEngine.startWorkflow(workflowId, context, metadata);
-    
+
     res.status(200).json({
       data: instance,
       message: 'Workflow started successfully'
@@ -2554,7 +2554,7 @@ app.post("/v1/workflows/:workflowId/start", async (req, res) => {
 app.get("/v1/workflows/instances", async (req, res) => {
   try {
     const { workflowId, status, userId, orgId, fromDate, toDate } = req.query;
-    
+
     const filters: any = {};
     if (workflowId) filters.workflowId = workflowId;
     if (status) filters.status = status;
@@ -2562,9 +2562,9 @@ app.get("/v1/workflows/instances", async (req, res) => {
     if (orgId) filters.orgId = orgId;
     if (fromDate) filters.fromDate = new Date(fromDate as string);
     if (toDate) filters.toDate = new Date(toDate as string);
-    
+
     const instances = await workflowEngine.listInstances(filters);
-    
+
     res.json(instances);
   } catch (error) {
     logger.error('Failed to get workflow instances', { error: (error as Error).message });
@@ -2576,7 +2576,7 @@ app.get("/v1/workflows/instances/:instanceId", async (req, res) => {
   try {
     const { instanceId } = req.params;
     const instance = await workflowEngine.getInstance(instanceId);
-    
+
     if (!instance) {
       return res.status(404).json({ error: 'Workflow instance not found' });
     }
@@ -2595,7 +2595,7 @@ app.post("/v1/workflows/instances/:instanceId/pause", async (req, res) => {
   try {
     const { instanceId } = req.params;
     await workflowEngine.pauseInstance(instanceId);
-    
+
     res.json({
       message: 'Workflow instance paused successfully'
     });
@@ -2609,7 +2609,7 @@ app.post("/v1/workflows/instances/:instanceId/resume", async (req, res) => {
   try {
     const { instanceId } = req.params;
     await workflowEngine.resumeInstance(instanceId);
-    
+
     res.json({
       message: 'Workflow instance resumed successfully'
     });
@@ -2623,7 +2623,7 @@ app.post("/v1/workflows/instances/:instanceId/cancel", async (req, res) => {
   try {
     const { instanceId } = req.params;
     await workflowEngine.cancelInstance(instanceId);
-    
+
     res.json({
       message: 'Workflow instance cancelled successfully'
     });
@@ -2637,9 +2637,9 @@ app.post("/v1/workflows/instances/:instanceId/actions", async (req, res) => {
   try {
     const { instanceId } = req.params;
     const { actionId } = req.body;
-    
+
     await workflowEngine.executeAction(instanceId, actionId);
-    
+
     res.json({
       message: 'Action executed successfully'
     });
@@ -2652,7 +2652,7 @@ app.post("/v1/workflows/instances/:instanceId/actions", async (req, res) => {
 app.get("/v1/workflows/stats", async (req, res) => {
   try {
     const stats = await workflowEngine.getStats();
-    
+
     res.json(stats);
   } catch (error) {
     logger.error('Failed to get workflow stats', { error: (error as Error).message });
@@ -2690,17 +2690,17 @@ app.get("/v1/demo/metrics", rateLimitByEndpoint, (req: any, res) => {
 app.get("/v1/demo/ai", rateLimitByEndpoint, async (req: any, res) => {
   try {
     const { prompt = "Hello, how are you?", model = "gpt-4" } = req.query;
-    
+
     // Check cache first
     const cachedResponse = await advancedCacheManager.getAICache().getAIResponse(prompt as string, model as string);
-    
+
     if (cachedResponse) {
-      logger.info('AI response served from cache', { 
-        prompt: prompt as string, 
+      logger.info('AI response served from cache', {
+        prompt: prompt as string,
         model: model as string,
-        requestId: req.requestId 
+        requestId: req.requestId
       });
-      
+
       return res.json({
         success: true,
         data: {
@@ -2722,11 +2722,11 @@ app.get("/v1/demo/ai", rateLimitByEndpoint, async (req: any, res) => {
 
     // Cache the response
     await advancedCacheManager.getAICache().setAIResponse(prompt as string, model as string, demoResponse);
-    
-    logger.info('AI response generated and cached', { 
-      prompt: prompt as string, 
+
+    logger.info('AI response generated and cached', {
+      prompt: prompt as string,
       model: model as string,
-      requestId: req.requestId 
+      requestId: req.requestId
     });
 
     return res.json({
@@ -2748,17 +2748,17 @@ app.get("/v1/demo/ai", rateLimitByEndpoint, async (req: any, res) => {
 app.get("/v1/demo/search", rateLimitByEndpoint, async (req: any, res) => {
   try {
     const { query = "artificial intelligence", filters } = req.query;
-    
+
     // Check cache first
     const cachedResults = await advancedCacheManager.getSearchCache().getSearchResults(query as string, filters);
-    
+
     if (cachedResults) {
-      logger.info('Search results served from cache', { 
-        query: query as string, 
+      logger.info('Search results served from cache', {
+        query: query as string,
         filters,
-        requestId: req.requestId 
+        requestId: req.requestId
       });
-      
+
       return res.json({
         success: true,
         data: {
@@ -2786,11 +2786,11 @@ app.get("/v1/demo/search", rateLimitByEndpoint, async (req: any, res) => {
 
     // Cache the results
     await advancedCacheManager.getSearchCache().setSearchResults(query as string, demoResults, filters);
-    
-    logger.info('Search results generated and cached', { 
-      query: query as string, 
+
+    logger.info('Search results generated and cached', {
+      query: query as string,
       filters,
-      requestId: req.requestId 
+      requestId: req.requestId
     });
 
     return res.json({
@@ -3114,9 +3114,9 @@ app.get("/v1/inventory/products/:id/kardex-report", async (req, res) => {
 app.post("/v1/sepa/upload", async (req, res) => {
   try {
     const { fileContent, fileType, fileName } = req.body;
-    
+
     if (!fileContent || !fileType) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Missing required fields",
         message: "fileContent and fileType are required"
       });
@@ -3128,7 +3128,7 @@ app.post("/v1/sepa/upload", async (req, res) => {
     } else if (fileType === 'mt940') {
       result = await sepaParser.parseMT940(fileContent);
     } else {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Invalid file type",
         message: "fileType must be 'camt' or 'mt940'"
       });
@@ -3146,7 +3146,7 @@ app.post("/v1/sepa/upload", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("SEPA upload failed", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "SEPA upload failed",
       message: (error as Error).message
     });
@@ -3157,7 +3157,7 @@ app.post("/v1/sepa/upload", async (req, res) => {
 app.get("/v1/sepa/transactions", async (req, res) => {
   try {
     const transactions = sepaParser.getTransactions();
-    
+
     return res.json({
       success: true,
       data: {
@@ -3167,7 +3167,7 @@ app.get("/v1/sepa/transactions", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to get SEPA transactions", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to get SEPA transactions",
       message: (error as Error).message
     });
@@ -3178,16 +3178,16 @@ app.get("/v1/sepa/transactions", async (req, res) => {
 app.post("/v1/sepa/matching", async (req, res) => {
   try {
     const { sepaTransactions, existingTransactions } = req.body;
-    
+
     if (!sepaTransactions || !existingTransactions) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Missing required fields",
         message: "sepaTransactions and existingTransactions are required"
       });
     }
 
     const results = await matchingEngine.matchTransactions(sepaTransactions, existingTransactions);
-    
+
     logger.info("SEPA matching completed", {
       sepaTransactionsCount: sepaTransactions.length,
       existingTransactionsCount: existingTransactions.length,
@@ -3203,7 +3203,7 @@ app.post("/v1/sepa/matching", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("SEPA matching failed", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "SEPA matching failed",
       message: (error as Error).message
     });
@@ -3214,16 +3214,16 @@ app.post("/v1/sepa/matching", async (req, res) => {
 app.post("/v1/sepa/reconciliation", async (req, res) => {
   try {
     const { sepaTransactions, existingTransactions } = req.body;
-    
+
     if (!sepaTransactions || !existingTransactions) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Missing required fields",
         message: "sepaTransactions and existingTransactions are required"
       });
     }
 
     const result = await reconciliationService.performReconciliation(sepaTransactions, existingTransactions);
-    
+
     logger.info("SEPA reconciliation completed", {
       totalTransactions: result.summary.total,
       autoReconciled: result.summary.autoReconciled,
@@ -3236,7 +3236,7 @@ app.post("/v1/sepa/reconciliation", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("SEPA reconciliation failed", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "SEPA reconciliation failed",
       message: (error as Error).message
     });
@@ -3247,7 +3247,7 @@ app.post("/v1/sepa/reconciliation", async (req, res) => {
 app.get("/v1/sepa/rules", async (req, res) => {
   try {
     const rules = ruleEngine.getRules();
-    
+
     return res.json({
       success: true,
       data: {
@@ -3257,7 +3257,7 @@ app.get("/v1/sepa/rules", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to get SEPA rules", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to get SEPA rules",
       message: (error as Error).message
     });
@@ -3267,10 +3267,10 @@ app.get("/v1/sepa/rules", async (req, res) => {
 app.post("/v1/sepa/rules", async (req, res) => {
   try {
     const ruleData = req.body;
-    
+
     const validation = ruleEngine.validateRule(ruleData);
     if (!validation.isValid) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Invalid rule",
         message: "Rule validation failed",
         details: validation.errors
@@ -3278,7 +3278,7 @@ app.post("/v1/sepa/rules", async (req, res) => {
     }
 
     const rule = ruleEngine.addRule(ruleData);
-    
+
     logger.info("SEPA rule created", { ruleId: rule.id, ruleName: rule.name });
 
     return res.json({
@@ -3287,7 +3287,7 @@ app.post("/v1/sepa/rules", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to create SEPA rule", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to create SEPA rule",
       message: (error as Error).message
     });
@@ -3298,10 +3298,10 @@ app.put("/v1/sepa/rules/:ruleId", async (req, res) => {
   try {
     const { ruleId } = req.params;
     const updates = req.body;
-    
+
     const rule = ruleEngine.updateRule(ruleId, updates);
     if (!rule) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: "Rule not found",
         message: `Rule with ID ${ruleId} not found`
       });
@@ -3315,7 +3315,7 @@ app.put("/v1/sepa/rules/:ruleId", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to update SEPA rule", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to update SEPA rule",
       message: (error as Error).message
     });
@@ -3325,10 +3325,10 @@ app.put("/v1/sepa/rules/:ruleId", async (req, res) => {
 app.delete("/v1/sepa/rules/:ruleId", async (req, res) => {
   try {
     const { ruleId } = req.params;
-    
+
     const deleted = ruleEngine.deleteRule(ruleId);
     if (!deleted) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: "Rule not found",
         message: `Rule with ID ${ruleId} not found`
       });
@@ -3342,7 +3342,7 @@ app.delete("/v1/sepa/rules/:ruleId", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to delete SEPA rule", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to delete SEPA rule",
       message: (error as Error).message
     });
@@ -3355,7 +3355,7 @@ app.get("/v1/sepa/stats", async (req, res) => {
     const matchingStats = matchingEngine.getMatchingStats();
     const reconciliationStats = reconciliationService.getReconciliationStats();
     const ruleStats = ruleEngine.getRuleStats();
-    
+
     return res.json({
       success: true,
       data: {
@@ -3366,7 +3366,7 @@ app.get("/v1/sepa/stats", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to get SEPA stats", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to get SEPA stats",
       message: (error as Error).message
     });
@@ -3381,9 +3381,9 @@ app.get("/v1/sepa/stats", async (req, res) => {
 app.post("/v1/rls/generate", async (req, res) => {
   try {
     const { schemaId, tableName, policyType, templateId, variables, rules, options } = req.body;
-    
+
     if (!schemaId || !tableName || !policyType || !templateId) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Missing required fields",
         message: "schemaId, tableName, policyType, and templateId are required"
       });
@@ -3413,7 +3413,7 @@ app.post("/v1/rls/generate", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to generate RLS policy", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to generate RLS policy",
       message: (error as Error).message
     });
@@ -3424,15 +3424,15 @@ app.get("/v1/rls/policies", async (req, res) => {
   try {
     const { tableName, schemaName } = req.query;
     let policies = rlsGenerator.getPolicies();
-    
+
     if (tableName) {
       policies = policies.filter(p => p.tableName === tableName);
     }
-    
+
     if (schemaName) {
       policies = policies.filter(p => p.schemaName === schemaName);
     }
-    
+
     return res.json({
       success: true,
       data: {
@@ -3442,7 +3442,7 @@ app.get("/v1/rls/policies", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to get RLS policies", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to get RLS policies",
       message: (error as Error).message
     });
@@ -3453,9 +3453,9 @@ app.get("/v1/rls/policies/:policyId", async (req, res) => {
   try {
     const { policyId } = req.params;
     const policy = rlsGenerator.getPolicy(policyId);
-    
+
     if (!policy) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: "Policy not found",
         message: `RLS policy with ID ${policyId} not found`
       });
@@ -3467,7 +3467,7 @@ app.get("/v1/rls/policies/:policyId", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to get RLS policy", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to get RLS policy",
       message: (error as Error).message
     });
@@ -3479,11 +3479,11 @@ app.get("/v1/rls/templates", async (req, res) => {
   try {
     const { category } = req.query;
     let templates = rlsGenerator.getTemplates();
-    
+
     if (category) {
       templates = templates.filter(t => t.category === category);
     }
-    
+
     return res.json({
       success: true,
       data: {
@@ -3493,7 +3493,7 @@ app.get("/v1/rls/templates", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to get RLS templates", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to get RLS templates",
       message: (error as Error).message
     });
@@ -3504,9 +3504,9 @@ app.get("/v1/rls/templates/:templateId", async (req, res) => {
   try {
     const { templateId } = req.params;
     const template = rlsGenerator.getTemplate(templateId);
-    
+
     if (!template) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: "Template not found",
         message: `RLS template with ID ${templateId} not found`
       });
@@ -3518,7 +3518,7 @@ app.get("/v1/rls/templates/:templateId", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to get RLS template", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to get RLS template",
       message: (error as Error).message
     });
@@ -3529,9 +3529,9 @@ app.get("/v1/rls/templates/:templateId", async (req, res) => {
 app.post("/v1/rls/validate", async (req, res) => {
   try {
     const { policyId, validationTypes } = req.body;
-    
+
     if (!policyId) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Missing required fields",
         message: "policyId is required"
       });
@@ -3539,7 +3539,7 @@ app.post("/v1/rls/validate", async (req, res) => {
 
     const policy = rlsGenerator.getPolicy(policyId);
     if (!policy) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: "Policy not found",
         message: `RLS policy with ID ${policyId} not found`
       });
@@ -3567,7 +3567,7 @@ app.post("/v1/rls/validate", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to validate RLS policy", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to validate RLS policy",
       message: (error as Error).message
     });
@@ -3578,7 +3578,7 @@ app.get("/v1/rls/validation-results", async (req, res) => {
   try {
     const { policyId } = req.query;
     const results = rlsValidator.getValidationResults(policyId as string);
-    
+
     return res.json({
       success: true,
       data: {
@@ -3588,7 +3588,7 @@ app.get("/v1/rls/validation-results", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to get validation results", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to get validation results",
       message: (error as Error).message
     });
@@ -3599,9 +3599,9 @@ app.get("/v1/rls/validation-results", async (req, res) => {
 app.post("/v1/rls/deploy", async (req, res) => {
   try {
     const { policyId, environment, strategy, options } = req.body;
-    
+
     if (!policyId || !environment || !strategy) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Missing required fields",
         message: "policyId, environment, and strategy are required"
       });
@@ -3609,7 +3609,7 @@ app.post("/v1/rls/deploy", async (req, res) => {
 
     const policy = rlsGenerator.getPolicy(policyId);
     if (!policy) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: "Policy not found",
         message: `RLS policy with ID ${policyId} not found`
       });
@@ -3636,7 +3636,7 @@ app.post("/v1/rls/deploy", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to deploy RLS policy", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to deploy RLS policy",
       message: (error as Error).message
     });
@@ -3647,15 +3647,15 @@ app.get("/v1/rls/deployments", async (req, res) => {
   try {
     const { policyId, environment, strategy } = req.query;
     let deployments = rlsDeployer.getDeployments(policyId as string);
-    
+
     if (environment) {
       deployments = deployments.filter(d => d.environment === environment);
     }
-    
+
     if (strategy) {
       deployments = deployments.filter(d => d.strategy === strategy);
     }
-    
+
     return res.json({
       success: true,
       data: {
@@ -3665,7 +3665,7 @@ app.get("/v1/rls/deployments", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to get deployments", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to get deployments",
       message: (error as Error).message
     });
@@ -3676,7 +3676,7 @@ app.post("/v1/rls/deployments/:deploymentId/rollback", async (req, res) => {
   try {
     const { deploymentId } = req.params;
     const { reason } = req.body;
-    
+
     const deployment = await rlsDeployer.rollbackDeployment(
       deploymentId,
       req.headers['x-user-id'] as string || 'system',
@@ -3684,7 +3684,7 @@ app.post("/v1/rls/deployments/:deploymentId/rollback", async (req, res) => {
     );
 
     if (!deployment) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: "Deployment not found",
         message: `Deployment with ID ${deploymentId} not found`
       });
@@ -3701,7 +3701,7 @@ app.post("/v1/rls/deployments/:deploymentId/rollback", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to rollback deployment", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to rollback deployment",
       message: (error as Error).message
     });
@@ -3713,11 +3713,11 @@ app.get("/v1/rls/cicd/integrations", async (req, res) => {
   try {
     const { provider } = req.query;
     let integrations = rlsCICD.getIntegrations();
-    
+
     if (provider) {
       integrations = integrations.filter(i => i.provider === provider);
     }
-    
+
     return res.json({
       success: true,
       data: {
@@ -3727,7 +3727,7 @@ app.get("/v1/rls/cicd/integrations", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to get CI/CD integrations", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to get CI/CD integrations",
       message: (error as Error).message
     });
@@ -3737,9 +3737,9 @@ app.get("/v1/rls/cicd/integrations", async (req, res) => {
 app.post("/v1/rls/cicd/integrations", async (req, res) => {
   try {
     const { name, provider, repository, branch, pipeline, webhookUrl, secret, events } = req.body;
-    
+
     if (!name || !provider || !repository || !branch || !pipeline) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Missing required fields",
         message: "name, provider, repository, branch, and pipeline are required"
       });
@@ -3769,7 +3769,7 @@ app.post("/v1/rls/cicd/integrations", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to create CI/CD integration", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to create CI/CD integration",
       message: (error as Error).message
     });
@@ -3780,9 +3780,9 @@ app.post("/v1/rls/cicd/webhook/:integrationId", async (req, res) => {
   try {
     const { integrationId } = req.params;
     const { eventType, payload } = req.body;
-    
+
     if (!eventType || !payload) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Missing required fields",
         message: "eventType and payload are required"
       });
@@ -3801,7 +3801,7 @@ app.post("/v1/rls/cicd/webhook/:integrationId", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to process webhook event", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to process webhook event",
       message: (error as Error).message
     });
@@ -3812,9 +3812,9 @@ app.get("/v1/rls/cicd/pipeline-config/:integrationId", async (req, res) => {
   try {
     const { integrationId } = req.params;
     const { type } = req.query;
-    
+
     if (!type) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Missing required parameter",
         message: "type parameter is required"
       });
@@ -3835,7 +3835,7 @@ app.get("/v1/rls/cicd/pipeline-config/:integrationId", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to generate pipeline config", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to generate pipeline config",
       message: (error as Error).message
     });
@@ -3849,7 +3849,7 @@ app.get("/v1/rls/stats", async (req, res) => {
     const validationStats = rlsValidator.getValidationStats();
     const deploymentStats = rlsDeployer.getDeploymentStats();
     const cicdStats = rlsCICD.getCICDStats();
-    
+
     return res.json({
       success: true,
       data: {
@@ -3861,7 +3861,7 @@ app.get("/v1/rls/stats", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to get RLS stats", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to get RLS stats",
       message: (error as Error).message
     });
@@ -3877,7 +3877,7 @@ app.get("/v1/finops/costs", async (req, res) => {
   try {
     const { organizationId, service, category, startDate, endDate, userId, projectId, departmentId } = req.query;
     const filters: any = {};
-    
+
     if (organizationId) filters.organizationId = organizationId as string;
     if (service) filters.service = service as string;
     if (category) filters.category = category as string;
@@ -3919,7 +3919,7 @@ app.get("/v1/finops/costs/:costId", async (req, res) => {
   try {
     const { costId } = req.params;
     const cost = costTracker.getCostById(costId);
-    
+
     if (!cost) {
       return res.status(404).json({
         success: false,
@@ -3941,7 +3941,7 @@ app.get("/v1/finops/costs/trends", async (req, res) => {
   try {
     const { organizationId, service, startDate, endDate } = req.query;
     const filters: any = {};
-    
+
     if (organizationId) filters.organizationId = organizationId as string;
     if (service) filters.service = service as string;
     if (startDate) filters.startDate = new Date(startDate as string);
@@ -4011,7 +4011,7 @@ app.get("/v1/finops/budgets/:budgetId", async (req, res) => {
   try {
     const { budgetId } = req.params;
     const budget = budgetManager.getBudget(budgetId);
-    
+
     if (!budget) {
       return res.status(404).json({
         success: false,
@@ -4034,7 +4034,7 @@ app.put("/v1/finops/budgets/:budgetId", async (req, res) => {
     const { budgetId } = req.params;
     const updates = req.body;
     const budget = await budgetManager.updateBudget(budgetId, updates);
-    
+
     if (!budget) {
       return res.status(404).json({
         success: false,
@@ -4056,7 +4056,7 @@ app.delete("/v1/finops/budgets/:budgetId", async (req, res) => {
   try {
     const { budgetId } = req.params;
     const deleted = await budgetManager.deleteBudget(budgetId);
-    
+
     if (!deleted) {
       return res.status(404).json({
         success: false,
@@ -4110,7 +4110,7 @@ app.post("/v1/finops/budgets/alerts/:alertId/acknowledge", async (req, res) => {
     const { alertId } = req.params;
     const { acknowledgedBy } = req.body;
     const alert = await budgetManager.acknowledgeAlert(alertId, acknowledgedBy);
-    
+
     if (!alert) {
       return res.status(404).json({
         success: false,
@@ -4133,7 +4133,7 @@ app.get("/v1/finops/optimization/recommendations", async (req, res) => {
   try {
     const { status, type, priority, effort, impact } = req.query;
     const filters: any = {};
-    
+
     if (status) filters.status = status as string;
     if (type) filters.type = type as string;
     if (priority) filters.priority = priority as string;
@@ -4158,7 +4158,7 @@ app.get("/v1/finops/optimization/recommendations/:recommendationId", async (req,
   try {
     const { recommendationId } = req.params;
     const recommendation = costOptimizer.getRecommendation(recommendationId);
-    
+
     if (!recommendation) {
       return res.status(404).json({
         success: false,
@@ -4181,7 +4181,7 @@ app.post("/v1/finops/optimization/recommendations/:recommendationId/approve", as
     const { recommendationId } = req.params;
     const { approvedBy } = req.body;
     const recommendation = await costOptimizer.approveRecommendation(recommendationId, approvedBy);
-    
+
     if (!recommendation) {
       return res.status(404).json({
         success: false,
@@ -4204,7 +4204,7 @@ app.post("/v1/finops/optimization/recommendations/:recommendationId/reject", asy
     const { recommendationId } = req.params;
     const { rejectedBy, reason } = req.body;
     const recommendation = await costOptimizer.rejectRecommendation(recommendationId, rejectedBy, reason);
-    
+
     if (!recommendation) {
       return res.status(404).json({
         success: false,
@@ -4227,7 +4227,7 @@ app.post("/v1/finops/optimization/recommendations/:recommendationId/implement", 
     const { recommendationId } = req.params;
     const { implementedBy } = req.body;
     const optimization = await costOptimizer.implementRecommendation(recommendationId, implementedBy);
-    
+
     if (!optimization) {
       return res.status(404).json({
         success: false,
@@ -4249,7 +4249,7 @@ app.get("/v1/finops/optimization/optimizations", async (req, res) => {
   try {
     const { status, type } = req.query;
     const filters: any = {};
-    
+
     if (status) filters.status = status as string;
     if (type) filters.type = type as string;
 
@@ -4285,7 +4285,7 @@ app.get("/v1/finops/reports", async (req, res) => {
   try {
     const { organizationId, type, status, startDate, endDate } = req.query;
     const filters: any = {};
-    
+
     if (organizationId) filters.organizationId = organizationId as string;
     if (type) filters.type = type as string;
     if (status) filters.status = status as string;
@@ -4331,7 +4331,7 @@ app.get("/v1/finops/reports/:reportId", async (req, res) => {
   try {
     const { reportId } = req.params;
     const report = reportingEngine.getReport(reportId);
-    
+
     if (!report) {
       return res.status(404).json({
         success: false,
@@ -5051,7 +5051,7 @@ app.get("/v1/analytics/anomalies", async (req, res) => {
   try {
     const organizationId = req.headers['x-organization-id'] as string || 'org_1';
     const metricId = req.query.metricId as string;
-    const anomalies = metricId 
+    const anomalies = metricId
       ? await advancedAnalytics.getAnomalies(metricId)
       : await advancedAnalytics.getAllAnomalies(organizationId);
     res.json({ success: true, data: anomalies });
@@ -5144,7 +5144,7 @@ app.get("/v1/bi/insights", async (req, res) => {
   try {
     const organizationId = req.headers['x-organization-id'] as string || 'org_1';
     const kpiId = req.query.kpiId as string;
-    const insights = kpiId 
+    const insights = kpiId
       ? await businessIntelligence.getBusinessIntelligence(kpiId)
       : await businessIntelligence.getAllBusinessIntelligence(organizationId);
     res.json({ success: true, data: insights });
@@ -5157,7 +5157,7 @@ app.get("/v1/bi/risks", async (req, res) => {
   try {
     const organizationId = req.headers['x-organization-id'] as string || 'org_1';
     const kpiId = req.query.kpiId as string;
-    const risks = kpiId 
+    const risks = kpiId
       ? await businessIntelligence.getRiskFactors(kpiId)
       : await businessIntelligence.getAllRiskFactors(organizationId);
     res.json({ success: true, data: risks });
@@ -5170,7 +5170,7 @@ app.get("/v1/bi/opportunities", async (req, res) => {
   try {
     const organizationId = req.headers['x-organization-id'] as string || 'org_1';
     const kpiId = req.query.kpiId as string;
-    const opportunities = kpiId 
+    const opportunities = kpiId
       ? await businessIntelligence.getOpportunities(kpiId)
       : await businessIntelligence.getAllOpportunities(organizationId);
     res.json({ success: true, data: opportunities });
@@ -5924,9 +5924,9 @@ app.get("/v1/threats/analytics", async (req, res) => {
 app.post("/v1/gdpr/requests", async (req, res) => {
   try {
     const { userId, type, dataCategories, scope, priority, reason } = req.body;
-    
+
     if (!userId || !type || !dataCategories) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Missing required fields",
         message: "userId, type, and dataCategories are required"
       });
@@ -5955,7 +5955,7 @@ app.post("/v1/gdpr/requests", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to create GDPR request", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to create GDPR request",
       message: (error as Error).message
     });
@@ -5966,7 +5966,7 @@ app.get("/v1/gdpr/requests", async (req, res) => {
   try {
     const { userId } = req.query;
     const requests = gdprAudit.getGDPRRequests(userId as string);
-    
+
     return res.json({
       success: true,
       data: {
@@ -5976,7 +5976,7 @@ app.get("/v1/gdpr/requests", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to get GDPR requests", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to get GDPR requests",
       message: (error as Error).message
     });
@@ -5987,9 +5987,9 @@ app.get("/v1/gdpr/requests/:requestId", async (req, res) => {
   try {
     const { requestId } = req.params;
     const request = gdprAudit.getGDPRRequest(requestId);
-    
+
     if (!request) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: "Request not found",
         message: `GDPR request with ID ${requestId} not found`
       });
@@ -6001,7 +6001,7 @@ app.get("/v1/gdpr/requests/:requestId", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to get GDPR request", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to get GDPR request",
       message: (error as Error).message
     });
@@ -6012,9 +6012,9 @@ app.get("/v1/gdpr/requests/:requestId", async (req, res) => {
 app.post("/v1/gdpr/export", async (req, res) => {
   try {
     const { userId, dataCategories, format, scope } = req.body;
-    
+
     if (!userId || !dataCategories) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Missing required fields",
         message: "userId and dataCategories are required"
       });
@@ -6041,7 +6041,7 @@ app.post("/v1/gdpr/export", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to create export request", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to create export request",
       message: (error as Error).message
     });
@@ -6052,9 +6052,9 @@ app.get("/v1/gdpr/export/:exportId", async (req, res) => {
   try {
     const { exportId } = req.params;
     const dataExport = gdprExport.getExport(exportId);
-    
+
     if (!dataExport) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: "Export not found",
         message: `Export with ID ${exportId} not found`
       });
@@ -6066,7 +6066,7 @@ app.get("/v1/gdpr/export/:exportId", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to get export", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to get export",
       message: (error as Error).message
     });
@@ -6077,9 +6077,9 @@ app.get("/v1/gdpr/export/:exportId", async (req, res) => {
 app.post("/v1/gdpr/erase", async (req, res) => {
   try {
     const { userId, dataCategories, type, reason } = req.body;
-    
+
     if (!userId || !dataCategories) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Missing required fields",
         message: "userId and dataCategories are required"
       });
@@ -6106,7 +6106,7 @@ app.post("/v1/gdpr/erase", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to create erase request", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to create erase request",
       message: (error as Error).message
     });
@@ -6117,9 +6117,9 @@ app.get("/v1/gdpr/erase/:eraseId", async (req, res) => {
   try {
     const { eraseId } = req.params;
     const dataErase = gdprErase.getErase(eraseId);
-    
+
     if (!dataErase) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: "Erase not found",
         message: `Erase with ID ${eraseId} not found`
       });
@@ -6131,7 +6131,7 @@ app.get("/v1/gdpr/erase/:eraseId", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to get erase", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to get erase",
       message: (error as Error).message
     });
@@ -6142,7 +6142,7 @@ app.get("/v1/gdpr/erase/:eraseId", async (req, res) => {
 app.get("/v1/gdpr/legal-holds", async (req, res) => {
   try {
     const legalHolds = gdprErase.getLegalHolds();
-    
+
     return res.json({
       success: true,
       data: {
@@ -6152,7 +6152,7 @@ app.get("/v1/gdpr/legal-holds", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to get legal holds", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to get legal holds",
       message: (error as Error).message
     });
@@ -6162,9 +6162,9 @@ app.get("/v1/gdpr/legal-holds", async (req, res) => {
 app.post("/v1/gdpr/legal-holds", async (req, res) => {
   try {
     const legalHoldData = req.body;
-    
+
     const legalHold = gdprErase.addLegalHold(legalHoldData);
-    
+
     logger.info("Legal hold created", { holdId: legalHold.id, name: legalHold.name });
 
     return res.json({
@@ -6173,7 +6173,7 @@ app.post("/v1/gdpr/legal-holds", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to create legal hold", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to create legal hold",
       message: (error as Error).message
     });
@@ -6185,7 +6185,7 @@ app.get("/v1/gdpr/audit", async (req, res) => {
   try {
     const { requestId } = req.query;
     const auditEntries = gdprAudit.getAuditEntries(requestId as string);
-    
+
     return res.json({
       success: true,
       data: {
@@ -6195,7 +6195,7 @@ app.get("/v1/gdpr/audit", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to get audit entries", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to get audit entries",
       message: (error as Error).message
     });
@@ -6205,7 +6205,7 @@ app.get("/v1/gdpr/audit", async (req, res) => {
 app.get("/v1/gdpr/breaches", async (req, res) => {
   try {
     const breaches = gdprAudit.getBreaches();
-    
+
     return res.json({
       success: true,
       data: {
@@ -6215,7 +6215,7 @@ app.get("/v1/gdpr/breaches", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to get breaches", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to get breaches",
       message: (error as Error).message
     });
@@ -6225,9 +6225,9 @@ app.get("/v1/gdpr/breaches", async (req, res) => {
 app.post("/v1/gdpr/breaches", async (req, res) => {
   try {
     const { type, severity, description, affectedDataCategories, affectedDataSubjects } = req.body;
-    
+
     if (!type || !severity || !description || !affectedDataCategories || !affectedDataSubjects) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Missing required fields",
         message: "type, severity, description, affectedDataCategories, and affectedDataSubjects are required"
       });
@@ -6255,7 +6255,7 @@ app.post("/v1/gdpr/breaches", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to record breach", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to record breach",
       message: (error as Error).message
     });
@@ -6268,7 +6268,7 @@ app.get("/v1/gdpr/stats", async (req, res) => {
     const gdprStats = gdprAudit.getGDPRStats();
     const exportStats = gdprExport.getExportStats();
     const eraseStats = gdprErase.getEraseStats();
-    
+
     return res.json({
       success: true,
       data: {
@@ -6279,7 +6279,7 @@ app.get("/v1/gdpr/stats", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to get GDPR stats", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to get GDPR stats",
       message: (error as Error).message
     });
@@ -6289,9 +6289,9 @@ app.get("/v1/gdpr/stats", async (req, res) => {
 app.get("/v1/gdpr/compliance-report", async (req, res) => {
   try {
     const { start, end } = req.query;
-    
+
     if (!start || !end) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Missing required parameters",
         message: "start and end dates are required"
       });
@@ -6303,14 +6303,14 @@ app.get("/v1/gdpr/compliance-report", async (req, res) => {
     };
 
     const report = gdprAudit.getComplianceReport(period);
-    
+
     return res.json({
       success: true,
       data: report
     });
   } catch (error: any) {
     logger.error("Failed to get compliance report", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to get compliance report",
       message: (error as Error).message
     });
@@ -6321,7 +6321,7 @@ app.get("/v1/gdpr/compliance-report", async (req, res) => {
 app.get("/v1/gdpr/data-categories", async (req, res) => {
   try {
     const dataCategories = gdprExport.getDataCategories();
-    
+
     return res.json({
       success: true,
       data: {
@@ -6331,7 +6331,7 @@ app.get("/v1/gdpr/data-categories", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Failed to get data categories", { error: (error as Error).message });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to get data categories",
       message: (error as Error).message
     });
@@ -6384,16 +6384,16 @@ app.post("/v1/security/auth/login", async (req, res) => {
     const { email, password } = req.body;
     const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
     const userAgent = req.get('User-Agent') || 'unknown';
-    
+
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
-    
+
     const result = await securitySystem.authenticateUser(email, password);
     if (!result) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-    
+
     return res.json(result);
   } catch (error) {
     logger.error('Authentication failed', { error: (error as Error).message });
@@ -6408,7 +6408,7 @@ app.post("/v1/security/mfa/setup", async (req, res) => {
     if (!userId || !method) {
       return res.status(400).json({ error: 'userId and method are required' });
     }
-    
+
     const result = await securitySystem.setupMFA(userId, method);
     return res.status(201).json(result);
   } catch (error) {
@@ -6423,7 +6423,7 @@ app.post("/v1/security/mfa/verify", async (req, res) => {
     if (!userId || !code) {
       return res.status(400).json({ error: 'userId and code are required' });
     }
-    
+
     const isValid = await securitySystem.verifyMFA(userId, code);
     return res.json({ valid: isValid });
   } catch (error) {
@@ -6439,7 +6439,7 @@ app.post("/v1/security/roles", async (req, res) => {
     if (!name || !orgId) {
       return res.status(400).json({ error: 'name and orgId are required' });
     }
-    
+
     const role = await securitySystem.createRole(name, description || '', permissions || [], orgId);
     return res.status(201).json(role);
   } catch (error) {
@@ -6476,7 +6476,7 @@ app.post("/v1/security/permissions", async (req, res) => {
     if (!name || !resource || !action || !orgId) {
       return res.status(400).json({ error: 'name, resource, action, and orgId are required' });
     }
-    
+
     const permission = await securitySystem.createPermission(name, description || '', resource, action, orgId);
     return res.status(201).json(permission);
   } catch (error) {
@@ -6501,7 +6501,7 @@ app.post("/v1/security/permissions/check", async (req, res) => {
     if (!userId || !resource || !action) {
       return res.status(400).json({ error: 'userId, resource, and action are required' });
     }
-    
+
     const hasPermission = await securitySystem.checkPermission(userId, resource, action);
     return res.json({ hasPermission });
   } catch (error) {
@@ -6541,7 +6541,7 @@ app.get("/v1/security/threats", async (req, res) => {
     if (!ipAddress) {
       return res.status(400).json({ error: 'ipAddress is required' });
     }
-    
+
     const threatIntel = await securitySystem.checkIPReputation(ipAddress);
     return res.json(threatIntel);
   } catch (error) {
@@ -6556,7 +6556,7 @@ app.post("/v1/security/threats/check", async (req, res) => {
     if (!ipAddress) {
       return res.status(400).json({ error: 'ipAddress is required' });
     }
-    
+
     const threatIntel = await securitySystem.checkIPReputation(ipAddress);
     return res.json(threatIntel);
   } catch (error) {
@@ -6594,7 +6594,7 @@ app.use(errorObservabilityMiddleware);
 // Global error handling middleware
 app.use((err: any, req: any, res: any, next: any) => {
   const requestId = req.headers['x-request-id'] as string || 'unknown';
-  
+
   structuredLogger.error('Unhandled error', err, {
     requestId,
     operation: 'error_handler',
@@ -6667,7 +6667,7 @@ app.listen(PORT, async () => {
   console.log(`📊 Advanced Analytics & BI system enabled with real-time analytics, business intelligence, intelligent reporting, and executive dashboards`);
 console.log(`🛡️ Advanced Security & Compliance system enabled with threat detection, compliance management, comprehensive auditing, and security monitoring`);
   console.log(`🔧 Advanced improvements enabled: Error handling, Logging, Validation, Rate limiting, Caching, Health monitoring, Security, Process management`);
-  
+
   // Inicializar warmup del caché
   try {
     await advancedCacheManager.warmupAll();

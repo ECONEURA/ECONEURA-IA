@@ -83,7 +83,7 @@ app.get("/", (req, res) => {
     timestamp: new Date().toISOString(),
     endpoints: [
       "GET /health - Basic health check",
-      "GET /health/live - Liveness probe (PR-22)", 
+      "GET /health/live - Liveness probe (PR-22)",
       "GET /health/ready - Readiness probe (PR-22)",
       "POST /v1/analytics/events - Track analytics events (PR-24)",
       "GET /v1/analytics/events - Query analytics events (PR-24)",
@@ -139,7 +139,7 @@ const server = app.listen(PORT, () => {
     version: process.env.npm_package_version || '1.0.0',
     features: [
       'PR-22: Health modes (live/ready/degraded)',
-      'PR-24: Analytics events with Zod validation', 
+      'PR-24: Analytics events with Zod validation',
       'SSE: Real-time events and notifications',
       'Cockpit: Operational dashboard endpoints'
     ]

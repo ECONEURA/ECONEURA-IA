@@ -120,7 +120,7 @@ export class FirebaseProvider implements IPushProvider {
     this.config = config;
     this.serverKey = config.serverKey || process.env.FIREBASE_SERVER_KEY || '';
     this.projectId = config.projectId || process.env.FIREBASE_PROJECT_ID || '';
-    
+
     if (!this.serverKey || !this.projectId) {
       throw new Error('Firebase Server Key and Project ID are required');
     }
@@ -134,7 +134,7 @@ export class FirebaseProvider implements IPushProvider {
           title: message.title,
           provider: 'firebase'
         });
-        
+
         return {
           messageId: `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           success: true,
@@ -145,7 +145,7 @@ export class FirebaseProvider implements IPushProvider {
       }
 
       const tokens = Array.isArray(message.to) ? message.to : [message.to];
-      
+
       // Simulate Firebase FCM API call
       const fcmMessage = {
         registration_ids: tokens,
@@ -242,7 +242,7 @@ export class FirebaseProvider implements IPushProvider {
 
   async sendBulk(messages: PushMessage[]): Promise<PushResult[]> {
     const results: PushResult[] = [];
-    
+
     // Process in batches of 100
     const batchSize = 100;
     for (let i = 0; i < messages.length; i += batchSize) {
@@ -288,7 +288,7 @@ export class WebPushProvider implements IPushProvider {
     this.vapidPublicKey = config.vapidPublicKey || process.env.VAPID_PUBLIC_KEY || '';
     this.vapidPrivateKey = config.vapidPrivateKey || process.env.VAPID_PRIVATE_KEY || '';
     this.vapidSubject = config.vapidSubject || process.env.VAPID_SUBJECT || '';
-    
+
     if (!this.vapidPublicKey || !this.vapidPrivateKey || !this.vapidSubject) {
       throw new Error('VAPID keys and subject are required for Web Push');
     }
@@ -302,7 +302,7 @@ export class WebPushProvider implements IPushProvider {
           title: message.title,
           provider: 'web_push'
         });
-        
+
         return {
           messageId: `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           success: true,
@@ -313,7 +313,7 @@ export class WebPushProvider implements IPushProvider {
       }
 
       const subscriptions = Array.isArray(message.to) ? message.to : [message.to];
-      
+
       // Simulate Web Push API call
       const webPushMessage = {
         title: message.title,
@@ -386,7 +386,7 @@ export class WebPushProvider implements IPushProvider {
 
   async sendBulk(messages: PushMessage[]): Promise<PushResult[]> {
     const results: PushResult[] = [];
-    
+
     // Process in batches of 50
     const batchSize = 50;
     for (let i = 0; i < messages.length; i += batchSize) {
@@ -434,7 +434,7 @@ export class APNSProvider implements IPushProvider {
     this.keyId = config.keyId || process.env.APNS_KEY_ID || '';
     this.teamId = config.teamId || process.env.APNS_TEAM_ID || '';
     this.bundleId = config.bundleId || process.env.APNS_BUNDLE_ID || '';
-    
+
     if (!this.privateKey || !this.keyId || !this.teamId || !this.bundleId) {
       throw new Error('APNS private key, key ID, team ID, and bundle ID are required');
     }
@@ -448,7 +448,7 @@ export class APNSProvider implements IPushProvider {
           title: message.title,
           provider: 'apns'
         });
-        
+
         return {
           messageId: `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           success: true,
@@ -459,7 +459,7 @@ export class APNSProvider implements IPushProvider {
       }
 
       const deviceTokens = Array.isArray(message.to) ? message.to : [message.to];
-      
+
       // Simulate APNS API call
       const apnsMessage = {
         aps: {
@@ -529,7 +529,7 @@ export class APNSProvider implements IPushProvider {
 
   async sendBulk(messages: PushMessage[]): Promise<PushResult[]> {
     const results: PushResult[] = [];
-    
+
     // Process in batches of 20
     const batchSize = 20;
     for (let i = 0; i < messages.length; i += batchSize) {

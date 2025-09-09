@@ -104,7 +104,7 @@ export class InMemoryEventStore implements EventStore {
 
   async saveEvents(aggregateId: string, events: Event[], expectedVersion: number): Promise<void> {
     const currentVersion = this.aggregateVersions.get(aggregateId) || 0;
-    
+
     if (currentVersion !== expectedVersion) {
       throw new Error(`Concurrency conflict: expected version ${expectedVersion}, but current version is ${currentVersion}`);
     }
@@ -119,7 +119,7 @@ export class InMemoryEventStore implements EventStore {
 
     // Guardar eventos
     this.events.push(...events);
-    
+
     // Actualizar versión del aggregate
     this.aggregateVersions.set(aggregateId, expectedVersion + events.length);
 
@@ -147,7 +147,7 @@ export class InMemoryEventStore implements EventStore {
 
   async getAllEvents(fromTimestamp?: Date): Promise<Event[]> {
     let events = this.events;
-    
+
     if (fromTimestamp) {
       events = events.filter(event => event.timestamp >= fromTimestamp);
     }
@@ -157,7 +157,7 @@ export class InMemoryEventStore implements EventStore {
 
   async getEventsByType(eventType: string, fromTimestamp?: Date): Promise<Event[]> {
     let events = this.events.filter(event => event.type === eventType);
-    
+
     if (fromTimestamp) {
       events = events.filter(event => event.timestamp >= fromTimestamp);
     }
@@ -171,7 +171,7 @@ export class InMemoryEventBus implements EventBus {
 
   async publish(event: Event): Promise<void> {
     const handlers = this.handlers.get(event.type) || [];
-    
+
     logger.info('Publishing event', {
       eventId: event.id,
       eventType: event.type,
@@ -180,7 +180,7 @@ export class InMemoryEventBus implements EventBus {
     });
 
     // Ejecutar handlers de forma asíncrona
-    const promises = handlers.map(handler => 
+    const promises = handlers.map(handler =>
       handler(event).catch(error => {
         logger.error('Event handler failed', {
           eventId: event.id,
@@ -197,9 +197,9 @@ export class InMemoryEventBus implements EventBus {
     if (!this.handlers.has(eventType)) {
       this.handlers.set(eventType, []);
     }
-    
+
     this.handlers.get(eventType)!.push(handler);
-    
+
     logger.info('Event handler subscribed', {
       eventType,
       handlerCount: this.handlers.get(eventType)!.length,
@@ -227,7 +227,7 @@ export class InMemoryReadModelStore implements ReadModelStore {
   async save(readModel: ReadModel): Promise<void> {
     const key = `${readModel.type}:${readModel.id}`;
     this.readModels.set(key, readModel);
-    
+
     logger.debug('Read model saved', {
       readModelId: readModel.id,
       readModelType: readModel.type,
@@ -255,7 +255,7 @@ export class InMemoryReadModelStore implements ReadModelStore {
   async delete(id: string, type: string): Promise<void> {
     const key = `${type}:${id}`;
     this.readModels.delete(key);
-    
+
     logger.debug('Read model deleted', {
       readModelId: id,
       readModelType: type,
@@ -283,7 +283,7 @@ export class EventSourcingSystem {
   // Command handling
   registerCommandHandler(commandType: string, handler: CommandHandler): void {
     this.commandHandlers.set(commandType, handler);
-    
+
     logger.info('Command handler registered', {
       commandType,
       handlerCount: this.commandHandlers.size,
@@ -292,7 +292,7 @@ export class EventSourcingSystem {
 
   async executeCommand(command: Command): Promise<void> {
     const handler = this.commandHandlers.get(command.type);
-    
+
     if (!handler) {
       throw new Error(`No handler registered for command type: ${command.type}`);
     }
@@ -305,7 +305,7 @@ export class EventSourcingSystem {
 
     try {
       const events = await handler(command);
-      
+
       if (events.length > 0) {
         // Obtener versión actual del aggregate
         const existingEvents = await this.eventStore.getEvents(command.aggregateId);
@@ -337,7 +337,7 @@ export class EventSourcingSystem {
   // Query handling
   registerQueryHandler(queryType: string, handler: QueryHandler): void {
     this.queryHandlers.set(queryType, handler);
-    
+
     logger.info('Query handler registered', {
       queryType,
       handlerCount: this.queryHandlers.size,
@@ -346,7 +346,7 @@ export class EventSourcingSystem {
 
   async executeQuery<T>(query: Query): Promise<T> {
     const handler = this.queryHandlers.get(query.type) as QueryHandler<T>;
-    
+
     if (!handler) {
       throw new Error(`No handler registered for query type: ${query.type}`);
     }
@@ -358,7 +358,7 @@ export class EventSourcingSystem {
 
     try {
       const result = await handler(query);
-      
+
       logger.debug('Query executed successfully', {
         queryId: query.id,
         queryType: query.type,
@@ -382,14 +382,14 @@ export class EventSourcingSystem {
   ): Promise<T> {
     const events = await this.eventStore.getEvents(aggregateId);
     const aggregate = new aggregateClass(aggregateId);
-    
+
     // Aplicar eventos para reconstruir el estado
     for (const event of events) {
       aggregate.apply(event);
     }
-    
+
     aggregate.markEventsAsCommitted();
-    
+
     logger.debug('Aggregate loaded from events', {
       aggregateId,
       eventCount: events.length,
@@ -401,17 +401,17 @@ export class EventSourcingSystem {
 
   async saveAggregate(aggregate: Aggregate): Promise<void> {
     const uncommittedEvents = aggregate.getUncommittedEvents();
-    
+
     if (uncommittedEvents.length > 0) {
       await this.eventStore.saveEvents(aggregate.id, uncommittedEvents, aggregate.version);
-      
+
       // Publicar eventos
       for (const event of uncommittedEvents) {
         await this.eventBus.publish(event);
       }
-      
+
       aggregate.markEventsAsCommitted();
-      
+
       logger.info('Aggregate saved with events', {
         aggregateId: aggregate.id,
         eventCount: uncommittedEvents.length,
@@ -428,9 +428,9 @@ export class EventSourcingSystem {
   ): Promise<void> {
     const existingReadModel = await this.readModelStore.get(readModelId, readModelType);
     const updatedReadModel = updateFn(existingReadModel);
-    
+
     await this.readModelStore.save(updatedReadModel);
-    
+
     logger.debug('Read model updated', {
       readModelId,
       readModelType,
@@ -441,13 +441,13 @@ export class EventSourcingSystem {
   // Event replay
   async replayEvents(fromTimestamp?: Date): Promise<void> {
     logger.info('Starting event replay', { fromTimestamp: fromTimestamp?.toISOString() });
-    
+
     const events = await this.eventStore.getAllEvents(fromTimestamp);
-    
+
     for (const event of events) {
       await this.eventBus.publish(event);
     }
-    
+
     logger.info('Event replay completed', {
       eventCount: events.length,
     });

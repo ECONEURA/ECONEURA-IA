@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { 
-  BarChart3, 
-  PieChart, 
-  TrendingUp, 
+import {
+  BarChart3,
+  PieChart,
+  TrendingUp,
   Activity,
   Download,
   Filter,
@@ -97,7 +97,7 @@ export default function InteractiveCharts({
               data.inventory_metrics.active_products - Math.round(data.inventory_metrics.active_products * data.inventory_metrics.stockout_rate / 100),
               Math.round(data.inventory_metrics.active_products * 0.1),
               Math.round(data.inventory_metrics.active_products * data.inventory_metrics.stockout_rate / 100),
-              Math.round(data.inventory_metrics.active_products * 0.05)
+              Math.round(data.inventory_metrics.active_products * 0.05);
             ],
             backgroundColor: ['#10B981', '#F59E0B', '#EF4444', '#6B7280']
           }]
@@ -246,7 +246,7 @@ export default function InteractiveCharts({
   const renderChart = (config: ChartConfig) => {
     const chartId = `chart-${config.type}-${config.title.toLowerCase().replace(/\s+/g, '-')}`;
 
-    return (
+    return (;
       <div key={chartId} className="bg-white rounded-lg p-6 border border-sand-200">
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -279,12 +279,12 @@ export default function InteractiveCharts({
               {config.type === 'bar' && <BarChart3 className="w-16 h-16 text-sand-400 mx-auto mb-4" />}
               {config.type === 'line' && <TrendingUp className="w-16 h-16 text-sand-400 mx-auto mb-4" />}
               {config.type === 'area' && <Activity className="w-16 h-16 text-sand-400 mx-auto mb-4" />}
-              
+
               <p className="text-sand-600 font-medium">{config.title}</p>
               <p className="text-sm text-sand-500 mt-2">
                 {config.data.labels.length} categorías
               </p>
-              
+
               {/* Data Preview */}
               <div className="mt-4 space-y-2">
                 {config.data.labels.map((label, index) => (
@@ -353,7 +353,7 @@ export default function InteractiveCharts({
   };
 
   if (!data) {
-    return (
+    return (;
       <div className={`text-center py-12 ${className}`}>
         <Activity className="w-12 h-12 text-sand-400 mx-auto mb-4" />
         <h3 className="text-lg font-semibold text-sand-900 mb-2">Sin datos disponibles</h3>
@@ -362,7 +362,7 @@ export default function InteractiveCharts({
     );
   }
 
-  return (
+  return (;
     <div className={className}>
       {/* Controls */}
       <div className="flex items-center justify-between mb-6">

@@ -9,13 +9,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Building2, 
-  Eye, 
-  Plus, 
-  Search, 
-  Filter, 
-  BarChart3, 
+import {
+  Building2,
+  Eye,
+  Plus,
+  Search,
+  Filter,
+  BarChart3,
   Tag,
   Users,
   TrendingUp,
@@ -23,11 +23,11 @@ import {
   CheckCircle,
   AlertCircle
 } from 'lucide-react';
-import { 
-  useTaxonomies, 
-  useClassifyCompany, 
-  useViews, 
-  useCreateView, 
+import {
+  useTaxonomies,
+  useClassifyCompany,
+  useViews,
+  useCreateView,
   useCompaniesByView,
   useTaxonomyHealth,
   CompanyTaxonomy,
@@ -39,8 +39,8 @@ interface CompaniesTaxonomyDashboardProps {
   organizationId?: string;
 }
 
-export function CompaniesTaxonomyDashboard({ 
-  organizationId = 'default' 
+export function CompaniesTaxonomyDashboard({
+  organizationId = 'default'
 }: CompaniesTaxonomyDashboardProps) {
   const [activeTab, setActiveTab] = useState('taxonomies');
   const [selectedView, setSelectedView] = useState<string>('');
@@ -53,11 +53,11 @@ export function CompaniesTaxonomyDashboard({
   const { data: views, isLoading: viewsLoading } = useViews(organizationId);
   const { data: health, isLoading: healthLoading } = useTaxonomyHealth();
   const { data: companiesByView, isLoading: companiesLoading } = useCompaniesByView(
-    selectedView, 
-    organizationId, 
+    selectedView,
+    organizationId,
     { search: searchTerm }
   );
-  
+
   const classifyCompany = useClassifyCompany();
   const createView = useCreateView();
 
@@ -73,7 +73,7 @@ export function CompaniesTaxonomyDashboard({
 
   const handleCreateView = async () => {
     if (!newViewName.trim()) return;
-    
+
     await createView.mutateAsync({
       name: newViewName,
       description: newViewDescription,
@@ -87,7 +87,7 @@ export function CompaniesTaxonomyDashboard({
       ],
       isDefault: false
     });
-    
+
     setNewViewName('');
     setNewViewDescription('');
   };
@@ -100,7 +100,7 @@ export function CompaniesTaxonomyDashboard({
 
   const healthStatus = getHealthStatus();
 
-  return (
+  return (;
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -118,7 +118,7 @@ export function CompaniesTaxonomyDashboard({
               <AlertCircle className="h-5 w-5 text-yellow-500" />
             )}
             <span className={`text-sm font-medium ${healthStatus.color}`}>
-              {healthStatus.status === 'loading' ? 'Checking...' : 
+              {healthStatus.status === 'loading' ? 'Checking...' :
                healthStatus.status === 'healthy' ? 'System Healthy' : 'System Degraded'}
             </span>
           </div>
@@ -180,7 +180,7 @@ export function CompaniesTaxonomyDashboard({
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Active</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {taxonomiesLoading ? '...' : 
+                  {taxonomiesLoading ? '...' :
                    taxonomies?.filter(t => t.isActive).length || 0}
                 </p>
               </div>
@@ -273,8 +273,8 @@ export function CompaniesTaxonomyDashboard({
                     rows={3}
                   />
                 </div>
-                <Button 
-                  onClick={handleCreateView} 
+                <Button
+                  onClick={handleCreateView}
                   disabled={!newViewName.trim() || createView.isPending}
                   className="w-full"
                 >
@@ -301,8 +301,8 @@ export function CompaniesTaxonomyDashboard({
                 ) : (
                   <div className="space-y-3">
                     {views?.map((view: CompanyView) => (
-                      <div 
-                        key={view.id} 
+                      <div
+                        key={view.id}
                         className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
                         onClick={() => setSelectedView(view.id)}
                       >
@@ -416,7 +416,7 @@ export function CompaniesTaxonomyDashboard({
                       </div>
                     </div>
                   ))}
-                  
+
                   {companiesByView?.companies?.length === 0 && (
                     <div className="text-center py-8">
                       <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />

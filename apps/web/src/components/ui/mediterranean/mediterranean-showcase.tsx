@@ -1,11 +1,11 @@
-import { 
-  MediterraneanCard, 
-  MediterraneanButton, 
-  MediterraneanBadge, 
+import {
+  MediterraneanCard,
+  MediterraneanButton,
+  MediterraneanBadge,
   MediterraneanStatsCard,
-  MediterraneanFeatureCard 
+  MediterraneanFeatureCard
 } from './index'
-import { 
+import {
   ChartBarIcon,
   UserGroupIcon,
   BuildingOfficeIcon,
@@ -15,11 +15,11 @@ import {
   SparklesIcon,
 } from '@heroicons/react/24/outline'
 
-export function MediterraneanShowcase() {
-  return (
+export function MediterraneanShowcase(): void {
+  return (;
     <div className="min-h-screen bg-gradient-to-br from-sand-50 via-white to-mediterranean-50 p-8">
       <div className="max-w-7xl mx-auto space-y-12">
-        
+
         {/* Header */}
         <div className="text-center">
           <h1 className="text-4xl font-bold text-mediterranean-900 font-display mb-4">
@@ -38,17 +38,17 @@ export function MediterraneanShowcase() {
               <h3 className="font-semibold text-mediterranean-900 mb-2">Default Card</h3>
               <p className="text-mediterranean-600 text-sm">Card con estilo por defecto</p>
             </MediterraneanCard>
-            
+
             <MediterraneanCard variant="elevated" color="coral" className="p-6">
               <h3 className="font-semibold text-coral-900 mb-2">Elevated Card</h3>
               <p className="text-coral-600 text-sm">Card con elevación</p>
             </MediterraneanCard>
-            
+
             <MediterraneanCard variant="outlined" color="olive" className="p-6">
               <h3 className="font-semibold text-olive-900 mb-2">Outlined Card</h3>
               <p className="text-olive-600 text-sm">Card con borde</p>
             </MediterraneanCard>
-            
+
             <MediterraneanCard variant="gradient" color="sand" className="p-6">
               <h3 className="font-semibold text-sand-900 mb-2">Gradient Card</h3>
               <p className="text-sand-600 text-sm">Card con gradiente</p>
@@ -74,7 +74,7 @@ export function MediterraneanShowcase() {
                 </MediterraneanButton>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <h3 className="font-semibold text-mediterranean-900">Secondary</h3>
               <div className="space-y-2">
@@ -89,21 +89,21 @@ export function MediterraneanShowcase() {
                 </MediterraneanButton>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <h3 className="font-semibold text-mediterranean-900">With Icons</h3>
               <div className="space-y-2">
-                <MediterraneanButton 
-                  variant="primary" 
-                  color="olive" 
+                <MediterraneanButton
+                  variant="primary"
+                  color="olive"
                   icon={<ArrowRightIcon className="h-4 w-4" />}
                   iconPosition="right"
                 >
                   With Icon
                 </MediterraneanButton>
-                <MediterraneanButton 
-                  variant="gradient" 
-                  color="sand" 
+                <MediterraneanButton
+                  variant="gradient"
+                  color="sand"
                   icon={<SparklesIcon className="h-4 w-4" />}
                   iconPosition="left"
                 >

@@ -59,7 +59,7 @@ class GraphChaosLightService {
 
     this.initializeDemoTokens();
     this.startTokenRotation();
-    
+
     logger.info('Graph Chaos Light Service initialized', {
       config: this.config,
       requestId: ''
@@ -135,7 +135,7 @@ class GraphChaosLightService {
     // Select random token to rotate
     const tokenId = tokenIds[Math.floor(Math.random() * tokenIds.length)];
     const token = this.tokens.get(tokenId);
-    
+
     if (!token) return;
 
     // Simulate token rotation
@@ -194,7 +194,7 @@ class GraphChaosLightService {
   }> {
     // Always simulate for testing purposes, even if disabled
     const shouldSimulate = this.config.enabled || this.config.simulationMode;
-    
+
     if (!shouldSimulate) {
       return {
         success: true,
@@ -304,12 +304,12 @@ class GraphChaosLightService {
     this.chaosEvents.forEach(event => {
       eventsByType[event.type] = (eventsByType[event.type] || 0) + 1;
       eventsBySeverity[event.severity] = (eventsBySeverity[event.severity] || 0) + 1;
-      
+
       if (event.metadata.latency) {
         totalLatency += event.metadata.latency;
         latencyCount++;
       }
-      
+
       if (event.type === 'api_failure') {
         failureCount++;
       }
@@ -326,7 +326,7 @@ class GraphChaosLightService {
 
   updateConfig(newConfig: Partial<GraphTokenRotationConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    
+
     if (newConfig.enabled !== undefined) {
       if (newConfig.enabled && !this.isRunning) {
         this.startTokenRotation();
@@ -345,7 +345,7 @@ class GraphChaosLightService {
     this.stopTokenRotation();
     this.chaosEvents = [];
     this.initializeDemoTokens();
-    
+
     if (this.config.enabled) {
       this.startTokenRotation();
     }

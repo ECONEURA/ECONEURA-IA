@@ -3,15 +3,15 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { apiClient } from '@/lib/api-client';
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  Calendar, 
-  Phone, 
-  Mail, 
-  MessageSquare, 
-  FileText, 
+import {
+  Plus,
+  Search,
+  Filter,
+  Calendar,
+  Phone,
+  Mail,
+  MessageSquare,
+  FileText,
   CheckSquare,
   Clock,
   User,
@@ -79,7 +79,7 @@ const priorityColors = {
   urgent: 'bg-red-100 text-red-800'
 };
 
-export default function InteractionsPage() {
+export default function InteractionsPage(): void {
   const { user } = useAuth();
   const api = apiClient;
   const [interactions, setInteractions] = useState<Interaction[]>([]);
@@ -148,14 +148,14 @@ export default function InteractionsPage() {
     const now = new Date();
     const date = new Date(dateString);
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+
     if (diffInHours < 1) return 'Hace menos de 1 hora';
     if (diffInHours < 24) return `Hace ${diffInHours} horas`;
     const diffInDays = Math.floor(diffInHours / 24);
     return `Hace ${diffInDays} días`;
   };
 
-  return (
+  return (;
     <div className="min-h-screen bg-gradient-to-br from-sand-50 via-white to-mediterranean-50">
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-sand-200">
@@ -268,13 +268,13 @@ export default function InteractionsPage() {
               <Zap className="w-5 h-5 text-coral-600 mr-2" />
               <h3 className="text-lg font-semibold text-coral-900">Resumen IA</h3>
             </div>
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div>
                 <h4 className="font-medium text-coral-800 mb-2">Resumen</h4>
                 <p className="text-coral-700 text-sm">{summary.summary}</p>
               </div>
-              
+
               <div>
                 <h4 className="font-medium text-coral-800 mb-2">Insights</h4>
                 <ul className="space-y-1">
@@ -286,7 +286,7 @@ export default function InteractionsPage() {
                   ))}
                 </ul>
               </div>
-              
+
               <div>
                 <h4 className="font-medium text-coral-800 mb-2">Recomendaciones</h4>
                 <ul className="space-y-1">
@@ -305,7 +305,7 @@ export default function InteractionsPage() {
         {/* Timeline */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6">
           <h2 className="text-xl font-semibold text-mediterranean-900 mb-6">Timeline de Interacciones</h2>
-          
+
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-mediterranean-600"></div>
@@ -341,7 +341,7 @@ export default function InteractionsPage() {
                             {interaction.content}
                           </p>
                         )}
-                        
+
                         <div className="flex items-center space-x-4 text-xs text-sand-500">
                           <span className="flex items-center">
                             <Clock className="w-3 h-3 mr-1" />
@@ -358,7 +358,7 @@ export default function InteractionsPage() {
 
                       <div className="flex items-center space-x-2">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[interaction.status]}`}>
-                          {interaction.status === 'pending' ? 'Pendiente' : 
+                          {interaction.status === 'pending' ? 'Pendiente' :
                            interaction.status === 'completed' ? 'Completado' : 'Cancelado'}
                         </span>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${priorityColors[interaction.priority]}`}>

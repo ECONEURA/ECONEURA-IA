@@ -1,6 +1,6 @@
 /**
  * PR-56: Advanced Observability Routes
- * 
+ *
  * Rutas para el sistema avanzado de observabilidad:
  * - Métricas en tiempo real
  * - Logs estructurados
@@ -126,7 +126,7 @@ const PerformanceAnalysisSchema = z.object({
 router.get('/metrics', async (req, res) => {
   try {
     const metrics = await advancedObservability.getMetrics();
-    
+
     structuredLogger.info('Observability metrics requested', {
       endpoint: '/metrics',
       method: 'GET'
@@ -154,9 +154,9 @@ router.get('/metrics', async (req, res) => {
 router.post('/performance-analysis', async (req, res) => {
   try {
     const { service, timeRange } = PerformanceAnalysisSchema.parse(req.body);
-    
+
     const analysis = await advancedObservability.getPerformanceAnalysis(service, timeRange);
-    
+
     structuredLogger.info('Performance analysis requested', {
       endpoint: '/performance-analysis',
       method: 'POST',
@@ -199,7 +199,7 @@ router.post('/performance-analysis', async (req, res) => {
 router.get('/logs', async (req, res) => {
   try {
     const filters = LogFiltersSchema.parse(req.query);
-    
+
     // Convertir strings de fecha a objetos Date
     if (filters.startTime) {
       filters.startTime = new Date(filters.startTime as string);
@@ -207,9 +207,9 @@ router.get('/logs', async (req, res) => {
     if (filters.endTime) {
       filters.endTime = new Date(filters.endTime as string);
     }
-    
+
     const logs = await advancedObservability.getLogs(filters);
-    
+
     structuredLogger.info('Logs requested', {
       endpoint: '/logs',
       method: 'GET',
@@ -249,9 +249,9 @@ router.get('/logs', async (req, res) => {
 router.post('/logs', async (req, res) => {
   try {
     const logData = CreateLogSchema.parse(req.body);
-    
+
     const log = await advancedObservability.createLog(logData);
-    
+
     structuredLogger.info('Log entry created', {
       endpoint: '/logs',
       method: 'POST',
@@ -295,7 +295,7 @@ router.post('/logs', async (req, res) => {
 router.get('/traces', async (req, res) => {
   try {
     const filters = TraceFiltersSchema.parse(req.query);
-    
+
     // Convertir strings de fecha a objetos Date
     if (filters.startTime) {
       filters.startTime = new Date(filters.startTime as string);
@@ -303,9 +303,9 @@ router.get('/traces', async (req, res) => {
     if (filters.endTime) {
       filters.endTime = new Date(filters.endTime as string);
     }
-    
+
     const traces = await advancedObservability.getTraces(filters);
-    
+
     structuredLogger.info('Traces requested', {
       endpoint: '/traces',
       method: 'GET',
@@ -345,7 +345,7 @@ router.get('/traces', async (req, res) => {
 router.post('/traces', async (req, res) => {
   try {
     const traceData = CreateTraceSchema.parse(req.body);
-    
+
     // Convertir logs de string a Date
     if (traceData.logs) {
       traceData.logs = traceData.logs.map(log => ({
@@ -353,9 +353,9 @@ router.post('/traces', async (req, res) => {
         timestamp: new Date(log.timestamp as string)
       }));
     }
-    
+
     const trace = await advancedObservability.createTrace(traceData);
-    
+
     structuredLogger.info('Trace span created', {
       endpoint: '/traces',
       method: 'POST',
@@ -399,7 +399,7 @@ router.post('/traces', async (req, res) => {
 router.get('/alert-rules', async (req, res) => {
   try {
     const rules = await advancedObservability.getAlertRules();
-    
+
     structuredLogger.info('Alert rules requested', {
       endpoint: '/alert-rules',
       method: 'GET',
@@ -429,9 +429,9 @@ router.get('/alert-rules', async (req, res) => {
 router.post('/alert-rules', async (req, res) => {
   try {
     const ruleData = CreateAlertRuleSchema.parse(req.body);
-    
+
     const rule = await advancedObservability.createAlertRule(ruleData);
-    
+
     structuredLogger.info('Alert rule created', {
       endpoint: '/alert-rules',
       method: 'POST',
@@ -471,9 +471,9 @@ router.post('/alert-rules', async (req, res) => {
 router.get('/alerts', async (req, res) => {
   try {
     const filters = AlertFiltersSchema.parse(req.query);
-    
+
     const alerts = await advancedObservability.getAlerts(filters);
-    
+
     structuredLogger.info('Alerts requested', {
       endpoint: '/alerts',
       method: 'GET',
@@ -517,7 +517,7 @@ router.get('/alerts', async (req, res) => {
 router.get('/dashboards', async (req, res) => {
   try {
     const dashboards = await advancedObservability.getDashboards();
-    
+
     structuredLogger.info('Dashboards requested', {
       endpoint: '/dashboards',
       method: 'GET',
@@ -547,9 +547,9 @@ router.get('/dashboards', async (req, res) => {
 router.post('/dashboards', async (req, res) => {
   try {
     const dashboardData = CreateDashboardSchema.parse(req.body);
-    
+
     const dashboard = await advancedObservability.createDashboard(dashboardData);
-    
+
     structuredLogger.info('Dashboard created', {
       endpoint: '/dashboards',
       method: 'POST',
@@ -593,7 +593,7 @@ router.post('/dashboards', async (req, res) => {
 router.get('/health', async (req, res) => {
   try {
     const metrics = await advancedObservability.getMetrics();
-    
+
     const health = {
       status: 'healthy',
       timestamp: new Date().toISOString(),

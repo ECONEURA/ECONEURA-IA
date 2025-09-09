@@ -178,7 +178,7 @@ describe('AISecurityComplianceService', () => {
       expect(result.severity).toBe(updates.severity);
       expect(mockDb.query).toHaveBeenCalledWith(
         expect.stringContaining('UPDATE ai_security_policies'),
-        expect.arrayContaining([updates.name, updates.severity, policyId])
+        expect.arrayContaining([updates.name, updates.severity, policyId]);
       );
     });
 

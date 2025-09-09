@@ -13,19 +13,19 @@ import { cleanupTestData } from './helpers.js';
 beforeAll(async () => {
   // Initialize test database connection
   console.log('Setting up integration tests...');
-  
+
   // Ensure database is clean before starting tests
   await cleanupTestData();
-  
+
   console.log('Integration test setup complete');
 });
 
 afterAll(async () => {
   // Clean up after all tests
   console.log('Cleaning up integration tests...');
-  
+
   await cleanupTestData();
-  
+
   console.log('Integration test cleanup complete');
 });
 
@@ -41,19 +41,19 @@ beforeEach(async () => {
 export const TEST_CONFIG = {
   // Database configuration
   DATABASE_URL: process.env.TEST_DATABASE_URL || 'postgresql://test:test@localhost:5432/econeura_test',
-  
+
   // API configuration
   API_BASE_URL: process.env.TEST_API_URL || 'http://localhost:3001',
-  
+
   // Test timeouts
   DEFAULT_TIMEOUT: 30000, // 30 seconds
   LONG_TIMEOUT: 60000,    // 60 seconds
-  
+
   // Test data configuration
   TEST_ORGANIZATION_PREFIX: 'TEST_ORG_',
   TEST_USER_PREFIX: 'TEST_USER_',
   TEST_CONTACT_PREFIX: 'TEST_CONTACT_',
-  
+
   // Performance thresholds
   PERFORMANCE_THRESHOLDS: {
     FAST: 100,      // < 100ms
@@ -335,10 +335,10 @@ export const PerformanceUtils = {
     let errorCount = 0;
 
     const batches = Math.ceil(totalRequests / concurrency);
-    
+
     for (let batch = 0; batch < batches; batch++) {
       const batchSize = Math.min(concurrency, totalRequests - batch * concurrency);
-      const batchPromises = Array.from({ length: batchSize }, () => 
+      const batchPromises = Array.from({ length: batchSize }, () =>
         requestFn().catch(error => {
           errorCount++;
           return { error: error.message } as T;
@@ -351,7 +351,7 @@ export const PerformanceUtils = {
 
     const totalTime = Date.now() - startTime;
     const successfulResponses = responses.filter(r => !(r as any).error);
-    const averageResponseTime = successfulResponses.reduce((sum, r) => 
+    const averageResponseTime = successfulResponses.reduce((sum, r) =>
       sum + ((r as any).responseTime || 0), 0) / successfulResponses.length;
     const throughput = PerformanceUtils.calculateThroughput(totalRequests, totalTime);
     const errorRate = PerformanceUtils.calculateErrorRate(errorCount, totalRequests);

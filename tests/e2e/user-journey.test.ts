@@ -643,7 +643,7 @@ describe('Performance Under Load Journey', () => {
     );
 
     const responses = await Promise.all(concurrentRequests);
-    
+
     // Most requests should succeed
     const successfulResponses = responses.filter(r => r.status === 201);
     expect(successfulResponses.length).toBeGreaterThan(8);

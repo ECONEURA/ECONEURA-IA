@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { apiClient } from '@/lib/api-client';
-import { 
-  Search, 
-  Filter, 
-  X, 
-  ChevronDown, 
-  Package, 
+import {
+  Search,
+  Filter,
+  X,
+  ChevronDown,
+  Package,
   Building2,
   Tag,
   DollarSign,
@@ -201,11 +201,11 @@ export default function AdvancedSearch({
     }
   };
 
-  const activeFiltersCount = Object.keys(filters).filter(key => 
+  const activeFiltersCount = Object.keys(filters).filter(key =>
     key !== 'type' && filters[key as keyof SearchFilters]
   ).length;
 
-  return (
+  return (;
     <div className={`relative ${className}`} ref={searchRef}>
       {/* Search Input */}
       <div className="relative">

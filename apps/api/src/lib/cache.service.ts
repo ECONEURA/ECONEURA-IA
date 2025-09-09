@@ -63,7 +63,7 @@ export class CacheService {
    */
   get<T>(key: string): T | null {
     const entry = this.cache.get(key);
-    
+
     if (!entry) {
       this.metrics.misses++;
       this.updateHitRate();
@@ -132,12 +132,12 @@ export class CacheService {
   has(key: string): boolean {
     const entry = this.cache.get(key);
     if (!entry) return false;
-    
+
     if (Date.now() > entry.expiresAt) {
       this.cache.delete(key);
       return false;
     }
-    
+
     return true;
   }
 
@@ -155,11 +155,11 @@ export class CacheService {
    */
   mget<T>(keys: string[]): Record<string, T | null> {
     const result: Record<string, T | null> = {};
-    
+
     for (const key of keys) {
       result[key] = this.get<T>(key);
     }
-    
+
     return result;
   }
 
@@ -176,8 +176,8 @@ export class CacheService {
    * Obtener o establecer (cache-aside pattern)
    */
   async getOrSet<T>(
-    key: string, 
-    factory: () => Promise<T>, 
+    key: string,
+    factory: () => Promise<T>,
     ttl?: number
   ): Promise<T> {
     const cached = this.get<T>(key);
@@ -229,7 +229,7 @@ export class CacheService {
       maxSize: this.config.maxSize,
       utilization: (this.cache.size / this.config.maxSize) * 100,
       expired: entries.filter(e => now > e.expiresAt).length,
-      averageAge: entries.length > 0 
+      averageAge: entries.length > 0
         ? entries.reduce((sum, e) => sum + (now - e.createdAt), 0) / entries.length / 1000
         : 0,
       averageAccessCount: entries.length > 0
@@ -375,7 +375,7 @@ export const cacheService = new CacheService({
 export const cacheMiddleware = (ttl: number = 300) => {
   return (req: any, res: any, next: any) => {
     const key = `api:${req.method}:${req.originalUrl}:${JSON.stringify(req.query)}`;
-    
+
     const cached = cacheService.get(key);
     if (cached) {
       res.set('X-Cache', 'HIT');
@@ -395,11 +395,11 @@ export const cacheMiddleware = (ttl: number = 300) => {
 
 // Decorador para métodos de servicio
 export function Cached(ttl: number = 300, keyGenerator?: (...args: any[]) => string) {
-  return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+  return function (target: any, propertyName: string, descriptor: PropertyDescriptor): void {
     const method = descriptor.value;
 
-    descriptor.value = async function (...args: any[]) {
-      const key = keyGenerator 
+    descriptor.value = async function (...args: any[]): void {
+      const key = keyGenerator
         ? keyGenerator(...args)
         : `service:${target.constructor.name}:${propertyName}:${JSON.stringify(args)}`;
 

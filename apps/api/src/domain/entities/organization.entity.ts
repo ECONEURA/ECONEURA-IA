@@ -335,19 +335,19 @@ export class Organization {
 
   static validateSlug(slug: string): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
-    
+
     if (!slug || slug.length < 3) {
       errors.push('Slug must be at least 3 characters long');
     }
-    
+
     if (!/^[a-z0-9-]+$/.test(slug)) {
       errors.push('Slug can only contain lowercase letters, numbers, and hyphens');
     }
-    
+
     if (slug.startsWith('-') || slug.endsWith('-')) {
       errors.push('Slug cannot start or end with a hyphen');
     }
-    
+
     return {
       isValid: errors.length === 0,
       errors
@@ -356,15 +356,15 @@ export class Organization {
 
   static validateName(name: string): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
-    
+
     if (!name || name.length < 2) {
       errors.push('Organization name must be at least 2 characters long');
     }
-    
+
     if (name.length > 100) {
       errors.push('Organization name cannot exceed 100 characters');
     }
-    
+
     return {
       isValid: errors.length === 0,
       errors

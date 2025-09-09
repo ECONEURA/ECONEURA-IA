@@ -8,7 +8,7 @@ export interface Invoice {
 
 export class InvoicesService {
   private invoices: Invoice[] = [];
-  
+
   async create(data: Omit<Invoice, 'id' | 'number'>) {
     const invoice: Invoice = {
       id: Date.now().toString(),
@@ -18,7 +18,7 @@ export class InvoicesService {
     this.invoices.push(invoice);
     return invoice;
   }
-  
+
   async list(orgId: string) {
     return this.invoices.filter(i => i.orgId === orgId);
   }

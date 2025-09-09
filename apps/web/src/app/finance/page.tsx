@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { 
-  Banknote, 
-  FileText, 
+import {
+  Banknote,
+  FileText,
   CreditCard,
   BarChart3,
   Plus,
@@ -28,7 +28,7 @@ interface FinanceStats {
   monthlyGrowth: number;
 }
 
-function MediterraneanFinance() {
+function MediterraneanFinance(): void {
   const [selectedTab, setSelectedTab] = useState<'overview' | 'invoices' | 'payments' | 'reports'>('overview');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -177,13 +177,13 @@ function MediterraneanFinance() {
     return new Date(dateString).toLocaleDateString('es-ES');
   };
 
-  return (
+  return (;
     <div className="min-h-screen bg-gradient-to-br from-mediterranean-50 via-white to-coral-50">
       {/* Mediterranean Header */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-terracotta-600 via-coral-500 to-mediterranean-500 opacity-90"></div>
         <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-20"></div>
-        
+
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
             <div>
@@ -194,7 +194,7 @@ function MediterraneanFinance() {
                 Gestión integral de finanzas empresariales
               </p>
             </div>
-            
+
             <div className="flex items-center gap-4">
               {/* Search Bar */}
               <div className="relative">
@@ -207,7 +207,7 @@ function MediterraneanFinance() {
                   className="pl-10 pr-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 w-64"
                 />
               </div>
-              
+
               <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
                 <Plus className="w-4 h-4" />
                 Nuevo
@@ -228,7 +228,7 @@ function MediterraneanFinance() {
               { id: 'reports', label: 'Reportes', icon: Banknote }
             ].map((tab) => {
               const IconComponent = tab.icon;
-              return (
+              return (;
                 <button
                   key={tab.id}
                   onClick={() => setSelectedTab(tab.id as any)}
@@ -285,8 +285,8 @@ function MediterraneanFinance() {
               ].map((kpi, index) => {
                 const IconComponent = kpi.icon;
                 const isPositive = !kpi.change.startsWith('-');
-                
-                return (
+
+                return (;
                   <div
                     key={kpi.label}
                     className={`relative overflow-hidden rounded-2xl p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl ${
@@ -300,7 +300,7 @@ function MediterraneanFinance() {
                     }}
                   >
                     <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full"></div>
-                    
+
                     <div className="relative">
                       <div className="flex items-center justify-between mb-4">
                         <IconComponent className="w-8 h-8 text-white" />
@@ -315,11 +315,11 @@ function MediterraneanFinance() {
                           {Math.abs(parseFloat(kpi.change.replace('%', '')))}%
                         </div>
                       </div>
-                      
+
                       <div className="text-3xl font-bold text-white mb-1 font-playfair">
                         {kpi.value}
                       </div>
-                      
+
                       <div className="text-white/80 text-sm font-medium">
                         {kpi.label}
                       </div>
@@ -336,11 +336,11 @@ function MediterraneanFinance() {
                 <h3 className="text-xl font-bold text-mediterranean-800 font-playfair mb-6">
                   Acciones Rápidas
                 </h3>
-                
+
                 <div className="grid grid-cols-1 gap-4">
                   {quickActions.map((action) => {
                     const IconComponent = action.icon;
-                    return (
+                    return (;
                       <button
                         key={action.title}
                         className={`text-left p-4 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md ${
@@ -385,7 +385,7 @@ function MediterraneanFinance() {
                 <h3 className="text-xl font-bold text-mediterranean-800 font-playfair mb-6">
                   Transacciones Recientes
                 </h3>
-                
+
                 <div className="space-y-4">
                   {recentTransactions.map((transaction) => (
                     <div key={transaction.id} className="flex items-start gap-4 p-3 rounded-xl hover:bg-mediterranean-50 transition-colors duration-200">
@@ -396,7 +396,7 @@ function MediterraneanFinance() {
                           <TrendingDown className="w-4 h-4" />
                         )}
                       </div>
-                      
+
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-mediterranean-800 text-sm">
                           {transaction.description}
@@ -404,14 +404,14 @@ function MediterraneanFinance() {
                         <p className="text-mediterranean-600 text-xs mt-1">
                           {transaction.method} • {formatDate(transaction.date)}
                         </p>
-                        
+
                         <div className="flex items-center justify-between mt-2">
                           <span className={`font-bold text-sm ${
                             transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                           }`}>
                             {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
                           </span>
-                          
+
                           <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(transaction.status)}`}>
                             {getStatusLabel(transaction.status)}
                           </span>
@@ -427,7 +427,7 @@ function MediterraneanFinance() {
                 <h3 className="text-xl font-bold text-mediterranean-800 font-playfair mb-6">
                   Próximos Cobros
                 </h3>
-                
+
                 <div className="space-y-4">
                   {upcomingPayments.map((payment) => (
                     <div key={payment.id} className="p-4 border border-mediterranean-100 rounded-xl hover:bg-mediterranean-50 transition-colors">
@@ -440,17 +440,17 @@ function MediterraneanFinance() {
                             {payment.client}
                           </p>
                         </div>
-                        
+
                         <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(payment.status)}`}>
                           {getStatusLabel(payment.status)}
                         </span>
                       </div>
-                      
+
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-mediterranean-800">
                           {formatCurrency(payment.amount)}
                         </span>
-                        
+
                         <div className="text-right">
                           <div className={`text-sm ${
                             payment.daysUntilDue <= 3 ? 'text-red-600' :
@@ -486,7 +486,7 @@ function MediterraneanFinance() {
                 Esta sección está en desarrollo. Próximamente disponible con diseño mediterráneo completo.
               </p>
             </div>
-            
+
             <button className="bg-gradient-to-r from-terracotta-500 to-coral-500 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-200">
               Explorar Funcionalidades
             </button>
@@ -497,8 +497,8 @@ function MediterraneanFinance() {
   );
 }
 
-export default function FinancePage() {
-  return (
+export default function FinancePage(): void {
+  return (;
     <ProtectedRoute requiredPermission="finance:view">
       <MediterraneanFinance />
     </ProtectedRoute>

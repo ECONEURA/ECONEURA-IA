@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { 
+import {
   ChartBarIcon,
   UserGroupIcon,
   BuildingOfficeIcon,
@@ -9,10 +9,10 @@ import {
   SparklesIcon,
 } from '@heroicons/react/24/outline'
 import { cn } from '@/lib/utils'
-import { 
-  MediterraneanButton, 
-  MediterraneanStatsCard, 
-  MediterraneanFeatureCard 
+import {
+  MediterraneanButton,
+  MediterraneanStatsCard,
+  MediterraneanFeatureCard
 } from '@/components/ui/mediterranean'
 
 const features = [
@@ -57,8 +57,8 @@ const stats = [
   { name: 'Oportunidades Abiertas', value: '89', change: '+15%', changeType: 'positive' },
 ]
 
-export default function HomePage() {
-  return (
+export default function HomePage(): void {
+  return (;
     <div className="min-h-full">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-br from-mediterranean-50 via-white to-sand-50 border-b border-sand-200/50">
@@ -81,7 +81,7 @@ export default function HomePage() {
               <span className="text-mediterranean-900">Business Suite</span>
             </h1>
             <p className="mt-6 text-lg text-mediterranean-600 max-w-2xl mx-auto leading-relaxed">
-              Experimenta la elegancia del Mediterráneo en tu gestión empresarial. 
+              Experimenta la elegancia del Mediterráneo en tu gestión empresarial.
               CRM, ERP e IA unificados en una plataforma diseñada para el éxito.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
@@ -97,7 +97,7 @@ export default function HomePage() {
                   Ver Dashboard
                 </Link>
               </MediterraneanButton>
-              
+
               <MediterraneanButton
                 variant="outline"
                 color="mediterranean"
@@ -141,7 +141,7 @@ export default function HomePage() {
               Suite Completa de Herramientas
             </h2>
             <p className="mt-4 text-lg text-mediterranean-600 max-w-2xl mx-auto">
-              Todo lo que necesitas para gestionar tu empresa, diseñado con la elegancia 
+              Todo lo que necesitas para gestionar tu empresa, diseñado con la elegancia
               y simplicidad del estilo mediterráneo.
             </p>
           </div>

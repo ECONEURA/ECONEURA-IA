@@ -1,6 +1,6 @@
 /**
  * PR-66: Dunning Sólido Service
- * 
+ *
  * Sistema robusto de dunning con segmentos KPIs y retries DLQ
  * Incluye gestión de colas de mensajes muertos y métricas avanzadas
  */
@@ -191,10 +191,10 @@ export class DunningSolidService {
     this.initializeDefaultSegments();
     this.startKpiCalculation();
     this.startDLQProcessing();
-    
+
     // Generar KPIs iniciales
     this.calculateKPIs();
-    
+
     structuredLogger.info('Dunning Solid service initialized', {
       config: this.config,
       requestId: ''
@@ -573,7 +573,7 @@ export class DunningSolidService {
 
   private updateKPIStats(): void {
     const kpiValues = Array.from(this.kpis.values());
-    
+
     this.stats.kpiStats = {
       onTarget: kpiValues.filter(kpi => kpi.status === 'on_target').length,
       belowTarget: kpiValues.filter(kpi => kpi.status === 'below_target').length,
@@ -590,9 +590,9 @@ export class DunningSolidService {
       totalMessages: dlqValues.length,
       pendingRetries: dlqValues.filter(msg => msg.status === 'pending').length,
       deadMessages: dlqValues.filter(msg => msg.status === 'dead').length,
-      retrySuccessRate: retryValues.length > 0 ? 
+      retrySuccessRate: retryValues.length > 0 ?
         retryValues.filter(retry => retry.status === 'success').length / retryValues.length : 0,
-      avgRetryTime: retryValues.length > 0 ? 
+      avgRetryTime: retryValues.length > 0 ?
         retryValues.reduce((sum, retry) => {
           if (retry.completedAt && retry.startedAt) {
             return sum + (new Date(retry.completedAt).getTime() - new Date(retry.startedAt).getTime());
@@ -672,7 +672,7 @@ export class DunningSolidService {
 
   updateConfig(newConfig: Partial<DunningConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    
+
     // Reiniciar procesos si cambió la configuración
     if (this.kpiCalculationInterval) {
       clearInterval(this.kpiCalculationInterval);
@@ -683,7 +683,7 @@ export class DunningSolidService {
       clearInterval(this.dlqProcessingInterval);
       this.startDLQProcessing();
     }
-    
+
     structuredLogger.info('Dunning configuration updated', {
       config: this.config,
       requestId: ''
@@ -700,7 +700,7 @@ export class DunningSolidService {
       clearInterval(this.dlqProcessingInterval);
       this.dlqProcessingInterval = null;
     }
-    
+
     structuredLogger.info('Dunning Solid service stopped', { requestId: '' });
   }
 }

@@ -296,15 +296,15 @@ export const validateArray = (field: string, value: any[], minLength?: number, m
   if (!Array.isArray(value)) {
     return createValidationError(field, `${field} must be an array`);
   }
-  
+
   if (minLength !== undefined && value.length < minLength) {
     return createValidationError(field, `${field} must have at least ${minLength} items`);
   }
-  
+
   if (maxLength !== undefined && value.length > maxLength) {
     return createValidationError(field, `${field} cannot have more than ${maxLength} items`);
   }
-  
+
   return null;
 };
 
@@ -342,20 +342,20 @@ export const validateString = (field: string, value: any): ValidationError | nul
 
 export const validateBulk = (validators: (() => ValidationError | null)[]): ValidationResult => {
   const errors: ValidationError[] = [];
-  
+
   for (const validator of validators) {
     const error = validator();
     if (error) {
       errors.push(error);
     }
   }
-  
+
   return createValidationResult(errors.length === 0, errors);
 };
 
 export const validateFields = (fieldValidators: Record<string, (() => ValidationError | null)[]>): ValidationResult => {
   const errors: ValidationError[] = [];
-  
+
   for (const [field, validators] of Object.entries(fieldValidators)) {
     for (const validator of validators) {
       const error = validator();
@@ -364,7 +364,7 @@ export const validateFields = (fieldValidators: Record<string, (() => Validation
       }
     }
   }
-  
+
   return createValidationResult(errors.length === 0, errors);
 };
 
@@ -416,7 +416,7 @@ export const sanitizeWebsite = (value: string): string => {
 };
 
 export const sanitizeTags = (tags: string[]): string[] => {
-  return tags
+  return tags;
     .map(tag => tag.trim().toLowerCase())
     .filter(tag => tag.length > 0)
     .filter((tag, index, array) => array.indexOf(tag) === index);
@@ -424,7 +424,7 @@ export const sanitizeTags = (tags: string[]): string[] => {
 
 export const sanitizeCustomFields = (fields: Record<string, any>): Record<string, any> => {
   const sanitized: Record<string, any> = {};
-  
+
   for (const [key, value] of Object.entries(fields)) {
     const sanitizedKey = key.trim().toLowerCase().replace(/\s+/g, '_');
     if (typeof value === 'string') {
@@ -433,6 +433,6 @@ export const sanitizeCustomFields = (fields: Record<string, any>): Record<string
       sanitized[sanitizedKey] = value;
     }
   }
-  
+
   return sanitized;
 };

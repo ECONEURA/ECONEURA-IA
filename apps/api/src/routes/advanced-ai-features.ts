@@ -159,9 +159,9 @@ const getAdvancedInsightsSchema = z.object({
 router.post('/process', authMiddleware, validate(processAdvancedFeatureSchema), async (req, res) => {
   try {
     const request = req.body;
-    
+
     const result = await advancedAIFeaturesService.processAdvancedFeature(request);
-    
+
     res.status(200).json(result);
   } catch (error) {
     console.error('Error processing Advanced AI feature:', error);
@@ -221,7 +221,7 @@ router.post('/process', authMiddleware, validate(processAdvancedFeatureSchema), 
 router.get('/models', authMiddleware, async (req, res) => {
   try {
     const models = await advancedAIFeaturesService.getAvailableAdvancedModels();
-    
+
     res.status(200).json({
       success: true,
       data: models,
@@ -319,7 +319,7 @@ router.get('/models', authMiddleware, async (req, res) => {
 router.get('/insights', authMiddleware, async (req, res) => {
   try {
     const { organizationId, limit = 20, type, impact } = req.query;
-    
+
     if (!organizationId) {
       return res.status(400).json({
         success: false,
@@ -341,15 +341,15 @@ router.get('/insights', authMiddleware, async (req, res) => {
 
     // Apply filters
     let filteredInsights = insights;
-    
+
     if (type) {
       filteredInsights = filteredInsights.filter(insight => insight.type === type);
     }
-    
+
     if (impact) {
       filteredInsights = filteredInsights.filter(insight => insight.impact === impact);
     }
-    
+
     res.status(200).json({
       success: true,
       data: filteredInsights,
@@ -417,7 +417,7 @@ router.get('/insights', authMiddleware, async (req, res) => {
 router.post('/multimodal', authMiddleware, async (req, res) => {
   try {
     const { sessionId, userId, organizationId, text, images, context, options } = req.body;
-    
+
     if (!sessionId || !userId || !organizationId || !text) {
       return res.status(400).json({
         success: false,
@@ -439,7 +439,7 @@ router.post('/multimodal', authMiddleware, async (req, res) => {
     };
 
     const result = await advancedAIFeaturesService.processAdvancedFeature(request);
-    
+
     res.status(200).json(result);
   } catch (error) {
     console.error('Error processing multimodal request:', error);
@@ -500,7 +500,7 @@ router.post('/multimodal', authMiddleware, async (req, res) => {
 router.post('/reasoning', authMiddleware, async (req, res) => {
   try {
     const { sessionId, userId, organizationId, problem, context, options } = req.body;
-    
+
     if (!sessionId || !userId || !organizationId || !problem) {
       return res.status(400).json({
         success: false,
@@ -521,7 +521,7 @@ router.post('/reasoning', authMiddleware, async (req, res) => {
     };
 
     const result = await advancedAIFeaturesService.processAdvancedFeature(request);
-    
+
     res.status(200).json(result);
   } catch (error) {
     console.error('Error processing reasoning request:', error);
@@ -584,7 +584,7 @@ router.post('/reasoning', authMiddleware, async (req, res) => {
 router.post('/code-generation', authMiddleware, async (req, res) => {
   try {
     const { sessionId, userId, organizationId, prompt, language, context, options } = req.body;
-    
+
     if (!sessionId || !userId || !organizationId || !prompt) {
       return res.status(400).json({
         success: false,
@@ -606,7 +606,7 @@ router.post('/code-generation', authMiddleware, async (req, res) => {
     };
 
     const result = await advancedAIFeaturesService.processAdvancedFeature(request);
-    
+
     res.status(200).json(result);
   } catch (error) {
     console.error('Error processing code generation request:', error);
@@ -669,7 +669,7 @@ router.post('/code-generation', authMiddleware, async (req, res) => {
 router.post('/document-analysis', authMiddleware, async (req, res) => {
   try {
     const { sessionId, userId, organizationId, documents, context, options } = req.body;
-    
+
     if (!sessionId || !userId || !organizationId || !documents) {
       return res.status(400).json({
         success: false,
@@ -690,7 +690,7 @@ router.post('/document-analysis', authMiddleware, async (req, res) => {
     };
 
     const result = await advancedAIFeaturesService.processAdvancedFeature(request);
-    
+
     res.status(200).json(result);
   } catch (error) {
     console.error('Error processing document analysis request:', error);
@@ -751,7 +751,7 @@ router.post('/document-analysis', authMiddleware, async (req, res) => {
 router.post('/voice-processing', authMiddleware, async (req, res) => {
   try {
     const { sessionId, userId, organizationId, audio, context, options } = req.body;
-    
+
     if (!sessionId || !userId || !organizationId || !audio) {
       return res.status(400).json({
         success: false,
@@ -772,7 +772,7 @@ router.post('/voice-processing', authMiddleware, async (req, res) => {
     };
 
     const result = await advancedAIFeaturesService.processAdvancedFeature(request);
-    
+
     res.status(200).json(result);
   } catch (error) {
     console.error('Error processing voice processing request:', error);
@@ -835,7 +835,7 @@ router.post('/voice-processing', authMiddleware, async (req, res) => {
 router.post('/image-analysis', authMiddleware, async (req, res) => {
   try {
     const { sessionId, userId, organizationId, images, context, options } = req.body;
-    
+
     if (!sessionId || !userId || !organizationId || !images) {
       return res.status(400).json({
         success: false,
@@ -856,7 +856,7 @@ router.post('/image-analysis', authMiddleware, async (req, res) => {
     };
 
     const result = await advancedAIFeaturesService.processAdvancedFeature(request);
-    
+
     res.status(200).json(result);
   } catch (error) {
     console.error('Error processing image analysis request:', error);
@@ -917,7 +917,7 @@ router.post('/image-analysis', authMiddleware, async (req, res) => {
 router.post('/nlp-advanced', authMiddleware, async (req, res) => {
   try {
     const { sessionId, userId, organizationId, text, context, options } = req.body;
-    
+
     if (!sessionId || !userId || !organizationId || !text) {
       return res.status(400).json({
         success: false,
@@ -938,7 +938,7 @@ router.post('/nlp-advanced', authMiddleware, async (req, res) => {
     };
 
     const result = await advancedAIFeaturesService.processAdvancedFeature(request);
-    
+
     res.status(200).json(result);
   } catch (error) {
     console.error('Error processing advanced NLP request:', error);
@@ -999,7 +999,7 @@ router.post('/nlp-advanced', authMiddleware, async (req, res) => {
 router.post('/automation', authMiddleware, async (req, res) => {
   try {
     const { sessionId, userId, organizationId, data, context, options } = req.body;
-    
+
     if (!sessionId || !userId || !organizationId || !data) {
       return res.status(400).json({
         success: false,
@@ -1020,7 +1020,7 @@ router.post('/automation', authMiddleware, async (req, res) => {
     };
 
     const result = await advancedAIFeaturesService.processAdvancedFeature(request);
-    
+
     res.status(200).json(result);
   } catch (error) {
     console.error('Error processing automation request:', error);
@@ -1066,7 +1066,7 @@ router.post('/automation', authMiddleware, async (req, res) => {
 router.get('/health', async (req, res) => {
   try {
     const healthStatus = await advancedAIFeaturesService.getHealthStatus();
-    
+
     res.status(200).json({
       success: true,
       data: healthStatus,

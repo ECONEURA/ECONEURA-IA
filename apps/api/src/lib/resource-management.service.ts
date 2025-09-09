@@ -33,7 +33,7 @@ export class ResourceManagementService extends EventEmitter {
 
     this.resources.set(id, resource);
     this.emit('resource_allocated', resource);
-    
+
     return true;
   }
 
@@ -46,7 +46,7 @@ export class ResourceManagementService extends EventEmitter {
   }
 
   getResourceUsage(type?: string): any {
-    const resources = type ? 
+    const resources = type ?
       Array.from(this.resources.values()).filter(r => r.type === type) :
       Array.from(this.resources.values());
 

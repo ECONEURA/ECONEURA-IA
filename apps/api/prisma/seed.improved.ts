@@ -19,19 +19,19 @@ async function upsertRecord<T>(
         data: update
       })
     }
-    return existing
+    return existing;
   } else {
     console.log(`+ Creating new ${model.name}: ${JSON.stringify(where)}`)
     return await model.create({ data: create })
   }
 }
 
-async function seed() {
-  console.log('🌱 Starting idempotent seed...')
-  
+async function seed(): void {
+  console.log('🌱 Starting idempotent seed...');
+
   try {
     // 1. Create Organizations
-    console.log('\n📦 Seeding Organizations...')
+    console.log('\n📦 Seeding Organizations...');
     const org1 = await upsertRecord(
       prisma.organization,
       { slug: 'ecoretail' },
@@ -67,7 +67,7 @@ async function seed() {
     )
 
     // 2. Create Roles for each organization
-    console.log('\n👮 Seeding Roles...')
+    console.log('\n👮 Seeding Roles...');
     const roles = ['admin', 'sales', 'ops', 'cfo', 'viewer']
     const rolePermissions = {
       admin: ['*:*'],
@@ -108,7 +108,7 @@ async function seed() {
       for (const roleName of roles) {
         const role = await upsertRecord(
           prisma.role,
-          { 
+          {
             organizationId: org.id,
             name: roleName
           },
@@ -128,9 +128,9 @@ async function seed() {
     }
 
     // 3. Create Users
-    console.log('\n👤 Seeding Users...')
+    console.log('\n👤 Seeding Users...');
     const hashedPassword = await bcrypt.hash('Demo1234!', 10)
-    
+
     const users = [
       // EcoRetail users
       { email: 'admin@ecoretail.com', name: 'Admin User', org: org1, role: 'admin' },
@@ -167,12 +167,12 @@ async function seed() {
     }
 
     // 4. Create CRM data for EcoRetail
-    console.log('\n🏢 Seeding Companies...')
+    console.log('\n🏢 Seeding Companies...');
     const companies = []
     for (let i = 1; i <= 20; i++) {
       const company = await upsertRecord(
         prisma.company,
-        { 
+        {
           orgId: org1.id,
           name: `Company ${i}`
         },
@@ -191,11 +191,11 @@ async function seed() {
           tags: ['important', 'new', 'premium'].slice(0, i % 3 + 1)
         }
       )
-      companies.push(company)
+      companies.push(company);
     }
 
     // 5. Create Contacts
-    console.log('\n👥 Seeding Contacts...')
+    console.log('\n👥 Seeding Contacts...');
     const contacts = []
     for (let i = 1; i <= 60; i++) {
       const companyIndex = Math.floor(Math.random() * companies.length)
@@ -217,11 +217,11 @@ async function seed() {
           tags: ['decision-maker', 'technical', 'budget-holder'].slice(0, i % 3 + 1)
         }
       )
-      contacts.push(contact)
+      contacts.push(contact);
     }
 
     // 6. Create Deals
-    console.log('\n💼 Seeding Deals...')
+    console.log('\n💼 Seeding Deals...');
     for (let i = 1; i <= 25; i++) {
       const companyIndex = Math.floor(Math.random() * companies.length)
       const contactIndex = Math.floor(Math.random() * contacts.length)
@@ -249,7 +249,7 @@ async function seed() {
     }
 
     // 7. Create Products
-    console.log('\n📦 Seeding Products...')
+    console.log('\n📦 Seeding Products...');
     const products = []
     for (let i = 1; i <= 50; i++) {
       const product = await upsertRecord(
@@ -277,11 +277,11 @@ async function seed() {
           tags: ['bestseller', 'new', 'promotion'].slice(0, i % 3 + 1)
         }
       )
-      products.push(product)
+      products.push(product);
     }
 
     // 8. Create Suppliers
-    console.log('\n🚚 Seeding Suppliers...')
+    console.log('\n🚚 Seeding Suppliers...');
     const suppliers = []
     for (let i = 1; i <= 10; i++) {
       const supplier = await upsertRecord(
@@ -308,11 +308,11 @@ async function seed() {
           tags: ['preferred', 'reliable', 'fast-delivery'].slice(0, i % 3 + 1)
         }
       )
-      suppliers.push(supplier)
+      suppliers.push(supplier);
     }
 
     // 9. Create Warehouses
-    console.log('\n🏭 Seeding Warehouses...')
+    console.log('\n🏭 Seeding Warehouses...');
     const warehouses = []
     for (let i = 1; i <= 3; i++) {
       const warehouse = await upsertRecord(
@@ -342,11 +342,11 @@ async function seed() {
           }
         }
       )
-      warehouses.push(warehouse)
+      warehouses.push(warehouse);
     }
 
     // 10. Create Inventory
-    console.log('\n📊 Seeding Inventory...')
+    console.log('\n📊 Seeding Inventory...');
     for (const warehouse of warehouses) {
       for (let i = 0; i < 20; i++) {
         const product = products[i]
@@ -373,7 +373,7 @@ async function seed() {
     }
 
     // 11. Create Purchase Orders
-    console.log('\n📋 Seeding Purchase Orders...')
+    console.log('\n📋 Seeding Purchase Orders...');
     for (let i = 1; i <= 15; i++) {
       const supplier = suppliers[i % suppliers.length]
       const po = await upsertRecord(
@@ -432,7 +432,7 @@ async function seed() {
     }
 
     // 12. Create Invoices
-    console.log('\n💰 Seeding Invoices...')
+    console.log('\n💰 Seeding Invoices...');
     for (let i = 1; i <= 30; i++) {
       const company = companies[i % companies.length]
       const invoice = await upsertRecord(
@@ -499,7 +499,7 @@ async function seed() {
     }
 
     // 13. Create sample Activities
-    console.log('\n📅 Seeding Activities...')
+    console.log('\n📅 Seeding Activities...');
     const activityTypes = ['CALL', 'EMAIL', 'MEETING', 'TASK', 'NOTE']
     for (let i = 1; i <= 50; i++) {
       const entityType = ['COMPANY', 'CONTACT', 'DEAL'][i % 3]
@@ -537,28 +537,28 @@ async function seed() {
       )
     }
 
-    console.log('\n✅ Seed completed successfully!')
-    
+    console.log('\n✅ Seed completed successfully!');
+
     // Print summary
-    console.log('\n📊 Summary:')
-    console.log('- Organizations: 2')
-    console.log('- Users: 8')
-    console.log('- Companies: 20')
-    console.log('- Contacts: 60')
-    console.log('- Deals: 25')
-    console.log('- Products: 50')
-    console.log('- Suppliers: 10')
-    console.log('- Warehouses: 3')
-    console.log('- Purchase Orders: 15')
-    console.log('- Invoices: 30')
-    console.log('- Activities: 50')
-    
-    console.log('\n🔑 Login credentials:')
-    console.log('Email: admin@ecoretail.com')
-    console.log('Password: Demo1234!')
+    console.log('\n📊 Summary:');
+    console.log('- Organizations: 2');
+    console.log('- Users: 8');
+    console.log('- Companies: 20');
+    console.log('- Contacts: 60');
+    console.log('- Deals: 25');
+    console.log('- Products: 50');
+    console.log('- Suppliers: 10');
+    console.log('- Warehouses: 3');
+    console.log('- Purchase Orders: 15');
+    console.log('- Invoices: 30');
+    console.log('- Activities: 50');
+
+    console.log('\n🔑 Login credentials:');
+    console.log('Email: admin@ecoretail.com');
+    console.log('Password: Demo1234!');
 
   } catch (error) {
-    console.error('❌ Seed error:', error)
+    console.error('❌ Seed error:', error);
     throw error
   }
 }
@@ -566,8 +566,8 @@ async function seed() {
 // Execute seed
 seed()
   .catch((error) => {
-    console.error('Fatal error:', error)
-    process.exit(1)
+    console.error('Fatal error:', error);
+    process.exit(1);
   })
   .finally(async () => {
     await prisma.$disconnect()

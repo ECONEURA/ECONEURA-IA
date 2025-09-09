@@ -87,13 +87,13 @@ export class TrainModelUseCase extends BaseUseCase<TrainModelRequest, TrainModel
     // 5. Calculate metrics
 
     const startTime = Date.now();
-    
+
     // Simulate training time based on model type
     const trainingTime = this.calculateTrainingTime(existingPredictiveAnalytics.settings.modelType.value);
-    
+
     // Simulate training metrics
     const trainingMetrics = this.generateTrainingMetrics(existingPredictiveAnalytics.type.value);
-    
+
     const endTime = Date.now();
     const actualTrainingTime = (endTime - startTime) / 1000; // Convert to seconds
 
@@ -158,7 +158,7 @@ export class TrainModelUseCase extends BaseUseCase<TrainModelRequest, TrainModel
       'classification': 150,
       'deep_learning': 600
     };
-    
+
     return trainingTimes[modelType] || 60;
   }
 
@@ -198,7 +198,7 @@ export class TrainModelUseCase extends BaseUseCase<TrainModelRequest, TrainModel
     if (!currentVersion) {
       return '1.0.0';
     }
-    
+
     const [major, minor, patch] = currentVersion.split('.').map(Number);
     return `${major}.${minor + 1}.0`;
   }

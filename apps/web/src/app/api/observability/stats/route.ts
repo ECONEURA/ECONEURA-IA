@@ -3,10 +3,10 @@ export const dynamic = "force-dynamic";
 
 import { observability } from '@/lib/observability';
 
-export async function GET() {
+export async function GET(): void {
   try {
     const stats = observability.getStats();
-    
+
     return Response.json({
       success: true,
       message: 'Observability stats retrieved successfully',
@@ -14,7 +14,7 @@ export async function GET() {
     });
   } catch (error: any) {
     observability.error('Failed to retrieve observability stats', { error: error.message });
-    
+
     return Response.json({
       success: false,
       message: 'Failed to retrieve observability stats',

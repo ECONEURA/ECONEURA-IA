@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { 
-  CompanySchema, 
-  CreateCompanySchema, 
-  UpdateCompanySchema, 
-  CompanyFilterSchema 
+import {
+  CompanySchema,
+  CreateCompanySchema,
+  UpdateCompanySchema,
+  CompanyFilterSchema
 } from '@econeura/shared/src/schemas/crm';
 import { PaginationRequestSchema } from '@econeura/shared/src/schemas/common';
 import { db, setRLSContext } from '../lib/database.js';
@@ -29,18 +29,18 @@ router.get('/', async (req, res) => {
 
     // Build Prisma query with filters
     const where: any = { deletedAt: null };
-    
+
     if (filters.q) {
       where.OR = [
         { name: { contains: filters.q, mode: 'insensitive' } },
         { email: { contains: filters.q, mode: 'insensitive' } }
       ];
     }
-    
+
     if (filters.status) {
       where.status = filters.status;
     }
-    
+
     if (filters.industry) {
       where.industry = filters.industry;
     }
@@ -81,10 +81,10 @@ router.get('/', async (req, res) => {
       orgId: req.headers['x-org-id'],
       query: req.query
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to retrieve companies',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -94,7 +94,7 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const orgId = req.headers['x-org-id'] as string;
-    
+
     if (!orgId) {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
@@ -109,7 +109,7 @@ router.get('/:id', async (req, res) => {
       .limit(1);
 
     if (!company) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Company not found',
         message: `Company with ID ${id} not found or access denied`
       });
@@ -127,10 +127,10 @@ router.get('/:id', async (req, res) => {
       orgId: req.headers['x-org-id'],
       companyId: req.params.id
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to retrieve company',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -140,7 +140,7 @@ router.post('/', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string;
     const userId = req.headers['x-user-id'] as string;
-    
+
     if (!orgId) {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
@@ -188,10 +188,10 @@ router.post('/', async (req, res) => {
       userId: req.headers['x-user-id'],
       body: req.body
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to create company',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -202,7 +202,7 @@ router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const orgId = req.headers['x-org-id'] as string;
     const userId = req.headers['x-user-id'] as string;
-    
+
     if (!orgId) {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
@@ -223,7 +223,7 @@ router.put('/:id', async (req, res) => {
       .returning();
 
     if (!updatedCompany) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Company not found',
         message: `Company with ID ${id} not found or access denied`
       });
@@ -255,10 +255,10 @@ router.put('/:id', async (req, res) => {
       companyId: req.params.id,
       body: req.body
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to update company',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -269,7 +269,7 @@ router.delete('/:id', async (req, res) => {
     const { id } = req.params;
     const orgId = req.headers['x-org-id'] as string;
     const userId = req.headers['x-user-id'] as string;
-    
+
     if (!orgId) {
       return res.status(400).json({ error: 'Missing x-org-id header' });
     }
@@ -287,7 +287,7 @@ router.delete('/:id', async (req, res) => {
       .returning();
 
     if (!deletedCompany) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Company not found',
         message: `Company with ID ${id} not found or access denied`
       });
@@ -308,10 +308,10 @@ router.delete('/:id', async (req, res) => {
       userId: req.headers['x-user-id'],
       companyId: req.params.id
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to delete company',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });

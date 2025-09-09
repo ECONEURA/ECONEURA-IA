@@ -54,17 +54,17 @@ export function MediterraneanFeatureCard({
 
   const currentColor = colorClasses[color]
 
-  return (
+  return (;
     <Link href={href} className="group">
-      <MediterraneanCard 
-        variant="default" 
+      <MediterraneanCard
+        variant="default"
         className={cn('p-8 group', className)}
       >
         <div className={cn(
           'absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-5 transition-opacity duration-500',
           gradientFrom && gradientTo ? `from-${gradientFrom} to-${gradientTo}` : currentColor.cardBg
         )} />
-        
+
         <div className="relative">
           <div className={cn(
             'inline-flex p-4 rounded-2xl bg-gradient-to-br shadow-lg',
@@ -74,18 +74,18 @@ export function MediterraneanFeatureCard({
               {icon}
             </div>
           </div>
-          
+
           <h3 className={cn(
             'mt-6 text-xl font-bold text-mediterranean-900 font-display transition-colors duration-300',
             currentColor.textHover
           )}>
             {title}
           </h3>
-          
+
           <p className="mt-3 text-mediterranean-600 leading-relaxed">
             {description}
           </p>
-          
+
           <div className={cn(
             'mt-6 flex items-center text-mediterranean-500 transition-colors duration-300',
             currentColor.linkHover

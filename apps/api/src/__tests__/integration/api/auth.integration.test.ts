@@ -29,7 +29,7 @@ describe('Auth Integration Tests', () => {
   beforeEach(async () => {
     // Limpiar base de datos
     await db.cleanup();
-    
+
     // Crear organización de prueba
     testOrganization = await db.organizations.create({
       id: crypto.randomUUID(),
@@ -325,7 +325,7 @@ describe('Auth Integration Tests', () => {
       );
 
       const responses = await Promise.all(promises);
-      
+
       // Al menos uno debería ser rate limited
       const rateLimitedResponses = responses.filter(r => r.status === 429);
       expect(rateLimitedResponses.length).toBeGreaterThan(0);

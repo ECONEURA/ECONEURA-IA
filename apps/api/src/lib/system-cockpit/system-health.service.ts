@@ -187,7 +187,7 @@ export class SystemHealthService {
 
       // Obtener métricas de base de datos
       const dbMetrics = await this.getDatabaseMetrics();
-      
+
       // Obtener métricas de caché
       const cacheMetrics = await this.getCacheMetrics();
 
@@ -223,7 +223,7 @@ export class SystemHealthService {
     try {
       // Obtener alertas del servicio de monitoreo
       const monitoringAlerts = monitoringService.getAlerts(50);
-      
+
       // Convertir a formato de alertas del sistema
       return monitoringAlerts.map(alert => ({
         id: alert.id,
@@ -251,8 +251,8 @@ export class SystemHealthService {
       services.map(service => this.checkServiceHealth(service))
     );
 
-    return results
-      .filter((result): result is PromiseFulfilledResult<ServiceStatus> => 
+    return results;
+      .filter((result): result is PromiseFulfilledResult<ServiceStatus> =>
         result.status === 'fulfilled'
       )
       .map(result => result.value);
@@ -262,12 +262,12 @@ export class SystemHealthService {
     try {
       const db = getDatabaseService();
       const startTime = Date.now();
-      
+
       // Realizar una consulta simple
       await db.query('SELECT 1');
-      
+
       const responseTime = Date.now() - startTime;
-      
+
       return {
         status: responseTime < 1000 ? 'up' : 'degraded',
         details: {
@@ -288,11 +288,11 @@ export class SystemHealthService {
     try {
       const redis = getRedisService();
       const startTime = Date.now();
-      
+
       await redis.ping();
-      
+
       const responseTime = Date.now() - startTime;
-      
+
       return {
         status: responseTime < 100 ? 'up' : 'degraded',
         details: {
@@ -336,9 +336,9 @@ export class SystemHealthService {
   private async checkMonitoringHealth(): Promise<{ status: 'up' | 'down' | 'degraded'; details: any }> {
     try {
       const healthStatus = monitoringService.getHealthStatus();
-      
+
       return {
-        status: healthStatus.status === 'healthy' ? 'up' : 
+        status: healthStatus.status === 'healthy' ? 'up' :
                 healthStatus.status === 'degraded' ? 'degraded' : 'down',
         details: {
           status: healthStatus.status,
@@ -362,9 +362,9 @@ export class SystemHealthService {
     try {
       const db = getDatabaseService();
       const startTime = Date.now();
-      
+
       await db.query('SELECT 1');
-      
+
       return {
         connections: 10, // Implementar conteo real
         maxConnections: 100,
@@ -382,7 +382,7 @@ export class SystemHealthService {
   private async getCacheMetrics(): Promise<{ hitRate: number; memoryUsage: number; operations: number }> {
     try {
       const cacheStats = monitoringService.getStats();
-      
+
       return {
         hitRate: cacheStats.hitRate * 100,
         memoryUsage: 0, // Implementar si es necesario

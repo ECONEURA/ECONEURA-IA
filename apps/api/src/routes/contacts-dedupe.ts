@@ -1,6 +1,6 @@
 /**
  * PR-52: Contacts Dedupe Routes
- * 
+ *
  * Rutas para el sistema de deduplicación de contactos
  */
 
@@ -95,7 +95,7 @@ router.post('/contacts', async (req, res) => {
       res.status(400).json({ success: false, error: 'Invalid contact data', details: error.errors });
       return;
     }
-    
+
     structuredLogger.error('Failed to add contact', {
       error: (error as Error).message,
       requestId: req.headers['x-request-id'] as string || ''
@@ -109,12 +109,12 @@ router.get('/contacts/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const contact = await contactsDedupeService.getContact(id);
-    
+
     if (!contact) {
       res.status(404).json({ success: false, error: 'Contact not found' });
       return;
     }
-    
+
     res.json({ success: true, data: contact });
   } catch (error) {
     structuredLogger.error('Failed to get contact', {
@@ -191,7 +191,7 @@ router.post('/merges/:mergeId/approve', async (req, res) => {
   try {
     const { mergeId } = req.params;
     const { approvedBy } = mergeOperationSchema.parse({ mergeId, ...req.body });
-    
+
     await contactsDedupeService.approveMerge(mergeId, approvedBy);
     res.json({ success: true, message: 'Merge operation approved' });
   } catch (error) {
@@ -199,7 +199,7 @@ router.post('/merges/:mergeId/approve', async (req, res) => {
       res.status(400).json({ success: false, error: 'Invalid request data', details: error.errors });
       return;
     }
-    
+
     structuredLogger.error('Failed to approve merge', {
       error: (error as Error).message,
       mergeId: req.params.mergeId,
@@ -214,7 +214,7 @@ router.post('/merges/:mergeId/execute', async (req, res) => {
   try {
     const { mergeId } = req.params;
     const { approvedBy } = mergeOperationSchema.parse({ mergeId, ...req.body });
-    
+
     await contactsDedupeService.executeMerge(mergeId, approvedBy);
     res.json({ success: true, message: 'Merge operation executed' });
   } catch (error) {
@@ -222,7 +222,7 @@ router.post('/merges/:mergeId/execute', async (req, res) => {
       res.status(400).json({ success: false, error: 'Invalid request data', details: error.errors });
       return;
     }
-    
+
     structuredLogger.error('Failed to execute merge', {
       error: (error as Error).message,
       mergeId: req.params.mergeId,
@@ -237,7 +237,7 @@ router.post('/merges/:mergeId/revert', async (req, res) => {
   try {
     const { mergeId } = req.params;
     const { approvedBy } = mergeOperationSchema.parse({ mergeId, ...req.body });
-    
+
     await contactsDedupeService.revertMerge(mergeId, approvedBy);
     res.json({ success: true, message: 'Merge operation reverted' });
   } catch (error) {
@@ -245,7 +245,7 @@ router.post('/merges/:mergeId/revert', async (req, res) => {
       res.status(400).json({ success: false, error: 'Invalid request data', details: error.errors });
       return;
     }
-    
+
     structuredLogger.error('Failed to revert merge', {
       error: (error as Error).message,
       mergeId: req.params.mergeId,
@@ -266,7 +266,7 @@ router.put('/config', async (req, res) => {
       res.status(400).json({ success: false, error: 'Invalid configuration data', details: error.errors });
       return;
     }
-    
+
     structuredLogger.error('Failed to update configuration', {
       error: (error as Error).message,
       requestId: req.headers['x-request-id'] as string || ''
@@ -300,7 +300,7 @@ router.post('/import', async (req, res) => {
       res.status(400).json({ success: false, error: 'Invalid contacts data', details: error.errors });
       return;
     }
-    
+
     structuredLogger.error('Failed to import contacts', {
       error: (error as Error).message,
       requestId: req.headers['x-request-id'] as string || ''

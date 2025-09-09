@@ -15,7 +15,7 @@ export async function GET(
   try {
     const { path } = params;
     const { searchParams } = new URL(request.url);
-    
+
     // Build the API path
     const apiPath = `/v1/ai-chat-advanced/${path.join('/')}`;
     const queryString = searchParams.toString();
@@ -31,7 +31,7 @@ export async function GET(
     };
 
     const startTime = Date.now();
-    
+
     const response = await fetch(fullUrl, {
       method: 'GET',
       headers
@@ -51,9 +51,9 @@ export async function GET(
 
   } catch (error) {
     console.error('AI Chat Advanced BFF GET error:', error);
-    return NextResponse.json(
-      { 
-        success: false, 
+    return NextResponse.json(;
+      {
+        success: false,
         error: 'Internal server error',
         timestamp: new Date().toISOString()
       },
@@ -69,7 +69,7 @@ export async function POST(
   try {
     const { path } = params;
     const body = await request.json();
-    
+
     // Build the API path
     const apiPath = `/v1/ai-chat-advanced/${path.join('/')}`;
     const fullUrl = `${API_BASE_URL}${apiPath}`;
@@ -84,7 +84,7 @@ export async function POST(
     };
 
     const startTime = Date.now();
-    
+
     const response = await fetch(fullUrl, {
       method: 'POST',
       headers,
@@ -105,9 +105,9 @@ export async function POST(
 
   } catch (error) {
     console.error('AI Chat Advanced BFF POST error:', error);
-    return NextResponse.json(
-      { 
-        success: false, 
+    return NextResponse.json(;
+      {
+        success: false,
         error: 'Internal server error',
         timestamp: new Date().toISOString()
       },
@@ -123,7 +123,7 @@ export async function PUT(
   try {
     const { path } = params;
     const body = await request.json();
-    
+
     // Build the API path
     const apiPath = `/v1/ai-chat-advanced/${path.join('/')}`;
     const fullUrl = `${API_BASE_URL}${apiPath}`;
@@ -138,7 +138,7 @@ export async function PUT(
     };
 
     const startTime = Date.now();
-    
+
     const response = await fetch(fullUrl, {
       method: 'PUT',
       headers,
@@ -159,9 +159,9 @@ export async function PUT(
 
   } catch (error) {
     console.error('AI Chat Advanced BFF PUT error:', error);
-    return NextResponse.json(
-      { 
-        success: false, 
+    return NextResponse.json(;
+      {
+        success: false,
         error: 'Internal server error',
         timestamp: new Date().toISOString()
       },
@@ -176,7 +176,7 @@ export async function DELETE(
 ) {
   try {
     const { path } = params;
-    
+
     // Build the API path
     const apiPath = `/v1/ai-chat-advanced/${path.join('/')}`;
     const fullUrl = `${API_BASE_URL}${apiPath}`;
@@ -191,7 +191,7 @@ export async function DELETE(
     };
 
     const startTime = Date.now();
-    
+
     const response = await fetch(fullUrl, {
       method: 'DELETE',
       headers
@@ -211,9 +211,9 @@ export async function DELETE(
 
   } catch (error) {
     console.error('AI Chat Advanced BFF DELETE error:', error);
-    return NextResponse.json(
-      { 
-        success: false, 
+    return NextResponse.json(;
+      {
+        success: false,
         error: 'Internal server error',
         timestamp: new Date().toISOString()
       },

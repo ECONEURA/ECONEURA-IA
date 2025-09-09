@@ -191,7 +191,7 @@ export class RealTimeCollaborationSystem extends EventEmitter {
 
   private handleDisconnection(connectionId: string): void {
     const userId = this.getUserIdFromConnection(connectionId);
-    
+
     if (userId) {
       this.updateUserPresence(userId, 'offline');
       this.leaveAllRooms(userId);
@@ -243,7 +243,7 @@ export class RealTimeCollaborationSystem extends EventEmitter {
 
   private handleJoinRoom(connectionId: string, data: any): void {
     const { roomId, userId, userName } = data;
-    
+
     if (!this.rooms.has(roomId)) {
       this.sendToConnection(connectionId, {
         type: 'error',
@@ -254,7 +254,7 @@ export class RealTimeCollaborationSystem extends EventEmitter {
     }
 
     const room = this.rooms.get(roomId)!;
-    
+
     // Check if user can join
     if (room.participants.length >= room.settings.maxParticipants) {
       this.sendToConnection(connectionId, {
@@ -268,7 +268,7 @@ export class RealTimeCollaborationSystem extends EventEmitter {
     // Add user to room
     this.addUserToRoom(userId, roomId);
     this.updateUserPresence(userId, 'online', roomId);
-    
+
     // Start session
     this.startSession(userId, roomId, userName);
 
@@ -295,10 +295,10 @@ export class RealTimeCollaborationSystem extends EventEmitter {
 
   private handleLeaveRoom(connectionId: string, data: any): void {
     const { roomId, userId, userName } = data;
-    
+
     this.removeUserFromRoom(userId, roomId);
     this.endSession(userId, roomId);
-    
+
     // Notify other participants
     this.broadcastToRoom(roomId, {
       type: 'user_left',
@@ -312,7 +312,7 @@ export class RealTimeCollaborationSystem extends EventEmitter {
 
   private handleSendMessage(connectionId: string, data: any): void {
     const { roomId, userId, userName, content, messageType = 'text' } = data;
-    
+
     if (!this.rooms.has(roomId)) {
       this.sendToConnection(connectionId, {
         type: 'error',
@@ -352,7 +352,7 @@ export class RealTimeCollaborationSystem extends EventEmitter {
 
   private handleDocumentChange(connectionId: string, data: any): void {
     const { roomId, userId, userName, operation, position, content, version } = data;
-    
+
     if (!this.rooms.has(roomId)) {
       this.sendToConnection(connectionId, {
         type: 'error',
@@ -394,9 +394,9 @@ export class RealTimeCollaborationSystem extends EventEmitter {
 
   private handleUpdatePresence(connectionId: string, data: any): void {
     const { userId, userName, status, roomId } = data;
-    
+
     this.updateUserPresence(userId, status, roomId);
-    
+
     // Broadcast presence update
     if (roomId) {
       this.broadcastToRoom(roomId, {
@@ -413,7 +413,7 @@ export class RealTimeCollaborationSystem extends EventEmitter {
 
   private handleGetRoomInfo(connectionId: string, data: any): void {
     const { roomId } = data;
-    
+
     if (!this.rooms.has(roomId)) {
       this.sendToConnection(connectionId, {
         type: 'error',
@@ -432,7 +432,7 @@ export class RealTimeCollaborationSystem extends EventEmitter {
 
   private handleGetParticipants(connectionId: string, data: any): void {
     const { roomId } = data;
-    
+
     const participants = this.getRoomParticipants(roomId);
     this.sendToConnection(connectionId, {
       type: 'participants',
@@ -443,7 +443,7 @@ export class RealTimeCollaborationSystem extends EventEmitter {
 
   private handleGetMessages(connectionId: string, data: any): void {
     const { roomId, limit = 50 } = data;
-    
+
     const messages = this.getRecentMessages(roomId, limit);
     this.sendToConnection(connectionId, {
       type: 'messages',
@@ -454,7 +454,7 @@ export class RealTimeCollaborationSystem extends EventEmitter {
 
   private handleGetDocumentChanges(connectionId: string, data: any): void {
     const { roomId, limit = 100 } = data;
-    
+
     const changes = this.getRecentDocumentChanges(roomId, limit);
     this.sendToConnection(connectionId, {
       type: 'document_changes',
@@ -549,11 +549,11 @@ export class RealTimeCollaborationSystem extends EventEmitter {
   listRooms(userId?: string): z.infer<typeof CollaborationRoomSchema>[] {
     if (userId) {
       const userRoomIds = this.userRooms.get(userId) || new Set();
-      return Array.from(userRoomIds)
+      return Array.from(userRoomIds);
         .map(roomId => this.rooms.get(roomId))
         .filter(Boolean) as z.infer<typeof CollaborationRoomSchema>[];
     }
-    
+
     return Array.from(this.rooms.values());
   }
 
@@ -615,7 +615,7 @@ export class RealTimeCollaborationSystem extends EventEmitter {
     const room = this.rooms.get(roomId);
     if (!room) return [];
 
-    return room.participants
+    return room.participants;
       .map(userId => this.userPresence.get(userId))
       .filter(Boolean) as z.infer<typeof UserPresenceSchema>[];
   }
@@ -626,7 +626,7 @@ export class RealTimeCollaborationSystem extends EventEmitter {
 
   private updateUserPresence(userId: string, status: z.infer<typeof UserPresenceSchema>['status'], roomId?: string): void {
     const existing = this.userPresence.get(userId);
-    
+
     const presence: z.infer<typeof UserPresenceSchema> = {
       userId,
       userName: existing?.userName || `User-${userId}`,
@@ -725,7 +725,7 @@ export class RealTimeCollaborationSystem extends EventEmitter {
 
     for (const userId of roomConnections) {
       if (userId === excludeUserId) continue;
-      
+
       const connectionId = this.getConnectionIdFromUser(userId);
       if (connectionId) {
         this.sendToConnection(connectionId, message);

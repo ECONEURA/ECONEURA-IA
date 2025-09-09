@@ -1,6 +1,6 @@
 /**
  * AI/ML Types for ECONEURA Platform
- * 
+ *
  * Comprehensive type definitions for AI/ML automation, predictive analytics,
  * and the 60-agent registry system.
  */

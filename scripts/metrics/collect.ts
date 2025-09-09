@@ -7,6 +7,7 @@
 import { execSync } from 'child_process';
 import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
+import { logger } from '@econeura/shared/monitoring/logger';
 
 interface ProjectMetrics {
   timestamp: string;
@@ -88,7 +89,7 @@ function countOccurrences(pattern: string, exclude: string[] = []): number {
 function countEndpoints(): { api: number; web: number; total: number } {
   const apiEndpoints = countOccurrences('router\\.(get|post|put|delete|patch)', ['node_modules', 'dist', '.next']);
   const webEndpoints = countOccurrences('export.*function.*GET|POST|PUT|DELETE|PATCH', ['node_modules', 'dist', '.next']);
-  
+
   return {
     api: apiEndpoints,
     web: webEndpoints,
@@ -100,7 +101,7 @@ function countTests(): { unit: number; integration: number; e2e: number; total: 
   const unitTests = countFiles('*.test.ts', ['node_modules', 'dist', '.next']);
   const integrationTests = countFiles('*.integration.test.ts', ['node_modules', 'dist', '.next']);
   const e2eTests = countFiles('*.e2e.test.ts', ['node_modules', 'dist', '.next']);
-  
+
   return {
     unit: unitTests,
     integration: integrationTests,
@@ -113,7 +114,7 @@ function getBundleSizes(): { web: number; api: number; workers: number } {
   const webSize = execCommand('du -sb apps/web/.next 2>/dev/null | cut -f1') || '0';
   const apiSize = execCommand('du -sb apps/api/dist 2>/dev/null | cut -f1') || '0';
   const workersSize = execCommand('du -sb apps/workers/dist 2>/dev/null | cut -f1') || '0';
-  
+
   return {
     web: parseInt(webSize) || 0,
     api: parseInt(apiSize) || 0,
@@ -126,7 +127,7 @@ function getDependencies(): { production: number; development: number; total: nu
     const packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
     const prodDeps = Object.keys(packageJson.dependencies || {}).length;
     const devDeps = Object.keys(packageJson.devDependencies || {}).length;
-    
+
     return {
       production: prodDeps,
       development: devDeps,
@@ -139,7 +140,7 @@ function getDependencies(): { production: number; development: number; total: nu
 
 function collectMetrics(): ProjectMetrics {
   const excludePaths = ['node_modules', 'dist', '.next', 'coverage'];
-  
+
   return {
     timestamp: new Date().toISOString(),
     files: {
@@ -175,38 +176,38 @@ function collectMetrics(): ProjectMetrics {
   };
 }
 
-function main() {
-  console.log('🔍 Collecting ECONEURA project metrics...');
-  
+function main(): void {
+  logger.info('🔍 Collecting ECONEURA project metrics...');
+
   const metrics = collectMetrics();
-  
+
   // Create .artifacts directory if it doesn't exist
   execCommand('mkdir -p .artifacts');
-  
+
   // Write metrics to file
   const outputPath = join(process.cwd(), '.artifacts', 'metrics.json');
   writeFileSync(outputPath, JSON.stringify(metrics, null, 2));
-  
+
   // Print summary
-  console.log('\n📊 METRICS SUMMARY:');
-  console.log(`📁 Files: ${metrics.files.total} total (${metrics.files.typescript} TS, ${metrics.files.javascript} JS)`);
-  console.log(`📝 Lines: ${metrics.lines.total.toLocaleString()} total (${metrics.lines.typescript.toLocaleString()} TS)`);
-  console.log(`🔗 Imports: ${metrics.imports.total} total (${metrics.imports.jsImports} .js imports)`);
-  console.log(`🧪 Tests: ${metrics.tests.total} total (${metrics.tests.unit} unit, ${metrics.tests.integration} integration, ${metrics.tests.e2e} e2e)`);
-  console.log(`🌐 Endpoints: ${metrics.endpoints.total} total (${metrics.endpoints.api} API, ${metrics.endpoints.web} Web)`);
-  console.log(`📦 Bundles: ${(metrics.bundles.web / 1024 / 1024).toFixed(1)}MB web, ${(metrics.bundles.api / 1024 / 1024).toFixed(1)}MB api`);
-  console.log(`📚 Dependencies: ${metrics.dependencies.total} total (${metrics.dependencies.production} prod, ${metrics.dependencies.development} dev)`);
-  
-  console.log(`\n❌ QUALITY ISSUES:`);
-  console.log(`   Console.logs: ${metrics.quality.consoleLogs} files`);
-  console.log(`   TODO/FIXME: ${metrics.quality.todoComments} comments`);
-  console.log(`   .js imports: ${metrics.imports.jsImports} files`);
-  
-  console.log(`\n✅ Metrics saved to: ${outputPath}`);
-  
+  logger.info('\n📊 METRICS SUMMARY:');
+  logger.info(`📁 Files: ${metrics.files.total} total (${metrics.files.typescript} TS, ${metrics.files.javascript} JS)`);
+  logger.info(`📝 Lines: ${metrics.lines.total.toLocaleString()} total (${metrics.lines.typescript.toLocaleString()} TS)`);
+  logger.info(`🔗 Imports: ${metrics.imports.total} total (${metrics.imports.jsImports} .js imports)`);
+  logger.info(`🧪 Tests: ${metrics.tests.total} total (${metrics.tests.unit} unit, ${metrics.tests.integration} integration, ${metrics.tests.e2e} e2e)`);
+  logger.info(`🌐 Endpoints: ${metrics.endpoints.total} total (${metrics.endpoints.api} API, ${metrics.endpoints.web} Web)`);
+  logger.info(`📦 Bundles: ${(metrics.bundles.web / 1024 / 1024).toFixed(1)}MB web, ${(metrics.bundles.api / 1024 / 1024).toFixed(1)}MB api`);
+  logger.info(`📚 Dependencies: ${metrics.dependencies.total} total (${metrics.dependencies.production} prod, ${metrics.dependencies.development} dev)`);
+
+  logger.info(`\n❌ QUALITY ISSUES:`);
+  logger.info(`   Console.logs: ${metrics.quality.consoleLogs} files`);
+  logger.info(`   TODO/FIXME: ${metrics.quality.todoComments} comments`);
+  logger.info(`   .js imports: ${metrics.imports.jsImports} files`);
+
+  logger.info(`\n✅ Metrics saved to: ${outputPath}`);
+
   // Exit with error code if critical issues found
   if (metrics.quality.consoleLogs > 0 || metrics.imports.jsImports > 0) {
-    console.log('\n🚨 Critical quality issues detected!');
+    logger.info('\n🚨 Critical quality issues detected!');
     process.exit(1);
   }
 }

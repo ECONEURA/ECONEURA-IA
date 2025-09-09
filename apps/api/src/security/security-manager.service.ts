@@ -1,6 +1,6 @@
 /**
  * PR-57: Advanced Security Framework Service
- * 
+ *
  * Sistema avanzado de seguridad con autenticación multi-factor,
  * autorización basada en roles, protección CSRF, sanitización de entrada,
  * y monitoreo de amenazas en tiempo real.
@@ -63,8 +63,8 @@ export interface UserSession {
 }
 
 export interface SecurityEvent {
-  type: 'login' | 'logout' | 'mfa_attempt' | 'mfa_success' | 'mfa_failure' | 
-        'permission_denied' | 'suspicious_activity' | 'csrf_attack' | 
+  type: 'login' | 'logout' | 'mfa_attempt' | 'mfa_success' | 'mfa_failure' |
+        'permission_denied' | 'suspicious_activity' | 'csrf_attack' |
         'rate_limit_exceeded' | 'input_sanitization' | 'threat_detected';
   userId?: string;
   organizationId?: string;
@@ -295,9 +295,9 @@ export class SecurityManagerService {
         });
 
         // Métricas
-        metrics.securityMfaVerifications.inc({ 
-          userId, 
-          result: 'success' 
+        metrics.securityMfaVerifications.inc({
+          userId,
+          result: 'success'
         });
 
         // Registrar evento de seguridad
@@ -317,9 +317,9 @@ export class SecurityManagerService {
         });
 
         // Métricas
-        metrics.securityMfaVerifications.inc({ 
-          userId, 
-          result: 'failure' 
+        metrics.securityMfaVerifications.inc({
+          userId,
+          result: 'failure'
         });
 
         // Registrar evento de seguridad
@@ -435,7 +435,7 @@ export class SecurityManagerService {
         structuredLogger.warn('Input sanitization applied', {
           originalLength: input.length,
           sanitizedLength: sanitized.length,
-          blockedPatterns: this.config.inputSanitization.blockedPatterns.filter(p => 
+          blockedPatterns: this.config.inputSanitization.blockedPatterns.filter(p =>
             input.toLowerCase().includes(p.toLowerCase())
           )
         });
@@ -445,9 +445,9 @@ export class SecurityManagerService {
           type: 'input_sanitization',
           ipAddress: '127.0.0.1',
           userAgent: 'SecurityManager',
-          details: { 
+          details: {
             originalLength: input.length,
-            sanitizedLength: sanitized.length 
+            sanitizedLength: sanitized.length
           },
           severity: 'low',
           timestamp: new Date()
@@ -476,7 +476,7 @@ export class SecurityManagerService {
       }
 
       const threatLevel = this.analyzeThreatLevel(ipAddress, userAgent, requestData);
-      
+
       if (threatLevel === 'low') {
         return null;
       }
@@ -550,7 +550,7 @@ export class SecurityManagerService {
   public checkPermission(userId: string, permission: string, resource?: string): boolean {
     try {
       const session = this.activeSessions.get(userId);
-      
+
       if (!session) {
         structuredLogger.warn('Permission check failed - no active session', {
           userId,
@@ -560,7 +560,7 @@ export class SecurityManagerService {
         return false;
       }
 
-      const hasPermission = session.permissions.includes(permission) || 
+      const hasPermission = session.permissions.includes(permission) ||
                            session.permissions.includes('*') ||
                            session.roles.includes('admin');
 

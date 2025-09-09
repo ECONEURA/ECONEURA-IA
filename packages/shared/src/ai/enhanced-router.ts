@@ -7,11 +7,11 @@ import { LLMProviderManager, type LLMProvider, type LLMModel } from './providers
 // Lazy import costMeter to avoid resolving @econeura/db in Next.js builds
 type CostUsage = any
 let _costMeter: any | null = null
-async function getCostMeter() {
+async function getCostMeter(): void {
   if (_costMeter) return _costMeter
   const mod = await import('../cost-meter')
   _costMeter = mod.costMeter
-  return _costMeter
+  return _costMeter;
 }
 import { createTracer, createMeter } from '../otel/index'
 import { env } from '../env'
@@ -92,7 +92,7 @@ export class EnhancedAIRouter {
     }
 
     // Set up default cost limits for organizations
-    this.setupDefaultCostLimits()
+    this.setupDefaultCostLimits();
 
     logger.info('Enhanced AI Router initialized', {
       cost_guardrails_enabled: this.config.costGuardrailsEnabled,
@@ -112,7 +112,7 @@ export class EnhancedAIRouter {
     try {
       // Validate request
       const validatedRequest = AIRequestSchema.parse(request)
-      
+
       // Check monthly cost cap first
       const costMeter = await getCostMeter()
       const capCheck = await costMeter.checkMonthlyCap(request.orgId)
@@ -122,7 +122,7 @@ export class EnhancedAIRouter {
 
       // Make routing decision
       const decision = await this.makeRoutingDecision(validatedRequest)
-      
+
       // Track active request
       this.activeRequests.set(requestId, {
         orgId: request.orgId,
@@ -151,11 +151,11 @@ export class EnhancedAIRouter {
         'ai.fallback_used': result.fallbackUsed,
       })
 
-      return result
+      return result;
 
     } catch (error) {
       const errorType = this.classifyError(error)
-      
+
       await this.recordRequestCompletion(
         requestId,
         false,
@@ -165,7 +165,7 @@ export class EnhancedAIRouter {
         errorType
       )
 
-      span.recordException(error as Error)
+      span.recordException(error as Error);
       span.setAttributes({
         'ai.error_type': errorType,
         'ai.request_id': requestId,
@@ -173,7 +173,7 @@ export class EnhancedAIRouter {
 
       throw error
     } finally {
-      span.end()
+      span.end();
     }
   }
 
@@ -182,15 +182,15 @@ export class EnhancedAIRouter {
    */
   private async makeRoutingDecision(request: AIRequest): Promise<RouterDecision> {
     const span = this.tracer.startSpan('ai_make_routing_decision')
-    
+
     try {
       // Get available providers
       const providers = this.providerManager.getEnabledProviders()
-      
+
       // Prefer Mistral for cost efficiency
       const mistralProvider = providers.find(p => p.id === 'mistral')
       const azureProvider = providers.find(p => p.id === 'azure-openai')
-      
+
       if (!mistralProvider && !azureProvider) {
         throw new Error('No AI providers available')
       }
@@ -250,7 +250,7 @@ export class EnhancedAIRouter {
       }
 
     } finally {
-      span.end()
+      span.end();
     }
   }
 
@@ -263,11 +263,11 @@ export class EnhancedAIRouter {
     requestId: string
   ): Promise<AIResponse> {
     const span = this.tracer.startSpan('ai_execute_with_fallback')
-    
+
     try {
       // Try primary provider
       try {
-        return await this.executeRequest(request, decision.provider, decision.model, requestId, false)
+        return await this.executeRequest(request, decision.provider, decision.model, requestId, false);
       } catch (error) {
         logger.warn('Primary provider failed, attempting fallback', {
           primary_provider: decision.provider,
@@ -278,7 +278,7 @@ export class EnhancedAIRouter {
         // Try fallback if available
         if (decision.fallbackProvider) {
           try {
-            return await this.executeRequest(request, decision.fallbackProvider, decision.model, requestId, true)
+            return await this.executeRequest(request, decision.fallbackProvider, decision.model, requestId, true);
           } catch (fallbackError) {
             throw new Error(`Both primary and fallback providers failed: ${error instanceof Error ? error.message : 'Unknown'}, ${fallbackError instanceof Error ? fallbackError.message : 'Unknown'}`)
           }
@@ -287,7 +287,7 @@ export class EnhancedAIRouter {
         }
       }
     } finally {
-      span.end()
+      span.end();
     }
   }
 
@@ -303,7 +303,7 @@ export class EnhancedAIRouter {
   ): Promise<AIResponse> {
     const span = this.tracer.startSpan('ai_execute_request')
     const startTime = Date.now()
-    
+
     try {
       const provider = this.providerManager.getProvider(providerId)
       if (!provider) {
@@ -320,7 +320,7 @@ export class EnhancedAIRouter {
 
       // Execute request (mock implementation for now)
       const response = await this.executeProviderRequest(provider, providerRequest)
-      
+
       // Calculate actual cost
       const costMeter = await getCostMeter()
       const costUsage = costMeter.recordUsage(
@@ -355,7 +355,7 @@ export class EnhancedAIRouter {
       }
 
     } finally {
-      span.end()
+      span.end();
     }
   }
 
@@ -372,13 +372,13 @@ export class EnhancedAIRouter {
   ): Promise<void> {
     const activeRequest = this.activeRequests.get(requestId)
     if (!activeRequest) {
-      logger.warn('Request completion recorded for unknown request', { x_request_id: requestId })
+      logger.warn('Request completion recorded for unknown request', { x_request_id: requestId });
       return
     }
 
     const latency = Date.now() - activeRequest.startTime
     const provider = this.providerManager.getProvider(activeRequest.providerId)
-    
+
     if (!provider) {
       logger.error('Provider not found for completed request', undefined, {
         x_request_id: requestId,
@@ -446,7 +446,7 @@ export class EnhancedAIRouter {
 
     // Implement alert handling (email, Slack, etc.)
     if (this.config.emergencyStopEnabled && alert.type === 'emergency_stop') {
-      logger.error('Emergency stop triggered for organization', undefined, { orgId: alert.orgId })
+      logger.error('Emergency stop triggered for organization', undefined, { orgId: alert.orgId });
     }
   }
 
@@ -483,7 +483,7 @@ export class EnhancedAIRouter {
   private estimateTokens(prompt: string, maxTokens?: number): number {
     // Simple estimation: ~4 characters per token
     const estimated = Math.ceil(prompt.length / 4)
-    return maxTokens ? Math.min(estimated, maxTokens) : estimated
+    return maxTokens ? Math.min(estimated, maxTokens) : estimated;
   }
 
   /**
@@ -496,7 +496,7 @@ export class EnhancedAIRouter {
       if (error.message.includes('timeout')) return 'timeout'
       if (error.message.includes('rate limit')) return 'rate_limit'
     }
-    return 'unknown'
+    return 'unknown';
   }
 
   /**
@@ -528,7 +528,7 @@ export class EnhancedAIRouter {
         lastCheck: health?.lastCheck,
         models: provider.models,
       }
-      return acc
+      return acc;
     }, {} as Record<string, any>)
   }
 

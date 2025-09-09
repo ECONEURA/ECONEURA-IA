@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import ProjectCompletionDeploymentService, { 
-  DeploymentConfig, 
-  HealthCheck, 
-  ValidationResult, 
-  DeploymentResult, 
-  ProjectCompletionConfig 
+import ProjectCompletionDeploymentService, {
+  DeploymentConfig,
+  HealthCheck,
+  ValidationResult,
+  DeploymentResult,
+  ProjectCompletionConfig
 } from '../../lib/project-completion-deployment.service.ts';
 
 // Mock del logger
@@ -58,7 +58,7 @@ describe('ProjectCompletionDeploymentService', () => {
       const results = validation.validationResults;
 
       expect(results.length).toBeGreaterThan(0);
-      
+
       // Verificar que todos los resultados tienen la estructura correcta
       results.forEach(result => {
         expect(result.component).toBeDefined();
@@ -82,7 +82,7 @@ describe('ProjectCompletionDeploymentService', () => {
 
       expect(Array.isArray(validation.recommendations)).toBe(true);
       expect(validation.recommendations.length).toBeGreaterThan(0);
-      
+
       validation.recommendations.forEach(recommendation => {
         expect(typeof recommendation).toBe('string');
         expect(recommendation.length).toBeGreaterThan(0);
@@ -416,7 +416,7 @@ describe('ProjectCompletionDeploymentService', () => {
     it('should initialize with default health checks', async () => {
       const healthChecks = await service.listHealthChecks();
       expect(healthChecks.length).toBeGreaterThan(0);
-      
+
       const apiHealthCheck = healthChecks.find(hc => hc.name === 'API Health Check');
       expect(apiHealthCheck).toBeDefined();
       expect(apiHealthCheck?.type).toBe('HTTP');

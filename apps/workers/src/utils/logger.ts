@@ -55,7 +55,7 @@ const transports = [
   new winston.transports.Console({
     format: isProduction ? productionFormat : logFormat
   }),
-  
+
   // File transport for errors
   new winston.transports.File({
     filename: path.join(process.cwd(), 'logs', 'error.log'),
@@ -64,7 +64,7 @@ const transports = [
     maxsize: 5242880, // 5MB
     maxFiles: 5
   }),
-  
+
   // File transport for all logs
   new winston.transports.File({
     filename: path.join(process.cwd(), 'logs', 'combined.log'),

@@ -138,7 +138,7 @@ export class ApiVersioningService {
 
   public versionMiddleware = (req: Request, res: Response, next: NextFunction): void => {
     const startTime = Date.now();
-    
+
     try {
       let requestedVersion = this.config.defaultVersion;
       let versionSource = 'default';
@@ -232,7 +232,7 @@ export class ApiVersioningService {
       // Add deprecation warnings
       if (this.config.enableDeprecationWarnings && versionInfo.status === 'deprecated') {
         res.set('X-API-Deprecation-Warning', `API version '${requestedVersion}' is deprecated`);
-        
+
         if (versionInfo.sunsetDate) {
           const daysUntilSunset = Math.ceil((versionInfo.sunsetDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
           res.set('X-API-Sunset-Date', versionInfo.sunsetDate.toISOString());
@@ -243,7 +243,7 @@ export class ApiVersioningService {
       // Add sunset warnings
       if (this.config.enableSunsetWarnings && versionInfo.status === 'sunset') {
         res.set('X-API-Sunset-Warning', `API version '${requestedVersion}' is in sunset period`);
-        
+
         if (versionInfo.retirementDate) {
           const daysUntilRetirement = Math.ceil((versionInfo.retirementDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
           res.set('X-API-Retirement-Date', versionInfo.retirementDate.toISOString());
@@ -271,7 +271,7 @@ export class ApiVersioningService {
 
     } catch (error) {
       const processingTime = Date.now() - startTime;
-      
+
       structuredLogger.error('Version detection failed', {
         error: error instanceof Error ? error.message : 'Unknown error',
         processingTime,
@@ -393,7 +393,7 @@ export class ApiVersioningService {
 
   public getAllVersionsEndpoint = (req: Request, res: Response): void => {
     const allVersions = this.getAllVersions();
-    
+
     res.json({
       versions: allVersions,
       defaultVersion: this.config.defaultVersion,
@@ -424,7 +424,7 @@ export class ApiVersioningService {
     } else {
       const metricsMap = metrics as Map<string, VersionMetrics>;
       const metricsObject: Record<string, any> = {};
-      
+
       for (const [ver, metric] of metricsMap.entries()) {
         metricsObject[ver] = {
           ...metric,

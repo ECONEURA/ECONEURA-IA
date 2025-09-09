@@ -210,8 +210,8 @@ router.put('/configs/:id', async (req, res) => {
     const updateData = UpdateBackupConfigSchema.parse(req.body);
 
     const config = await backupRecoveryService.updateBackupConfig(
-      id, 
-      updateData, 
+      id,
+      updateData,
       updateData.updatedBy || 'system'
     );
 
@@ -260,7 +260,7 @@ router.delete('/configs/:id', async (req, res) => {
     const { userId } = req.body;
 
     const success = await backupRecoveryService.deleteBackupConfig(
-      id, 
+      id,
       userId || 'system'
     );
 
@@ -488,9 +488,9 @@ router.post('/recovery', async (req, res) => {
     const { backupJobId, target, options, userId } = ExecuteRecoverySchema.parse(req.body);
 
     const recoveryJob = await backupRecoveryService.executeRecovery(
-      backupJobId, 
-      target, 
-      options, 
+      backupJobId,
+      target,
+      options,
       userId
     );
 

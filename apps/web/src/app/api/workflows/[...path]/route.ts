@@ -22,7 +22,7 @@ async function proxyRequest(
   try {
     // Construir URL del API
     const apiUrl = `${API_BASE_URL}${WORKFLOWS_API_PATH}${path}`;
-    
+
     // Headers a enviar
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -58,7 +58,7 @@ async function proxyRequest(
 
     // Obtener respuesta
     const responseData = await response.text();
-    
+
     // Headers de respuesta a copiar
     const responseHeaders: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -86,13 +86,13 @@ async function proxyRequest(
     let processedData = responseData;
     try {
       const jsonData = JSON.parse(responseData);
-      
+
       // Agregar metadatos BFF
       if (jsonData.success !== undefined) {
         jsonData.ok = jsonData.success;
         jsonData.timestamp = new Date().toISOString();
         jsonData.source = 'workflows-bff';
-        
+
         processedData = JSON.stringify(jsonData);
       }
     } catch (error) {
@@ -108,7 +108,7 @@ async function proxyRequest(
 
   } catch (error) {
     console.error('BFF Proxy Error:', error);
-    
+
     return NextResponse.json({
       ok: false,
       success: false,
@@ -135,7 +135,7 @@ export async function GET(
   const path = '/' + params.path.join('/');
   const searchParams = request.nextUrl.searchParams.toString();
   const fullPath = searchParams ? `${path}?${searchParams}` : path;
-  
+
   return proxyRequest(request, fullPath, 'GET');
 }
 
@@ -145,7 +145,7 @@ export async function POST(
   { params }: { params: { path: string[] } }
 ) {
   const path = '/' + params.path.join('/');
-  
+
   return proxyRequest(request, path, 'POST');
 }
 
@@ -155,7 +155,7 @@ export async function PUT(
   { params }: { params: { path: string[] } }
 ) {
   const path = '/' + params.path.join('/');
-  
+
   return proxyRequest(request, path, 'PUT');
 }
 
@@ -165,7 +165,7 @@ export async function DELETE(
   { params }: { params: { path: string[] } }
 ) {
   const path = '/' + params.path.join('/');
-  
+
   return proxyRequest(request, path, 'DELETE');
 }
 
@@ -175,6 +175,6 @@ export async function PATCH(
   { params }: { params: { path: string[] } }
 ) {
   const path = '/' + params.path.join('/');
-  
+
   return proxyRequest(request, path, 'PATCH');
 }

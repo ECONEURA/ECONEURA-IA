@@ -217,7 +217,7 @@ export class PredictiveAnalytics extends BaseEntity {
 
   batchPredict(inputDataArray: Record<string, any>[]): PredictionData[] {
     const predictions: PredictionData[] = [];
-    
+
     for (const inputData of inputDataArray) {
       const prediction = this.generatePrediction(inputData);
       predictions.push(prediction);
@@ -338,7 +338,7 @@ export class PredictiveAnalytics extends BaseEntity {
   // ========================================================================
 
   isReadyForPrediction(): boolean {
-    return this.props.status.value === 'completed' && 
+    return this.props.status.value === 'completed' && ;
            this.props.metrics !== undefined &&
            this.props.metrics.accuracy >= this.props.settings.confidenceThreshold;
   }
@@ -362,7 +362,7 @@ export class PredictiveAnalytics extends BaseEntity {
   }
 
   getPredictionsByDateRange(startDate: Date, endDate: Date): PredictionData[] {
-    return this.props.predictions.filter(prediction => 
+    return this.props.predictions.filter(prediction => ;
       prediction.timestamp >= startDate && prediction.timestamp <= endDate
     );
   }

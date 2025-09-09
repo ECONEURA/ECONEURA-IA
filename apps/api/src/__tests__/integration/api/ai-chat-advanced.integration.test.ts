@@ -91,7 +91,7 @@ describe('AI Chat Advanced API Integration Tests', () => {
     it('should filter conversations by status', async () => {
       const response = await request(app)
         .get('/v1/ai-chat-advanced/conversations')
-        .query({ 
+        .query({
           organizationId: 'demo-org-1',
           status: 'active',
           limit: 10
@@ -107,7 +107,7 @@ describe('AI Chat Advanced API Integration Tests', () => {
     it('should filter conversations by tags', async () => {
       const response = await request(app)
         .get('/v1/ai-chat-advanced/conversations')
-        .query({ 
+        .query({
           organizationId: 'demo-org-1',
           tags: 'test',
           limit: 10
@@ -491,7 +491,7 @@ describe('AI Chat Advanced API Integration Tests', () => {
     it('should filter statistics by user', async () => {
       const response = await request(app)
         .get('/v1/ai-chat-advanced/statistics')
-        .query({ 
+        .query({
           organizationId: 'demo-org-1',
           userId: 'user_1'
         })
@@ -508,7 +508,7 @@ describe('AI Chat Advanced API Integration Tests', () => {
 
       const response = await request(app)
         .get('/v1/ai-chat-advanced/statistics')
-        .query({ 
+        .query({
           organizationId: 'demo-org-1',
           startDate,
           endDate
@@ -621,7 +621,7 @@ describe('AI Chat Advanced API Integration Tests', () => {
     it('should return 400 for invalid statistics query', async () => {
       const response = await request(app)
         .get('/v1/ai-chat-advanced/statistics')
-        .query({ 
+        .query({
           organizationId: '', // Invalid: empty organizationId
           startDate: 'invalid-date', // Invalid: not a valid date
           endDate: 'invalid-date' // Invalid: not a valid date

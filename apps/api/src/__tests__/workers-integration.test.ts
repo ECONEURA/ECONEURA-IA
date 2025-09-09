@@ -56,7 +56,7 @@ describe('Workers Integration API', () => {
   describe('POST /v1/workers/emails/process', () => {
     it('should process email successfully', async () => {
       const { workersIntegrationService } = await import('../lib/workers-integration.service.js');
-      
+
       const mockResponse = {
         success: true,
         messageId: 'email_123',
@@ -107,7 +107,7 @@ describe('Workers Integration API', () => {
 
     it('should handle email processing failure', async () => {
       const { workersIntegrationService } = await import('../lib/workers-integration.service.js');
-      
+
       const mockResponse = {
         success: false,
         messageId: 'email_123',
@@ -153,7 +153,7 @@ describe('Workers Integration API', () => {
   describe('POST /v1/workers/emails/process/bulk', () => {
     it('should process bulk emails successfully', async () => {
       const { workersIntegrationService } = await import('../lib/workers-integration.service.js');
-      
+
       const mockResponse = [
         {
           success: true,
@@ -204,7 +204,7 @@ describe('Workers Integration API', () => {
 
     it('should handle partial failures in bulk processing', async () => {
       const { workersIntegrationService } = await import('../lib/workers-integration.service.js');
-      
+
       const mockResponse = [
         {
           success: true,
@@ -258,7 +258,7 @@ describe('Workers Integration API', () => {
   describe('POST /v1/workers/cron/manage', () => {
     it('should enable cron job successfully', async () => {
       const { workersIntegrationService } = await import('../lib/workers-integration.service.js');
-      
+
       const mockResponse = {
         success: true,
         jobId: 'email_processing',
@@ -290,7 +290,7 @@ describe('Workers Integration API', () => {
 
     it('should disable cron job successfully', async () => {
       const { workersIntegrationService } = await import('../lib/workers-integration.service.js');
-      
+
       const mockResponse = {
         success: true,
         jobId: 'email_processing',
@@ -322,7 +322,7 @@ describe('Workers Integration API', () => {
 
     it('should get cron job status', async () => {
       const { workersIntegrationService } = await import('../lib/workers-integration.service.js');
-      
+
       const mockResponse = {
         success: true,
         jobId: 'email_processing',
@@ -380,7 +380,7 @@ describe('Workers Integration API', () => {
   describe('GET /v1/workers/health', () => {
     it('should return workers health status', async () => {
       const { workersIntegrationService } = await import('../lib/workers-integration.service.js');
-      
+
       const mockResponse = {
         healthy: true,
         services: [{
@@ -419,7 +419,7 @@ describe('Workers Integration API', () => {
 
     it('should handle workers health check failure', async () => {
       const { workersIntegrationService } = await import('../lib/workers-integration.service.js');
-      
+
       const mockResponse = {
         healthy: false,
         services: [],
@@ -446,7 +446,7 @@ describe('Workers Integration API', () => {
   describe('GET /v1/workers/stats', () => {
     it('should return integration statistics', async () => {
       const { workersIntegrationService } = await import('../lib/workers-integration.service.js');
-      
+
       const mockResponse = {
         initialized: true,
         workersClient: {
@@ -550,7 +550,7 @@ describe('Workers Integration API', () => {
   describe('Error Handling', () => {
     it('should handle service initialization errors', async () => {
       const { workersIntegrationService } = await import('../lib/workers-integration.service.js');
-      
+
       (workersIntegrationService.processEmail as any).mockRejectedValue(
         new Error('Service not initialized')
       );
@@ -581,7 +581,7 @@ describe('Workers Integration API', () => {
   describe('Response Format Consistency', () => {
     it('should return consistent response format for all endpoints', async () => {
       const { workersIntegrationService } = await import('../lib/workers-integration.service.js');
-      
+
       // Mock successful responses
       (workersIntegrationService.processEmail as any).mockResolvedValue({
         success: true,
@@ -613,7 +613,7 @@ describe('Workers Integration API', () => {
       for (const endpoint of endpoints) {
         const response = await request(app)[endpoint.method](endpoint.path)
           .send(endpoint.data || {});
-        
+
         expect(response.body).toHaveProperty('success');
         expect(response.body).toHaveProperty('timestamp');
         expect(typeof response.body.success).toBe('boolean');

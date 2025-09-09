@@ -1,6 +1,6 @@
 /**
  * MEJORA 2: Sistema de Caché Inteligente Multi-Nivel
- * 
+ *
  * Sistema avanzado de caché con múltiples niveles, invalidación inteligente,
  * compresión, y estrategias de eviction automáticas.
  */
@@ -125,10 +125,10 @@ export class CacheManagerService {
   public async get<T>(key: string, namespace: string = 'default'): Promise<T | null> {
     const startTime = Date.now();
     const fullKey = this.buildKey(key, namespace);
-    
+
     try {
       const entry = this.memoryCache.get(fullKey);
-      
+
       if (!entry) {
         this.recordMiss(namespace);
         return null;
@@ -144,12 +144,12 @@ export class CacheManagerService {
       // Actualizar estadísticas de acceso
       entry.accessCount++;
       entry.lastAccessed = Date.now();
-      
+
       // Descomprimir si es necesario
       const value = entry.compressed ? await this.decompress(entry.value) : entry.value;
-      
+
       this.recordHit(namespace, Date.now() - startTime);
-      
+
       structuredLogger.debug('Cache hit', {
         key: fullKey,
         namespace,
@@ -173,19 +173,19 @@ export class CacheManagerService {
    * Almacena un valor en el caché
    */
   public async set<T>(
-    key: string, 
-    value: T, 
+    key: string,
+    value: T,
     namespace: string = 'default',
     customTtl?: number
   ): Promise<boolean> {
     const startTime = Date.now();
     const fullKey = this.buildKey(key, namespace);
     const config = this.configs.get(namespace) || this.getDefaultConfig();
-    
+
     try {
       // Comprimir si está habilitado
       const processedValue = config.compression ? await this.compress(value) : value;
-      
+
       const entry: CacheEntry<T> = {
         key: fullKey,
         value: processedValue,
@@ -207,7 +207,7 @@ export class CacheManagerService {
       }
 
       this.memoryCache.set(fullKey, entry);
-      
+
       structuredLogger.debug('Cache set', {
         key: fullKey,
         namespace,
@@ -234,11 +234,11 @@ export class CacheManagerService {
   public async delete(key: string, namespace: string = 'default'): Promise<boolean> {
     const fullKey = this.buildKey(key, namespace);
     const deleted = this.memoryCache.delete(fullKey);
-    
+
     if (deleted) {
       structuredLogger.debug('Cache delete', { key: fullKey, namespace });
     }
-    
+
     return deleted;
   }
 
@@ -398,7 +398,7 @@ export class CacheManagerService {
     stats.hits++;
     stats.hitRate = stats.hits / (stats.hits + stats.misses);
     stats.averageAccessTime = (stats.averageAccessTime * (stats.hits - 1) + accessTime) / stats.hits;
-    
+
     // Métricas Prometheus
     metrics.cacheHits.inc({ namespace });
     metrics.cacheAccessTime.observe({ namespace }, accessTime);
@@ -408,7 +408,7 @@ export class CacheManagerService {
     const stats = this.getOrCreateStats(namespace);
     stats.misses++;
     stats.hitRate = stats.hits / (stats.hits + stats.misses);
-    
+
     // Métricas Prometheus
     metrics.cacheMisses.inc({ namespace });
   }
@@ -416,7 +416,7 @@ export class CacheManagerService {
   private recordSet(namespace: string, setTime: number): void {
     const stats = this.getOrCreateStats(namespace);
     stats.entryCount = this.memoryCache.size;
-    
+
     // Métricas Prometheus
     metrics.cacheSets.inc({ namespace });
     metrics.cacheSetTime.observe({ namespace }, setTime);
@@ -425,7 +425,7 @@ export class CacheManagerService {
   private recordEviction(namespace: string): void {
     const stats = this.getOrCreateStats(namespace);
     stats.evictions++;
-    
+
     // Métricas Prometheus
     metrics.cacheEvictions.inc({ namespace });
   }
@@ -478,7 +478,7 @@ export class CacheManagerService {
     for (const [namespace, stats] of this.stats.entries()) {
       stats.entryCount = Array.from(this.memoryCache.values())
         .filter(entry => entry.metadata?.namespace === namespace).length;
-      
+
       // Actualizar métricas Prometheus
       metrics.cacheSize.set({ namespace }, stats.entryCount);
       metrics.cacheHitRate.set({ namespace }, stats.hitRate);

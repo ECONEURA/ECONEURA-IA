@@ -1,6 +1,6 @@
 /**
  * Advanced CI/CD Service
- * 
+ *
  * This service provides comprehensive CI/CD capabilities including automated testing,
  * deployment orchestration, rollback mechanisms, and deployment analytics.
  */
@@ -188,7 +188,7 @@ export class AdvancedCICDService {
 
     try {
       deployment.status = 'in_progress';
-      
+
       structuredLogger.info('Deployment started', {
         operation: 'deployment_start',
         deploymentId,
@@ -321,7 +321,7 @@ export class AdvancedCICDService {
       step,
       duration
     });
-    
+
     // Simulate step duration
     await new Promise(resolve => setTimeout(resolve, duration));
   }
@@ -365,19 +365,19 @@ export class AdvancedCICDService {
       try {
         // Simulate health check
         await new Promise(resolve => setTimeout(resolve, 50));
-        
+
         // Simulate random success/failure
         const isHealthy = Math.random() > 0.1; // 90% success rate
-        
+
         check.status = isHealthy ? 'passing' : 'failing';
         check.responseTime = Math.random() * 200 + 50; // 50-250ms
-        
+
         if (!isHealthy) {
           check.error = 'Health check failed';
         }
-        
+
         check.lastChecked = new Date();
-        
+
         structuredLogger.info('Health check completed', {
           operation: 'health_check',
           deploymentId: deployment.id,
@@ -385,7 +385,7 @@ export class AdvancedCICDService {
           status: check.status,
           responseTime: check.responseTime
         });
-        
+
       } catch (error) {
         check.status = 'failing';
         check.error = error instanceof Error ? error.message : 'Unknown error';
@@ -401,7 +401,7 @@ export class AdvancedCICDService {
   private async collectDeploymentMetrics(deployment: Deployment): Promise<void> {
     const startTime = deployment.startedAt.getTime();
     const endTime = deployment.completedAt?.getTime() || Date.now();
-    
+
     deployment.metrics = {
       deploymentTime: endTime - startTime,
       downtime: Math.random() * 1000, // Simulate downtime
@@ -513,7 +513,7 @@ export class AdvancedCICDService {
     if (!config?.notifications) return;
 
     const message = this.buildNotificationMessage(deployment, type);
-    
+
     structuredLogger.info('Sending deployment notification', {
       operation: 'notification_send',
       deploymentId: deployment.id,
@@ -722,7 +722,7 @@ export class AdvancedCICDService {
     deploymentsByStatus: Record<DeploymentStatus, number>;
   }> {
     let deployments = Array.from(this.deployments.values());
-    
+
     if (environment) {
       deployments = deployments.filter(d => d.environment === environment);
     }
@@ -733,7 +733,7 @@ export class AdvancedCICDService {
     const rollbackRate = deployments.filter(d => d.status === 'rolled_back').length / totalDeployments;
 
     const completedDeployments = deployments.filter(d => d.completedAt);
-    const averageDeploymentTime = completedDeployments.length > 0 
+    const averageDeploymentTime = completedDeployments.length > 0
       ? completedDeployments.reduce((sum, d) => sum + d.metrics.deploymentTime, 0) / completedDeployments.length
       : 0;
 

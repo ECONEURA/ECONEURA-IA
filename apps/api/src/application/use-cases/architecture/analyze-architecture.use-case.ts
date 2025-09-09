@@ -64,7 +64,7 @@ export class AnalyzeArchitectureUseCase extends BaseUseCase<AnalyzeArchitectureR
       const daysSinceLastAnalysis = Math.floor(
         (Date.now() - existingArchitecture.lastAnalysisDate.getTime()) / (1000 * 60 * 60 * 24)
       );
-      
+
       if (daysSinceLastAnalysis < 1) {
         throw new Error('Architecture was analyzed recently. Use forceReanalysis=true to force reanalysis.');
       }
@@ -77,7 +77,7 @@ export class AnalyzeArchitectureUseCase extends BaseUseCase<AnalyzeArchitectureR
     const startTime = Date.now();
     const metrics = existingArchitecture.analyzeArchitecture();
     const endTime = Date.now();
-    
+
     // Update analysis duration
     metrics.analysisDuration = (endTime - startTime) / 1000; // Convert to seconds
 

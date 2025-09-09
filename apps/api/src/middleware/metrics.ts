@@ -3,9 +3,9 @@
 // ============================================================================
 
 import { Request, Response, NextFunction } from 'express';
-import { 
-  initializeMetrics, 
-  getMetrics, 
+import {
+  initializeMetrics,
+  getMetrics,
   PredefinedMetrics,
   counter,
   gauge,
@@ -94,7 +94,7 @@ export function metricsMiddleware(req: Request, res: Response, next: NextFunctio
 
 export function trackAuthMetrics(req: Request, res: Response, next: NextFunction): void {
   const originalEnd = res.end;
-  
+
   res.end = function(chunk?: any, encoding?: any) {
     if (req.path === '/auth/login') {
       if (res.statusCode === 200) {
@@ -193,7 +193,7 @@ export function trackAIMetrics(action: string, tokens?: number, cost?: number): 
 
 export function trackSystemMetrics(): void {
   const memUsage = process.memoryUsage();
-  
+
   gauge('memory_usage_bytes', memUsage.heapUsed, {
     type: 'heap_used'
   });

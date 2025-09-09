@@ -1,0 +1,56 @@
+{
+  "timestamp": "2025-09-09T18:53:59+00:00",
+  "console_logs": {
+    "count": 180,
+    "files": [
+      "./scripts/metrics/collect.ts",
+      "./apps/api/scripts/rollback.ts",
+      "./apps/api/scripts/generate-openapi.ts",
+      "./apps/api/scripts/openapi.ts",
+      "./apps/api/src/test-e2e-advanced.ts",
+      "./apps/api/src/routes/ai-analytics.ts",
+      "./apps/api/src/routes/advanced-ai-features.ts",
+      "./apps/api/src/shared/utils/error.utils.ts",
+      "./apps/api/src/middleware/error-handler.ts",
+      "./apps/api/src/middleware/correlation.ts",
+      "./apps/api/src/infrastructure/observability/health.service.ts",
+      "./apps/api/src/test-all-endpoints.ts",
+      "./apps/api/src/__tests__/setup/test-setup.ts",
+      "./apps/api/src/__tests__/unit/lib/automated-testing.service.simple.test.ts",
+      "./apps/api/src/__tests__/unit/lib/csp-sri-banking.service.test.ts",
+      "./apps/api/src/__tests__/unit/lib/automated-documentation.service.simple.test.ts",
+      "./apps/api/src/lib/workflows.ts",
+      "./apps/api/src/lib/warmup.service.ts",
+      "./apps/api/src/lib/notification-intelligence.service.ts",
+      "./apps/api/src/lib/logger.ts"
+    ]
+  },
+  "js_imports": {
+    "count": 460,
+    "files": []
+  },
+  "todo_fixme": {
+    "count": 229,
+    "files": []
+  },
+  "ts_ignore": {
+    "count": 2,
+    "files": []
+  },
+  "eslint_disable": {
+    "count": 0,
+    "files": []
+  },
+  "unused_imports": {
+    "count": 0,
+    "files": []
+  },
+  "duplicate_dependencies": {
+    "count": 0,
+    "files": []
+  },
+  "missing_types": {
+    "count": 0,
+    "files": []
+  }
+}

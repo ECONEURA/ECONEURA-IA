@@ -12,11 +12,11 @@ export async function PUT(
   try {
     const { ruleId } = params;
     const updates = await request.json();
-    
+
     const updated = webRlsSystem.updateRule(ruleId, updates);
-    
+
     if (!updated) {
-      return NextResponse.json(
+      return NextResponse.json(;
         { error: 'RLS rule not found' },
         { status: 404 }
       );
@@ -31,7 +31,7 @@ export async function PUT(
     });
   } catch (error) {
     console.error('Failed to update RLS rule:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Internal server error' },
       { status: 500 }
     );
@@ -46,9 +46,9 @@ export async function DELETE(
   try {
     const { ruleId } = params;
     const deleted = webRlsSystem.deleteRule(ruleId);
-    
+
     if (!deleted) {
-      return NextResponse.json(
+      return NextResponse.json(;
         { error: 'RLS rule not found' },
         { status: 404 }
       );
@@ -63,7 +63,7 @@ export async function DELETE(
     });
   } catch (error) {
     console.error('Failed to delete RLS rule:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Internal server error' },
       { status: 500 }
     );

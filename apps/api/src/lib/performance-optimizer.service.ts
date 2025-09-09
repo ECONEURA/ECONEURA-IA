@@ -1,6 +1,6 @@
 /**
  * MEJORA 5: Optimización de Performance y Compresión
- * 
+ *
  * Sistema avanzado de optimización de performance con compresión,
  * minificación, lazy loading, y optimización de consultas.
  */
@@ -174,7 +174,7 @@ export class PerformanceOptimizerService {
       structuredLogger.error('Response optimization failed', {
         error: error instanceof Error ? error.message : String(error)
       });
-      
+
       return {
         data,
         compressed: false,
@@ -193,12 +193,12 @@ export class PerformanceOptimizerService {
     params: any[] = []
   ): Promise<QueryOptimization> {
     const startTime = Date.now();
-    
+
     try {
       // Verificar caché de consultas
       const cacheKey = this.generateQueryCacheKey(query, params);
       const cachedResult = this.queryCache.get(cacheKey);
-      
+
       if (cachedResult && this.isQueryCacheValid(cachedResult)) {
         return {
           originalQuery: query,
@@ -219,7 +219,7 @@ export class PerformanceOptimizerService {
       }
 
       const improvement = this.calculateQueryImprovement(query, optimizedQuery);
-      
+
       const result: QueryOptimization = {
         originalQuery: query,
         optimizedQuery,
@@ -244,7 +244,7 @@ export class PerformanceOptimizerService {
         query,
         error: error instanceof Error ? error.message : String(error)
       });
-      
+
       return {
         originalQuery: query,
         optimizedQuery: query,
@@ -265,15 +265,15 @@ export class PerformanceOptimizerService {
 
     if (data && typeof data === 'object') {
       const optimized: any = {};
-      
+
       for (const [key, value] of Object.entries(data)) {
         if (this.config.responseOptimization.removeNulls && value === null) {
           continue; // Saltar valores null
         }
-        
+
         optimized[key] = this.optimizeData(value);
       }
-      
+
       return optimized;
     }
 
@@ -376,9 +376,9 @@ export class PerformanceOptimizerService {
   private calculateQueryImprovement(original: string, optimized: string): number {
     const originalLength = original.length;
     const optimizedLength = optimized.length;
-    
+
     if (originalLength === 0) return 0;
-    
+
     return Math.round(((originalLength - optimizedLength) / originalLength) * 100);
   }
 
@@ -429,7 +429,7 @@ export class PerformanceOptimizerService {
     metrics.responseOptimizations.inc();
     metrics.responseOptimizationTime.observe({}, processingTime);
     metrics.compressionRatio.observe({}, originalSize / optimizedSize);
-    
+
     if (compressed) {
       metrics.compressedResponses.inc();
     }
@@ -542,7 +542,7 @@ export class PerformanceOptimizerService {
    */
   public getPerformanceMetrics(): PerformanceMetrics {
     const memUsage = process.memoryUsage();
-    
+
     return {
       responseTime: 0, // Se calcularía de las métricas
       compressionRatio: 0, // Se calcularía de las métricas

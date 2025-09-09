@@ -11,11 +11,11 @@ describe('CompaniesTaxonomyService', () => {
   describe('getTaxonomies', () => {
     it('should return all taxonomies', () => {
       const taxonomies = service.getTaxonomies();
-      
+
       expect(taxonomies).toBeDefined();
       expect(Array.isArray(taxonomies)).toBe(true);
       expect(taxonomies.length).toBeGreaterThan(0);
-      
+
       // Check structure of first taxonomy
       const firstTaxonomy = taxonomies[0];
       expect(firstTaxonomy).toHaveProperty('id');
@@ -29,7 +29,7 @@ describe('CompaniesTaxonomyService', () => {
     it('should return taxonomies with correct metadata structure', () => {
       const taxonomies = service.getTaxonomies();
       const taxonomy = taxonomies[0];
-      
+
       expect(taxonomy.metadata).toHaveProperty('tags');
       expect(taxonomy.metadata).toHaveProperty('keywords');
       expect(Array.isArray(taxonomy.metadata.tags)).toBe(true);
@@ -40,11 +40,11 @@ describe('CompaniesTaxonomyService', () => {
   describe('getViews', () => {
     it('should return views for existing organization', () => {
       const views = service.getViews('default');
-      
+
       expect(views).toBeDefined();
       expect(Array.isArray(views)).toBe(true);
       expect(views.length).toBeGreaterThan(0);
-      
+
       // Check structure of first view
       const firstView = views[0];
       expect(firstView).toHaveProperty('id');
@@ -60,7 +60,7 @@ describe('CompaniesTaxonomyService', () => {
 
     it('should return empty array for non-existing organization', () => {
       const views = service.getViews('non-existing-org');
-      
+
       expect(views).toBeDefined();
       expect(Array.isArray(views)).toBe(true);
       expect(views.length).toBe(0);
@@ -82,7 +82,7 @@ describe('CompaniesTaxonomyService', () => {
       };
 
       const view = await service.createView(viewData);
-      
+
       expect(view).toBeDefined();
       expect(view.id).toBeDefined();
       expect(view.name).toBe(viewData.name);
@@ -104,7 +104,7 @@ describe('CompaniesTaxonomyService', () => {
 
       await service.createView(viewData);
       const views = service.getViews('test-org-2');
-      
+
       expect(views.length).toBe(1);
       expect(views[0].name).toBe(viewData.name);
     });
@@ -120,7 +120,7 @@ describe('CompaniesTaxonomyService', () => {
       };
 
       const classifications = await service.classifyCompany(companyData);
-      
+
       expect(classifications).toBeDefined();
       expect(Array.isArray(classifications)).toBe(true);
     });
@@ -131,7 +131,7 @@ describe('CompaniesTaxonomyService', () => {
       };
 
       const classifications = await service.classifyCompany(companyData);
-      
+
       expect(classifications).toBeDefined();
       expect(Array.isArray(classifications)).toBe(true);
     });
@@ -143,14 +143,14 @@ describe('CompaniesTaxonomyService', () => {
         page: 1,
         limit: 10
       });
-      
+
       expect(result).toBeDefined();
       expect(result).toHaveProperty('companies');
       expect(result).toHaveProperty('total');
       expect(result).toHaveProperty('page');
       expect(result).toHaveProperty('limit');
       expect(result).toHaveProperty('hasMore');
-      
+
       expect(Array.isArray(result.companies)).toBe(true);
       expect(typeof result.total).toBe('number');
       expect(typeof result.page).toBe('number');
@@ -160,7 +160,7 @@ describe('CompaniesTaxonomyService', () => {
 
     it('should throw error for non-existing view', async () => {
       await expect(
-        service.getCompaniesByView('non-existing-view', 'default')
+        service.getCompaniesByView('non-existing-view', 'default');
       ).rejects.toThrow('View not found');
     });
 
@@ -169,7 +169,7 @@ describe('CompaniesTaxonomyService', () => {
         page: 1,
         limit: 5
       });
-      
+
       if (result.companies.length > 0) {
         const company = result.companies[0];
         expect(company).toHaveProperty('id');
@@ -189,7 +189,7 @@ describe('CompaniesTaxonomyService', () => {
         page: 1,
         limit: 3
       });
-      
+
       expect(result.page).toBe(1);
       expect(result.limit).toBe(3);
       expect(result.companies.length).toBeLessThanOrEqual(3);
@@ -200,7 +200,7 @@ describe('CompaniesTaxonomyService', () => {
     it('should have tech-software taxonomy', () => {
       const taxonomies = service.getTaxonomies();
       const techTaxonomy = taxonomies.find(t => t.id === 'tech-software');
-      
+
       expect(techTaxonomy).toBeDefined();
       expect(techTaxonomy?.name).toBe('Software & Technology');
       expect(techTaxonomy?.metadata.industry).toBe('Technology');
@@ -210,7 +210,7 @@ describe('CompaniesTaxonomyService', () => {
     it('should have manufacturing taxonomy', () => {
       const taxonomies = service.getTaxonomies();
       const manufacturingTaxonomy = taxonomies.find(t => t.id === 'manufacturing');
-      
+
       expect(manufacturingTaxonomy).toBeDefined();
       expect(manufacturingTaxonomy?.name).toBe('Manufacturing');
       expect(manufacturingTaxonomy?.metadata.industry).toBe('Manufacturing');
@@ -222,7 +222,7 @@ describe('CompaniesTaxonomyService', () => {
     it('should have all-companies view', () => {
       const views = service.getViews('default');
       const allCompaniesView = views.find(v => v.id === 'all-companies');
-      
+
       expect(allCompaniesView).toBeDefined();
       expect(allCompaniesView?.name).toBe('All Companies');
       expect(allCompaniesView?.isDefault).toBe(true);

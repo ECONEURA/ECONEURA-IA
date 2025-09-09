@@ -77,7 +77,7 @@ export class GraphService {
       // TODO: Add metrics.subscriptions.set(currentSubs);
 
       console.log(`📞 Created subscription ${mockSubscription.id} for mailbox ${mailbox}`);
-      
+
       return mockSubscription;
 
     } catch (error) {
@@ -93,7 +93,7 @@ export class GraphService {
   async listSubscriptions(): Promise<GraphSubscription[]> {
     try {
       const subscriptions = await this.redis.hgetall('graph:subscriptions');
-      
+
       return Object.values(subscriptions).map(sub => JSON.parse(sub));
 
     } catch (error) {
@@ -142,13 +142,13 @@ export class GraphService {
 
         if (timeToExpiration < renewalThreshold) {
           console.log(`🔄 Renewing subscription ${subscription.id} (expires in ${Math.round(timeToExpiration / (60 * 60 * 1000))}h)`);
-          
+
           // Extend expiration by 71 hours
           const newExpiration = new Date();
           newExpiration.setHours(newExpiration.getHours() + 71);
 
           // In real implementation: await this.client.api(`/subscriptions/${subscription.id}`).patch({ expirationDateTime: newExpiration.toISOString() });
-          
+
           // Update in Redis
           const updatedSubscription = {
             ...subscription,
@@ -157,7 +157,7 @@ export class GraphService {
           };
 
           await this.redis.hset('graph:subscriptions', subscription.id, JSON.stringify(updatedSubscription));
-          
+
           console.log(`✅ Renewed subscription ${subscription.id} until ${newExpiration.toISOString()}`);
         }
       }
@@ -265,7 +265,7 @@ export class GraphService {
 
     try {
       // In real implementation: const message = await this.client.api(`/users/${mailbox}/messages/${messageId}`).get();
-      
+
       // Simulate API call
       const mockMessage = {
         id: messageId,
@@ -285,9 +285,9 @@ export class GraphService {
       if ((statusCode === 429 || statusCode >= 500) && retryCount < maxRetries) {
         const delay = baseDelay * Math.pow(2, retryCount); // Exponential backoff
         console.log(`⏳ Rate limited/server error, retrying in ${delay}ms (attempt ${retryCount + 1}/${maxRetries + 1})`);
-        
+
         // TODO: Add metrics.graphErrors.inc({ error_type: 'rate_limit', status_code: statusCode.toString() });
-        
+
         await new Promise(resolve => setTimeout(resolve, delay));
         return this.getEmailById(mailbox, messageId, retryCount + 1);
       }

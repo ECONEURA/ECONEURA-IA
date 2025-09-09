@@ -287,7 +287,7 @@ export class ApiGatewayService {
 
     } catch (error) {
       const processingTime = Date.now() - startTime;
-      
+
       structuredLogger.error('API Gateway error', {
         error: error instanceof Error ? error.message : 'Unknown error',
         requestId,
@@ -319,7 +319,7 @@ export class ApiGatewayService {
 
   private async performHealthChecks(): Promise<void> {
     const services = [...new Set(Array.from(this.routes.values()).map(r => r.service))];
-    
+
     for (const service of services) {
       try {
         const startTime = Date.now();
@@ -488,7 +488,7 @@ export class ApiGatewayService {
     if (breaker.failures >= this.config.circuitBreakerThreshold) {
       breaker.state = 'open';
       breaker.nextAttempt = Date.now() + 60000; // 1 minute
-      
+
       structuredLogger.warn('Circuit breaker opened', {
         service,
         failures: breaker.failures,

@@ -123,7 +123,7 @@ export class PromptManager {
     if (!template) return null;
 
     let userPrompt = template.userTemplate;
-    
+
     // Reemplazar variables en el template
     for (const variable of template.variables) {
       const value = variables[variable];
@@ -140,7 +140,7 @@ export class PromptManager {
 
   searchTemplates(query: string): PromptTemplate[] {
     const lowerQuery = query.toLowerCase();
-    return this.getAllTemplates().filter(template => 
+    return this.getAllTemplates().filter(template => ;
       template.name.toLowerCase().includes(lowerQuery) ||
       template.description.toLowerCase().includes(lowerQuery) ||
       template.category.toLowerCase().includes(lowerQuery)

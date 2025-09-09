@@ -1,6 +1,6 @@
 /**
  * PR-57: Security Framework Routes
- * 
+ *
  * Endpoints para el sistema avanzado de seguridad con MFA,
  * RBAC, CSRF protection y detección de amenazas.
  */
@@ -101,7 +101,7 @@ router.get('/stats', async (req, res) => {
     const securityStats = securityManagerService.getSecurityStats();
     const mfaStats = mfaService.getMFAStats();
     const rbacStats = rbacService.getRBACStats();
-    
+
     res.json({
       success: true,
       data: {
@@ -116,7 +116,7 @@ router.get('/stats', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get security stats',
@@ -132,15 +132,15 @@ router.get('/stats', async (req, res) => {
 router.post('/mfa/initialize', async (req, res) => {
   try {
     const validatedData = initializeMFASchema.parse(req.body);
-    
+
     const result = await mfaService.initializeMFA(validatedData.userId);
-    
+
     structuredLogger.info('MFA initialized', {
       userId: validatedData.userId,
       methodsCount: result.methods.length,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       data: result,
@@ -152,7 +152,7 @@ router.post('/mfa/initialize', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to initialize MFA',
@@ -168,18 +168,18 @@ router.post('/mfa/initialize', async (req, res) => {
 router.post('/mfa/verify-totp', async (req, res) => {
   try {
     const validatedData = verifyTOTPSchema.parse(req.body);
-    
+
     const isValid = await mfaService.verifyTOTPCode(
       validatedData.userId,
       validatedData.code
     );
-    
+
     if (isValid) {
       structuredLogger.info('TOTP verification successful', {
         userId: validatedData.userId,
         requestId: req.headers['x-request-id'] as string || ''
       });
-      
+
       res.json({
         success: true,
         data: { verified: true },
@@ -198,7 +198,7 @@ router.post('/mfa/verify-totp', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to verify TOTP',
@@ -214,18 +214,18 @@ router.post('/mfa/verify-totp', async (req, res) => {
 router.post('/mfa/send-sms', async (req, res) => {
   try {
     const validatedData = sendSMSSchema.parse(req.body);
-    
+
     const code = await mfaService.sendSMSCode(
       validatedData.userId,
       validatedData.phoneNumber
     );
-    
+
     structuredLogger.info('SMS code sent', {
       userId: validatedData.userId,
       phoneNumber: validatedData.phoneNumber.replace(/(\d{3})\d{4}(\d{3})/, '$1****$2'),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       data: { code }, // En producción, no devolver el código
@@ -237,7 +237,7 @@ router.post('/mfa/send-sms', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to send SMS code',
@@ -253,18 +253,18 @@ router.post('/mfa/send-sms', async (req, res) => {
 router.post('/mfa/send-email', async (req, res) => {
   try {
     const validatedData = sendEmailSchema.parse(req.body);
-    
+
     const code = await mfaService.sendEmailCode(
       validatedData.userId,
       validatedData.email
     );
-    
+
     structuredLogger.info('Email code sent', {
       userId: validatedData.userId,
       email: validatedData.email.replace(/(.{2}).*(@.*)/, '$1****$2'),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       data: { code }, // En producción, no devolver el código
@@ -276,7 +276,7 @@ router.post('/mfa/send-email', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to send email code',
@@ -292,20 +292,20 @@ router.post('/mfa/send-email', async (req, res) => {
 router.post('/mfa/verify-code', async (req, res) => {
   try {
     const validatedData = verifyCodeSchema.parse(req.body);
-    
+
     const isValid = await mfaService.verifyCode(
       validatedData.userId,
       validatedData.code,
       validatedData.type
     );
-    
+
     if (isValid) {
       structuredLogger.info('Code verification successful', {
         userId: validatedData.userId,
         type: validatedData.type,
         requestId: req.headers['x-request-id'] as string || ''
       });
-      
+
       res.json({
         success: true,
         data: { verified: true },
@@ -324,7 +324,7 @@ router.post('/mfa/verify-code', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to verify code',
@@ -340,18 +340,18 @@ router.post('/mfa/verify-code', async (req, res) => {
 router.post('/mfa/verify-backup', async (req, res) => {
   try {
     const validatedData = verifyBackupCodeSchema.parse(req.body);
-    
+
     const isValid = await mfaService.verifyBackupCode(
       validatedData.userId,
       validatedData.code
     );
-    
+
     if (isValid) {
       structuredLogger.info('Backup code verification successful', {
         userId: validatedData.userId,
         requestId: req.headers['x-request-id'] as string || ''
       });
-      
+
       res.json({
         success: true,
         data: { verified: true },
@@ -370,7 +370,7 @@ router.post('/mfa/verify-backup', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to verify backup code',
@@ -386,21 +386,21 @@ router.post('/mfa/verify-backup', async (req, res) => {
 router.post('/mfa/session', async (req, res) => {
   try {
     const validatedData = createMFASessionSchema.parse(req.body);
-    
+
     const session = await mfaService.createMFASession(
       validatedData.userId,
       validatedData.requiredMethods,
       validatedData.ipAddress,
       validatedData.userAgent
     );
-    
+
     structuredLogger.info('MFA session created', {
       userId: validatedData.userId,
       sessionId: session.sessionId,
       requiredMethods: validatedData.requiredMethods,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       data: session,
@@ -412,7 +412,7 @@ router.post('/mfa/session', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to create MFA session',
@@ -428,19 +428,19 @@ router.post('/mfa/session', async (req, res) => {
 router.post('/mfa/complete-method', async (req, res) => {
   try {
     const validatedData = completeMFAMethodSchema.parse(req.body);
-    
+
     const isComplete = await mfaService.completeMFAMethod(
       validatedData.sessionId,
       validatedData.methodId
     );
-    
+
     structuredLogger.info('MFA method completed', {
       sessionId: validatedData.sessionId,
       methodId: validatedData.methodId,
       isComplete,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       data: { isComplete },
@@ -452,7 +452,7 @@ router.post('/mfa/complete-method', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to complete MFA method',
@@ -468,9 +468,9 @@ router.post('/mfa/complete-method', async (req, res) => {
 router.get('/mfa/notifications/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    
+
     const notifications = await mfaService.getUserNotifications(userId);
-    
+
     res.json({
       success: true,
       data: notifications,
@@ -483,7 +483,7 @@ router.get('/mfa/notifications/:userId', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get MFA notifications',
@@ -499,9 +499,9 @@ router.get('/mfa/notifications/:userId', async (req, res) => {
 router.put('/mfa/notifications/:userId/:notificationId/read', async (req, res) => {
   try {
     const { userId, notificationId } = req.params;
-    
+
     const success = await mfaService.markNotificationAsRead(userId, notificationId);
-    
+
     if (success) {
       res.json({
         success: true,
@@ -521,7 +521,7 @@ router.put('/mfa/notifications/:userId/:notificationId/read', async (req, res) =
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to mark notification as read',
@@ -537,7 +537,7 @@ router.put('/mfa/notifications/:userId/:notificationId/read', async (req, res) =
 router.post('/rbac/assign-role', async (req, res) => {
   try {
     const validatedData = assignRoleSchema.parse(req.body);
-    
+
     const success = await rbacService.assignRole(
       validatedData.userId,
       validatedData.roleId,
@@ -545,7 +545,7 @@ router.post('/rbac/assign-role', async (req, res) => {
       validatedData.assignedBy,
       validatedData.expiresAt ? new Date(validatedData.expiresAt) : undefined
     );
-    
+
     if (success) {
       structuredLogger.info('Role assigned successfully', {
         userId: validatedData.userId,
@@ -554,7 +554,7 @@ router.post('/rbac/assign-role', async (req, res) => {
         assignedBy: validatedData.assignedBy,
         requestId: req.headers['x-request-id'] as string || ''
       });
-      
+
       res.json({
         success: true,
         message: 'Role assigned successfully',
@@ -571,7 +571,7 @@ router.post('/rbac/assign-role', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to assign role',
@@ -587,14 +587,14 @@ router.post('/rbac/assign-role', async (req, res) => {
 router.post('/rbac/revoke-role', async (req, res) => {
   try {
     const validatedData = revokeRoleSchema.parse(req.body);
-    
+
     const success = await rbacService.revokeRole(
       validatedData.userId,
       validatedData.roleId,
       validatedData.organizationId,
       validatedData.revokedBy
     );
-    
+
     if (success) {
       structuredLogger.info('Role revoked successfully', {
         userId: validatedData.userId,
@@ -603,7 +603,7 @@ router.post('/rbac/revoke-role', async (req, res) => {
         revokedBy: validatedData.revokedBy,
         requestId: req.headers['x-request-id'] as string || ''
       });
-      
+
       res.json({
         success: true,
         message: 'Role revoked successfully',
@@ -620,7 +620,7 @@ router.post('/rbac/revoke-role', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to revoke role',
@@ -636,9 +636,9 @@ router.post('/rbac/revoke-role', async (req, res) => {
 router.post('/rbac/create-role', async (req, res) => {
   try {
     const validatedData = createRoleSchema.parse(req.body);
-    
+
     const role = await rbacService.createRole(validatedData);
-    
+
     structuredLogger.info('Role created successfully', {
       roleId: role.id,
       roleName: role.name,
@@ -646,7 +646,7 @@ router.post('/rbac/create-role', async (req, res) => {
       permissionsCount: role.permissions.length,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       data: role,
@@ -658,7 +658,7 @@ router.post('/rbac/create-role', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to create role',
@@ -674,14 +674,14 @@ router.post('/rbac/create-role', async (req, res) => {
 router.post('/rbac/check-permission', async (req, res) => {
   try {
     const validatedData = checkPermissionSchema.parse(req.body);
-    
+
     const decision = await rbacService.checkPermission(
       validatedData.userId,
       validatedData.permission,
       validatedData.resource,
       validatedData.organizationId
     );
-    
+
     structuredLogger.info('Permission check completed', {
       userId: validatedData.userId,
       permission: validatedData.permission,
@@ -690,7 +690,7 @@ router.post('/rbac/check-permission', async (req, res) => {
       reason: decision.reason,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       data: decision,
@@ -701,7 +701,7 @@ router.post('/rbac/check-permission', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to check permission',
@@ -718,9 +718,9 @@ router.get('/rbac/user-roles/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
     const { organizationId } = req.query;
-    
+
     const userRoles = rbacService.getUserRoles(userId, organizationId as string);
-    
+
     res.json({
       success: true,
       data: userRoles,
@@ -733,7 +733,7 @@ router.get('/rbac/user-roles/:userId', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get user roles',
@@ -750,9 +750,9 @@ router.get('/rbac/user-permissions/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
     const { organizationId } = req.query;
-    
+
     const permissions = rbacService.getUserPermissions(userId, organizationId as string);
-    
+
     res.json({
       success: true,
       data: permissions,
@@ -765,7 +765,7 @@ router.get('/rbac/user-permissions/:userId', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get user permissions',
@@ -781,9 +781,9 @@ router.get('/rbac/user-permissions/:userId', async (req, res) => {
 router.post('/sanitize-input', async (req, res) => {
   try {
     const validatedData = sanitizeInputSchema.parse(req.body);
-    
+
     const sanitizedInput = securityManagerService.sanitizeInput(validatedData.input);
-    
+
     res.json({
       success: true,
       data: {
@@ -799,7 +799,7 @@ router.post('/sanitize-input', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to sanitize input',
@@ -815,7 +815,7 @@ router.post('/sanitize-input', async (req, res) => {
 router.post('/generate-csrf-token', async (req, res) => {
   try {
     const token = securityManagerService.generateCSRFToken();
-    
+
     res.json({
       success: true,
       data: { token },
@@ -827,7 +827,7 @@ router.post('/generate-csrf-token', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to generate CSRF token',
@@ -843,16 +843,16 @@ router.post('/generate-csrf-token', async (req, res) => {
 router.post('/verify-csrf-token', async (req, res) => {
   try {
     const { token, sessionToken } = req.body;
-    
+
     if (!token || !sessionToken) {
       return res.status(400).json({
         success: false,
         error: 'Missing token or session token'
       });
     }
-    
+
     const isValid = securityManagerService.verifyCSRFToken(token, sessionToken);
-    
+
     res.json({
       success: true,
       data: { valid: isValid },
@@ -864,7 +864,7 @@ router.post('/verify-csrf-token', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to verify CSRF token',

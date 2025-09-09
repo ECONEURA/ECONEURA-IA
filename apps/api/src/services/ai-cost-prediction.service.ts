@@ -175,7 +175,7 @@ export class AICostPredictionService {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       )`,
-      
+
       // Tabla de predicciones
       `CREATE TABLE IF NOT EXISTS ai_cost_predictions (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -187,7 +187,7 @@ export class AICostPredictionService {
         accuracy DECIMAL(5,4) NOT NULL DEFAULT 0.0,
         generated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       )`,
-      
+
       // Tabla de pronósticos
       `CREATE TABLE IF NOT EXISTS ai_cost_forecasts (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -198,7 +198,7 @@ export class AICostPredictionService {
         recommendations JSONB NOT NULL DEFAULT '[]',
         generated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       )`,
-      
+
       // Tabla de datos de entrenamiento
       `CREATE TABLE IF NOT EXISTS ai_cost_training_data (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -223,7 +223,7 @@ export class AICostPredictionService {
     try {
       const result = await this.db.query('SELECT * FROM ai_cost_prediction_models WHERE is_active = true');
       this.modelsCache.clear();
-      
+
       for (const row of result.rows) {
         this.modelsCache.set(row.id, {
           id: row.id,
@@ -244,7 +244,7 @@ export class AICostPredictionService {
           updatedAt: row.updated_at
         });
       }
-      
+
       logger.info(`Loaded ${this.modelsCache.size} cost prediction models`);
     } catch (error: any) {
       logger.error('Failed to load cost prediction models', { error: error.message });
@@ -268,7 +268,7 @@ export class AICostPredictionService {
             modelData.type,
             modelData.algorithm,
             JSON.stringify(modelData.features),
-            JSON.stringify(modelData.hyperparameters)
+            JSON.stringify(modelData.hyperparameters);
           ]
         );
       }
@@ -314,7 +314,7 @@ export class AICostPredictionService {
 
       const newModel = result.rows[0];
       this.modelsCache.set(newModel.id, newModel);
-      
+
       logger.info('Cost prediction model created', { modelId: newModel.id, name: newModel.name });
       return {
         id: newModel.id,
@@ -377,10 +377,10 @@ export class AICostPredictionService {
 
       // Simular entrenamiento del modelo
       const trainingResult = await this.simulateModelTraining(model, trainingData);
-      
+
       // Actualizar métricas del modelo
       await this.db.query(
-        `UPDATE ai_cost_prediction_models 
+        `UPDATE ai_cost_prediction_models
          SET accuracy = $1, mae = $2, mse = $3, rmse = $4, r2_score = $5, last_trained = NOW(), updated_at = NOW()
          WHERE id = $6`,
         [
@@ -397,8 +397,8 @@ export class AICostPredictionService {
       const updatedModel = { ...model, ...trainingResult, lastTrained: new Date() };
       this.modelsCache.set(modelId, updatedModel);
 
-      logger.info('Model training completed', { 
-        modelId, 
+      logger.info('Model training completed', {
+        modelId,
         accuracy: trainingResult.accuracy,
         mae: trainingResult.mae,
         rmse: trainingResult.rmse
@@ -439,17 +439,17 @@ export class AICostPredictionService {
     try {
       const modelId = request.modelId || this.selectBestModel(request.predictionType);
       const model = this.modelsCache.get(modelId);
-      
+
       if (!model) {
         throw new Error(`Model ${modelId} not found`);
       }
 
       // Obtener datos históricos
       const historicalData = await this.getHistoricalData(request.organizationId, 90);
-      
+
       // Generar predicciones
       const predictions = await this.generatePredictions(model, historicalData, request);
-      
+
       // Calcular accuracy estimada
       const accuracy = this.estimatePredictionAccuracy(model, historicalData);
 
@@ -480,8 +480,8 @@ export class AICostPredictionService {
 
       this.predictionsCache.set(prediction.id, prediction);
 
-      logger.info('Cost prediction generated', { 
-        predictionId: prediction.id, 
+      logger.info('Cost prediction generated', {
+        predictionId: prediction.id,
         organizationId: request.organizationId,
         modelId,
         horizon: request.horizon,
@@ -498,7 +498,7 @@ export class AICostPredictionService {
   private selectBestModel(predictionType: string): string {
     // Seleccionar el mejor modelo basado en el tipo de predicción
     const models = Array.from(this.modelsCache.values());
-    
+
     switch (predictionType) {
       case 'daily':
         return models.find(m => m.type === 'time_series')?.id || models[0]?.id || '';
@@ -519,7 +519,7 @@ export class AICostPredictionService {
       startDate.setDate(startDate.getDate() - days);
 
       const result = await this.db.query(
-        `SELECT * FROM ai_cost_training_data 
+        `SELECT * FROM ai_cost_training_data
          WHERE organization_id = $1 AND date >= $2
          ORDER BY date ASC`,
         [organizationId, startDate]
@@ -542,21 +542,21 @@ export class AICostPredictionService {
 
   private async generatePredictions(model: CostPredictionModel, historicalData: any[], request: CostPredictionRequest): Promise<CostPrediction['predictions']> {
     const predictions: CostPrediction['predictions'] = [];
-    const baseCost = historicalData.length > 0 ? 
+    const baseCost = historicalData.length > 0 ?
       historicalData.reduce((sum, d) => sum + d.cost, 0) / historicalData.length : 50;
-    
+
     const trend = this.calculateTrend(historicalData);
     const seasonality = this.calculateSeasonality();
 
     for (let i = 1; i <= request.horizon; i++) {
       const date = new Date();
       date.setDate(date.getDate() + i * this.getDaysMultiplier(request.predictionType));
-      
+
       // Simular predicción basada en el modelo
       const predictedCost = this.simulatePrediction(model, baseCost, trend, seasonality, i);
       const confidence = Math.max(0.6, model.accuracy - (i * 0.05)); // Decrece con el horizonte
       const uncertainty = predictedCost * (1 - confidence);
-      
+
       predictions.push({
         date,
         predictedCost,
@@ -588,15 +588,15 @@ export class AICostPredictionService {
 
   private calculateTrend(historicalData: any[]): number {
     if (historicalData.length < 2) return 0;
-    
+
     const recent = historicalData.slice(-7);
     const older = historicalData.slice(-14, -7);
-    
+
     if (older.length === 0) return 0;
-    
+
     const recentAvg = recent.reduce((sum, d) => sum + d.cost, 0) / recent.length;
     const olderAvg = older.reduce((sum, d) => sum + d.cost, 0) / older.length;
-    
+
     return (recentAvg - olderAvg) / olderAvg;
   }
 
@@ -609,45 +609,45 @@ export class AICostPredictionService {
   private simulatePrediction(model: CostPredictionModel, baseCost: number, trend: number, seasonality: number, horizon: number): number {
     // Simular predicción basada en el tipo de modelo
     let prediction = baseCost;
-    
+
     // Aplicar tendencia
     prediction *= (1 + trend * horizon * 0.1);
-    
+
     // Aplicar estacionalidad
     prediction *= seasonality;
-    
+
     // Aplicar variación aleatoria basada en el modelo
     const randomFactor = 0.9 + Math.random() * 0.2; // ±10%
     prediction *= randomFactor;
-    
+
     // Ajustar basado en la precisión del modelo
     const accuracyFactor = 0.8 + model.accuracy * 0.4; // 80-120%
     prediction *= accuracyFactor;
-    
+
     return Math.max(0, prediction);
   }
 
   private estimatePredictionAccuracy(model: CostPredictionModel, historicalData: any[]): number {
     // Estimar accuracy basada en la calidad del modelo y los datos históricos
     let accuracy = model.accuracy;
-    
+
     // Reducir accuracy si hay pocos datos históricos
     if (historicalData.length < 30) {
       accuracy *= 0.8;
     }
-    
+
     // Reducir accuracy si hay mucha variabilidad en los datos
     if (historicalData.length > 1) {
       const costs = historicalData.map(d => d.cost);
       const mean = costs.reduce((sum, cost) => sum + cost, 0) / costs.length;
       const variance = costs.reduce((sum, cost) => sum + Math.pow(cost - mean, 2), 0) / costs.length;
       const coefficient = Math.sqrt(variance) / mean;
-      
+
       if (coefficient > 0.5) { // Alta variabilidad
         accuracy *= 0.9;
       }
     }
-    
+
     return Math.max(0.5, Math.min(0.99, accuracy));
   }
 
@@ -656,7 +656,7 @@ export class AICostPredictionService {
     try {
       // Generar múltiples escenarios
       const scenarios = await this.generateScenarios(request);
-      
+
       // Generar recomendaciones
       const recommendations = this.generateForecastRecommendations(scenarios, request);
 
@@ -679,14 +679,14 @@ export class AICostPredictionService {
           request.forecastType,
           request.timeHorizon,
           JSON.stringify(scenarios),
-          JSON.stringify(recommendations)
+          JSON.stringify(recommendations);
         ]
       );
 
       this.forecastsCache.set(forecast.id, forecast);
 
-      logger.info('Cost forecast generated', { 
-        forecastId: forecast.id, 
+      logger.info('Cost forecast generated', {
+        forecastId: forecast.id,
         organizationId: request.organizationId,
         forecastType: request.forecastType,
         scenariosCount: scenarios.length
@@ -701,21 +701,21 @@ export class AICostPredictionService {
 
   private async generateScenarios(request: CostForecastRequest): Promise<CostForecast['scenarios']> {
     const scenarios: CostForecast['scenarios'] = [];
-    
+
     // Escenario optimista (20% probabilidad)
     scenarios.push({
       name: 'Optimistic',
       probability: 0.2,
       predictions: await this.generateScenarioPredictions(request, 0.8) // 20% menos costos
     });
-    
+
     // Escenario base (60% probabilidad)
     scenarios.push({
       name: 'Base Case',
       probability: 0.6,
       predictions: await this.generateScenarioPredictions(request, 1.0) // Costos normales
     });
-    
+
     // Escenario pesimista (20% probabilidad)
     scenarios.push({
       name: 'Pessimistic',
@@ -729,7 +729,7 @@ export class AICostPredictionService {
   private async generateScenarioPredictions(request: CostForecastRequest, factor: number): Promise<CostForecast['scenarios'][0]['predictions']> {
     const predictions: CostForecast['scenarios'][0]['predictions'] = [];
     const historicalData = await this.getHistoricalData(request.organizationId, 30);
-    const baseCost = historicalData.length > 0 ? 
+    const baseCost = historicalData.length > 0 ?
       historicalData.reduce((sum, d) => sum + d.cost, 0) / historicalData.length : 50;
 
     for (let i = 1; i <= request.timeHorizon; i++) {
@@ -749,7 +749,7 @@ export class AICostPredictionService {
 
   private getPeriodName(period: number, forecastType: string): string {
     const now = new Date();
-    
+
     switch (forecastType) {
       case 'budget_planning':
         now.setMonth(now.getMonth() + period);
@@ -771,22 +771,22 @@ export class AICostPredictionService {
     const recommendations: string[] = [];
     const baseScenario = scenarios.find(s => s.name === 'Base Case');
     const pessimisticScenario = scenarios.find(s => s.name === 'Pessimistic');
-    
+
     if (baseScenario && pessimisticScenario) {
       const baseCost = baseScenario.predictions.reduce((sum, p) => sum + p.cost, 0);
       const pessimisticCost = pessimisticScenario.predictions.reduce((sum, p) => sum + p.cost, 0);
       const riskFactor = pessimisticCost / baseCost;
-      
+
       if (riskFactor > 1.5) {
         recommendations.push('High cost risk detected - consider implementing cost controls');
         recommendations.push('Set up automated alerts for cost spikes');
       }
-      
+
       if (baseCost > 1000) {
         recommendations.push('High projected costs - review AI usage patterns');
         recommendations.push('Consider implementing request batching and caching');
       }
-      
+
       recommendations.push('Monitor actual costs vs predictions weekly');
       recommendations.push('Retrain models monthly for better accuracy');
     }
@@ -800,16 +800,16 @@ export class AICostPredictionService {
       // Actualizar accuracy de modelos basado en predicciones recientes
       for (const [modelId, model] of this.modelsCache) {
         const recentPredictions = await this.getRecentPredictions(modelId, 30);
-        
+
         if (recentPredictions.length > 0) {
           const actualAccuracy = this.calculateActualAccuracy(recentPredictions);
-          
+
           if (Math.abs(actualAccuracy - model.accuracy) > 0.05) {
             await this.db.query(
               'UPDATE ai_cost_prediction_models SET accuracy = $1, updated_at = NOW() WHERE id = $2',
               [actualAccuracy, modelId]
             );
-            
+
             this.modelsCache.set(modelId, { ...model, accuracy: actualAccuracy });
           }
         }
@@ -825,7 +825,7 @@ export class AICostPredictionService {
       startDate.setDate(startDate.getDate() - days);
 
       const result = await this.db.query(
-        `SELECT * FROM ai_cost_predictions 
+        `SELECT * FROM ai_cost_predictions
          WHERE model_id = $1 AND generated_at >= $2
          ORDER BY generated_at DESC`,
         [modelId, startDate]
@@ -848,12 +848,12 @@ export class AICostPredictionService {
     try {
       // Generar predicciones automáticas para organizaciones activas
       const activeOrganizations = await this.getActiveOrganizations();
-      
+
       for (const orgId of activeOrganizations) {
         const lastPrediction = await this.getLastPrediction(orgId);
-        const daysSinceLastPrediction = lastPrediction ? 
+        const daysSinceLastPrediction = lastPrediction ?
           (Date.now() - new Date(lastPrediction.generated_at).getTime()) / (1000 * 60 * 60 * 24) : 999;
-        
+
         if (daysSinceLastPrediction > 7) { // Generar nueva predicción si han pasado más de 7 días
           await this.generateCostPrediction({
             organizationId: orgId,
@@ -882,13 +882,13 @@ export class AICostPredictionService {
   private async getLastPrediction(organizationId: string): Promise<any> {
     try {
       const result = await this.db.query(
-        `SELECT * FROM ai_cost_predictions 
-         WHERE organization_id = $1 
-         ORDER BY generated_at DESC 
+        `SELECT * FROM ai_cost_predictions
+         WHERE organization_id = $1
+         ORDER BY generated_at DESC
          LIMIT 1`,
         [organizationId]
       );
-      
+
       return result.rows[0] || null;
     } catch (error: any) {
       logger.error('Failed to get last prediction', { error: error.message });
@@ -901,7 +901,7 @@ export class AICostPredictionService {
       // Reentrenar modelos si han pasado más de 30 días desde el último entrenamiento
       for (const [modelId, model] of this.modelsCache) {
         const daysSinceTraining = (Date.now() - new Date(model.lastTrained).getTime()) / (1000 * 60 * 60 * 24);
-        
+
         if (daysSinceTraining > 30) {
           const trainingData = await this.getTrainingDataForModel(modelId);
           if (trainingData.historicalData.length > 100) {
@@ -918,12 +918,12 @@ export class AICostPredictionService {
     // Obtener datos de entrenamiento para un modelo específico
     const organizations = await this.getActiveOrganizations();
     const allData: any[] = [];
-    
+
     for (const orgId of organizations) {
       const data = await this.getHistoricalData(orgId, 90);
       allData.push(...data.map(d => ({ ...d, organizationId: orgId })));
     }
-    
+
     return {
       organizationId: 'global',
       historicalData: allData,
@@ -944,7 +944,7 @@ export class AICostPredictionService {
 
       const healthyServices = Object.values(services).filter(Boolean).length;
       const totalServices = Object.keys(services).length;
-      
+
       let status: 'healthy' | 'degraded' | 'unhealthy';
       if (healthyServices === totalServices) {
         status = 'healthy';

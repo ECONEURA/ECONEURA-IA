@@ -94,71 +94,71 @@ export function isValidSpanId(spanId: string): boolean {
 
 export function extractCorrelationId(headers: Record<string, string | string[] | undefined>): string | null {
   const correlationId = headers['x-correlation-id'];
-  
+
   if (Array.isArray(correlationId)) {
     return isValidCorrelationId(correlationId[0]) ? correlationId[0] : null;
   }
-  
+
   if (typeof correlationId === 'string') {
     return isValidCorrelationId(correlationId) ? correlationId : null;
   }
-  
+
   return null;
 }
 
 export function extractRequestId(headers: Record<string, string | string[] | undefined>): string | null {
   const requestId = headers['x-request-id'];
-  
+
   if (Array.isArray(requestId)) {
     return isValidRequestId(requestId[0]) ? requestId[0] : null;
   }
-  
+
   if (typeof requestId === 'string') {
     return isValidRequestId(requestId) ? requestId : null;
   }
-  
+
   return null;
 }
 
 export function extractTraceId(headers: Record<string, string | string[] | undefined>): string | null {
   const traceId = headers['x-trace-id'];
-  
+
   if (Array.isArray(traceId)) {
     return isValidTraceId(traceId[0]) ? traceId[0] : null;
   }
-  
+
   if (typeof traceId === 'string') {
     return isValidTraceId(traceId) ? traceId : null;
   }
-  
+
   return null;
 }
 
 export function extractSpanId(headers: Record<string, string | string[] | undefined>): string | null {
   const spanId = headers['x-span-id'];
-  
+
   if (Array.isArray(spanId)) {
     return isValidSpanId(spanId[0]) ? spanId[0] : null;
   }
-  
+
   if (typeof spanId === 'string') {
     return isValidSpanId(spanId) ? spanId : null;
   }
-  
+
   return null;
 }
 
 export function extractParentSpanId(headers: Record<string, string | string[] | undefined>): string | null {
   const parentSpanId = headers['x-parent-span-id'];
-  
+
   if (Array.isArray(parentSpanId)) {
     return isValidSpanId(parentSpanId[0]) ? parentSpanId[0] : null;
   }
-  
+
   if (typeof parentSpanId === 'string') {
     return isValidSpanId(parentSpanId) ? parentSpanId : null;
   }
-  
+
   return null;
 }
 
@@ -236,7 +236,7 @@ export function createChildSpan(
   operationName: string
 ): CorrelationContext {
   const childSpanId = generateSpanId();
-  
+
   return {
     ...parentContext,
     spanId: childSpanId,
@@ -316,7 +316,7 @@ export function withCorrelationContext<T>(
   fn: () => T
 ): T {
   const originalContext = correlationStore.get(context.correlationId);
-  
+
   try {
     correlationStore.set(context.correlationId, context);
     return fn();

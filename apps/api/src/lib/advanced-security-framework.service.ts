@@ -335,16 +335,16 @@ export class AdvancedSecurityFrameworkService {
   async initializeMFA(data: z.infer<typeof MFASetupSchema>): Promise<{ qrCode: string; backupCodes: string[] }> {
     try {
       const validatedData = MFASetupSchema.parse(data);
-      
+
       // Generate TOTP secret
       const secret = this.generateSecret();
-      
+
       // Generate QR code data
       const qrCode = `otpauth://totp/${validatedData.userId}?secret=${secret}&issuer=${this.config.mfa.issuer}`;
-      
+
       // Generate backup codes
-      const backupCodes = Array.from({ length: this.config.mfa.backupCodes }, () => 
-        this.generateBackupCode()
+      const backupCodes = Array.from({ length: this.config.mfa.backupCodes }, () =>
+        this.generateBackupCode();
       );
 
       // Store MFA setup
@@ -382,7 +382,7 @@ export class AdvancedSecurityFrameworkService {
   async verifyMFACode(data: z.infer<typeof MFACodeSchema>): Promise<{ valid: boolean; sessionToken?: string }> {
     try {
       const validatedData = MFACodeSchema.parse(data);
-      
+
       const mfaSession = this.mfaSessions.get(validatedData.userId);
       if (!mfaSession) {
         throw new Error('MFA not initialized for user');
@@ -410,10 +410,10 @@ export class AdvancedSecurityFrameworkService {
 
       if (isValid) {
         this.metrics.authentication.mfaCompletions++;
-        
+
         // Generate session token
         const sessionToken = this.generateSessionToken(validatedData.userId);
-        
+
         // Log security event
         await this.logSecurityEvent({
           type: 'authentication',
@@ -430,11 +430,11 @@ export class AdvancedSecurityFrameworkService {
         });
 
         logger.info('MFA verification successful', { userId: validatedData.userId, method: validatedData.method });
-        
+
         return { valid: true, sessionToken };
       } else {
         this.metrics.authentication.mfaFailures++;
-        
+
         // Log security event
         await this.logSecurityEvent({
           type: 'authentication',
@@ -451,7 +451,7 @@ export class AdvancedSecurityFrameworkService {
         });
 
         logger.warn('MFA verification failed', { userId: validatedData.userId, method: validatedData.method });
-        
+
         return { valid: false };
       }
     } catch (error) {
@@ -463,7 +463,7 @@ export class AdvancedSecurityFrameworkService {
   async createMFASession(userId: string, sessionData: any): Promise<string> {
     try {
       const sessionId = this.generateSessionId();
-      
+
       this.mfaSessions.set(sessionId, {
         userId,
         ...sessionData,
@@ -472,7 +472,7 @@ export class AdvancedSecurityFrameworkService {
       });
 
       logger.info('MFA session created', { userId, sessionId });
-      
+
       return sessionId;
     } catch (error) {
       logger.error('Failed to create MFA session', { error: error instanceof Error ? error.message : 'Unknown error' });
@@ -487,9 +487,9 @@ export class AdvancedSecurityFrameworkService {
   async checkPermission(data: z.infer<typeof RBACPermissionSchema>): Promise<{ allowed: boolean; reason?: string }> {
     try {
       const validatedData = RBACPermissionSchema.parse(data);
-      
+
       this.metrics.authorization.permissionChecks++;
-      
+
       // Simulate permission check (in production, this would query the database)
       const userRoles = await this.getUserRoles(validatedData.userId);
       const hasPermission = await this.checkRolePermission(userRoles, validatedData.resource, validatedData.action);
@@ -503,7 +503,7 @@ export class AdvancedSecurityFrameworkService {
 
       if (hasPermission) {
         this.metrics.authorization.permissionGrants++;
-        
+
         // Log security event
         await this.logSecurityEvent({
           type: 'authorization',
@@ -519,16 +519,16 @@ export class AdvancedSecurityFrameworkService {
           complianceFlags: ['gdpr', 'sox']
         });
 
-        logger.info('Permission granted', { 
-          userId: validatedData.userId, 
-          resource: validatedData.resource, 
-          action: validatedData.action 
+        logger.info('Permission granted', {
+          userId: validatedData.userId,
+          resource: validatedData.resource,
+          action: validatedData.action
         });
-        
+
         return { allowed: true };
       } else {
         this.metrics.authorization.deniedAccess++;
-        
+
         // Log security event
         await this.logSecurityEvent({
           type: 'authorization',
@@ -544,12 +544,12 @@ export class AdvancedSecurityFrameworkService {
           complianceFlags: ['gdpr', 'sox']
         });
 
-        logger.warn('Permission denied', { 
-          userId: validatedData.userId, 
-          resource: validatedData.resource, 
-          action: validatedData.action 
+        logger.warn('Permission denied', {
+          userId: validatedData.userId,
+          resource: validatedData.resource,
+          action: validatedData.action
         });
-        
+
         return { allowed: false, reason: 'Insufficient permissions' };
       }
     } catch (error) {
@@ -562,7 +562,7 @@ export class AdvancedSecurityFrameworkService {
     try {
       // Simulate role assignment (in production, this would update the database)
       this.metrics.authorization.roleAssignments++;
-      
+
       // Log security event
       await this.logSecurityEvent({
         type: 'authorization',
@@ -579,7 +579,7 @@ export class AdvancedSecurityFrameworkService {
       });
 
       logger.info('Role assigned successfully', { userId, role, assignedBy });
-      
+
       return { success: true };
     } catch (error) {
       logger.error('Failed to assign role', { error: error instanceof Error ? error.message : 'Unknown error' });
@@ -594,9 +594,9 @@ export class AdvancedSecurityFrameworkService {
   async generateCSRFToken(sessionId: string): Promise<string> {
     try {
       const token = this.generateRandomToken(this.config.csrf.tokenLength);
-      
+
       this.csrfTokens.set(sessionId, token);
-      
+
       // Log security event
       await this.logSecurityEvent({
         type: 'security_violation',
@@ -613,7 +613,7 @@ export class AdvancedSecurityFrameworkService {
       });
 
       logger.info('CSRF token generated', { sessionId });
-      
+
       return token;
     } catch (error) {
       logger.error('Failed to generate CSRF token', { error: error instanceof Error ? error.message : 'Unknown error' });
@@ -624,13 +624,13 @@ export class AdvancedSecurityFrameworkService {
   async verifyCSRFToken(data: z.infer<typeof CSRFTokenSchema>): Promise<{ valid: boolean }> {
     try {
       const validatedData = CSRFTokenSchema.parse(data);
-      
+
       const storedToken = this.csrfTokens.get(validatedData.sessionId);
       const isValid = storedToken === validatedData.token;
 
       if (!isValid) {
         this.metrics.threats.csrfAttacks++;
-        
+
         // Log security event
         await this.logSecurityEvent({
           type: 'threat_detected',
@@ -663,7 +663,7 @@ export class AdvancedSecurityFrameworkService {
   async sanitizeInput(data: z.infer<typeof SanitizeInputSchema>): Promise<{ sanitized: string; threats: string[] }> {
     try {
       const validatedData = SanitizeInputSchema.parse(data);
-      
+
       let sanitized = validatedData.input;
       const threats: string[] = [];
 
@@ -703,7 +703,7 @@ export class AdvancedSecurityFrameworkService {
       }
 
       logger.info('Input sanitized', { threats: threats.length, type: validatedData.type });
-      
+
       return { sanitized, threats };
     } catch (error) {
       logger.error('Failed to sanitize input', { error: error instanceof Error ? error.message : 'Unknown error' });
@@ -718,7 +718,7 @@ export class AdvancedSecurityFrameworkService {
   async detectThreats(data: z.infer<typeof ThreatDetectionSchema>): Promise<{ threats: string[]; riskScore: number; blocked: boolean }> {
     try {
       const validatedData = ThreatDetectionSchema.parse(data);
-      
+
       const threats: string[] = [];
       let riskScore = 0;
 
@@ -782,13 +782,13 @@ export class AdvancedSecurityFrameworkService {
         severity: blocked ? 'critical' : 'high'
       });
 
-      logger.info('Threat detection completed', { 
-        ipAddress: validatedData.ipAddress, 
-        threats: threats.length, 
-        riskScore, 
-        blocked 
+      logger.info('Threat detection completed', {
+        ipAddress: validatedData.ipAddress,
+        threats: threats.length,
+        riskScore,
+        blocked
       });
-      
+
       return { threats, riskScore, blocked };
     } catch (error) {
       logger.error('Failed to detect threats', { error: error instanceof Error ? error.message : 'Unknown error' });
@@ -803,7 +803,7 @@ export class AdvancedSecurityFrameworkService {
   async checkCompliance(organizationId: string, complianceType: string): Promise<{ compliant: boolean; violations: string[]; score: number }> {
     try {
       this.metrics.compliance.complianceChecks++;
-      
+
       const violations: string[] = [];
       let score = 100;
 
@@ -852,14 +852,14 @@ export class AdvancedSecurityFrameworkService {
         complianceFlags: [complianceType]
       });
 
-      logger.info('Compliance check completed', { 
-        organizationId, 
-        complianceType, 
-        compliant, 
-        score, 
-        violations: violations.length 
+      logger.info('Compliance check completed', {
+        organizationId,
+        complianceType,
+        compliant,
+        score,
+        violations: violations.length
       });
-      
+
       return { compliant, violations, score };
     } catch (error) {
       logger.error('Failed to check compliance', { error: error instanceof Error ? error.message : 'Unknown error' });
@@ -879,12 +879,12 @@ export class AdvancedSecurityFrameworkService {
       this.metrics.performance.errorRate = this.calculateErrorRate();
       this.metrics.performance.throughput = this.calculateThroughput();
 
-      logger.info('Security metrics retrieved', { 
+      logger.info('Security metrics retrieved', {
         totalEvents: this.securityEvents.length,
         blockedIPs: this.blockedIPs.size,
         suspiciousActivities: this.suspiciousActivities.size
       });
-      
+
       return this.metrics;
     } catch (error) {
       logger.error('Failed to get security metrics', { error: error instanceof Error ? error.message : 'Unknown error' });
@@ -905,7 +905,7 @@ export class AdvancedSecurityFrameworkService {
       const status = Object.values(services).every(Boolean) ? 'healthy' : 'degraded';
 
       logger.info('Health check completed', { status, services });
-      
+
       return {
         status,
         services,
@@ -1000,7 +1000,7 @@ export class AdvancedSecurityFrameworkService {
 
   private sanitizeHTML(input: string): string {
     // Basic HTML sanitization - in production, use a proper HTML sanitization library
-    return input
+    return input;
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
       .replace(/<[^>]*>/g, '');
   }

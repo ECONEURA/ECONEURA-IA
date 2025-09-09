@@ -32,7 +32,7 @@ vi.mock('@econeura/db', () => ({
 
 describe('CostMeter', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.clearAllMocks();
   })
 
   describe('calculateCost', () => {
@@ -59,7 +59,7 @@ describe('CostMeter', () => {
 
     it('should throw error for unknown model', () => {
       expect(() => {
-        costMeter.calculateCost('unknown-model' as any, 1000, 500)
+        costMeter.calculateCost('unknown-model' as any, 1000, 500);
       }).toThrow('Unknown model: unknown-model')
     })
   })
@@ -67,7 +67,7 @@ describe('CostMeter', () => {
   describe('recordUsage', () => {
     it('should record usage and return cost usage object', () => {
       const usage = costMeter.recordUsage('org1', 'mistral-instruct', 1000, 500)
-      
+
       expect(usage).toEqual({
         orgId: 'org1',
         model: 'mistral-instruct',
@@ -81,7 +81,7 @@ describe('CostMeter', () => {
     it('should identify provider correctly', () => {
       const mistralUsage = costMeter.recordUsage('org1', 'mistral-instruct', 100, 50)
       const azureUsage = costMeter.recordUsage('org1', 'gpt-4o-mini', 100, 50)
-      
+
       expect(mistralUsage).toBeDefined()
       expect(azureUsage).toBeDefined()
     })
@@ -90,7 +90,7 @@ describe('CostMeter', () => {
   describe('getMonthlyUsage', () => {
     it('should return monthly usage from database', async () => {
       const usage = await costMeter.getMonthlyUsage('org1')
-      
+
       // Mock returns 25.50 + 15.25 = 40.75
       expect(usage).toBe(40.75)
     })
@@ -122,7 +122,7 @@ describe('CostMeter', () => {
       } as any)
 
       const result = await costMeter.checkMonthlyCap('org1')
-      
+
       expect(result).toEqual({
         withinLimit: true,
         currentUsage: 25.00,
@@ -144,7 +144,7 @@ describe('CostMeter', () => {
       } as any)
 
       const result = await costMeter.checkMonthlyCap('org1')
-      
+
       expect(result).toEqual({
         withinLimit: false,
         currentUsage: 55.00,
@@ -165,7 +165,7 @@ describe('CostMeter', () => {
       }
 
       await costMeter.recordUsageToDatabase(usage)
-      
+
       // Verify setOrg was called
       const { setOrg } = await import('@econeura/db')
       expect(setOrg).toHaveBeenCalledWith('org1')
@@ -215,7 +215,7 @@ describe('CostMeter', () => {
       } as any)
 
       const history = await costMeter.getUsageHistory('org1', 30)
-      
+
       expect(history).toHaveLength(1)
       expect(history[0]).toEqual({
         orgId: 'org1',
@@ -242,7 +242,7 @@ describe('CostMeter', () => {
       } as any)
 
       const usage = await costMeter.getProviderUsage('org1', 'mistral')
-      
+
       expect(usage).toEqual({
         totalCost: 25.50,
         totalRequests: 10,

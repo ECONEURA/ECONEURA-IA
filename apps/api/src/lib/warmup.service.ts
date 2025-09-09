@@ -1,12 +1,12 @@
 /**
  * PR-47: Warm-up Management Service
- * 
+ *
  * Service for managing warm-up of AI services, search engines, and system resources
  */
 
-import { 
-  WarmupSchedule, 
-  WarmupConfig, 
+import {
+  WarmupSchedule,
+  WarmupConfig,
   WarmupService,
   WarmupStatus,
   ServiceWarmupStatus,
@@ -33,7 +33,7 @@ export class WarmupService {
   async getWarmupSchedules(organizationId: string): Promise<WarmupSchedule[]> {
     const schedules = Array.from(this.schedules.values())
       .filter(schedule => schedule.organizationId === organizationId);
-    
+
     return schedules;
   }
 
@@ -162,9 +162,9 @@ export class WarmupService {
     const failedWarmups = warmups.filter(w => w.status === 'failed');
 
     const totalServices = warmups.reduce((sum, w) => sum + w.services.length, 0);
-    const completedServices = warmups.reduce((sum, w) => 
+    const completedServices = warmups.reduce((sum, w) =>
       sum + w.services.filter(s => s.status === 'completed').length, 0);
-    const failedServices = warmups.reduce((sum, w) => 
+    const failedServices = warmups.reduce((sum, w) =>
       sum + w.services.filter(s => s.status === 'failed').length, 0);
 
     const averageLatency = completedWarmups.length > 0
@@ -193,7 +193,7 @@ export class WarmupService {
   async getWarmupStats(organizationId: string): Promise<WarmupStats> {
     const schedules = await this.getWarmupSchedules(organizationId);
     const activeSchedules = schedules.filter(s => s.enabled);
-    
+
     const warmups = Array.from(this.warmupStatuses.values())
       .filter(warmup => {
         const schedule = this.schedules.get(warmup.scheduleId);
@@ -243,7 +243,7 @@ export class WarmupService {
 
   private async executeWarmup(warmupStatus: WarmupStatus, request: TriggerWarmupRequest): Promise<void> {
     warmupStatus.status = 'running';
-    
+
     try {
       // Get services to warm up
       const servicesToWarmup = await this.getServicesToWarmup(request);
@@ -348,7 +348,7 @@ export class WarmupService {
     try {
       // Simulate warm-up process
       await this.simulateWarmupProcess(service, serviceStatus);
-      
+
       serviceStatus.status = 'completed';
       serviceStatus.endTime = new Date();
       serviceStatus.duration = serviceStatus.endTime.getTime() - serviceStatus.startTime.getTime();
@@ -377,9 +377,9 @@ export class WarmupService {
     for (let i = 0; i < steps.length; i++) {
       // Simulate processing time
       await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500));
-      
+
       status.progress = Math.round(((i + 1) / steps.length) * 100);
-      
+
       // Update metrics
       status.metrics.latency = Math.random() * 100 + 50;
       status.metrics.throughput = Math.random() * 1000 + 500;
@@ -392,7 +392,7 @@ export class WarmupService {
 
   private calculateAverageLatency(services: ServiceWarmupStatus[]): number {
     if (services.length === 0) return 0;
-    
+
     const totalLatency = services.reduce((sum, service) => sum + service.metrics.latency, 0);
     return totalLatency / services.length;
   }
@@ -418,7 +418,7 @@ export class WarmupService {
   }
 
   private getDefaultServices(): WarmupService[] {
-    return [
+    return [;
       {
         name: 'ai-chat-service',
         type: 'ai-model',

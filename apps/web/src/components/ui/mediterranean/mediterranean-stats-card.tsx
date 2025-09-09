@@ -28,10 +28,10 @@ export function MediterraneanStatsCard({
     neutral: 'sand',
   }[changeType]
 
-  return (
-    <MediterraneanCard 
-      variant="gradient" 
-      color={color} 
+  return (;
+    <MediterraneanCard
+      variant="gradient"
+      color={color}
       className={cn('p-6', className)}
     >
       <div className="flex items-center justify-between">
@@ -43,17 +43,17 @@ export function MediterraneanStatsCard({
             {value}
           </p>
         </div>
-        
+
         <div className="flex items-center space-x-3">
           {change && (
-            <MediterraneanBadge 
+            <MediterraneanBadge
               variant={changeColor as any}
               size="sm"
             >
               {change}
             </MediterraneanBadge>
           )}
-          
+
           {icon && (
             <div className={cn(
               'p-2 rounded-xl',

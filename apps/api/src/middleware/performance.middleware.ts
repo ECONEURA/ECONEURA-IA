@@ -119,7 +119,7 @@ export const cacheMiddleware = (req: Request, res: Response, next: NextFunction)
   const cacheKeyValue = config.keyGenerator(req);
 
   // Intentar obtener del caché
-  cacheService.get(cacheKeyValue, { namespace: 'api' })
+  cacheService.get(cacheKeyValue, { namespace: 'api' });
     .then(cachedData => {
       if (cachedData) {
         // Cache hit
@@ -137,9 +137,9 @@ export const cacheMiddleware = (req: Request, res: Response, next: NextFunction)
       const originalSend = res.send;
       res.send = function(data: any) {
         if (config.shouldCache(req, res)) {
-          cacheService.set(cacheKeyValue, data, { 
-            namespace: 'api', 
-            ttl: config.ttl 
+          cacheService.set(cacheKeyValue, data, {
+            namespace: 'api',
+            ttl: config.ttl
           }).catch(error => {
             structuredLogger.error('Cache set error', error, { cacheKey: cacheKeyValue });
           });
@@ -162,7 +162,7 @@ export const cacheMiddleware = (req: Request, res: Response, next: NextFunction)
 export const compressionMiddleware = (req: Request, res: Response, next: NextFunction): void => {
   // Verificar si el cliente acepta compresión
   const acceptEncoding = req.headers['accept-encoding'] || '';
-  
+
   if (acceptEncoding.includes('gzip')) {
     res.set('Content-Encoding', 'gzip');
   } else if (acceptEncoding.includes('deflate')) {
@@ -206,7 +206,7 @@ export const advancedRateLimitMiddleware = (req: Request, res: Response, next: N
       // Agregar headers de rate limit
       res.set('X-RateLimit-Limit', config.requests.toString());
       res.set('X-RateLimit-Window', config.window.toString());
-      
+
       next();
     })
     .catch(error => {
@@ -262,11 +262,11 @@ async function checkRateLimit(key: string, limit: number, window: number): Promi
   try {
     const redis = getRedisService();
     const current = await redis.incr(key);
-    
+
     if (current === 1) {
       await redis.expire(key, window);
     }
-    
+
     return current <= limit;
   } catch (error) {
     structuredLogger.error('Rate limit check error', error as Error, { key });
@@ -276,7 +276,7 @@ async function checkRateLimit(key: string, limit: number, window: number): Promi
 
 function logPerformanceMetrics(metrics: PerformanceMetrics): void {
   const logLevel = metrics.duration! > 1000 ? 'warn' : 'info';
-  
+
   structuredLogger[logLevel]('Request performance metrics', {
     requestId: metrics.requestId,
     method: metrics.method,
@@ -312,7 +312,7 @@ export const cacheCleanupMiddleware = (req: Request, res: Response, next: NextFu
         const organizationId = req.params.organizationId;
         if (organizationId) {
           // Limpiar caché de la organización
-          cacheService.invalidatePattern(`*:${organizationId}:*`, 'api')
+          cacheService.invalidatePattern(`*:${organizationId}:*`, 'api');
             .catch(error => {
               structuredLogger.error('Cache cleanup error', error, { organizationId });
             });

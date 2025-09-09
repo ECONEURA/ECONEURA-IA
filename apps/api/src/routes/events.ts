@@ -10,13 +10,13 @@ router.get('/events', (req, res) => {
     const orgId = req.headers['x-org-id'] as string || 'org-demo';
     const userId = Array.isArray(req.headers['x-user-id']) ? req.headers['x-user-id'][0] : req.headers['x-user-id'];
     const subscriptions = req.query.subscribe as string;
-    
+
     // Parse subscriptions
     const eventTypes = subscriptions ? subscriptions.split(',').map(s => s.trim()) : [];
-    
+
     // Add client to SSE manager
     const clientId = sseManager.addClient(orgId, userId, res, eventTypes);
-    
+
     // Add FinOps headers
     res.set({
       'X-Est-Cost-EUR': '0.0005',
@@ -117,7 +117,7 @@ router.post('/broadcast', (req, res) => {
 router.get('/stats', (req, res) => {
   try {
     const stats = sseManager.getStats();
-    
+
     res.json({
       success: true,
       data: stats,
@@ -126,7 +126,7 @@ router.get('/stats', (req, res) => {
 
   } catch (error) {
     structuredLogger.error('Failed to get SSE stats', error as Error);
-    
+
     res.status(500).json({
       error: 'Failed to get SSE stats',
       message: (error as Error).message

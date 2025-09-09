@@ -44,7 +44,7 @@ describe('ConfigurationService', () => {
     it('should update a feature flag', async () => {
       const flags = await service.getFeatureFlags();
       const flag = flags[0];
-      
+
       const updated = await service.updateFeatureFlag(flag.id!, { enabled: false });
       expect(updated?.enabled).toBe(false);
       expect(updated?.updatedAt).toBeDefined();
@@ -53,10 +53,10 @@ describe('ConfigurationService', () => {
     it('should delete a feature flag', async () => {
       const flags = await service.getFeatureFlags();
       const flag = flags[0];
-      
+
       const deleted = await service.deleteFeatureFlag(flag.id!);
       expect(deleted).toBe(true);
-      
+
       const retrieved = await service.getFeatureFlag(flag.id!);
       expect(retrieved).toBeNull();
     });
@@ -66,7 +66,7 @@ describe('ConfigurationService', () => {
         userId: 'user123',
         organizationId: 'org456'
       });
-      
+
       expect(result.isEnabled).toBe(true);
     });
 
@@ -86,7 +86,7 @@ describe('ConfigurationService', () => {
       const result = await service.checkFeatureFlag('zero_rollout', {
         userId: 'user123'
       });
-      
+
       expect(result.isEnabled).toBe(false);
       expect(result.reason).toBe('Not in rollout percentage');
     });
@@ -193,7 +193,7 @@ describe('ConfigurationService', () => {
       const updated = await service.updateEnvironment('development', {
         variables: { logLevel: 'info' }
       });
-      
+
       expect(updated?.variables.logLevel).toBe('info');
       expect(updated?.updatedAt).toBeDefined();
     });
@@ -231,7 +231,7 @@ describe('ConfigurationService', () => {
       await service.setSecret('tempSecret', 'tempValue');
       const deleted = await service.deleteSecret('tempSecret');
       expect(deleted).toBe(true);
-      
+
       const secret = await service.getSecret('tempSecret');
       expect(secret).toBeNull();
     });
@@ -240,7 +240,7 @@ describe('ConfigurationService', () => {
   describe('Statistics', () => {
     it('should get configuration stats', async () => {
       const stats = await service.getStats();
-      
+
       expect(stats.totalFeatureFlags).toBeGreaterThan(0);
       expect(stats.totalEnvironments).toBe(3);
       expect(stats.totalConfigValues).toBeGreaterThan(0);
@@ -252,7 +252,7 @@ describe('ConfigurationService', () => {
   describe('Validation', () => {
     it('should validate configuration', async () => {
       const validation = await service.validateConfiguration();
-      
+
       expect(validation.isValid).toBe(true);
       expect(validation.errors).toHaveLength(0);
     });
@@ -279,10 +279,10 @@ describe('ConfigurationService', () => {
   describe('Reload', () => {
     it('should reload configuration', async () => {
       const result = await service.reloadConfiguration();
-      
+
       expect(result.success).toBe(true);
       expect(result.message).toBe('Configuration reloaded successfully');
-      
+
       // Verificar que los datos se reinicializaron
       const flags = await service.getFeatureFlags();
       expect(flags).toHaveLength(3);

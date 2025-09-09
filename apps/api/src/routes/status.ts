@@ -27,7 +27,7 @@ const GetServiceStatusSchema = z.object({
 statusRouter.get('/', async (req, res) => {
   try {
     const { include = ['performance', 'errors', 'services', 'health'], organizationId, detailed = false } = GetStatusSchema.parse(req.query);
-    
+
     const status = {
       system: {
         status: 'operational',
@@ -137,17 +137,17 @@ statusRouter.get('/', async (req, res) => {
 statusRouter.get('/services', async (req, res) => {
   try {
     const { service, organizationId } = GetServiceStatusSchema.parse(req.query);
-    
+
     const serviceHealth = performanceOptimizerService.getServiceHealth();
     const serviceStatus = serviceHealth.find(s => s.name === service);
-    
+
     if (!serviceStatus) {
       return res.status(404).json({
         success: false,
         error: 'Service not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: {
@@ -172,7 +172,7 @@ statusRouter.get('/summary', async (req, res) => {
     const performanceStats = performanceOptimizerService.getPerformanceStats();
     const errorStats = errorManagerService.getErrorStats();
     const serviceHealth = performanceOptimizerService.getServiceHealth();
-    
+
     const summary = {
       system: {
         status: performanceStats.health.overall === 'healthy' ? 'operational' : 'degraded',
@@ -216,7 +216,7 @@ statusRouter.get('/summary', async (req, res) => {
       recommendations: performanceStats.health.recommendations.slice(0, 3), // Top 3
       timestamp: new Date().toISOString()
     };
-    
+
     res.json({
       success: true,
       data: summary
@@ -235,7 +235,7 @@ statusRouter.get('/metrics/realtime', async (req, res) => {
   try {
     const metrics = performanceOptimizerService.getMetrics();
     const errorStats = errorManagerService.getErrorStats();
-    
+
     const realtimeMetrics = {
       timestamp: new Date().toISOString(),
       performance: {
@@ -267,7 +267,7 @@ statusRouter.get('/metrics/realtime', async (req, res) => {
         nodeVersion: process.version
       }
     };
-    
+
     res.json({
       success: true,
       data: realtimeMetrics
@@ -387,7 +387,7 @@ statusRouter.get('/config', async (req, res) => {
         }
       }
     };
-    
+
     res.json({
       success: true,
       data: config,
@@ -408,11 +408,11 @@ statusRouter.get('/health', async (req, res) => {
     const performanceStats = performanceOptimizerService.getPerformanceStats();
     const errorStats = errorManagerService.getErrorStats();
     const serviceHealth = performanceOptimizerService.getServiceHealth();
-    
+
     const overallHealth = performanceStats.health.overall;
-    const statusCode = overallHealth === 'healthy' ? 200 : 
+    const statusCode = overallHealth === 'healthy' ? 200 :
                       overallHealth === 'degraded' ? 200 : 503;
-    
+
     const health = {
       status: overallHealth,
       timestamp: new Date().toISOString(),
@@ -441,7 +441,7 @@ statusRouter.get('/health', async (req, res) => {
       },
       recommendations: performanceStats.health.recommendations.slice(0, 3)
     };
-    
+
     res.status(statusCode).json({
       success: true,
       data: health

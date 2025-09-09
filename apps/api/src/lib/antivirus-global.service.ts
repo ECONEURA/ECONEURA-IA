@@ -1,6 +1,6 @@
 /**
  * PR-64: Antivirus Global Service
- * 
+ *
  * Sistema global de antivirus con quarantine y scan para todos los módulos
  */
 
@@ -142,7 +142,7 @@ export class AntivirusGlobalService {
 
     this.initializeThreatDatabase();
     this.startPeriodicScanning();
-    
+
     structuredLogger.info('Antivirus Global service initialized', {
       config: this.config,
       requestId: ''
@@ -233,7 +233,7 @@ export class AntivirusGlobalService {
           cleanScans += moduleResult.clean;
           infectedScans += moduleResult.infected;
           threatsDetected += moduleResult.threats;
-          
+
           moduleStats[moduleType] = {
             scans: moduleResult.scans,
             threats: moduleResult.threats,
@@ -297,17 +297,17 @@ export class AntivirusGlobalService {
 
     // Simular escaneo de módulo
     const mockItems = this.generateMockItems(moduleType);
-    
+
     for (const item of mockItems) {
       const scanResult = await this.scanItem(item, moduleType);
       scans++;
-      
+
       if (scanResult.status === 'clean') {
         clean++;
       } else if (scanResult.status === 'infected') {
         infected++;
         threats += scanResult.threats.length;
-        
+
         if (this.config.quarantineEnabled) {
           await this.quarantineItem(item, scanResult.threats[0]);
           quarantined++;
@@ -335,7 +335,7 @@ export class AntivirusGlobalService {
     // Generar elementos mock para escanear
     const items = [];
     const count = Math.floor(Math.random() * 10) + 1; // 1-10 elementos
-    
+
     for (let i = 0; i < count; i++) {
       items.push({
         id: `${moduleType}_${Date.now()}_${i}`,
@@ -345,17 +345,17 @@ export class AntivirusGlobalService {
         timestamp: new Date().toISOString()
       });
     }
-    
+
     return items;
   }
 
   async scanItem(item: any, moduleType: string): Promise<ScanResult> {
     const startTime = Date.now();
     const scanId = `scan_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     // Simular escaneo
     await new Promise(resolve => setTimeout(resolve, Math.random() * 100 + 50));
-    
+
     const threats = this.detectThreats(item);
     const status = threats.length > 0 ? 'infected' : 'clean';
     const scanTime = Date.now() - startTime;
@@ -394,12 +394,12 @@ export class AntivirusGlobalService {
 
   private detectThreats(item: any): Threat[] {
     const threats: Threat[] = [];
-    
+
     // Simular detección de amenazas
     if (Math.random() < 0.1) { // 10% de probabilidad de amenaza
       const threatTypes = ['virus', 'malware', 'trojan', 'phishing'];
       const threatType = threatTypes[Math.floor(Math.random() * threatTypes.length)];
-      
+
       const threat: Threat = {
         id: `threat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         type: threatType as any,
@@ -415,10 +415,10 @@ export class AntivirusGlobalService {
           detectedAt: new Date().toISOString()
         }
       };
-      
+
       threats.push(threat);
     }
-    
+
     return threats;
   }
 
@@ -435,7 +435,7 @@ export class AntivirusGlobalService {
   async quarantineItem(item: any, threat: Threat): Promise<QuarantineItem> {
     const quarantineId = `quarantine_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const quarantinePath = `/quarantine/${quarantineId}`;
-    
+
     const quarantineItem: QuarantineItem = {
       id: quarantineId,
       moduleId: item.id,
@@ -483,25 +483,25 @@ export class AntivirusGlobalService {
 
   private getTopThreats(): Record<string, number> {
     const threatCounts: Record<string, number> = {};
-    
+
     for (const result of this.scanResults.values()) {
       for (const threat of result.threats) {
         threatCounts[threat.name] = (threatCounts[threat.name] || 0) + 1;
       }
     }
-    
+
     return threatCounts;
   }
 
   updateConfig(newConfig: Partial<ScanConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    
+
     // Reiniciar escaneo periódico si cambió el intervalo
     if (this.scanInterval) {
       clearInterval(this.scanInterval);
       this.startPeriodicScanning();
     }
-    
+
     structuredLogger.info('Antivirus configuration updated', {
       config: this.config,
       requestId: ''
@@ -510,13 +510,13 @@ export class AntivirusGlobalService {
 
   async restoreFromQuarantine(quarantineId: string): Promise<void> {
     const quarantineItem = this.quarantineItems.get(quarantineId);
-    
+
     if (!quarantineItem) {
       throw new Error('Quarantine item not found');
     }
-    
+
     quarantineItem.status = 'restored';
-    
+
     structuredLogger.info('Item restored from quarantine', {
       quarantineId,
       moduleId: quarantineItem.moduleId,
@@ -527,13 +527,13 @@ export class AntivirusGlobalService {
 
   async deleteFromQuarantine(quarantineId: string): Promise<void> {
     const quarantineItem = this.quarantineItems.get(quarantineId);
-    
+
     if (!quarantineItem) {
       throw new Error('Quarantine item not found');
     }
-    
+
     quarantineItem.status = 'deleted';
-    
+
     structuredLogger.info('Item deleted from quarantine', {
       quarantineId,
       moduleId: quarantineItem.moduleId,
@@ -547,7 +547,7 @@ export class AntivirusGlobalService {
       clearInterval(this.scanInterval);
       this.scanInterval = null;
     }
-    
+
     structuredLogger.info('Antivirus Global service stopped', { requestId: '' });
   }
 }

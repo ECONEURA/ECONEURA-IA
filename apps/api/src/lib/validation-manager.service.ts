@@ -1,6 +1,6 @@
 /**
  * MEJORA 3: Validación Avanzada con Zod y Sanitización
- * 
+ *
  * Sistema avanzado de validación con sanitización automática,
  * transformaciones de datos, y validaciones personalizadas.
  */
@@ -348,11 +348,11 @@ export class ValidationManagerService {
     if (typeof data === 'string') {
       return this.sanitizeString(data);
     }
-    
+
     if (Array.isArray(data)) {
       return data.map(item => this.sanitizeData(item));
     }
-    
+
     if (data && typeof data === 'object') {
       const sanitized: any = {};
       for (const [key, value] of Object.entries(data)) {
@@ -360,12 +360,12 @@ export class ValidationManagerService {
       }
       return sanitized;
     }
-    
+
     return data;
   }
 
   private sanitizeString(str: string): string {
-    return str
+    return str;
       .trim()
       .replace(/[<>]/g, '') // Remover caracteres HTML básicos
       .replace(/\s+/g, ' ') // Normalizar espacios
@@ -440,17 +440,17 @@ export class ValidationManagerService {
   private validateTaxId(taxId: string): boolean {
     // Validación básica de NIF/CIF español
     const cleanTaxId = taxId.replace(/[^A-Z0-9]/g, '');
-    
+
     if (cleanTaxId.length !== 9) return false;
-    
+
     const letter = cleanTaxId[8];
     const numbers = cleanTaxId.substring(0, 8);
-    
+
     if (!/^[0-9]{8}$/.test(numbers)) return false;
-    
+
     const letters = 'TRWAGMYFPDXBNJZSQVHLCKE';
     const expectedLetter = letters[parseInt(numbers) % 23];
-    
+
     return letter === expectedLetter;
   }
 

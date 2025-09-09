@@ -55,7 +55,7 @@ export class FeatureFlagsClient {
   async getFeatureFlags(environment?: string): Promise<FeatureFlagsResponse> {
     const cacheKey = `feature-flags-${environment || 'all'}`;
     const cached = this.getFromCache(cacheKey);
-    
+
     if (cached) {
       return cached;
     }
@@ -81,7 +81,7 @@ export class FeatureFlagsClient {
 
       const data = await response.json();
       const validated = FeatureFlagsResponseSchema.parse(data);
-      
+
       this.setCache(cacheKey, validated);
       return validated;
     } catch (error) {
@@ -92,12 +92,12 @@ export class FeatureFlagsClient {
 
   // Verificar si un feature flag está habilitado
   async checkFeatureFlag(
-    flagName: string, 
+    flagName: string,
     context?: FeatureFlagCheck
   ): Promise<FeatureFlagResponse> {
     const cacheKey = `feature-flag-${flagName}-${JSON.stringify(context || {})}`;
     const cached = this.getFromCache(cacheKey);
-    
+
     if (cached) {
       return cached;
     }
@@ -119,7 +119,7 @@ export class FeatureFlagsClient {
 
       const data = await response.json();
       const validated = FeatureFlagResponseSchema.parse(data);
-      
+
       this.setCache(cacheKey, validated);
       return validated;
     } catch (error) {
@@ -130,11 +130,11 @@ export class FeatureFlagsClient {
 
   // Verificar múltiples feature flags
   async checkMultipleFeatureFlags(
-    flagNames: string[], 
+    flagNames: string[],
     context?: FeatureFlagCheck
   ): Promise<Record<string, boolean>> {
     const results: Record<string, boolean> = {};
-    
+
     try {
       const promises = flagNames.map(async (flagName) => {
         try {
@@ -158,7 +158,7 @@ export class FeatureFlagsClient {
   async getEnvironmentConfig(environment: string): Promise<any> {
     const cacheKey = `environment-${environment}`;
     const cached = this.getFromCache(cacheKey);
-    
+
     if (cached) {
       return cached;
     }
@@ -178,7 +178,7 @@ export class FeatureFlagsClient {
       }
 
       const data = await response.json();
-      
+
       this.setCache(cacheKey, data);
       return data;
     } catch (error) {
@@ -191,7 +191,7 @@ export class FeatureFlagsClient {
   async getConfigValue(key: string, environment?: string, defaultValue?: any): Promise<any> {
     const cacheKey = `config-${key}-${environment || 'default'}`;
     const cached = this.getFromCache(cacheKey);
-    
+
     if (cached) {
       return cached;
     }
@@ -222,7 +222,7 @@ export class FeatureFlagsClient {
       }
 
       const data = await response.json();
-      
+
       this.setCache(cacheKey, data);
       return data;
     } catch (error) {
@@ -235,7 +235,7 @@ export class FeatureFlagsClient {
   async getConfigStats(): Promise<any> {
     const cacheKey = 'config-stats';
     const cached = this.getFromCache(cacheKey);
-    
+
     if (cached) {
       return cached;
     }
@@ -255,7 +255,7 @@ export class FeatureFlagsClient {
       }
 
       const data = await response.json();
-      
+
       this.setCache(cacheKey, data);
       return data;
     } catch (error) {
@@ -327,7 +327,7 @@ export class FeatureFlagsClient {
 export const featureFlagsClient = new FeatureFlagsClient();
 
 // Hook de React para feature flags
-export function useFeatureFlag(flagName: string, context?: FeatureFlagCheck) {
+export function useFeatureFlag(flagName: string, context?: FeatureFlagCheck): void {
   const [isEnabled, setIsEnabled] = React.useState<boolean>(false);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -339,9 +339,9 @@ export function useFeatureFlag(flagName: string, context?: FeatureFlagCheck) {
       try {
         setLoading(true);
         setError(null);
-        
+
         const result = await featureFlagsClient.checkFeatureFlag(flagName, context);
-        
+
         if (mounted) {
           setIsEnabled(result.data.isEnabled);
         }
@@ -368,7 +368,7 @@ export function useFeatureFlag(flagName: string, context?: FeatureFlagCheck) {
 }
 
 // Hook para múltiples feature flags
-export function useMultipleFeatureFlags(flagNames: string[], context?: FeatureFlagCheck) {
+export function useMultipleFeatureFlags(flagNames: string[], context?: FeatureFlagCheck): void {
   const [flags, setFlags] = React.useState<Record<string, boolean>>({});
   const [loading, setLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -380,9 +380,9 @@ export function useMultipleFeatureFlags(flagNames: string[], context?: FeatureFl
       try {
         setLoading(true);
         setError(null);
-        
+
         const results = await featureFlagsClient.checkMultipleFeatureFlags(flagNames, context);
-        
+
         if (mounted) {
           setFlags(results);
         }
@@ -416,7 +416,7 @@ interface FeatureFlagProps {
   fallback?: React.ReactNode;
 }
 
-export function FeatureFlag({ flagName, context, children, fallback = null }: FeatureFlagProps) {
+export function FeatureFlag({ flagName, context, children, fallback = null }: FeatureFlagProps): void {
   const { isEnabled, loading, error } = useFeatureFlag(flagName, context);
 
   if (loading) {
@@ -439,7 +439,7 @@ interface MultipleFeatureFlagsProps {
   fallback?: React.ReactNode;
 }
 
-export function MultipleFeatureFlags({ flags, context, children, fallback = null }: MultipleFeatureFlagsProps) {
+export function MultipleFeatureFlags({ flags, context, children, fallback = null }: MultipleFeatureFlagsProps): void {
   const { flags: flagStates, loading, error } = useMultipleFeatureFlags(flags, context);
 
   if (loading) {

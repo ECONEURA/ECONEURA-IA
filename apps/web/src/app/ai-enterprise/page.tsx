@@ -5,15 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Brain, 
-  MessageSquare, 
-  BarChart3, 
-  Zap, 
-  TrendingUp, 
-  Search, 
-  FileText, 
-  Workflow, 
+import {
+  Brain,
+  MessageSquare,
+  BarChart3,
+  Zap,
+  TrendingUp,
+  Search,
+  FileText,
+  Workflow,
   Activity,
   Target,
   Users,
@@ -123,10 +123,10 @@ const stats = [
   }
 ];
 
-export default function AIEnterprisePage() {
+export default function AIEnterprisePage(): void {
   const [activeTab, setActiveTab] = useState('overview');
 
-  return (
+  return (;
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">

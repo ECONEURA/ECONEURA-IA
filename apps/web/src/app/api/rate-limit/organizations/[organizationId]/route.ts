@@ -8,9 +8,9 @@ export async function GET(
   try {
     const { organizationId } = params;
     const stats = webRateLimiter.getOrganizationStats(organizationId);
-    
+
     if (!stats) {
-      return NextResponse.json(
+      return NextResponse.json(;
         { error: 'Organization not found' },
         { status: 404 }
       );
@@ -27,7 +27,7 @@ export async function GET(
     });
   } catch (error) {
     console.error('Failed to get organization stats:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Internal server error' },
       { status: 500 }
     );
@@ -42,11 +42,11 @@ export async function PUT(
     const { organizationId } = params;
     const body = await request.json();
     const { config } = body;
-    
+
     const updated = webRateLimiter.updateOrganization(organizationId, config || {});
-    
+
     if (!updated) {
-      return NextResponse.json(
+      return NextResponse.json(;
         { error: 'Organization not found' },
         { status: 404 }
       );
@@ -61,7 +61,7 @@ export async function PUT(
     });
   } catch (error) {
     console.error('Failed to update organization:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Internal server error' },
       { status: 500 }
     );
@@ -75,9 +75,9 @@ export async function DELETE(
   try {
     const { organizationId } = params;
     const removed = webRateLimiter.removeOrganization(organizationId);
-    
+
     if (!removed) {
-      return NextResponse.json(
+      return NextResponse.json(;
         { error: 'Organization not found' },
         { status: 404 }
       );
@@ -92,7 +92,7 @@ export async function DELETE(
     });
   } catch (error) {
     console.error('Failed to remove organization:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Internal server error' },
       { status: 500 }
     );

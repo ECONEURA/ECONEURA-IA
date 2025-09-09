@@ -63,23 +63,23 @@ router.use(rateLimiter);
 router.get('/models', async (req, res) => {
   try {
     const models = await aiCostPredictionService.getPredictionModels();
-    
-    logger.info('Cost prediction models retrieved', { 
-      userId: req.user?.id, 
-      count: models.length 
+
+    logger.info('Cost prediction models retrieved', {
+      userId: req.user?.id,
+      count: models.length
     });
-    
+
     res.json({
       success: true,
       data: models,
       count: models.length
     });
   } catch (error: any) {
-    logger.error('Failed to get cost prediction models', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Failed to get cost prediction models', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve cost prediction models',
@@ -102,26 +102,26 @@ router.post('/models',
         r2Score: 0.0,
         lastTrained: new Date()
       });
-      
-      logger.info('Cost prediction model created', { 
-        modelId: model.id, 
+
+      logger.info('Cost prediction model created', {
+        modelId: model.id,
         name: model.name,
         type: model.type,
         algorithm: model.algorithm,
-        userId: req.user?.id 
+        userId: req.user?.id
       });
-      
+
       res.status(201).json({
         success: true,
         data: model,
         message: 'Cost prediction model created successfully'
       });
     } catch (error: any) {
-      logger.error('Failed to create cost prediction model', { 
-        error: error.message, 
-        userId: req.user?.id 
+      logger.error('Failed to create cost prediction model', {
+        error: error.message,
+        userId: req.user?.id
       });
-      
+
       res.status(500).json({
         success: false,
         error: 'Failed to create cost prediction model',
@@ -138,7 +138,7 @@ router.post('/models/:id/train',
     try {
       const { id } = req.params;
       const { trainingData } = req.body;
-      
+
       // Convertir fechas string a Date
       const processedTrainingData = {
         ...trainingData,
@@ -147,29 +147,29 @@ router.post('/models/:id/train',
           date: new Date(item.date)
         }))
       };
-      
+
       const trainedModel = await aiCostPredictionService.trainModel(id, processedTrainingData);
-      
-      logger.info('Model training completed', { 
-        modelId: id, 
+
+      logger.info('Model training completed', {
+        modelId: id,
         accuracy: trainedModel.accuracy,
         mae: trainedModel.mae,
         rmse: trainedModel.rmse,
-        userId: req.user?.id 
+        userId: req.user?.id
       });
-      
+
       res.json({
         success: true,
         data: trainedModel,
         message: 'Model training completed successfully'
       });
     } catch (error: any) {
-      logger.error('Failed to train model', { 
-        error: error.message, 
+      logger.error('Failed to train model', {
+        error: error.message,
         modelId: req.params.id,
-        userId: req.user?.id 
+        userId: req.user?.id
       });
-      
+
       res.status(500).json({
         success: false,
         error: 'Failed to train model',
@@ -187,27 +187,27 @@ router.post('/predict',
   async (req, res) => {
     try {
       const prediction = await aiCostPredictionService.generateCostPrediction(req.body);
-      
-      logger.info('Cost prediction generated', { 
-        predictionId: prediction.id, 
+
+      logger.info('Cost prediction generated', {
+        predictionId: prediction.id,
         organizationId: req.body.organizationId,
         predictionType: req.body.predictionType,
         horizon: req.body.horizon,
         accuracy: prediction.accuracy,
-        userId: req.user?.id 
+        userId: req.user?.id
       });
-      
+
       res.status(201).json({
         success: true,
         data: prediction,
         message: 'Cost prediction generated successfully'
       });
     } catch (error: any) {
-      logger.error('Failed to generate cost prediction', { 
-        error: error.message, 
-        userId: req.user?.id 
+      logger.error('Failed to generate cost prediction', {
+        error: error.message,
+        userId: req.user?.id
       });
-      
+
       res.status(500).json({
         success: false,
         error: 'Failed to generate cost prediction',
@@ -221,34 +221,34 @@ router.post('/predict',
 router.get('/predictions', async (req, res) => {
   try {
     const { organizationId, limit = 10 } = req.query;
-    
+
     if (!organizationId) {
       return res.status(400).json({
         success: false,
         error: 'Organization ID is required'
       });
     }
-    
+
     // Implementar obtención de predicciones
     const predictions = []; // Placeholder
-    
-    logger.info('Cost predictions retrieved', { 
+
+    logger.info('Cost predictions retrieved', {
       organizationId,
       count: predictions.length,
-      userId: req.user?.id 
+      userId: req.user?.id
     });
-    
+
     res.json({
       success: true,
       data: predictions,
       count: predictions.length
     });
   } catch (error: any) {
-    logger.error('Failed to get cost predictions', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Failed to get cost predictions', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve cost predictions',
@@ -265,27 +265,27 @@ router.post('/forecast',
   async (req, res) => {
     try {
       const forecast = await aiCostPredictionService.generateCostForecast(req.body);
-      
-      logger.info('Cost forecast generated', { 
-        forecastId: forecast.id, 
+
+      logger.info('Cost forecast generated', {
+        forecastId: forecast.id,
         organizationId: req.body.organizationId,
         forecastType: req.body.forecastType,
         timeHorizon: req.body.timeHorizon,
         scenariosCount: forecast.scenarios.length,
-        userId: req.user?.id 
+        userId: req.user?.id
       });
-      
+
       res.status(201).json({
         success: true,
         data: forecast,
         message: 'Cost forecast generated successfully'
       });
     } catch (error: any) {
-      logger.error('Failed to generate cost forecast', { 
-        error: error.message, 
-        userId: req.user?.id 
+      logger.error('Failed to generate cost forecast', {
+        error: error.message,
+        userId: req.user?.id
       });
-      
+
       res.status(500).json({
         success: false,
         error: 'Failed to generate cost forecast',
@@ -299,34 +299,34 @@ router.post('/forecast',
 router.get('/forecasts', async (req, res) => {
   try {
     const { organizationId, limit = 10 } = req.query;
-    
+
     if (!organizationId) {
       return res.status(400).json({
         success: false,
         error: 'Organization ID is required'
       });
     }
-    
+
     // Implementar obtención de pronósticos
     const forecasts = []; // Placeholder
-    
-    logger.info('Cost forecasts retrieved', { 
+
+    logger.info('Cost forecasts retrieved', {
       organizationId,
       count: forecasts.length,
-      userId: req.user?.id 
+      userId: req.user?.id
     });
-    
+
     res.json({
       success: true,
       data: forecasts,
       count: forecasts.length
     });
   } catch (error: any) {
-    logger.error('Failed to get cost forecasts', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Failed to get cost forecasts', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve cost forecasts',
@@ -341,14 +341,14 @@ router.get('/forecasts', async (req, res) => {
 router.get('/accuracy', async (req, res) => {
   try {
     const { organizationId, modelId, days = 30 } = req.query;
-    
+
     if (!organizationId) {
       return res.status(400).json({
         success: false,
         error: 'Organization ID is required'
       });
     }
-    
+
     // Implementar análisis de precisión
     const accuracyAnalysis = {
       organizationId,
@@ -372,25 +372,25 @@ router.get('/accuracy', async (req, res) => {
         'Neural network model needs more training data for better performance'
       ]
     };
-    
-    logger.info('Prediction accuracy analysis retrieved', { 
+
+    logger.info('Prediction accuracy analysis retrieved', {
       organizationId,
       modelId,
       days: Number(days),
-      userId: req.user?.id 
+      userId: req.user?.id
     });
-    
+
     res.json({
       success: true,
       data: accuracyAnalysis,
       message: 'Prediction accuracy analysis retrieved successfully'
     });
   } catch (error: any) {
-    logger.error('Failed to get prediction accuracy analysis', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Failed to get prediction accuracy analysis', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve prediction accuracy analysis',
@@ -403,14 +403,14 @@ router.get('/accuracy', async (req, res) => {
 router.get('/trends', async (req, res) => {
   try {
     const { organizationId, period = '90d' } = req.query;
-    
+
     if (!organizationId) {
       return res.status(400).json({
         success: false,
         error: 'Organization ID is required'
       });
     }
-    
+
     // Implementar análisis de tendencias
     const trendAnalysis = {
       organizationId,
@@ -445,24 +445,24 @@ router.get('/trends', async (req, res) => {
         'Neural network model shows high variance in accuracy'
       ]
     };
-    
-    logger.info('Prediction trends analysis retrieved', { 
+
+    logger.info('Prediction trends analysis retrieved', {
       organizationId,
       period,
-      userId: req.user?.id 
+      userId: req.user?.id
     });
-    
+
     res.json({
       success: true,
       data: trendAnalysis,
       message: 'Prediction trends analysis retrieved successfully'
     });
   } catch (error: any) {
-    logger.error('Failed to get prediction trends analysis', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Failed to get prediction trends analysis', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve prediction trends analysis',
@@ -477,16 +477,16 @@ router.get('/trends', async (req, res) => {
 router.get('/compare', async (req, res) => {
   try {
     const { organizationId, models } = req.query;
-    
+
     if (!organizationId) {
       return res.status(400).json({
         success: false,
         error: 'Organization ID is required'
       });
     }
-    
+
     const modelIds = models ? (models as string).split(',') : [];
-    
+
     // Implementar comparación de modelos
     const modelComparison = {
       organizationId,
@@ -536,24 +536,24 @@ router.get('/compare', async (req, res) => {
         'Consider ensemble approach for best overall performance'
       ]
     };
-    
-    logger.info('Model comparison retrieved', { 
+
+    logger.info('Model comparison retrieved', {
       organizationId,
       modelIds,
-      userId: req.user?.id 
+      userId: req.user?.id
     });
-    
+
     res.json({
       success: true,
       data: modelComparison,
       message: 'Model comparison retrieved successfully'
     });
   } catch (error: any) {
-    logger.error('Failed to get model comparison', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Failed to get model comparison', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve model comparison',
@@ -568,14 +568,14 @@ router.get('/compare', async (req, res) => {
 router.get('/recommendations', async (req, res) => {
   try {
     const { organizationId } = req.query;
-    
+
     if (!organizationId) {
       return res.status(400).json({
         success: false,
         error: 'Organization ID is required'
       });
     }
-    
+
     // Implementar generación de recomendaciones
     const recommendations = {
       organizationId,
@@ -633,24 +633,24 @@ router.get('/recommendations', async (req, res) => {
         }
       ]
     };
-    
-    logger.info('Prediction recommendations generated', { 
+
+    logger.info('Prediction recommendations generated', {
       organizationId,
       recommendationsCount: recommendations.recommendations.length,
-      userId: req.user?.id 
+      userId: req.user?.id
     });
-    
+
     res.json({
       success: true,
       data: recommendations,
       message: 'Prediction recommendations generated successfully'
     });
   } catch (error: any) {
-    logger.error('Failed to get prediction recommendations', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Failed to get prediction recommendations', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve prediction recommendations',
@@ -665,21 +665,21 @@ router.get('/recommendations', async (req, res) => {
 router.get('/health', async (req, res) => {
   try {
     const health = await aiCostPredictionService.getHealthStatus();
-    
-    const statusCode = health.status === 'healthy' ? 200 : 
+
+    const statusCode = health.status === 'healthy' ? 200 :
                       health.status === 'degraded' ? 200 : 503;
-    
+
     res.status(statusCode).json({
       success: true,
       data: health,
       message: `Service is ${health.status}`
     });
   } catch (error: any) {
-    logger.error('Health check failed', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Health check failed', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(503).json({
       success: false,
       error: 'Health check failed',
@@ -741,22 +741,22 @@ router.get('/stats', async (req, res) => {
         uptime: '99.8%'
       }
     };
-    
-    logger.info('Cost prediction stats retrieved', { 
-      userId: req.user?.id 
+
+    logger.info('Cost prediction stats retrieved', {
+      userId: req.user?.id
     });
-    
+
     res.json({
       success: true,
       data: stats,
       message: 'Statistics retrieved successfully'
     });
   } catch (error: any) {
-    logger.error('Failed to get statistics', { 
-      error: error.message, 
-      userId: req.user?.id 
+    logger.error('Failed to get statistics', {
+      error: error.message,
+      userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve statistics',

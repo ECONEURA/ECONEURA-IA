@@ -271,7 +271,7 @@ export class UpdateInteractionUseCase {
       id,
       organizationId,
       userId,
-      updates: { 
+      updates: {
         status: 'COMPLETED',
         outcome,
         duration
@@ -290,7 +290,7 @@ export class UpdateInteractionUseCase {
       id,
       organizationId,
       userId,
-      updates: { 
+      updates: {
         nextAction,
         nextActionDate
       }

@@ -282,7 +282,7 @@ describe('API Integration Tests', () => {
 
     it('should propagate correlation ID', async () => {
       const correlationId = 'test-correlation-123'
-      
+
       const response = await request(app)
         .get('/health')
         .set('x-request-id', correlationId)

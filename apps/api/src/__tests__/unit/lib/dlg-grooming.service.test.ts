@@ -123,7 +123,7 @@ describe('DLQGroomingService - PR-72', () => {
       expect(patterns).toBeDefined();
       expect(Array.isArray(patterns)).toBe(true);
       expect(patterns.length).toBeGreaterThan(0);
-      expect(patterns.every(p => p.enabled === true)).toBe(true);
+      expect(patterns.every(p => p.enabled =)).toBe(true);
       expect(patterns.every(p => p.action.type === 'auto_retry')).toBe(true);
     });
   });
@@ -163,10 +163,10 @@ describe('DLQGroomingService - PR-72', () => {
 
     it('should categorize errors correctly', async () => {
       const messages = await dlgGroomingService.getDLQMessages('demo-org-1', { limit: 10 });
-      
+
       const categories = messages.map(m => m.analysis.category);
       const severities = messages.map(m => m.analysis.severity);
-      
+
       expect(categories).toContain('transient');
       expect(categories).toContain('data');
       expect(severities).toContain('medium');
@@ -185,7 +185,7 @@ describe('DLQGroomingService - PR-72', () => {
 
       expect(smtpPattern).toBeDefined();
       expect(smtpMessage).toBeDefined();
-      
+
       if (smtpPattern && smtpMessage) {
         expect(smtpPattern.pattern.errorType).toBe('SMTPConnectionError');
         expect(smtpMessage.failureInfo.errorType).toBe('SMTPConnectionError');
@@ -208,7 +208,7 @@ describe('DLQGroomingService - PR-72', () => {
   describe('Auto-retry Processing', () => {
     it('should process scheduled retries', async () => {
       await dlgGroomingService.processScheduledRetries();
-      
+
       // This should not throw an error
       expect(true).toBe(true);
     });
@@ -235,13 +235,13 @@ describe('DLQGroomingService - PR-72', () => {
   describe('Auto-processing', () => {
     it('should process pending messages', async () => {
       await dlgGroomingService.processPendingMessages();
-      
+
       // This should not throw an error
       expect(true).toBe(true);
     });
 
     it('should analyze pending messages automatically', async () => {
-      const messages = await dlgGroomingService.getDLQMessages('demo-org-1', { 
+      const messages = await dlgGroomingService.getDLQMessages('demo-org-1', {
         status: 'pending',
         limit: 5
       });

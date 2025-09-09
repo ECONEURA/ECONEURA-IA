@@ -42,7 +42,7 @@ router.get('/taxonomies', async (req, res) => {
 
   try {
     const taxonomies = companiesTaxonomyService.getTaxonomies();
-    
+
     structuredLogger.info('Taxonomies requested', {
       traceId,
       spanId,
@@ -84,7 +84,7 @@ router.post('/classify', async (req, res) => {
 
   try {
     const companyData = CompanyDataSchema.parse(req.body);
-    
+
     structuredLogger.info('Company classification requested', {
       traceId,
       spanId,
@@ -145,7 +145,7 @@ router.get('/views/:organizationId', async (req, res) => {
 
   try {
     const views = companiesTaxonomyService.getViews(organizationId);
-    
+
     structuredLogger.info('Views requested', {
       traceId,
       spanId,
@@ -191,7 +191,7 @@ router.post('/views', async (req, res) => {
 
   try {
     const viewData = ViewDataSchema.parse(req.body);
-    
+
     structuredLogger.info('View creation requested', {
       traceId,
       spanId,
@@ -323,7 +323,7 @@ router.get('/health', async (req, res) => {
   try {
     const taxonomies = companiesTaxonomyService.getTaxonomies();
     const views = companiesTaxonomyService.getViews('default');
-    
+
     const healthChecks = {
       hasTaxonomies: taxonomies.length > 0,
       hasViews: views.length > 0,

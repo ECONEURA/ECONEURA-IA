@@ -290,8 +290,8 @@ describe('AdvancedSecurityFrameworkService', () => {
         const threatData = {
           ipAddress: '192.168.1.1',
           userAgent: 'Mozilla/5.0',
-          request: { 
-            path: '/api/users', 
+          request: {
+            path: '/api/users',
             method: 'GET',
             query: 'SELECT * FROM users WHERE id = 1'
           },
@@ -308,8 +308,8 @@ describe('AdvancedSecurityFrameworkService', () => {
         const threatData = {
           ipAddress: '192.168.1.1',
           userAgent: 'bot',
-          request: { 
-            path: '/api/users', 
+          request: {
+            path: '/api/users',
             method: 'GET',
             query: 'SELECT * FROM users WHERE id = 1 OR 1=1'
           },

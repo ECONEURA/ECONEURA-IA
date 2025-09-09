@@ -10,11 +10,11 @@ describe('FiscalidadRegionalService', () => {
   describe('Tax Regions Management', () => {
     it('should get tax regions for organization', async () => {
       const regions = await fiscalidadRegionalService.getTaxRegions('demo-org-1');
-      
+
       expect(regions).toBeDefined();
       expect(Array.isArray(regions)).toBe(true);
       expect(regions.length).toBeGreaterThan(0);
-      
+
       const spainRegion = regions.find(r => r.countryCode === 'ES');
       expect(spainRegion).toBeDefined();
       expect(spainRegion?.taxConfiguration.vatRate).toBe(21);
@@ -23,7 +23,7 @@ describe('FiscalidadRegionalService', () => {
 
     it('should get specific tax region by ID', async () => {
       const region = await fiscalidadRegionalService.getTaxRegion('region_es');
-      
+
       expect(region).toBeDefined();
       expect(region?.countryCode).toBe('ES');
       expect(region?.countryName).toBe('España');
@@ -74,7 +74,7 @@ describe('FiscalidadRegionalService', () => {
       };
 
       const region = await fiscalidadRegionalService.createTaxRegion(regionData);
-      
+
       expect(region).toBeDefined();
       expect(region.id).toBeDefined();
       expect(region.countryCode).toBe('DE');
@@ -90,11 +90,11 @@ describe('FiscalidadRegionalService', () => {
         transactionType: 'sale',
         limit: 10
       });
-      
+
       expect(transactions).toBeDefined();
       expect(Array.isArray(transactions)).toBe(true);
       expect(transactions.length).toBeGreaterThan(0);
-      
+
       const transaction = transactions[0];
       expect(transaction.transactionType).toBe('sale');
       expect(transaction.regionId).toBe('region_es');
@@ -136,7 +136,7 @@ describe('FiscalidadRegionalService', () => {
       };
 
       const transaction = await fiscalidadRegionalService.createVATTransaction(transactionData);
-      
+
       expect(transaction).toBeDefined();
       expect(transaction.id).toBeDefined();
       expect(transaction.transactionType).toBe('sale');
@@ -147,10 +147,10 @@ describe('FiscalidadRegionalService', () => {
       const transactions = await fiscalidadRegionalService.getVATTransactions('demo-org-1', {
         period: '2024-08'
       });
-      
+
       expect(transactions).toBeDefined();
       expect(Array.isArray(transactions)).toBe(true);
-      
+
       transactions.forEach(transaction => {
         expect(transaction.reportingPeriod).toBe('2024-08');
       });
@@ -160,11 +160,11 @@ describe('FiscalidadRegionalService', () => {
   describe('VAT Returns Management', () => {
     it('should get VAT returns', async () => {
       const returns = await fiscalidadRegionalService.getVATReturns('demo-org-1');
-      
+
       expect(returns).toBeDefined();
       expect(Array.isArray(returns)).toBe(true);
       expect(returns.length).toBeGreaterThan(0);
-      
+
       const vatReturn = returns[0];
       expect(vatReturn.period).toBeDefined();
       expect(vatReturn.summary).toBeDefined();
@@ -199,7 +199,7 @@ describe('FiscalidadRegionalService', () => {
       };
 
       const vatReturn = await fiscalidadRegionalService.createVATReturn(returnData);
-      
+
       expect(vatReturn).toBeDefined();
       expect(vatReturn.id).toBeDefined();
       expect(vatReturn.period).toBe('2024-09');
@@ -210,11 +210,11 @@ describe('FiscalidadRegionalService', () => {
   describe('Withholding Taxes Management', () => {
     it('should get withholding taxes', async () => {
       const withholdings = await fiscalidadRegionalService.getWithholdingTaxes('demo-org-1');
-      
+
       expect(withholdings).toBeDefined();
       expect(Array.isArray(withholdings)).toBe(true);
       expect(withholdings.length).toBeGreaterThan(0);
-      
+
       const withholding = withholdings[0];
       expect(withholding.withholding.withholdingType).toBe('irpf');
       expect(withholding.withholding.withholdingRate).toBe(19);
@@ -224,10 +224,10 @@ describe('FiscalidadRegionalService', () => {
       const withholdings = await fiscalidadRegionalService.getWithholdingTaxes('demo-org-1', {
         period: '2024-08'
       });
-      
+
       expect(withholdings).toBeDefined();
       expect(Array.isArray(withholdings)).toBe(true);
-      
+
       withholdings.forEach(withholding => {
         expect(withholding.period).toBe('2024-08');
       });
@@ -242,7 +242,7 @@ describe('FiscalidadRegionalService', () => {
         21,
         'sale'
       );
-      
+
       expect(calculation).toBeDefined();
       expect(calculation.netAmount).toBe(1000);
       expect(calculation.vatRate).toBe(21);
@@ -257,7 +257,7 @@ describe('FiscalidadRegionalService', () => {
         21,
         'purchase'
       );
-      
+
       expect(calculation).toBeDefined();
       expect(calculation.netAmount).toBe(500);
       expect(calculation.vatRate).toBe(21);
@@ -267,7 +267,7 @@ describe('FiscalidadRegionalService', () => {
 
     it('should throw error for non-existent region', async () => {
       await expect(
-        fiscalidadRegionalService.calculateVAT('non-existent', 1000, 21, 'sale')
+        fiscalidadRegionalService.calculateVAT('non-existent', 1000, 21, 'sale');
       ).rejects.toThrow('Tax region not found');
     });
   });
@@ -275,7 +275,7 @@ describe('FiscalidadRegionalService', () => {
   describe('VAT Number Validation', () => {
     it('should validate Spanish VAT number', async () => {
       const validation = await fiscalidadRegionalService.validateVATNumber('A12345678', 'ES');
-      
+
       expect(validation).toBeDefined();
       expect(validation.isValid).toBe(true);
       expect(validation.country).toBe('ES');
@@ -284,7 +284,7 @@ describe('FiscalidadRegionalService', () => {
 
     it('should validate French VAT number', async () => {
       const validation = await fiscalidadRegionalService.validateVATNumber('12345678901', 'FR');
-      
+
       expect(validation).toBeDefined();
       expect(validation.isValid).toBe(true);
       expect(validation.country).toBe('FR');
@@ -292,7 +292,7 @@ describe('FiscalidadRegionalService', () => {
 
     it('should validate German VAT number', async () => {
       const validation = await fiscalidadRegionalService.validateVATNumber('123456789', 'DE');
-      
+
       expect(validation).toBeDefined();
       expect(validation.isValid).toBe(true);
       expect(validation.country).toBe('DE');
@@ -300,7 +300,7 @@ describe('FiscalidadRegionalService', () => {
 
     it('should validate Dutch VAT number', async () => {
       const validation = await fiscalidadRegionalService.validateVATNumber('NL123456789B01', 'NL');
-      
+
       expect(validation).toBeDefined();
       expect(validation.isValid).toBe(true);
       expect(validation.country).toBe('NL');
@@ -308,7 +308,7 @@ describe('FiscalidadRegionalService', () => {
 
     it('should reject invalid VAT number', async () => {
       const validation = await fiscalidadRegionalService.validateVATNumber('INVALID', 'ES');
-      
+
       expect(validation).toBeDefined();
       expect(validation.isValid).toBe(false);
       expect(validation.country).toBe('ES');
@@ -316,7 +316,7 @@ describe('FiscalidadRegionalService', () => {
 
     it('should handle unknown country', async () => {
       const validation = await fiscalidadRegionalService.validateVATNumber('123456', 'XX');
-      
+
       expect(validation).toBeDefined();
       expect(validation.isValid).toBe(false);
       expect(validation.format).toBe('Unknown country');
@@ -327,30 +327,30 @@ describe('FiscalidadRegionalService', () => {
   describe('Tax Statistics', () => {
     it('should return comprehensive tax statistics', async () => {
       const stats = await fiscalidadRegionalService.getTaxStats('demo-org-1');
-      
+
       expect(stats).toBeDefined();
       expect(stats.totalRegions).toBeGreaterThan(0);
       expect(stats.activeRegions).toBeGreaterThan(0);
       expect(stats.totalTransactions).toBeGreaterThan(0);
       expect(stats.totalVATReturns).toBeGreaterThan(0);
       expect(stats.totalWithholdings).toBeGreaterThan(0);
-      
+
       // Financial summary
       expect(stats.financial).toBeDefined();
       expect(stats.financial.totalVATCollected).toBeGreaterThanOrEqual(0);
       expect(stats.financial.totalVATPaid).toBeGreaterThanOrEqual(0);
       expect(stats.financial.totalWithholdingsPaid).toBeGreaterThanOrEqual(0);
-      
+
       // By region
       expect(stats.byRegion).toBeDefined();
       expect(Array.isArray(stats.byRegion)).toBe(true);
       expect(stats.byRegion.length).toBeGreaterThan(0);
-      
+
       // Trends
       expect(stats.trends).toBeDefined();
       expect(stats.trends.currentPeriod).toBeDefined();
       expect(stats.trends.lastPeriod).toBeDefined();
-      
+
       // Compliance
       expect(stats.compliance).toBeDefined();
       expect(stats.compliance.averageScore).toBeGreaterThanOrEqual(0);
@@ -359,7 +359,7 @@ describe('FiscalidadRegionalService', () => {
 
     it('should include compliance metrics', async () => {
       const stats = await fiscalidadRegionalService.getTaxStats('demo-org-1');
-      
+
       expect(stats.compliance).toBeDefined();
       expect(stats.compliance.lowRiskRegions).toBeGreaterThanOrEqual(0);
       expect(stats.compliance.mediumRiskRegions).toBeGreaterThanOrEqual(0);
@@ -406,7 +406,7 @@ describe('FiscalidadRegionalService', () => {
       };
 
       const transaction = await fiscalidadRegionalService.createVATTransaction(transactionData);
-      
+
       expect(transaction).toBeDefined();
       expect(transaction.transactionType).toBe('reverse_charge');
       expect(transaction.taxDetails.reverseCharge).toBe(true);
@@ -456,7 +456,7 @@ describe('FiscalidadRegionalService', () => {
       };
 
       const region = await fiscalidadRegionalService.createTaxRegion(canaryRegionData);
-      
+
       expect(region).toBeDefined();
       expect(region.regionCode).toBe('ES-CN');
       expect(region.taxConfiguration.vatRate).toBe(0);

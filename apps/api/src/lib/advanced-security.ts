@@ -199,13 +199,13 @@ export class AdvancedSecuritySystem extends EventEmitter {
 
   async createUser(data: z.infer<typeof UserSchema>): Promise<User> {
     const startTime = Date.now();
-    
+
     try {
       // Check if user already exists
       const existingUser = Array.from(this.users.values()).find(
         u => u.email === data.email || u.username === data.username
       );
-      
+
       if (existingUser) {
         throw new Error('User already exists with this email or username');
       }
@@ -244,7 +244,7 @@ export class AdvancedSecuritySystem extends EventEmitter {
       });
 
       const duration = Date.now() - startTime;
-      
+
       logger.info('User created successfully', {
         system: 'security',
         action: 'create_user',
@@ -268,7 +268,7 @@ export class AdvancedSecuritySystem extends EventEmitter {
 
   async authenticateUser(email: string, password: string, ipAddress: string, userAgent: string): Promise<{ user: User; token: string } | null> {
     const startTime = Date.now();
-    
+
     try {
       // Check for brute force protection
       const bruteForceCheck = this.checkBruteForceProtection(email, ipAddress);
@@ -333,7 +333,7 @@ export class AdvancedSecuritySystem extends EventEmitter {
       });
 
       const duration = Date.now() - startTime;
-      
+
       logger.info('User authenticated successfully', {
         system: 'security',
         action: 'authenticate_user',
@@ -378,10 +378,10 @@ export class AdvancedSecuritySystem extends EventEmitter {
       if (method.type === 'totp') {
         const secret = this.generateTOTPSecret();
         mfaMethod.secret = secret;
-        
+
         // Generate QR code for TOTP
         const qrCode = this.generateTOTPQRCode(user.email, secret);
-        
+
         // Store MFA method
         const userMFAMethods = this.mfaMethods.get(userId) || [];
         userMFAMethods.push(mfaMethod);
@@ -398,11 +398,11 @@ export class AdvancedSecuritySystem extends EventEmitter {
         return { secret, qrCode };
       } else if (method.type === 'sms' && method.phoneNumber) {
         mfaMethod.phoneNumber = method.phoneNumber;
-        
+
         // Send SMS verification code
         const verificationCode = this.generateVerificationCode();
         await this.sendSMSVerification(method.phoneNumber, verificationCode);
-        
+
         // Store MFA method
         const userMFAMethods = this.mfaMethods.get(userId) || [];
         userMFAMethods.push(mfaMethod);
@@ -420,11 +420,11 @@ export class AdvancedSecuritySystem extends EventEmitter {
         return {};
       } else if (method.type === 'email' && method.email) {
         mfaMethod.email = method.email;
-        
+
         // Send email verification code
         const verificationCode = this.generateVerificationCode();
         await this.sendEmailVerification(method.email, verificationCode);
-        
+
         // Store MFA method
         const userMFAMethods = this.mfaMethods.get(userId) || [];
         userMFAMethods.push(mfaMethod);
@@ -459,7 +459,7 @@ export class AdvancedSecuritySystem extends EventEmitter {
     try {
       const userMFAMethods = this.mfaMethods.get(userId) || [];
       const mfaMethod = userMFAMethods.find(m => m.type === methodType && m.verified);
-      
+
       if (!mfaMethod) {
         return false;
       }
@@ -521,7 +521,7 @@ export class AdvancedSecuritySystem extends EventEmitter {
   async createAPIToken(userId: string, data: z.infer<typeof APITokenSchema>): Promise<APIToken> {
     try {
       const token = crypto.randomBytes(32).toString('hex');
-      
+
       const apiToken: APIToken = {
         id: `token_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         userId,
@@ -570,7 +570,7 @@ export class AdvancedSecuritySystem extends EventEmitter {
   async validateAPIToken(token: string): Promise<{ userId: string; scopes: string[] } | null> {
     try {
       const apiToken = Array.from(this.apiTokens.values()).find(t => t.token === token);
-      
+
       if (!apiToken) {
         return null;
       }
@@ -709,7 +709,7 @@ export class AdvancedSecuritySystem extends EventEmitter {
             const permission = this.permissions.get(permId);
             return permission && permission.resource === resource && permission.action === action;
           });
-          
+
           if (hasRolePermission) {
             return true;
           }
@@ -855,7 +855,7 @@ export class AdvancedSecuritySystem extends EventEmitter {
         ipAddress,
         error: (error as Error).message,
       });
-      
+
       return {
         ipAddress,
         reputation: 'good',
@@ -876,7 +876,7 @@ export class AdvancedSecuritySystem extends EventEmitter {
   }
 
   private generateBackupCodes(): string[] {
-    return Array.from({ length: 10 }, () => 
+    return Array.from({ length: 10 }, () =>
       Math.random().toString(36).substr(2, 8).toUpperCase()
     );
   }
@@ -938,7 +938,7 @@ export class AdvancedSecuritySystem extends EventEmitter {
   private checkBruteForceProtection(email: string, ipAddress: string): { allowed: boolean; attempts: number } {
     const key = `${email}:${ipAddress}`;
     const attempts = this.failedLoginAttempts.get(key);
-    
+
     if (!attempts) {
       return { allowed: true, attempts: 0 };
     }
@@ -962,10 +962,10 @@ export class AdvancedSecuritySystem extends EventEmitter {
   private async recordFailedLogin(email: string, ipAddress: string): Promise<void> {
     const key = `${email}:${ipAddress}`;
     const attempts = this.failedLoginAttempts.get(key) || { count: 0, lastAttempt: new Date() };
-    
+
     attempts.count++;
     attempts.lastAttempt = new Date();
-    
+
     this.failedLoginAttempts.set(key, attempts);
 
     // Lock account after 5 failed attempts
@@ -991,7 +991,7 @@ export class AdvancedSecuritySystem extends EventEmitter {
         severity: 'high',
         ipAddress: event.ipAddress,
         userAgent: event.userAgent,
-        details: { 
+        details: {
           reason: 'high_frequency_events',
           eventCount: recentEvents.length,
           timeWindow: '1h'
@@ -1126,7 +1126,7 @@ export class AdvancedSecuritySystem extends EventEmitter {
     threatIntelligenceCount: number;
   }> {
     const mfaEnabledUsers = Array.from(this.users.values()).filter(u => u.mfaEnabled).length;
-    const activeAPITokens = Array.from(this.apiTokens.values()).filter(t => 
+    const activeAPITokens = Array.from(this.apiTokens.values()).filter(t =>
       !t.expiresAt || t.expiresAt > new Date()
     ).length;
 

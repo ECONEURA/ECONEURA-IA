@@ -49,7 +49,7 @@ describe('InventoryKardexService', () => {
 
     it('should get a product by ID', async () => {
       const product = await inventoryKardexService.getProduct('prod_1');
-      
+
       expect(product).toBeDefined();
       expect(product?.id).toBe('prod_1');
       expect(product?.sku).toBe('LAPTOP-001');
@@ -58,7 +58,7 @@ describe('InventoryKardexService', () => {
 
     it('should return undefined for non-existent product', async () => {
       const product = await inventoryKardexService.getProduct('non-existent');
-      
+
       expect(product).toBeUndefined();
     });
 
@@ -256,7 +256,7 @@ describe('InventoryKardexService', () => {
       expect(Array.isArray(alerts)).toBe(true);
       expect(alerts.every(a => a.alertType === 'low_stock')).toBe(true);
       expect(alerts.every(a => a.severity === 'high')).toBe(true);
-      expect(alerts.every(a => a.isActive === true)).toBe(true);
+      expect(alerts.every(a => a.isActive =)).toBe(true);
     });
 
     it('should acknowledge an alert', async () => {
@@ -275,7 +275,7 @@ describe('InventoryKardexService', () => {
       };
 
       const alert = await inventoryKardexService.createAlert(alertData);
-      
+
       // Then acknowledge it
       const acknowledgedAlert = await inventoryKardexService.acknowledgeAlert(alert.id, 'user_1');
 
@@ -344,11 +344,11 @@ describe('InventoryKardexService', () => {
       };
 
       const cycleCount = await inventoryKardexService.createCycleCount(cycleCountData);
-      
+
       // Then complete it
       const completedCycleCount = await inventoryKardexService.completeCycleCount(
-        cycleCount.id, 
-        23, 
+        cycleCount.id,
+        23,
         'Found 23 units'
       );
 
@@ -464,7 +464,7 @@ describe('InventoryKardexService', () => {
       // This test would require setting up a product with low stock
       // and then calling checkAlerts to verify it creates the appropriate alert
       await inventoryKardexService.checkAlerts('prod_1');
-      
+
       // Verify that alerts were created if conditions were met
       const alerts = await inventoryKardexService.getAlerts('demo-org-1', {
         productId: 'prod_1',

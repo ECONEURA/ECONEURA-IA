@@ -33,12 +33,12 @@ class HealthModeManager {
   // Liveness probe - básico, sin dependencias externas
   async getLivenessProbe(): Promise<HealthStatus> {
     const startTime = Date.now();
-    
+
     try {
       // Checks mínimos para liveness
       const memoryUsage = process.memoryUsage();
       const memoryUsageMB = memoryUsage.heapUsed / 1024 / 1024;
-      
+
       let memoryStatus: 'ok' | 'warning' | 'error' = 'ok';
       if (memoryUsageMB > 1000) memoryStatus = 'error';
       else if (memoryUsageMB > 500) memoryStatus = 'warning';
@@ -57,7 +57,7 @@ class HealthModeManager {
       };
 
       const duration = Date.now() - startTime;
-      
+
       structuredLogger.debug('Liveness probe completed', {
         duration,
         status: status.status,
@@ -67,7 +67,7 @@ class HealthModeManager {
       return status;
     } catch (error) {
       structuredLogger.error('Liveness probe failed', error as Error);
-      
+
       return {
         status: 'error',
         mode: 'live',
@@ -81,7 +81,7 @@ class HealthModeManager {
   // Readiness probe - con dependencias externas
   async getReadinessProbe(): Promise<HealthStatus> {
     const startTime = Date.now();
-    
+
     try {
       const checks: HealthStatus['checks'] = {};
       let overallStatus: 'ok' | 'warning' | 'error' = 'ok';
@@ -90,7 +90,7 @@ class HealthModeManager {
       // Memory check
       const memoryUsage = process.memoryUsage();
       const memoryUsageMB = memoryUsage.heapUsed / 1024 / 1024;
-      
+
       let memoryStatus: 'ok' | 'warning' | 'error' = 'ok';
       if (memoryUsageMB > 1000) {
         memoryStatus = 'error';
@@ -113,7 +113,7 @@ class HealthModeManager {
         // Simulate DB check
         await new Promise(resolve => setTimeout(resolve, Math.random() * 50));
         const dbLatency = Date.now() - dbStartTime;
-        
+
         if (dbLatency > 100) {
           checks.database = { status: 'error', latency: dbLatency };
           overallStatus = 'error';
@@ -154,7 +154,7 @@ class HealthModeManager {
       };
 
       const duration = Date.now() - startTime;
-      
+
       structuredLogger.info('Readiness probe completed', {
         duration,
         status: status.status,
@@ -165,10 +165,10 @@ class HealthModeManager {
       return status;
     } catch (error) {
       structuredLogger.error('Readiness probe failed', error as Error);
-      
+
       this.currentMode = 'degraded';
       this.degradedReason = 'Health check failed';
-      
+
       return {
         status: 'error',
         mode: 'degraded',
@@ -189,7 +189,7 @@ class HealthModeManager {
   forceDegradedMode(reason: string): void {
     this.currentMode = 'degraded';
     this.degradedReason = reason;
-    
+
     structuredLogger.warn('System forced into degraded mode', {
       reason,
       timestamp: new Date().toISOString()
@@ -200,7 +200,7 @@ class HealthModeManager {
   restoreNormalMode(): void {
     this.currentMode = 'live';
     this.degradedReason = undefined;
-    
+
     structuredLogger.info('System restored to normal mode', {
       timestamp: new Date().toISOString()
     });

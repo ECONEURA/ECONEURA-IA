@@ -25,7 +25,7 @@ export async function upsertRun(run: Partial<AgentRun>): Promise<void> {
       INSERT INTO agent_runs (run_id, tenant_id, dept, agent_key, status, progress, summary)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       ON CONFLICT (run_id)
-      DO UPDATE SET 
+      DO UPDATE SET
         status = EXCLUDED.status,
         progress = EXCLUDED.progress,
         summary = EXCLUDED.summary,
@@ -51,7 +51,7 @@ export async function getRun(runId: string): Promise<AgentRun | null> {
     const result = await pgPool.query(`
       SELECT * FROM agent_runs WHERE run_id = $1
     `, [runId]);
-    
+
     return result.rows[0] || null;
   } catch (error) {
     console.error('❌ Error getting run:', error);
@@ -63,19 +63,19 @@ export async function getRun(runId: string): Promise<AgentRun | null> {
 export async function getRunsByTenant(tenantId: string, dept?: string, limit: number = 50): Promise<AgentRun[]> {
   try {
     let query = `
-      SELECT * FROM agent_runs 
+      SELECT * FROM agent_runs
       WHERE tenant_id = $1
     `;
     const params: any[] = [tenantId];
-    
+
     if (dept) {
       query += ` AND dept = $2`;
       params.push(dept);
     }
-    
+
     query += ` ORDER BY created_at DESC LIMIT $${params.length + 1}`;
     params.push(limit);
-    
+
     const result = await pgPool.query(query, params);
     return result.rows;
   } catch (error) {
@@ -88,10 +88,10 @@ export async function getRunsByTenant(tenantId: string, dept?: string, limit: nu
 export async function seen(idempotencyKey: string): Promise<boolean> {
   try {
     const result = await pgPool.query(`
-      SELECT 1 FROM idempotency_cache 
+      SELECT 1 FROM idempotency_cache
       WHERE idempotency_key = $1 AND expires_at > now()
     `, [idempotencyKey]);
-    
+
     return result.rows.length > 0;
   } catch (error) {
     console.error('❌ Error checking idempotency:', error);
@@ -122,25 +122,25 @@ export async function getRunStats(tenantId: string, dept?: string): Promise<{
 }> {
   try {
     let query = `
-      SELECT 
+      SELECT
         COUNT(*) as total,
         COUNT(*) FILTER (WHERE status = 'RUNNING') as running,
         COUNT(*) FILTER (WHERE status = 'COMPLETED') as completed,
         COUNT(*) FILTER (WHERE status = 'FAILED') as failed,
         COUNT(*) FILTER (WHERE status = 'HITL') as hitl
-      FROM agent_runs 
+      FROM agent_runs
       WHERE tenant_id = $1
     `;
     const params: any[] = [tenantId];
-    
+
     if (dept) {
       query += ` AND dept = $2`;
       params.push(dept);
     }
-    
+
     const result = await pgPool.query(query, params);
     const row = result.rows[0];
-    
+
     return {
       total: parseInt(row.total) || 0,
       running: parseInt(row.running) || 0,

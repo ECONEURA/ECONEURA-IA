@@ -1,6 +1,6 @@
 /**
  * BACKUP & RECOVERY AUTOMATED SERVICE - MEJORA CRÍTICA 5
- * 
+ *
  * Sistema avanzado de backup y recovery automático con:
  * - Backup automático programado
  * - Backup incremental y diferencial
@@ -466,7 +466,7 @@ export class BackupRecoveryAutomatedService {
       // Update job status if it exists
       const job = Array.from(this.backupJobs.values())
         .find(j => j.configId === configId && j.status === 'running');
-      
+
       if (job) {
         job.status = 'failed';
         job.endTime = new Date();
@@ -559,10 +559,10 @@ export class BackupRecoveryAutomatedService {
   private async storeToLocal(data: Buffer, storage: StorageConfig, jobId: string): Promise<string> {
     const filename = `backup-${jobId}-${Date.now()}.bak`;
     const filepath = path.join(storage.config.path, filename);
-    
+
     // In production, actually write the file
     // await fs.writeFile(filepath, data);
-    
+
     return filepath;
   }
 
@@ -610,12 +610,12 @@ export class BackupRecoveryAutomatedService {
     if (!metrics) return;
 
     metrics.totalBackups++;
-    
+
     if (job.status === 'completed') {
       metrics.successfulBackups++;
       metrics.totalSize += job.size;
       metrics.averageSize = metrics.totalSize / metrics.successfulBackups;
-      
+
       if (metrics.averageDuration === 0) {
         metrics.averageDuration = job.duration || 0;
       } else {
@@ -697,7 +697,7 @@ export class BackupRecoveryAutomatedService {
       // Update job status if it exists
       const job = Array.from(this.recoveryJobs.values())
         .find(j => j.backupId === backupId && j.status === 'running');
-      
+
       if (job) {
         job.status = 'failed';
         job.endTime = new Date();
@@ -735,7 +735,7 @@ export class BackupRecoveryAutomatedService {
     try {
       this.configs.set(config.id, config);
       this.initializeMetrics(config.id);
-      
+
       if (config.enabled && config.schedule.enabled) {
         this.scheduleBackup(config);
       }
@@ -765,7 +765,7 @@ export class BackupRecoveryAutomatedService {
         if (existingJob) {
           clearInterval(existingJob);
         }
-        
+
         if (config.enabled && config.schedule.enabled) {
           this.scheduleBackup(config);
         }
@@ -786,7 +786,7 @@ export class BackupRecoveryAutomatedService {
     try {
       const deleted = this.configs.delete(configId);
       this.metrics.delete(configId);
-      
+
       const existingJob = this.scheduledJobs.get(configId);
       if (existingJob) {
         clearInterval(existingJob);
@@ -809,7 +809,7 @@ export class BackupRecoveryAutomatedService {
   async getHealthStatus(): Promise<{ status: string; details: any }> {
     const configs = await this.getBackupConfigs();
     const jobs = await this.getBackupJobs();
-    const recentJobs = jobs.filter(job => 
+    const recentJobs = jobs.filter(job =>
       Date.now() - job.startTime.getTime() < 24 * 60 * 60 * 1000 // Last 24 hours
     );
 
@@ -833,7 +833,7 @@ export class BackupRecoveryAutomatedService {
         recentJobs: recentJobs.length,
         failedJobs: failedJobs.length,
         runningJobs: runningJobs.length,
-        lastBackup: recentJobs.length > 0 ? 
+        lastBackup: recentJobs.length > 0 ?
           Math.max(...recentJobs.map(j => j.startTime.getTime())) : null
       }
     };

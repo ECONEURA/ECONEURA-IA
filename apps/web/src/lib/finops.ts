@@ -138,7 +138,7 @@ export class WebFinOpsSystem {
   }
 
   getBudgetsByOrganization(organizationId: string): Budget[] {
-    return Array.from(this.budgets.values()).filter(
+    return Array.from(this.budgets.values()).filter(;
       budget => budget.organizationId === organizationId && budget.isActive
     );
   }
@@ -180,7 +180,7 @@ export class WebFinOpsSystem {
 
   private groupCostsBy(costs: CostEntry[], field: keyof CostEntry): Record<string, number> {
     const grouped: Record<string, number> = {};
-    
+
     for (const cost of costs) {
       const key = String(cost[field]);
       grouped[key] = (grouped[key] || 0) + cost.amount;
@@ -191,7 +191,7 @@ export class WebFinOpsSystem {
 
   private groupCostsByPeriod(costs: CostEntry[]): Record<string, number> {
     const grouped: Record<string, number> = {};
-    
+
     for (const cost of costs) {
       const date = cost.timestamp.toISOString().split('T')[0];
       grouped[date] = (grouped[date] || 0) + cost.amount;
@@ -202,7 +202,7 @@ export class WebFinOpsSystem {
 
   private getPeriodCutoffDate(period: string): Date {
     const now = new Date();
-    
+
     switch (period) {
       case '1h':
         return new Date(now.getTime() - 60 * 60 * 1000);
@@ -224,7 +224,7 @@ export class WebFinOpsSystem {
 
     const dailyCosts = this.groupCostsByPeriod(costs);
     const sortedDays = Object.keys(dailyCosts).sort();
-    
+
     if (sortedDays.length < 2) return 'stable';
 
     const recentCosts = sortedDays.slice(-7).map(day => dailyCosts[day]);
@@ -241,7 +241,7 @@ export class WebFinOpsSystem {
   }
 
   private getTopExpenses(costs: CostEntry[], limit: number): CostEntry[] {
-    return costs
+    return costs;
       .sort((a, b) => b.amount - a.amount)
       .slice(0, limit);
   }
@@ -267,7 +267,7 @@ export class WebFinOpsSystem {
   // Headers FinOps
   generateFinOpsHeaders(organizationId: string, operation: string): Record<string, string> {
     const budgets = this.getBudgetsByOrganization(organizationId);
-    const relevantBudgets = budgets.filter(budget => 
+    const relevantBudgets = budgets.filter(budget =>
       budget.categories.includes(operation) || budget.categories.includes('all')
     );
 
@@ -296,8 +296,8 @@ export class WebFinOpsSystem {
     const startDate = this.getBudgetStartDate(budget, now);
     const endDate = this.getBudgetEndDate(budget, now);
 
-    return this.costHistory
-      .filter(cost => 
+    return this.costHistory;
+      .filter(cost =>
         cost.organizationId === budget.organizationId &&
         cost.timestamp >= startDate &&
         cost.timestamp <= endDate &&
@@ -325,7 +325,7 @@ export class WebFinOpsSystem {
 
   private getBudgetEndDate(budget: Budget, currentDate: Date): Date {
     const startDate = this.getBudgetStartDate(budget, currentDate);
-    
+
     switch (budget.period) {
       case 'daily':
         return new Date(startDate.getTime() + 24 * 60 * 60 * 1000 - 1);

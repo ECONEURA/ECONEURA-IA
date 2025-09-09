@@ -140,7 +140,7 @@ export class TracingService {
     options: SpanOptions = {}
   ): Promise<T> {
     const span = this.createSpan(name, options);
-    
+
     try {
       const result = await context.with(trace.setSpan(context.active(), span), operation);
       span.setStatus({ code: SpanStatusCode.OK });
@@ -164,15 +164,15 @@ export class TracingService {
     options: SpanOptions = {}
   ): Promise<T> {
     const span = this.createHttpSpan(req, res, options);
-    
+
     try {
       const result = await context.with(trace.setSpan(context.active(), span), operation);
-      
+
       span.setAttributes({
         'http.status_code': res.statusCode,
         'http.response_size': JSON.stringify(res.locals.responseBody || {}).length
       });
-      
+
       span.setStatus({ code: SpanStatusCode.OK });
       return result;
     } catch (error) {
@@ -249,21 +249,21 @@ export class TracingService {
   httpTracingMiddleware() {
     return (req: Request, res: Response, next: NextFunction): void => {
       const span = this.createHttpSpan(req, res);
-      
+
       // Store span in request for later use
       req.span = span;
-      
+
       // Add trace headers to response
       res.setHeader('X-Trace-Id', span.spanContext().traceId);
       res.setHeader('X-Span-Id', span.spanContext().spanId);
-      
+
       // End span when response finishes
       res.on('finish', () => {
         span.setAttributes({
           'http.status_code': res.statusCode,
           'http.response_size': JSON.stringify(res.locals.responseBody || {}).length
         });
-        
+
         if (res.statusCode >= 400) {
           span.setStatus({
             code: SpanStatusCode.ERROR,
@@ -272,10 +272,10 @@ export class TracingService {
         } else {
           span.setStatus({ code: SpanStatusCode.OK });
         }
-        
+
         span.end();
       });
-      
+
       next();
     };
   }
@@ -308,27 +308,27 @@ export class TracingService {
   ): Promise<T> {
     const startTime = Date.now();
     const span = this.createSpan(operation, options);
-    
+
     try {
       const result = await fn();
       const duration = Date.now() - startTime;
-      
+
       span.setAttributes({
         'performance.duration_ms': duration,
         'performance.operation': operation
       });
-      
+
       span.setStatus({ code: SpanStatusCode.OK });
       return result;
     } catch (error) {
       const duration = Date.now() - startTime;
-      
+
       span.setAttributes({
         'performance.duration_ms': duration,
         'performance.operation': operation,
         'performance.error': true
       });
-      
+
       span.setStatus({
         code: SpanStatusCode.ERROR,
         message: error instanceof Error ? error.message : 'Unknown error'
@@ -367,13 +367,13 @@ export class TracingService {
 
   traceBusinessOperation(operation: string, organizationId: string, context: Record<string, any> = {}): Span {
     const span = this.createBusinessSpan(operation, organizationId);
-    
+
     span.setAttributes({
       'business.operation': operation,
       'organization.id': organizationId,
       ...context
     });
-    
+
     return span;
   }
 }

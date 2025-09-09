@@ -124,7 +124,7 @@ inventoryKardexRouter.get('/products', async (req, res) => {
   try {
     const filters = GetProductsSchema.parse(req.query);
     const products = await inventoryKardexService.getProducts(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -148,14 +148,14 @@ inventoryKardexRouter.get('/products/:id', async (req, res) => {
   try {
     const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
     const product = await inventoryKardexService.getProduct(id);
-    
+
     if (!product) {
       return res.status(404).json({
         success: false,
         error: 'Product not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: product,
@@ -175,7 +175,7 @@ inventoryKardexRouter.post('/products', async (req, res) => {
   try {
     const productData = CreateProductSchema.parse(req.body);
     const product = await inventoryKardexService.createProduct(productData);
-    
+
     res.status(201).json({
       success: true,
       data: product,
@@ -196,7 +196,7 @@ inventoryKardexRouter.get('/kardex', async (req, res) => {
   try {
     const filters = GetKardexEntriesSchema.parse(req.query);
     const entries = await inventoryKardexService.getKardexEntries(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -220,7 +220,7 @@ inventoryKardexRouter.post('/kardex', async (req, res) => {
   try {
     const entryData = CreateKardexEntrySchema.parse(req.body);
     const entry = await inventoryKardexService.createKardexEntry(entryData);
-    
+
     res.status(201).json({
       success: true,
       data: entry,
@@ -241,7 +241,7 @@ inventoryKardexRouter.get('/stock-levels', async (req, res) => {
   try {
     const filters = GetStockLevelsSchema.parse(req.query);
     const stockLevels = await inventoryKardexService.getStockLevels(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -265,14 +265,14 @@ inventoryKardexRouter.get('/stock-levels/:productId', async (req, res) => {
   try {
     const { productId } = z.object({ productId: z.string().min(1) }).parse(req.params);
     const stockLevel = await inventoryKardexService.getStockLevel(productId);
-    
+
     if (!stockLevel) {
       return res.status(404).json({
         success: false,
         error: 'Stock level not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: stockLevel,
@@ -293,7 +293,7 @@ inventoryKardexRouter.get('/alerts', async (req, res) => {
   try {
     const filters = GetAlertsSchema.parse(req.query);
     const alerts = await inventoryKardexService.getAlerts(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -317,16 +317,16 @@ inventoryKardexRouter.post('/alerts/:id/acknowledge', async (req, res) => {
   try {
     const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
     const { acknowledgedBy } = AcknowledgeAlertSchema.parse(req.body);
-    
+
     const alert = await inventoryKardexService.acknowledgeAlert(id, acknowledgedBy);
-    
+
     if (!alert) {
       return res.status(404).json({
         success: false,
         error: 'Alert not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: alert,
@@ -347,7 +347,7 @@ inventoryKardexRouter.get('/cycle-counts', async (req, res) => {
   try {
     const filters = GetCycleCountsSchema.parse(req.query);
     const cycleCounts = await inventoryKardexService.getCycleCounts(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -371,7 +371,7 @@ inventoryKardexRouter.post('/cycle-counts', async (req, res) => {
   try {
     const cycleCountData = CreateCycleCountSchema.parse(req.body);
     const cycleCount = await inventoryKardexService.createCycleCount(cycleCountData);
-    
+
     res.status(201).json({
       success: true,
       data: cycleCount,
@@ -391,16 +391,16 @@ inventoryKardexRouter.post('/cycle-counts/:id/complete', async (req, res) => {
   try {
     const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
     const { actualQuantity, notes } = CompleteCycleCountSchema.parse(req.body);
-    
+
     const cycleCount = await inventoryKardexService.completeCycleCount(id, actualQuantity, notes);
-    
+
     if (!cycleCount) {
       return res.status(404).json({
         success: false,
         error: 'Cycle count not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: cycleCount,
@@ -427,7 +427,7 @@ inventoryKardexRouter.post('/reports', async (req, res) => {
       reportData.endDate,
       reportData.generatedBy
     );
-    
+
     res.status(201).json({
       success: true,
       data: report,
@@ -448,7 +448,7 @@ inventoryKardexRouter.get('/stats', async (req, res) => {
   try {
     const { organizationId } = GetStatsSchema.parse(req.query);
     const stats = await inventoryKardexService.getInventoryStats(organizationId);
-    
+
     res.json({
       success: true,
       data: stats,
@@ -468,7 +468,7 @@ inventoryKardexRouter.get('/stats', async (req, res) => {
 inventoryKardexRouter.get('/health', async (req, res) => {
   try {
     const stats = await inventoryKardexService.getInventoryStats('demo-org-1');
-    
+
     res.json({
       success: true,
       data: {

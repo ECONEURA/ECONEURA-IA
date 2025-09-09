@@ -59,7 +59,7 @@ export class RateLimiter {
     const ip = req.ip || req.connection.remoteAddress || 'unknown';
     const userId = req.headers['x-user-id'] as string || 'anonymous';
     const organizationId = req.headers['x-organization-id'] as string || 'default';
-    
+
     return `${ip}:${userId}:${organizationId}`;
   }
 

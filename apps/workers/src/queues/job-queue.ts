@@ -62,7 +62,7 @@ export class JobQueue {
 
   async enqueue(job: Omit<Job, 'id' | 'status' | 'createdAt' | 'retryCount'>): Promise<string> {
     const jobId = `job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const fullJob: Job = {
       ...job,
       id: jobId,
@@ -74,14 +74,14 @@ export class JobQueue {
     try {
       // Store job data
       await this.redis.hset(`job:${jobId}`, fullJob);
-      
+
       // Add to priority queue
       const priorityScore = this.getPriorityScore(job.priority);
       await this.redis.zadd(`queue:${job.type}`, priorityScore, jobId);
-      
+
       // Update metrics
       this.queueSize.inc({ type: job.type, status: 'pending' });
-      
+
       logger.info('Job enqueued', {
         jobId,
         type: job.type,
@@ -103,16 +103,16 @@ export class JobQueue {
     try {
       // Get highest priority job
       const result = await this.redis.zpopmax(`queue:${type}`);
-      
+
       if (!result || result.length === 0) {
         return null;
       }
 
       const jobId = result[0];
-      
+
       // Get job data
       const jobData = await this.redis.hgetall(`job:${jobId}`);
-      
+
       if (!jobData || Object.keys(jobData).length === 0) {
         logger.warn('Job data not found', { jobId });
         return null;
@@ -164,7 +164,7 @@ export class JobQueue {
   async completeJob(jobId: string, result?: any): Promise<void> {
     try {
       const jobData = await this.redis.hgetall(`job:${jobId}`);
-      
+
       if (!jobData || Object.keys(jobData).length === 0) {
         throw new Error(`Job ${jobId} not found`);
       }
@@ -213,7 +213,7 @@ export class JobQueue {
         jobId,
         type: job.type,
         organizationId: job.organizationId,
-        processingTime: job.startedAt ? 
+        processingTime: job.startedAt ?
           new Date().getTime() - new Date(job.startedAt).getTime() : 0
       });
 
@@ -229,7 +229,7 @@ export class JobQueue {
   async failJob(jobId: string, error: string): Promise<void> {
     try {
       const jobData = await this.redis.hgetall(`job:${jobId}`);
-      
+
       if (!jobData || Object.keys(jobData).length === 0) {
         throw new Error(`Job ${jobId} not found`);
       }
@@ -255,7 +255,7 @@ export class JobQueue {
         // Retry job
         job.retryCount++;
         job.status = 'retrying';
-        
+
         await this.redis.hset(`job:${jobId}`, {
           status: 'retrying',
           retryCount: job.retryCount,
@@ -267,9 +267,9 @@ export class JobQueue {
         await this.redis.zadd(`queue:${job.type}`, priorityScore, jobId);
 
         this.queueSize.inc({ type: job.type, status: 'pending' });
-        
+
         logger.info('Job retrying', {
-          jobId, 
+          jobId,
           type: job.type,
           retryCount: job.retryCount,
           maxRetries: job.maxRetries,
@@ -291,7 +291,7 @@ export class JobQueue {
         });
 
         logger.error('Job failed permanently', {
-          jobId, 
+          jobId,
           type: job.type,
           retryCount: job.retryCount,
           maxRetries: job.maxRetries,
@@ -302,8 +302,8 @@ export class JobQueue {
 
       } catch (error) {
       logger.error('Failed to fail job', {
-          jobId, 
-          error: error instanceof Error ? error.message : 'Unknown error' 
+          jobId,
+          error: error instanceof Error ? error.message : 'Unknown error'
         });
         throw error;
       }
@@ -312,7 +312,7 @@ export class JobQueue {
   async getJob(jobId: string): Promise<Job | null> {
     try {
       const jobData = await this.redis.hgetall(`job:${jobId}`);
-      
+
       if (!jobData || Object.keys(jobData).length === 0) {
         return null;
       }
@@ -334,8 +334,8 @@ export class JobQueue {
       };
       } catch (error) {
       logger.error('Failed to get job', {
-          jobId, 
-          error: error instanceof Error ? error.message : 'Unknown error' 
+          jobId,
+          error: error instanceof Error ? error.message : 'Unknown error'
         });
       return null;
     }
@@ -357,18 +357,18 @@ export class JobQueue {
 
       // Get all job keys
       const jobKeys = await this.redis.keys('job:*');
-      
+
       for (const key of jobKeys) {
         const jobData = await this.redis.hgetall(key);
-        
+
         if (jobData && Object.keys(jobData).length > 0) {
           const status = jobData.status as Job['status'];
           const type = jobData.type as Job['type'];
           const priority = jobData.priority as Job['priority'];
-          
+
           stats.total++;
           stats[status]++;
-          
+
           stats.byType[type] = (stats.byType[type] || 0) + 1;
           stats.byPriority[priority] = (stats.byPriority[priority] || 0) + 1;
         }
@@ -377,7 +377,7 @@ export class JobQueue {
       return stats;
       } catch (error) {
       logger.error('Failed to get job stats', {
-          error: error instanceof Error ? error.message : 'Unknown error' 
+          error: error instanceof Error ? error.message : 'Unknown error'
         });
         throw error;
       }
@@ -401,10 +401,10 @@ export class JobQueue {
 
       for (const key of jobKeys) {
         const jobData = await this.redis.hgetall(key);
-        
+
         if (jobData && jobData.status === 'completed' && jobData.completedAt) {
           const completedAt = new Date(jobData.completedAt);
-          
+
           if (completedAt < cutoffTime) {
             await this.redis.del(key);
             clearedCount++;

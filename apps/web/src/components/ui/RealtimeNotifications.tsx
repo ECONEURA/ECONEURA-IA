@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { 
-  Bell, 
-  X, 
-  AlertTriangle, 
-  CheckCircle, 
-  Info, 
+import {
+  Bell,
+  X,
+  AlertTriangle,
+  CheckCircle,
+  Info,
   Package,
   Building2,
   TrendingUp,
@@ -61,10 +61,10 @@ export default function RealtimeNotifications({
     try {
       // In a real app, this would connect to your WebSocket server
       // const ws = new WebSocket(`ws://localhost:3001/realtime?token=${user?.token}`);
-      
+
       // For now, we'll simulate WebSocket connection
       setIsConnected(true);
-      
+
       // Simulate incoming notifications
       const interval = setInterval(() => {
         if (Math.random() > 0.7) { // 30% chance every interval
@@ -91,7 +91,7 @@ export default function RealtimeNotifications({
     const types: Array<'success' | 'warning' | 'error' | 'info'> = ['success', 'warning', 'error', 'info'];
     const categories = ['inventory', 'suppliers', 'products', 'alerts', 'reports'];
     const priorities: Array<'low' | 'medium' | 'high' | 'urgent'> = ['low', 'medium', 'high', 'urgent'];
-    
+
     const type = types[Math.floor(Math.random() * types.length)];
     const category = categories[Math.floor(Math.random() * categories.length)];
     const priority = priorities[Math.floor(Math.random() * priorities.length)];
@@ -130,7 +130,7 @@ export default function RealtimeNotifications({
     };
 
     const notification = notifications[category as keyof typeof notifications][type];
-    
+
     return {
       type,
       title: notification.title,
@@ -164,7 +164,7 @@ export default function RealtimeNotifications({
       const timeout = setTimeout(() => {
         removeNotification(newNotification.id);
       }, autoHideDelay);
-      
+
       autoHideTimeouts.current.set(newNotification.id, timeout);
     }
   };
@@ -173,11 +173,11 @@ export default function RealtimeNotifications({
     setNotifications(prev => {
       const updated = prev.filter(n => n.id !== id);
       const removed = prev.find(n => n.id === id);
-      
+
       if (removed && !removed.read) {
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
-      
+
       return updated;
     });
 
@@ -190,12 +190,12 @@ export default function RealtimeNotifications({
   };
 
   const markAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(n => 
+    setNotifications(prev =>
+      prev.map(n =>
         n.id === id ? { ...n, read: true } : n
       )
     );
-    
+
     const notification = notifications.find(n => n.id === id);
     if (notification && !notification.read) {
       setUnreadCount(prev => Math.max(0, prev - 1));
@@ -203,7 +203,7 @@ export default function RealtimeNotifications({
   };
 
   const markAllAsRead = () => {
-    setNotifications(prev => 
+    setNotifications(prev =>
       prev.map(n => ({ ...n, read: true }))
     );
     setUnreadCount(0);
@@ -212,7 +212,7 @@ export default function RealtimeNotifications({
   const clearAll = () => {
     setNotifications([]);
     setUnreadCount(0);
-    
+
     // Clear all timeouts
     autoHideTimeouts.current.forEach(timeout => clearTimeout(timeout));
     autoHideTimeouts.current.clear();
@@ -283,11 +283,11 @@ export default function RealtimeNotifications({
     if (minutes < 60) return `Hace ${minutes} min`;
     if (hours < 24) return `Hace ${hours} h`;
     if (days < 7) return `Hace ${days} días`;
-    
+
     return timestamp.toLocaleDateString('es-ES');
   };
 
-  return (
+  return (;
     <div className={`relative ${className}`}>
       {/* Notification Bell */}
       <button

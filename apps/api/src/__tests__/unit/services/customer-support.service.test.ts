@@ -1,6 +1,6 @@
 /**
  * CUSTOMER SUPPORT SERVICE TESTS
- * 
+ *
  * PR-58: Pruebas unitarias para el servicio de soporte al cliente
  */
 
@@ -32,10 +32,10 @@ describe('CustomerSupportService', () => {
     mockDb = {
       query: vi.fn()
     };
-    
+
     // Mock the database service to return our mock
     vi.mocked(require('../../../lib/database.service.js').getDatabaseService).mockReturnValue(mockDb);
-    
+
     service = new CustomerSupportService();
   });
 
@@ -135,7 +135,7 @@ describe('CustomerSupportService', () => {
     it('should return ticket when found', async () => {
       const ticketId = 'test-ticket-id';
       const organizationId = 'test-org';
-      
+
       const mockTicket = {
         id: ticketId,
         organizationId,
@@ -176,7 +176,7 @@ describe('CustomerSupportService', () => {
       const ticketId = 'test-ticket-id';
       const organizationId = 'test-org';
       const differentOrgId = 'different-org';
-      
+
       const mockTicket = {
         id: ticketId,
         organizationId: differentOrgId,
@@ -211,7 +211,7 @@ describe('CustomerSupportService', () => {
       const organizationId = 'test-org';
       const newStatus = 'resolved';
       const updatedBy = 'agent-123';
-      
+
       const mockTicket = {
         id: ticketId,
         organizationId,
@@ -324,7 +324,7 @@ describe('CustomerSupportService', () => {
   describe('getTicketMessages', () => {
     it('should return messages for a ticket', async () => {
       const ticketId = 'test-ticket-id';
-      
+
       const mockMessages = [
         {
           id: 'message-1',
@@ -451,7 +451,7 @@ describe('CustomerSupportService', () => {
       const organizationId = 'test-org';
       const query = 'password';
       const category = 'account';
-      
+
       const mockArticles = [
         {
           id: 'article-1',
@@ -511,8 +511,8 @@ describe('CustomerSupportService', () => {
       expect(result[0].id).toBe('article-1'); // Higher score due to more views and helpful votes
       expect(result[1].id).toBe('article-2');
       expect(result.every(article => article.category === category)).toBe(true);
-      expect(result.every(article => 
-        article.title.toLowerCase().includes(query) || 
+      expect(result.every(article =>
+        article.title.toLowerCase().includes(query) ||
         article.content.toLowerCase().includes(query) ||
         article.tags.some(tag => tag.toLowerCase().includes(query))
       )).toBe(true);
@@ -520,7 +520,7 @@ describe('CustomerSupportService', () => {
 
     it('should return all published articles when no query provided', async () => {
       const organizationId = 'test-org';
-      
+
       const mockArticles = [
         {
           id: 'article-1',

@@ -6,11 +6,11 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { Request, Response } from 'express';
 import { structuredLogger } from '../lib/structured-logger.js';
-import { 
-  getRateLimitStatus, 
-  resetRateLimit, 
+import {
+  getRateLimitStatus,
+  resetRateLimit,
   getRateLimitStats,
-  globalRateLimiter 
+  globalRateLimiter
 } from '../middleware/rate-limiting.js';
 import { authenticateToken } from '../middleware/auth.js';
 

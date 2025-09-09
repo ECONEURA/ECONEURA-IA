@@ -38,12 +38,12 @@ router.get('/', async (req, res) => {
   try {
     const { type, status } = req.query;
     const filters: any = {};
-    
+
     if (type) filters.type = type as string;
     if (status) filters.status = status as string;
-    
+
     const workflows = await workflowsService.getWorkflows(filters);
-    
+
     res.json({
       success: true,
       data: workflows,
@@ -64,14 +64,14 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const workflow = await workflowsService.getWorkflow(id);
-    
+
     if (!workflow) {
       return res.status(404).json({
         success: false,
         error: 'Workflow not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: workflow
@@ -90,7 +90,7 @@ router.post('/', validateWorkflow, async (req, res) => {
   try {
     // Validar workflow antes de crear
     const validation = await workflowsService.validateWorkflow(req.body);
-    
+
     if (!validation.isValid) {
       return res.status(400).json({
         success: false,
@@ -99,9 +99,9 @@ router.post('/', validateWorkflow, async (req, res) => {
         warnings: validation.warnings
       });
     }
-    
+
     const workflow = await workflowsService.createWorkflow(req.body);
-    
+
     res.status(201).json({
       success: true,
       data: workflow,
@@ -121,7 +121,7 @@ router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
-    
+
     // Validar actualizaciones si se proporciona definición completa
     if (updates.definition || updates.actions) {
       const existing = await workflowsService.getWorkflow(id);
@@ -131,7 +131,7 @@ router.put('/:id', async (req, res) => {
           error: 'Workflow not found'
         });
       }
-      
+
       const validation = await workflowsService.validateWorkflow({ ...existing, ...updates });
       if (!validation.isValid) {
         return res.status(400).json({
@@ -142,16 +142,16 @@ router.put('/:id', async (req, res) => {
         });
       }
     }
-    
+
     const workflow = await workflowsService.updateWorkflow(id, updates);
-    
+
     if (!workflow) {
       return res.status(404).json({
         success: false,
         error: 'Workflow not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: workflow,
@@ -171,14 +171,14 @@ router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const deleted = await workflowsService.deleteWorkflow(id);
-    
+
     if (!deleted) {
       return res.status(404).json({
         success: false,
         error: 'Workflow not found'
       });
     }
-    
+
     res.json({
       success: true,
       message: 'Workflow deleted successfully'
@@ -197,16 +197,16 @@ router.post('/:id/start', async (req, res) => {
   try {
     const { id } = req.params;
     const { context, metadata } = req.body;
-    
+
     if (!context) {
       return res.status(400).json({
         success: false,
         error: 'Context is required to start workflow'
       });
     }
-    
+
     const instance = await workflowsService.startWorkflow(id, context, metadata || {});
-    
+
     res.json({
       success: true,
       data: instance,
@@ -228,12 +228,12 @@ router.get('/instances', async (req, res) => {
   try {
     const { status, workflowId } = req.query;
     const filters: any = {};
-    
+
     if (status) filters.status = status as string;
     if (workflowId) filters.workflowId = workflowId as string;
-    
+
     const instances = await workflowsService.getInstances(filters);
-    
+
     res.json({
       success: true,
       data: instances,
@@ -254,14 +254,14 @@ router.get('/instances/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const instance = await workflowsService.getInstance(id);
-    
+
     if (!instance) {
       return res.status(404).json({
         success: false,
         error: 'Workflow instance not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: instance
@@ -280,14 +280,14 @@ router.post('/instances/:id/pause', async (req, res) => {
   try {
     const { id } = req.params;
     const instance = await workflowsService.pauseInstance(id);
-    
+
     if (!instance) {
       return res.status(404).json({
         success: false,
         error: 'Workflow instance not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: instance,
@@ -307,14 +307,14 @@ router.post('/instances/:id/resume', async (req, res) => {
   try {
     const { id } = req.params;
     const instance = await workflowsService.resumeInstance(id);
-    
+
     if (!instance) {
       return res.status(404).json({
         success: false,
         error: 'Workflow instance not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: instance,
@@ -334,14 +334,14 @@ router.post('/instances/:id/cancel', async (req, res) => {
   try {
     const { id } = req.params;
     const instance = await workflowsService.cancelInstance(id);
-    
+
     if (!instance) {
       return res.status(404).json({
         success: false,
         error: 'Workflow instance not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: instance,
@@ -361,16 +361,16 @@ router.post('/instances/:id/actions', async (req, res) => {
   try {
     const { id } = req.params;
     const { actionId } = req.body;
-    
+
     if (!actionId) {
       return res.status(400).json({
         success: false,
         error: 'Action ID is required'
       });
     }
-    
+
     const result = await workflowsService.executeAction(id, actionId);
-    
+
     if (!result.success) {
       return res.status(400).json({
         success: false,
@@ -378,7 +378,7 @@ router.post('/instances/:id/actions', async (req, res) => {
         data: { actionId }
       });
     }
-    
+
     res.json({
       success: true,
       data: {
@@ -402,7 +402,7 @@ router.post('/instances/:id/actions', async (req, res) => {
 router.get('/stats', async (req, res) => {
   try {
     const stats = await workflowsService.getStats();
-    
+
     res.json({
       success: true,
       data: stats
@@ -422,7 +422,7 @@ router.get('/stats', async (req, res) => {
 router.post('/validate', validateWorkflow, async (req, res) => {
   try {
     const validation = await workflowsService.validateWorkflow(req.body);
-    
+
     res.json({
       success: true,
       data: validation
@@ -442,7 +442,7 @@ router.post('/validate', validateWorkflow, async (req, res) => {
 router.get('/health', async (req, res) => {
   try {
     const stats = await workflowsService.getStats();
-    
+
     const health = {
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -452,7 +452,7 @@ router.get('/health', async (req, res) => {
         activeInstances: stats.instancesByStatus.running || 0
       }
     };
-    
+
     res.json({
       success: true,
       data: health

@@ -3,10 +3,10 @@ export const dynamic = "force-dynamic";
 
 import { observability } from '@/lib/observability';
 
-export async function GET() {
+export async function GET(): void {
   try {
     const prometheusData = observability.exportPrometheus();
-    
+
     return new Response(prometheusData, {
       headers: {
         'Content-Type': 'text/plain',
@@ -15,7 +15,7 @@ export async function GET() {
     });
   } catch (error: any) {
     observability.error('Failed to export Prometheus metrics', { error: error.message });
-    
+
     return new Response(`# Error exporting metrics: ${error.message}`, {
       status: 500,
       headers: {

@@ -1,8 +1,8 @@
 /**
  * CUSTOMER SUPPORT SERVICE
- * 
+ *
  * PR-58: Sistema completo de soporte al cliente avanzado
- * 
+ *
  * Funcionalidades:
  * - Gestión de tickets de soporte
  * - Chat en vivo y chatbot
@@ -457,7 +457,7 @@ export class CustomerSupportService {
   async getTicket(ticketId: string, organizationId: string): Promise<SupportTicket | null> {
     try {
       const ticket = this.tickets.get(ticketId);
-      
+
       if (!ticket || ticket.organizationId !== organizationId) {
         return null;
       }
@@ -481,7 +481,7 @@ export class CustomerSupportService {
   ): Promise<SupportTicket | null> {
     try {
       const ticket = this.tickets.get(ticketId);
-      
+
       if (!ticket || ticket.organizationId !== organizationId) {
         return null;
       }
@@ -497,7 +497,7 @@ export class CustomerSupportService {
 
       // Update database
       await this.db.query(`
-        UPDATE support_tickets 
+        UPDATE support_tickets
         SET status = $1, resolved_at = $2, closed_at = $3, updated_at = $4
         WHERE id = $5 AND organization_id = $6
       `, [status, updatedTicket.resolvedAt, updatedTicket.closedAt, now, ticketId, organizationId]);
@@ -668,8 +668,8 @@ export class CustomerSupportService {
   ): Promise<KnowledgeBaseArticle[]> {
     try {
       let articles = Array.from(this.articles.values())
-        .filter(article => 
-          article.organizationId === organizationId && 
+        .filter(article =>
+          article.organizationId === organizationId &&
           article.isPublished
         );
 
@@ -766,7 +766,7 @@ export class CustomerSupportService {
   private async autoAssignTicket(ticket: SupportTicket): Promise<void> {
     try {
       const availableAgents = Array.from(this.agents.values())
-        .filter(agent => 
+        .filter(agent =>
           agent.organizationId === ticket.organizationId &&
           agent.isActive &&
           agent.currentTickets < agent.maxTickets
@@ -775,7 +775,7 @@ export class CustomerSupportService {
       if (availableAgents.length > 0) {
         // Simple round-robin assignment
         const agent = availableAgents[0];
-        
+
         const updatedTicket: SupportTicket = {
           ...ticket,
           assignedTo: agent.id,
@@ -785,7 +785,7 @@ export class CustomerSupportService {
 
         // Update database
         await this.db.query(`
-          UPDATE support_tickets 
+          UPDATE support_tickets
           SET assigned_to = $1, assigned_at = $2, updated_at = $3
           WHERE id = $4
         `, [agent.id, updatedTicket.assignedAt, updatedTicket.updatedAt, ticket.id]);
@@ -818,7 +818,7 @@ export class CustomerSupportService {
       const ticketsToEscalate = Array.from(this.tickets.values())
         .filter(ticket => {
           const timeSinceCreation = now.getTime() - ticket.createdAt.getTime();
-          return ticket.status === 'open' && 
+          return ticket.status === 'open' && ;
                  timeSinceCreation > escalationThreshold &&
                  ticket.priority !== 'critical';
         });
@@ -865,8 +865,8 @@ export class CustomerSupportService {
           return total;
         }, 0);
 
-        const averageResolutionTime = resolvedTickets.length > 0 
-          ? totalResolutionTime / resolvedTickets.length 
+        const averageResolutionTime = resolvedTickets.length > 0
+          ? totalResolutionTime / resolvedTickets.length
           : 0;
 
         agent.performance = {
@@ -912,10 +912,10 @@ export class CustomerSupportService {
     try {
       const tickets = Array.from(this.tickets.values())
         .filter(ticket => ticket.organizationId === organizationId);
-      
+
       const agents = Array.from(this.agents.values())
         .filter(agent => agent.organizationId === organizationId);
-      
+
       const articles = Array.from(this.articles.values())
         .filter(article => article.organizationId === organizationId);
 
@@ -930,14 +930,14 @@ export class CustomerSupportService {
         ticketsByStatus[ticket.status] = (ticketsByStatus[ticket.status] || 0) + 1;
         ticketsByPriority[ticket.priority] = (ticketsByPriority[ticket.priority] || 0) + 1;
         ticketsByCategory[ticket.category] = (ticketsByCategory[ticket.category] || 0) + 1;
-        
+
         if (ticket.resolvedAt) {
           totalResolutionTime += ticket.resolvedAt.getTime() - ticket.createdAt.getTime();
           resolvedTickets++;
         }
       });
 
-      const averageResolutionTime = resolvedTickets > 0 
+      const averageResolutionTime = resolvedTickets > 0
         ? totalResolutionTime / resolvedTickets / (1000 * 60 * 60) // Convert to hours
         : 0;
 

@@ -41,7 +41,7 @@ export class SimpleRBACService {
       const userRoles = this.getUserRoles(userId, orgId);
       const userPermissions = this.getUserPermissions(userRoles);
 
-      return userPermissions.some(permission => 
+      return userPermissions.some(permission => ;
         permission.resource === resource && permission.action === action
       );
     } catch (error) {
@@ -68,7 +68,7 @@ export class SimpleRBACService {
   // Get user roles
   async getUserRoles(userId: string, orgId: string): Promise<Role[]> {
     const userRoles = this.getUserRoles(userId, orgId);
-    return userRoles
+    return userRoles;
       .map(ur => this.roles.get(ur.roleId))
       .filter((role): role is Role => role !== undefined);
   }
@@ -116,7 +116,7 @@ export class SimpleRBACService {
 
   private getUserPermissionsFromRoles(userRoles: UserRole[]): Permission[] {
     const permissions: Permission[] = [];
-    
+
     for (const userRole of userRoles) {
       const role = this.roles.get(userRole.roleId);
       if (role) {
@@ -128,7 +128,7 @@ export class SimpleRBACService {
         }
       }
     }
-    
+
     return permissions;
   }
 

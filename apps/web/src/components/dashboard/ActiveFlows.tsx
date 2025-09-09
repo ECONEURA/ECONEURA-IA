@@ -12,7 +12,7 @@ interface ActiveFlowsProps {
   loading?: boolean;
 }
 
-export default function ActiveFlows({ flows, onCancelFlow, loading = false }: ActiveFlowsProps) {
+export default function ActiveFlows({ flows, onCancelFlow, loading = false }: ActiveFlowsProps): void {
   const [expandedFlows, setExpandedFlows] = useState<Set<string>>(new Set());
 
   const toggleFlowExpanded = (flowId: string) => {
@@ -67,7 +67,7 @@ export default function ActiveFlows({ flows, onCancelFlow, loading = false }: Ac
     return ['pending', 'running'].includes(flow.status) && onCancelFlow;
   };
 
-  return (
+  return (;
     <div className="card">
       <div className="card-header">
         <div className="flex items-center justify-between">
@@ -83,7 +83,7 @@ export default function ActiveFlows({ flows, onCancelFlow, loading = false }: Ac
           const isExpanded = expandedFlows.has(flow.id);
           const progressPercentage = getProgressPercentage(flow);
 
-          return (
+          return (;
             <div
               key={flow.id}
               className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"

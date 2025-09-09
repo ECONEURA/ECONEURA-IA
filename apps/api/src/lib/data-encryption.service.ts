@@ -23,8 +23,8 @@ export class DataEncryptionService {
   encrypt(data: string, password?: string): { encrypted: string; iv: string; salt: string } {
     const salt = crypto.randomBytes(16);
     const iv = crypto.randomBytes(this.config.ivLength);
-    
-    const key = password ? 
+
+    const key = password ?
       crypto.pbkdf2Sync(password, salt, 100000, this.config.keyLength, 'sha512') :
       this.masterKey;
 
@@ -40,7 +40,7 @@ export class DataEncryptionService {
   }
 
   decrypt(encryptedData: string, iv: string, salt: string, password?: string): string {
-    const key = password ? 
+    const key = password ?
       crypto.pbkdf2Sync(password, Buffer.from(salt, 'hex'), 100000, this.config.keyLength, 'sha512') :
       this.masterKey;
 

@@ -7,7 +7,7 @@ interface NeuraChatProps {
   dept: string;
 }
 
-export default function NeuraChat({ dept }: NeuraChatProps) {
+export default function NeuraChat({ dept }: NeuraChatProps): void {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([]);
   const [input, setInput] = useState('');
@@ -57,7 +57,7 @@ export default function NeuraChat({ dept }: NeuraChatProps) {
     }
   };
 
-  return (
+  return (;
     <div style={{
       backgroundColor: '#FFFFFF',
       border: `${ui.bw}px solid ${ui.border}`,
@@ -79,7 +79,7 @@ export default function NeuraChat({ dept }: NeuraChatProps) {
         }}>
           NEURA - Asistente de IA
         </h3>
-        
+
         <button
           onClick={openChat}
           style={{
@@ -143,7 +143,7 @@ export default function NeuraChat({ dept }: NeuraChatProps) {
               </div>
             )}
           </div>
-          
+
           <div style={{
             padding: '16px',
             borderTop: `${ui.bw}px solid ${ui.border}`,

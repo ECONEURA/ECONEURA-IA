@@ -80,7 +80,7 @@ export class RBACService {
   }): Promise<Permission> {
     try {
       const db = this.db.getDatabase();
-      
+
       const newPermission = await db.insert(permissions).values({
         name: permissionData.name,
         resource: permissionData.resource,
@@ -173,7 +173,7 @@ export class RBACService {
   }): Promise<Role> {
     try {
       const db = this.db.getDatabase();
-      
+
       // Create role
       const newRole = await db.insert(roles).values({
         name: roleData.name,
@@ -217,7 +217,7 @@ export class RBACService {
   async getRoles(organizationId: string): Promise<Role[]> {
     try {
       const db = this.db.getDatabase();
-      
+
       const rolesResult = await db.select()
         .from(roles)
         .where(eq(roles.organizationId, organizationId));
@@ -250,7 +250,7 @@ export class RBACService {
       }
 
       const db = this.db.getDatabase();
-      
+
       // Get role
       const roleResult = await db.select()
         .from(roles)
@@ -301,7 +301,7 @@ export class RBACService {
   }): Promise<Role> {
     try {
       const db = this.db.getDatabase();
-      
+
       // Update role
       if (updates.name || updates.description) {
         await db.update(roles)
@@ -350,7 +350,7 @@ export class RBACService {
   async deleteRole(roleId: string): Promise<void> {
     try {
       const db = this.db.getDatabase();
-      
+
       // Check if role is system role
       const role = await db.select()
         .from(roles)
@@ -401,7 +401,7 @@ export class RBACService {
   async assignRoleToUser(userId: string, roleId: string, organizationId: string, assignedBy: string): Promise<void> {
     try {
       const db = this.db.getDatabase();
-      
+
       // Check if user already has this role
       const existingAssignment = await db.select()
         .from(userRoles)
@@ -444,7 +444,7 @@ export class RBACService {
   async removeRoleFromUser(userId: string, roleId: string, organizationId: string): Promise<void> {
     try {
       const db = this.db.getDatabase();
-      
+
       await db.delete(userRoles)
         .where(and(
           eq(userRoles.userId, userId),
@@ -470,7 +470,7 @@ export class RBACService {
   async getUserRoles(userId: string, organizationId: string): Promise<Role[]> {
     try {
       const db = this.db.getDatabase();
-      
+
       const userRolesResult = await db.select({
         role: roles
       })
@@ -515,8 +515,8 @@ export class RBACService {
   async hasAnyPermission(userId: string, organizationId: string, permissions: string[]): Promise<boolean> {
     try {
       const userPermissions = await this.getUserPermissions(userId, organizationId);
-      return permissions.some(permission => 
-        userPermissions.some(p => p.name === permission)
+      return permissions.some(permission => ;
+        userPermissions.some(p => p.name === permission);
       );
     } catch (error) {
       structuredLogger.error('Failed to check any permission', error as Error);
@@ -527,8 +527,8 @@ export class RBACService {
   async hasAllPermissions(userId: string, organizationId: string, permissions: string[]): Promise<boolean> {
     try {
       const userPermissions = await this.getUserPermissions(userId, organizationId);
-      return permissions.every(permission => 
-        userPermissions.some(p => p.name === permission)
+      return permissions.every(permission => ;
+        userPermissions.some(p => p.name === permission);
       );
     } catch (error) {
       structuredLogger.error('Failed to check all permissions', error as Error);
@@ -539,7 +539,7 @@ export class RBACService {
   async getUserPermissions(userId: string, organizationId: string): Promise<Permission[]> {
     try {
       const db = this.db.getDatabase();
-      
+
       // Get user roles
       const userRolesResult = await db.select({
         roleId: userRoles.roleId
@@ -586,7 +586,7 @@ export class RBACService {
   private async initializeSystemRoles(): Promise<void> {
     try {
       const db = this.db.getDatabase();
-      
+
       // Check if system roles already exist
       const existingRoles = await db.select()
         .from(roles)
@@ -627,7 +627,7 @@ export class RBACService {
 
       // Create permissions for each organization
       const organizationsResult = await db.select().from(organizations);
-      
+
       for (const org of organizationsResult) {
         for (const permissionData of systemPermissions) {
           await db.insert(permissions).values({
@@ -658,7 +658,7 @@ export class RBACService {
 
     setInterval(() => {
       const now = Date.now();
-      
+
       // Clean permission cache
       for (const [key, value] of this.permissionCache.entries()) {
         if (now - value.timestamp > this.config.cacheTTL) {

@@ -5,21 +5,21 @@ import { db } from '@econeura/db'
 beforeAll(async () => {
   // Set test environment
   process.env.NODE_ENV = 'test'
-  
+
   // Initialize database connection
   await db.connect()
-  
+
   // Run migrations
   await db.migrate()
-  
-  console.log('✅ Integration test setup completed')
+
+  console.log('✅ Integration test setup completed');
 })
 
 afterAll(async () => {
   // Clean up database connection
   await db.close()
-  
-  console.log('✅ Integration test teardown completed')
+
+  console.log('✅ Integration test teardown completed');
 })
 
 beforeEach(async () => {
@@ -38,14 +38,14 @@ export const testUtils = {
   async createTestOrg(orgId: string = 'test-org') {
     // Implementation for creating test organization
   },
-  
+
   // Helper to clean test data
   async cleanTestData() {
     // Implementation for cleaning test data
   },
-  
+
   // Helper to get test database connection
   getDb() {
-    return db
+    return db;
   },
 }

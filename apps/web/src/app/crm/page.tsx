@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { 
-  Users, 
-  Building2, 
+import {
+  Users,
+  Building2,
   Plus,
   Search,
   BarChart3,
@@ -20,7 +20,7 @@ interface CRMStats {
   monthlyRevenue: number;
 }
 
-function MediterraneanCRM() {
+function MediterraneanCRM(): void {
   const [selectedTab, setSelectedTab] = useState<'overview' | 'contacts' | 'companies' | 'deals'>('overview');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -74,7 +74,7 @@ function MediterraneanCRM() {
       title: 'Nueva Empresa',
       description: 'Registrar una nueva empresa',
       icon: Building2,
-      color: 'olive', 
+      color: 'olive',
       href: '/crm/companies/new'
     },
     {
@@ -93,13 +93,13 @@ function MediterraneanCRM() {
     }
   ];
 
-  return (
+  return (;
     <div className="min-h-screen bg-gradient-to-br from-mediterranean-50 via-white to-coral-50">
       {/* Mediterranean Header */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-coral-600 via-coral-500 to-mediterranean-500 opacity-90"></div>
         <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-20"></div>
-        
+
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
             <div>
@@ -110,7 +110,7 @@ function MediterraneanCRM() {
                 Gestión inteligente de relaciones con clientes
               </p>
             </div>
-            
+
             <div className="flex items-center gap-4">
               {/* Search Bar */}
               <div className="relative">
@@ -123,7 +123,7 @@ function MediterraneanCRM() {
                   className="pl-10 pr-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 w-64"
                 />
               </div>
-              
+
               <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
                 <Plus className="w-4 h-4" />
                 Nuevo
@@ -144,7 +144,7 @@ function MediterraneanCRM() {
               { id: 'deals', label: 'Oportunidades', icon: Users }
             ].map((tab) => {
               const IconComponent = tab.icon;
-              return (
+              return (;
                 <button
                   key={tab.id}
                   onClick={() => setSelectedTab(tab.id as any)}
@@ -200,7 +200,7 @@ function MediterraneanCRM() {
                 }
               ].map((stat, index) => {
                 const IconComponent = stat.icon;
-                return (
+                return (;
                   <div
                     key={stat.label}
                     className={`relative overflow-hidden rounded-2xl p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl ${
@@ -211,17 +211,17 @@ function MediterraneanCRM() {
                     }`}
                   >
                     <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full"></div>
-                    
+
                     <div className="relative">
                       <div className="flex items-center justify-between mb-4">
                         <IconComponent className="w-8 h-8 text-white" />
                         <span className="text-green-200 text-sm font-medium">{stat.change}</span>
                       </div>
-                      
+
                       <div className="text-3xl font-bold text-white mb-1 font-playfair">
                         {stat.value}
                       </div>
-                      
+
                       <div className="text-white/80 text-sm font-medium">
                         {stat.label}
                       </div>
@@ -238,11 +238,11 @@ function MediterraneanCRM() {
                 <h3 className="text-xl font-bold text-mediterranean-800 font-playfair mb-6">
                   Acciones Rápidas
                 </h3>
-                
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {quickActions.map((action) => {
                     const IconComponent = action.icon;
-                    return (
+                    return (;
                       <button
                         key={action.title}
                         className={`text-left p-4 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md ${
@@ -287,11 +287,11 @@ function MediterraneanCRM() {
                 <h3 className="text-xl font-bold text-mediterranean-800 font-playfair mb-6">
                   Actividad Reciente
                 </h3>
-                
+
                 <div className="space-y-4">
                   {recentActivities.map((activity) => {
                     const IconComponent = activity.icon;
-                    return (
+                    return (;
                       <div key={activity.id} className="flex items-start gap-4 p-3 rounded-xl hover:bg-mediterranean-50 transition-colors duration-200">
                         <div className={`p-2 rounded-full ${
                           activity.color === 'coral' ? 'bg-coral-100' :
@@ -304,7 +304,7 @@ function MediterraneanCRM() {
                             'text-olive-600'
                           }`} />
                         </div>
-                        
+
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-mediterranean-800">
                             {activity.title}
@@ -332,14 +332,14 @@ function MediterraneanCRM() {
               <BarChart3 className="w-16 h-16 mx-auto mb-4 opacity-50" />
               <h3 className="text-xl font-bold text-mediterranean-800 font-playfair mb-2">
                 {selectedTab === 'contacts' && 'Gestión de Contactos'}
-                {selectedTab === 'companies' && 'Gestión de Empresas'}  
+                {selectedTab === 'companies' && 'Gestión de Empresas'}
                 {selectedTab === 'deals' && 'Gestión de Oportunidades'}
               </h3>
               <p className="text-mediterranean-600">
                 Esta sección está en desarrollo. Próximamente disponible con diseño mediterráneo completo.
               </p>
             </div>
-            
+
             <button className="bg-gradient-to-r from-coral-500 to-mediterranean-500 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-200">
               Explorar Funcionalidades
             </button>
@@ -350,8 +350,8 @@ function MediterraneanCRM() {
   );
 }
 
-export default function CRMPage() {
-  return (
+export default function CRMPage(): void {
+  return (;
     <ProtectedRoute requiredPermission="crm:view">
       <MediterraneanCRM />
     </ProtectedRoute>

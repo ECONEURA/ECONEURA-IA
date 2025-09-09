@@ -98,25 +98,25 @@ export class HealthChecker {
 
   async checkAllServices(): Promise<Record<string, ServiceHealth>> {
     const results: Record<string, ServiceHealth> = {};
-    
+
     for (const [name] of this.services) {
       results[name] = await this.checkService(name);
     }
-    
+
     return results;
   }
 
   getOverallStatus(services: Record<string, ServiceHealth>): 'healthy' | 'unhealthy' | 'degraded' {
     const statuses = Object.values(services).map(s => s.status);
-    
+
     if (statuses.includes('unhealthy')) {
       return 'unhealthy';
     }
-    
+
     if (statuses.includes('degraded')) {
       return 'degraded';
     }
-    
+
     return 'healthy';
   }
 }
@@ -186,11 +186,11 @@ export async function checkAzureOpenAI(): Promise<ServiceHealth> {
 // SYSTEM METRICS
 // ============================================================================
 
-export function getSystemMetrics() {
+export function getSystemMetrics(): void {
   const memUsage = process.memoryUsage();
   const totalMem = memUsage.heapTotal + memUsage.external;
   const usedMem = memUsage.heapUsed;
-  
+
   return {
     memory: {
       used: usedMem,
@@ -218,7 +218,7 @@ export function buildHealthResponse(
   version: string = '1.0.0'
 ): HealthStatus {
   const metrics = getSystemMetrics();
-  
+
   return {
     status: overallStatus,
     timestamp: new Date().toISOString(),

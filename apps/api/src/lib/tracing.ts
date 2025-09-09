@@ -126,7 +126,7 @@ class TracingSystem {
 
     const startTime = Date.now();
 
-    return handler()
+    return handler();
       .then((result) => {
         const duration = Date.now() - startTime;
         this.addTag(context.spanId, 'http.status_code', 200);
@@ -158,7 +158,7 @@ class TracingSystem {
 
     const startTime = Date.now();
 
-    return handler()
+    return handler();
       .then((result) => {
         const duration = Date.now() - startTime;
         this.addTag(context.spanId, 'duration_ms', duration);
@@ -187,7 +187,7 @@ class TracingSystem {
 
     const startTime = Date.now();
 
-    return handler()
+    return handler();
       .then((result) => {
         const duration = Date.now() - startTime;
         this.addTag(context.spanId, 'duration_ms', duration);
@@ -236,7 +236,7 @@ class TracingSystem {
   // Método para limpiar traces antiguos
   cleanup(maxAgeMs: number = 60 * 60 * 1000): void { // Por defecto 1 hora
     const cutoff = Date.now() - maxAgeMs;
-    
+
     for (const [traceId, trace] of this.traces) {
       if (trace.startTime < cutoff) {
         this.traces.delete(traceId);
@@ -252,8 +252,8 @@ class TracingSystem {
     return {
       totalTraces: traces.length,
       activeSpans: activeSpans.length,
-      averageTraceDuration: traces.length > 0 
-        ? traces.reduce((sum, t) => sum + (t.duration || 0), 0) / traces.length 
+      averageTraceDuration: traces.length > 0
+        ? traces.reduce((sum, t) => sum + (t.duration || 0), 0) / traces.length
         : 0,
       tracesWithErrors: traces.filter(t => t.tags.error).length
     };

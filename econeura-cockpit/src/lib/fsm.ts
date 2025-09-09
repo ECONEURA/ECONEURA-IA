@@ -11,7 +11,7 @@ export const can = (from: AgentStatus, to: AgentStatus): boolean => {
     failed: ['running', 'idle'],
     paused: ['running', 'idle'],
   };
-  
+
   return transitions[from].includes(to);
 };
 
@@ -25,7 +25,7 @@ export const getStatusColor = (status: AgentStatus): string => {
     failed: '#EF4444',
     paused: '#8B5CF6',
   };
-  
+
   return colors[status];
 };
 
@@ -39,7 +39,7 @@ export const getStatusLabel = (status: AgentStatus): string => {
     failed: 'Fallido',
     paused: 'Pausado',
   };
-  
+
   return labels[status];
 };
 

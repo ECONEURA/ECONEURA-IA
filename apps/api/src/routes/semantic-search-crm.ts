@@ -136,7 +136,7 @@ semanticSearchCRMRouter.post('/documents', async (req, res) => {
   try {
     const documentData = IndexDocumentSchema.parse(req.body);
     const document = await semanticSearchCRMService.indexDocument(documentData);
-    
+
     res.status(201).json({
       success: true,
       data: document,
@@ -156,14 +156,14 @@ semanticSearchCRMRouter.get('/documents/:documentId', async (req, res) => {
   try {
     const { documentId } = z.object({ documentId: z.string().min(1) }).parse(req.params);
     const document = await semanticSearchCRMService.getDocument(documentId);
-    
+
     if (!document) {
       return res.status(404).json({
         success: false,
         error: 'Document not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: document,
@@ -184,14 +184,14 @@ semanticSearchCRMRouter.put('/documents/:documentId', async (req, res) => {
     const { documentId } = z.object({ documentId: z.string().min(1) }).parse(req.params);
     const updates = UpdateDocumentSchema.parse(req.body);
     const document = await semanticSearchCRMService.updateDocument(documentId, updates);
-    
+
     if (!document) {
       return res.status(404).json({
         success: false,
         error: 'Document not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: document,
@@ -219,7 +219,7 @@ semanticSearchCRMRouter.post('/search', async (req, res) => {
       similarityThreshold,
       includeMetadata
     });
-    
+
     res.json({
       success: true,
       data: searchResult,
@@ -240,7 +240,7 @@ semanticSearchCRMRouter.get('/indexes', async (req, res) => {
   try {
     const { organizationId } = z.object({ organizationId: z.string().min(1) }).parse(req.query);
     const indexes = await semanticSearchCRMService.getSearchIndexes(organizationId);
-    
+
     res.json({
       success: true,
       data: {
@@ -263,7 +263,7 @@ semanticSearchCRMRouter.post('/indexes', async (req, res) => {
   try {
     const indexData = CreateSearchIndexSchema.parse(req.body);
     const index = await semanticSearchCRMService.createSearchIndex(indexData);
-    
+
     res.status(201).json({
       success: true,
       data: index,
@@ -284,7 +284,7 @@ semanticSearchCRMRouter.post('/analytics', async (req, res) => {
   try {
     const analyticsData = LogSearchAnalyticsSchema.parse(req.body);
     const analytics = await semanticSearchCRMService.logSearchAnalytics(analyticsData);
-    
+
     res.status(201).json({
       success: true,
       data: analytics,
@@ -309,7 +309,7 @@ semanticSearchCRMRouter.post('/suggestions', async (req, res) => {
       sessionId,
       previousQueries
     });
-    
+
     res.json({
       success: true,
       data: suggestions,
@@ -330,7 +330,7 @@ semanticSearchCRMRouter.get('/stats', async (req, res) => {
   try {
     const { organizationId } = z.object({ organizationId: z.string().min(1) }).parse(req.query);
     const stats = await semanticSearchCRMService.getSearchStats(organizationId);
-    
+
     res.json({
       success: true,
       data: stats,
@@ -350,7 +350,7 @@ semanticSearchCRMRouter.get('/stats', async (req, res) => {
 semanticSearchCRMRouter.get('/health', async (req, res) => {
   try {
     const stats = await semanticSearchCRMService.getSearchStats('demo-org-1');
-    
+
     res.json({
       success: true,
       data: {

@@ -20,7 +20,7 @@ export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof badgeVariants> {}
 
-function Badge({ className, variant, ...props }: BadgeProps) {
+function Badge({ className, variant, ...props }: BadgeProps): void {
   const classes = [
     "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors",
     badgeVariants.variants.variant[variant || badgeVariants.defaultVariants.variant],

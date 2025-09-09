@@ -14,7 +14,7 @@ import {
 
 /**
  * Search Controller - Controlador para búsqueda inteligente
- * 
+ *
  * Maneja las operaciones de búsqueda semántica, filtros avanzados,
  * autocompletado y indexación de entidades.
  */
@@ -187,7 +187,7 @@ export class SearchController extends BaseController {
   async getPopularSearches(req: Request, res: Response): Promise<void> {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
-      
+
       // Esta funcionalidad se implementaría en el repository
       const popularSearches = [
         'companies',

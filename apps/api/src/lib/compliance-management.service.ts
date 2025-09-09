@@ -1,6 +1,6 @@
 /**
  * Compliance Management Service
- * 
+ *
  * This service provides comprehensive compliance management capabilities including
  * multi-standard compliance tracking, policy management, risk assessment, and
  * automated compliance reporting.
@@ -304,7 +304,7 @@ export class ComplianceManagementService {
     for (const requirement of requirements) {
       const finding = await this.assessRequirement(requirement, assessment.assessor);
       findings.push(finding);
-      
+
       totalScore += this.calculateRequirementScore(requirement);
       if (requirement.status === 'compliant') {
         compliantCount++;
@@ -395,7 +395,7 @@ export class ComplianceManagementService {
 
   private calculateFindingDueDate(severity: ComplianceFinding['severity']): Date {
     const dueDate = new Date();
-    
+
     switch (severity) {
       case 'critical':
         dueDate.setDate(dueDate.getDate() + 7); // 1 week
@@ -410,7 +410,7 @@ export class ComplianceManagementService {
         dueDate.setMonth(dueDate.getMonth() + 3); // 3 months
         break;
     }
-    
+
     return dueDate;
   }
 
@@ -426,22 +426,22 @@ export class ComplianceManagementService {
 
   private generateRecommendations(findings: ComplianceFinding[]): string[] {
     const recommendations: string[] = [];
-    
+
     const criticalFindings = findings.filter(f => f.severity === 'critical');
     const highFindings = findings.filter(f => f.severity === 'high');
-    
+
     if (criticalFindings.length > 0) {
       recommendations.push(`Address ${criticalFindings.length} critical compliance findings immediately to prevent regulatory violations.`);
     }
-    
+
     if (highFindings.length > 0) {
       recommendations.push(`Prioritize resolution of ${highFindings.length} high-priority compliance findings within the next 30 days.`);
     }
-    
+
     recommendations.push('Implement continuous compliance monitoring to maintain regulatory compliance.');
     recommendations.push('Establish regular compliance training programs for all staff.');
     recommendations.push('Review and update compliance policies and procedures quarterly.');
-    
+
     return recommendations;
   }
 
@@ -450,7 +450,7 @@ export class ComplianceManagementService {
   }
 
   async getComplianceAssessments(organizationId: string): Promise<ComplianceAssessment[]> {
-    return Array.from(this.assessments.values())
+    return Array.from(this.assessments.values());
       .filter(a => a.organizationId === organizationId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
@@ -489,7 +489,7 @@ export class ComplianceManagementService {
     const nonCompliant = requirements.filter(r => r.status === 'non_compliant').length;
     const notAssessed = requirements.filter(r => r.status === 'not_assessed').length;
 
-    const overallScore = totalRequirements > 0 
+    const overallScore = totalRequirements > 0
       ? requirements.reduce((sum, r) => sum + this.calculateRequirementScore(r), 0) / totalRequirements
       : 0;
 
@@ -509,15 +509,15 @@ export class ComplianceManagementService {
 
     // Get last and next assessment dates
     const assessments = await this.getComplianceAssessments(organizationId);
-    const standardAssessments = standard 
+    const standardAssessments = standard
       ? assessments.filter(a => a.standard === standard)
       : assessments;
 
-    const lastAssessment = standardAssessments.length > 0 
+    const lastAssessment = standardAssessments.length > 0
       ? standardAssessments[0].completedAt || standardAssessments[0].createdAt
       : undefined;
 
-    const nextAssessment = requirements.length > 0 
+    const nextAssessment = requirements.length > 0
       ? new Date(Math.min(...requirements.map(r => r.nextAssessment.getTime())))
       : undefined;
 
@@ -606,7 +606,7 @@ export class ComplianceManagementService {
     if (requirement.evidence.length > 0 && requirement.controls.length > 0) {
       const implementedControls = requirement.controls.filter(c => c.status === 'implemented').length;
       const totalControls = requirement.controls.length;
-      
+
       if (implementedControls === totalControls) {
         status = 'compliant';
       } else if (implementedControls > totalControls * 0.5) {

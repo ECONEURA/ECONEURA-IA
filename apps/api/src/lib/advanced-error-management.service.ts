@@ -468,12 +468,12 @@ class AdvancedErrorManagementService {
     };
 
     this.errors.set(newError.id, newError);
-    
+
     // Auto-analyze the error
     await this.analyzeError(newError.id);
-    
-    structuredLogger.info('Error event created', { 
-      errorId: newError.id, 
+
+    structuredLogger.info('Error event created', {
+      errorId: newError.id,
       organizationId: newError.organizationId,
       service: newError.service,
       errorType: newError.errorType,
@@ -546,9 +546,9 @@ class AdvancedErrorManagementService {
     };
 
     this.patterns.set(newPattern.id, newPattern);
-    
-    structuredLogger.info('Error pattern created', { 
-      patternId: newPattern.id, 
+
+    structuredLogger.info('Error pattern created', {
+      patternId: newPattern.id,
       organizationId: newPattern.organizationId,
       name: newPattern.name,
       actionType: newPattern.action.type
@@ -599,9 +599,9 @@ class AdvancedErrorManagementService {
     }
 
     this.metrics.set(newMetric.id, newMetric);
-    
-    structuredLogger.info('Performance metric created', { 
-      metricId: newMetric.id, 
+
+    structuredLogger.info('Performance metric created', {
+      metricId: newMetric.id,
       organizationId: newMetric.organizationId,
       service: newMetric.service,
       metricType: newMetric.metricType,
@@ -667,9 +667,9 @@ class AdvancedErrorManagementService {
     };
 
     this.alerts.set(newAlert.id, newAlert);
-    
-    structuredLogger.info('Alert created', { 
-      alertId: newAlert.id, 
+
+    structuredLogger.info('Alert created', {
+      alertId: newAlert.id,
       organizationId: newAlert.organizationId,
       type: newAlert.type,
       severity: newAlert.severity,
@@ -731,7 +731,7 @@ class AdvancedErrorManagementService {
 
     if (matchingPatterns.length > 0) {
       const bestPattern = matchingPatterns[0];
-      
+
       // Update pattern statistics
       bestPattern.statistics.matches++;
       bestPattern.statistics.lastMatch = new Date().toISOString();
@@ -746,8 +746,8 @@ class AdvancedErrorManagementService {
     error.updatedAt = new Date().toISOString();
     this.errors.set(errorId, error);
 
-    structuredLogger.info('Error analyzed', { 
-      errorId, 
+    structuredLogger.info('Error analyzed', {
+      errorId,
       organizationId: error.organizationId,
       matchingPatterns: matchingPatterns.length,
       tags: error.metadata.tags
@@ -885,31 +885,31 @@ class AdvancedErrorManagementService {
 
   private generateTags(error: ErrorEvent): string[] {
     const tags: string[] = [];
-    
+
     tags.push(error.category);
     tags.push(error.severity);
     tags.push(error.service);
     tags.push(error.environment);
-    
+
     if (error.errorType) {
       tags.push(error.errorType.toLowerCase().replace(/([A-Z])/g, '_$1').toLowerCase());
     }
-    
+
     if (error.context.endpoint) {
       tags.push(`endpoint:${error.context.endpoint}`);
     }
-    
+
     if (error.impact.businessImpact === 'critical') {
       tags.push('business-critical');
     }
-    
+
     return [...new Set(tags)]; // Remove duplicates
   }
 
   // Processing Methods
   async processNewErrors(): Promise<void> {
     const newErrors = Array.from(this.errors.values())
-      .filter(e => e.resolution.status === 'open' && 
+      .filter(e => e.resolution.status === 'open' &&
                   new Date(e.createdAt).getTime() > Date.now() - 5 * 60 * 1000); // Last 5 minutes
 
     for (const error of newErrors) {
@@ -920,11 +920,11 @@ class AdvancedErrorManagementService {
   async collectPerformanceMetrics(): Promise<void> {
     // Simulate collecting performance metrics
     const services = ['api-gateway', 'user-service', 'payment-service'];
-    
+
     for (const service of services) {
       const responseTime = Math.random() * 1000; // 0-1000ms
       const errorRate = Math.random() * 5; // 0-5%
-      
+
       await this.createPerformanceMetric({
         organizationId: 'demo-org-1',
         service,
@@ -1056,8 +1056,8 @@ class AdvancedErrorManagementService {
       createdAt: new Date().toISOString()
     };
 
-    structuredLogger.info('Error report generated', { 
-      reportId: report.id, 
+    structuredLogger.info('Error report generated', {
+      reportId: report.id,
       organizationId,
       reportType,
       period: `${startDate} to ${endDate}`

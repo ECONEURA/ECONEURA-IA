@@ -2,10 +2,10 @@ import { z } from 'zod';
 import { logger } from '../lib/logger';
 import { db } from '../lib/db';
 import { eq, desc, gte, and } from 'drizzle-orm';
-import { 
-  aiCostOptimization, 
-  aiCostPrediction, 
-  aiAnalytics, 
+import {
+  aiCostOptimization,
+  aiCostPrediction,
+  aiAnalytics,
   aiModelManagement,
   aiTrainingJobs,
   aiSecurityCompliance,
@@ -158,7 +158,7 @@ export class CockpitIntegrationService {
   async executeAgentAction(request: CockpitAgentRequest): Promise<CockpitAgentResponse> {
     try {
       const validatedRequest = CockpitAgentRequestSchema.parse(request);
-      
+
       logger.info('Executing cockpit agent action', {
         agentId: validatedRequest.agentId,
         department: validatedRequest.department,
@@ -166,10 +166,10 @@ export class CockpitIntegrationService {
       });
 
       const response = await this.processAgentAction(validatedRequest);
-      
+
       // Actualizar estado del agente
       this.agentStates.set(validatedRequest.agentId, response);
-      
+
       return response;
     } catch (error) {
       logger.error('Error executing cockpit agent action', { error, request });
@@ -183,7 +183,7 @@ export class CockpitIntegrationService {
   async getCockpitMetrics(request: CockpitMetricsRequest): Promise<CockpitMetricsResponse> {
     try {
       const validatedRequest = CockpitMetricsRequestSchema.parse(request);
-      
+
       logger.info('Getting cockpit metrics', {
         department: validatedRequest.department,
         timeframe: validatedRequest.timeframe,
@@ -203,7 +203,7 @@ export class CockpitIntegrationService {
   async processCockpitChat(request: CockpitChatRequest): Promise<CockpitChatResponse> {
     try {
       const validatedRequest = CockpitChatRequestSchema.parse(request);
-      
+
       logger.info('Processing cockpit chat', {
         department: validatedRequest.department,
         messageLength: validatedRequest.message.length,
@@ -211,24 +211,24 @@ export class CockpitIntegrationService {
       });
 
       const response = await this.generateChatResponse(validatedRequest);
-      
+
       // Guardar en historial
       const chatKey = `${validatedRequest.department}-${validatedRequest.context?.agentId || 'general'}`;
       if (!this.chatHistory.has(chatKey)) {
         this.chatHistory.set(chatKey, []);
       }
-      
+
       const history = this.chatHistory.get(chatKey)!;
       history.push(
         { role: 'user', message: validatedRequest.message, timestamp: new Date() },
         { role: 'assistant', message: response.response, timestamp: new Date() }
       );
-      
+
       // Mantener solo los últimos 20 mensajes
       if (history.length > 20) {
         history.splice(0, history.length - 20);
       }
-      
+
       return response;
     } catch (error) {
       logger.error('Error processing cockpit chat', { error, request });
@@ -256,7 +256,7 @@ export class CockpitIntegrationService {
    */
   private async processAgentAction(request: CockpitAgentRequest): Promise<CockpitAgentResponse> {
     const now = new Date();
-    
+
     // Simular procesamiento basado en el tipo de agente y acción
     let status: 'active' | 'paused' | 'stopped' | 'error' = 'active';
     let message = '';
@@ -291,17 +291,17 @@ export class CockpitIntegrationService {
           };
         }
         break;
-        
+
       case 'pause':
         status = 'paused';
         message = `Agente ${request.agentId} pausado`;
         break;
-        
+
       case 'stop':
         status = 'stopped';
         message = `Agente ${request.agentId} detenido`;
         break;
-        
+
       case 'status':
         const currentState = this.agentStates.get(request.agentId);
         if (currentState) {
@@ -371,25 +371,25 @@ export class CockpitIntegrationService {
    */
   private async generateChatResponse(request: CockpitChatRequest): Promise<CockpitChatResponse> {
     const now = new Date();
-    
+
     // Generar respuesta basada en el departamento y contexto
     let response = '';
     let suggestions: string[] = [];
-    
+
     if (request.context?.includeMetrics) {
       const metrics = await this.getCockpitMetrics({
         department: request.department,
         timeframe: '24h',
         includeDetails: false,
       });
-      
+
       response = `Basándome en las métricas actuales del departamento ${request.department.toUpperCase()}:\n\n`;
       response += `• Costo total: €${metrics.summary.totalCost.toFixed(2)}\n`;
       response += `• Tokens utilizados: ${metrics.summary.totalTokens.toLocaleString()}\n`;
       response += `• Latencia promedio: ${metrics.summary.averageLatency.toFixed(0)}ms\n`;
       response += `• Tasa de éxito: ${(metrics.summary.successRate * 100).toFixed(1)}%\n`;
       response += `• Agentes activos: ${metrics.summary.activeAgents}\n\n`;
-      
+
       if (request.message.toLowerCase().includes('optimizar') || request.message.toLowerCase().includes('mejorar')) {
         response += 'Recomendaciones de optimización:\n';
         response += '• Revisar configuración de modelos para reducir costos\n';
@@ -662,7 +662,7 @@ export class CockpitIntegrationService {
       ],
     };
 
-    return suggestionsByDept[department] || [
+    return suggestionsByDept[department] || [;
       'Revisar métricas generales',
       'Analizar rendimiento',
       'Optimizar procesos',

@@ -5,10 +5,10 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { 
-  trackPageView, 
-  trackUserAction, 
-  trackError, 
+import {
+  trackPageView,
+  trackUserAction,
+  trackError,
   trackPerformance,
   getMetricsData,
   getSystemMetrics,
@@ -27,14 +27,14 @@ interface MetricsContextType {
   trackUserAction: (action: string, organizationId?: string) => void;
   trackError: (error: string, page?: string, organizationId?: string) => void;
   trackPerformance: (metric: string, value: number, page?: string) => void;
-  
+
   // Data fetching functions
   getMetricsData: () => Promise<any>;
   getSystemMetrics: () => Promise<any>;
   getBusinessMetrics: () => Promise<any>;
   getPerformanceMetrics: () => Promise<any>;
   getErrorMetrics: () => Promise<any>;
-  
+
   // State
   isLoading: boolean;
   error: string | null;
@@ -107,7 +107,7 @@ export function MetricsProvider({ children, organizationId }: MetricsProviderPro
   const wrappedGetMetricsData = async (): Promise<any> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const data = await getMetricsData();
       return data;
@@ -123,7 +123,7 @@ export function MetricsProvider({ children, organizationId }: MetricsProviderPro
   const wrappedGetSystemMetrics = async (): Promise<any> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const data = await getSystemMetrics();
       return data;
@@ -139,7 +139,7 @@ export function MetricsProvider({ children, organizationId }: MetricsProviderPro
   const wrappedGetBusinessMetrics = async (): Promise<any> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const data = await getBusinessMetrics();
       return data;
@@ -155,7 +155,7 @@ export function MetricsProvider({ children, organizationId }: MetricsProviderPro
   const wrappedGetPerformanceMetrics = async (): Promise<any> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const data = await getPerformanceMetrics();
       return data;
@@ -171,7 +171,7 @@ export function MetricsProvider({ children, organizationId }: MetricsProviderPro
   const wrappedGetErrorMetrics = async (): Promise<any> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const data = await getErrorMetrics();
       return data;
@@ -226,7 +226,7 @@ export function MetricsProvider({ children, organizationId }: MetricsProviderPro
     // Listen for route changes (Next.js)
     if (typeof window !== 'undefined') {
       window.addEventListener('popstate', handleRouteChange);
-      
+
       return () => {
         window.removeEventListener('popstate', handleRouteChange);
       };
@@ -237,7 +237,7 @@ export function MetricsProvider({ children, organizationId }: MetricsProviderPro
   // RENDER
   // ============================================================================
 
-  return (
+  return (;
     <MetricsContext.Provider value={contextValue}>
       {children}
     </MetricsContext.Provider>
@@ -250,11 +250,11 @@ export function MetricsProvider({ children, organizationId }: MetricsProviderPro
 
 export function useMetrics(): MetricsContextType {
   const context = useContext(MetricsContext);
-  
+
   if (context === undefined) {
     throw new Error('useMetrics must be used within a MetricsProvider');
   }
-  
+
   return context;
 }
 

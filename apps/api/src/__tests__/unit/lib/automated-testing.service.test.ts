@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import AutomatedTestingService, { 
-  TestSuite, 
-  SecretRotation, 
-  SecurityChecklist, 
-  AutomatedTestingConfig 
+import AutomatedTestingService, {
+  TestSuite,
+  SecretRotation,
+  SecurityChecklist,
+  AutomatedTestingConfig
 } from '../../lib/automated-testing.service.ts';
 
 // Mock del logger
@@ -434,7 +434,7 @@ describe('AutomatedTestingService', () => {
     it('should initialize with default test suite', async () => {
       const suites = await service.listTestSuites();
       expect(suites.length).toBeGreaterThan(0);
-      
+
       const defaultSuite = suites.find(s => s.name === 'Default Test Suite');
       expect(defaultSuite).toBeDefined();
       expect(defaultSuite?.tests.length).toBeGreaterThan(0);

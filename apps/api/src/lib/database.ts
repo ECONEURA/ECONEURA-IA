@@ -3,7 +3,7 @@ import { structuredLogger } from './structured-logger.js';
 
 // Create a global variable to store the Prisma client
 declare global {
-  var __prisma: PrismaClient | undefined;
+  let __prisma: PrismaClient | undefined;
 }
 
 // Create Prisma client instance
@@ -55,10 +55,10 @@ export const checkDatabaseHealth = async () => {
     return { status: 'healthy', timestamp: new Date().toISOString() };
   } catch (error) {
     structuredLogger.error('Database health check failed', error as Error);
-    return { 
-      status: 'unhealthy', 
+    return {
+      status: 'unhealthy',
       timestamp: new Date().toISOString(),
-      error: (error as Error).message 
+      error: (error as Error).message
     };
   }
 };

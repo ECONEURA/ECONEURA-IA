@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  Users, 
+import {
+  Users,
   Plus,
   Search,
   Mail,
@@ -33,7 +33,7 @@ interface Contact {
   dealValue: number;
 }
 
-function MediterraneanContacts() {
+function MediterraneanContacts(): void {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -45,10 +45,10 @@ function MediterraneanContacts() {
   useEffect(() => {
     const loadContacts = async () => {
       setLoading(true);
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       const mockContacts: Contact[] = [
         {
           id: '1',
@@ -129,11 +129,11 @@ function MediterraneanContacts() {
           dealValue: 180000
         }
       ];
-      
+
       setContacts(mockContacts);
       setLoading(false);
     };
-    
+
     loadContacts();
   }, []);
 
@@ -143,13 +143,13 @@ function MediterraneanContacts() {
                          contact.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          contact.company.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = selectedStatus === 'all' || contact.status === selectedStatus;
-    
+
     return matchesSearch && matchesStatus;
   });
 
   const toggleFavorite = (contactId: string) => {
     setContacts(prev => prev.map(contact =>
-      contact.id === contactId 
+      contact.id === contactId
         ? { ...contact, favorite: !contact.favorite }
         : contact
     ));
@@ -174,7 +174,7 @@ function MediterraneanContacts() {
   };
 
   if (loading) {
-    return (
+    return (;
       <div className="min-h-screen bg-gradient-to-br from-mediterranean-50 via-white to-coral-50 flex items-center justify-center">
         <div className="text-center">
           <div className="relative">
@@ -187,13 +187,13 @@ function MediterraneanContacts() {
     );
   }
 
-  return (
+  return (;
     <div className="min-h-screen bg-gradient-to-br from-mediterranean-50 via-white to-coral-50">
       {/* Mediterranean Header */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-coral-600 via-coral-500 to-mediterranean-500 opacity-90"></div>
         <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-20"></div>
-        
+
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
             <div>
@@ -204,7 +204,7 @@ function MediterraneanContacts() {
                 {filteredContacts.length} contactos encontrados
               </p>
             </div>
-            
+
             <div className="flex items-center gap-4">
               <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
                 <Plus className="w-4 h-4" />
@@ -230,7 +230,7 @@ function MediterraneanContacts() {
                 className="w-full pl-10 pr-4 py-3 border border-mediterranean-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-coral-500 focus:border-coral-500"
               />
             </div>
-            
+
             {/* Filters */}
             <div className="flex items-center gap-4">
               {/* Status Filter */}
@@ -247,14 +247,14 @@ function MediterraneanContacts() {
                   <option value="inactive">Inactivos</option>
                 </select>
               </div>
-              
+
               {/* View Mode */}
               <div className="flex bg-mediterranean-100 rounded-xl p-1">
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    viewMode === 'grid' 
-                      ? 'bg-white text-mediterranean-600 shadow-sm' 
+                    viewMode === 'grid'
+                      ? 'bg-white text-mediterranean-600 shadow-sm'
                       : 'text-mediterranean-600 hover:bg-mediterranean-50'
                   }`}
                 >
@@ -263,8 +263,8 @@ function MediterraneanContacts() {
                 <button
                   onClick={() => setViewMode('list')}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    viewMode === 'list' 
-                      ? 'bg-white text-mediterranean-600 shadow-sm' 
+                    viewMode === 'list'
+                      ? 'bg-white text-mediterranean-600 shadow-sm'
                       : 'text-mediterranean-600 hover:bg-mediterranean-50'
                   }`}
                 >
@@ -300,7 +300,7 @@ function MediterraneanContacts() {
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => toggleFavorite(contact.id)}
@@ -312,7 +312,7 @@ function MediterraneanContacts() {
                         <Star className="w-5 h-5 text-mediterranean-400" />
                       )}
                     </button>
-                    
+
                     <button className="p-1 hover:bg-mediterranean-50 rounded-full transition-colors">
                       <MoreVertical className="w-5 h-5 text-mediterranean-400" />
                     </button>
@@ -325,12 +325,12 @@ function MediterraneanContacts() {
                     <Mail className="w-4 h-4" />
                     <span className="text-sm truncate">{contact.email}</span>
                   </div>
-                  
+
                   <div className="flex items-center gap-2 text-mediterranean-600">
                     <Phone className="w-4 h-4" />
                     <span className="text-sm">{contact.phone}</span>
                   </div>
-                  
+
                   <div className="flex items-center gap-2 text-mediterranean-600">
                     <MapPin className="w-4 h-4" />
                     <span className="text-sm">{contact.location}</span>
@@ -342,7 +342,7 @@ function MediterraneanContacts() {
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(contact.status)}`}>
                     {getStatusLabel(contact.status)}
                   </span>
-                  
+
                   <div className="text-right">
                     <div className="text-lg font-bold text-mediterranean-800">
                       €{(contact.dealValue / 1000).toFixed(0)}K
@@ -458,7 +458,7 @@ function MediterraneanContacts() {
               No se encontraron contactos
             </h3>
             <p className="text-mediterranean-600 mb-6">
-              {searchQuery || selectedStatus !== 'all' 
+              {searchQuery || selectedStatus !== 'all'
                 ? 'Intenta ajustar los filtros de búsqueda'
                 : 'Comienza agregando tu primer contacto'
               }
@@ -474,8 +474,8 @@ function MediterraneanContacts() {
   );
 }
 
-export default function ContactsPage() {
-  return (
+export default function ContactsPage(): void {
+  return (;
     <ProtectedRoute requiredPermission="crm:contacts:view">
       <MediterraneanContacts />
     </ProtectedRoute>

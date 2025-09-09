@@ -24,7 +24,7 @@ vi.mock('../index.js', () => {
   // Workers integration endpoints
   app.post('/v1/workers/emails/process', (req, res) => {
     const { messageId, organizationId, priority } = req.body;
-    
+
     if (!messageId || !organizationId) {
       return res.status(400).json({
         success: false,
@@ -58,7 +58,7 @@ vi.mock('../index.js', () => {
 
   app.post('/v1/workers/emails/process/bulk', (req, res) => {
     const { messageIds, organizationId } = req.body;
-    
+
     if (!messageIds || !Array.isArray(messageIds) || !organizationId) {
       return res.status(400).json({
         success: false,
@@ -98,7 +98,7 @@ vi.mock('../index.js', () => {
 
   app.post('/v1/workers/cron/manage', (req, res) => {
     const { jobId, action, organizationId } = req.body;
-    
+
     if (!jobId || !action || !organizationId) {
       return res.status(400).json({
         success: false,
@@ -216,7 +216,7 @@ vi.mock('../index.js', () => {
 
   app.post('/v1/contacts', (req, res) => {
     const { name, email, organizationId } = req.body;
-    
+
     if (!name || !email || !organizationId) {
       return res.status(400).json({
         success: false,
@@ -260,7 +260,7 @@ vi.mock('../index.js', () => {
 
   app.post('/v1/products', (req, res) => {
     const { name, price, organizationId } = req.body;
-    
+
     if (!name || !price || !organizationId) {
       return res.status(400).json({
         success: false,
@@ -805,7 +805,7 @@ describe('ECONEURA End-to-End Integration Tests', () => {
       );
 
       const responses = await Promise.all(requests);
-      
+
       responses.forEach(response => {
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
@@ -814,7 +814,7 @@ describe('ECONEURA End-to-End Integration Tests', () => {
 
     it('should handle bulk operations efficiently', async () => {
       const startTime = Date.now();
-      
+
       const response = await request(app)
         .post('/v1/workers/emails/process/bulk')
         .send({

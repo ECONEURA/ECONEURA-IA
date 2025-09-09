@@ -40,33 +40,33 @@ export const ERROR_CODES = {
   AUTH_INVALID: 'AUTH_INVALID',
   AUTH_EXPIRED: 'AUTH_EXPIRED',
   AUTH_INSUFFICIENT_PERMISSIONS: 'AUTH_INSUFFICIENT_PERMISSIONS',
-  
+
   // Validation
   VALIDATION_ERROR: 'VALIDATION_ERROR',
   VALIDATION_REQUIRED: 'VALIDATION_REQUIRED',
   VALIDATION_INVALID_FORMAT: 'VALIDATION_INVALID_FORMAT',
   VALIDATION_OUT_OF_RANGE: 'VALIDATION_OUT_OF_RANGE',
-  
+
   // Database
   DATABASE_ERROR: 'DATABASE_ERROR',
   DATABASE_CONNECTION_ERROR: 'DATABASE_CONNECTION_ERROR',
   DATABASE_QUERY_ERROR: 'DATABASE_QUERY_ERROR',
   DATABASE_CONSTRAINT_ERROR: 'DATABASE_CONSTRAINT_ERROR',
-  
+
   // External Services
   EXTERNAL_SERVICE_ERROR: 'EXTERNAL_SERVICE_ERROR',
   EXTERNAL_SERVICE_TIMEOUT: 'EXTERNAL_SERVICE_TIMEOUT',
   EXTERNAL_SERVICE_UNAVAILABLE: 'EXTERNAL_SERVICE_UNAVAILABLE',
-  
+
   // Business Logic
   BUSINESS_LOGIC_ERROR: 'BUSINESS_LOGIC_ERROR',
   RESOURCE_NOT_FOUND: 'RESOURCE_NOT_FOUND',
   RESOURCE_ALREADY_EXISTS: 'RESOURCE_ALREADY_EXISTS',
   OPERATION_NOT_ALLOWED: 'OPERATION_NOT_ALLOWED',
-  
+
   // Rate Limiting
   RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
-  
+
   // System
   INTERNAL_SERVER_ERROR: 'INTERNAL_SERVER_ERROR',
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
@@ -85,33 +85,33 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   [ERROR_CODES.AUTH_INVALID]: 'Invalid authentication credentials',
   [ERROR_CODES.AUTH_EXPIRED]: 'Authentication token has expired',
   [ERROR_CODES.AUTH_INSUFFICIENT_PERMISSIONS]: 'Insufficient permissions',
-  
+
   // Validation
   [ERROR_CODES.VALIDATION_ERROR]: 'Validation error',
   [ERROR_CODES.VALIDATION_REQUIRED]: 'Required field is missing',
   [ERROR_CODES.VALIDATION_INVALID_FORMAT]: 'Invalid format',
   [ERROR_CODES.VALIDATION_OUT_OF_RANGE]: 'Value is out of allowed range',
-  
+
   // Database
   [ERROR_CODES.DATABASE_ERROR]: 'Database error',
   [ERROR_CODES.DATABASE_CONNECTION_ERROR]: 'Database connection error',
   [ERROR_CODES.DATABASE_QUERY_ERROR]: 'Database query error',
   [ERROR_CODES.DATABASE_CONSTRAINT_ERROR]: 'Database constraint violation',
-  
+
   // External Services
   [ERROR_CODES.EXTERNAL_SERVICE_ERROR]: 'External service error',
   [ERROR_CODES.EXTERNAL_SERVICE_TIMEOUT]: 'External service timeout',
   [ERROR_CODES.EXTERNAL_SERVICE_UNAVAILABLE]: 'External service unavailable',
-  
+
   // Business Logic
   [ERROR_CODES.BUSINESS_LOGIC_ERROR]: 'Business logic error',
   [ERROR_CODES.RESOURCE_NOT_FOUND]: 'Resource not found',
   [ERROR_CODES.RESOURCE_ALREADY_EXISTS]: 'Resource already exists',
   [ERROR_CODES.OPERATION_NOT_ALLOWED]: 'Operation not allowed',
-  
+
   // Rate Limiting
   [ERROR_CODES.RATE_LIMIT_EXCEEDED]: 'Rate limit exceeded',
-  
+
   // System
   [ERROR_CODES.INTERNAL_SERVER_ERROR]: 'Internal server error',
   [ERROR_CODES.SERVICE_UNAVAILABLE]: 'Service unavailable',
@@ -128,33 +128,33 @@ export const ERROR_STATUS_MAPPING: Record<ErrorCode, number> = {
   [ERROR_CODES.AUTH_INVALID]: 401,
   [ERROR_CODES.AUTH_EXPIRED]: 401,
   [ERROR_CODES.AUTH_INSUFFICIENT_PERMISSIONS]: 403,
-  
+
   // Validation
   [ERROR_CODES.VALIDATION_ERROR]: 400,
   [ERROR_CODES.VALIDATION_REQUIRED]: 400,
   [ERROR_CODES.VALIDATION_INVALID_FORMAT]: 400,
   [ERROR_CODES.VALIDATION_OUT_OF_RANGE]: 400,
-  
+
   // Database
   [ERROR_CODES.DATABASE_ERROR]: 500,
   [ERROR_CODES.DATABASE_CONNECTION_ERROR]: 503,
   [ERROR_CODES.DATABASE_QUERY_ERROR]: 500,
   [ERROR_CODES.DATABASE_CONSTRAINT_ERROR]: 409,
-  
+
   // External Services
   [ERROR_CODES.EXTERNAL_SERVICE_ERROR]: 502,
   [ERROR_CODES.EXTERNAL_SERVICE_TIMEOUT]: 504,
   [ERROR_CODES.EXTERNAL_SERVICE_UNAVAILABLE]: 503,
-  
+
   // Business Logic
   [ERROR_CODES.BUSINESS_LOGIC_ERROR]: 400,
   [ERROR_CODES.RESOURCE_NOT_FOUND]: 404,
   [ERROR_CODES.RESOURCE_ALREADY_EXISTS]: 409,
   [ERROR_CODES.OPERATION_NOT_ALLOWED]: 403,
-  
+
   // Rate Limiting
   [ERROR_CODES.RATE_LIMIT_EXCEEDED]: 429,
-  
+
   // System
   [ERROR_CODES.INTERNAL_SERVER_ERROR]: 500,
   [ERROR_CODES.SERVICE_UNAVAILABLE]: 503,
@@ -272,7 +272,7 @@ export function isZodError(error: unknown): error is z.ZodError {
 
 export function isDatabaseError(error: unknown): boolean {
   if (error instanceof DatabaseError) return true;
-  
+
   // Check for common database error patterns
   const errorMessage = error instanceof Error ? error.message : String(error);
   const dbErrorPatterns = [
@@ -285,15 +285,15 @@ export function isDatabaseError(error: unknown): boolean {
     'not null',
     'timeout',
   ];
-  
-  return dbErrorPatterns.some(pattern => 
+
+  return dbErrorPatterns.some(pattern => ;
     errorMessage.toLowerCase().includes(pattern)
   );
 }
 
 export function isExternalServiceError(error: unknown): boolean {
   if (error instanceof ExternalServiceError) return true;
-  
+
   // Check for common external service error patterns
   const errorMessage = error instanceof Error ? error.message : String(error);
   const externalErrorPatterns = [
@@ -305,8 +305,8 @@ export function isExternalServiceError(error: unknown): boolean {
     'network',
     'connection refused',
   ];
-  
-  return externalErrorPatterns.some(pattern => 
+
+  return externalErrorPatterns.some(pattern => ;
     errorMessage.toLowerCase().includes(pattern)
   );
 }
@@ -317,7 +317,7 @@ export function isExternalServiceError(error: unknown): boolean {
 
 export function mapZodErrorToAppError(zodError: z.ZodError, traceId?: string): ValidationError {
   const details: Record<string, unknown> = {};
-  
+
   zodError.errors.forEach((error) => {
     const path = error.path.join('.');
     details[path] = {
@@ -327,7 +327,7 @@ export function mapZodErrorToAppError(zodError: z.ZodError, traceId?: string): V
     };
   });
 
-  return new ValidationError(
+  return new ValidationError(;
     'Validation failed',
     details,
     traceId
@@ -340,7 +340,7 @@ export function mapDatabaseErrorToAppError(
   traceId?: string
 ): DatabaseError {
   const errorMessage = error instanceof Error ? error.message : String(error);
-  
+
   let code = ERROR_CODES.DATABASE_ERROR;
   if (isDatabaseError(error)) {
     if (errorMessage.includes('connection')) {
@@ -352,7 +352,7 @@ export function mapDatabaseErrorToAppError(
     }
   }
 
-  return new DatabaseError(
+  return new DatabaseError(;
     `Database error during ${operation}: ${errorMessage}`,
     { operation, originalError: errorMessage },
     traceId
@@ -365,7 +365,7 @@ export function mapExternalServiceErrorToAppError(
   traceId?: string
 ): ExternalServiceError {
   const errorMessage = error instanceof Error ? error.message : String(error);
-  
+
   let code = ERROR_CODES.EXTERNAL_SERVICE_ERROR;
   if (isExternalServiceError(error)) {
     if (errorMessage.includes('timeout')) {
@@ -375,7 +375,7 @@ export function mapExternalServiceErrorToAppError(
     }
   }
 
-  return new ExternalServiceError(
+  return new ExternalServiceError(;
     `External service error from ${service}: ${errorMessage}`,
     { service, originalError: errorMessage },
     traceId

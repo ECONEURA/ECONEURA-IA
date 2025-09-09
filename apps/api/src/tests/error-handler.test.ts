@@ -43,7 +43,7 @@ app.get('/test-validation-error', (req, res, next) => {
     name: z.string().min(1),
     email: z.string().email(),
   });
-  
+
   try {
     schema.parse({ name: '', email: 'invalid' });
   } catch (error) {
@@ -463,7 +463,7 @@ describe('Error Handler Middleware', () => {
   describe('Correlation ID handling', () => {
     it('should use provided correlation ID', async () => {
       const correlationId = 'test-correlation-id-123';
-      
+
       const response = await request(app)
         .get('/test-app-error')
         .set('X-Correlation-ID', correlationId)
@@ -495,14 +495,14 @@ describe('Error Handler Middleware', () => {
         .expect(400);
 
       const { error } = response.body;
-      
+
       expect(error).toHaveProperty('code');
       expect(error).toHaveProperty('message');
       expect(error).toHaveProperty('timestamp');
       expect(error).toHaveProperty('statusCode');
       expect(error).toHaveProperty('path');
       expect(error).toHaveProperty('method');
-      
+
       expect(typeof error.code).toBe('string');
       expect(typeof error.message).toBe('string');
       expect(typeof error.timestamp).toBe('string');
@@ -513,7 +513,7 @@ describe('Error Handler Middleware', () => {
 
     it('should include request ID if provided', async () => {
       const requestId = 'test-request-id-456';
-      
+
       const response = await request(app)
         .get('/test-app-error')
         .set('X-Request-ID', requestId)

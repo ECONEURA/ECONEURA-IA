@@ -1,8 +1,8 @@
 /**
  * EMAIL MARKETING DASHBOARD
- * 
+ *
  * PR-56: Dashboard completo de email marketing
- * 
+ *
  * Funcionalidades:
  * - Gestión de campañas de email
  * - Automatización de emails
@@ -26,16 +26,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
-import { 
-  Mail, 
-  Plus, 
-  Search, 
-  Filter, 
-  Eye, 
-  Edit, 
-  Trash2, 
-  Send, 
-  Users, 
+import {
+  Mail,
+  Plus,
+  Search,
+  Filter,
+  Eye,
+  Edit,
+  Trash2,
+  Send,
+  Users,
   BarChart3,
   Calendar,
   Clock,
@@ -266,7 +266,7 @@ const EmailMarketingDashboard: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      
+
       // Load campaigns
       const campaignsResponse = await fetch('/api/email-marketing/campaigns');
       const campaignsData = await campaignsResponse.json();
@@ -312,10 +312,10 @@ const EmailMarketingDashboard: React.FC = () => {
     const matchesSearch = campaign.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          campaign.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          campaign.previewText?.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesType = selectedType === 'all' || campaign.type === selectedType;
     const matchesStatus = selectedStatus === 'all' || campaign.status === selectedStatus;
-    
+
     return matchesSearch && matchesType && matchesStatus;
   });
 
@@ -364,7 +364,7 @@ const EmailMarketingDashboard: React.FC = () => {
   };
 
   if (loading) {
-    return (
+    return (;
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -374,7 +374,7 @@ const EmailMarketingDashboard: React.FC = () => {
     );
   }
 
-  return (
+  return (;
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -680,14 +680,14 @@ const EmailMarketingDashboard: React.FC = () => {
                   </p>
                 </div>
               </div>
-              
+
               {selectedCampaign.previewText && (
                 <div>
                   <label className="text-sm font-medium">Texto de Vista Previa</label>
                   <p className="text-sm text-gray-600">{selectedCampaign.previewText}</p>
                 </div>
               )}
-              
+
               {selectedCampaign.analytics && (
                 <div>
                   <label className="text-sm font-medium">Analytics</label>
@@ -711,7 +711,7 @@ const EmailMarketingDashboard: React.FC = () => {
                   </div>
                 </div>
               )}
-              
+
               <div className="flex items-center space-x-4">
                 {selectedCampaign.trackingEnabled && (
                   <div className="flex items-center space-x-1 text-green-600">
@@ -719,14 +719,14 @@ const EmailMarketingDashboard: React.FC = () => {
                     <span className="text-sm">Tracking habilitado</span>
                   </div>
                 )}
-                
+
                 {selectedCampaign.abTest?.enabled && (
                   <div className="flex items-center space-x-1 text-purple-600">
                     <Zap className="h-4 w-4" />
                     <span className="text-sm">A/B Test activo</span>
                   </div>
                 )}
-                
+
                 {selectedCampaign.automation?.enabled && (
                   <div className="flex items-center space-x-1 text-blue-600">
                     <Settings className="h-4 w-4" />
@@ -777,7 +777,7 @@ const EmailMarketingDashboard: React.FC = () => {
             </div>
             <div>
               <label className="text-sm font-medium">Contenido HTML</label>
-              <textarea 
+              <textarea
                 placeholder="Escribe el contenido HTML del email..."
                 className="w-full mt-1 p-3 border border-gray-300 rounded-md"
                 rows={8}

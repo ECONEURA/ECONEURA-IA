@@ -5,17 +5,17 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // GET /api/rls/context - Obtener contexto RLS actual
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): void {
   try {
     const context = webRlsSystem.getContext();
-    
+
     return NextResponse.json({
       success: true,
       data: context
     });
   } catch (error) {
     console.error('Failed to get RLS context:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Internal server error' },
       { status: 500 }
     );
@@ -23,11 +23,11 @@ export async function GET(request: NextRequest) {
 }
 
 // POST /api/rls/context - Establecer contexto RLS
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): void {
   try {
     const contextData = await request.json();
     webRlsSystem.setContext(contextData);
-    
+
     return NextResponse.json({
       success: true,
       data: {
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Failed to set RLS context:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Failed to set RLS context' },
       { status: 400 }
     );

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { 
+import {
   BackupRecoveryService,
   BackupConfig,
   BackupJob,
@@ -17,7 +17,7 @@ describe('BackupRecoveryService', () => {
     it('should initialize with default backup configurations', async () => {
       const configs = await service.getBackupConfigs();
       expect(configs.length).toBeGreaterThan(0);
-      
+
       const dbBackup = configs.find(c => c.name === 'Database Full Backup');
       expect(dbBackup).toBeDefined();
       expect(dbBackup?.type).toBe('database');
@@ -26,7 +26,7 @@ describe('BackupRecoveryService', () => {
 
     it('should have default configurations for different types', async () => {
       const configs = await service.getBackupConfigs();
-      
+
       const types = configs.map(c => c.type);
       expect(types).toContain('database');
       expect(types).toContain('files');
@@ -65,7 +65,7 @@ describe('BackupRecoveryService', () => {
       };
 
       const config = await service.createBackupConfig(configData);
-      
+
       expect(config.id).toBeDefined();
       expect(config.name).toBe('Test Backup Config');
       expect(config.type).toBe('database');
@@ -75,7 +75,7 @@ describe('BackupRecoveryService', () => {
     it('should retrieve backup configuration by ID', async () => {
       const configs = await service.getBackupConfigs();
       const firstConfig = configs[0];
-      
+
       const retrieved = await service.getBackupConfig(firstConfig.id!);
       expect(retrieved).toBeDefined();
       expect(retrieved?.id).toBe(firstConfig.id);
@@ -85,13 +85,13 @@ describe('BackupRecoveryService', () => {
     it('should update backup configuration', async () => {
       const configs = await service.getBackupConfigs();
       const firstConfig = configs[0];
-      
+
       // Only update fields that don't require validation
       const updated = await service.updateBackupConfig(firstConfig.id!, {
         name: 'Updated Backup Config',
         updatedBy: 'test-user'
       }, 'test-user');
-      
+
       expect(updated).toBeDefined();
       expect(updated?.name).toBe('Updated Backup Config');
       expect(updated?.updatedBy).toBe('test-user');
@@ -128,9 +128,9 @@ describe('BackupRecoveryService', () => {
 
       const config = await service.createBackupConfig(configData);
       const deleted = await service.deleteBackupConfig(config.id!, 'test-user');
-      
+
       expect(deleted).toBe(true);
-      
+
       const retrieved = await service.getBackupConfig(config.id!);
       expect(retrieved).toBeNull();
     });
@@ -295,9 +295,9 @@ describe('BackupRecoveryService', () => {
     it('should execute manual backup', async () => {
       const configs = await service.getBackupConfigs();
       const firstConfig = configs[0];
-      
+
       const job = await service.executeBackup(firstConfig.id!, 'test-user', 'manual');
-      
+
       expect(job.id).toBeDefined();
       expect(job.configId).toBe(firstConfig.id);
       expect(job.type).toBe('manual');
@@ -308,9 +308,9 @@ describe('BackupRecoveryService', () => {
     it('should execute scheduled backup', async () => {
       const configs = await service.getBackupConfigs();
       const firstConfig = configs[0];
-      
+
       const job = await service.executeBackup(firstConfig.id!, 'system', 'scheduled');
-      
+
       expect(job.id).toBeDefined();
       expect(job.configId).toBe(firstConfig.id);
       expect(job.type).toBe('scheduled');
@@ -327,10 +327,10 @@ describe('BackupRecoveryService', () => {
     it('should retrieve backup jobs', async () => {
       const configs = await service.getBackupConfigs();
       const firstConfig = configs[0];
-      
+
       // Execute a backup to create a job
       await service.executeBackup(firstConfig.id!, 'test-user');
-      
+
       const jobs = await service.getBackupJobs();
       expect(jobs.length).toBeGreaterThan(0);
     });
@@ -338,10 +338,10 @@ describe('BackupRecoveryService', () => {
     it('should retrieve backup job by ID', async () => {
       const configs = await service.getBackupConfigs();
       const firstConfig = configs[0];
-      
+
       const job = await service.executeBackup(firstConfig.id!, 'test-user');
       const retrieved = await service.getBackupJob(job.id!);
-      
+
       expect(retrieved).toBeDefined();
       expect(retrieved?.id).toBe(job.id);
       expect(retrieved?.configId).toBe(firstConfig.id);
@@ -350,9 +350,9 @@ describe('BackupRecoveryService', () => {
     it('should filter backup jobs by config ID', async () => {
       const configs = await service.getBackupConfigs();
       const firstConfig = configs[0];
-      
+
       await service.executeBackup(firstConfig.id!, 'test-user');
-      
+
       const jobs = await service.getBackupJobs({ configId: firstConfig.id });
       expect(jobs.every(j => j.configId === firstConfig.id)).toBe(true);
     });
@@ -370,15 +370,15 @@ describe('BackupRecoveryService', () => {
     it('should cancel running backup job', async () => {
       const configs = await service.getBackupConfigs();
       const firstConfig = configs[0];
-      
+
       const job = await service.executeBackup(firstConfig.id!, 'test-user');
-      
+
       // Simulate job running
       const retrievedJob = await service.getBackupJob(job.id!);
       if (retrievedJob) {
         retrievedJob.status = 'running';
       }
-      
+
       const cancelled = await service.cancelBackupJob(job.id!);
       expect(cancelled).toBe(true);
     });
@@ -393,10 +393,10 @@ describe('BackupRecoveryService', () => {
     it('should execute recovery from completed backup', async () => {
       const configs = await service.getBackupConfigs();
       const firstConfig = configs[0];
-      
+
       // Execute a backup
       const backupJob = await service.executeBackup(firstConfig.id!, 'test-user');
-      
+
       // Simulate completed backup
       const retrievedJob = await service.getBackupJob(backupJob.id!);
       if (retrievedJob) {
@@ -404,26 +404,26 @@ describe('BackupRecoveryService', () => {
         retrievedJob.size = 1024 * 1024; // 1MB
         retrievedJob.filesCount = 1;
       }
-      
+
       const target = {
         type: 'database' as const,
         connectionString: 'postgresql://test:test@localhost:5432/test'
       };
-      
+
       const options = {
         overwrite: false,
         verify: true,
         restoreSchema: true,
         restoreData: true
       };
-      
+
       const recoveryJob = await service.executeRecovery(
-        backupJob.id!, 
-        target, 
-        options, 
+        backupJob.id!,
+        target,
+        options,
         'test-user'
       );
-      
+
       expect(recoveryJob.id).toBeDefined();
       expect(recoveryJob.backupId).toBe(backupJob.id);
       expect(['pending', 'running']).toContain(recoveryJob.status);
@@ -435,35 +435,35 @@ describe('BackupRecoveryService', () => {
         type: 'database' as const,
         connectionString: 'postgresql://test:test@localhost:5432/test'
       };
-      
+
       const options = {
         overwrite: false,
         verify: true,
         restoreSchema: true,
         restoreData: true
       };
-      
+
       await expect(service.executeRecovery('non-existent-id', target, options, 'test-user')).rejects.toThrow();
     });
 
     it('should fail to recover from incomplete backup', async () => {
       const configs = await service.getBackupConfigs();
       const firstConfig = configs[0];
-      
+
       const backupJob = await service.executeBackup(firstConfig.id!, 'test-user');
-      
+
       const target = {
         type: 'database' as const,
         connectionString: 'postgresql://test:test@localhost:5432/test'
       };
-      
+
       const options = {
         overwrite: false,
         verify: true,
         restoreSchema: true,
         restoreData: true
       };
-      
+
       await expect(service.executeRecovery(backupJob.id!, target, options, 'test-user')).rejects.toThrow();
     });
 
@@ -486,7 +486,7 @@ describe('BackupRecoveryService', () => {
   describe('Statistics', () => {
     it('should retrieve backup statistics', async () => {
       const stats = await service.getBackupStats();
-      
+
       expect(stats.totalBackups).toBeGreaterThanOrEqual(0);
       expect(stats.successfulBackups).toBeGreaterThanOrEqual(0);
       expect(stats.failedBackups).toBeGreaterThanOrEqual(0);
@@ -498,7 +498,7 @@ describe('BackupRecoveryService', () => {
 
     it('should retrieve recovery statistics', async () => {
       const stats = await service.getRecoveryStats();
-      
+
       expect(stats.totalRecoveries).toBeGreaterThanOrEqual(0);
       expect(stats.successfulRecoveries).toBeGreaterThanOrEqual(0);
       expect(stats.failedRecoveries).toBeGreaterThanOrEqual(0);

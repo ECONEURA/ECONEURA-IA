@@ -38,7 +38,7 @@ interface GatewayStats {
   routesCount: number;
 }
 
-export default function GatewayStatus() {
+export default function GatewayStatus(): void {
   const [stats, setStats] = useState<GatewayStats | null>(null);
   const [services, setServices] = useState<ServiceEndpoint[]>([]);
   const [routes, setRoutes] = useState<RouteRule[]>([]);
@@ -54,7 +54,7 @@ export default function GatewayStatus() {
   const fetchGatewayData = async () => {
     try {
       setLoading(true);
-      
+
       // Obtener estadísticas
       const statsResponse = await fetch('/api/gateway/stats');
       if (statsResponse.ok) {
@@ -114,7 +114,7 @@ export default function GatewayStatus() {
   };
 
   if (loading) {
-    return (
+    return (;
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold mb-4">🌐 API Gateway</h3>
         <div className="animate-pulse">
@@ -125,10 +125,10 @@ export default function GatewayStatus() {
     );
   }
 
-  return (
+  return (;
     <div className="bg-white rounded-lg shadow p-6">
       <h3 className="text-lg font-semibold mb-4">🌐 API Gateway</h3>
-      
+
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
           {error}

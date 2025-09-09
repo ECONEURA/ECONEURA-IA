@@ -147,7 +147,7 @@ describe('GDPR Consolidated Service', () => {
 
       // Get all exports for the user
       const userExports = await gdprConsolidated.getUserExports(requestData.userId);
-      
+
       if (userExports.length > 0) {
         const exportRecord = await gdprConsolidated.getDataExport(userExports[0].id);
         expect(exportRecord).toBeDefined();
@@ -157,9 +157,9 @@ describe('GDPR Consolidated Service', () => {
 
     it('should get user exports', async () => {
       const userId = 'user-123';
-      
+
       const userExports = await gdprConsolidated.getUserExports(userId);
-      
+
       expect(Array.isArray(userExports)).toBe(true);
     });
   });
@@ -186,7 +186,7 @@ describe('GDPR Consolidated Service', () => {
 
       // Get all erasures for the user
       const userErasures = await gdprConsolidated.getUserErasures(requestData.userId);
-      
+
       if (userErasures.length > 0) {
         const eraseRecord = await gdprConsolidated.getDataErase(userErasures[0].id);
         expect(eraseRecord).toBeDefined();
@@ -196,9 +196,9 @@ describe('GDPR Consolidated Service', () => {
 
     it('should get user erasures', async () => {
       const userId = 'user-123';
-      
+
       const userErasures = await gdprConsolidated.getUserErasures(userId);
-      
+
       expect(Array.isArray(userErasures)).toBe(true);
     });
   });
@@ -252,7 +252,7 @@ describe('GDPR Consolidated Service', () => {
       };
 
       const createdHold = await gdprConsolidated.createLegalHold(legalHoldData);
-      
+
       const updates = {
         status: 'expired' as const,
         endDate: new Date()
@@ -287,7 +287,7 @@ describe('GDPR Consolidated Service', () => {
 
     it('should get consent records for user', async () => {
       const userId = 'user-123';
-      
+
       const consentRecords = await gdprConsolidated.getConsentRecords(userId);
 
       expect(Array.isArray(consentRecords)).toBe(true);
@@ -305,7 +305,7 @@ describe('GDPR Consolidated Service', () => {
       };
 
       const createdConsent = await gdprConsolidated.createConsentRecord(consentData);
-      
+
       const withdrawnConsent = await gdprConsolidated.withdrawConsent(
         createdConsent.id,
         consentData.userId

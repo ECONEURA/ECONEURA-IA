@@ -75,7 +75,7 @@ describe('Notification System', () => {
   describe('Template Management', () => {
     it('should create a template successfully', async () => {
       const template = await notificationSystem.createTemplate(mockTemplate);
-      
+
       expect(template).toBeDefined();
       expect(template.id).toBeDefined();
       expect(template.name).toBe(mockTemplate.name);
@@ -91,7 +91,7 @@ describe('Notification System', () => {
     it('should get a template by ID', async () => {
       const createdTemplate = await notificationSystem.createTemplate(mockTemplate);
       const retrievedTemplate = await notificationSystem.getTemplate(createdTemplate.id);
-      
+
       expect(retrievedTemplate).toBeDefined();
       expect(retrievedTemplate?.id).toBe(createdTemplate.id);
       expect(retrievedTemplate?.name).toBe(mockTemplate.name);
@@ -105,7 +105,7 @@ describe('Notification System', () => {
     it('should list templates for organization', async () => {
       await notificationSystem.createTemplate(mockTemplate);
       const templates = await notificationSystem.listTemplates('org-456');
-      
+
       expect(templates).toBeDefined();
       expect(Array.isArray(templates)).toBe(true);
       expect(templates.length).toBeGreaterThan(0);
@@ -114,9 +114,9 @@ describe('Notification System', () => {
     it('should update a template', async () => {
       const createdTemplate = await notificationSystem.createTemplate(mockTemplate);
       const updates = { name: 'Updated Template Name', isActive: false };
-      
+
       const updatedTemplate = await notificationSystem.updateTemplate(createdTemplate.id, updates);
-      
+
       expect(updatedTemplate.name).toBe(updates.name);
       expect(updatedTemplate.isActive).toBe(updates.isActive);
       expect(updatedTemplate.updatedAt.getTime()).toBeGreaterThan(createdTemplate.updatedAt.getTime());
@@ -124,22 +124,22 @@ describe('Notification System', () => {
 
     it('should delete a template', async () => {
       const createdTemplate = await notificationSystem.createTemplate(mockTemplate);
-      
+
       await notificationSystem.deleteTemplate(createdTemplate.id);
-      
+
       const deletedTemplate = await notificationSystem.getTemplate(createdTemplate.id);
       expect(deletedTemplate).toBeNull();
     });
 
     it('should throw error when updating non-existent template', async () => {
       await expect(
-        notificationSystem.updateTemplate('non-existent-id', { name: 'Updated' })
+        notificationSystem.updateTemplate('non-existent-id', { name: 'Updated' });
       ).rejects.toThrow('Template not found');
     });
 
     it('should throw error when deleting non-existent template', async () => {
       await expect(
-        notificationSystem.deleteTemplate('non-existent-id')
+        notificationSystem.deleteTemplate('non-existent-id');
       ).rejects.toThrow('Template not found');
     });
   });
@@ -147,7 +147,7 @@ describe('Notification System', () => {
   describe('Notification Management', () => {
     it('should create a notification successfully', async () => {
       const notification = await notificationSystem.createNotification(mockNotification);
-      
+
       expect(notification).toBeDefined();
       expect(notification.id).toBeDefined();
       expect(notification.userId).toBe(mockNotification.userId);
@@ -165,7 +165,7 @@ describe('Notification System', () => {
     it('should get a notification by ID', async () => {
       const createdNotification = await notificationSystem.createNotification(mockNotification);
       const retrievedNotification = await notificationSystem.getNotification(createdNotification.id);
-      
+
       expect(retrievedNotification).toBeDefined();
       expect(retrievedNotification?.id).toBe(createdNotification.id);
       expect(retrievedNotification?.title).toBe(mockNotification.title);
@@ -183,7 +183,7 @@ describe('Notification System', () => {
         mockNotification.orgId,
         { limit: 10, offset: 0 }
       );
-      
+
       expect(notifications).toBeDefined();
       expect(Array.isArray(notifications)).toBe(true);
       expect(notifications.length).toBeGreaterThan(0);
@@ -196,7 +196,7 @@ describe('Notification System', () => {
         mockNotification.orgId,
         { status: 'pending' }
       );
-      
+
       expect(notifications).toBeDefined();
       expect(notifications.every(n => n.status === 'pending')).toBe(true);
     });
@@ -208,7 +208,7 @@ describe('Notification System', () => {
         mockNotification.orgId,
         { type: 'info' }
       );
-      
+
       expect(notifications).toBeDefined();
       expect(notifications.every(n => n.type === 'info')).toBe(true);
     });
@@ -220,7 +220,7 @@ describe('Notification System', () => {
         mockNotification.orgId,
         { priority: 'medium' }
       );
-      
+
       expect(notifications).toBeDefined();
       expect(notifications.every(n => n.priority === 'medium')).toBe(true);
     });
@@ -228,9 +228,9 @@ describe('Notification System', () => {
     it('should update a notification', async () => {
       const createdNotification = await notificationSystem.createNotification(mockNotification);
       const updates = { title: 'Updated Title', status: 'sent' as const };
-      
+
       const updatedNotification = await notificationSystem.updateNotification(createdNotification.id, updates);
-      
+
       expect(updatedNotification.title).toBe(updates.title);
       expect(updatedNotification.status).toBe(updates.status);
       expect(updatedNotification.updatedAt.getTime()).toBeGreaterThan(createdNotification.updatedAt.getTime());
@@ -238,18 +238,18 @@ describe('Notification System', () => {
 
     it('should delete a notification', async () => {
       const createdNotification = await notificationSystem.createNotification(mockNotification);
-      
+
       await notificationSystem.deleteNotification(createdNotification.id);
-      
+
       const deletedNotification = await notificationSystem.getNotification(createdNotification.id);
       expect(deletedNotification).toBeNull();
     });
 
     it('should mark notification as read', async () => {
       const createdNotification = await notificationSystem.createNotification(mockNotification);
-      
+
       const readNotification = await notificationSystem.markAsRead(createdNotification.id);
-      
+
       expect(readNotification.status).toBe('read');
       expect(readNotification.readAt).toBeDefined();
       expect(readNotification.readAt).toBeInstanceOf(Date);
@@ -258,32 +258,32 @@ describe('Notification System', () => {
     it('should mark all notifications as read', async () => {
       await notificationSystem.createNotification(mockNotification);
       await notificationSystem.createNotification({ ...mockNotification, title: 'Another Notification' });
-      
+
       await notificationSystem.markAllAsRead(mockNotification.userId, mockNotification.orgId);
-      
+
       const notifications = await notificationSystem.listNotifications(
         mockNotification.userId,
         mockNotification.orgId
       );
-      
+
       expect(notifications.every(n => n.status === 'read')).toBe(true);
     });
 
     it('should throw error when updating non-existent notification', async () => {
       await expect(
-        notificationSystem.updateNotification('non-existent-id', { title: 'Updated' })
+        notificationSystem.updateNotification('non-existent-id', { title: 'Updated' });
       ).rejects.toThrow('Notification not found');
     });
 
     it('should throw error when deleting non-existent notification', async () => {
       await expect(
-        notificationSystem.deleteNotification('non-existent-id')
+        notificationSystem.deleteNotification('non-existent-id');
       ).rejects.toThrow('Notification not found');
     });
 
     it('should throw error when marking non-existent notification as read', async () => {
       await expect(
-        notificationSystem.markAsRead('non-existent-id')
+        notificationSystem.markAsRead('non-existent-id');
       ).rejects.toThrow('Notification not found');
     });
   });
@@ -291,7 +291,7 @@ describe('Notification System', () => {
   describe('Preferences Management', () => {
     it('should get default preferences for new user', async () => {
       const preferences = await notificationSystem.getPreferences('new-user', 'new-org');
-      
+
       expect(preferences).toBeDefined();
       expect(preferences.userId).toBe('new-user');
       expect(preferences.orgId).toBe('new-org');
@@ -308,13 +308,13 @@ describe('Notification System', () => {
 
     it('should update preferences', async () => {
       const updates = { email: false, sms: true, push: false };
-      
+
       const updatedPreferences = await notificationSystem.updatePreferences(
         'new-user',
         'new-org',
         updates
       );
-      
+
       expect(updatedPreferences.email).toBe(updates.email);
       expect(updatedPreferences.sms).toBe(updates.sms);
       expect(updatedPreferences.push).toBe(updates.push);
@@ -328,13 +328,13 @@ describe('Notification System', () => {
         endTime: '08:00',
         timezone: 'Europe/Madrid'
       };
-      
+
       const updatedPreferences = await notificationSystem.updatePreferences(
         'new-user',
         'new-org',
         { quietHours }
       );
-      
+
       expect(updatedPreferences.quietHours).toEqual(quietHours);
     });
   });
@@ -342,7 +342,7 @@ describe('Notification System', () => {
   describe('Sending Notifications', () => {
     it('should send notification successfully', async () => {
       const notification = await notificationSystem.sendNotification(mockNotification);
-      
+
       expect(notification).toBeDefined();
       expect(notification.status).toBe('sent');
       expect(notification.sentAt).toBeDefined();
@@ -355,9 +355,9 @@ describe('Notification System', () => {
         { ...mockNotification, title: 'Second Notification' },
         { ...mockNotification, title: 'Third Notification' }
       ];
-      
+
       const results = await notificationSystem.sendBulkNotifications(notifications);
-      
+
       expect(results).toBeDefined();
       expect(Array.isArray(results)).toBe(true);
       expect(results.length).toBe(3);
@@ -366,9 +366,9 @@ describe('Notification System', () => {
 
     it('should schedule notification', async () => {
       const scheduledAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
-      
+
       const notification = await notificationSystem.scheduleNotification(mockNotification, scheduledAt);
-      
+
       expect(notification).toBeDefined();
       expect(notification.scheduledAt).toBeDefined();
       expect(notification.scheduledAt).toEqual(scheduledAt);
@@ -382,9 +382,9 @@ describe('Notification System', () => {
         mockNotification.orgId,
         { email: false, sms: false, push: false, in_app: true }
       );
-      
+
       const notification = await notificationSystem.sendNotification(mockNotification);
-      
+
       expect(notification).toBeDefined();
       expect(notification.status).toBe('sent');
     });
@@ -395,9 +395,9 @@ describe('Notification System', () => {
       await notificationSystem.createNotification(mockNotification);
       await notificationSystem.createNotification({ ...mockNotification, type: 'warning' });
       await notificationSystem.createNotification({ ...mockNotification, priority: 'high' });
-      
+
       const stats = await notificationSystem.getStatistics(mockNotification.orgId);
-      
+
       expect(stats).toBeDefined();
       expect(stats.total).toBeGreaterThan(0);
       expect(stats.byStatus).toBeDefined();
@@ -410,18 +410,18 @@ describe('Notification System', () => {
     it('should get unread count', async () => {
       await notificationSystem.createNotification(mockNotification);
       await notificationSystem.createNotification({ ...mockNotification, title: 'Another Notification' });
-      
+
       const count = await notificationSystem.getUnreadCount(mockNotification.userId, mockNotification.orgId);
-      
+
       expect(count).toBeGreaterThan(0);
     });
 
     it('should return zero unread count after marking all as read', async () => {
       await notificationSystem.createNotification(mockNotification);
       await notificationSystem.markAllAsRead(mockNotification.userId, mockNotification.orgId);
-      
+
       const count = await notificationSystem.getUnreadCount(mockNotification.userId, mockNotification.orgId);
-      
+
       expect(count).toBe(0);
     });
   });
@@ -430,7 +430,7 @@ describe('Notification System', () => {
     it('should validate template successfully', async () => {
       const template = await notificationSystem.createTemplate(mockTemplate);
       const isValid = await notificationSystem.validateTemplate(template);
-      
+
       expect(isValid).toBe(true);
     });
 
@@ -440,10 +440,10 @@ describe('Notification System', () => {
         body: 'Hello {{user_name}}, this is a test message for {{app_name}} and {{missing_variable}}.',
         variables: ['user_name', 'app_name'] // missing_variable is not declared
       };
-      
+
       const template = await notificationSystem.createTemplate(invalidTemplate);
       const isValid = await notificationSystem.validateTemplate(template);
-      
+
       expect(isValid).toBe(false);
     });
   });
@@ -468,9 +468,9 @@ describe('Email Providers', () => {
         html: '<p>Test message</p>',
         text: 'Test message'
       };
-      
+
       const result = await provider.send(message);
-      
+
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
       expect(result.provider).toBe('sendgrid');
@@ -484,9 +484,9 @@ describe('Email Providers', () => {
         { to: ['test1@example.com'], subject: 'Test 1', text: 'Message 1' },
         { to: ['test2@example.com'], subject: 'Test 2', text: 'Message 2' }
       ];
-      
+
       const results = await provider.sendBulk(messages);
-      
+
       expect(results).toBeDefined();
       expect(Array.isArray(results)).toBe(true);
       expect(results.length).toBe(2);
@@ -496,14 +496,14 @@ describe('Email Providers', () => {
     it('should validate config', async () => {
       const provider = EmailProviderFactory.create(mockEmailConfig);
       const isValid = await provider.validateConfig();
-      
+
       expect(isValid).toBe(true);
     });
 
     it('should get quota', async () => {
       const provider = EmailProviderFactory.create(mockEmailConfig);
       const quota = await provider.getQuota();
-      
+
       expect(quota).toBeDefined();
       expect(quota.used).toBeGreaterThanOrEqual(0);
       expect(quota.limit).toBeGreaterThan(0);
@@ -526,9 +526,9 @@ describe('Email Providers', () => {
         subject: 'Test Email',
         html: '<p>Test message</p>'
       };
-      
+
       const result = await provider.send(message);
-      
+
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
       expect(result.provider).toBe('aws_ses');
@@ -537,8 +537,8 @@ describe('Email Providers', () => {
 
   describe('SMTP Provider', () => {
     it('should create SMTP provider', () => {
-      const config = { 
-        ...mockEmailConfig, 
+      const config = {
+        ...mockEmailConfig,
         provider: 'smtp' as const,
         host: 'smtp.example.com',
         port: 587,
@@ -550,8 +550,8 @@ describe('Email Providers', () => {
     });
 
     it('should send email via SMTP', async () => {
-      const config = { 
-        ...mockEmailConfig, 
+      const config = {
+        ...mockEmailConfig,
         provider: 'smtp' as const,
         host: 'smtp.example.com',
         port: 587,
@@ -564,9 +564,9 @@ describe('Email Providers', () => {
         subject: 'Test Email',
         text: 'Test message'
       };
-      
+
       const result = await provider.send(message);
-      
+
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
       expect(result.provider).toBe('smtp');
@@ -591,9 +591,9 @@ describe('SMS Providers', () => {
         to: '+1234567890',
         message: 'Test SMS message'
       };
-      
+
       const result = await provider.send(message);
-      
+
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
       expect(result.provider).toBe('twilio');
@@ -604,7 +604,7 @@ describe('SMS Providers', () => {
     it('should get message status', async () => {
       const provider = SMSProviderFactory.create(mockSMSConfig);
       const status = await provider.getMessageStatus('test-message-id');
-      
+
       expect(status).toBeDefined();
       expect(status.status).toBeDefined();
     });
@@ -624,9 +624,9 @@ describe('SMS Providers', () => {
         to: '+1234567890',
         message: 'Test SMS message'
       };
-      
+
       const result = await provider.send(message);
-      
+
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
       expect(result.provider).toBe('aws_sns');
@@ -647,9 +647,9 @@ describe('SMS Providers', () => {
         to: '+1234567890',
         message: 'Test SMS message'
       };
-      
+
       const result = await provider.send(message);
-      
+
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
       expect(result.provider).toBe('vonage');
@@ -675,9 +675,9 @@ describe('Push Providers', () => {
         title: 'Test Push',
         body: 'Test push message'
       };
-      
+
       const result = await provider.send(message);
-      
+
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
       expect(result.provider).toBe('firebase');
@@ -692,9 +692,9 @@ describe('Push Providers', () => {
         title: 'Test Push',
         body: 'Test push message'
       };
-      
+
       const result = await provider.send(message);
-      
+
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
       expect(result.metadata?.successCount).toBeGreaterThan(0);
@@ -703,8 +703,8 @@ describe('Push Providers', () => {
 
   describe('Web Push Provider', () => {
     it('should create Web Push provider', () => {
-      const config = { 
-        ...mockPushConfig, 
+      const config = {
+        ...mockPushConfig,
         provider: 'web_push' as const,
         vapidPublicKey: 'test-public-key',
         vapidPrivateKey: 'test-private-key',
@@ -715,8 +715,8 @@ describe('Push Providers', () => {
     });
 
     it('should send web push notification', async () => {
-      const config = { 
-        ...mockPushConfig, 
+      const config = {
+        ...mockPushConfig,
         provider: 'web_push' as const,
         vapidPublicKey: 'test-public-key',
         vapidPrivateKey: 'test-private-key',
@@ -728,9 +728,9 @@ describe('Push Providers', () => {
         title: 'Test Web Push',
         body: 'Test web push message'
       };
-      
+
       const result = await provider.send(message);
-      
+
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
       expect(result.provider).toBe('web_push');
@@ -739,8 +739,8 @@ describe('Push Providers', () => {
 
   describe('APNS Provider', () => {
     it('should create APNS provider', () => {
-      const config = { 
-        ...mockPushConfig, 
+      const config = {
+        ...mockPushConfig,
         provider: 'apns' as const,
         privateKey: 'test-private-key',
         keyId: 'test-key-id',
@@ -752,8 +752,8 @@ describe('Push Providers', () => {
     });
 
     it('should send APNS notification', async () => {
-      const config = { 
-        ...mockPushConfig, 
+      const config = {
+        ...mockPushConfig,
         provider: 'apns' as const,
         privateKey: 'test-private-key',
         keyId: 'test-key-id',
@@ -766,9 +766,9 @@ describe('Push Providers', () => {
         title: 'Test APNS',
         body: 'Test APNS message'
       };
-      
+
       const result = await provider.send(message);
-      
+
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
       expect(result.provider).toBe('apns');
@@ -870,7 +870,7 @@ describe('Template Engine', () => {
       };
 
       const validation = await engine.validateTemplate(template);
-      
+
       expect(validation).toBeDefined();
       expect(validation.valid).toBe(true);
       expect(validation.errors).toHaveLength(0);
@@ -888,7 +888,7 @@ describe('Template Engine', () => {
       });
 
       const templates = await engine.listTemplates();
-      
+
       expect(templates).toBeDefined();
       expect(Array.isArray(templates)).toBe(true);
       expect(templates.length).toBeGreaterThan(0);

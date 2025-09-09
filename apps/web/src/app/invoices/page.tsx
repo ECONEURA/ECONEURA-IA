@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  FileText, 
+import {
+  FileText,
   Plus,
   Search,
   BarChart3,
@@ -45,7 +45,7 @@ interface InvoiceItem {
   total: number;
 }
 
-function InvoicesContent() {
+function InvoicesContent(): void {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -57,10 +57,10 @@ function InvoicesContent() {
   useEffect(() => {
     const loadInvoices = async () => {
       setLoading(true);
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       const mockInvoices: Invoice[] = [
         {
           id: '1',
@@ -166,11 +166,11 @@ function InvoicesContent() {
           ]
         }
       ];
-      
+
       setInvoices(mockInvoices);
       setLoading(false);
     };
-    
+
     loadInvoices();
   }, []);
 
@@ -180,7 +180,7 @@ function InvoicesContent() {
                          invoice.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          invoice.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = selectedStatus === 'all' || invoice.status === selectedStatus;
-    
+
     return matchesSearch && matchesStatus;
   });
 
@@ -240,7 +240,7 @@ function InvoicesContent() {
   const overdueCount = filteredInvoices.filter(inv => inv.status === 'overdue').length;
 
   if (loading) {
-    return (
+    return (;
       <div className="min-h-screen bg-gradient-to-br from-mediterranean-50 via-white to-coral-50 flex items-center justify-center">
         <div className="text-center">
           <div className="relative">
@@ -253,13 +253,13 @@ function InvoicesContent() {
     );
   }
 
-  return (
+  return (;
     <div className="min-h-screen bg-gradient-to-br from-mediterranean-50 via-white to-coral-50">
       {/* Mediterranean Header */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-terracotta-600 via-coral-500 to-mediterranean-500 opacity-90"></div>
         <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-20"></div>
-        
+
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
             <div>
@@ -270,13 +270,13 @@ function InvoicesContent() {
                 {filteredInvoices.length} facturas • {formatCurrency(totalAmount)} total • {overdueCount} vencidas
               </p>
             </div>
-            
+
             <div className="flex items-center gap-4">
               <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
                 <Download className="w-4 h-4" />
                 Exportar
               </button>
-              
+
               <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
                 <Plus className="w-4 h-4" />
                 Nueva Factura
@@ -316,7 +316,7 @@ function InvoicesContent() {
             }
           ].map((stat, index) => {
             const IconComponent = stat.icon;
-            return (
+            return (;
               <div
                 key={stat.label}
                 className={`relative overflow-hidden rounded-2xl p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 ${
@@ -357,7 +357,7 @@ function InvoicesContent() {
                 className="w-full pl-10 pr-4 py-3 border border-mediterranean-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-coral-500 focus:border-coral-500"
               />
             </div>
-            
+
             {/* Filters */}
             <div className="flex flex-wrap items-center gap-4">
               {/* Status Filter */}
@@ -376,14 +376,14 @@ function InvoicesContent() {
                   <option value="cancelled">Cancelada</option>
                 </select>
               </div>
-              
+
               {/* View Mode */}
               <div className="flex bg-mediterranean-100 rounded-xl p-1">
                 <button
                   onClick={() => setViewMode('list')}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    viewMode === 'list' 
-                      ? 'bg-white text-mediterranean-600 shadow-sm' 
+                    viewMode === 'list'
+                      ? 'bg-white text-mediterranean-600 shadow-sm'
                       : 'text-mediterranean-600 hover:bg-mediterranean-50'
                   }`}
                 >
@@ -392,8 +392,8 @@ function InvoicesContent() {
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    viewMode === 'grid' 
-                      ? 'bg-white text-mediterranean-600 shadow-sm' 
+                    viewMode === 'grid'
+                      ? 'bg-white text-mediterranean-600 shadow-sm'
                       : 'text-mediterranean-600 hover:bg-mediterranean-50'
                   }`}
                 >
@@ -437,8 +437,8 @@ function InvoicesContent() {
                   {filteredInvoices.map((invoice) => {
                     const daysUntilDue = getDaysUntilDue(invoice.dueDate);
                     const StatusIcon = getStatusIcon(invoice.status);
-                    
-                    return (
+
+                    return (;
                       <tr key={invoice.id} className="hover:bg-mediterranean-50 transition-colors">
                         <td className="px-6 py-4">
                           <div>
@@ -515,8 +515,8 @@ function InvoicesContent() {
             {filteredInvoices.map((invoice) => {
               const daysUntilDue = getDaysUntilDue(invoice.dueDate);
               const StatusIcon = getStatusIcon(invoice.status);
-              
-              return (
+
+              return (;
                 <div
                   key={invoice.id}
                   className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 hover:scale-105"
@@ -534,7 +534,7 @@ function InvoicesContent() {
                         {invoice.clientEmail}
                       </p>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       <StatusIcon className="w-5 h-5 text-mediterranean-600" />
                       <button className="p-1 hover:bg-mediterranean-50 rounded-full transition-colors">
@@ -551,7 +551,7 @@ function InvoicesContent() {
                         {formatCurrency(invoice.total)}
                       </span>
                     </div>
-                    
+
                     <div className="flex justify-between items-center">
                       <span className="text-mediterranean-600 text-sm">Vencimiento</span>
                       <span className={`text-sm ${
@@ -562,7 +562,7 @@ function InvoicesContent() {
                         {formatDate(invoice.dueDate)}
                       </span>
                     </div>
-                    
+
                     {daysUntilDue !== null && (
                       <div className="text-xs text-mediterranean-500">
                         {daysUntilDue < 0 ? `${Math.abs(daysUntilDue)} días vencida` :
@@ -626,8 +626,8 @@ function InvoicesContent() {
   );
 }
 
-export default function InvoicesPage() {
-  return (
+export default function InvoicesPage(): void {
+  return (;
     <ProtectedRoute requiredPermission="invoices:view">
       <InvoicesContent />
     </ProtectedRoute>

@@ -5,12 +5,12 @@ const ThreatsQuerySchema = z.object({
   ip: z.string().optional(),
 });
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): void {
   try {
     const { searchParams } = new URL(request.url);
     const validatedParams = ThreatsQuerySchema.parse(Object.fromEntries(searchParams));
 
-    const queryString = validatedParams.ip 
+    const queryString = validatedParams.ip
       ? new URLSearchParams({ ip: validatedParams.ip }).toString()
       : '';
 
@@ -32,14 +32,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
+      return NextResponse.json(;
         { error: 'Invalid query parameters', details: error.errors },
         { status: 400 }
       );
     }
 
     console.error('Failed to fetch threat intelligence:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Failed to fetch threat intelligence' },
       { status: 500 }
     );

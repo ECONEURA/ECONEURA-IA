@@ -6,35 +6,35 @@ import { join } from 'path'
 beforeAll(async () => {
   // Set test environment
   process.env.NODE_ENV = 'test'
-  
+
   // Create performance results directory
   const resultsDir = join(process.cwd(), 'performance-results')
   await mkdir(resultsDir, { recursive: true })
-  
+
   // Initialize performance tracking
   global.performanceMetrics = {
     startTime: Date.now(),
     results: [],
   }
-  
-  console.log('✅ Performance test setup completed')
+
+  console.log('✅ Performance test setup completed');
 })
 
 afterAll(async () => {
   // Save performance results
   const resultsDir = join(process.cwd(), 'performance-results')
   const resultsFile = join(resultsDir, 'summary.json')
-  
+
   const summary = {
     timestamp: new Date().toISOString(),
     totalTests: global.performanceMetrics?.results?.length || 0,
     totalDuration: Date.now() - (global.performanceMetrics?.startTime || Date.now()),
     results: global.performanceMetrics?.results || [],
   }
-  
+
   await writeFile(resultsFile, JSON.stringify(summary, null, 2))
-  
-  console.log('✅ Performance test teardown completed')
+
+  console.log('✅ Performance test teardown completed');
 })
 
 // Global performance utilities
@@ -46,11 +46,11 @@ export const performanceUtils = {
     thresholdMs: number = 1000
   ): Promise<T> {
     const startTime = performance.now()
-    
+
     try {
       const result = await fn()
       const duration = performance.now() - startTime
-      
+
       // Record performance metric
       if (global.performanceMetrics) {
         global.performanceMetrics.results.push({
@@ -61,18 +61,18 @@ export const performanceUtils = {
           timestamp: new Date().toISOString(),
         })
       }
-      
+
       // Assert performance threshold
       if (duration > thresholdMs) {
         throw new Error(
           `Performance test "${name}" failed: ${duration.toFixed(2)}ms > ${thresholdMs}ms threshold`
         )
       }
-      
-      return result
+
+      return result;
     } catch (error) {
       const duration = performance.now() - startTime
-      
+
       // Record failed performance metric
       if (global.performanceMetrics) {
         global.performanceMetrics.results.push({
@@ -84,11 +84,11 @@ export const performanceUtils = {
           timestamp: new Date().toISOString(),
         })
       }
-      
+
       throw error
     }
   },
-  
+
   // Helper to run load tests
   async runLoadTest<T>(
     name: string,
@@ -98,20 +98,20 @@ export const performanceUtils = {
   ) {
     const startTime = performance.now()
     const results: Array<{ success: boolean; duration: number; error?: string }> = []
-    
+
     // Run concurrent iterations
     const promises = Array.from({ length: iterations }, async () => {
       const iterationStart = performance.now()
-      
+
       try {
         await fn()
         const duration = performance.now() - iterationStart
-        
-        results.push({ success: true, duration })
+
+        results.push({ success: true, duration });
         return { success: true, duration }
       } catch (error) {
         const duration = performance.now() - iterationStart
-        
+
         results.push({
           success: false,
           duration,
@@ -120,23 +120,23 @@ export const performanceUtils = {
         return { success: false, duration, error: error instanceof Error ? error.message : 'Unknown error' }
       }
     })
-    
+
     // Execute with concurrency limit
     const batchSize = Math.ceil(iterations / concurrency)
     const batches = []
-    
+
     for (let i = 0; i < iterations; i += batchSize) {
       const batch = promises.slice(i, i + batchSize)
       batches.push(Promise.all(batch))
     }
-    
+
     await Promise.all(batches)
-    
+
     const totalDuration = performance.now() - startTime
     const successful = results.filter(r => r.success).length
     const failed = results.filter(r => !r.success).length
     const avgDuration = results.reduce((sum, r) => sum + r.duration, 0) / results.length
-    
+
     // Record load test results
     if (global.performanceMetrics) {
       global.performanceMetrics.results.push({
@@ -155,7 +155,7 @@ export const performanceUtils = {
         timestamp: new Date().toISOString(),
       })
     }
-    
+
     return {
       name,
       totalDuration,
@@ -170,7 +170,7 @@ export const performanceUtils = {
 
 // Extend global types
 declare global {
-  var performanceMetrics: {
+  let performanceMetrics: {
     startTime: number
     results: Array<{
       name: string

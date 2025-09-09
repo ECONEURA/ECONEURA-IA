@@ -12,9 +12,9 @@ describe('API Performance Tests', () => {
           const response = await request(app)
             .get('/health')
             .expect(200)
-          
+
           expect(response.body.status).toBe('healthy')
-          return response
+          return response;
         },
         100 // 100ms threshold
       )
@@ -27,9 +27,9 @@ describe('API Performance Tests', () => {
           const response = await request(app)
             .get('/metrics/health')
             .expect(200)
-          
+
           expect(response.body.status).toBe('healthy')
-          return response
+          return response;
         },
         200 // 200ms threshold
       )
@@ -42,9 +42,9 @@ describe('API Performance Tests', () => {
           const response = await request(app)
             .get('/health')
             .expect(200)
-          
+
           expect(response.body.status).toBe('healthy')
-          return response
+          return response;
         },
         10, // 10 concurrent requests
         50  // 50 total iterations
@@ -73,9 +73,9 @@ describe('API Performance Tests', () => {
             .set('authorization', 'Bearer test-token')
             .send(testCompany)
             .expect(201)
-          
+
           expect(response.body.name).toBe(testCompany.name)
-          return response
+          return response;
         },
         500 // 500ms threshold
       )
@@ -91,10 +91,10 @@ describe('API Performance Tests', () => {
             .set('authorization', 'Bearer test-token')
             .query({ page: 1, limit: 10 })
             .expect(200)
-          
+
           expect(response.body.data).toBeInstanceOf(Array)
           expect(response.body.pagination).toBeDefined()
-          return response
+          return response;
         },
         300 // 300ms threshold
       )
@@ -124,7 +124,7 @@ describe('API Performance Tests', () => {
             .query({ page: 1, limit: 10 })
             .expect(200)
 
-          return createResponse
+          return createResponse;
         },
         5,  // 5 concurrent requests
         20  // 20 total iterations
@@ -152,10 +152,10 @@ describe('API Performance Tests', () => {
               sensitivity: 'low',
             })
             .expect(200)
-          
+
           expect(response.body.response).toBeDefined()
           expect(response.body.provider).toBeDefined()
-          return response
+          return response;
         },
         2000 // 2 second threshold for AI requests
       )
@@ -174,10 +174,10 @@ describe('API Performance Tests', () => {
               max_cost_cents: 1, // Very low cost cap
               sensitivity: 'low',
             })
-          
+
           // Should either succeed or return cost cap error quickly
           expect([200, 429]).toContain(response.status)
-          return response
+          return response;
         },
         500 // 500ms threshold for cost cap checks
       )
@@ -200,10 +200,10 @@ describe('API Performance Tests', () => {
               action: 'start_collection',
             })
             .expect(200)
-          
+
           expect(response.body.flow_id).toBeDefined()
           expect(response.body.status).toBeDefined()
-          return response
+          return response;
         },
         1000 // 1 second threshold
       )
@@ -231,9 +231,9 @@ describe('API Performance Tests', () => {
             .set('x-org-id', testOrgId)
             .set('authorization', 'Bearer test-token')
             .expect(200)
-          
+
           expect(response.body.flow_id).toBe(flowId)
-          return response
+          return response;
         },
         200 // 200ms threshold
       )
@@ -261,9 +261,9 @@ describe('API Performance Tests', () => {
             .set('x-signature', 'test-signature')
             .send(webhookPayload)
             .expect(200)
-          
+
           expect(response.body.success).toBe(true)
-          return response
+          return response;
         },
         500 // 500ms threshold
       )
@@ -289,9 +289,9 @@ describe('API Performance Tests', () => {
             .set('x-signature', 'test-signature')
             .send(webhookPayload)
             .expect(200)
-          
+
           expect(response.body.success).toBe(true)
-          return response
+          return response;
         },
         5,  // 5 concurrent requests
         30  // 30 total iterations
@@ -313,9 +313,9 @@ describe('API Performance Tests', () => {
             .set('authorization', 'Bearer test-token')
             .send({}) // Missing required fields
             .expect(400)
-          
+
           expect(response.headers['content-type']).toContain('application/problem+json')
-          return response
+          return response;
         },
         200 // 200ms threshold for error responses
       )
@@ -330,9 +330,9 @@ describe('API Performance Tests', () => {
             .set('x-org-id', 'test-org')
             .set('authorization', 'Bearer test-token')
             .expect(404)
-          
+
           expect(response.headers['content-type']).toContain('application/problem+json')
-          return response
+          return response;
         },
         100 // 100ms threshold for 404 responses
       )
@@ -347,10 +347,10 @@ describe('API Performance Tests', () => {
           const response = await request(app)
             .get('/health')
             .expect(200)
-          
+
           expect(response.headers['x-trace-id']).toBeDefined()
           expect(response.headers['x-span-id']).toBeDefined()
-          return response
+          return response;
         },
         150 // 150ms threshold (50ms overhead allowed)
       )
@@ -358,7 +358,7 @@ describe('API Performance Tests', () => {
 
     it('should propagate correlation ID efficiently', async () => {
       const correlationId = 'perf-test-correlation-123'
-      
+
       await performanceUtils.measurePerformance(
         'correlation-id-propagation',
         async () => {
@@ -366,9 +366,9 @@ describe('API Performance Tests', () => {
             .get('/health')
             .set('x-request-id', correlationId)
             .expect(200)
-          
+
           expect(response.headers['x-request-id']).toBe(correlationId)
-          return response
+          return response;
         },
         120 // 120ms threshold (20ms overhead allowed)
       )
@@ -378,17 +378,17 @@ describe('API Performance Tests', () => {
   describe('Memory Usage', () => {
     it('should not leak memory during repeated requests', async () => {
       const initialMemory = process.memoryUsage()
-      
+
       // Make 100 requests
       for (let i = 0; i < 100; i++) {
         await request(app)
           .get('/health')
           .expect(200)
       }
-      
+
       const finalMemory = process.memoryUsage()
       const memoryIncrease = finalMemory.heapUsed - initialMemory.heapUsed
-      
+
       // Memory increase should be less than 10MB
       expect(memoryIncrease).toBeLessThan(10 * 1024 * 1024)
     })

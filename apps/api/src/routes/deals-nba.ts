@@ -1,6 +1,6 @@
 /**
  * PR-53: Deals NBA Explicable Routes
- * 
+ *
  * Endpoints para el sistema de Next Best Action (NBA) explicable
  */
 
@@ -44,7 +44,7 @@ const updateConfigSchema = z.object({
 router.get('/stats', async (req, res) => {
   try {
     const stats = dealsNBAService.getStats();
-    
+
     res.json({
       success: true,
       data: stats,
@@ -55,7 +55,7 @@ router.get('/stats', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get NBA stats',
@@ -71,9 +71,9 @@ router.get('/stats', async (req, res) => {
 router.post('/process', async (req, res) => {
   try {
     const validatedData = processNBARecommendationsSchema.parse(req.body);
-    
+
     // Actualizar configuración temporal si se proporciona
-    if (validatedData.confidenceThreshold !== undefined || 
+    if (validatedData.confidenceThreshold !== undefined ||
         validatedData.maxRecommendations !== undefined) {
       dealsNBAService.updateConfig({
         confidenceThreshold: validatedData.confidenceThreshold,
@@ -82,14 +82,14 @@ router.post('/process', async (req, res) => {
     }
 
     const stats = await dealsNBAService.processNBARecommendations();
-    
+
     structuredLogger.info('NBA recommendations processing completed', {
       organizationId: validatedData.organizationId,
       recommendationsGenerated: stats.recommendationsGenerated,
       processingTime: stats.lastRun,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       data: stats,
@@ -101,7 +101,7 @@ router.post('/process', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to process NBA recommendations',
@@ -117,7 +117,7 @@ router.post('/process', async (req, res) => {
 router.get('/recommendations/:dealId', async (req, res) => {
   try {
     const { dealId } = req.params;
-    
+
     if (!dealId) {
       return res.status(400).json({
         success: false,
@@ -126,7 +126,7 @@ router.get('/recommendations/:dealId', async (req, res) => {
     }
 
     const recommendations = dealsNBAService.getRecommendations(dealId);
-    
+
     res.json({
       success: true,
       data: {
@@ -142,7 +142,7 @@ router.get('/recommendations/:dealId', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get NBA recommendations',
@@ -162,18 +162,18 @@ router.post('/recommendations/:recommendationId/execute', async (req, res) => {
       recommendationId,
       ...req.body
     });
-    
+
     await dealsNBAService.executeRecommendation(
-      validatedData.recommendationId, 
+      validatedData.recommendationId,
       validatedData.executedBy
     );
-    
+
     structuredLogger.info('NBA recommendation executed', {
       recommendationId: validatedData.recommendationId,
       executedBy: validatedData.executedBy,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       message: 'NBA recommendation executed successfully',
@@ -191,7 +191,7 @@ router.post('/recommendations/:recommendationId/execute', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to execute NBA recommendation',
@@ -207,7 +207,7 @@ router.post('/recommendations/:recommendationId/execute', async (req, res) => {
 router.get('/recommendations', async (req, res) => {
   try {
     const { organizationId, limit = 100, offset = 0 } = req.query;
-    
+
     if (!organizationId) {
       return res.status(400).json({
         success: false,
@@ -217,7 +217,7 @@ router.get('/recommendations', async (req, res) => {
 
     // En un sistema real, esto vendría de la base de datos
     const recommendations = []; // dealsNBAService.getAllRecommendations(organizationId as string, Number(limit), Number(offset));
-    
+
     res.json({
       success: true,
       data: {
@@ -235,7 +235,7 @@ router.get('/recommendations', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get NBA recommendations',
@@ -251,17 +251,17 @@ router.get('/recommendations', async (req, res) => {
 router.get('/explanation/:recommendationId', async (req, res) => {
   try {
     const { recommendationId } = req.params;
-    
+
     // En un sistema real, esto vendría de la base de datos
     const explanation = null; // dealsNBAService.getRecommendationExplanation(recommendationId);
-    
+
     if (!explanation) {
       return res.status(404).json({
         success: false,
         error: 'Recommendation explanation not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: explanation,
@@ -273,7 +273,7 @@ router.get('/explanation/:recommendationId', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get NBA recommendation explanation',
@@ -289,14 +289,14 @@ router.get('/explanation/:recommendationId', async (req, res) => {
 router.put('/config', async (req, res) => {
   try {
     const validatedData = updateConfigSchema.parse(req.body);
-    
+
     dealsNBAService.updateConfig(validatedData);
-    
+
     structuredLogger.info('NBA configuration updated', {
       config: validatedData,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       message: 'NBA configuration updated successfully',
@@ -308,7 +308,7 @@ router.put('/config', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to update NBA configuration',
@@ -352,7 +352,7 @@ router.get('/config', async (req, res) => {
         close: { enabled: true, weight: 0.05 }
       }
     };
-    
+
     res.json({
       success: true,
       data: config,
@@ -363,7 +363,7 @@ router.get('/config', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get NBA configuration',
@@ -379,7 +379,7 @@ router.get('/config', async (req, res) => {
 router.post('/analyze', async (req, res) => {
   try {
     const { deal } = req.body;
-    
+
     if (!deal) {
       return res.status(400).json({
         success: false,
@@ -395,7 +395,7 @@ router.post('/analyze', async (req, res) => {
       confidence: 0.0,
       reasoning: 'Analysis not implemented in demo'
     };
-    
+
     res.json({
       success: true,
       data: analysis,
@@ -406,7 +406,7 @@ router.post('/analyze', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to analyze deal',

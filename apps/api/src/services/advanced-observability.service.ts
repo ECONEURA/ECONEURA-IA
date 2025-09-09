@@ -1,6 +1,6 @@
 /**
  * PR-56: Advanced Observability Service
- * 
+ *
  * Sistema avanzado de observabilidad con:
  * - Métricas en tiempo real
  * - Logs estructurados
@@ -162,7 +162,7 @@ export class AdvancedObservabilityService {
     try {
       // Simular métricas en tiempo real
       this.updateMetrics();
-      
+
       structuredLogger.info('Observability metrics retrieved', {
         logs: this.metrics.logs,
         traces: this.metrics.traces,
@@ -365,7 +365,7 @@ export class AdvancedObservabilityService {
   async getAlertRules(): Promise<AlertRule[]> {
     try {
       const rules = Array.from(this.alertRules.values());
-      
+
       structuredLogger.info('Alert rules retrieved', {
         count: rules.length
       });
@@ -441,7 +441,7 @@ export class AdvancedObservabilityService {
   async getDashboards(): Promise<Dashboard[]> {
     try {
       const dashboards = Array.from(this.dashboards.values());
-      
+
       structuredLogger.info('Dashboards retrieved', {
         count: dashboards.length
       });
@@ -580,12 +580,12 @@ export class AdvancedObservabilityService {
     this.metrics.traces += Math.floor(Math.random() * 50);
     this.metrics.errors += Math.floor(Math.random() * 5);
     this.metrics.warnings += Math.floor(Math.random() * 10);
-    
+
     // Actualizar métricas de rendimiento
     this.metrics.performance.avgResponseTime += (Math.random() - 0.5) * 10;
     this.metrics.performance.throughput += (Math.random() - 0.5) * 50;
     this.metrics.performance.errorRate += (Math.random() - 0.5) * 0.1;
-    
+
     // Actualizar métricas del sistema
     this.metrics.system.cpuUsage += (Math.random() - 0.5) * 5;
     this.metrics.system.memoryUsage += (Math.random() - 0.5) * 3;
@@ -595,10 +595,10 @@ export class AdvancedObservabilityService {
   private evaluateAlerts(): void {
     // Simular evaluación de alertas
     const rules = Array.from(this.alertRules.values());
-    
+
     for (const rule of rules) {
       if (!rule.enabled) continue;
-      
+
       // Simular condición de alerta
       if (Math.random() < 0.1) { // 10% chance de disparar alerta
         this.triggerAlert(rule);

@@ -8,9 +8,9 @@ export async function POST(
   try {
     const { organizationId } = params;
     const reset = webRateLimiter.resetOrganization(organizationId);
-    
+
     if (!reset) {
-      return NextResponse.json(
+      return NextResponse.json(;
         { error: 'Organization not found' },
         { status: 404 }
       );
@@ -25,7 +25,7 @@ export async function POST(
     });
   } catch (error) {
     console.error('Failed to reset organization:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Internal server error' },
       { status: 500 }
     );

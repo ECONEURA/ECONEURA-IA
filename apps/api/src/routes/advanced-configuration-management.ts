@@ -116,7 +116,7 @@ router.get('/configs', async (req, res) => {
     };
 
     const configs = await advancedConfigurationManagementService.getConfigs(filters);
-    
+
     logger.info('Configurations retrieved', {
       count: configs.length,
       filters
@@ -179,9 +179,9 @@ router.get('/configs/name/:name', async (req, res) => {
   try {
     const { name } = req.params;
     const { environment } = req.query;
-    
+
     const config = await advancedConfigurationManagementService.getConfigByName(
-      name, 
+      name,
       environment as string
     );
 
@@ -261,8 +261,8 @@ router.put('/configs/:id', async (req, res) => {
     const updateData = UpdateConfigSchema.parse(req.body);
 
     const config = await advancedConfigurationManagementService.updateConfig(
-      id, 
-      updateData, 
+      id,
+      updateData,
       userId || 'system'
     );
 
@@ -312,7 +312,7 @@ router.delete('/configs/:id', async (req, res) => {
     const { userId } = req.body;
 
     const success = await advancedConfigurationManagementService.deleteConfig(
-      id, 
+      id,
       userId || 'system'
     );
 
@@ -491,7 +491,7 @@ router.post('/templates/:id/generate', async (req, res) => {
     const { variables } = GenerateFromTemplateSchema.parse(req.body);
 
     const configs = await advancedConfigurationManagementService.generateConfigFromTemplate(
-      id, 
+      id,
       variables
     );
 
@@ -572,7 +572,7 @@ router.post('/deployments/:id/execute', async (req, res) => {
     const { userId } = req.body;
 
     const result = await advancedConfigurationManagementService.executeDeployment(
-      id, 
+      id,
       userId || 'system'
     );
 
@@ -669,7 +669,7 @@ router.get('/configs/name/:name/value', async (req, res) => {
     const { environment } = req.query;
 
     const value = await advancedConfigurationManagementService.getConfigValue(
-      name, 
+      name,
       environment as string
     );
 
@@ -770,8 +770,8 @@ router.post('/import', async (req, res) => {
   try {
     const { configs, environment, userId } = ImportConfigsSchema.parse(req.body);
     const result = await advancedConfigurationManagementService.importConfigs(
-      configs, 
-      environment, 
+      configs,
+      environment,
       userId
     );
 

@@ -1,6 +1,6 @@
 /**
  * Comprehensive Audit Service
- * 
+ *
  * This service provides comprehensive auditing capabilities including complete
  * audit trail logging, compliance auditing, security auditing, and forensic
  * analysis capabilities.
@@ -131,15 +131,15 @@ export class ComprehensiveAuditService {
     if (request.result === 'denied' || request.result === 'failure') {
       return 'high';
     }
-    
+
     if (request.action === 'delete' || request.action === 'export') {
       return 'medium';
     }
-    
+
     if (request.action === 'create' || request.action === 'update') {
       return 'low';
     }
-    
+
     return 'low';
   }
 
@@ -153,23 +153,23 @@ export class ComprehensiveAuditService {
   private async checkAuditPatterns(auditLog: AuditLog): Promise<void> {
     // Check for suspicious patterns
     const recentLogs = await this.getRecentLogs(auditLog.organizationId, auditLog.userId, 1);
-    
+
     // Check for rapid successive actions
     if (recentLogs.length > 10) {
       await this.flagSuspiciousActivity(auditLog, 'Rapid successive actions detected');
     }
-    
+
     // Check for unusual access patterns
     if (auditLog.action === 'read' && recentLogs.filter(l => l.action === 'read').length > 50) {
       await this.flagSuspiciousActivity(auditLog, 'Excessive read operations detected');
     }
-    
+
     // Check for failed authentication attempts
     if (auditLog.eventType === 'authentication' && auditLog.result === 'failure') {
-      const failedAttempts = recentLogs.filter(l => 
+      const failedAttempts = recentLogs.filter(l =>
         l.eventType === 'authentication' && l.result === 'failure'
       ).length;
-      
+
       if (failedAttempts > 5) {
         await this.flagSuspiciousActivity(auditLog, 'Multiple failed authentication attempts');
       }
@@ -178,8 +178,8 @@ export class ComprehensiveAuditService {
 
   private async getRecentLogs(organizationId: string, userId?: string, hours: number = 1): Promise<AuditLog[]> {
     const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
-    return Array.from(this.auditLogs.values())
-      .filter(l => 
+    return Array.from(this.auditLogs.values());
+      .filter(l =>
         l.organizationId === organizationId &&
         l.timestamp >= cutoff &&
         (!userId || l.userId === userId)
@@ -188,7 +188,7 @@ export class ComprehensiveAuditService {
 
   private async flagSuspiciousActivity(auditLog: AuditLog, reason: string): Promise<void> {
     console.log(`Suspicious activity flagged: ${reason} - Log ID: ${auditLog.id}`);
-    
+
     // In a real implementation, this would:
     // 1. Create a security event
     // 2. Send alerts to security team
@@ -213,14 +213,14 @@ export class ComprehensiveAuditService {
       action: auditLog.action,
       resource: auditLog.resource
     });
-    
+
     return Buffer.from(data).toString('base64');
   }
 
   private async updateAuditTrail(auditLog: AuditLog): Promise<void> {
     const entityKey = `${auditLog.resource}_${auditLog.organizationId}`;
     const existingTrails = this.auditTrails.get(entityKey) || [];
-    
+
     const trail: AuditTrail = {
       id: this.generateId(),
       entityType: this.extractEntityType(auditLog.resource),
@@ -236,7 +236,7 @@ export class ComprehensiveAuditService {
       reason: auditLog.metadata.reason,
       metadata: auditLog.metadata
     };
-    
+
     existingTrails.push(trail);
     this.auditTrails.set(entityKey, existingTrails);
   }
@@ -268,7 +268,7 @@ export class ComprehensiveAuditService {
   private extractChanges(auditLog: AuditLog): AuditChange[] {
     // Extract changes from audit log details
     const changes: AuditChange[] = [];
-    
+
     if (auditLog.details.changes) {
       for (const [field, change] of Object.entries(auditLog.details.changes)) {
         changes.push({
@@ -279,7 +279,7 @@ export class ComprehensiveAuditService {
         });
       }
     }
-    
+
     return changes;
   }
 
@@ -300,13 +300,13 @@ export class ComprehensiveAuditService {
     dateTo?: Date;
   }): Promise<AuditTrail[]> {
     let trails: AuditTrail[] = [];
-    
+
     for (const [key, trailList] of this.auditTrails.entries()) {
       if (key.endsWith(`_${organizationId}`)) {
         trails.push(...trailList);
       }
     }
-    
+
     if (filters) {
       if (filters.entityType) {
         trails = trails.filter(t => t.entityType === filters.entityType);
@@ -324,7 +324,7 @@ export class ComprehensiveAuditService {
         trails = trails.filter(t => t.timestamp <= filters.dateTo!);
       }
     }
-    
+
     return trails.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   }
 
@@ -406,7 +406,7 @@ export class ComprehensiveAuditService {
     const findings: AuditFinding[] = [];
 
     // Check for failed authentication attempts
-    const failedAuths = auditLogs.filter(l => 
+    const failedAuths = auditLogs.filter(l =>
       l.eventType === 'authentication' && l.result === 'failure'
     );
 
@@ -451,12 +451,12 @@ export class ComprehensiveAuditService {
     const findings: AuditFinding[] = [];
 
     // Check for data access without proper authorization
-    const dataAccess = auditLogs.filter(l => 
+    const dataAccess = auditLogs.filter(l =>
       l.eventType === 'data_access' && l.result === 'success'
     );
 
-    const unauthorizedDataAccess = dataAccess.filter(l => 
-      !l.metadata.authorized || l.metadata.authorized === false
+    const unauthorizedDataAccess = dataAccess.filter(l =>
+      !l.metadata.authorized || l.metadata.authorized =
     );
 
     if (unauthorizedDataAccess.length > 0) {
@@ -482,12 +482,12 @@ export class ComprehensiveAuditService {
     const findings: AuditFinding[] = [];
 
     // Check for system changes without proper approval
-    const systemChanges = auditLogs.filter(l => 
+    const systemChanges = auditLogs.filter(l =>
       l.eventType === 'system_change' && l.result === 'success'
     );
 
-    const unapprovedChanges = systemChanges.filter(l => 
-      !l.metadata.approved || l.metadata.approved === false
+    const unapprovedChanges = systemChanges.filter(l =>
+      !l.metadata.approved || l.metadata.approved =
     );
 
     if (unapprovedChanges.length > 0) {
@@ -568,7 +568,7 @@ export class ComprehensiveAuditService {
     if (findings.length === 0) return 100;
 
     let score = 100;
-    
+
     findings.forEach(finding => {
       switch (finding.severity) {
         case 'critical': score -= 20; break;
@@ -596,7 +596,7 @@ export class ComprehensiveAuditService {
   }
 
   async getAuditReports(organizationId: string): Promise<AuditReport[]> {
-    return Array.from(this.auditReports.values())
+    return Array.from(this.auditReports.values());
       .filter(r => r.organizationId === organizationId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
@@ -631,11 +631,11 @@ export class ComprehensiveAuditService {
       logsByType[log.eventType] = (logsByType[log.eventType] || 0) + 1;
       logsByResult[log.result] = (logsByResult[log.result] || 0) + 1;
       logsBySeverity[log.severity] = (logsBySeverity[log.severity] || 0) + 1;
-      
+
       if (log.userId) {
         userCounts[log.userId] = (userCounts[log.userId] || 0) + 1;
       }
-      
+
       resourceCounts[log.resource] = (resourceCounts[log.resource] || 0) + 1;
     });
 
@@ -671,12 +671,12 @@ export class ComprehensiveAuditService {
     if (logs.length === 0) return 0;
 
     let riskScore = 0;
-    
+
     logs.forEach(log => {
       if (log.result === 'denied' || log.result === 'failure') {
         riskScore += 10;
       }
-      
+
       if (log.severity === 'critical') {
         riskScore += 20;
       } else if (log.severity === 'high') {
@@ -707,7 +707,7 @@ export class ComprehensiveAuditService {
     recommendations: string[];
   }> {
     const analysisId = this.generateId();
-    
+
     const logs = await this.getAuditLogs(organizationId, {
       userId: criteria.userId,
       resource: criteria.resource,
@@ -715,7 +715,7 @@ export class ComprehensiveAuditService {
       dateTo: criteria.timeRange?.end
     });
 
-    const filteredLogs = criteria.eventTypes 
+    const filteredLogs = criteria.eventTypes
       ? logs.filter(l => criteria.eventTypes!.includes(l.eventType))
       : logs;
 

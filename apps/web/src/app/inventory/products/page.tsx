@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { apiClient } from '@/lib/api-client';
-import { 
-  Package, 
-  Plus, 
-  Search, 
-  Filter, 
+import {
+  Package,
+  Plus,
+  Search,
+  Filter,
   MoreVertical,
   Edit,
   Trash2,
@@ -47,7 +47,7 @@ interface ProductsResponse {
   };
 }
 
-export default function ProductsPage() {
+export default function ProductsPage(): void {
   const { user } = useAuth();
   const api = apiClient;
   const [products, setProducts] = useState<Product[]>([]);
@@ -107,7 +107,7 @@ export default function ProductsPage() {
   };
 
   if (loading && products.length === 0) {
-    return (
+    return (;
       <div className="min-h-screen bg-gradient-to-br from-sand-50 via-white to-mediterranean-50 flex items-center justify-center">
         <div className="text-center">
           <Package className="w-8 h-8 text-mediterranean-600 animate-pulse mx-auto mb-4" />
@@ -117,7 +117,7 @@ export default function ProductsPage() {
     );
   }
 
-  return (
+  return (;
     <div className="min-h-screen bg-gradient-to-br from-sand-50 via-white to-mediterranean-50">
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-sand-200">
@@ -195,7 +195,7 @@ export default function ProductsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {products.map((product) => {
             const stockStatus = formatStockStatus(product.stock_quantity, product.min_stock_level);
-            return (
+            return (;
               <div key={product.id} className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
                 {/* Product Image Placeholder */}
                 <div className="h-48 bg-gradient-to-br from-mediterranean-100 to-sand-100 flex items-center justify-center">
@@ -311,7 +311,7 @@ export default function ProductsPage() {
             <Package className="w-16 h-16 text-sand-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-sand-600 mb-2">No hay productos</h3>
             <p className="text-sand-500 mb-6">
-              {searchTerm || selectedCategory 
+              {searchTerm || selectedCategory
                 ? 'No se encontraron productos con los filtros aplicados.'
                 : 'Comienza agregando tu primer producto al inventario.'
               }

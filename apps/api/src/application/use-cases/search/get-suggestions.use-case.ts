@@ -20,7 +20,7 @@ export class GetSuggestionsUseCase implements UseCase<GetSuggestionsRequest, Get
 
   async execute(request: GetSuggestionsRequest): Promise<GetSuggestionsResponse> {
     const startTime = Date.now();
-    
+
     // Validar query
     if (!request.query || request.query.trim().length === 0) {
       return {

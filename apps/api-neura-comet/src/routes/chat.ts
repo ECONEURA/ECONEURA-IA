@@ -1,13 +1,13 @@
 import { Router } from "express";
 import fetch from "node-fetch";
-import { 
-  loadShort, 
-  recall, 
-  getSummary, 
-  persistTurn, 
-  shouldRefresh, 
-  upsertSummary, 
-  persona 
+import {
+  loadShort,
+  recall,
+  getSummary,
+  persistTurn,
+  shouldRefresh,
+  upsertSummary,
+  persona
 } from "../svc/memory";
 import { z } from "zod";
 
@@ -28,12 +28,12 @@ router.post("/chat", async (req, res) => {
   try {
     // Validate request
     const { userId, dept, text } = ChatRequestSchema.parse(req.body);
-    
+
     // Load context from memory
     const short = await loadShort(userId, dept, 8);                   // Redis
     const { summary } = await getSummary(userId, dept);               // PG
     const recalls = await recall(userId, dept, text, 8);              // pgvector
-    
+
     // Build message context
     const messages = [
       { role: "system", content: persona(dept) },
@@ -95,7 +95,7 @@ router.post("/chat", async (req, res) => {
     if (toolCall?.function?.name === "run_agent") {
       try {
         const args = JSON.parse(toolCall.function.arguments);
-        
+
         // Trigger agent execution
         const agentResponse = await fetch(
           process.env.AGENTS_TRIGGER_URL || "http://localhost:3102/agents/trigger",
@@ -143,7 +143,7 @@ router.post("/chat", async (req, res) => {
 
   } catch (error) {
     console.error("❌ Chat error:", error);
-    
+
     res.status(500).json({
       error: "Chat processing failed",
       message: error instanceof Error ? error.message : "Unknown error"

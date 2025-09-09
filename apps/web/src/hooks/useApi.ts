@@ -7,12 +7,12 @@ interface ApiOptions extends RequestInit {
   skipAuth?: boolean
 }
 
-export function useApiClient() {
+export function useApiClient(): void {
   const { user } = useAuth()
 
   const apiCall = async (endpoint: string, options: ApiOptions = {}) => {
     const { skipAuth = false, ...fetchOptions } = options
-    
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(options.headers as Record<string, string>),
@@ -34,10 +34,10 @@ export function useApiClient() {
 
     // Return null for 204 No Content
     if (response.status === 204) {
-      return null
+      return null;
     }
 
-    return response.json()
+    return response.json();
   }
 
   return { apiCall }
@@ -50,11 +50,11 @@ export function useApiQuery<T = any>(
   options?: ApiOptions & { enabled?: boolean }
 ) {
   const { apiCall } = useApiClient()
-  
+
   return useQuery<T>({
     queryKey: Array.isArray(key) ? key : [key],
     queryFn: () => apiCall(endpoint, options),
-    enabled: options?.enabled !== false,
+    enabled: options?.enabled !,
   })
 }
 
@@ -70,12 +70,12 @@ export function useApiMutation<TData = any, TVariables = any>(
 ) {
   const { apiCall } = useApiClient()
   const queryClient = useQueryClient()
-  
+
   return useMutation<TData, Error, TVariables>({
     mutationFn: async (variables: TVariables) => {
       const url = typeof endpoint === 'function' ? endpoint(variables) : endpoint
       const method = options?.method || 'POST'
-      
+
       return apiCall(url, {
         method,
         body: method === 'DELETE' ? undefined : JSON.stringify(variables),
@@ -84,7 +84,7 @@ export function useApiMutation<TData = any, TVariables = any>(
     onSuccess: (data) => {
       if (options?.invalidateKeys) {
         options.invalidateKeys.forEach(key => {
-          queryClient.invalidateQueries({ queryKey: [key] })
+          queryClient.invalidateQueries({ queryKey: [key] });
         })
       }
       options?.onSuccess?.(data)

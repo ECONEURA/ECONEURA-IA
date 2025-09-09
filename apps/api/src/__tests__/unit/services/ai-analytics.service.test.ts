@@ -25,10 +25,10 @@ describe('AIAnalyticsService', () => {
     mockDb = {
       query: vi.fn(),
     };
-    
+
     // Reset all mocks
     vi.clearAllMocks();
-    
+
     // Mock the database service
     vi.mocked(aiAnalyticsService['db']).query = mockDb.query;
   });
@@ -384,7 +384,7 @@ describe('AIAnalyticsService', () => {
 
     it('should return unhealthy status when most services are failing', async () => {
       mockDb.query.mockRejectedValueOnce(new Error('Database connection failed'));
-      
+
       // Mock cache to be empty (simulating failure)
       aiAnalyticsService['analyticsCache'].clear();
 

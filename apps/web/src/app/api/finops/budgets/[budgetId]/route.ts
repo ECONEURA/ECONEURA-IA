@@ -8,11 +8,11 @@ export async function PUT(
   try {
     const { budgetId } = params;
     const updates = await request.json();
-    
+
     const updated = webFinOpsSystem.updateBudget(budgetId, updates);
-    
+
     if (!updated) {
-      return NextResponse.json(
+      return NextResponse.json(;
         { error: 'Budget not found' },
         { status: 404 }
       );
@@ -27,7 +27,7 @@ export async function PUT(
     });
   } catch (error) {
     console.error('Failed to update budget:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Internal server error' },
       { status: 500 }
     );
@@ -41,9 +41,9 @@ export async function DELETE(
   try {
     const { budgetId } = params;
     const deleted = webFinOpsSystem.deleteBudget(budgetId);
-    
+
     if (!deleted) {
-      return NextResponse.json(
+      return NextResponse.json(;
         { error: 'Budget not found' },
         { status: 404 }
       );
@@ -58,7 +58,7 @@ export async function DELETE(
     });
   } catch (error) {
     console.error('Failed to delete budget:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Internal server error' },
       { status: 500 }
     );

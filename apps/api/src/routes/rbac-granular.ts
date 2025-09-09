@@ -41,7 +41,7 @@ router.post('/permissions/check', async (req, res) => {
   try {
     const { userId, orgId, resource, action, context } = CheckPermissionSchema.parse(req.body);
     const hasPermission = await basicRBAC.hasPermission(userId, orgId, resource, action);
-    
+
     res.json({
       success: true,
       data: {
@@ -67,16 +67,16 @@ router.post('/permissions/check', async (req, res) => {
 router.post('/roles/check', async (req, res) => {
   try {
     const { userId, orgId, roleName } = req.body;
-    
+
     if (!userId || !orgId || !roleName) {
       return res.status(400).json({
         success: false,
         error: 'Missing required fields: userId, orgId, roleName'
       });
     }
-    
+
     const hasRole = await basicRBAC.hasRole(userId, orgId, roleName);
-    
+
     res.json({
       success: true,
       data: {
@@ -100,9 +100,9 @@ router.get('/users/:userId/permissions', async (req, res) => {
   try {
     const { userId } = req.params;
     const orgId = req.headers['x-org-id'] as string || 'demo-org';
-    
+
     const permissions = await basicRBAC.getUserPermissions(userId, orgId);
-    
+
     res.json({
       success: true,
       data: permissions,
@@ -126,9 +126,9 @@ router.get('/users/:userId/roles', async (req, res) => {
   try {
     const { userId } = req.params;
     const orgId = req.headers['x-org-id'] as string || 'demo-org';
-    
+
     const roles = await basicRBAC.getUserRoles(userId, orgId);
-    
+
     res.json({
       success: true,
       data: roles,
@@ -152,7 +152,7 @@ router.get('/users/:userId/context', async (req, res) => {
   try {
     const { userId } = req.params;
     const orgId = req.headers['x-org-id'] as string || 'demo-org';
-    
+
     const roles = await basicRBAC.getUserRoles(userId, orgId);
     const permissions = await basicRBAC.getUserPermissions(userId, orgId);
     const context = {
@@ -161,7 +161,7 @@ router.get('/users/:userId/context', async (req, res) => {
       roles: roles.map(role => role.name),
       permissions: permissions.map(perm => `${perm.resource}:${perm.action}`)
     };
-    
+
     res.json({
       success: true,
       data: context
@@ -180,14 +180,14 @@ router.post('/permissions', async (req, res) => {
   try {
     const permissionData = PermissionSchema.parse(req.body);
     const permissionId = await basicRBAC.createPermission(permissionData);
-    
+
     structuredLogger.info('Permission created via API', {
       permissionId,
       name: permissionData.name,
       resource: permissionData.resource,
       action: permissionData.action
     });
-    
+
     res.status(201).json({
       success: true,
       permissionId,
@@ -208,13 +208,13 @@ router.post('/roles', async (req, res) => {
   try {
     const roleData = RoleSchema.parse(req.body);
     const roleId = await basicRBAC.createRole(roleData);
-    
+
     structuredLogger.info('Role created via API', {
       roleId,
       name: roleData.name,
       permissionsCount: roleData.permissions.length
     });
-    
+
     res.status(201).json({
       success: true,
       roleId,
@@ -239,14 +239,14 @@ router.post('/assignments', async (req, res) => {
       assignmentData.roleId,
       assignmentData.orgId
     );
-    
+
     structuredLogger.info('Role assigned via API', {
       userId: assignmentData.userId,
       roleId: assignmentData.roleId,
       orgId: assignmentData.orgId,
       assignedBy: assignmentData.assignedBy
     });
-    
+
     res.status(201).json({
       success: true,
       message: 'Role assigned successfully'
@@ -265,23 +265,23 @@ router.post('/assignments', async (req, res) => {
 router.delete('/assignments', async (req, res) => {
   try {
     const { userId, roleId, orgId } = req.body;
-    
+
     if (!userId || !roleId || !orgId) {
       return res.status(400).json({
         success: false,
         error: 'Missing required fields: userId, roleId, orgId'
       });
     }
-    
+
     // Remove role from user (simplified implementation)
     structuredLogger.info('Role removed', { userId, roleId, orgId });
-    
+
     structuredLogger.info('Role removed via API', {
       userId,
       roleId,
       orgId
     });
-    
+
     res.json({
       success: true,
       message: 'Role removed successfully'
@@ -299,7 +299,7 @@ router.delete('/assignments', async (req, res) => {
 router.get('/permissions', async (req, res) => {
   try {
     const permissions = await basicRBAC.getAllPermissions();
-    
+
     res.json({
       success: true,
       data: permissions,
@@ -320,7 +320,7 @@ router.get('/permissions', async (req, res) => {
 router.get('/roles', async (req, res) => {
   try {
     const roles = await basicRBAC.getAllRoles();
-    
+
     res.json({
       success: true,
       data: roles,
@@ -341,7 +341,7 @@ router.get('/roles', async (req, res) => {
 router.get('/stats', async (req, res) => {
   try {
     const stats = basicRBAC.getStats();
-    
+
     res.json({
       success: true,
       data: stats

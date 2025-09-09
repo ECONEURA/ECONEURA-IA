@@ -10,7 +10,7 @@ interface TaxRegion {
   countryName: string;
   regionCode?: string; // Para regiones específicas (ES-MD, FR-75, etc.)
   regionName?: string;
-  
+
   // Configuración fiscal
   taxConfiguration: {
     vatRate: number; // IVA estándar
@@ -23,7 +23,7 @@ interface TaxRegion {
     corporateTaxRate: number; // Impuesto de sociedades
     socialSecurityRate: number; // Seguridad social
   };
-  
+
   // Regulaciones específicas
   regulations: {
     vatRegistrationThreshold: number; // Umbral registro IVA
@@ -34,7 +34,7 @@ interface TaxRegion {
     reverseCharge: boolean; // Inversión del sujeto pasivo
     vatMoss: boolean; // Mini One Stop Shop
   };
-  
+
   // Fechas importantes
   importantDates: {
     vatReturnDeadline: string; // Día del mes para declaración IVA
@@ -42,7 +42,7 @@ interface TaxRegion {
     payrollTaxDeadline: string; // Fecha límite nóminas
     annualReportDeadline: string; // Fecha límite memoria anual
   };
-  
+
   // Compliance
   compliance: {
     isActive: boolean;
@@ -52,7 +52,7 @@ interface TaxRegion {
     riskLevel: 'low' | 'medium' | 'high';
     notes?: string;
   };
-  
+
   createdAt: string;
   updatedAt: string;
 }
@@ -62,7 +62,7 @@ interface VATTransaction {
   organizationId: string;
   regionId: string;
   transactionType: 'sale' | 'purchase' | 'import' | 'export' | 'reverse_charge';
-  
+
   // Información de la transacción
   transaction: {
     invoiceNumber: string;
@@ -73,7 +73,7 @@ interface VATTransaction {
     customerSupplierVatNumber?: string;
     customerSupplierCountry: string;
   };
-  
+
   // Detalles fiscales
   taxDetails: {
     netAmount: number;
@@ -85,7 +85,7 @@ interface VATTransaction {
     exemptionReason?: string;
     reverseCharge?: boolean;
   };
-  
+
   // Clasificación
   classification: {
     category: string;
@@ -95,12 +95,12 @@ interface VATTransaction {
     isB2B: boolean;
     isB2C: boolean;
   };
-  
+
   // Estado
   status: 'draft' | 'confirmed' | 'reported' | 'paid' | 'cancelled';
   reportingPeriod: string; // YYYY-MM
   reportedAt?: string;
-  
+
   createdAt: string;
   updatedAt: string;
 }
@@ -111,7 +111,7 @@ interface VATReturn {
   regionId: string;
   period: string; // YYYY-MM
   status: 'draft' | 'submitted' | 'accepted' | 'rejected' | 'amended';
-  
+
   // Resumen de la declaración
   summary: {
     totalSales: number;
@@ -122,7 +122,7 @@ interface VATReturn {
     vatToRefund: number; // IVA a devolver
     netVatPosition: number; // Posición neta de IVA
   };
-  
+
   // Desglose por tipos de IVA
   vatBreakdown: Array<{
     vatRate: number;
@@ -131,10 +131,10 @@ interface VATReturn {
     purchasesNet: number;
     purchasesVat: number;
   }>;
-  
+
   // Transacciones incluidas
   transactions: string[]; // IDs de transacciones
-  
+
   // Información de presentación
   submission: {
     submittedAt?: string;
@@ -145,7 +145,7 @@ interface VATReturn {
     paymentAmount?: number;
     rejectionReason?: string;
   };
-  
+
   createdAt: string;
   updatedAt: string;
 }
@@ -155,7 +155,7 @@ interface WithholdingTax {
   organizationId: string;
   regionId: string;
   transactionId: string;
-  
+
   // Información del retenido
   payee: {
     id: string;
@@ -164,7 +164,7 @@ interface WithholdingTax {
     country: string;
     isCompany: boolean;
   };
-  
+
   // Detalles de la retención
   withholding: {
     grossAmount: number;
@@ -175,13 +175,13 @@ interface WithholdingTax {
     withholdingType: 'irpf' | 'corporate' | 'social_security' | 'other';
     reason: string;
   };
-  
+
   // Período y estado
   period: string; // YYYY-MM
   status: 'calculated' | 'paid' | 'reported' | 'cancelled';
   paidAt?: string;
   reportedAt?: string;
-  
+
   createdAt: string;
   updatedAt: string;
 }
@@ -192,7 +192,7 @@ interface TaxReport {
   regionId: string;
   reportType: 'vat_return' | 'withholding_summary' | 'corporate_tax' | 'payroll_tax' | 'annual_summary';
   period: string; // YYYY-MM o YYYY para anuales
-  
+
   // Contenido del reporte
   content: {
     title: string;
@@ -200,14 +200,14 @@ interface TaxReport {
     details: Record<string, any>;
     attachments: string[];
   };
-  
+
   // Estado y presentación
   status: 'draft' | 'generated' | 'submitted' | 'accepted' | 'rejected';
   generatedAt?: string;
   submittedAt?: string;
   submittedBy?: string;
   referenceNumber?: string;
-  
+
   createdAt: string;
   updatedAt: string;
 }
@@ -479,7 +479,7 @@ class FiscalidadRegionalService {
 
   // Gestión de regiones fiscales
   async getTaxRegions(organizationId: string): Promise<TaxRegion[]> {
-    return Array.from(this.taxRegions.values())
+    return Array.from(this.taxRegions.values());
       .filter(r => r.organizationId === organizationId)
       .sort((a, b) => a.countryName.localeCompare(b.countryName));
   }
@@ -498,9 +498,9 @@ class FiscalidadRegionalService {
     };
 
     this.taxRegions.set(region.id, region);
-    
-    structuredLogger.info('Tax region created', { 
-      regionId: region.id, 
+
+    structuredLogger.info('Tax region created', {
+      regionId: region.id,
       organizationId: region.organizationId,
       country: region.countryCode
     });
@@ -552,9 +552,9 @@ class FiscalidadRegionalService {
     };
 
     this.vatTransactions.set(transaction.id, transaction);
-    
-    structuredLogger.info('VAT transaction created', { 
-      transactionId: transaction.id, 
+
+    structuredLogger.info('VAT transaction created', {
+      transactionId: transaction.id,
       organizationId: transaction.organizationId,
       type: transaction.transactionType,
       amount: transaction.taxDetails.totalAmount
@@ -602,9 +602,9 @@ class FiscalidadRegionalService {
     };
 
     this.vatReturns.set(vatReturn.id, vatReturn);
-    
-    structuredLogger.info('VAT return created', { 
-      returnId: vatReturn.id, 
+
+    structuredLogger.info('VAT return created', {
+      returnId: vatReturn.id,
       organizationId: vatReturn.organizationId,
       period: vatReturn.period,
       vatToPay: vatReturn.summary.vatToPay
@@ -663,7 +663,7 @@ class FiscalidadRegionalService {
       pendingReturns: returns.filter(r => r.status === 'draft').length,
       totalWithholdings: withholdings.length,
       currentPeriodWithholdings: withholdings.filter(w => w.period === currentPeriod).length,
-      
+
       // Resumen financiero
       financial: {
         totalVATCollected: transactions
@@ -679,13 +679,13 @@ class FiscalidadRegionalService {
           .filter(r => r.status === 'submitted')
           .reduce((sum, r) => sum + r.summary.netVatPosition, 0)
       },
-      
+
       // Por región
       byRegion: regions.map(region => {
         const regionTransactions = transactions.filter(t => t.regionId === region.id);
         const regionReturns = returns.filter(r => r.regionId === region.id);
         const regionWithholdings = withholdings.filter(w => w.regionId === region.id);
-        
+
         return {
           regionId: region.id,
           country: region.countryCode,
@@ -697,7 +697,7 @@ class FiscalidadRegionalService {
           riskLevel: region.compliance.riskLevel
         };
       }),
-      
+
       // Tendencias
       trends: {
         currentPeriod: {
@@ -721,10 +721,10 @@ class FiscalidadRegionalService {
             .reduce((sum, t) => sum + t.taxDetails.vatAmount, 0)
         }
       },
-      
+
       // Compliance
       compliance: {
-        averageScore: regions.length > 0 ? 
+        averageScore: regions.length > 0 ?
           regions.reduce((sum, r) => sum + r.compliance.complianceScore, 0) / regions.length : 0,
         highRiskRegions: regions.filter(r => r.compliance.riskLevel === 'high').length,
         mediumRiskRegions: regions.filter(r => r.compliance.riskLevel === 'medium').length,
@@ -810,7 +810,7 @@ class FiscalidadRegionalService {
     }
 
     const isValid = pattern.test(vatNumber);
-    
+
     return {
       isValid,
       format: pattern.toString(),

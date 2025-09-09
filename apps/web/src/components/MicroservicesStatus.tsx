@@ -52,7 +52,7 @@ interface MicroservicesStats {
   serviceRegistry: ServiceRegistryStats;
 }
 
-export default function MicroservicesStatus() {
+export default function MicroservicesStatus(): void {
   const [services, setServices] = useState<ServiceInstance[]>([]);
   const [stats, setStats] = useState<MicroservicesStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -95,7 +95,7 @@ export default function MicroservicesStatus() {
   const fetchMicroservicesData = async () => {
     try {
       setLoading(true);
-      
+
       // Obtener servicios
       const servicesResponse = await fetch('/api/microservices/services');
       if (servicesResponse.ok) {
@@ -190,7 +190,7 @@ export default function MicroservicesStatus() {
   };
 
   if (loading) {
-    return (
+    return (;
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold mb-4">🔗 Microservices & Service Mesh</h3>
         <div className="animate-pulse">
@@ -201,10 +201,10 @@ export default function MicroservicesStatus() {
     );
   }
 
-  return (
+  return (;
     <div className="bg-white rounded-lg shadow p-6">
       <h3 className="text-lg font-semibold mb-4">🔗 Microservices & Service Mesh</h3>
-      
+
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
           {error}

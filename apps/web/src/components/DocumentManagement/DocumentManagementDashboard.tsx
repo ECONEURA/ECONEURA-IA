@@ -1,8 +1,8 @@
 /**
  * DOCUMENT MANAGEMENT DASHBOARD
- * 
+ *
  * PR-54: Dashboard completo de gestión de documentos
- * 
+ *
  * Funcionalidades:
  * - Lista de documentos con filtros
  * - Búsqueda avanzada
@@ -24,17 +24,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
-import { 
-  FileText, 
-  Upload, 
-  Search, 
-  Filter, 
-  Download, 
-  Eye, 
-  Edit, 
-  Trash2, 
-  Share, 
-  History, 
+import {
+  FileText,
+  Upload,
+  Search,
+  Filter,
+  Download,
+  Eye,
+  Edit,
+  Trash2,
+  Share,
+  History,
   BarChart3,
   FolderOpen,
   Clock,
@@ -143,7 +143,7 @@ const DocumentManagementDashboard: React.FC = () => {
       setLoading(true);
       const response = await fetch('/api/documents');
       const data = await response.json();
-      
+
       if (data.success) {
         setDocuments(data.data.documents || []);
       }
@@ -158,7 +158,7 @@ const DocumentManagementDashboard: React.FC = () => {
     try {
       const response = await fetch('/api/documents/statistics');
       const data = await response.json();
-      
+
       if (data.success) {
         setStatistics(data.data);
       }
@@ -171,10 +171,10 @@ const DocumentManagementDashboard: React.FC = () => {
     const matchesSearch = doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          doc.metadata.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          doc.metadata.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    
+
     const matchesType = selectedType === 'all' || doc.type === selectedType;
     const matchesStatus = selectedStatus === 'all' || doc.status === selectedStatus;
-    
+
     return matchesSearch && matchesType && matchesStatus;
   });
 
@@ -209,7 +209,7 @@ const DocumentManagementDashboard: React.FC = () => {
   };
 
   if (loading) {
-    return (
+    return (;
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -219,7 +219,7 @@ const DocumentManagementDashboard: React.FC = () => {
     );
   }
 
-  return (
+  return (;
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -480,14 +480,14 @@ const DocumentManagementDashboard: React.FC = () => {
                   <p className="text-sm text-gray-600">{selectedDocument.currentVersion}</p>
                 </div>
               </div>
-              
+
               {selectedDocument.metadata.description && (
                 <div>
                   <label className="text-sm font-medium">Descripción</label>
                   <p className="text-sm text-gray-600">{selectedDocument.metadata.description}</p>
                 </div>
               )}
-              
+
               {selectedDocument.metadata.tags.length > 0 && (
                 <div>
                   <label className="text-sm font-medium">Etiquetas</label>
@@ -498,14 +498,14 @@ const DocumentManagementDashboard: React.FC = () => {
                   </div>
                 </div>
               )}
-              
+
               {selectedDocument.metadata.summary && (
                 <div>
                   <label className="text-sm font-medium">Resumen</label>
                   <p className="text-sm text-gray-600">{selectedDocument.metadata.summary}</p>
                 </div>
               )}
-              
+
               <div className="flex items-center space-x-4">
                 {selectedDocument.isPublic ? (
                   <div className="flex items-center space-x-1 text-green-600">
@@ -518,7 +518,7 @@ const DocumentManagementDashboard: React.FC = () => {
                     <span className="text-sm">Privado</span>
                   </div>
                 )}
-                
+
                 {selectedDocument.isEncrypted && (
                   <div className="flex items-center space-x-1 text-blue-600">
                     <Shield className="h-4 w-4" />

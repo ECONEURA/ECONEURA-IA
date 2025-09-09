@@ -141,7 +141,7 @@ export class VoiceRecognition {
 
   // Get available languages (simplified list)
   public static getAvailableLanguages(): string[] {
-    return [
+    return [;
       'es-ES', // Spanish (Spain)
       'es-MX', // Spanish (Mexico)
       'en-US', // English (US)

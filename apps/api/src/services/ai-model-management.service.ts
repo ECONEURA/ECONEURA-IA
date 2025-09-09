@@ -211,7 +211,7 @@ export class AIModelManagementService {
 
       // Crear tablas si no existen
       await this.createTables();
-      
+
       // Cargar modelos y deployments activos
       await this.loadActiveModels();
       await this.loadActiveDeployments();
@@ -307,7 +307,7 @@ export class AIModelManagementService {
   private async loadActiveModels(): Promise<void> {
     try {
       const result = await this.db.query(`
-        SELECT * FROM ai_models 
+        SELECT * FROM ai_models
         WHERE status IN ('development', 'testing', 'staging', 'production')
       `);
 
@@ -324,7 +324,7 @@ export class AIModelManagementService {
   private async loadActiveDeployments(): Promise<void> {
     try {
       const result = await this.db.query(`
-        SELECT * FROM model_deployments 
+        SELECT * FROM model_deployments
         WHERE status IN ('pending', 'deploying', 'active', 'scaling')
       `);
 
@@ -360,7 +360,7 @@ export class AIModelManagementService {
 
       await this.db.query(`
         INSERT INTO ai_models (
-          id, name, description, type, algorithm, version, status, 
+          id, name, description, type, algorithm, version, status,
           performance, metadata, created_at, updated_at
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       `, [
@@ -453,8 +453,8 @@ export class AIModelManagementService {
       params.push(modelId);
 
       await this.db.query(`
-        UPDATE ai_models 
-        SET ${updateFields.join(', ')} 
+        UPDATE ai_models
+        SET ${updateFields.join(', ')}
         WHERE id = $${params.length}
       `, params);
 
@@ -495,8 +495,8 @@ export class AIModelManagementService {
       };
 
       await this.db.query(`
-        UPDATE ai_models 
-        SET performance = $1, updated_at = NOW() 
+        UPDATE ai_models
+        SET performance = $1, updated_at = NOW()
         WHERE id = $2
       `, [JSON.stringify(updatedPerformance), modelId]);
 
@@ -606,8 +606,8 @@ export class AIModelManagementService {
       deployment.updatedAt = new Date();
 
       await this.db.query(`
-        UPDATE model_deployments 
-        SET status = 'deploying', updated_at = NOW() 
+        UPDATE model_deployments
+        SET status = 'deploying', updated_at = NOW()
         WHERE id = $1
       `, [deploymentId]);
 
@@ -638,9 +638,9 @@ export class AIModelManagementService {
       deployment.endpoints = [endpoint];
 
       await this.db.query(`
-        UPDATE model_deployments 
+        UPDATE model_deployments
         SET status = 'active', deployed_at = NOW(), updated_at = NOW(),
-            endpoints = $1 
+            endpoints = $1
         WHERE id = $2
       `, [JSON.stringify(deployment.endpoints), deploymentId]);
 
@@ -655,8 +655,8 @@ export class AIModelManagementService {
       deployment.updatedAt = new Date();
 
       await this.db.query(`
-        UPDATE model_deployments 
-        SET status = 'failed', updated_at = NOW() 
+        UPDATE model_deployments
+        SET status = 'failed', updated_at = NOW()
         WHERE id = $1
       `, [deploymentId]);
 
@@ -690,8 +690,8 @@ export class AIModelManagementService {
   async listDeployments(limit: number = 50, offset: number = 0): Promise<ModelDeployment[]> {
     try {
       const result = await this.db.query(`
-        SELECT * FROM model_deployments 
-        ORDER BY created_at DESC 
+        SELECT * FROM model_deployments
+        ORDER BY created_at DESC
         LIMIT $1 OFFSET $2
       `, [limit, offset]);
 
@@ -742,7 +742,7 @@ export class AIModelManagementService {
 
       await this.db.query(`
         INSERT INTO model_ab_tests (
-          id, name, description, model_a, model_b, traffic_split, 
+          id, name, description, model_a, model_b, traffic_split,
           status, metrics, created_at, updated_at
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       `, [
@@ -791,8 +791,8 @@ export class AIModelManagementService {
       test.updatedAt = new Date();
 
       await this.db.query(`
-        UPDATE model_ab_tests 
-        SET status = 'running', start_date = NOW(), updated_at = NOW() 
+        UPDATE model_ab_tests
+        SET status = 'running', start_date = NOW(), updated_at = NOW()
         WHERE id = $1
       `, [testId]);
 
@@ -838,7 +838,7 @@ export class AIModelManagementService {
 
       await this.db.query(`
         INSERT INTO model_rollbacks (
-          id, model_id, from_version, to_version, reason, status, 
+          id, model_id, from_version, to_version, reason, status,
           initiated_by, rollback_data, created_at
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       `, [
@@ -878,8 +878,8 @@ export class AIModelManagementService {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       await this.db.query(`
-        UPDATE model_rollbacks 
-        SET status = 'in_progress', rollback_data = $1 
+        UPDATE model_rollbacks
+        SET status = 'in_progress', rollback_data = $1
         WHERE id = $2
       `, [
         JSON.stringify({
@@ -896,8 +896,8 @@ export class AIModelManagementService {
 
       // Completar rollback
       await this.db.query(`
-        UPDATE model_rollbacks 
-        SET status = 'completed', completed_at = NOW() 
+        UPDATE model_rollbacks
+        SET status = 'completed', completed_at = NOW()
         WHERE id = $1
       `, [rollbackId]);
 
@@ -907,8 +907,8 @@ export class AIModelManagementService {
     } catch (error) {
       // Marcar rollback como fallido
       await this.db.query(`
-        UPDATE model_rollbacks 
-        SET status = 'failed' 
+        UPDATE model_rollbacks
+        SET status = 'failed'
         WHERE id = $1
       `, [rollbackId]);
 

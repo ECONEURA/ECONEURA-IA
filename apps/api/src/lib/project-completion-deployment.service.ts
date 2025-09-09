@@ -681,11 +681,11 @@ export class ProjectCompletionDeploymentService {
 
   private async runHealthChecks(deployment: DeploymentResult, config: DeploymentConfig): Promise<void> {
     const healthChecks = Array.from(this.healthChecks.values()).filter(hc => hc.enabled);
-    
+
     for (const healthCheck of healthChecks) {
       const result = await this.executeHealthCheck(healthCheck);
       deployment.healthChecks.push(result);
-      
+
       if (result.status === 'FAILED') {
         throw new Error(`Health check failed: ${healthCheck.name}`);
       }
@@ -802,13 +802,13 @@ export class ProjectCompletionDeploymentService {
 
   async getDeploymentStatus(): Promise<DeploymentStatus> {
     const deployments = Array.from(this.deployments.values());
-    
+
     const activeDeployments = deployments.filter(d => d.status === 'RUNNING').length;
     const successfulDeployments = deployments.filter(d => d.status === 'SUCCESS').length;
     const failedDeployments = deployments.filter(d => d.status === 'FAILED').length;
     const rollbackCount = deployments.filter(d => d.status === 'ROLLED_BACK').length;
 
-    const lastDeployment = deployments.length > 0 
+    const lastDeployment = deployments.length > 0
       ? new Date(Math.max(...deployments.map(d => d.startTime.getTime())))
       : null;
 
@@ -861,8 +861,8 @@ export class ProjectCompletionDeploymentService {
       successfulDeployments: deployments.filter(d => d.status === 'SUCCESS').length,
       failedDeployments: deployments.filter(d => d.status === 'FAILED').length,
       rolledBackDeployments: deployments.filter(d => d.status === 'ROLLED_BACK').length,
-      averageDeploymentTime: deployments.length > 0 
-        ? deployments.reduce((sum, d) => sum + (d.duration || 0), 0) / deployments.length 
+      averageDeploymentTime: deployments.length > 0
+        ? deployments.reduce((sum, d) => sum + (d.duration || 0), 0) / deployments.length
         : 0,
       totalHealthChecks: healthChecks.length,
       passedHealthChecks: healthChecks.filter(hc => hc.status === 'PASSED').length,
@@ -934,7 +934,7 @@ export class ProjectCompletionDeploymentService {
 
   private async runHealthMonitoring(): Promise<void> {
     const healthChecks = Array.from(this.healthChecks.values()).filter(hc => hc.enabled);
-    
+
     for (const healthCheck of healthChecks) {
       try {
         const result = await this.executeHealthCheck(healthCheck);

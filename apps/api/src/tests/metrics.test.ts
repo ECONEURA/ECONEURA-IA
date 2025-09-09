@@ -4,9 +4,9 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Request, Response, NextFunction } from 'express';
-import { 
-  metricsMiddleware, 
-  trackAuthMetrics, 
+import {
+  metricsMiddleware,
+  trackAuthMetrics,
   trackDatabaseMetrics,
   trackUserMetrics,
   trackContactMetrics,
@@ -123,9 +123,9 @@ describe('Metrics Middleware', () => {
 
     it('should track request duration on response end', () => {
       const { counter, histogram } = require('@econeura/shared/metrics');
-      
+
       metricsMiddleware(mockReq as Request, mockRes as Response, mockNext);
-      
+
       // Simulate response end
       (mockRes.end as any)();
 
@@ -144,10 +144,10 @@ describe('Metrics Middleware', () => {
 
     it('should track errors for 4xx and 5xx responses', () => {
       const { counter } = require('@econeura/shared/metrics');
-      
+
       mockRes.statusCode = 404;
       metricsMiddleware(mockReq as Request, mockRes as Response, mockNext);
-      
+
       // Simulate response end
       (mockRes.end as any)();
 
@@ -161,10 +161,10 @@ describe('Metrics Middleware', () => {
 
     it('should track server errors for 5xx responses', () => {
       const { counter } = require('@econeura/shared/metrics');
-      
+
       mockRes.statusCode = 500;
       metricsMiddleware(mockReq as Request, mockRes as Response, mockNext);
-      
+
       // Simulate response end
       (mockRes.end as any)();
 
@@ -184,10 +184,10 @@ describe('Metrics Middleware', () => {
   describe('trackAuthMetrics', () => {
     it('should track successful login', () => {
       const { counter } = require('@econeura/shared/metrics');
-      
+
       mockReq.path = '/auth/login';
       mockRes.statusCode = 200;
-      
+
       trackAuthMetrics(mockReq as Request, mockRes as Response, mockNext);
       (mockRes.end as any)();
 
@@ -199,10 +199,10 @@ describe('Metrics Middleware', () => {
 
     it('should track failed login', () => {
       const { counter } = require('@econeura/shared/metrics');
-      
+
       mockReq.path = '/auth/login';
       mockRes.statusCode = 401;
-      
+
       trackAuthMetrics(mockReq as Request, mockRes as Response, mockNext);
       (mockRes.end as any)();
 
@@ -221,7 +221,7 @@ describe('Metrics Middleware', () => {
   describe('trackDatabaseMetrics', () => {
     it('should track successful database query', () => {
       const { counter } = require('@econeura/shared/metrics');
-      
+
       trackDatabaseMetrics('SELECT * FROM users', 100, true);
 
       expect(counter).toHaveBeenCalledWith('db_queries_total', 1, {
@@ -232,7 +232,7 @@ describe('Metrics Middleware', () => {
 
     it('should track failed database query', () => {
       const { counter } = require('@econeura/shared/metrics');
-      
+
       trackDatabaseMetrics('INSERT INTO users', 50, false);
 
       expect(counter).toHaveBeenCalledWith('db_queries_total', 1, {
@@ -247,7 +247,7 @@ describe('Metrics Middleware', () => {
 
     it('should identify query types correctly', () => {
       const { counter } = require('@econeura/shared/metrics');
-      
+
       trackDatabaseMetrics('UPDATE users SET name = ?', 75, true);
       expect(counter).toHaveBeenCalledWith('db_queries_total', 1, {
         success: 'true',
@@ -269,7 +269,7 @@ describe('Metrics Middleware', () => {
   describe('Business Metrics', () => {
     it('should track user metrics', () => {
       const { counter } = require('@econeura/shared/metrics');
-      
+
       trackUserMetrics('created', 'org-123');
 
       expect(counter).toHaveBeenCalledWith('users_total', 1, {
@@ -280,7 +280,7 @@ describe('Metrics Middleware', () => {
 
     it('should track contact metrics', () => {
       const { counter } = require('@econeura/shared/metrics');
-      
+
       trackContactMetrics('updated', 'org-456');
 
       expect(counter).toHaveBeenCalledWith('contacts_total', 1, {
@@ -291,7 +291,7 @@ describe('Metrics Middleware', () => {
 
     it('should track deal metrics', () => {
       const { counter } = require('@econeura/shared/metrics');
-      
+
       trackDealMetrics('closed', 'org-789');
 
       expect(counter).toHaveBeenCalledWith('deals_total', 1, {
@@ -302,7 +302,7 @@ describe('Metrics Middleware', () => {
 
     it('should track order metrics', () => {
       const { counter } = require('@econeura/shared/metrics');
-      
+
       trackOrderMetrics('completed', 'org-101');
 
       expect(counter).toHaveBeenCalledWith('orders_total', 1, {
@@ -313,7 +313,7 @@ describe('Metrics Middleware', () => {
 
     it('should track AI metrics', () => {
       const { counter } = require('@econeura/shared/metrics');
-      
+
       trackAIMetrics('generate_text', 1000, 0.02);
 
       expect(counter).toHaveBeenCalledWith('ai_requests_total', 1, {
@@ -333,7 +333,7 @@ describe('Metrics Middleware', () => {
   describe('trackSystemMetrics', () => {
     it('should track system metrics', () => {
       const { gauge } = require('@econeura/shared/metrics');
-      
+
       trackSystemMetrics();
 
       expect(gauge).toHaveBeenCalledWith('memory_usage_bytes', expect.any(Number), {
@@ -463,7 +463,7 @@ describe('Metrics Middleware', () => {
   describe('System Metrics Collection', () => {
     it('should start system metrics collection', () => {
       const { structuredLogger } = require('../lib/structured-logger.js');
-      
+
       startSystemMetricsCollection(5000);
 
       expect(structuredLogger.info).toHaveBeenCalledWith(
@@ -474,7 +474,7 @@ describe('Metrics Middleware', () => {
 
     it('should stop system metrics collection', () => {
       const { structuredLogger } = require('../lib/structured-logger.js');
-      
+
       startSystemMetricsCollection(5000);
       stopSystemMetricsCollection();
 
@@ -485,7 +485,7 @@ describe('Metrics Middleware', () => {
 
     it('should not start multiple intervals', () => {
       const { structuredLogger } = require('../lib/structured-logger.js');
-      
+
       startSystemMetricsCollection(5000);
       startSystemMetricsCollection(10000); // Should clear previous interval
 

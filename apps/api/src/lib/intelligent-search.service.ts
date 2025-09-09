@@ -1,13 +1,13 @@
 /**
  * PR-47: Intelligent Search Service
- * 
+ *
  * Service for semantic search, embeddings generation, and search optimization
  */
 
-import { 
-  SearchRequest, 
-  SearchResult, 
-  SearchResponse, 
+import {
+  SearchRequest,
+  SearchResult,
+  SearchResponse,
   SearchHighlight,
   SearchCluster,
   SearchAnalytics,
@@ -33,25 +33,25 @@ export class IntelligentSearchService {
    */
   async semanticSearch(request: SearchRequest): Promise<SearchResponse> {
     const startTime = Date.now();
-    
+
     try {
       // Generate embedding for the query
       const queryEmbedding = await this.generateEmbedding(request.query);
-      
+
       // Perform vector similarity search
       const results = await this.performVectorSearch(queryEmbedding, request);
-      
+
       // Generate highlights and explanations
       const enhancedResults = await this.enhanceSearchResults(results, request);
-      
+
       // Generate suggestions
       const suggestions = await this.generateSuggestions(request.query);
-      
+
       // Create clusters if requested
       const clusters = request.semanticSearch ? await this.createClusters(enhancedResults) : undefined;
-      
+
       const responseTime = Date.now() - startTime;
-      
+
       // Create analytics
       const analytics: SearchAnalytics = {
         query: request.query,
@@ -62,9 +62,9 @@ export class IntelligentSearchService {
         filters: request.filters || [],
         timestamp: new Date()
       };
-      
+
       this.searchHistory.set(this.generateId(), analytics);
-      
+
       return {
         results: enhancedResults,
         total: enhancedResults.length,
@@ -73,7 +73,7 @@ export class IntelligentSearchService {
         clusters,
         analytics
       };
-      
+
     } catch (error) {
       throw new Error(`Semantic search failed: ${error.message}`);
     }
@@ -84,12 +84,12 @@ export class IntelligentSearchService {
    */
   async generateEmbedding(request: EmbeddingRequest): Promise<EmbeddingResponse> {
     const startTime = Date.now();
-    
+
     try {
       // Simulate embedding generation
       const embedding = this.simulateEmbeddingGeneration(request.text);
       const processingTime = Date.now() - startTime;
-      
+
       const response: EmbeddingResponse = {
         embedding,
         model: request.model || 'text-embedding-ada-002',
@@ -98,12 +98,12 @@ export class IntelligentSearchService {
         cost: this.calculateEmbeddingCost(embedding.length),
         processingTime
       };
-      
+
       // Store embedding for future use
       this.embeddings.set(request.text, embedding);
-      
+
       return response;
-      
+
     } catch (error) {
       throw new Error(`Embedding generation failed: ${error.message}`);
     }
@@ -118,7 +118,7 @@ export class IntelligentSearchService {
       const optimizedQuery = this.performQueryOptimization(query, context);
       const improvements = this.identifyImprovements(originalQuery, optimizedQuery);
       const performanceGain = this.calculatePerformanceGain(improvements);
-      
+
       const optimization: SearchOptimization = {
         id: this.generateId(),
         originalQuery,
@@ -127,11 +127,11 @@ export class IntelligentSearchService {
         performanceGain,
         createdAt: new Date()
       };
-      
+
       this.optimizations.set(optimization.id, optimization);
-      
+
       return optimization;
-      
+
     } catch (error) {
       throw new Error(`Query optimization failed: ${error.message}`);
     }
@@ -145,7 +145,7 @@ export class IntelligentSearchService {
       // Get suggestions based on search history and common patterns
       const suggestions = this.generateSuggestions(query);
       return suggestions.slice(0, limit);
-      
+
     } catch (error) {
       throw new Error(`Failed to get search suggestions: ${error.message}`);
     }
@@ -157,15 +157,15 @@ export class IntelligentSearchService {
   async getSearchAnalytics(organizationId: string, timeRange?: { start: Date; end: Date }): Promise<SearchAnalytics[]> {
     try {
       const analytics = Array.from(this.searchHistory.values());
-      
+
       if (timeRange) {
-        return analytics.filter(a => 
+        return analytics.filter(a => ;
           a.timestamp >= timeRange.start && a.timestamp <= timeRange.end
         );
       }
-      
+
       return analytics;
-      
+
     } catch (error) {
       throw new Error(`Failed to get search analytics: ${error.message}`);
     }
@@ -177,23 +177,23 @@ export class IntelligentSearchService {
   async getSearchStats(organizationId: string): Promise<SearchStats> {
     try {
       const analytics = Array.from(this.searchHistory.values());
-      
+
       const totalQueries = analytics.length;
       const averageResponseTime = analytics.length > 0
         ? analytics.reduce((sum, a) => sum + a.responseTime, 0) / analytics.length
         : 0;
-      
+
       const cacheHitRate = analytics.length > 0
         ? (analytics.filter(a => a.cacheHit).length / analytics.length) * 100
         : 0;
-      
+
       const semanticSearchUsage = analytics.length > 0
         ? (analytics.filter(a => a.semanticSearch).length / analytics.length) * 100
         : 0;
-      
+
       const topQueries = this.getTopQueries(analytics);
       const searchAccuracy = this.calculateSearchAccuracy(analytics);
-      
+
       return {
         totalQueries,
         averageResponseTime,
@@ -202,7 +202,7 @@ export class IntelligentSearchService {
         topQueries,
         searchAccuracy
       };
-      
+
     } catch (error) {
       throw new Error(`Failed to get search statistics: ${error.message}`);
     }
@@ -215,7 +215,7 @@ export class IntelligentSearchService {
     try {
       const clusters = this.performClustering(documents);
       return clusters;
-      
+
     } catch (error) {
       throw new Error(`Failed to create search clusters: ${error.message}`);
     }
@@ -228,7 +228,7 @@ export class IntelligentSearchService {
   private async performVectorSearch(queryEmbedding: number[], request: SearchRequest): Promise<SearchResult[]> {
     // Simulate vector similarity search
     const results: SearchResult[] = [];
-    
+
     // Generate mock search results
     for (let i = 0; i < (request.limit || 10); i++) {
       const result: SearchResult = {
@@ -245,43 +245,43 @@ export class IntelligentSearchService {
         createdAt: new Date(),
         updatedAt: new Date()
       };
-      
+
       results.push(result);
     }
-    
+
     // Sort by score
     return results.sort((a, b) => b.score - a.score);
   }
 
   private async enhanceSearchResults(results: SearchResult[], request: SearchRequest): Promise<SearchResult[]> {
     const enhancedResults: SearchResult[] = [];
-    
+
     for (const result of results) {
       const enhanced: SearchResult = { ...result };
-      
+
       // Add highlights if requested
       if (request.includeHighlights) {
         enhanced.highlights = this.generateHighlights(result, request.query);
       }
-      
+
       // Add explanation if requested
       if (request.includeExplanations) {
         enhanced.explanation = this.generateExplanation(result, request.query);
       }
-      
+
       enhancedResults.push(enhanced);
     }
-    
+
     return enhancedResults;
   }
 
   private generateHighlights(result: SearchResult, query: string): SearchHighlight[] {
     const highlights: SearchHighlight[] = [];
-    
+
     // Simple highlight generation
     const queryWords = query.toLowerCase().split(' ');
     const content = result.content.toLowerCase();
-    
+
     queryWords.forEach(word => {
       if (content.includes(word)) {
         const position = content.indexOf(word);
@@ -293,7 +293,7 @@ export class IntelligentSearchService {
         });
       }
     });
-    
+
     return highlights;
   }
 
@@ -310,19 +310,19 @@ export class IntelligentSearchService {
       `${query} documentation`,
       `${query} guide`
     ];
-    
+
     return suggestions;
   }
 
   private async createClusters(results: SearchResult[]): Promise<SearchCluster[]> {
     // Simple clustering based on content similarity
     const clusters: SearchCluster[] = [];
-    
+
     if (results.length === 0) return clusters;
-    
+
     // Group results by category (simplified)
     const categoryGroups = new Map<string, SearchResult[]>();
-    
+
     results.forEach(result => {
       const category = result.metadata.category || 'general';
       if (!categoryGroups.has(category)) {
@@ -330,7 +330,7 @@ export class IntelligentSearchService {
       }
       categoryGroups.get(category)!.push(result);
     });
-    
+
     // Create clusters
     categoryGroups.forEach((groupResults, category) => {
       const cluster: SearchCluster = {
@@ -341,10 +341,10 @@ export class IntelligentSearchService {
         size: groupResults.length,
         coherence: this.calculateCoherence(groupResults)
       };
-      
+
       clusters.push(cluster);
     });
-    
+
     return clusters;
   }
 
@@ -352,13 +352,13 @@ export class IntelligentSearchService {
     // Simplified centroid calculation
     const dimensions = 128; // Typical embedding dimension
     const centroid = new Array(dimensions).fill(0);
-    
+
     // In a real implementation, you would use actual embeddings
     // For now, we'll generate a mock centroid
     for (let i = 0; i < dimensions; i++) {
       centroid[i] = Math.random() * 2 - 1; // Random values between -1 and 1
     }
-    
+
     return centroid;
   }
 
@@ -371,11 +371,11 @@ export class IntelligentSearchService {
     // Simulate embedding generation with random values
     const dimensions = 128; // Typical embedding dimension
     const embedding = new Array(dimensions);
-    
+
     for (let i = 0; i < dimensions; i++) {
       embedding[i] = Math.random() * 2 - 1; // Random values between -1 and 1
     }
-    
+
     return embedding;
   }
 
@@ -392,25 +392,25 @@ export class IntelligentSearchService {
   private performQueryOptimization(query: string, context?: string): string {
     // Simple query optimization
     let optimized = query.toLowerCase().trim();
-    
+
     // Remove common stop words
     const stopWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by'];
     const words = optimized.split(' ');
     const filteredWords = words.filter(word => !stopWords.includes(word));
-    
+
     optimized = filteredWords.join(' ');
-    
+
     // Add context if provided
     if (context) {
       optimized = `${optimized} ${context}`;
     }
-    
+
     return optimized;
   }
 
   private identifyImprovements(originalQuery: string, optimizedQuery: string): QueryImprovement[] {
     const improvements: QueryImprovement[] = [];
-    
+
     if (originalQuery !== optimizedQuery) {
       improvements.push({
         type: 'filter_optimization',
@@ -420,7 +420,7 @@ export class IntelligentSearchService {
         after: optimizedQuery
       });
     }
-    
+
     return improvements;
   }
 
@@ -431,13 +431,13 @@ export class IntelligentSearchService {
 
   private getTopQueries(analytics: SearchAnalytics[]): string[] {
     const queryCounts = new Map<string, number>();
-    
+
     analytics.forEach(a => {
       const count = queryCounts.get(a.query) || 0;
       queryCounts.set(a.query, count + 1);
     });
-    
-    return Array.from(queryCounts.entries())
+
+    return Array.from(queryCounts.entries());
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10)
       .map(([query]) => query);
@@ -446,26 +446,26 @@ export class IntelligentSearchService {
   private calculateSearchAccuracy(analytics: SearchAnalytics[]): number {
     // Simplified accuracy calculation based on result count and response time
     if (analytics.length === 0) return 0;
-    
+
     const avgResultCount = analytics.reduce((sum, a) => sum + a.resultCount, 0) / analytics.length;
     const avgResponseTime = analytics.reduce((sum, a) => sum + a.responseTime, 0) / analytics.length;
-    
+
     // Higher result count and lower response time = higher accuracy
     const resultScore = Math.min(avgResultCount / 10, 1) * 50; // Max 50 points
     const timeScore = Math.max(0, (1000 - avgResponseTime) / 1000) * 50; // Max 50 points
-    
+
     return resultScore + timeScore;
   }
 
   private performClustering(documents: SearchResult[]): SearchCluster[] {
     // Simplified clustering implementation
     const clusters: SearchCluster[] = [];
-    
+
     if (documents.length === 0) return clusters;
-    
+
     // Group by metadata category
     const groups = new Map<string, SearchResult[]>();
-    
+
     documents.forEach(doc => {
       const category = doc.metadata.category || 'general';
       if (!groups.has(category)) {
@@ -473,7 +473,7 @@ export class IntelligentSearchService {
       }
       groups.get(category)!.push(doc);
     });
-    
+
     // Create clusters
     groups.forEach((groupDocs, category) => {
       const cluster: SearchCluster = {
@@ -484,10 +484,10 @@ export class IntelligentSearchService {
         size: groupDocs.length,
         coherence: this.calculateCoherence(groupDocs)
       };
-      
+
       clusters.push(cluster);
     });
-    
+
     return clusters;
   }
 
@@ -502,7 +502,7 @@ export class IntelligentSearchService {
       filters: [],
       timestamp: new Date()
     };
-    
+
     this.searchHistory.set('default_analytics', defaultAnalytics);
   }
 

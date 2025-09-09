@@ -10,7 +10,7 @@ interface TelemetryRequest extends Request {
   correlationId?: string;
 }
 
-export function telemetryMiddleware(req: TelemetryRequest, res: Response, next: NextFunction) {
+export function telemetryMiddleware(req: TelemetryRequest, res: Response, next: NextFunction): void {
   // Start timing
   req.startTime = Date.now();
   req.correlationId = req.header('x-correlation-id') || crypto.randomUUID();
@@ -25,7 +25,7 @@ export function telemetryMiddleware(req: TelemetryRequest, res: Response, next: 
   const originalEnd = res.end;
   res.end = function(chunk?: any, encoding?: any) {
     const duration = Date.now() - (req.startTime || 0);
-    
+
     // Set telemetry headers
     res.set({
       'X-Latency-ms': duration.toString(),
@@ -43,10 +43,10 @@ export function telemetryMiddleware(req: TelemetryRequest, res: Response, next: 
   next();
 }
 
-export function costTrackingMiddleware(req: Request, res: Response, next: NextFunction) {
+export function costTrackingMiddleware(req: Request, res: Response, next: NextFunction): void {
   // Estimate cost based on request type
   let estimatedCost = 0;
-  
+
   if (req.path.includes('/neura/chat')) {
     // Estimate cost for chat requests
     const textLength = JSON.stringify(req.body).length;

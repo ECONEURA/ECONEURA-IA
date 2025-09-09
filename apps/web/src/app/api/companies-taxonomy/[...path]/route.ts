@@ -9,7 +9,7 @@ export async function GET(
   try {
     const path = params.path.join('/');
     const url = new URL(`/v1/companies-taxonomy/${path}`, API_BASE_URL);
-    
+
     // Forward query parameters
     request.nextUrl.searchParams.forEach((value, key) => {
       url.searchParams.set(key, value);
@@ -30,7 +30,7 @@ export async function GET(
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
     console.error('Companies taxonomy API error:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Internal server error' },
       { status: 500 }
     );
@@ -62,7 +62,7 @@ export async function POST(
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
     console.error('Companies taxonomy API error:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Internal server error' },
       { status: 500 }
     );

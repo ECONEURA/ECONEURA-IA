@@ -5,10 +5,10 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // GET /api/gateway/services - Obtener servicios del gateway
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): void {
   try {
     const services = webApiGateway.getAllServices();
-    
+
     return NextResponse.json({
       success: true,
       data: {
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Failed to get gateway services:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Internal server error' },
       { status: 500 }
     );
@@ -26,11 +26,11 @@ export async function GET(request: NextRequest) {
 }
 
 // POST /api/gateway/services - Agregar servicio al gateway
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): void {
   try {
     const serviceData = await request.json();
     const serviceId = webApiGateway.addService(serviceData);
-    
+
     return NextResponse.json({
       success: true,
       data: {
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
   } catch (error) {
     console.error('Failed to add service to gateway:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Failed to add service to gateway' },
       { status: 400 }
     );

@@ -318,7 +318,7 @@ describe('HITLOwnershipSLAService - PR-71', () => {
       expect(slas.length).toBeGreaterThan(0);
       expect(slas.every(s => s.taskType === 'data_validation')).toBe(true);
       expect(slas.every(s => s.priority === 'high')).toBe(true);
-      expect(slas.every(s => s.enabled === true)).toBe(true);
+      expect(slas.every(s => s.enabled =)).toBe(true);
     });
   });
 

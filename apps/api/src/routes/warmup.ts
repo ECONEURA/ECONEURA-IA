@@ -1,6 +1,6 @@
 /**
  * PR-47: Warmup System Routes
- * 
+ *
  * Endpoints para gestionar el sistema de warmup
  * y monitorear el estado de pre-carga de servicios.
  */
@@ -34,7 +34,7 @@ router.get('/status', async (req, res) => {
 
   try {
     const status = warmupSystem.getWarmupStatus();
-    
+
     structuredLogger.info('Warmup status requested', {
       traceId,
       spanId,
@@ -178,7 +178,7 @@ router.get('/results', async (req, res) => {
 
   try {
     const status = warmupSystem.getWarmupStatus();
-    
+
     // Análisis detallado de resultados
     const analysis = {
       totalServices: Object.keys(status.results).length,
@@ -186,12 +186,12 @@ router.get('/results', async (req, res) => {
       failedServices: Object.values(status.results).filter(r => r.status === 'error').length,
       timeoutServices: Object.values(status.results).filter(r => r.status === 'timeout').length,
       averageDuration: Object.values(status.results).reduce((acc, r) => acc + r.duration, 0) / Object.keys(status.results).length,
-      slowestService: Object.values(status.results).reduce((slowest, current) => 
-        current.duration > slowest.duration ? current : slowest, 
+      slowestService: Object.values(status.results).reduce((slowest, current) =>
+        current.duration > slowest.duration ? current : slowest,
         { duration: 0, service: 'none' }
       ),
-      fastestService: Object.values(status.results).reduce((fastest, current) => 
-        current.duration < fastest.duration ? current : fastest, 
+      fastestService: Object.values(status.results).reduce((fastest, current) =>
+        current.duration < fastest.duration ? current : fastest,
         { duration: Infinity, service: 'none' }
       )
     };
@@ -240,7 +240,7 @@ router.get('/health', async (req, res) => {
   try {
     const status = warmupSystem.getWarmupStatus();
     const isHealthy = status.successRate >= 80; // 80% de éxito mínimo
-    
+
     const healthStatus = {
       status: isHealthy ? 'healthy' : 'degraded',
       warmup: {
@@ -300,7 +300,7 @@ router.get('/metrics', async (req, res) => {
 
   try {
     const status = warmupSystem.getWarmupStatus();
-    
+
     const metrics = {
       warmup: {
         totalRuns: 1, // Se puede incrementar con un contador

@@ -92,7 +92,7 @@ export class MemoryRateLimitStore implements RateLimitStore {
 
   async set(key: string, entry: RateLimitEntry, ttl: number): Promise<void> {
     this.store.set(key, entry);
-    
+
     // Clear existing timer
     const existingTimer = this.timers.get(key);
     if (existingTimer) {
@@ -175,7 +175,7 @@ export class RateLimiter {
     ruleId?: string
   ): Promise<RateLimitResult> {
     const rule = ruleId ? this.rules.get(ruleId) : this.getDefaultRule();
-    
+
     if (!rule || !rule.enabled) {
       return this.createAllowedResult(request, rule);
     }
@@ -187,7 +187,7 @@ export class RateLimiter {
 
     // Get existing entry
     const existing = await this.store.get(key);
-    
+
     if (!existing || existing.windowStart !== windowStart) {
       // New window or no existing entry
       const newEntry: RateLimitEntry = {
@@ -199,7 +199,7 @@ export class RateLimiter {
       };
 
       await this.store.set(key, newEntry, rule.windowMs);
-      
+
       return {
         allowed: true,
         remaining: rule.maxRequests - 1,
@@ -301,7 +301,7 @@ export class RateLimiter {
   }
 
   private createAllowedResult(
-    request: RateLimitRequest, 
+    request: RateLimitRequest,
     rule?: RateLimitRule
   ): RateLimitResult {
     const now = Date.now();
@@ -341,8 +341,8 @@ export class RateLimiter {
   getStats(): { rules: number; storeStats: any } {
     return {
       rules: this.rules.size,
-      storeStats: this.store instanceof MemoryRateLimitStore 
-        ? this.store.getStats() 
+      storeStats: this.store instanceof MemoryRateLimitStore
+        ? this.store.getStats()
         : { totalKeys: 'unknown', memoryUsage: 'unknown' }
     };
   }
@@ -400,9 +400,9 @@ export function createRateLimitMiddleware(
       }
 
       if (!result.allowed) {
-        const message = limiter.getRule(ruleId || 'default')?.message || 
+        const message = limiter.getRule(ruleId || 'default')?.message ||
                        limiter.config.message;
-        
+
         if (limiter.config.handler) {
           limiter.config.handler(req, res, next);
         } else {

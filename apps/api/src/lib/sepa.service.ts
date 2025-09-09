@@ -306,7 +306,7 @@ export class SEPAService {
   async createTransaction(orgId: string, userId: string, data: z.infer<typeof SEPATransactionSchema>): Promise<SEPATransaction> {
     try {
       const validatedData = SEPATransactionSchema.parse(data);
-      
+
       const transaction: SEPATransaction = {
         id: `sepa-${this.nextId++}`,
         ...validatedData,
@@ -342,7 +342,7 @@ export class SEPAService {
   async getTransactions(orgId: string, filters: z.infer<typeof SEPAFilterSchema>): Promise<{ transactions: SEPATransaction[]; total: number }> {
     try {
       const validatedFilters = SEPAFilterSchema.parse(filters);
-      
+
       let filteredTransactions = Array.from(this.transactions.values());
 
       // Aplicar filtros
@@ -370,12 +370,12 @@ export class SEPAService {
         filteredTransactions = filteredTransactions.filter(t => t.amount <= validatedFilters.amountMax!);
       }
       if (validatedFilters.reference) {
-        filteredTransactions = filteredTransactions.filter(t => 
+        filteredTransactions = filteredTransactions.filter(t =>
           t.reference?.toLowerCase().includes(validatedFilters.reference!.toLowerCase())
         );
       }
       if (validatedFilters.counterpartyName) {
-        filteredTransactions = filteredTransactions.filter(t => 
+        filteredTransactions = filteredTransactions.filter(t =>
           t.counterparty.name?.toLowerCase().includes(validatedFilters.counterpartyName!.toLowerCase())
         );
       }
@@ -410,7 +410,7 @@ export class SEPAService {
   async getTransactionById(orgId: string, transactionId: string): Promise<SEPATransaction | null> {
     try {
       const transaction = this.transactions.get(transactionId);
-      
+
       if (!transaction) {
         return null;
       }
@@ -434,7 +434,7 @@ export class SEPAService {
   async updateTransaction(orgId: string, transactionId: string, userId: string, data: Partial<z.infer<typeof SEPATransactionSchema>>): Promise<SEPATransaction | null> {
     try {
       const transaction = this.transactions.get(transactionId);
-      
+
       if (!transaction) {
         return null;
       }
@@ -470,7 +470,7 @@ export class SEPAService {
   async deleteTransaction(orgId: string, transactionId: string, userId: string): Promise<boolean> {
     try {
       const transaction = this.transactions.get(transactionId);
-      
+
       if (!transaction) {
         return false;
       }
@@ -567,11 +567,11 @@ export class SEPAService {
 
       // Check if score meets threshold
       const threshold = rule.actions.find(a => a.type === 'match')?.parameters?.threshold || 80;
-      
+
       if (finalScore >= threshold) {
         // Find best matching transaction
         const matchedTransaction = await this.findBestMatch(transaction, finalScore);
-        
+
         return {
           matched: true,
           score: finalScore,
@@ -593,7 +593,7 @@ export class SEPAService {
   private evaluateCondition(transaction: SEPATransaction, condition: MatchingCondition): number {
     try {
       const fieldValue = this.getFieldValue(transaction, condition.field);
-      
+
       switch (condition.operator) {
         case 'equals':
           return fieldValue === condition.value ? 100 : 0;
@@ -617,11 +617,11 @@ export class SEPAService {
   private getFieldValue(transaction: SEPATransaction, field: string): any {
     const fieldParts = field.split('.');
     let value: any = transaction;
-    
+
     for (const part of fieldParts) {
       value = value?.[part];
     }
-    
+
     return value;
   }
 
@@ -629,9 +629,9 @@ export class SEPAService {
     // This is a simplified implementation
     // In a real system, you would search for matching transactions in your database
     const allTransactions = Array.from(this.transactions.values());
-    
+
     // Find transactions with similar amount and date
-    const candidates = allTransactions.filter(t => 
+    const candidates = allTransactions.filter(t =>
       t.id !== transaction.id &&
       t.status === 'pending' &&
       Math.abs(t.amount - transaction.amount) < 0.01 &&
@@ -694,7 +694,7 @@ export class SEPAService {
         const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
         const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
         const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
-        
+
         const count = transactions.filter(t => {
           const created = new Date(t.createdAt);
           return created >= dayStart && created < dayEnd;
@@ -762,15 +762,15 @@ export class SEPAService {
 
       // Generate recommendations
       const recommendations: string[] = [];
-      
+
       if (matchingRate < 80) {
         recommendations.push('La tasa de matching automático está por debajo del 80%. Considera revisar las reglas de matching.');
       }
-      
+
       if (reconciliationRate < 90) {
         recommendations.push('La tasa de conciliación está por debajo del 90%. Revisa los procesos de conciliación.');
       }
-      
+
       if (errorRate > 5) {
         recommendations.push('La tasa de errores está por encima del 5%. Revisa la calidad de los datos de entrada.');
       }
@@ -817,7 +817,7 @@ export class SEPAService {
   async createMatchingRule(orgId: string, userId: string, data: z.infer<typeof MatchingRuleSchema>): Promise<MatchingRule> {
     try {
       const validatedData = MatchingRuleSchema.parse(data);
-      
+
       const rule: MatchingRule = {
         id: `rule-${this.nextId++}`,
         ...validatedData,

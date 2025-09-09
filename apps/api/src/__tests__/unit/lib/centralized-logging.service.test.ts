@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import CentralizedLoggingService, { 
-  LogEntry, 
-  LogQuery, 
-  LogAggregation, 
-  LogAlertRule, 
-  LogRetentionPolicy, 
-  CentralizedLoggingConfig 
+import CentralizedLoggingService, {
+  LogEntry,
+  LogQuery,
+  LogAggregation,
+  LogAlertRule,
+  LogRetentionPolicy,
+  CentralizedLoggingConfig
 } from '../../lib/centralized-logging.service.ts';
 
 // Mock del logger
@@ -506,7 +506,7 @@ describe('CentralizedLoggingService', () => {
     it('should initialize with default alert rules', async () => {
       const rules = await service.listAlertRules();
       expect(rules.length).toBeGreaterThan(0);
-      
+
       const highErrorRateRule = rules.find(r => r.name === 'High Error Rate');
       expect(highErrorRateRule).toBeDefined();
       expect(highErrorRateRule?.pattern).toBe('ERROR|FATAL');
@@ -515,7 +515,7 @@ describe('CentralizedLoggingService', () => {
     it('should initialize with default retention policies', async () => {
       const policies = await service.listRetentionPolicies();
       expect(policies.length).toBeGreaterThan(0);
-      
+
       const defaultPolicy = policies.find(p => p.name === 'Default Retention Policy');
       expect(defaultPolicy).toBeDefined();
       expect(defaultPolicy?.retentionDays).toBe(30);

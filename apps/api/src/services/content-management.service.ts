@@ -1,8 +1,8 @@
 /**
  * CONTENT MANAGEMENT SERVICE
- * 
+ *
  * PR-55: Sistema completo de gestión de contenido avanzado
- * 
+ *
  * Funcionalidades:
  * - Gestión de contenido con versionado
  * - Sistema de plantillas y componentes
@@ -178,10 +178,10 @@ export class ContentManagementService {
 
       // Initialize content tables
       await this.initializeContentTables();
-      
+
       // Load existing content
       await this.loadExistingContent();
-      
+
       // Start background processing
       this.startBackgroundProcessing();
 
@@ -419,7 +419,7 @@ export class ContentManagementService {
   async getContent(contentId: string, organizationId: string): Promise<Content | null> {
     try {
       const content = this.contents.get(contentId);
-      
+
       if (!content || content.organizationId !== organizationId) {
         return null;
       }
@@ -439,7 +439,7 @@ export class ContentManagementService {
     try {
       const content = Array.from(this.contents.values())
         .find(c => c.slug === slug && c.organizationId === organizationId);
-      
+
       return content || null;
     } catch (error) {
       structuredLogger.error('Failed to get content by slug', {
@@ -459,7 +459,7 @@ export class ContentManagementService {
   ): Promise<Content | null> {
     try {
       const content = this.contents.get(contentId);
-      
+
       if (!content || content.organizationId !== organizationId) {
         return null;
       }
@@ -518,7 +518,7 @@ export class ContentManagementService {
   async deleteContent(contentId: string, organizationId: string): Promise<boolean> {
     try {
       const content = this.contents.get(contentId);
-      
+
       if (!content || content.organizationId !== organizationId) {
         return false;
       }
@@ -559,7 +559,7 @@ export class ContentManagementService {
     try {
       const cacheKey = `search:${organizationId}:${JSON.stringify(searchParams)}`;
       const cached = this.searchCache.get(cacheKey);
-      
+
       if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
         return cached.result;
       }
@@ -579,12 +579,12 @@ export class ContentManagementService {
           contents = contents.filter(content => searchParams.filters!.author!.includes(content.metadata.author));
         }
         if (searchParams.filters.tags) {
-          contents = contents.filter(content => 
+          contents = contents.filter(content =>
             searchParams.filters!.tags!.some(tag => content.metadata.tags.includes(tag))
           );
         }
         if (searchParams.filters.categories) {
-          contents = contents.filter(content => 
+          contents = contents.filter(content =>
             searchParams.filters!.categories!.some(category => content.metadata.categories.includes(category))
           );
         }
@@ -611,7 +611,7 @@ export class ContentManagementService {
       // Apply text search
       if (searchParams.query) {
         const query = searchParams.query.toLowerCase();
-        contents = contents.filter(content => 
+        contents = contents.filter(content =>
           content.title.toLowerCase().includes(query) ||
           content.metadata.title.toLowerCase().includes(query) ||
           content.metadata.description?.toLowerCase().includes(query) ||
@@ -625,7 +625,7 @@ export class ContentManagementService {
         const { field, direction } = searchParams.sort;
         contents.sort((a, b) => {
           let aValue: any, bValue: any;
-          
+
           switch (field) {
             case 'title':
               aValue = a.title;
@@ -703,7 +703,7 @@ export class ContentManagementService {
   ): Promise<ContentVersion> {
     try {
       const content = this.contents.get(contentId);
-      
+
       if (!content || content.organizationId !== organizationId) {
         throw new Error('Content not found');
       }
@@ -756,7 +756,7 @@ export class ContentManagementService {
   async publishContent(contentId: string, organizationId: string, publishedBy: string): Promise<boolean> {
     try {
       const content = this.contents.get(contentId);
-      
+
       if (!content || content.organizationId !== organizationId) {
         return false;
       }
@@ -788,7 +788,7 @@ export class ContentManagementService {
   async unpublishContent(contentId: string, organizationId: string, unpublishedBy: string): Promise<boolean> {
     try {
       const content = this.contents.get(contentId);
-      
+
       if (!content || content.organizationId !== organizationId) {
         return false;
       }
@@ -894,9 +894,9 @@ export class ContentManagementService {
     try {
       const now = new Date();
       const scheduledContents = Array.from(this.contents.values())
-        .filter(content => 
-          content.scheduledAt && 
-          content.scheduledAt <= now && 
+        .filter(content =>
+          content.scheduledAt &&
+          content.scheduledAt <= now &&
           content.status === 'draft'
         );
 
@@ -949,17 +949,17 @@ export class ContentManagementService {
       contents.forEach(content => {
         // Count by type
         contentsByType[content.type] = (contentsByType[content.type] || 0) + 1;
-        
+
         // Count by status
         contentsByStatus[content.status] = (contentsByStatus[content.status] || 0) + 1;
-        
+
         // Count published/draft
         if (content.status === 'published') {
           publishedContents++;
         } else if (content.status === 'draft') {
           draftContents++;
         }
-        
+
         // Sum analytics
         if (content.metadata.analytics) {
           totalViews += content.metadata.analytics.views || 0;

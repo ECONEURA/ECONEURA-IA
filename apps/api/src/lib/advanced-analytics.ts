@@ -79,10 +79,10 @@ export class AdvancedAnalyticsService {
     };
 
     this.events.set(id, event);
-    
+
     // Cache for quick access
     apiCache.set(`analytics:event:${id}`, event);
-    
+
     structuredLogger.info('Analytics event tracked', {
       eventId: id,
       eventType: event.eventType,
@@ -102,10 +102,10 @@ export class AdvancedAnalyticsService {
     };
 
     this.metrics.set(metric.name, metric);
-    
+
     // Cache for quick access
     apiCache.set(`analytics:metric:${metric.name}`, metric);
-    
+
     structuredLogger.debug('Analytics metric recorded', {
       name: metric.name,
       value: metric.value,
@@ -117,7 +117,7 @@ export class AdvancedAnalyticsService {
   async getDashboard(orgId: string, timeRange: string = '24h'): Promise<AnalyticsDashboard> {
     const cacheKey = `analytics:dashboard:${orgId}:${timeRange}`;
     const cached = apiCache.get(cacheKey);
-    
+
     if (cached) {
       return cached as AnalyticsDashboard;
     }
@@ -139,7 +139,7 @@ export class AdvancedAnalyticsService {
 
     // Cache for 5 minutes
     apiCache.set(cacheKey, dashboard);
-    
+
     return dashboard;
   }
 
@@ -147,7 +147,7 @@ export class AdvancedAnalyticsService {
   async getBusinessIntelligence(orgId: string): Promise<BusinessIntelligence> {
     const cacheKey = `analytics:bi:${orgId}`;
     const cached = apiCache.get(cacheKey);
-    
+
     if (cached) {
       return cached as BusinessIntelligence;
     }
@@ -185,7 +185,7 @@ export class AdvancedAnalyticsService {
 
     // Cache for 10 minutes
     apiCache.set(cacheKey, bi);
-    
+
     return bi;
   }
 
@@ -222,16 +222,16 @@ export class AdvancedAnalyticsService {
   // Export analytics data
   async exportAnalytics(orgId: string, format: 'json' | 'csv' = 'json'): Promise<string> {
     const events = Array.from(this.events.values()).filter(e => e.orgId === orgId);
-    
+
     if (format === 'csv') {
       const headers = ['id', 'eventType', 'action', 'entityType', 'entityId', 'userId', 'timestamp'];
       const rows = events.map(e => [
         e.id, e.eventType, e.action, e.entityType, e.entityId, e.userId, e.timestamp
       ]);
-      
+
       return [headers, ...rows].map(row => row.join(',')).join('\n');
     }
-    
+
     return JSON.stringify(events, null, 2);
   }
 
@@ -243,7 +243,7 @@ export class AdvancedAnalyticsService {
       '7d': 7 * 24 * 60 * 60 * 1000,
       '30d': 30 * 24 * 60 * 60 * 1000
     };
-    
+
     const ms = ranges[timeRange] || ranges['24h'];
     return new Date(now.getTime() - ms);
   }
@@ -253,8 +253,8 @@ export class AdvancedAnalyticsService {
       acc[event.action] = (acc[event.action] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
-    
-    return Object.entries(actionCounts)
+
+    return Object.entries(actionCounts);
       .map(([action, count]) => ({ action, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
@@ -265,8 +265,8 @@ export class AdvancedAnalyticsService {
       acc[event.entityType] = (acc[event.entityType] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
-    
-    return Object.entries(entityCounts)
+
+    return Object.entries(entityCounts);
       .map(([entityType, count]) => ({ entityType, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
@@ -278,8 +278,8 @@ export class AdvancedAnalyticsService {
       acc[hour] = (acc[hour] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
-    
-    return Object.entries(hourCounts)
+
+    return Object.entries(hourCounts);
       .map(([hour, count]) => ({ hour, count }))
       .sort((a, b) => a.hour.localeCompare(b.hour));
   }
@@ -295,8 +295,8 @@ export class AdvancedAnalyticsService {
       }
       return acc;
     }, {} as Record<string, { events: number; lastActivity: string }>);
-    
-    return Object.entries(userActivity)
+
+    return Object.entries(userActivity);
       .map(([userId, data]) => ({ userId, ...data }))
       .sort((a, b) => b.events - a.events)
       .slice(0, 20);
@@ -308,14 +308,14 @@ export class AdvancedAnalyticsService {
       const users = new Set(events.filter(e => e.action === stage).map(e => e.userId)).size;
       return { stage, users, conversion: 0 };
     });
-    
+
     // Calculate conversion rates
     for (let i = 1; i < stageUsers.length; i++) {
       const prevUsers = stageUsers[i - 1].users;
       const currentUsers = stageUsers[i].users;
       stageUsers[i].conversion = prevUsers > 0 ? (currentUsers / prevUsers) * 100 : 0;
     }
-    
+
     return stageUsers;
   }
 

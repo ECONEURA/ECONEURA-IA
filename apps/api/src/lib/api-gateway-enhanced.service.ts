@@ -1,6 +1,6 @@
 /**
  * API GATEWAY ENHANCED SERVICE - MEJORA CRÍTICA 4
- * 
+ *
  * Sistema avanzado de API Gateway con:
  * - Rate limiting inteligente y adaptativo
  * - Load balancing automático
@@ -251,7 +251,7 @@ export class APIGatewayEnhancedService {
 
   private cleanupExpiredData(): void {
     const now = Date.now();
-    
+
     // Cleanup rate limit store
     for (const [key, value] of this.rateLimitStore.entries()) {
       if (now > value.resetTime) {
@@ -294,10 +294,10 @@ export class APIGatewayEnhancedService {
       const circuitBreakerState = this.circuitBreakerStates.get(route.id)!;
       if (circuitBreakerState.state === 'open') {
         if (circuitBreakerState.nextAttemptTime && Date.now() < circuitBreakerState.nextAttemptTime.getTime()) {
-          return { 
-            allowed: false, 
+          return {
+            allowed: false,
             circuitBreakerState,
-            error: 'Circuit breaker is open' 
+            error: 'Circuit breaker is open'
           };
         } else {
           // Move to half-open state
@@ -308,10 +308,10 @@ export class APIGatewayEnhancedService {
 
       if (circuitBreakerState.state === 'half-open') {
         if (circuitBreakerState.failureCount >= route.circuitBreaker.halfOpenMaxCalls) {
-          return { 
-            allowed: false, 
+          return {
+            allowed: false,
             circuitBreakerState,
-            error: 'Circuit breaker half-open limit reached' 
+            error: 'Circuit breaker half-open limit reached'
           };
         }
       }
@@ -332,10 +332,10 @@ export class APIGatewayEnhancedService {
       // Check rate limiting
       const rateLimitInfo = await this.checkRateLimit(route, userId, organizationId);
       if (!rateLimitInfo.allowed) {
-        return { 
-          allowed: false, 
+        return {
+          allowed: false,
           rateLimitInfo: rateLimitInfo.info,
-          error: 'Rate limit exceeded' 
+          error: 'Rate limit exceeded'
         };
       }
 
@@ -372,18 +372,18 @@ export class APIGatewayEnhancedService {
   private pathMatches(routePath: string, requestPath: string): boolean {
     // Simple path matching - in production, use a proper router
     if (routePath === requestPath) return true;
-    
+
     // Handle parameterized routes
     const routeParts = routePath.split('/');
     const requestParts = requestPath.split('/');
-    
+
     if (routeParts.length !== requestParts.length) return false;
-    
+
     for (let i = 0; i < routeParts.length; i++) {
       if (routeParts[i].startsWith(':')) continue; // Parameter
       if (routeParts[i] !== requestParts[i]) return false;
     }
-    
+
     return true;
   }
 
@@ -407,7 +407,7 @@ export class APIGatewayEnhancedService {
       }
 
       const current = this.rateLimitStore.get(key) || { count: 0, resetTime: windowEnd };
-      
+
       // Check if limit exceeded
       if (current.count >= route.rateLimit.requests) {
         return {
@@ -449,14 +449,14 @@ export class APIGatewayEnhancedService {
     organizationId?: string
   ): string {
     let key = route.cache.key;
-    
+
     if (route.cache.vary.includes('user-id') && userId) {
       key += `:user:${userId}`;
     }
     if (route.cache.vary.includes('organization-id') && organizationId) {
       key += `:org:${organizationId}`;
     }
-    
+
     // Add header variations
     for (const header of route.cache.headers) {
       const value = headers[header.toLowerCase()];
@@ -464,7 +464,7 @@ export class APIGatewayEnhancedService {
         key += `:${header}:${value}`;
       }
     }
-    
+
     return key;
   }
 
@@ -496,7 +496,7 @@ export class APIGatewayEnhancedService {
       // Update response time metrics
       const totalResponses = metrics.successfulRequests + metrics.failedRequests;
       metrics.averageResponseTime = (metrics.averageResponseTime * (totalResponses - 1) + responseTime) / totalResponses;
-      
+
       // Simple P95/P99 calculation (in production, use proper percentile calculation)
       if (responseTime > metrics.p95ResponseTime) {
         metrics.p95ResponseTime = responseTime;
@@ -559,7 +559,7 @@ export class APIGatewayEnhancedService {
   private async recordCircuitBreakerFailure(routeId: string): Promise<void> {
     const state = this.circuitBreakerStates.get(routeId);
     const route = this.routes.get(routeId);
-    
+
     if (!state || !route || !route.circuitBreaker.enabled) return;
 
     state.failureCount++;
@@ -568,7 +568,7 @@ export class APIGatewayEnhancedService {
     if (state.failureCount >= route.circuitBreaker.failureThreshold) {
       state.state = 'open';
       state.nextAttemptTime = new Date(Date.now() + route.circuitBreaker.recoveryTimeout * 1000);
-      
+
       structuredLogger.warn('Circuit breaker opened', {
         routeId,
         failureCount: state.failureCount,
@@ -581,7 +581,7 @@ export class APIGatewayEnhancedService {
 
   private async recordCircuitBreakerSuccess(routeId: string): Promise<void> {
     const state = this.circuitBreakerStates.get(routeId);
-    
+
     if (!state) return;
 
     if (state.state === 'half-open') {
@@ -589,7 +589,7 @@ export class APIGatewayEnhancedService {
       state.failureCount = 0;
       state.lastFailureTime = undefined;
       state.nextAttemptTime = undefined;
-      
+
       structuredLogger.info('Circuit breaker closed', { routeId });
     } else if (state.state === 'closed') {
       state.failureCount = Math.max(0, state.failureCount - 1);
@@ -605,7 +605,7 @@ export class APIGatewayEnhancedService {
     // In a real implementation, you would generate the proper cache key
     const cacheKey = `${routeId}:response:${Date.now()}`;
     const expiry = Date.now() + (route.cache.ttl * 1000);
-    
+
     this.cache.set(cacheKey, {
       data: responseData,
       expiry
@@ -641,7 +641,7 @@ export class APIGatewayEnhancedService {
       this.routes.set(route.id, route);
       this.initializeMetrics(route.id);
       this.initializeCircuitBreaker(route.id);
-      
+
       structuredLogger.info('Route added', { routeId: route.id, path: route.path });
       return true;
     } catch (error) {
@@ -660,7 +660,7 @@ export class APIGatewayEnhancedService {
 
       Object.assign(route, updates);
       this.routes.set(routeId, route);
-      
+
       structuredLogger.info('Route updated', { routeId, updates });
       return true;
     } catch (error) {
@@ -677,7 +677,7 @@ export class APIGatewayEnhancedService {
       const deleted = this.routes.delete(routeId);
       this.metrics.delete(routeId);
       this.circuitBreakerStates.delete(routeId);
-      
+
       if (deleted) {
         structuredLogger.info('Route removed', { routeId });
       }

@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  Truck, 
+import {
+  Truck,
   Plus,
   Search,
   Mail,
@@ -50,7 +50,7 @@ interface Supplier {
   notes: string;
 }
 
-function MediterraneanSuppliers() {
+function MediterraneanSuppliers(): void {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -65,10 +65,10 @@ function MediterraneanSuppliers() {
   useEffect(() => {
     const loadSuppliers = async () => {
       setLoading(true);
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       const mockSuppliers: Supplier[] = [
         {
           id: '1',
@@ -260,11 +260,11 @@ function MediterraneanSuppliers() {
           notes: 'Proveedor suspendido por problemas de calidad y retrasos continuos en entregas.'
         }
       ];
-      
+
       setSuppliers(mockSuppliers);
       setLoading(false);
     };
-    
+
     loadSuppliers();
   }, []);
 
@@ -279,16 +279,16 @@ function MediterraneanSuppliers() {
                            supplier.email.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || supplier.category === selectedCategory;
       const matchesStatus = selectedStatus === 'all' || supplier.status === selectedStatus;
-      const matchesRating = selectedRating === 'all' || 
+      const matchesRating = selectedRating === 'all' ||
                           (selectedRating === '4+' && supplier.rating >= 4) ||
                           (selectedRating === '3+' && supplier.rating >= 3) ||
                           (selectedRating === '2+' && supplier.rating >= 2);
-      
+
       return matchesSearch && matchesCategory && matchesStatus && matchesRating;
     })
     .sort((a, b) => {
       let aValue, bValue;
-      
+
       switch (sortBy) {
         case 'name':
           aValue = a.name.toLowerCase();
@@ -309,7 +309,7 @@ function MediterraneanSuppliers() {
         default:
           return 0;
       }
-      
+
       if (sortOrder === 'asc') {
         return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
       } else {
@@ -319,7 +319,7 @@ function MediterraneanSuppliers() {
 
   const togglePreferred = (supplierId: string) => {
     setSuppliers(prev => prev.map(supplier =>
-      supplier.id === supplierId 
+      supplier.id === supplierId
         ? { ...supplier, preferred: !supplier.preferred }
         : supplier
     ));
@@ -369,7 +369,7 @@ function MediterraneanSuppliers() {
   const preferredSuppliers = suppliers.filter(s => s.preferred).length;
 
   if (loading) {
-    return (
+    return (;
       <div className="min-h-screen bg-gradient-to-br from-mediterranean-50 via-white to-coral-50 flex items-center justify-center">
         <div className="text-center">
           <div className="relative">
@@ -382,13 +382,13 @@ function MediterraneanSuppliers() {
     );
   }
 
-  return (
+  return (;
     <div className="min-h-screen bg-gradient-to-br from-mediterranean-50 via-white to-coral-50">
       {/* Mediterranean Header */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-mediterranean-600 via-mediterranean-500 to-olive-500 opacity-90"></div>
         <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-20"></div>
-        
+
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
             <div>
@@ -399,13 +399,13 @@ function MediterraneanSuppliers() {
                 {filteredAndSortedSuppliers.length} proveedores • {activeSuppliers} activos • {averageRating.toFixed(1)}★ rating promedio
               </p>
             </div>
-            
+
             <div className="flex items-center gap-4">
               <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
                 <BarChart3 className="w-4 h-4" />
                 Evaluación
               </button>
-              
+
               <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
                 <Plus className="w-4 h-4" />
                 Nuevo Proveedor
@@ -445,7 +445,7 @@ function MediterraneanSuppliers() {
             }
           ].map((stat, index) => {
             const IconComponent = stat.icon;
-            return (
+            return (;
               <div
                 key={stat.label}
                 className={`relative overflow-hidden rounded-2xl p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 ${
@@ -486,7 +486,7 @@ function MediterraneanSuppliers() {
                 className="w-full pl-10 pr-4 py-3 border border-mediterranean-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-mediterranean-500 focus:border-mediterranean-500"
               />
             </div>
-            
+
             {/* Filters */}
             <div className="flex flex-wrap items-center gap-4">
               {/* Category Filter */}
@@ -503,7 +503,7 @@ function MediterraneanSuppliers() {
                   ))}
                 </select>
               </div>
-              
+
               {/* Status Filter */}
               <select
                 value={selectedStatus}
@@ -516,7 +516,7 @@ function MediterraneanSuppliers() {
                 <option value="pending">Pendiente</option>
                 <option value="blocked">Bloqueado</option>
               </select>
-              
+
               {/* Rating Filter */}
               <select
                 value={selectedRating}
@@ -528,7 +528,7 @@ function MediterraneanSuppliers() {
                 <option value="3+">3+ estrellas</option>
                 <option value="2+">2+ estrellas</option>
               </select>
-              
+
               {/* Sort */}
               <select
                 value={`${sortBy}-${sortOrder}`}
@@ -545,14 +545,14 @@ function MediterraneanSuppliers() {
                 <option value="orders-desc">Más pedidos</option>
                 <option value="spent-desc">Mayor gasto</option>
               </select>
-              
+
               {/* View Mode */}
               <div className="flex bg-mediterranean-100 rounded-xl p-1">
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    viewMode === 'grid' 
-                      ? 'bg-white text-mediterranean-600 shadow-sm' 
+                    viewMode === 'grid'
+                      ? 'bg-white text-mediterranean-600 shadow-sm'
                       : 'text-mediterranean-600 hover:bg-mediterranean-50'
                   }`}
                 >
@@ -561,8 +561,8 @@ function MediterraneanSuppliers() {
                 <button
                   onClick={() => setViewMode('list')}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    viewMode === 'list' 
-                      ? 'bg-white text-mediterranean-600 shadow-sm' 
+                    viewMode === 'list'
+                      ? 'bg-white text-mediterranean-600 shadow-sm'
                       : 'text-mediterranean-600 hover:bg-mediterranean-50'
                   }`}
                 >
@@ -596,7 +596,7 @@ function MediterraneanSuppliers() {
                       {supplier.category}
                     </p>
                   </div>
-                  
+
                   <div className="flex items-center gap-2 ml-2">
                     <button
                       onClick={() => togglePreferred(supplier.id)}
@@ -608,7 +608,7 @@ function MediterraneanSuppliers() {
                         <Star className="w-5 h-5 text-mediterranean-400" />
                       )}
                     </button>
-                    
+
                     <button className="p-1 hover:bg-mediterranean-50 rounded-full transition-colors">
                       <MoreVertical className="w-5 h-5 text-mediterranean-400" />
                     </button>
@@ -621,17 +621,17 @@ function MediterraneanSuppliers() {
                     <Mail className="w-4 h-4 flex-shrink-0" />
                     <span className="text-sm truncate">{supplier.email}</span>
                   </div>
-                  
+
                   <div className="flex items-center gap-2 text-mediterranean-600">
                     <Phone className="w-4 h-4 flex-shrink-0" />
                     <span className="text-sm">{supplier.phone}</span>
                   </div>
-                  
+
                   <div className="flex items-center gap-2 text-mediterranean-600">
                     <MapPin className="w-4 h-4 flex-shrink-0" />
                     <span className="text-sm">{supplier.city}, {supplier.country}</span>
                   </div>
-                  
+
                   <div className="flex items-center gap-2 text-mediterranean-600">
                     <Globe className="w-4 h-4 flex-shrink-0" />
                     <span className="text-sm">{supplier.website}</span>
@@ -649,21 +649,21 @@ function MediterraneanSuppliers() {
                       </span>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <span className="text-mediterranean-600 text-sm">Pedidos</span>
                     <span className="font-medium text-mediterranean-800">
                       {supplier.totalOrders}
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <span className="text-mediterranean-600 text-sm">Total Gastado</span>
                     <span className="font-bold text-mediterranean-800">
                       {formatCurrency(supplier.totalSpent)}
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <span className="text-mediterranean-600 text-sm">Entrega a tiempo</span>
                     <span className="text-mediterranean-700">
@@ -677,7 +677,7 @@ function MediterraneanSuppliers() {
                   <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(supplier.status)}`}>
                     {getStatusLabel(supplier.status)}
                   </span>
-                  
+
                   <span className="text-sm text-mediterranean-600">
                     {supplier.paymentTerms}
                   </span>
@@ -839,8 +839,8 @@ function MediterraneanSuppliers() {
   );
 }
 
-export default function SuppliersPage() {
-  return (
+export default function SuppliersPage(): void {
+  return (;
     <ProtectedRoute requiredPermission="erp:suppliers:view">
       <MediterraneanSuppliers />
     </ProtectedRoute>

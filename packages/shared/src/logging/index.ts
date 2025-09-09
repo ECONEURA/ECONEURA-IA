@@ -201,18 +201,18 @@ export function extractTraceId(traceparent?: string): string | undefined {
 // Log formatting for structured data
 export function formatLogData(data: Record<string, unknown>): Record<string, unknown> {
   const formatted: Record<string, unknown> = {};
-  
+
   for (const [key, value] of Object.entries(data)) {
     if (value === null || value === undefined) {
       continue;
     }
-    
+
     if (typeof value === 'object' && !Array.isArray(value)) {
       formatted[key] = JSON.stringify(value);
     } else {
       formatted[key] = value;
     }
   }
-  
+
   return formatted;
 }

@@ -1,6 +1,6 @@
 /**
  * Intelligent Reporting Service
- * 
+ *
  * This service provides comprehensive reporting capabilities including automated
  * report generation, custom report building, scheduled reports, and multi-format
  * exports with AI-powered insights.
@@ -485,7 +485,7 @@ export class IntelligentReportingService {
     template: string;
     sampleData: ReportData[];
   }>> {
-    return [
+    return [;
       {
         id: 'executive_summary',
         name: 'Executive Summary',
@@ -565,21 +565,21 @@ export class IntelligentReportingService {
   private getSampleMetrics(type: string): Array<{ id: string; name: string; value: number; unit: string }> {
     switch (type) {
       case 'executive':
-        return [
+        return [;
           { id: 'revenue', name: 'Total Revenue', value: 1250000, unit: 'USD' },
           { id: 'profit', name: 'Net Profit', value: 250000, unit: 'USD' },
           { id: 'customers', name: 'Active Customers', value: 15000, unit: 'count' },
           { id: 'growth', name: 'Growth Rate', value: 12.5, unit: '%' }
         ];
       case 'operational':
-        return [
+        return [;
           { id: 'efficiency', name: 'Operational Efficiency', value: 87.5, unit: '%' },
           { id: 'throughput', name: 'Processing Throughput', value: 2500, unit: 'units/hour' },
           { id: 'downtime', name: 'System Downtime', value: 0.5, unit: '%' },
           { id: 'quality', name: 'Quality Score', value: 94.2, unit: '%' }
         ];
       case 'analytics':
-        return [
+        return [;
           { id: 'conversion', name: 'Conversion Rate', value: 3.2, unit: '%' },
           { id: 'engagement', name: 'User Engagement', value: 78.5, unit: '%' },
           { id: 'retention', name: 'Customer Retention', value: 85.3, unit: '%' },
@@ -599,7 +599,7 @@ export class IntelligentReportingService {
   }
 
   async getReportGenerations(reportId: string): Promise<ReportGeneration[]> {
-    return Array.from(this.reportGenerations.values())
+    return Array.from(this.reportGenerations.values());
       .filter(g => g.reportId === reportId);
   }
 

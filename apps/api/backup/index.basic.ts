@@ -78,7 +78,7 @@ app.get("/", (req, res) => {
     timestamp: new Date().toISOString(),
     endpoints: [
       "GET /health - Basic health check",
-      "GET /health/live - Liveness probe", 
+      "GET /health/live - Liveness probe",
       "GET /health/ready - Readiness probe"
     ]
   });

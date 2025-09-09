@@ -28,16 +28,16 @@ export class IntelligentCache {
 
   constructor(config: CacheConfig) {
     this.config = config;
-    logger.info('Cache system initialized', { 
-      type: config.type, 
+    logger.info('Cache system initialized', {
+      type: config.type,
       ttl: config.ttl,
-      maxSize: config.maxSize 
+      maxSize: config.maxSize
     });
   }
 
   async get<T>(key: string): Promise<T | null> {
     const item = this.memoryCache.get(key);
-    
+
     if (!item) {
       this.stats.misses++;
       logger.debug('Cache miss', { key, stats: this.stats });
@@ -59,11 +59,11 @@ export class IntelligentCache {
     item.lastAccessed = now;
     this.stats.hits++;
 
-    logger.debug('Cache hit', { 
-      key, 
+    logger.debug('Cache hit', {
+      key,
       accessCount: item.accessCount,
       age: now - item.timestamp,
-      stats: this.stats 
+      stats: this.stats
     });
 
     return item.value as T;
@@ -91,11 +91,11 @@ export class IntelligentCache {
     this.memoryCache.set(key, item);
     this.stats.sets++;
 
-    logger.debug('Cache set', { 
-      key, 
+    logger.debug('Cache set', {
+      key,
       ttl: itemTtl,
       cacheSize: this.memoryCache.size,
-      stats: this.stats 
+      stats: this.stats
     });
   }
 
@@ -115,15 +115,15 @@ export class IntelligentCache {
 
   async warmup(patterns: Array<{ key: string; value: any; ttl?: number }>): Promise<void> {
     logger.info('Starting cache warmup', { patternsCount: patterns.length });
-    
+
     for (const pattern of patterns) {
       await this.set(pattern.key, pattern.value, pattern.ttl);
       this.stats.warmupItems++;
     }
 
-    logger.info('Cache warmup completed', { 
+    logger.info('Cache warmup completed', {
       warmupItems: this.stats.warmupItems,
-      totalItems: this.memoryCache.size 
+      totalItems: this.memoryCache.size
     });
   }
 
@@ -143,7 +143,7 @@ export class IntelligentCache {
     for (const [key, item] of this.memoryCache.entries()) {
       // Score based on access count and last access time
       const score = item.accessCount * 0.3 + (Date.now() - item.lastAccessed) * 0.7;
-      
+
       if (score < leastUsedScore) {
         leastUsedScore = score;
         leastUsedKey = key;
@@ -334,7 +334,7 @@ export class CacheManager {
 
   async warmupAll(): Promise<void> {
     logger.info('Starting comprehensive cache warmup');
-    
+
     await Promise.all([
       this.aiCache.warmupAI(),
       this.searchCache.warmupSearch(),

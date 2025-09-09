@@ -1,12 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import CentralizedLoggingService, { 
-  LogEntry, 
-  LogQuery, 
-  LogAggregation, 
-  LogAlertRule, 
-  LogRetentionPolicy, 
-  CentralizedLoggingConfig 
+import CentralizedLoggingService, {
+  LogEntry,
+  LogQuery,
+  LogAggregation,
+  LogAlertRule,
+  LogRetentionPolicy,
+  CentralizedLoggingConfig
 } from '../lib/centralized-logging.service.js';
 import { logger } from '../lib/logger.js';
 
@@ -134,7 +134,7 @@ const UpdateConfigSchema = z.object({
 router.post('/logs', async (req: Request, res: Response) => {
   try {
     const validatedData = WriteLogSchema.parse(req.body);
-    
+
     const logEntry = await loggingService.writeLog(validatedData);
 
     res.status(201).json({
@@ -744,7 +744,7 @@ router.post('/logs/bulk', async (req: Request, res: Response) => {
 router.get('/logs/export', async (req: Request, res: Response) => {
   try {
     const { format = 'json', ...queryParams } = req.query;
-    
+
     const query: LogQuery = {
       ...queryParams,
       startTime: queryParams.startTime ? new Date(queryParams.startTime as string) : undefined,
@@ -758,7 +758,7 @@ router.get('/logs/export', async (req: Request, res: Response) => {
     if (format === 'csv') {
       // Convertir a CSV
       const csvHeaders = ['timestamp', 'level', 'message', 'service', 'environment', 'userId', 'organizationId'];
-      const csvRows = result.logs.map(log => 
+      const csvRows = result.logs.map(log =>
         csvHeaders.map(header => `"${(log as any)[header] || ''}"`).join(',')
       );
       const csvContent = [csvHeaders.join(','), ...csvRows].join('\n');

@@ -26,11 +26,11 @@ export class ErrorRecoveryService extends EventEmitter {
 
         if (retryCount < strategy.maxRetries) {
           this.retryCounts.set(retryKey, retryCount + 1);
-          
+
           try {
             await this.delay(strategy.backoffMs * Math.pow(2, retryCount));
             await strategy.action();
-            
+
             this.emit('recovery_success', { strategyId, context, retryCount });
             return true;
           } catch (recoveryError) {

@@ -12,7 +12,7 @@ import { type DeptKey } from '@/lib/palette';
 import { type AgentConfig, type ActivityEvent, type RunOrder } from '@/lib/models';
 import { getDeptName } from '@/lib/palette';
 
-export default function Cockpit() {
+export default function Cockpit(): void {
   const [activeDept, setActiveDept] = useState<DeptKey>('ceo');
   const [agents, setAgents] = useState<AgentConfig[]>([]);
   const [timelineEvents, setTimelineEvents] = useState<ActivityEvent[]>([]);
@@ -116,7 +116,7 @@ export default function Cockpit() {
     if (!agent) return;
 
     // Actualizar estado del agente
-    setAgents(prev => prev.map(a => 
+    setAgents(prev => prev.map(a =>
       a.key === agentKey ? { ...a, status: 'running' as const } : a
     ));
 
@@ -142,7 +142,7 @@ export default function Cockpit() {
       });
 
       const data = await response.json();
-      
+
       if (data.ok) {
         // Agregar evento al timeline
         const newEvent: ActivityEvent = {
@@ -156,7 +156,7 @@ export default function Cockpit() {
 
         // Simular finalización después de 3 segundos
         setTimeout(() => {
-          setAgents(prev => prev.map(a => 
+          setAgents(prev => prev.map(a =>
             a.key === agentKey ? { ...a, status: 'completed' as const } : a
           ));
         }, 3000);
@@ -165,9 +165,9 @@ export default function Cockpit() {
       }
     } catch (error) {
       console.error('Error ejecutando agente:', error);
-      
+
       // Actualizar estado a fallido
-      setAgents(prev => prev.map(a => 
+      setAgents(prev => prev.map(a =>
         a.key === agentKey ? { ...a, status: 'failed' as const } : a
       ));
 
@@ -190,7 +190,7 @@ export default function Cockpit() {
     pending: agents.filter(a => a.status === 'idle').length
   };
 
-  return (
+  return (;
     <div style={{
       minHeight: '100vh',
       display: 'flex',
@@ -198,13 +198,13 @@ export default function Cockpit() {
       backgroundColor: '#F9FAFB'
     }}>
       <Header />
-      
+
       <div style={{ display: 'flex', flex: 1 }}>
         <Sidebar activeDept={activeDept} onDeptChange={setActiveDept} />
-        
+
         <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           <DeptHeader dept={activeDept} kpis={kpis} />
-          
+
           <div style={{
             flex: 1,
             padding: '24px',
@@ -216,7 +216,7 @@ export default function Cockpit() {
             {activeDept === 'ia' && (
               <NeuraChat dept={getDeptName(activeDept)} />
             )}
-            
+
             {/* Grid de Agentes */}
             <div style={{
               display: 'grid',
@@ -231,11 +231,11 @@ export default function Cockpit() {
                 />
               ))}
             </div>
-            
+
             {/* Timeline */}
             <Timeline events={timelineEvents} />
           </div>
-          
+
           <Footer />
         </main>
       </div>

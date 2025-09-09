@@ -1,6 +1,6 @@
 /**
  * PR-30: GDPR Compliance Suite Routes - CONSOLIDADO
- * 
+ *
  * Rutas API para el sistema completo de cumplimiento GDPR que incluye:
  * - Gestión de solicitudes GDPR (export, erase, rectification, portability)
  * - Exportación de datos
@@ -117,7 +117,7 @@ const GenerateComplianceReportSchema = z.object({
 router.post('/requests', async (req, res) => {
   try {
     const validatedData = CreateGDPRRequestSchema.parse(req.body);
-    
+
     const gdprRequest = await gdprConsolidated.createGDPRRequest(
       validatedData.userId,
       validatedData.type,
@@ -125,14 +125,14 @@ router.post('/requests', async (req, res) => {
       validatedData.dataCategories,
       validatedData.options
     );
-    
+
     structuredLogger.info('GDPR request created', {
       requestId: gdprRequest.id,
       userId: validatedData.userId,
       type: validatedData.type,
       requestedBy: validatedData.requestedBy
     });
-    
+
     res.status(201).json({
       success: true,
       data: gdprRequest,
@@ -164,18 +164,18 @@ router.post('/requests', async (req, res) => {
 router.get('/requests/:requestId', async (req, res) => {
   try {
     const { requestId } = req.params;
-    
+
     const gdprRequest = await gdprConsolidated.getGDPRRequest(requestId);
-    
+
     if (!gdprRequest) {
       return res.status(404).json({
         success: false,
         error: 'GDPR request not found'
       });
     }
-    
+
     structuredLogger.info('GDPR request retrieved', { requestId });
-    
+
     res.json({
       success: true,
       data: gdprRequest,
@@ -198,23 +198,23 @@ router.get('/requests/:requestId', async (req, res) => {
 router.get('/requests', async (req, res) => {
   try {
     const { userId, type, status, priority } = req.query;
-    
+
     const filters = {
       type: type as any,
       status: status as any,
       priority: priority as any
     };
-    
+
     const gdprRequests = await gdprConsolidated.getGDPRRequests(
       userId as string,
       Object.keys(filters).length > 0 ? filters : undefined
     );
-    
+
     structuredLogger.info('GDPR requests retrieved', {
       count: gdprRequests.length,
       filters: { userId, type, status, priority }
     });
-    
+
     res.json({
       success: true,
       data: gdprRequests,
@@ -239,27 +239,27 @@ router.patch('/requests/:requestId/status', async (req, res) => {
   try {
     const { requestId } = req.params;
     const validatedData = UpdateGDPRRequestStatusSchema.parse(req.body);
-    
+
     const updatedRequest = await gdprConsolidated.updateGDPRRequestStatus(
       requestId,
       validatedData.status,
       validatedData.processedBy,
       validatedData.details
     );
-    
+
     if (!updatedRequest) {
       return res.status(404).json({
         success: false,
         error: 'GDPR request not found'
       });
     }
-    
+
     structuredLogger.info('GDPR request status updated', {
       requestId,
       status: validatedData.status,
       processedBy: validatedData.processedBy
     });
-    
+
     res.json({
       success: true,
       data: updatedRequest,
@@ -295,18 +295,18 @@ router.patch('/requests/:requestId/status', async (req, res) => {
 router.get('/exports/:exportId', async (req, res) => {
   try {
     const { exportId } = req.params;
-    
+
     const dataExport = await gdprConsolidated.getDataExport(exportId);
-    
+
     if (!dataExport) {
       return res.status(404).json({
         success: false,
         error: 'Data export not found'
       });
     }
-    
+
     structuredLogger.info('Data export retrieved', { exportId });
-    
+
     res.json({
       success: true,
       data: dataExport,
@@ -329,11 +329,11 @@ router.get('/exports/:exportId', async (req, res) => {
 router.get('/exports/user/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    
+
     const userExports = await gdprConsolidated.getUserExports(userId);
-    
+
     structuredLogger.info('User exports retrieved', { userId, count: userExports.length });
-    
+
     res.json({
       success: true,
       data: userExports,
@@ -358,25 +358,25 @@ router.post('/exports/:exportId/download', async (req, res) => {
   try {
     const { exportId } = req.params;
     const { userId } = req.body;
-    
+
     if (!userId) {
       return res.status(400).json({
         success: false,
         error: 'User ID is required'
       });
     }
-    
+
     const downloadResult = await gdprConsolidated.downloadExport(exportId, userId);
-    
+
     if (!downloadResult) {
       return res.status(404).json({
         success: false,
         error: 'Export not found or access denied'
       });
     }
-    
+
     structuredLogger.info('Data export downloaded', { exportId, userId });
-    
+
     res.json({
       success: true,
       data: downloadResult,
@@ -403,18 +403,18 @@ router.post('/exports/:exportId/download', async (req, res) => {
 router.get('/erasures/:eraseId', async (req, res) => {
   try {
     const { eraseId } = req.params;
-    
+
     const dataErase = await gdprConsolidated.getDataErase(eraseId);
-    
+
     if (!dataErase) {
       return res.status(404).json({
         success: false,
         error: 'Data erase not found'
       });
     }
-    
+
     structuredLogger.info('Data erase retrieved', { eraseId });
-    
+
     res.json({
       success: true,
       data: dataErase,
@@ -437,11 +437,11 @@ router.get('/erasures/:eraseId', async (req, res) => {
 router.get('/erasures/user/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    
+
     const userErasures = await gdprConsolidated.getUserErasures(userId);
-    
+
     structuredLogger.info('User erasures retrieved', { userId, count: userErasures.length });
-    
+
     res.json({
       success: true,
       data: userErasures,
@@ -469,19 +469,19 @@ router.get('/erasures/user/:userId', async (req, res) => {
 router.post('/legal-holds', async (req, res) => {
   try {
     const validatedData = CreateLegalHoldSchema.parse(req.body);
-    
+
     const legalHold = await gdprConsolidated.createLegalHold({
       ...validatedData,
       startDate: new Date(validatedData.startDate),
       endDate: validatedData.endDate ? new Date(validatedData.endDate) : undefined
     });
-    
+
     structuredLogger.info('Legal hold created', {
       holdId: legalHold.id,
       name: legalHold.name,
       type: legalHold.type
     });
-    
+
     res.status(201).json({
       success: true,
       data: legalHold,
@@ -513,22 +513,22 @@ router.post('/legal-holds', async (req, res) => {
 router.get('/legal-holds', async (req, res) => {
   try {
     const { status, type, userId } = req.query;
-    
+
     const filters = {
       status: status as any,
       type: type as any,
       userId: userId as string
     };
-    
+
     const legalHolds = await gdprConsolidated.getLegalHolds(
       Object.keys(filters).length > 0 ? filters : undefined
     );
-    
+
     structuredLogger.info('Legal holds retrieved', {
       count: legalHolds.length,
       filters: { status, type, userId }
     });
-    
+
     res.json({
       success: true,
       data: legalHolds,
@@ -556,19 +556,19 @@ router.get('/legal-holds', async (req, res) => {
 router.post('/consent', async (req, res) => {
   try {
     const validatedData = CreateConsentRecordSchema.parse(req.body);
-    
+
     const consentRecord = await gdprConsolidated.createConsentRecord({
       ...validatedData,
       consentDate: new Date(validatedData.consentDate),
       withdrawalDate: validatedData.withdrawalDate ? new Date(validatedData.withdrawalDate) : undefined
     });
-    
+
     structuredLogger.info('Consent record created', {
       consentId: consentRecord.id,
       userId: consentRecord.userId,
       dataCategory: consentRecord.dataCategory
     });
-    
+
     res.status(201).json({
       success: true,
       data: consentRecord,
@@ -601,18 +601,18 @@ router.get('/consent/user/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
     const { dataCategory } = req.query;
-    
+
     const consentRecords = await gdprConsolidated.getConsentRecords(
       userId,
       dataCategory as string
     );
-    
+
     structuredLogger.info('Consent records retrieved', {
       userId,
       dataCategory,
       count: consentRecords.length
     });
-    
+
     res.json({
       success: true,
       data: consentRecords,
@@ -637,25 +637,25 @@ router.post('/consent/:consentId/withdraw', async (req, res) => {
   try {
     const { consentId } = req.params;
     const { userId } = req.body;
-    
+
     if (!userId) {
       return res.status(400).json({
         success: false,
         error: 'User ID is required'
       });
     }
-    
+
     const updatedConsent = await gdprConsolidated.withdrawConsent(consentId, userId);
-    
+
     if (!updatedConsent) {
       return res.status(404).json({
         success: false,
         error: 'Consent record not found or access denied'
       });
     }
-    
+
     structuredLogger.info('Consent withdrawn', { consentId, userId });
-    
+
     res.json({
       success: true,
       data: updatedConsent,
@@ -682,15 +682,15 @@ router.post('/consent/:consentId/withdraw', async (req, res) => {
 router.post('/data-processing-activities', async (req, res) => {
   try {
     const validatedData = CreateDataProcessingActivitySchema.parse(req.body);
-    
+
     const activity = await gdprConsolidated.createDataProcessingActivity(validatedData);
-    
+
     structuredLogger.info('Data processing activity created', {
       activityId: activity.id,
       name: activity.name,
       purpose: activity.purpose
     });
-    
+
     res.status(201).json({
       success: true,
       data: activity,
@@ -722,9 +722,9 @@ router.post('/data-processing-activities', async (req, res) => {
 router.get('/data-processing-activities', async (req, res) => {
   try {
     const activities = await gdprConsolidated.getDataProcessingActivities();
-    
+
     structuredLogger.info('Data processing activities retrieved', { count: activities.length });
-    
+
     res.json({
       success: true,
       data: activities,
@@ -752,19 +752,19 @@ router.get('/data-processing-activities', async (req, res) => {
 router.post('/breaches', async (req, res) => {
   try {
     const validatedData = CreateBreachRecordSchema.parse(req.body);
-    
+
     const breach = await gdprConsolidated.createBreachRecord({
       ...validatedData,
       discoveredAt: new Date(validatedData.discoveredAt),
       reportedAt: validatedData.reportedAt ? new Date(validatedData.reportedAt) : undefined
     });
-    
+
     structuredLogger.info('Breach record created', {
       breachId: breach.id,
       type: breach.type,
       severity: breach.severity
     });
-    
+
     res.status(201).json({
       success: true,
       data: breach,
@@ -796,22 +796,22 @@ router.post('/breaches', async (req, res) => {
 router.get('/breaches', async (req, res) => {
   try {
     const { status, severity, type } = req.query;
-    
+
     const filters = {
       status: status as any,
       severity: severity as any,
       type: type as any
     };
-    
+
     const breaches = await gdprConsolidated.getBreachRecords(
       Object.keys(filters).length > 0 ? filters : undefined
     );
-    
+
     structuredLogger.info('Breach records retrieved', {
       count: breaches.length,
       filters: { status, severity, type }
     });
-    
+
     res.json({
       success: true,
       data: breaches,
@@ -839,7 +839,7 @@ router.get('/breaches', async (req, res) => {
 router.post('/compliance-reports', async (req, res) => {
   try {
     const validatedData = GenerateComplianceReportSchema.parse(req.body);
-    
+
     const report = await gdprConsolidated.generateComplianceReport(
       validatedData.organizationId,
       {
@@ -848,13 +848,13 @@ router.post('/compliance-reports', async (req, res) => {
       },
       validatedData.generatedBy
     );
-    
+
     structuredLogger.info('Compliance report generated', {
       reportId: report.id,
       organizationId: validatedData.organizationId,
       complianceScore: report.complianceScore
     });
-    
+
     res.status(201).json({
       success: true,
       data: report,
@@ -890,9 +890,9 @@ router.post('/compliance-reports', async (req, res) => {
 router.get('/stats', async (req, res) => {
   try {
     const stats = await gdprConsolidated.getGDPRStats();
-    
+
     structuredLogger.info('GDPR stats retrieved');
-    
+
     res.json({
       success: true,
       data: stats,
@@ -915,9 +915,9 @@ router.get('/stats', async (req, res) => {
 router.get('/service-stats', async (req, res) => {
   try {
     const serviceStats = await gdprConsolidated.getServiceStats();
-    
+
     structuredLogger.info('GDPR service stats retrieved');
-    
+
     res.json({
       success: true,
       data: serviceStats,

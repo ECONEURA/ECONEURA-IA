@@ -1,6 +1,6 @@
 /**
  * PR-56: Database Optimization Routes
- * 
+ *
  * Endpoints para el sistema de optimización de base de datos
  */
 
@@ -44,7 +44,7 @@ const optimizeQuerySchema = z.object({
 router.get('/stats', async (req, res) => {
   try {
     const stats = await databaseOptimizerService.getDatabaseStats();
-    
+
     res.json({
       success: true,
       data: stats,
@@ -55,7 +55,7 @@ router.get('/stats', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get database stats',
@@ -71,19 +71,19 @@ router.get('/stats', async (req, res) => {
 router.post('/optimize-query', async (req, res) => {
   try {
     const validatedData = optimizeQuerySchema.parse(req.body);
-    
+
     const optimization = await databaseOptimizerService.optimizeQuery(
       validatedData.query,
       validatedData.params
     );
-    
+
     structuredLogger.info('Query optimization completed', {
       query: validatedData.query.substring(0, 200),
       improvement: optimization.improvement,
       recommendations: optimization.recommendations.length,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       data: optimization,
@@ -95,7 +95,7 @@ router.post('/optimize-query', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to optimize query',
@@ -111,15 +111,15 @@ router.post('/optimize-query', async (req, res) => {
 router.post('/vacuum', async (req, res) => {
   try {
     const { table } = req.body;
-    
+
     const result = await databaseOptimizerService.performVacuum(table);
-    
+
     if (result) {
       structuredLogger.info('Database vacuum completed', {
         table: table || 'all tables',
         requestId: req.headers['x-request-id'] as string || ''
       });
-      
+
       res.json({
         success: true,
         message: `Vacuum completed successfully for ${table || 'all tables'}`,
@@ -136,7 +136,7 @@ router.post('/vacuum', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to perform vacuum',
@@ -152,15 +152,15 @@ router.post('/vacuum', async (req, res) => {
 router.post('/analyze', async (req, res) => {
   try {
     const { table } = req.body;
-    
+
     const result = await databaseOptimizerService.performAnalyze(table);
-    
+
     if (result) {
       structuredLogger.info('Database analyze completed', {
         table: table || 'all tables',
         requestId: req.headers['x-request-id'] as string || ''
       });
-      
+
       res.json({
         success: true,
         message: `Analyze completed successfully for ${table || 'all tables'}`,
@@ -177,7 +177,7 @@ router.post('/analyze', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to perform analyze',
@@ -193,7 +193,7 @@ router.post('/analyze', async (req, res) => {
 router.get('/indexes/usage', async (req, res) => {
   try {
     const usage = await indexManagerService.analyzeIndexUsage();
-    
+
     res.json({
       success: true,
       data: usage,
@@ -205,7 +205,7 @@ router.get('/indexes/usage', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get index usage',
@@ -221,7 +221,7 @@ router.get('/indexes/usage', async (req, res) => {
 router.get('/indexes/recommendations', async (req, res) => {
   try {
     const recommendations = await indexManagerService.generateIndexRecommendations();
-    
+
     res.json({
       success: true,
       data: recommendations,
@@ -233,7 +233,7 @@ router.get('/indexes/recommendations', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get index recommendations',
@@ -249,7 +249,7 @@ router.get('/indexes/recommendations', async (req, res) => {
 router.post('/indexes/create', async (req, res) => {
   try {
     const validatedData = createIndexSchema.parse(req.body);
-    
+
     const result = await indexManagerService.createIndexFromRecommendation({
       table: validatedData.table,
       columns: validatedData.columns,
@@ -258,7 +258,7 @@ router.post('/indexes/create', async (req, res) => {
       expectedImprovement: 50,
       priority: 'medium'
     });
-    
+
     if (result) {
       structuredLogger.info('Index created successfully', {
         name: validatedData.name,
@@ -267,7 +267,7 @@ router.post('/indexes/create', async (req, res) => {
         type: validatedData.type,
         requestId: req.headers['x-request-id'] as string || ''
       });
-      
+
       res.json({
         success: true,
         message: 'Index created successfully',
@@ -285,7 +285,7 @@ router.post('/indexes/create', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to create index',
@@ -301,7 +301,7 @@ router.post('/indexes/create', async (req, res) => {
 router.get('/indexes/maintenance', async (req, res) => {
   try {
     const maintenance = await indexManagerService.analyzeIndexMaintenance();
-    
+
     res.json({
       success: true,
       data: maintenance,
@@ -313,7 +313,7 @@ router.get('/indexes/maintenance', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get index maintenance',
@@ -329,15 +329,15 @@ router.get('/indexes/maintenance', async (req, res) => {
 router.post('/indexes/maintenance', async (req, res) => {
   try {
     const { indexName } = req.body;
-    
+
     const result = await indexManagerService.performIndexMaintenance(indexName);
-    
+
     if (result) {
       structuredLogger.info('Index maintenance completed', {
         indexName: indexName || 'all indexes',
         requestId: req.headers['x-request-id'] as string || ''
       });
-      
+
       res.json({
         success: true,
         message: `Index maintenance completed for ${indexName || 'all indexes'}`,
@@ -354,7 +354,7 @@ router.post('/indexes/maintenance', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to perform index maintenance',
@@ -370,7 +370,7 @@ router.post('/indexes/maintenance', async (req, res) => {
 router.get('/partitions/stats', async (req, res) => {
   try {
     const stats = partitionManagerService.getPartitionStats();
-    
+
     res.json({
       success: true,
       data: stats,
@@ -381,7 +381,7 @@ router.get('/partitions/stats', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get partition stats',
@@ -397,14 +397,14 @@ router.get('/partitions/stats', async (req, res) => {
 router.post('/partitions/create', async (req, res) => {
   try {
     const validatedData = createPartitionSchema.parse(req.body);
-    
+
     const result = await partitionManagerService.createPartition(
       validatedData.tableName,
       validatedData.partitionName,
       validatedData.condition,
       validatedData.partitionType
     );
-    
+
     if (result) {
       structuredLogger.info('Partition created successfully', {
         tableName: validatedData.tableName,
@@ -413,7 +413,7 @@ router.post('/partitions/create', async (req, res) => {
         partitionType: validatedData.partitionType,
         requestId: req.headers['x-request-id'] as string || ''
       });
-      
+
       res.json({
         success: true,
         message: 'Partition created successfully',
@@ -431,7 +431,7 @@ router.post('/partitions/create', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to create partition',
@@ -447,7 +447,7 @@ router.post('/partitions/create', async (req, res) => {
 router.get('/partitions/maintenance', async (req, res) => {
   try {
     const maintenance = await partitionManagerService.analyzePartitionMaintenance();
-    
+
     res.json({
       success: true,
       data: maintenance,
@@ -459,7 +459,7 @@ router.get('/partitions/maintenance', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to get partition maintenance',
@@ -475,15 +475,15 @@ router.get('/partitions/maintenance', async (req, res) => {
 router.post('/partitions/maintenance', async (req, res) => {
   try {
     const { partitionName } = req.body;
-    
+
     const result = await partitionManagerService.performPartitionMaintenance(partitionName);
-    
+
     if (result) {
       structuredLogger.info('Partition maintenance completed', {
         partitionName: partitionName || 'all partitions',
         requestId: req.headers['x-request-id'] as string || ''
       });
-      
+
       res.json({
         success: true,
         message: `Partition maintenance completed for ${partitionName || 'all partitions'}`,
@@ -500,7 +500,7 @@ router.post('/partitions/maintenance', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to perform partition maintenance',
@@ -516,12 +516,12 @@ router.post('/partitions/maintenance', async (req, res) => {
 router.post('/partitions/auto-create', async (req, res) => {
   try {
     const createdCount = await partitionManagerService.createPartitionsAutomatically();
-    
+
     structuredLogger.info('Automatic partition creation completed', {
       createdCount,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       message: `Automatic partition creation completed`,
@@ -533,7 +533,7 @@ router.post('/partitions/auto-create', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to create partitions automatically',
@@ -549,12 +549,12 @@ router.post('/partitions/auto-create', async (req, res) => {
 router.post('/partitions/cleanup', async (req, res) => {
   try {
     const droppedCount = await partitionManagerService.dropExpiredPartitions();
-    
+
     structuredLogger.info('Expired partitions cleanup completed', {
       droppedCount,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.json({
       success: true,
       message: `Expired partitions cleanup completed`,
@@ -566,7 +566,7 @@ router.post('/partitions/cleanup', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to cleanup expired partitions',

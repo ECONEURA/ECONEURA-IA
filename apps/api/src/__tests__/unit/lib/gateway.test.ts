@@ -286,7 +286,7 @@ describe('APIGateway', () => {
     it('should not select unhealthy services', () => {
       const serviceIds = ['service_1', 'service_3']; // service_3 is unhealthy
       const service = gateway.selectService(serviceIds);
-      
+
       expect(service).toBeDefined();
       expect(service?.health).toBe('healthy');
       expect(service?.id).toBe('service_1');
@@ -295,7 +295,7 @@ describe('APIGateway', () => {
     it('should return null when no healthy services available', () => {
       const serviceIds = ['service_3']; // Only unhealthy service
       const service = gateway.selectService(serviceIds);
-      
+
       expect(service).toBeNull();
     });
   });
@@ -303,7 +303,7 @@ describe('APIGateway', () => {
   describe('Metrics and Stats', () => {
     it('should record request metrics', () => {
       const serviceId = 'service_1';
-      
+
       gateway.recordRequest(serviceId, 100, true);
       gateway.recordRequest(serviceId, 200, false);
       gateway.recordRequest(serviceId, 150, true);
@@ -316,12 +316,12 @@ describe('APIGateway', () => {
 
     it('should calculate correct error rate', () => {
       const serviceId = 'service_1';
-      
+
       // 5 successful requests
       for (let i = 0; i < 5; i++) {
         gateway.recordRequest(serviceId, 100, true);
       }
-      
+
       // 2 failed requests
       for (let i = 0; i < 2; i++) {
         gateway.recordRequest(serviceId, 200, false);

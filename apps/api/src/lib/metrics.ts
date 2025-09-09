@@ -94,10 +94,10 @@ class MetricsCollector {
   // Métodos específicos para métricas comunes
   recordHttpRequest(method: string, path: string, statusCode: number, duration: number): void {
     const labels = { method, path, status: statusCode.toString() };
-    
+
     this.increment('http_requests_total', 1, labels);
     this.histogram('http_request_duration_ms', duration, labels);
-    
+
     if (statusCode >= 400) {
       this.increment('errors_total', 1, { type: 'http_error', status: statusCode.toString() });
     }
@@ -105,7 +105,7 @@ class MetricsCollector {
 
   recordAIRequest(model: string, provider: string, tokens: number, cost: number, duration: number): void {
     const labels = { model, provider };
-    
+
     this.increment('ai_requests_total', 1, labels);
     this.histogram('ai_request_duration_ms', duration, labels);
     this.increment('ai_tokens_total', tokens, labels);
@@ -114,7 +114,7 @@ class MetricsCollector {
 
   recordHealthCheck(service: string, status: string, duration: number): void {
     const labels = { service, status };
-    
+
     this.increment('health_check_total', 1, labels);
     this.histogram('health_check_duration_ms', duration, labels);
   }
@@ -122,11 +122,11 @@ class MetricsCollector {
   recordSystemMetrics(): void {
     const memUsage = process.memoryUsage();
     const cpuUsage = process.cpuUsage();
-    
+
     this.gauge('memory_usage_bytes', memUsage.heapUsed, { type: 'heap_used' });
     this.gauge('memory_usage_bytes', memUsage.heapTotal, { type: 'heap_total' });
     this.gauge('memory_usage_bytes', memUsage.rss, { type: 'rss' });
-    
+
     this.gauge('uptime_seconds', process.uptime());
   }
 
@@ -189,13 +189,13 @@ class MetricsCollector {
 
   getMetricsSummary(): any {
     const summary: any = {};
-    
+
     for (const [name, metric] of this.metrics) {
       if (metric.values.length === 0) continue;
 
       const values = metric.values.map(v => v.value);
       const latestValue = values[values.length - 1];
-      
+
       summary[name] = {
         type: metric.type,
         description: metric.description,
@@ -222,20 +222,20 @@ class MetricsCollector {
   // Método para exportar métricas en formato Prometheus
   exportPrometheus(): string {
     let output = '';
-    
+
     for (const [name, metric] of this.metrics) {
       if (metric.values.length === 0) continue;
 
       // Agrupar por labels
       const groupedByLabels = new Map<string, number>();
-      
+
       for (const value of metric.values) {
-        const labelStr = value.labels 
+        const labelStr = value.labels
           ? Object.entries(value.labels).map(([k, v]) => `${k}="${v}"`).join(',')
           : '';
-        
+
         const key = labelStr ? `{${labelStr}}` : '';
-        
+
         if (metric.type === 'counter' || metric.type === 'gauge') {
           groupedByLabels.set(key, value.value);
         } else if (metric.type === 'histogram') {
@@ -258,7 +258,7 @@ class MetricsCollector {
   // Método para limpiar métricas antiguas
   cleanup(maxAgeMs: number = 24 * 60 * 60 * 1000): void { // Por defecto 24 horas
     const cutoff = Date.now() - maxAgeMs;
-    
+
     for (const [name, metric] of this.metrics) {
       metric.values = metric.values.filter(v => v.timestamp >= cutoff);
     }

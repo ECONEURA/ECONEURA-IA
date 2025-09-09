@@ -297,9 +297,9 @@ export class AdvancedAuditComplianceService {
     if (conditions.timeWindow && conditions.threshold) {
       const timeWindow = conditions.timeWindow * 60 * 1000; // Convert to milliseconds
       const cutoffTime = new Date(Date.now() - timeWindow);
-      
+
       const recentEvents = Array.from(this.auditEvents.values())
-        .filter(e => 
+        .filter(e =>
           e.organizationId === event.organizationId &&
           e.action === event.action &&
           new Date(e.timestamp) > cutoffTime
@@ -494,7 +494,7 @@ export class AdvancedAuditComplianceService {
     const violations = Array.from(this.violations.values())
       .filter(v => {
         const event = this.auditEvents.get(v.eventId);
-        return event && 
+        return event && ;
                event.organizationId === reportData.organizationId &&
                event.timestamp >= reportData.period.start &&
                event.timestamp <= reportData.period.end;
@@ -504,9 +504,9 @@ export class AdvancedAuditComplianceService {
     const totalEvents = events.length;
     const totalViolations = violations.length;
     const riskScore = events.length > 0 ? events.reduce((sum, e) => sum + e.riskScore, 0) / events.length : 0;
-    
+
     const complianceScore = this.calculateComplianceScore(events, violations);
-    
+
     const topActions = this.getTopActions(events);
     const topResources = this.getTopResources(events);
     const severityDistribution = this.getSeverityDistribution(events);
@@ -553,13 +553,13 @@ export class AdvancedAuditComplianceService {
 
     const violationRate = violations.length / events.length;
     const baseScore = 100 - (violationRate * 100);
-    
+
     // Adjust for severity
     const criticalViolations = violations.filter(v => v.severity === 'critical').length;
     const highViolations = violations.filter(v => v.severity === 'high').length;
-    
+
     const severityPenalty = (criticalViolations * 10) + (highViolations * 5);
-    
+
     return Math.max(0, baseScore - severityPenalty);
   }
 
@@ -569,7 +569,7 @@ export class AdvancedAuditComplianceService {
       return acc;
     }, {} as Record<string, number>);
 
-    return Object.entries(actionCounts)
+    return Object.entries(actionCounts);
       .map(([action, count]) => ({ action, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
@@ -581,7 +581,7 @@ export class AdvancedAuditComplianceService {
       return acc;
     }, {} as Record<string, number>);
 
-    return Object.entries(resourceCounts)
+    return Object.entries(resourceCounts);
       .map(([resource, count]) => ({ resource, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
@@ -601,7 +601,7 @@ export class AdvancedAuditComplianceService {
     for (const framework of frameworks) {
       const relevantEvents = events.filter(e => e.compliance[framework as keyof typeof e.compliance]);
       const violations = relevantEvents.filter(e => e.riskScore > 70).length;
-      result[framework] = relevantEvents.length > 0 ? 
+      result[framework] = relevantEvents.length > 0 ?
         Math.round(((relevantEvents.length - violations) / relevantEvents.length) * 100) : 100;
     }
 
@@ -609,7 +609,7 @@ export class AdvancedAuditComplianceService {
   }
 
   async getAuditReports(organizationId: string): Promise<AuditReport[]> {
-    return Array.from(this.reports.values())
+    return Array.from(this.reports.values());
       .filter(r => r.organizationId === organizationId)
       .sort((a, b) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime());
   }
@@ -625,7 +625,7 @@ export class AdvancedAuditComplianceService {
   }> {
     const { events } = await this.getAuditEvents({ organizationId, limit: 10000 });
     const { violations } = await this.getViolations({ limit: 10000 });
-    
+
     const relevantViolations = violations.filter(v => {
       const event = this.auditEvents.get(v.eventId);
       return event && event.organizationId === organizationId;
@@ -635,7 +635,7 @@ export class AdvancedAuditComplianceService {
     const complianceScore = this.calculateComplianceScore(events, relevantViolations);
     const riskScore = events.length > 0 ? events.reduce((sum, e) => sum + e.riskScore, 0) / events.length : 0;
     const frameworkCompliance = this.getFrameworkCompliance(events);
-    
+
     const recentViolations = relevantViolations
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
       .slice(0, 10);

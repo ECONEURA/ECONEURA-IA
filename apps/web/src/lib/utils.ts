@@ -1,8 +1,8 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+export function cn(...inputs: ClassValue[]): void {
+  return twMerge(clsx(inputs));
 }
 
 export function formatCurrency(amount: number, currency = 'EUR'): string {
@@ -41,5 +41,5 @@ export function formatDateTime(date: string | Date): string {
 }
 
 export function generateId(): string {
-  return Math.random().toString(36).substring(2) + Date.now().toString(36)
+  return Math.random().toString(36).substring(2) + Date.now().toString(36);
 }

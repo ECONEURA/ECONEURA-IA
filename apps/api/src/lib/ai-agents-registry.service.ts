@@ -81,7 +81,7 @@ export type AgentHealthStatus = z.infer<typeof AgentHealthStatusSchema>;
 
 /**
  * AI Agents Registry Service
- * 
+ *
  * Manages the complete registry of 60 AI agents across 5 departments
  * plus 1 executive agent, with full lifecycle management, health monitoring,
  * and cost control integration.
@@ -833,10 +833,10 @@ export class AIAgentsRegistryService {
       };
 
       const aiResponse = await aiRouterClient.sendRequest(aiRequest);
-      
+
       // Process the AI response into agent outputs
       const outputs = this.processAgentOutputs(agent, aiResponse, request.inputs);
-      
+
       const completedAt = new Date().toISOString();
       const executionTimeMs = new Date(completedAt).getTime() - new Date(startedAt).getTime();
 
@@ -1009,7 +1009,7 @@ Please provide a comprehensive response that addresses the task requirements.`;
           nextActions: ['schedule_call', 'send_email'],
           priority: 'high'
         };
-      
+
       case 'marketing':
         return {
           ...baseOutput,
@@ -1017,7 +1017,7 @@ Please provide a comprehensive response that addresses the task requirements.`;
           metrics: { engagement: 0.12, conversion: 0.03 },
           suggestions: ['Improve headline', 'Add CTA button']
         };
-      
+
       case 'operaciones':
         return {
           ...baseOutput,
@@ -1026,7 +1026,7 @@ Please provide a comprehensive response that addresses the task requirements.`;
           assignee: 'operations-team',
           estimatedResolution: '2 hours'
         };
-      
+
       case 'finanzas':
         return {
           ...baseOutput,
@@ -1035,7 +1035,7 @@ Please provide a comprehensive response that addresses the task requirements.`;
           riskScore: 0.25,
           recommendations: ['Approve payment', 'Verify vendor']
         };
-      
+
       case 'soporte_qa':
         return {
           ...baseOutput,
@@ -1044,7 +1044,7 @@ Please provide a comprehensive response that addresses the task requirements.`;
           reproducible: true,
           testCases: ['Test case 1', 'Test case 2']
         };
-      
+
       case 'ejecutivo':
         return {
           ...baseOutput,
@@ -1052,7 +1052,7 @@ Please provide a comprehensive response that addresses the task requirements.`;
           rationale: 'Strategic alignment with business objectives',
           nextSteps: ['Review budget', 'Assign team', 'Set timeline']
         };
-      
+
       default:
         return baseOutput;
     }

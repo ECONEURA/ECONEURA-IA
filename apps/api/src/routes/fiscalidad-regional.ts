@@ -172,7 +172,7 @@ fiscalidadRegionalRouter.get('/regions', async (req, res) => {
   try {
     const { organizationId } = GetTaxRegionsSchema.parse(req.query);
     const regions = await fiscalidadRegionalService.getTaxRegions(organizationId);
-    
+
     res.json({
       success: true,
       data: {
@@ -195,14 +195,14 @@ fiscalidadRegionalRouter.get('/regions/:id', async (req, res) => {
   try {
     const { id } = GetTaxRegionSchema.parse(req.params);
     const region = await fiscalidadRegionalService.getTaxRegion(id);
-    
+
     if (!region) {
       return res.status(404).json({
         success: false,
         error: 'Tax region not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: region,
@@ -222,7 +222,7 @@ fiscalidadRegionalRouter.post('/regions', async (req, res) => {
   try {
     const regionData = CreateTaxRegionSchema.parse(req.body);
     const region = await fiscalidadRegionalService.createTaxRegion(regionData);
-    
+
     res.status(201).json({
       success: true,
       data: region,
@@ -243,7 +243,7 @@ fiscalidadRegionalRouter.get('/vat-transactions', async (req, res) => {
   try {
     const filters = GetVATTransactionsSchema.parse(req.query);
     const transactions = await fiscalidadRegionalService.getVATTransactions(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -267,7 +267,7 @@ fiscalidadRegionalRouter.post('/vat-transactions', async (req, res) => {
   try {
     const transactionData = CreateVATTransactionSchema.parse(req.body);
     const transaction = await fiscalidadRegionalService.createVATTransaction(transactionData);
-    
+
     res.status(201).json({
       success: true,
       data: transaction,
@@ -288,7 +288,7 @@ fiscalidadRegionalRouter.get('/vat-returns', async (req, res) => {
   try {
     const filters = GetVATReturnsSchema.parse(req.query);
     const returns = await fiscalidadRegionalService.getVATReturns(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -312,7 +312,7 @@ fiscalidadRegionalRouter.post('/vat-returns', async (req, res) => {
   try {
     const returnData = CreateVATReturnSchema.parse(req.body);
     const vatReturn = await fiscalidadRegionalService.createVATReturn(returnData);
-    
+
     res.status(201).json({
       success: true,
       data: vatReturn,
@@ -333,7 +333,7 @@ fiscalidadRegionalRouter.get('/withholding-taxes', async (req, res) => {
   try {
     const filters = GetWithholdingTaxesSchema.parse(req.query);
     const withholdings = await fiscalidadRegionalService.getWithholdingTaxes(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -358,7 +358,7 @@ fiscalidadRegionalRouter.post('/calculate-vat', async (req, res) => {
   try {
     const { regionId, netAmount, vatRate, transactionType } = CalculateVATSchema.parse(req.body);
     const calculation = await fiscalidadRegionalService.calculateVAT(regionId, netAmount, vatRate, transactionType);
-    
+
     res.json({
       success: true,
       data: calculation,
@@ -379,7 +379,7 @@ fiscalidadRegionalRouter.post('/validate-vat-number', async (req, res) => {
   try {
     const { vatNumber, countryCode } = ValidateVATNumberSchema.parse(req.body);
     const validation = await fiscalidadRegionalService.validateVATNumber(vatNumber, countryCode);
-    
+
     res.json({
       success: true,
       data: validation,
@@ -400,7 +400,7 @@ fiscalidadRegionalRouter.get('/stats', async (req, res) => {
   try {
     const { organizationId } = GetStatsSchema.parse(req.query);
     const stats = await fiscalidadRegionalService.getTaxStats(organizationId);
-    
+
     res.json({
       success: true,
       data: stats,
@@ -420,7 +420,7 @@ fiscalidadRegionalRouter.get('/stats', async (req, res) => {
 fiscalidadRegionalRouter.get('/health', async (req, res) => {
   try {
     const stats = await fiscalidadRegionalService.getTaxStats('demo-org-1');
-    
+
     res.json({
       success: true,
       data: {

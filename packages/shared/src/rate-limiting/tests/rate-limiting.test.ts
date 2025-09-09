@@ -3,8 +3,8 @@
 // ============================================================================
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { 
-  RateLimiter, 
+import {
+  RateLimiter,
   MemoryRateLimitStore,
   RateLimitConfigSchema,
   RateLimitRuleSchema,
@@ -74,7 +74,7 @@ describe('RateLimiter', () => {
       maxRequests: 10,
       enabled: true
     }, store);
-    
+
     // Reset mocks
     vi.clearAllMocks();
     mockDateNow.mockReturnValue(1000000); // Fixed time for testing
@@ -247,7 +247,7 @@ describe('RateLimiter', () => {
 
       limiter.addRule(rule);
       const retrieved = limiter.getRule('test-rule');
-      
+
       expect(retrieved).toEqual(rule);
     });
 
@@ -454,11 +454,11 @@ describe('Express Middleware', () => {
       windowMs: 60000,
       maxRequests: 5
     });
-    
+
     req = createMockRequest();
     res = createMockResponse();
     next = createMockNext();
-    
+
     vi.clearAllMocks();
     mockDateNow.mockReturnValue(1000000);
   });
@@ -656,12 +656,12 @@ describe('Edge Cases', () => {
     const request = { ip: '192.168.1.1' };
 
     // Make concurrent requests
-    const promises = Array.from({ length: 15 }, () => 
-      limiter.checkLimit(request)
+    const promises = Array.from({ length: 15 }, () =>
+      limiter.checkLimit(request);
     );
 
     const results = await Promise.all(promises);
-    
+
     // First 10 should be allowed, rest should be blocked
     const allowed = results.filter(r => r.allowed);
     const blocked = results.filter(r => !r.allowed);

@@ -6,7 +6,7 @@ const LoginSchema = z.object({
   password: z.string().min(1),
 });
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): void {
   try {
     const body = await request.json();
     const validatedData = LoginSchema.parse(body);
@@ -31,14 +31,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
+      return NextResponse.json(;
         { error: 'Invalid login credentials', details: error.errors },
         { status: 400 }
       );
     }
 
     console.error('Authentication failed:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Authentication failed' },
       { status: 500 }
     );

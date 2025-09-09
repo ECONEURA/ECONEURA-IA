@@ -43,14 +43,14 @@ function generateRequestId(): string {
 
 function addFinOpsHeaders(response: NextResponse, startTime: number): NextResponse {
   const latency = Date.now() - startTime;
-  
+
   response.headers.set('X-Request-Id', generateRequestId());
   response.headers.set('X-Org-Id', 'demo-org');
   response.headers.set('X-Latency-ms', latency.toString());
   response.headers.set('X-AI-Provider', 'none');
   response.headers.set('X-AI-Model', 'none');
   response.headers.set('X-Est-Cost-EUR', '0.00');
-  
+
   return response;
 }
 
@@ -59,12 +59,12 @@ function addFinOpsHeaders(response: NextResponse, startTime: number): NextRespon
 // ============================================================================
 
 // GET /api/inventory/products - Listar productos
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): void {
   const startTime = Date.now();
-  
+
   try {
     const { searchParams } = new URL(request.url);
-    
+
     // Construir filtros
     const filters: any = {};
     const category = searchParams.get('category');
@@ -96,16 +96,16 @@ export async function GET(request: NextRequest) {
     });
 
     const response = await fetch(apiUrl.toString());
-    
+
     if (!response.ok) {
       throw new Error(`Backend error: ${response.statusText}`);
     }
 
     const products = await response.json();
-    
+
     const nextResponse = NextResponse.json(products);
     return addFinOpsHeaders(nextResponse, startTime);
-    
+
   } catch (error) {
     console.error('Error fetching products:', error);
     const errorResponse = NextResponse.json(
@@ -117,15 +117,15 @@ export async function GET(request: NextRequest) {
 }
 
 // POST /api/inventory/products - Crear producto
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): void {
   const startTime = Date.now();
-  
+
   try {
     const body = await request.json();
-    
+
     // Validar datos de entrada
     const validatedData = CreateProductSchema.parse(body);
-    
+
     // Convertir fecha de expiración si existe
     if (validatedData.expiryDate) {
       validatedData.expiryDate = new Date(validatedData.expiryDate).toISOString();
@@ -147,13 +147,13 @@ export async function POST(request: NextRequest) {
     }
 
     const product = await response.json();
-    
+
     const nextResponse = NextResponse.json(product, { status: 201 });
     return addFinOpsHeaders(nextResponse, startTime);
-    
+
   } catch (error) {
     console.error('Error creating product:', error);
-    
+
     if (error instanceof z.ZodError) {
       const errorResponse = NextResponse.json(
         { error: 'Validation error', details: error.errors },
@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
       );
       return addFinOpsHeaders(errorResponse, startTime);
     }
-    
+
     const errorResponse = NextResponse.json(
       { error: 'Failed to create product' },
       { status: 500 }

@@ -153,8 +153,8 @@ export class PromptLibraryService {
   async searchPrompts(query: string): Promise<PromptDefinition[]> {
     const allPrompts = await this.listPrompts();
     const lowercaseQuery = query.toLowerCase();
-    
-    return allPrompts.filter(prompt => 
+
+    return allPrompts.filter(prompt => ;
       prompt.content.toLowerCase().includes(lowercaseQuery) ||
       prompt.id.toLowerCase().includes(lowercaseQuery) ||
       (prompt.metadata?.category && prompt.metadata.category.toLowerCase().includes(lowercaseQuery))

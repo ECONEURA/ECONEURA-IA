@@ -36,7 +36,7 @@ companiesStore.set('comp-2', {
 router.get('/', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string || 'org-demo';
-    
+
     // Filter companies by org (simulate RLS)
     const companies = Array.from(companiesStore.values())
       .filter(company => company.orgId === orgId && !company.deletedAt);
@@ -70,10 +70,10 @@ router.get('/', async (req, res) => {
       orgId: req.headers['x-org-id'],
       query: req.query
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to retrieve companies',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -83,11 +83,11 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const orgId = req.headers['x-org-id'] as string || 'org-demo';
-    
+
     const company = companiesStore.get(id);
 
     if (!company || company.orgId !== orgId || company.deletedAt) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Company not found',
         message: `Company with ID ${id} not found or access denied`
       });
@@ -105,10 +105,10 @@ router.get('/:id', async (req, res) => {
       orgId: req.headers['x-org-id'],
       companyId: req.params.id
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to retrieve company',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });
@@ -118,7 +118,7 @@ router.post('/', async (req, res) => {
   try {
     const orgId = req.headers['x-org-id'] as string || 'org-demo';
     const userId = req.headers['x-user-id'] as string || 'user-demo';
-    
+
     const companyData = req.body;
     const companyId = `comp-${Date.now()}`;
 
@@ -150,10 +150,10 @@ router.post('/', async (req, res) => {
       userId: req.headers['x-user-id'],
       body: req.body
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to create company',
-      message: (error as Error).message 
+      message: (error as Error).message
     });
   }
 });

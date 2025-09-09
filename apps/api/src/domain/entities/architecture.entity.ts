@@ -231,7 +231,7 @@ export class Architecture extends BaseEntity {
 
     // Calculate quality score
     metrics.qualityScore = this.calculateQualityScore(metrics);
-    
+
     this.props.metrics = metrics;
     this.props.lastAnalysisDate = new Date();
     this.updateTimestamp();

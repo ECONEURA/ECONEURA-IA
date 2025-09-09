@@ -159,7 +159,7 @@ rlsGenerativaRouter.post('/context', async (req, res) => {
   try {
     const contextData = CreateRLSContextSchema.parse(req.body);
     const context = await rlsGenerativaService.createRLSContext(contextData);
-    
+
     res.status(201).json({
       success: true,
       data: context,
@@ -179,14 +179,14 @@ rlsGenerativaRouter.get('/context/:sessionId', async (req, res) => {
   try {
     const { sessionId } = z.object({ sessionId: z.string().min(1) }).parse(req.params);
     const context = await rlsGenerativaService.getRLSContext(sessionId);
-    
+
     if (!context) {
       return res.status(404).json({
         success: false,
         error: 'RLS context not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: context,
@@ -207,7 +207,7 @@ rlsGenerativaRouter.get('/policies', async (req, res) => {
   try {
     const filters = GetRLSPoliciesSchema.parse(req.query);
     const policies = await rlsGenerativaService.getRLSPolicies(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -231,7 +231,7 @@ rlsGenerativaRouter.post('/policies', async (req, res) => {
   try {
     const policyData = CreateRLSPolicySchema.parse(req.body);
     const policy = await rlsGenerativaService.createRLSPolicy(policyData);
-    
+
     res.status(201).json({
       success: true,
       data: policy,
@@ -252,7 +252,7 @@ rlsGenerativaRouter.get('/rules', async (req, res) => {
   try {
     const filters = GetRLSRulesSchema.parse(req.query);
     const rules = await rlsGenerativaService.getRLSRules(filters.organizationId, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -276,7 +276,7 @@ rlsGenerativaRouter.post('/rules', async (req, res) => {
   try {
     const ruleData = CreateRLSRuleSchema.parse(req.body);
     const rule = await rlsGenerativaService.createRLSRule(ruleData);
-    
+
     res.status(201).json({
       success: true,
       data: rule,
@@ -297,7 +297,7 @@ rlsGenerativaRouter.post('/evaluate-access', async (req, res) => {
   try {
     const { context, operation } = EvaluateAccessSchema.parse(req.body);
     const result = await rlsGenerativaService.evaluateAccess(context, operation);
-    
+
     res.json({
       success: true,
       data: result,
@@ -318,7 +318,7 @@ rlsGenerativaRouter.post('/generate-policy', async (req, res) => {
   try {
     const { organizationId, tableName, requirements } = GenerateRLSPolicySchema.parse(req.body);
     const policy = await rlsGenerativaService.generateRLSPolicy(organizationId, tableName, requirements);
-    
+
     res.status(201).json({
       success: true,
       data: policy,
@@ -339,7 +339,7 @@ rlsGenerativaRouter.get('/stats', async (req, res) => {
   try {
     const { organizationId } = GetStatsSchema.parse(req.query);
     const stats = await rlsGenerativaService.getRLSStats(organizationId);
-    
+
     res.json({
       success: true,
       data: stats,
@@ -359,7 +359,7 @@ rlsGenerativaRouter.get('/stats', async (req, res) => {
 rlsGenerativaRouter.get('/health', async (req, res) => {
   try {
     const stats = await rlsGenerativaService.getRLSStats('demo-org-1');
-    
+
     res.json({
       success: true,
       data: {

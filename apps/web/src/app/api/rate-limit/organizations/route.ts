@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { webRateLimiter } from '@/lib/rate-limiting';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): void {
   try {
     const organizations = webRateLimiter.getAllOrganizations();
-    
+
     return NextResponse.json({
       success: true,
       data: {
@@ -18,27 +18,27 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Failed to get organizations:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): void {
   try {
     const body = await request.json();
     const { organizationId, config } = body;
-    
+
     if (!organizationId) {
-      return NextResponse.json(
+      return NextResponse.json(;
         { error: 'Organization ID is required' },
         { status: 400 }
       );
     }
 
     webRateLimiter.addOrganization(organizationId, config || {});
-    
+
     return NextResponse.json({
       success: true,
       data: {
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
   } catch (error) {
     console.error('Failed to add organization:', error);
-    return NextResponse.json(
+    return NextResponse.json(;
       { error: 'Internal server error' },
       { status: 500 }
     );

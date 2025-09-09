@@ -34,14 +34,14 @@ export class CacheWarmupService {
   private cleanupExpired(): void {
     const now = Date.now();
     let cleaned = 0;
-    
+
     for (const [key, item] of this.cache.entries()) {
       if (item.expires < now) {
         this.cache.delete(key);
         cleaned++;
       }
     }
-    
+
     if (cleaned > 0) {
       structuredLogger.debug('Cache cleanup completed', { cleaned });
     }
@@ -49,18 +49,18 @@ export class CacheWarmupService {
 
   async get<T>(key: string): Promise<T | null> {
     const item = this.cache.get(key);
-    
+
     if (!item) {
       this.stats.misses++;
       return null;
     }
-    
+
     if (item.expires < Date.now()) {
       this.cache.delete(key);
       this.stats.misses++;
       return null;
     }
-    
+
     this.stats.hits++;
     return item.value as T;
   }
@@ -82,7 +82,7 @@ export class CacheWarmupService {
   getStats(): CacheStats {
     const total = this.stats.hits + this.stats.misses;
     const hitRate = total > 0 ? this.stats.hits / total : 0;
-    
+
     return {
       hits: this.stats.hits,
       misses: this.stats.misses,
@@ -145,7 +145,7 @@ export class CacheWarmupService {
         const cached = await this.get(key);
         if (!cached) {
           // Simulate AI response
-          await this.set(key, { 
+          await this.set(key, {
             response: `Cached response for ${prompt}`,
             timestamp: Date.now(),
             model: 'gpt-4'
@@ -191,8 +191,8 @@ export class CacheWarmupService {
         const cached = await this.get(key);
         if (!cached) {
           // Simulate search results
-          await this.set(key, { 
-            results: [], 
+          await this.set(key, {
+            results: [],
             total: 0,
             query,
             timestamp: Date.now()
@@ -237,8 +237,8 @@ export class CacheWarmupService {
         const cached = await this.get(key);
         if (!cached) {
           // Simulate analytics data
-          await this.set(key, { 
-            data: [], 
+          await this.set(key, {
+            data: [],
             timestamp: Date.now(),
             period: 'daily'
           }, 600000); // 10 minutes
@@ -282,8 +282,8 @@ export class CacheWarmupService {
         const cached = await this.get(key);
         if (!cached) {
           // Simulate business data
-          await this.set(key, { 
-            data: [], 
+          await this.set(key, {
+            data: [],
             count: 0,
             timestamp: Date.now()
           }, 180000); // 3 minutes
@@ -319,14 +319,14 @@ export class CacheWarmupService {
   async invalidatePattern(pattern: string): Promise<number> {
     let invalidated = 0;
     const regex = new RegExp(pattern);
-    
+
     for (const key of this.cache.keys()) {
       if (regex.test(key)) {
         this.cache.delete(key);
         invalidated++;
       }
     }
-    
+
     structuredLogger.info('Cache pattern invalidated', { pattern, invalidated });
     return invalidated;
   }

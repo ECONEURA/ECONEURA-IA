@@ -99,7 +99,7 @@ export class AuthService {
 
   async login(loginData: LoginRequest): Promise<LoginResponse> {
     const startTime = Date.now();
-    
+
     try {
       // Validate input
       if (!loginData.email || !loginData.password) {
@@ -176,7 +176,7 @@ export class AuthService {
 
       // Update last login
       await db.update(users)
-        .set({ 
+        .set({
           lastLoginAt: new Date(),
           updatedAt: new Date()
         })
@@ -215,7 +215,7 @@ export class AuthService {
 
     } catch (error) {
       const processingTime = Date.now() - startTime;
-      
+
       structuredLogger.error('Login failed', {
         error: error instanceof Error ? error.message : 'Unknown error',
         email: loginData.email,
@@ -230,7 +230,7 @@ export class AuthService {
     try {
       // Verify refresh token
       const payload = jwt.verify(refreshToken, this.config.jwtSecret) as TokenPayload;
-      
+
       if (payload.type !== 'refresh') {
         throw new Error('Invalid token type');
       }
@@ -291,10 +291,10 @@ export class AuthService {
   async logout(sessionId: string): Promise<void> {
     try {
       const db = this.db.getDatabase();
-      
+
       // Deactivate session
       await db.update(sessions)
-        .set({ 
+        .set({
           isActive: false,
           updatedAt: new Date()
         })
@@ -314,10 +314,10 @@ export class AuthService {
   async logoutAllSessions(userId: string): Promise<void> {
     try {
       const db = this.db.getDatabase();
-      
+
       // Deactivate all user sessions
       await db.update(sessions)
-        .set({ 
+        .set({
           isActive: false,
           updatedAt: new Date()
         })
@@ -341,7 +341,7 @@ export class AuthService {
   async createApiKey(userId: string, organizationId: string, permissions: string[]): Promise<ApiKeyResponse> {
     try {
       const db = this.db.getDatabase();
-      
+
       const keyId = randomBytes(16).toString('hex');
       const key = randomBytes(32).toString('hex');
       const expiresAt = new Date();
@@ -385,7 +385,7 @@ export class AuthService {
   async validateApiKey(key: string): Promise<{ userId: string; organizationId: string; permissions: string[] } | null> {
     try {
       const db = this.db.getDatabase();
-      
+
       const apiKeysResult = await db.select()
         .from(apiKeys)
         .where(and(
@@ -525,7 +525,7 @@ export class AuthService {
 
     if (attempts.count >= this.config.maxLoginAttempts) {
       attempts.lockedUntil = Date.now() + this.config.lockoutDuration;
-      
+
       structuredLogger.warn('Account locked due to failed login attempts', {
         email,
         attempts: attempts.count,

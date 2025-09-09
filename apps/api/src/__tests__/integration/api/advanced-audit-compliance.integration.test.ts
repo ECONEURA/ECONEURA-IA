@@ -39,7 +39,7 @@ describe('Advanced Audit Compliance API Integration Tests', () => {
       expect(response.body.data).toHaveProperty('message', 'Audit event logged successfully');
       expect(response.body.data).toHaveProperty('timestamp');
       expect(response.body.data).toHaveProperty('traceId');
-      
+
       const event = response.body.data.event;
       expect(event).toHaveProperty('id');
       expect(event).toHaveProperty('timestamp');
@@ -109,7 +109,7 @@ describe('Advanced Audit Compliance API Integration Tests', () => {
       expect(response.body.data).toHaveProperty('filters');
       expect(response.body.data).toHaveProperty('timestamp');
       expect(response.body.data).toHaveProperty('traceId');
-      
+
       expect(Array.isArray(response.body.data.events)).toBe(true);
       expect(typeof response.body.data.total).toBe('number');
     });
@@ -169,10 +169,10 @@ describe('Advanced Audit Compliance API Integration Tests', () => {
       expect(response.body.data).toHaveProperty('count');
       expect(response.body.data).toHaveProperty('timestamp');
       expect(response.body.data).toHaveProperty('traceId');
-      
+
       expect(Array.isArray(response.body.data.rules)).toBe(true);
       expect(response.body.data.count).toBeGreaterThan(0);
-      
+
       // Check structure of first rule
       if (response.body.data.rules.length > 0) {
         const rule = response.body.data.rules[0];
@@ -222,7 +222,7 @@ describe('Advanced Audit Compliance API Integration Tests', () => {
       expect(response.body.data).toHaveProperty('message', 'Compliance rule created successfully');
       expect(response.body.data).toHaveProperty('timestamp');
       expect(response.body.data).toHaveProperty('traceId');
-      
+
       const rule = response.body.data.rule;
       expect(rule).toHaveProperty('id');
       expect(rule.name).toBe(ruleData.name);
@@ -265,7 +265,7 @@ describe('Advanced Audit Compliance API Integration Tests', () => {
       expect(response.body.data).toHaveProperty('filters');
       expect(response.body.data).toHaveProperty('timestamp');
       expect(response.body.data).toHaveProperty('traceId');
-      
+
       expect(Array.isArray(response.body.data.violations)).toBe(true);
       expect(typeof response.body.data.total).toBe('number');
     });
@@ -299,10 +299,10 @@ describe('Advanced Audit Compliance API Integration Tests', () => {
         .expect(200);
 
       const violations = violationsResponse.body.data.violations;
-      
+
       if (violations.length > 0) {
         const violation = violations[0];
-        
+
         const updateData = {
           status: 'investigating',
           resolution: 'Under investigation',
@@ -320,7 +320,7 @@ describe('Advanced Audit Compliance API Integration Tests', () => {
         expect(response.body.data).toHaveProperty('message', 'Violation status updated successfully');
         expect(response.body.data).toHaveProperty('timestamp');
         expect(response.body.data).toHaveProperty('traceId');
-        
+
         const updatedViolation = response.body.data.violation;
         expect(updatedViolation.id).toBe(violation.id);
         expect(updatedViolation.status).toBe(updateData.status);
@@ -392,7 +392,7 @@ describe('Advanced Audit Compliance API Integration Tests', () => {
       expect(response.body.data).toHaveProperty('message', 'Audit report generated successfully');
       expect(response.body.data).toHaveProperty('timestamp');
       expect(response.body.data).toHaveProperty('traceId');
-      
+
       const report = response.body.data.report;
       expect(report).toHaveProperty('id');
       expect(report.name).toBe(reportData.name);
@@ -402,7 +402,7 @@ describe('Advanced Audit Compliance API Integration Tests', () => {
       expect(report.filters).toEqual(reportData.filters);
       expect(report.generatedBy).toBe(reportData.generatedBy);
       expect(report.generatedAt).toBeDefined();
-      
+
       // Check metrics structure
       expect(report.metrics).toHaveProperty('totalEvents');
       expect(report.metrics).toHaveProperty('violations');
@@ -447,7 +447,7 @@ describe('Advanced Audit Compliance API Integration Tests', () => {
       expect(response.body.data).toHaveProperty('organizationId', organizationId);
       expect(response.body.data).toHaveProperty('timestamp');
       expect(response.body.data).toHaveProperty('traceId');
-      
+
       expect(Array.isArray(response.body.data.reports)).toBe(true);
     });
   });
@@ -466,7 +466,7 @@ describe('Advanced Audit Compliance API Integration Tests', () => {
       expect(response.body.data).toHaveProperty('organizationId', organizationId);
       expect(response.body.data).toHaveProperty('timestamp');
       expect(response.body.data).toHaveProperty('traceId');
-      
+
       const metrics = response.body.data.metrics;
       expect(metrics).toHaveProperty('totalEvents');
       expect(metrics).toHaveProperty('totalViolations');
@@ -475,7 +475,7 @@ describe('Advanced Audit Compliance API Integration Tests', () => {
       expect(metrics).toHaveProperty('riskScore');
       expect(metrics).toHaveProperty('frameworkCompliance');
       expect(metrics).toHaveProperty('recentViolations');
-      
+
       expect(typeof metrics.totalEvents).toBe('number');
       expect(typeof metrics.totalViolations).toBe('number');
       expect(typeof metrics.openViolations).toBe('number');
@@ -499,12 +499,12 @@ describe('Advanced Audit Compliance API Integration Tests', () => {
       expect(response.body.data).toHaveProperty('rulesCount');
       expect(response.body.data).toHaveProperty('timestamp');
       expect(response.body.data).toHaveProperty('traceId');
-      
+
       expect(response.body.data.checks).toHaveProperty('hasRules');
       expect(response.body.data.checks).toHaveProperty('serviceInitialized');
       expect(response.body.data.checks).toHaveProperty('canLogEvents');
       expect(response.body.data.checks).toHaveProperty('canGenerateReports');
-      
+
       expect(typeof response.body.data.rulesCount).toBe('number');
     });
 
@@ -515,7 +515,7 @@ describe('Advanced Audit Compliance API Integration Tests', () => {
 
       const checks = response.body.data.checks;
       const isHealthy = checks.hasRules && checks.serviceInitialized && checks.canLogEvents && checks.canGenerateReports;
-      
+
       if (isHealthy) {
         expect(response.body.data.status).toBe('healthy');
       } else {

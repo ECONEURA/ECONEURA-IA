@@ -7,14 +7,14 @@
 
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { 
-  organizations, 
-  users, 
-  companies, 
-  contacts, 
-  interactions, 
-  products, 
-  invoices, 
+import {
+  organizations,
+  users,
+  companies,
+  contacts,
+  interactions,
+  products,
+  invoices,
   invoiceItems,
   type NewOrganization,
   type NewUser,
@@ -36,16 +36,16 @@ const db = drizzle(client);
 // SEED DATA
 // ============================================================================
 
-async function seed() {
+async function seed(): void {
   console.log('🌱 Starting database seed...');
 
   try {
     // ========================================================================
     // 1. ORGANIZATIONS
     // ========================================================================
-    
+
     console.log('📊 Creating organizations...');
-    
+
     const orgData: NewOrganization[] = [
       {
         name: 'ECONEURA Demo',
@@ -87,9 +87,9 @@ async function seed() {
     // ========================================================================
     // 2. USERS
     // ========================================================================
-    
+
     console.log('👥 Creating users...');
-    
+
     const userData: NewUser[] = [
       {
         organizationId: createdOrgs[0].id,
@@ -117,9 +117,9 @@ async function seed() {
     // ========================================================================
     // 3. COMPANIES
     // ========================================================================
-    
+
     console.log('🏢 Creating companies...');
-    
+
     const companyData: NewCompany[] = [
       {
         organizationId: createdOrgs[0].id,
@@ -150,9 +150,9 @@ async function seed() {
     // ========================================================================
     // 4. CONTACTS
     // ========================================================================
-    
+
     console.log('👤 Creating contacts...');
-    
+
     const contactData: NewContact[] = [
       {
         organizationId: createdOrgs[0].id,
@@ -173,9 +173,9 @@ async function seed() {
     // ========================================================================
     // 5. PRODUCTS
     // ========================================================================
-    
+
     console.log('📦 Creating products...');
-    
+
     const productData: NewProduct[] = [
       {
         organizationId: createdOrgs[0].id,
@@ -197,7 +197,7 @@ async function seed() {
     // ========================================================================
     // SEED COMPLETE
     // ========================================================================
-    
+
     console.log('🎉 Database seed completed successfully!');
     console.log('\n🔑 Default login credentials:');
     console.log('   admin@econeura.com / admin123 (Owner)');
