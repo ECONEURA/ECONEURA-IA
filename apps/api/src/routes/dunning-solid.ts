@@ -270,7 +270,7 @@ router.get('/kpis', async (req, res) => {
     const validatedData = getKPIsSchema.parse(req.query);
     const organizationId = req.user?.organizationId || 'default-org';
     
-    let kpis = dunningSolidService.getKPIs(validatedData.segmentId, validatedData.period);
+    const kpis = dunningSolidService.getKPIs(validatedData.segmentId, validatedData.period);
     
     // Paginación
     const total = kpis.length;
@@ -311,7 +311,7 @@ router.get('/dlq', async (req, res) => {
     const validatedData = getDLQMessagesSchema.parse(req.query);
     const organizationId = req.user?.organizationId || 'default-org';
     
-    let messages = dunningSolidService.getDLQMessages(validatedData.status, validatedData.priority);
+    const messages = dunningSolidService.getDLQMessages(validatedData.status, validatedData.priority);
     
     // Paginación
     const total = messages.length;
@@ -437,7 +437,7 @@ router.get('/retries', async (req, res) => {
     const validatedData = getRetriesSchema.parse(req.query);
     const organizationId = req.user?.organizationId || 'default-org';
     
-    let retries = dunningSolidService.getRetries(validatedData.messageId, validatedData.status);
+    const retries = dunningSolidService.getRetries(validatedData.messageId, validatedData.status);
     
     // Paginación
     const total = retries.length;

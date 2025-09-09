@@ -20,7 +20,7 @@
     "test:endpoints": "npm run test",
     "test:health": "curl -s http://localhost:3001/health | jq .",
     "test:metrics": "curl -s http://localhost:3001/metrics | head -10",
-    "lint": "eslint src --ext .ts --fix",
+    "lint": "eslint src --fix",
     "typecheck": "tsc --noEmit",
     "validate": "npm run typecheck && npm run lint",
     "smoke": "npm run test:health && npm run test:metrics",

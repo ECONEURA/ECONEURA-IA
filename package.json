@@ -21,10 +21,10 @@
     "pnpm": ">=8"
   },
   "scripts": {
-    "validate": "pnpm run -ws typecheck && pnpm run -ws lint",
-    "lint": "pnpm run -ws lint",
-    "typecheck": "pnpm run -ws typecheck", 
-    "test": "pnpm run -ws test",
+    "validate": "npm run --workspaces --if-present typecheck && npm run --workspaces --if-present lint",
+    "lint": "npm run --workspaces --if-present lint",
+    "typecheck": "npm run --workspaces --if-present typecheck", 
+    "test": "npm run --workspaces --if-present test",
     "build": "pnpm -r build",
     "format": "pnpm -r format",
     "check": "pnpm -r check",

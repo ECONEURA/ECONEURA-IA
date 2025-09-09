@@ -9,7 +9,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "vitest",
-    "lint": "eslint src --ext .ts --fix",
+    "lint": "eslint src --fix",
     "typecheck": "tsc --noEmit",
     "validate": "npm run typecheck && npm run lint"
   },
