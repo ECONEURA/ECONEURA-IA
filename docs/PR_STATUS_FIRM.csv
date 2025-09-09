@@ -1,0 +1,56 @@
+PR,Title,Status,Completion,Evidence,Issues,FilePath
+5,"",not_started,0,5,3,PR-05-EVIDENCE.md
+6,"",not_started,0,5,2,PR-06-EVIDENCE.md
+7,"",not_started,0,5,2,PR-07-EVIDENCE.md
+8,"",not_started,0,5,2,PR-08-EVIDENCE.md
+16,"PR-16: Contratos API tipados - EVIDENCIA",not_started,0,5,0,PR-16-EVIDENCE.md
+17,"PR-17: Trazado cliente web - EVIDENCIA",not_started,0,5,0,PR-17-EVIDENCE.md
+18,"PR-18: Rate limiting básico - EVIDENCIA",not_started,0,5,0,PR-18-EVIDENCE.md
+19,"PR-19: Pruebas integrales - EVIDENCIA",not_started,0,5,0,PR-19-EVIDENCE.md
+39,"PR-39: Security Incident Response System - EVIDENCIA",not_started,0,5,0,PR-39-EVIDENCE.md
+40,"PR-40: Integraciones externas avanzadas - EVIDENCIA",not_started,0,5,0,PR-40-EVIDENCE.md
+41,"PR-41: Advanced caching system - EVIDENCIA",not_started,0,5,0,PR-41-EVIDENCE.md
+42,"PR-42: Advanced search engine - EVIDENCIA",not_started,0,5,0,PR-42-EVIDENCE.md
+43,"PR-43: API Gateway avanzado - EVIDENCIA",not_started,0,5,0,PR-43-EVIDENCE.md
+44,"PR-44: Advanced monitoring system - EVIDENCIA",not_started,0,5,0,PR-44-EVIDENCE.md
+45,"PR-45: Advanced security framework - EVIDENCIA",not_started,0,5,0,PR-45-EVIDENCE.md
+46,"PR-46: Advanced data analytics - EVIDENCIA",not_started,0,5,0,PR-46-EVIDENCE.md
+47,"PR-47: Real-time sync - EVIDENCIA",not_started,0,5,0,PR-47-EVIDENCE.md
+48,"PR-48: Advanced business intelligence - EVIDENCIA",not_started,0,5,0,PR-48-EVIDENCE.md
+49,"PR-49: Performance optimization - EVIDENCIA",not_started,0,5,0,PR-49-EVIDENCE.md
+50,"PR-50: Advanced AI/ML platform - EVIDENCIA",not_started,0,5,0,PR-50-EVIDENCE.md
+51,"PR-51: Advanced predictive analytics - EVIDENCIA",not_started,0,5,0,PR-51-EVIDENCE.md
+52,"PR-52: Advanced data processing - EVIDENCIA",not_started,0,5,0,PR-52-EVIDENCE.md
+53,"PR-53: Advanced workflow automation - EVIDENCIA",not_started,0,5,0,PR-53-EVIDENCE.md
+54,"PR-54: Advanced document management - EVIDENCIA",not_started,0,5,0,PR-54-EVIDENCE.md
+55,"PR-55: Advanced content management - EVIDENCIA",not_started,0,5,0,PR-55-EVIDENCE.md
+56,"PR-56: Advanced email marketing - EVIDENCIA",not_started,0,5,0,PR-56-EVIDENCE.md
+57,"",not_started,0,5,3,PR-57-EVIDENCE.md
+58,"",not_started,0,5,3,PR-58-EVIDENCE.md
+59,"PR-59: Advanced Reporting System - Evidence",not_started,0,5,0,PR-59-EVIDENCE.md
+60,"PR-60: Advanced CI/CD System - Evidence",not_started,0,5,0,PR-60-EVIDENCE.md
+61,"PR-61: Taxonomía Companies v2 - EVIDENCIA",not_started,0,5,0,PR-61-EVIDENCE.md
+62,"PR-62: Dedupe v2 + Gating Import - EVIDENCIA",not_started,0,5,0,PR-62-EVIDENCE.md
+63,"PR-63: Explainable NBA v2 - EVIDENCIA",not_started,0,5,0,PR-63-EVIDENCE.md
+64,"PR-64: AV Global - EVIDENCIA",not_started,0,5,0,PR-64-EVIDENCE.md
+65,"PR-65: Audit Trail CRM + Undo - EVIDENCIA",not_started,0,5,0,PR-65-EVIDENCE.md
+66,"PR-66: Dunning Sólido - Evidencia de Implementación",not_started,0,5,0,PR-66-EVIDENCE.md
+67,"PR-67: Fiscalidad Extendida - Evidencia de Implementación",not_started,0,5,0,PR-67-EVIDENCE.md
+68,"PR-68: Conteos Cíclicos ABC - Evidencia de Implementación",not_started,0,5,0,PR-68-EVIDENCE.md
+69,"PR-69: Vendor Scorecard Completo - EVIDENCIA",not_started,0,5,3,PR-69-EVIDENCE.md
+70,"",completed,100,5,0,PR-70-EVIDENCE.md
+71,"",completed,100,5,0,PR-71-EVIDENCE.md
+72,"PR-72: DLQ Grooming - Sistema de gestión de errores con causas y reanudar automático",not_started,0,5,0,PR-72-EVIDENCE.md
+73,"PR-73: Sistema de gestión de errores avanzado y monitoreo de performance",not_started,0,5,0,PR-73-EVIDENCE.md
+74,"PR-74: Graph chaos-light - Evidencia de Implementación",not_started,0,5,0,PR-74-EVIDENCE.md
+75,"PR-75: CSP/SRI banca + reports - Evidencia de Implementación",not_started,0,5,0,PR-75-EVIDENCE.md
+76,"",not_started,0,5,0,PR-76-EVIDENCE.md
+77,"PR-77: Sistema de Gestión de Configuración Avanzada",not_started,0,5,0,PR-77-EVIDENCE.md
+78,"PR-78: Sistema de Backup y Recuperación Avanzado",not_started,0,5,0,PR-78-EVIDENCE.md
+79,"PR-79: Sistema de Monitoreo de Performance Avanzado - EVIDENCIA",not_started,0,5,0,PR-79-EVIDENCE.md
+80,"PR-80: Sistema de Deployment Automatizado - EVIDENCIA",not_started,0,5,0,PR-80-EVIDENCE.md
+81,"",not_started,0,5,0,PR-81-EVIDENCE.md
+82,"",not_started,0,5,0,PR-82-EVIDENCE.md
+83,"",not_started,0,5,0,PR-83-EVIDENCE.md
+84,"",not_started,0,5,0,PR-84-EVIDENCE.md
+85,"",not_started,0,5,0,PR-85-EVIDENCE.md
