@@ -30,6 +30,8 @@ env:
   SKIP_RELEASE: "true"
   AZURE_REGION: 'West Europe'
   RESOURCE_GROUP: 'econeura-rg'
+  DEPLOY_ENABLED: false
+  SKIP_RELEASE: true
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -40,7 +42,7 @@ jobs:
   deploy-infrastructure:
     name: Deploy Infrastructure
     runs-on: ubuntu-latest
-    if: env.DEPLOY_ENABLED == 'true'
+    if: ${{ github.event.inputs.skip_infrastructure != 'true' && env.DEPLOY_ENABLED == 'true' }}
     environment: ${{ github.event.inputs.environment || 'staging' }}
     
     steps:
@@ -108,6 +110,7 @@ jobs:
     runs-on: ubuntu-latest
     if: env.DEPLOY_ENABLED == 'true'
     needs: deploy-infrastructure
+    if: ${{ env.DEPLOY_ENABLED == 'true' }}
     environment: ${{ github.event.inputs.environment || 'staging' }}
     
     steps:
@@ -185,6 +188,7 @@ jobs:
     runs-on: ubuntu-latest
     if: env.DEPLOY_ENABLED == 'true'
     needs: [deploy-infrastructure, build-and-push]
+    if: ${{ env.DEPLOY_ENABLED == 'true' }}
     environment: ${{ github.event.inputs.environment || 'staging' }}
     
     steps:
@@ -261,6 +265,7 @@ jobs:
     runs-on: ubuntu-latest
     if: env.DEPLOY_ENABLED == 'true'
     needs: [deploy-infrastructure, deploy-applications]
+    if: ${{ env.DEPLOY_ENABLED == 'true' }}
     environment: ${{ github.event.inputs.environment || 'staging' }}
     
     steps:
@@ -305,6 +310,7 @@ jobs:
     name: Smoke Tests
     runs-on: ubuntu-latest
     needs: [deploy-applications, database-migration]
+    if: ${{ env.DEPLOY_ENABLED == 'true' }}
     environment: ${{ github.event.inputs.environment || 'staging' }}
     
     steps:
@@ -348,8 +354,8 @@ jobs:
     name: Performance Tests
     runs-on: ubuntu-latest
     needs: [deploy-applications, database-migration]
+    if: ${{ env.DEPLOY_ENABLED == 'true' && github.event.inputs.environment == 'prod' }}
     environment: ${{ github.event.inputs.environment || 'staging' }}
-    if: ${{ github.event.inputs.environment == 'prod' }}
     
     steps:
     - name: Checkout code
@@ -389,7 +395,7 @@ jobs:
     name: Notify Deployment
     runs-on: ubuntu-latest
     needs: [smoke-tests, performance-tests]
-    if: always()
+    if: ${{ always() && env.DEPLOY_ENABLED == 'true' }}
     environment: ${{ github.event.inputs.environment || 'staging' }}
     
     steps:

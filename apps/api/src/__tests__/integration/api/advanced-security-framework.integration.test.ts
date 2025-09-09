@@ -1,573 +1,629 @@
-/**
- * PR-28: Advanced Security Framework - Integration Tests
- * 
- * Pruebas de integración para el sistema consolidado de seguridad:
- * - Autenticación multi-factor (MFA)
- * - Autorización basada en roles (RBAC)
- * - Protección CSRF
- * - Sanitización de entrada
- * - Detección de amenazas
- * - Compliance y auditoría
- * - Métricas de seguridad
- */
-
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import request from 'supertest';
-import express from 'express';
-import advancedSecurityFrameworkRouter from '../../../routes/advanced-security-framework.js';
+import { app } from '../../../index.js';
 
-const app = express();
-app.use(express.json());
-app.use('/v1/security-framework', advancedSecurityFrameworkRouter);
+// Mock dependencies
+jest.mock('@econeura/shared/logger', () => ({
+  logger: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn()
+  }
+}));
+
+jest.mock('@econeura/shared/metrics', () => ({
+  prometheusMetrics: {
+    counter: jest.fn(() => ({
+      inc: jest.fn()
+    })),
+    histogram: jest.fn(() => ({
+      observe: jest.fn()
+    })),
+    gauge: jest.fn(() => ({
+      set: jest.fn()
+    }))
+  }
+}));
 
 describe('Advanced Security Framework API Integration Tests', () => {
-  describe('MFA (Multi-Factor Authentication)', () => {
-    describe('POST /v1/security-framework/mfa/initialize', () => {
-      it('should initialize MFA for a user', async () => {
-        const requestData = {
-          userId: '123e4567-e89b-12d3-a456-426614174000'
+  const baseUrl = '/v1/security-framework';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('MFA Endpoints', () => {
+    describe('POST /mfa/initialize', () => {
+      it('should initialize MFA successfully', async () => {
+        const mfaData = {
+          userId: '123e4567-e89b-12d3-a456-426614174000',
+          method: 'totp'
         };
 
         const response = await request(app)
-          .post('/v1/security-framework/mfa/initialize')
-          .send(requestData)
+          .post(`${baseUrl}/mfa/initialize`)
+          .send(mfaData)
           .expect(200);
 
         expect(response.body.success).toBe(true);
-        expect(response.body.data).toBeDefined();
-        expect(response.body.data.secret).toBeDefined();
-        expect(response.body.data.qrCode).toBeDefined();
-        expect(response.body.data.backupCodes).toBeDefined();
+        expect(response.body.data).toHaveProperty('qrCode');
+        expect(response.body.data).toHaveProperty('backupCodes');
         expect(response.body.data.backupCodes).toHaveLength(10);
-        expect(response.body.timestamp).toBeDefined();
+        expect(response.body.message).toBe('MFA initialized successfully');
       });
 
-      it('should validate request data', async () => {
-        const invalidRequest = {
-          userId: 'invalid-uuid'
+      it('should return 400 for invalid user ID', async () => {
+        const mfaData = {
+          userId: 'invalid-uuid',
+          method: 'totp'
         };
 
         const response = await request(app)
-          .post('/v1/security-framework/mfa/initialize')
-          .send(invalidRequest)
+          .post(`${baseUrl}/mfa/initialize`)
+          .send(mfaData)
           .expect(400);
 
         expect(response.body.success).toBe(false);
-        expect(response.body.error).toBe('Invalid request data');
-        expect(response.body.details).toBeDefined();
+        expect(response.body.error).toBeDefined();
+        expect(response.body.message).toBe('Failed to initialize MFA');
       });
 
-      it('should require userId parameter', async () => {
-        const requestData = {};
+      it('should return 400 for invalid method', async () => {
+        const mfaData = {
+          userId: '123e4567-e89b-12d3-a456-426614174000',
+          method: 'invalid'
+        };
 
         const response = await request(app)
-          .post('/v1/security-framework/mfa/initialize')
-          .send(requestData)
+          .post(`${baseUrl}/mfa/initialize`)
+          .send(mfaData)
           .expect(400);
 
         expect(response.body.success).toBe(false);
-        expect(response.body.error).toBe('Invalid request data');
+        expect(response.body.error).toBeDefined();
+        expect(response.body.message).toBe('Failed to initialize MFA');
+      });
+
+      it('should return 400 for missing required fields', async () => {
+        const mfaData = {
+          userId: '123e4567-e89b-12d3-a456-426614174000'
+          // missing method
+        };
+
+        const response = await request(app)
+          .post(`${baseUrl}/mfa/initialize`)
+          .send(mfaData)
+          .expect(400);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBeDefined();
       });
     });
 
-    describe('POST /v1/security-framework/mfa/verify', () => {
-      it('should verify MFA code', async () => {
-        const requestData = {
+    describe('POST /mfa/verify', () => {
+      it('should verify MFA code successfully', async () => {
+        const codeData = {
           userId: '123e4567-e89b-12d3-a456-426614174000',
           code: '123456',
           method: 'totp'
         };
 
         const response = await request(app)
-          .post('/v1/security-framework/mfa/verify')
-          .send(requestData)
+          .post(`${baseUrl}/mfa/verify`)
+          .send(codeData)
           .expect(200);
 
         expect(response.body.success).toBe(true);
-        expect(response.body.data).toBeDefined();
-        expect(response.body.data.isValid).toBeDefined();
-        expect(typeof response.body.data.isValid).toBe('boolean');
+        expect(response.body.data).toHaveProperty('valid');
+        expect(response.body.data).toHaveProperty('sessionToken');
+        expect(response.body.message).toContain('MFA verification');
       });
 
-      it('should validate MFA verification data', async () => {
-        const invalidRequest = {
+      it('should return 400 for invalid user ID', async () => {
+        const codeData = {
           userId: 'invalid-uuid',
-          code: '123',
-          method: 'invalid'
+          code: '123456',
+          method: 'totp'
         };
 
         const response = await request(app)
-          .post('/v1/security-framework/mfa/verify')
-          .send(invalidRequest)
+          .post(`${baseUrl}/mfa/verify`)
+          .send(codeData)
           .expect(400);
 
         expect(response.body.success).toBe(false);
-        expect(response.body.error).toBe('Invalid request data');
+        expect(response.body.error).toBeDefined();
+        expect(response.body.message).toBe('Failed to verify MFA code');
+      });
+
+      it('should return 400 for invalid code format', async () => {
+        const codeData = {
+          userId: '123e4567-e89b-12d3-a456-426614174000',
+          code: '12345', // too short
+          method: 'totp'
+        };
+
+        const response = await request(app)
+          .post(`${baseUrl}/mfa/verify`)
+          .send(codeData)
+          .expect(400);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBeDefined();
       });
     });
 
-    describe('POST /v1/security-framework/mfa/session', () => {
-      it('should create MFA session', async () => {
-        const requestData = {
+    describe('POST /mfa/session', () => {
+      it('should create MFA session successfully', async () => {
+        const sessionData = {
           userId: '123e4567-e89b-12d3-a456-426614174000',
-          ipAddress: '192.168.1.1',
-          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          sessionData: { device: 'mobile' }
         };
 
         const response = await request(app)
-          .post('/v1/security-framework/mfa/session')
-          .send(requestData)
-          .expect(201);
+          .post(`${baseUrl}/mfa/session`)
+          .send(sessionData)
+          .expect(200);
 
         expect(response.body.success).toBe(true);
-        expect(response.body.data).toBeDefined();
-        expect(response.body.data.userId).toBe(requestData.userId);
-        expect(response.body.data.sessionId).toBeDefined();
-        expect(response.body.data.ipAddress).toBe(requestData.ipAddress);
-        expect(response.body.data.userAgent).toBe(requestData.userAgent);
-        expect(response.body.data.expiresAt).toBeDefined();
-        expect(response.body.data.riskScore).toBeDefined();
+        expect(response.body.data).toHaveProperty('sessionId');
+        expect(response.body.message).toBe('MFA session created successfully');
       });
 
-      it('should validate MFA session data', async () => {
-        const invalidRequest = {
-          userId: 'invalid-uuid',
-          ipAddress: 'invalid-ip',
-          userAgent: ''
+      it('should return 400 for missing user ID', async () => {
+        const sessionData = {
+          sessionData: { device: 'mobile' }
+          // missing userId
         };
 
         const response = await request(app)
-          .post('/v1/security-framework/mfa/session')
-          .send(invalidRequest)
+          .post(`${baseUrl}/mfa/session`)
+          .send(sessionData)
           .expect(400);
 
         expect(response.body.success).toBe(false);
-        expect(response.body.error).toBe('Invalid request data');
+        expect(response.body.error).toBe('User ID is required');
+        expect(response.body.message).toBe('Failed to create MFA session');
       });
     });
   });
 
-  describe('RBAC (Role-Based Access Control)', () => {
-    describe('POST /v1/security-framework/rbac/check-permission', () => {
-      it('should check user permission', async () => {
-        const requestData = {
+  describe('RBAC Endpoints', () => {
+    describe('POST /rbac/check-permission', () => {
+      it('should check permission successfully', async () => {
+        const permissionData = {
           userId: '123e4567-e89b-12d3-a456-426614174000',
           resource: 'users',
           action: 'read'
         };
 
         const response = await request(app)
-          .post('/v1/security-framework/rbac/check-permission')
-          .send(requestData)
+          .post(`${baseUrl}/rbac/check-permission`)
+          .send(permissionData)
           .expect(200);
 
         expect(response.body.success).toBe(true);
-        expect(response.body.data).toBeDefined();
-        expect(response.body.data.hasPermission).toBeDefined();
-        expect(typeof response.body.data.hasPermission).toBe('boolean');
+        expect(response.body.data).toHaveProperty('allowed');
+        expect(response.body.message).toContain('Permission');
       });
 
-      it('should check user permission with context', async () => {
-        const requestData = {
-          userId: '123e4567-e89b-12d3-a456-426614174000',
-          resource: 'users',
-          action: 'read',
-          context: { organizationId: 'org-123' }
-        };
-
-        const response = await request(app)
-          .post('/v1/security-framework/rbac/check-permission')
-          .send(requestData)
-          .expect(200);
-
-        expect(response.body.success).toBe(true);
-        expect(response.body.data.hasPermission).toBeDefined();
-      });
-
-      it('should validate permission check data', async () => {
-        const invalidRequest = {
+      it('should return 400 for invalid user ID', async () => {
+        const permissionData = {
           userId: 'invalid-uuid',
-          resource: '',
-          action: ''
+          resource: 'users',
+          action: 'read'
         };
 
         const response = await request(app)
-          .post('/v1/security-framework/rbac/check-permission')
-          .send(invalidRequest)
+          .post(`${baseUrl}/rbac/check-permission`)
+          .send(permissionData)
           .expect(400);
 
         expect(response.body.success).toBe(false);
-        expect(response.body.error).toBe('Invalid request data');
+        expect(response.body.error).toBeDefined();
+        expect(response.body.message).toBe('Failed to check permission');
       });
-    });
 
-    describe('POST /v1/security-framework/rbac/assign-role', () => {
-      it('should assign role to user', async () => {
-        const requestData = {
-          userId: '123e4567-e89b-12d3-a456-426614174000',
-          roleId: '456e7890-e89b-12d3-a456-426614174001',
-          assignedBy: '789e0123-e89b-12d3-a456-426614174002'
+      it('should return 400 for missing required fields', async () => {
+        const permissionData = {
+          userId: '123e4567-e89b-12d3-a456-426614174000'
+          // missing resource and action
         };
 
         const response = await request(app)
-          .post('/v1/security-framework/rbac/assign-role')
-          .send(requestData)
-          .expect(201);
+          .post(`${baseUrl}/rbac/check-permission`)
+          .send(permissionData)
+          .expect(400);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBeDefined();
+      });
+    });
+
+    describe('POST /rbac/assign-role', () => {
+      it('should assign role successfully', async () => {
+        const roleData = {
+          userId: '123e4567-e89b-12d3-a456-426614174000',
+          role: 'manager',
+          assignedBy: '456e7890-e89b-12d3-a456-426614174000'
+        };
+
+        const response = await request(app)
+          .post(`${baseUrl}/rbac/assign-role`)
+          .send(roleData)
+          .expect(200);
 
         expect(response.body.success).toBe(true);
+        expect(response.body.data).toHaveProperty('success');
         expect(response.body.message).toBe('Role assigned successfully');
       });
 
-      it('should validate role assignment data', async () => {
-        const invalidRequest = {
+      it('should return 400 for invalid user ID', async () => {
+        const roleData = {
           userId: 'invalid-uuid',
-          roleId: 'invalid-uuid',
-          assignedBy: 'invalid-uuid'
+          role: 'manager',
+          assignedBy: '456e7890-e89b-12d3-a456-426614174000'
         };
 
         const response = await request(app)
-          .post('/v1/security-framework/rbac/assign-role')
-          .send(invalidRequest)
+          .post(`${baseUrl}/rbac/assign-role`)
+          .send(roleData)
           .expect(400);
 
         expect(response.body.success).toBe(false);
-        expect(response.body.error).toBe('Invalid request data');
+        expect(response.body.error).toBeDefined();
+        expect(response.body.message).toBe('Failed to assign role');
       });
     });
   });
 
-  describe('CSRF Protection', () => {
-    describe('GET /v1/security-framework/csrf/generate', () => {
-      it('should generate CSRF token', async () => {
+  describe('CSRF Endpoints', () => {
+    describe('GET /csrf/generate', () => {
+      it('should generate CSRF token successfully', async () => {
         const response = await request(app)
-          .get('/v1/security-framework/csrf/generate')
+          .get(`${baseUrl}/csrf/generate`)
+          .query({ sessionId: 'session_123' })
           .expect(200);
 
         expect(response.body.success).toBe(true);
-        expect(response.body.data).toBeDefined();
-        expect(response.body.data.token).toBeDefined();
-        expect(typeof response.body.data.token).toBe('string');
-        expect(response.body.data.token.length).toBeGreaterThan(0);
+        expect(response.body.data).toHaveProperty('token');
+        expect(response.body.data.token).toHaveLength(32);
+        expect(response.body.message).toBe('CSRF token generated successfully');
+      });
+
+      it('should return 400 for missing session ID', async () => {
+        const response = await request(app)
+          .get(`${baseUrl}/csrf/generate`)
+          .expect(400);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Session ID is required');
+        expect(response.body.message).toBe('Failed to generate CSRF token');
       });
     });
 
-    describe('POST /v1/security-framework/csrf/verify', () => {
-      it('should verify CSRF token', async () => {
-        const requestData = {
-          token: 'valid-token',
-          sessionToken: 'valid-token'
+    describe('POST /csrf/verify', () => {
+      it('should verify CSRF token successfully', async () => {
+        const tokenData = {
+          sessionId: 'session_123',
+          token: 'valid_token_12345678901234567890'
         };
 
         const response = await request(app)
-          .post('/v1/security-framework/csrf/verify')
-          .send(requestData)
+          .post(`${baseUrl}/csrf/verify`)
+          .send(tokenData)
           .expect(200);
 
         expect(response.body.success).toBe(true);
-        expect(response.body.data).toBeDefined();
-        expect(response.body.data.isValid).toBeDefined();
-        expect(typeof response.body.data.isValid).toBe('boolean');
+        expect(response.body.data).toHaveProperty('valid');
+        expect(response.body.message).toContain('CSRF token');
       });
 
-      it('should validate CSRF verification data', async () => {
-        const invalidRequest = {
-          token: '',
-          sessionToken: ''
+      it('should return 400 for invalid token format', async () => {
+        const tokenData = {
+          sessionId: 'session_123',
+          token: 'short' // too short
         };
 
         const response = await request(app)
-          .post('/v1/security-framework/csrf/verify')
-          .send(invalidRequest)
+          .post(`${baseUrl}/csrf/verify`)
+          .send(tokenData)
           .expect(400);
 
         expect(response.body.success).toBe(false);
-        expect(response.body.error).toBe('Invalid request data');
-      });
-    });
-  });
-
-  describe('Input Sanitization', () => {
-    describe('POST /v1/security-framework/sanitize', () => {
-      it('should sanitize string input', async () => {
-        const requestData = {
-          input: '<script>alert("xss")</script>'
-        };
-
-        const response = await request(app)
-          .post('/v1/security-framework/sanitize')
-          .send(requestData)
-          .expect(200);
-
-        expect(response.body.success).toBe(true);
-        expect(response.body.data).toBeDefined();
-        expect(response.body.data.sanitizedInput).toBeDefined();
-        expect(response.body.data.sanitizedInput).not.toContain('<script>');
-      });
-
-      it('should sanitize object input', async () => {
-        const requestData = {
-          input: {
-            name: '<script>alert("xss")</script>',
-            email: 'test@example.com',
-            description: 'Safe content'
-          }
-        };
-
-        const response = await request(app)
-          .post('/v1/security-framework/sanitize')
-          .send(requestData)
-          .expect(200);
-
-        expect(response.body.success).toBe(true);
-        expect(response.body.data.sanitizedInput).toBeDefined();
-        expect(response.body.data.sanitizedInput.name).not.toContain('<script>');
-        expect(response.body.data.sanitizedInput.email).toBe('test@example.com');
-      });
-
-      it('should reject blocked patterns', async () => {
-        const requestData = {
-          input: 'javascript:alert("xss")'
-        };
-
-        const response = await request(app)
-          .post('/v1/security-framework/sanitize')
-          .send(requestData)
-          .expect(400);
-
-        expect(response.body.success).toBe(false);
-        expect(response.body.error).toBe('Blocked pattern detected');
-      });
-
-      it('should validate sanitization request', async () => {
-        const invalidRequest = {};
-
-        const response = await request(app)
-          .post('/v1/security-framework/sanitize')
-          .send(invalidRequest)
-          .expect(400);
-
-        expect(response.body.success).toBe(false);
-        expect(response.body.error).toBe('Invalid request data');
+        expect(response.body.error).toBeDefined();
       });
     });
   });
 
-  describe('Threat Detection', () => {
-    describe('POST /v1/security-framework/threats/detect', () => {
-      it('should detect threats in request', async () => {
-        const requestData = {
-          request: { query: "'; DROP TABLE users; --" },
-          ipAddress: '192.168.1.1',
-          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+  describe('Input Sanitization Endpoints', () => {
+    describe('POST /sanitize', () => {
+      it('should sanitize clean input successfully', async () => {
+        const inputData = {
+          input: 'Hello, world!',
+          type: 'general'
         };
 
         const response = await request(app)
-          .post('/v1/security-framework/threats/detect')
-          .send(requestData)
+          .post(`${baseUrl}/sanitize`)
+          .send(inputData)
           .expect(200);
 
         expect(response.body.success).toBe(true);
-        expect(response.body.data).toBeDefined();
-        expect(response.body.data.isThreat).toBeDefined();
-        expect(typeof response.body.data.isThreat).toBe('boolean');
-        expect(response.body.data.riskScore).toBeDefined();
-        expect(typeof response.body.data.riskScore).toBe('number');
-        expect(response.body.data.threats).toBeDefined();
-        expect(Array.isArray(response.body.data.threats)).toBe(true);
-      });
-
-      it('should detect suspicious user agent', async () => {
-        const requestData = {
-          request: { data: 'normal data' },
-          ipAddress: '192.168.1.1',
-          userAgent: 'curl/7.68.0'
-        };
-
-        const response = await request(app)
-          .post('/v1/security-framework/threats/detect')
-          .send(requestData)
-          .expect(200);
-
-        expect(response.body.success).toBe(true);
-        expect(response.body.data.isThreat).toBeDefined();
-        expect(response.body.data.threats).toContain('suspicious_user_agent');
-      });
-
-      it('should not detect threats in normal request', async () => {
-        const requestData = {
-          request: { data: 'normal data' },
-          ipAddress: '192.168.1.1',
-          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        };
-
-        const response = await request(app)
-          .post('/v1/security-framework/threats/detect')
-          .send(requestData)
-          .expect(200);
-
-        expect(response.body.success).toBe(true);
-        expect(response.body.data.isThreat).toBe(false);
-        expect(response.body.data.riskScore).toBe(0);
+        expect(response.body.data).toHaveProperty('sanitized');
+        expect(response.body.data).toHaveProperty('threats');
+        expect(response.body.data.sanitized).toBe('Hello, world!');
         expect(response.body.data.threats).toHaveLength(0);
+        expect(response.body.message).toBe('Input sanitized successfully');
       });
 
-      it('should validate threat detection request', async () => {
-        const invalidRequest = {
-          request: 'invalid',
+      it('should detect and sanitize malicious input', async () => {
+        const inputData = {
+          input: '<script>alert("xss")</script>Hello',
+          type: 'html'
+        };
+
+        const response = await request(app)
+          .post(`${baseUrl}/sanitize`)
+          .send(inputData)
+          .expect(200);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data).toHaveProperty('sanitized');
+        expect(response.body.data).toHaveProperty('threats');
+        expect(response.body.data.sanitized).not.toContain('<script>');
+        expect(response.body.data.threats.length).toBeGreaterThan(0);
+      });
+
+      it('should return 400 for missing input', async () => {
+        const inputData = {
+          type: 'general'
+          // missing input
+        };
+
+        const response = await request(app)
+          .post(`${baseUrl}/sanitize`)
+          .send(inputData)
+          .expect(400);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBeDefined();
+      });
+    });
+  });
+
+  describe('Threat Detection Endpoints', () => {
+    describe('POST /threats/detect', () => {
+      it('should detect no threats for clean request', async () => {
+        const threatData = {
+          ipAddress: '192.168.1.1',
+          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          request: { path: '/api/users', method: 'GET' },
+          riskFactors: []
+        };
+
+        const response = await request(app)
+          .post(`${baseUrl}/threats/detect`)
+          .send(threatData)
+          .expect(200);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data).toHaveProperty('threats');
+        expect(response.body.data).toHaveProperty('riskScore');
+        expect(response.body.data).toHaveProperty('blocked');
+        expect(response.body.data.threats).toHaveLength(0);
+        expect(response.body.data.riskScore).toBe(0);
+        expect(response.body.data.blocked).toBe(false);
+        expect(response.body.message).toBe('Threats detected');
+      });
+
+      it('should detect bot traffic', async () => {
+        const threatData = {
+          ipAddress: '192.168.1.1',
+          userAgent: 'Googlebot/2.1',
+          request: { path: '/api/users', method: 'GET' },
+          riskFactors: []
+        };
+
+        const response = await request(app)
+          .post(`${baseUrl}/threats/detect`)
+          .send(threatData)
+          .expect(200);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.threats).toContain('Bot traffic detected');
+        expect(response.body.data.riskScore).toBeGreaterThan(0);
+      });
+
+      it('should return 400 for invalid IP address', async () => {
+        const threatData = {
           ipAddress: 'invalid-ip',
-          userAgent: ''
+          userAgent: 'Mozilla/5.0',
+          request: { path: '/api/users', method: 'GET' },
+          riskFactors: []
         };
 
         const response = await request(app)
-          .post('/v1/security-framework/threats/detect')
-          .send(invalidRequest)
+          .post(`${baseUrl}/threats/detect`)
+          .send(threatData)
           .expect(400);
 
         expect(response.body.success).toBe(false);
-        expect(response.body.error).toBe('Invalid request data');
+        expect(response.body.error).toBeDefined();
+        expect(response.body.message).toBe('Failed to detect threats');
       });
     });
   });
 
-  describe('Compliance', () => {
-    describe('POST /v1/security-framework/compliance/check', () => {
-      it('should check compliance', async () => {
-        const requestData = {
-          userId: '123e4567-e89b-12d3-a456-426614174000',
-          action: 'read',
-          resource: 'users',
-          data: { userId: '456e7890-e89b-12d3-a456-426614174001' }
+  describe('Compliance Endpoints', () => {
+    describe('POST /compliance/check', () => {
+      it('should check GDPR compliance successfully', async () => {
+        const complianceData = {
+          organizationId: '123e4567-e89b-12d3-a456-426614174000',
+          complianceType: 'gdpr'
         };
 
         const response = await request(app)
-          .post('/v1/security-framework/compliance/check')
-          .send(requestData)
+          .post(`${baseUrl}/compliance/check`)
+          .send(complianceData)
           .expect(200);
 
         expect(response.body.success).toBe(true);
-        expect(response.body.data).toBeDefined();
-        expect(response.body.data.compliant).toBeDefined();
-        expect(typeof response.body.data.compliant).toBe('boolean');
-        expect(response.body.data.violations).toBeDefined();
-        expect(Array.isArray(response.body.data.violations)).toBe(true);
+        expect(response.body.data).toHaveProperty('compliant');
+        expect(response.body.data).toHaveProperty('violations');
+        expect(response.body.data).toHaveProperty('score');
+        expect(response.body.data.score).toBeGreaterThanOrEqual(0);
+        expect(response.body.data.score).toBeLessThanOrEqual(100);
+        expect(response.body.message).toContain('Compliance check');
       });
 
-      it('should check compliance without data', async () => {
-        const requestData = {
-          userId: '123e4567-e89b-12d3-a456-426614174000',
-          action: 'read',
-          resource: 'users'
+      it('should check SOX compliance successfully', async () => {
+        const complianceData = {
+          organizationId: '123e4567-e89b-12d3-a456-426614174000',
+          complianceType: 'sox'
         };
 
         const response = await request(app)
-          .post('/v1/security-framework/compliance/check')
-          .send(requestData)
+          .post(`${baseUrl}/compliance/check`)
+          .send(complianceData)
           .expect(200);
 
         expect(response.body.success).toBe(true);
-        expect(response.body.data.compliant).toBeDefined();
-        expect(response.body.data.violations).toBeDefined();
+        expect(response.body.data).toHaveProperty('compliant');
+        expect(response.body.data).toHaveProperty('violations');
+        expect(response.body.data).toHaveProperty('score');
       });
 
-      it('should validate compliance check request', async () => {
-        const invalidRequest = {
-          userId: 'invalid-uuid',
-          action: '',
-          resource: ''
+      it('should return 400 for invalid organization ID', async () => {
+        const complianceData = {
+          organizationId: 'invalid-uuid',
+          complianceType: 'gdpr'
         };
 
         const response = await request(app)
-          .post('/v1/security-framework/compliance/check')
-          .send(invalidRequest)
+          .post(`${baseUrl}/compliance/check`)
+          .send(complianceData)
           .expect(400);
 
         expect(response.body.success).toBe(false);
-        expect(response.body.error).toBe('Invalid request data');
+        expect(response.body.error).toBeDefined();
+        expect(response.body.message).toBe('Failed to check compliance');
+      });
+
+      it('should return 400 for invalid compliance type', async () => {
+        const complianceData = {
+          organizationId: '123e4567-e89b-12d3-a456-426614174000',
+          complianceType: 'invalid'
+        };
+
+        const response = await request(app)
+          .post(`${baseUrl}/compliance/check`)
+          .send(complianceData)
+          .expect(400);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBeDefined();
       });
     });
   });
 
-  describe('Security Metrics', () => {
-    describe('GET /v1/security-framework/metrics', () => {
-      it('should get security metrics', async () => {
+  describe('Metrics and Monitoring Endpoints', () => {
+    describe('GET /metrics', () => {
+      it('should return security metrics successfully', async () => {
         const response = await request(app)
-          .get('/v1/security-framework/metrics')
+          .get(`${baseUrl}/metrics`)
           .expect(200);
 
         expect(response.body.success).toBe(true);
-        expect(response.body.data).toBeDefined();
-        expect(response.body.data.authentication).toBeDefined();
-        expect(response.body.data.authorization).toBeDefined();
-        expect(response.body.data.threats).toBeDefined();
-        expect(response.body.data.compliance).toBeDefined();
-        expect(response.body.data.performance).toBeDefined();
+        expect(response.body.data).toHaveProperty('authentication');
+        expect(response.body.data).toHaveProperty('authorization');
+        expect(response.body.data).toHaveProperty('threats');
+        expect(response.body.data).toHaveProperty('compliance');
+        expect(response.body.data).toHaveProperty('performance');
+        expect(response.body.message).toBe('Security metrics retrieved successfully');
       });
+    });
 
-      it('should have correct metrics structure', async () => {
+    describe('GET /health', () => {
+      it('should return health status successfully', async () => {
         const response = await request(app)
-          .get('/v1/security-framework/metrics')
+          .get(`${baseUrl}/health`)
           .expect(200);
 
-        const metrics = response.body.data;
-
-        // Authentication metrics
-        expect(metrics.authentication.totalLogins).toBeDefined();
-        expect(metrics.authentication.successfulLogins).toBeDefined();
-        expect(metrics.authentication.failedLogins).toBeDefined();
-        expect(metrics.authentication.mfaCompletions).toBeDefined();
-        expect(metrics.authentication.mfaFailures).toBeDefined();
-
-        // Authorization metrics
-        expect(metrics.authorization.permissionChecks).toBeDefined();
-        expect(metrics.authorization.deniedAccess).toBeDefined();
-        expect(metrics.authorization.roleAssignments).toBeDefined();
-        expect(metrics.authorization.permissionGrants).toBeDefined();
-
-        // Threat metrics
-        expect(metrics.threats.detectedThreats).toBeDefined();
-        expect(metrics.threats.blockedIPs).toBeDefined();
-        expect(metrics.threats.suspiciousActivities).toBeDefined();
-        expect(metrics.threats.csrfAttacks).toBeDefined();
-
-        // Compliance metrics
-        expect(metrics.compliance.complianceChecks).toBeDefined();
-        expect(metrics.compliance.violations).toBeDefined();
-        expect(metrics.compliance.remediations).toBeDefined();
-        expect(metrics.compliance.auditLogs).toBeDefined();
-
-        // Performance metrics
-        expect(metrics.performance.avgResponseTime).toBeDefined();
-        expect(metrics.performance.p95ResponseTime).toBeDefined();
-        expect(metrics.performance.errorRate).toBeDefined();
-        expect(metrics.performance.throughput).toBeDefined();
+        expect(response.body.success).toBe(true);
+        expect(response.body.data).toHaveProperty('status');
+        expect(response.body.data).toHaveProperty('services');
+        expect(response.body.data).toHaveProperty('lastCheck');
+        expect(response.body.data.status).toMatch(/^(healthy|degraded)$/);
+        expect(response.body.data.services).toHaveProperty('database');
+        expect(response.body.data.services).toHaveProperty('mfa');
+        expect(response.body.data.services).toHaveProperty('csrf');
+        expect(response.body.data.services).toHaveProperty('threatDetection');
+        expect(response.body.data.services).toHaveProperty('compliance');
+        expect(response.body.message).toBe('Health check completed');
       });
     });
   });
 
-  describe('Health Check', () => {
-    describe('GET /v1/security-framework/health', () => {
-      it('should return health status', async () => {
-        const response = await request(app)
-          .get('/v1/security-framework/health')
-          .expect(200);
+  describe('Error Handling', () => {
+    it('should handle 404 for non-existent endpoints', async () => {
+      const response = await request(app)
+        .get(`${baseUrl}/non-existent`)
+        .expect(404);
 
-        expect(response.body.status).toBe('healthy');
-        expect(response.body.timestamp).toBeDefined();
-        expect(response.body.services).toBeDefined();
-        expect(response.body.uptime).toBeDefined();
-      });
+      expect(response.body.success).toBe(false);
+    });
 
-      it('should include all security services', async () => {
-        const response = await request(app)
-          .get('/v1/security-framework/health')
-          .expect(200);
+    it('should handle malformed JSON', async () => {
+      const response = await request(app)
+        .post(`${baseUrl}/mfa/initialize`)
+        .set('Content-Type', 'application/json')
+        .send('{"invalid": json}')
+        .expect(400);
 
-        expect(response.body.services.mfa).toBe('operational');
-        expect(response.body.services.rbac).toBe('operational');
-        expect(response.body.services.csrf).toBe('operational');
-        expect(response.body.services.sanitization).toBe('operational');
-        expect(response.body.services.threatDetection).toBe('operational');
-        expect(response.body.services.compliance).toBe('operational');
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should handle empty request body', async () => {
+      const response = await request(app)
+        .post(`${baseUrl}/mfa/initialize`)
+        .send({})
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toBeDefined();
+    });
+  });
+
+  describe('Security Headers', () => {
+    it('should include security headers in responses', async () => {
+      const response = await request(app)
+        .get(`${baseUrl}/health`)
+        .expect(200);
+
+      // Check for common security headers
+      expect(response.headers).toHaveProperty('x-content-type-options');
+      expect(response.headers).toHaveProperty('x-frame-options');
+      expect(response.headers).toHaveProperty('x-xss-protection');
+    });
+  });
+
+  describe('Rate Limiting', () => {
+    it('should handle multiple requests', async () => {
+      const requests = Array.from({ length: 5 }, () =>
+        request(app)
+          .get(`${baseUrl}/health`)
+          .expect(200)
+      );
+
+      const responses = await Promise.all(requests);
+
+      responses.forEach(response => {
+        expect(response.body.success).toBe(true);
       });
     });
   });

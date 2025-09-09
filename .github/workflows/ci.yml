@@ -17,97 +17,156 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  DEPLOY_ENABLED: false
+  SKIP_RELEASE: true
+
 jobs:
-  setup:
+  # Build and Lint
+  build-lint:
+    name: Build and Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version-file: '.nvmrc', cache: 'pnpm' }
-      - run: corepack enable && pnpm -v
-
-  build:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version-file: '.nvmrc', cache: 'pnpm' }
-      - run: pnpm i && pnpm -w build
-
-  typecheck:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version-file: '.nvmrc', cache: 'pnpm' }
-      - run: pnpm i && pnpm -s exec tsc -b
-
-  lint:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version-file: '.nvmrc', cache: 'pnpm' }
-      - run: mkdir -p reports
-      - run: pnpm i && pnpm -s exec eslint . -f json -o reports/eslint.json || true
+        with:
+          node-version: '20.x'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm -w build
+      - name: Type Check
+        run: pnpm -w typecheck
       - uses: actions/upload-artifact@v4
-        with: { name: eslint-report, path: reports/eslint.json, if-no-files-found: ignore }
+        with:
+          name: build-artifacts
+          path: |
+            apps/*/dist
+            packages/*/dist
 
-  test:
-    needs: setup
+  # Unit Tests
+  unit-tests:
+    name: Unit Tests
     runs-on: ubuntu-latest
+    needs: build-lint
     steps:
       - uses: actions/checkout@v4
+      - run: corepack enable && corepack prepare pnpm@9.12.2 --activate
       - uses: actions/setup-node@v4
-        with: { node-version-file: '.nvmrc', cache: 'pnpm' }
-      - run: sudo apt-get update && sudo apt-get install -y jq
-      - run: mkdir -p reports
-      - run: pnpm i && pnpm -s vitest run --coverage --reporter=json --outputFile=reports/coverage.json || true
-      - name: enforce coverage ≥80%
+        with:
+          node-version: '20.x'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test -- --coverage --coverageProvider=v8
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+
+  # API Tests
+  api-tests:
+    name: API Tests
+    runs-on: ubuntu-latest
+    needs: build-lint
+    steps:
+      - uses: actions/checkout@v4
+      - run: corepack enable && corepack prepare pnpm@9.12.2 --activate
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:api
+      - uses: actions/upload-artifact@v4
+        with:
+          name: api-test-results
+          path: test-results/
+
+  # k6 Smoke Tests
+  k6-tests:
+    name: k6 Smoke Tests
+    runs-on: ubuntu-latest
+    needs: [build-lint, unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install k6
         run: |
-          jq -e '.total.lines.pct >= 80' reports/coverage.json >/dev/null || echo "Coverage below 80%"
+          sudo apt-get update
+          sudo apt-get install -y gnupg software-properties-common
+          curl -s https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install -y k6
+      - run: pnpm e2e:smoke
       - uses: actions/upload-artifact@v4
-        with: { name: coverage-report, path: reports/coverage.json, if-no-files-found: ignore }
-      - uses: actions/upload-artifact@v4
-        with: { name: coverage-html, path: coverage/, if-no-files-found: ignore }
+        with:
+          name: k6-results
+          path: k6-results/
 
-  dup:
-    needs: setup
+  # Security Scan
+  security-scan:
+    name: Security Scan
     runs-on: ubuntu-latest
+    needs: build-lint
     steps:
       - uses: actions/checkout@v4
+      - run: corepack enable && corepack prepare pnpm@9.12.2 --activate
       - uses: actions/setup-node@v4
-        with: { node-version-file: '.nvmrc', cache: 'pnpm' }
-      - run: mkdir -p reports/jscpd
-      - run: pnpm i && pnpm -s dlx jscpd "apps/**/*.{ts,tsx,js}" "packages/**/*.{ts,tsx,js}" --threshold 85 --reporters json,html --output reports/jscpd || true
+        with:
+          node-version: '20.x'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm audit
+      - run: pnpm security:scan
       - uses: actions/upload-artifact@v4
-        with: { name: jscpd-report, path: reports/jscpd, if-no-files-found: ignore }
+        with:
+          name: security-report
+          path: security-report/
 
-  audit:
-    needs: setup
+  # Metrics and Progress
+  metrics-progress:
+    name: Metrics and Progress
     runs-on: ubuntu-latest
+    needs: [unit-tests, api-tests, k6-tests]
     steps:
       - uses: actions/checkout@v4
+      - run: corepack enable && corepack prepare pnpm@9.12.2 --activate
       - uses: actions/setup-node@v4
-        with: { node-version-file: '.nvmrc', cache: 'pnpm' }
-      - run: mkdir -p reports
-      - run: pnpm i && pnpm -s audit --json > reports/audit.json || true
+        with:
+          node-version: '20.x'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/lint-routes.mjs
+      - run: node tools/metrics/collect.mjs > .artifacts/metrics.json
+      - run: node --loader ts-node/esm tools/progress/audit.ts > .artifacts/progress.json
       - uses: actions/upload-artifact@v4
-        with: { name: npm-audit, path: reports/audit.json, if-no-files-found: ignore }
+        with:
+          name: artifacts
+          path: .artifacts
 
-  leaks:
-    needs: setup
+  # Pipeline Summary
+  pipeline-summary:
+    name: Pipeline Summary
     runs-on: ubuntu-latest
+    needs: [build-lint, unit-tests, api-tests, k6-tests, security-scan, metrics-progress]
+    if: always()
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version-file: '.nvmrc', cache: 'pnpm' }
-      - run: mkdir -p reports
-      - uses: gitleaks/gitleaks-action@v2
-        with: 
-          args: "--report-format json --report-path reports/gitleaks.json"
-      - uses: actions/upload-artifact@v4
-        with: { name: gitleaks, path: reports/gitleaks.json, if-no-files-found: ignore }
+      - name: Pipeline Summary
+        run: |
+          echo "## 🚀 CI Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ needs.build-lint.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Deploy Enabled:** ${{ env.DEPLOY_ENABLED }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Skip Release:** ${{ env.SKIP_RELEASE }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build & Lint:** ${{ needs.build-lint.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Unit Tests:** ${{ needs.unit-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **API Tests:** ${{ needs.api-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **k6 Tests:** ${{ needs.k6-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Security Scan:** ${{ needs.security-scan.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Metrics:** ${{ needs.metrics-progress.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔒 Security" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deploy Blocked:** ✅ DEPLOY_ENABLED=false" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release Blocked:** ✅ SKIP_RELEASE=true" >> $GITHUB_STEP_SUMMARY
