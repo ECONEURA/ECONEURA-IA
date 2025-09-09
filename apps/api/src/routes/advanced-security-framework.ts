@@ -1,534 +1,531 @@
-/**
- * PR-28: Advanced Security Framework Routes - CONSOLIDADO
- * 
- * Rutas API para el sistema unificado de seguridad que consolida:
- * - Autenticación multi-factor (MFA)
- * - Autorización basada en roles (RBAC)
- * - Protección CSRF
- * - Sanitización de entrada
- * - Detección de amenazas
- * - Compliance y auditoría
- * - Métricas de seguridad
- */
-
 import { Router } from 'express';
 import { z } from 'zod';
 import { advancedSecurityFramework } from '../lib/advanced-security-framework.service.js';
-import { structuredLogger } from '../lib/structured-logger.js';
+import { logger } from '@econeura/shared/logger';
 
 const router = Router();
 
 // ============================================================================
-// SCHEMAS DE VALIDACIÓN
+// VALIDATION SCHEMAS
 // ============================================================================
 
-const InitializeMFASchema = z.object({
-  userId: z.string().uuid()
+const MFASetupSchema = z.object({
+  userId: z.string().uuid(),
+  method: z.enum(['totp', 'sms', 'email']),
+  phoneNumber: z.string().optional(),
+  email: z.string().email().optional()
 });
 
-const VerifyMFASchema = z.object({
+const MFACodeSchema = z.object({
   userId: z.string().uuid(),
-  code: z.string().min(6).max(8),
+  code: z.string().length(6),
   method: z.enum(['totp', 'sms', 'email', 'backup'])
 });
 
-const CreateMFASessionSchema = z.object({
-  userId: z.string().uuid(),
-  ipAddress: z.string().ip(),
-  userAgent: z.string().min(1)
-});
-
-const CheckPermissionSchema = z.object({
+const RBACPermissionSchema = z.object({
   userId: z.string().uuid(),
   resource: z.string().min(1),
   action: z.string().min(1),
   context: z.record(z.any()).optional()
 });
 
-const AssignRoleSchema = z.object({
+const RoleAssignmentSchema = z.object({
   userId: z.string().uuid(),
-  roleId: z.string().uuid(),
+  role: z.string().min(1),
   assignedBy: z.string().uuid()
 });
 
-const VerifyCSRFSchema = z.object({
-  token: z.string().min(1),
-  sessionToken: z.string().min(1)
+const CSRFTokenSchema = z.object({
+  sessionId: z.string().min(1),
+  token: z.string().min(32)
 });
 
 const SanitizeInputSchema = z.object({
-  input: z.any()
+  input: z.string().min(1),
+  type: z.enum(['html', 'sql', 'xss', 'general']).optional()
 });
 
-const DetectThreatsSchema = z.object({
-  request: z.any(),
+const ThreatDetectionSchema = z.object({
   ipAddress: z.string().ip(),
-  userAgent: z.string().min(1)
+  userAgent: z.string().min(1),
+  request: z.record(z.any()),
+  riskFactors: z.array(z.string())
 });
 
-const CheckComplianceSchema = z.object({
-  userId: z.string().uuid(),
-  action: z.string().min(1),
-  resource: z.string().min(1),
-  data: z.any().optional()
+const ComplianceCheckSchema = z.object({
+  organizationId: z.string().uuid(),
+  complianceType: z.enum(['gdpr', 'sox', 'pci-dss', 'hipaa', 'iso27001'])
 });
 
 // ============================================================================
-// AUTENTICACIÓN MULTI-FACTOR (MFA)
+// MFA ENDPOINTS
 // ============================================================================
 
 /**
- * POST /mfa/initialize
- * Inicializar MFA para un usuario
+ * @route POST /v1/security-framework/mfa/initialize
+ * @desc Initialize MFA for a user
+ * @access Private
  */
 router.post('/mfa/initialize', async (req, res) => {
   try {
-    const { userId } = InitializeMFASchema.parse(req.body);
+    const validatedData = MFASetupSchema.parse(req.body);
     
-    const result = await advancedSecurityFramework.initializeMFA(userId);
+    const result = await advancedSecurityFramework.initializeMFA(validatedData);
     
-    structuredLogger.info('MFA initialized', { userId });
+    logger.info('MFA initialization request processed', { 
+      userId: validatedData.userId, 
+      method: validatedData.method 
+    });
     
-    res.json({
+    res.status(200).json({
       success: true,
       data: result,
-      timestamp: new Date().toISOString()
+      message: 'MFA initialized successfully'
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      structuredLogger.warn('Invalid MFA initialization request', { errors: error.errors });
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid request data',
-        details: error.errors
-      });
-    }
-
-    structuredLogger.error('Failed to initialize MFA', error as Error);
-    res.status(500).json({
+    logger.error('MFA initialization failed', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    
+    res.status(400).json({
       success: false,
-      error: 'Failed to initialize MFA',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Failed to initialize MFA'
     });
   }
 });
 
 /**
- * POST /mfa/verify
- * Verificar código MFA
+ * @route POST /v1/security-framework/mfa/verify
+ * @desc Verify MFA code
+ * @access Private
  */
 router.post('/mfa/verify', async (req, res) => {
   try {
-    const { userId, code, method } = VerifyMFASchema.parse(req.body);
+    const validatedData = MFACodeSchema.parse(req.body);
     
-    const isValid = await advancedSecurityFramework.verifyMFACode(userId, code, method);
+    const result = await advancedSecurityFramework.verifyMFACode(validatedData);
     
-    structuredLogger.info('MFA verification attempted', { userId, method, isValid });
+    logger.info('MFA verification request processed', { 
+      userId: validatedData.userId, 
+      method: validatedData.method,
+      success: result.valid
+    });
     
-    res.json({
+    res.status(200).json({
       success: true,
-      data: { isValid },
-      timestamp: new Date().toISOString()
+      data: result,
+      message: result.valid ? 'MFA verification successful' : 'MFA verification failed'
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      structuredLogger.warn('Invalid MFA verification request', { errors: error.errors });
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid request data',
-        details: error.errors
-      });
-    }
-
-    structuredLogger.error('Failed to verify MFA code', error as Error);
-    res.status(500).json({
+    logger.error('MFA verification failed', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    
+    res.status(400).json({
       success: false,
-      error: 'Failed to verify MFA code',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Failed to verify MFA code'
     });
   }
 });
 
 /**
- * POST /mfa/session
- * Crear sesión MFA
+ * @route POST /v1/security-framework/mfa/session
+ * @desc Create MFA session
+ * @access Private
  */
 router.post('/mfa/session', async (req, res) => {
   try {
-    const { userId, ipAddress, userAgent } = CreateMFASessionSchema.parse(req.body);
+    const { userId, sessionData } = req.body;
     
-    const session = await advancedSecurityFramework.createMFASession(userId, ipAddress, userAgent);
-    
-    structuredLogger.info('MFA session created', { userId, sessionId: session.sessionId });
-    
-    res.status(201).json({
-      success: true,
-      data: session,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      structuredLogger.warn('Invalid MFA session request', { errors: error.errors });
+    if (!userId) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid request data',
-        details: error.errors
+        error: 'User ID is required',
+        message: 'Failed to create MFA session'
       });
     }
-
-    structuredLogger.error('Failed to create MFA session', error as Error);
-    res.status(500).json({
+    
+    const sessionId = await advancedSecurityFramework.createMFASession(userId, sessionData);
+    
+    logger.info('MFA session creation request processed', { userId, sessionId });
+    
+    res.status(200).json({
+      success: true,
+      data: { sessionId },
+      message: 'MFA session created successfully'
+    });
+  } catch (error) {
+    logger.error('MFA session creation failed', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    
+    res.status(400).json({
       success: false,
-      error: 'Failed to create MFA session',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Failed to create MFA session'
     });
   }
 });
 
 // ============================================================================
-// AUTORIZACIÓN BASADA EN ROLES (RBAC)
+// RBAC ENDPOINTS
 // ============================================================================
 
 /**
- * POST /rbac/check-permission
- * Verificar permiso de usuario
+ * @route POST /v1/security-framework/rbac/check-permission
+ * @desc Check user permission for a resource and action
+ * @access Private
  */
 router.post('/rbac/check-permission', async (req, res) => {
   try {
-    const { userId, resource, action, context } = CheckPermissionSchema.parse(req.body);
+    const validatedData = RBACPermissionSchema.parse(req.body);
     
-    const hasPermission = await advancedSecurityFramework.checkPermission(userId, resource, action, context);
+    const result = await advancedSecurityFramework.checkPermission(validatedData);
     
-    structuredLogger.info('Permission check performed', { userId, resource, action, hasPermission });
+    logger.info('RBAC permission check request processed', { 
+      userId: validatedData.userId, 
+      resource: validatedData.resource,
+      action: validatedData.action,
+      allowed: result.allowed
+    });
     
-    res.json({
+    res.status(200).json({
       success: true,
-      data: { hasPermission },
-      timestamp: new Date().toISOString()
+      data: result,
+      message: result.allowed ? 'Permission granted' : 'Permission denied'
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      structuredLogger.warn('Invalid permission check request', { errors: error.errors });
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid request data',
-        details: error.errors
-      });
-    }
-
-    structuredLogger.error('Failed to check permission', error as Error);
-    res.status(500).json({
+    logger.error('RBAC permission check failed', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    
+    res.status(400).json({
       success: false,
-      error: 'Failed to check permission',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Failed to check permission'
     });
   }
 });
 
 /**
- * POST /rbac/assign-role
- * Asignar rol a usuario
+ * @route POST /v1/security-framework/rbac/assign-role
+ * @desc Assign role to user
+ * @access Private
  */
 router.post('/rbac/assign-role', async (req, res) => {
   try {
-    const { userId, roleId, assignedBy } = AssignRoleSchema.parse(req.body);
+    const validatedData = RoleAssignmentSchema.parse(req.body);
     
-    await advancedSecurityFramework.assignRole(userId, roleId, assignedBy);
+    const result = await advancedSecurityFramework.assignRole(
+      validatedData.userId, 
+      validatedData.role, 
+      validatedData.assignedBy
+    );
     
-    structuredLogger.info('Role assigned', { userId, roleId, assignedBy });
+    logger.info('RBAC role assignment request processed', { 
+      userId: validatedData.userId, 
+      role: validatedData.role,
+      assignedBy: validatedData.assignedBy,
+      success: result.success
+    });
     
-    res.status(201).json({
+    res.status(200).json({
       success: true,
-      message: 'Role assigned successfully',
-      timestamp: new Date().toISOString()
+      data: result,
+      message: 'Role assigned successfully'
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      structuredLogger.warn('Invalid role assignment request', { errors: error.errors });
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid request data',
-        details: error.errors
-      });
-    }
-
-    structuredLogger.error('Failed to assign role', error as Error);
-    res.status(500).json({
+    logger.error('RBAC role assignment failed', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    
+    res.status(400).json({
       success: false,
-      error: 'Failed to assign role',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Failed to assign role'
     });
   }
 });
 
 // ============================================================================
-// PROTECCIÓN CSRF
+// CSRF ENDPOINTS
 // ============================================================================
 
 /**
- * GET /csrf/generate
- * Generar token CSRF
+ * @route GET /v1/security-framework/csrf/generate
+ * @desc Generate CSRF token
+ * @access Private
  */
 router.get('/csrf/generate', async (req, res) => {
   try {
-    const token = advancedSecurityFramework.generateCSRFToken();
+    const { sessionId } = req.query;
     
-    structuredLogger.info('CSRF token generated');
+    if (!sessionId || typeof sessionId !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'Session ID is required',
+        message: 'Failed to generate CSRF token'
+      });
+    }
     
-    res.json({
+    const token = await advancedSecurityFramework.generateCSRFToken(sessionId);
+    
+    logger.info('CSRF token generation request processed', { sessionId });
+    
+    res.status(200).json({
       success: true,
       data: { token },
-      timestamp: new Date().toISOString()
+      message: 'CSRF token generated successfully'
     });
   } catch (error) {
-    structuredLogger.error('Failed to generate CSRF token', error as Error);
-    res.status(500).json({
+    logger.error('CSRF token generation failed', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    
+    res.status(400).json({
       success: false,
-      error: 'Failed to generate CSRF token',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Failed to generate CSRF token'
     });
   }
 });
 
 /**
- * POST /csrf/verify
- * Verificar token CSRF
+ * @route POST /v1/security-framework/csrf/verify
+ * @desc Verify CSRF token
+ * @access Private
  */
 router.post('/csrf/verify', async (req, res) => {
   try {
-    const { token, sessionToken } = VerifyCSRFSchema.parse(req.body);
+    const validatedData = CSRFTokenSchema.parse(req.body);
     
-    const isValid = advancedSecurityFramework.verifyCSRFToken(token, sessionToken);
+    const result = await advancedSecurityFramework.verifyCSRFToken(validatedData);
     
-    structuredLogger.info('CSRF token verification', { isValid });
+    logger.info('CSRF token verification request processed', { 
+      sessionId: validatedData.sessionId,
+      valid: result.valid
+    });
     
-    res.json({
+    res.status(200).json({
       success: true,
-      data: { isValid },
-      timestamp: new Date().toISOString()
+      data: result,
+      message: result.valid ? 'CSRF token is valid' : 'CSRF token is invalid'
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      structuredLogger.warn('Invalid CSRF verification request', { errors: error.errors });
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid request data',
-        details: error.errors
-      });
-    }
-
-    structuredLogger.error('Failed to verify CSRF token', error as Error);
-    res.status(500).json({
+    logger.error('CSRF token verification failed', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    
+    res.status(400).json({
       success: false,
-      error: 'Failed to verify CSRF token',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Failed to verify CSRF token'
     });
   }
 });
 
 // ============================================================================
-// SANITIZACIÓN DE ENTRADA
+// INPUT SANITIZATION ENDPOINTS
 // ============================================================================
 
 /**
- * POST /sanitize
- * Sanitizar entrada de datos
+ * @route POST /v1/security-framework/sanitize
+ * @desc Sanitize input data
+ * @access Private
  */
 router.post('/sanitize', async (req, res) => {
   try {
-    const { input } = SanitizeInputSchema.parse(req.body);
+    const validatedData = SanitizeInputSchema.parse(req.body);
     
-    const sanitizedInput = advancedSecurityFramework.sanitizeInput(input);
+    const result = await advancedSecurityFramework.sanitizeInput(validatedData);
     
-    structuredLogger.info('Input sanitized');
+    logger.info('Input sanitization request processed', { 
+      type: validatedData.type,
+      threats: result.threats.length
+    });
     
-    res.json({
+    res.status(200).json({
       success: true,
-      data: { sanitizedInput },
-      timestamp: new Date().toISOString()
+      data: result,
+      message: 'Input sanitized successfully'
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      structuredLogger.warn('Invalid sanitization request', { errors: error.errors });
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid request data',
-        details: error.errors
-      });
-    }
-
-    if (error instanceof Error && error.message.includes('Blocked pattern')) {
-      structuredLogger.warn('Blocked pattern detected', { message: error.message });
-      return res.status(400).json({
-        success: false,
-        error: 'Blocked pattern detected',
-        message: error.message
-      });
-    }
-
-    structuredLogger.error('Failed to sanitize input', error as Error);
-    res.status(500).json({
+    logger.error('Input sanitization failed', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    
+    res.status(400).json({
       success: false,
-      error: 'Failed to sanitize input',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Failed to sanitize input'
     });
   }
 });
 
 // ============================================================================
-// DETECCIÓN DE AMENAZAS
+// THREAT DETECTION ENDPOINTS
 // ============================================================================
 
 /**
- * POST /threats/detect
- * Detectar amenazas en request
+ * @route POST /v1/security-framework/threats/detect
+ * @desc Detect security threats
+ * @access Private
  */
 router.post('/threats/detect', async (req, res) => {
   try {
-    const { request, ipAddress, userAgent } = DetectThreatsSchema.parse(req.body);
+    const validatedData = ThreatDetectionSchema.parse(req.body);
     
-    const result = await advancedSecurityFramework.detectThreats(request, ipAddress, userAgent);
+    const result = await advancedSecurityFramework.detectThreats(validatedData);
     
-    structuredLogger.info('Threat detection performed', { 
-      isThreat: result.isThreat, 
+    logger.info('Threat detection request processed', { 
+      ipAddress: validatedData.ipAddress,
+      threats: result.threats.length,
       riskScore: result.riskScore,
-      threats: result.threats
+      blocked: result.blocked
     });
     
-    res.json({
+    res.status(200).json({
       success: true,
       data: result,
-      timestamp: new Date().toISOString()
+      message: result.blocked ? 'Threats detected and blocked' : 'Threats detected'
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      structuredLogger.warn('Invalid threat detection request', { errors: error.errors });
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid request data',
-        details: error.errors
-      });
-    }
-
-    structuredLogger.error('Failed to detect threats', error as Error);
-    res.status(500).json({
+    logger.error('Threat detection failed', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    
+    res.status(400).json({
       success: false,
-      error: 'Failed to detect threats',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Failed to detect threats'
     });
   }
 });
 
 // ============================================================================
-// COMPLIANCE Y AUDITORÍA
+// COMPLIANCE ENDPOINTS
 // ============================================================================
 
 /**
- * POST /compliance/check
- * Verificar compliance
+ * @route POST /v1/security-framework/compliance/check
+ * @desc Check compliance status
+ * @access Private
  */
 router.post('/compliance/check', async (req, res) => {
   try {
-    const { userId, action, resource, data } = CheckComplianceSchema.parse(req.body);
+    const validatedData = ComplianceCheckSchema.parse(req.body);
     
-    const result = await advancedSecurityFramework.checkCompliance(userId, action, resource, data);
+    const result = await advancedSecurityFramework.checkCompliance(
+      validatedData.organizationId, 
+      validatedData.complianceType
+    );
     
-    structuredLogger.info('Compliance check performed', { 
-      userId, 
-      action, 
-      resource, 
+    logger.info('Compliance check request processed', { 
+      organizationId: validatedData.organizationId,
+      complianceType: validatedData.complianceType,
       compliant: result.compliant,
-      violations: result.violations
+      score: result.score
     });
     
-    res.json({
+    res.status(200).json({
       success: true,
       data: result,
-      timestamp: new Date().toISOString()
+      message: result.compliant ? 'Compliance check passed' : 'Compliance violations detected'
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      structuredLogger.warn('Invalid compliance check request', { errors: error.errors });
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid request data',
-        details: error.errors
-      });
-    }
-
-    structuredLogger.error('Failed to check compliance', error as Error);
-    res.status(500).json({
+    logger.error('Compliance check failed', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    
+    res.status(400).json({
       success: false,
-      error: 'Failed to check compliance',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Failed to check compliance'
     });
   }
 });
 
 // ============================================================================
-// MÉTRICAS Y MONITOREO
+// METRICS & MONITORING ENDPOINTS
 // ============================================================================
 
 /**
- * GET /metrics
- * Obtener métricas de seguridad
+ * @route GET /v1/security-framework/metrics
+ * @desc Get security metrics
+ * @access Private
  */
 router.get('/metrics', async (req, res) => {
   try {
     const metrics = await advancedSecurityFramework.getSecurityMetrics();
     
-    structuredLogger.info('Security metrics requested');
+    logger.info('Security metrics request processed');
     
-    res.json({
+    res.status(200).json({
       success: true,
       data: metrics,
-      timestamp: new Date().toISOString()
+      message: 'Security metrics retrieved successfully'
     });
   } catch (error) {
-    structuredLogger.error('Failed to get security metrics', error as Error);
+    logger.error('Failed to get security metrics', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    
     res.status(500).json({
       success: false,
-      error: 'Failed to get security metrics',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Failed to retrieve security metrics'
     });
   }
 });
 
-// ============================================================================
-// HEALTH CHECK
-// ============================================================================
-
 /**
- * GET /health
- * Health check del servicio de seguridad
+ * @route GET /v1/security-framework/health
+ * @desc Get health status
+ * @access Public
  */
 router.get('/health', async (req, res) => {
   try {
-    const health = {
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      services: {
-        mfa: 'operational',
-        rbac: 'operational',
-        csrf: 'operational',
-        sanitization: 'operational',
-        threatDetection: 'operational',
-        compliance: 'operational'
-      },
-      uptime: process.uptime()
-    };
-
-    structuredLogger.info('Security framework health check', health);
-
-    res.json(health);
+    const health = await advancedSecurityFramework.getHealthStatus();
+    
+    logger.info('Health check request processed', { status: health.status });
+    
+    res.status(200).json({
+      success: true,
+      data: health,
+      message: 'Health check completed'
+    });
   } catch (error) {
-    structuredLogger.error('Security framework health check failed', error as Error);
-    res.status(503).json({
-      status: 'unhealthy',
-      timestamp: new Date().toISOString(),
-      error: error instanceof Error ? error.message : 'Unknown error'
+    logger.error('Health check failed', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Health check failed'
     });
   }
 });
 
-export default router;
+// ============================================================================
+// ERROR HANDLING MIDDLEWARE
+// ============================================================================
+
+router.use((error: any, req: any, res: any, next: any) => {
+  logger.error('Advanced Security Framework route error', { 
+    error: error.message,
+    stack: error.stack,
+    path: req.path,
+    method: req.method
+  });
+  
+  res.status(500).json({
+    success: false,
+    error: 'Internal server error',
+    message: 'An unexpected error occurred'
+  });
+});
+
+export { router as advancedSecurityFrameworkRouter };

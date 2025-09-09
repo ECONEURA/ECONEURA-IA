@@ -15,7 +15,7 @@ export interface HealthCheckResult {
   name: string;
   status: 'healthy' | 'unhealthy' | 'degraded';
   message: string;
-  timestamp: string;
+  timestamp: new Date().toISOString(),
   duration: number;
   metadata?: Record<string, any>;
   dependencies?: HealthCheckResult[];
@@ -24,7 +24,7 @@ export interface HealthCheckResult {
 export interface SystemHealth {
   overall: 'healthy' | 'unhealthy' | 'degraded';
   checks: HealthCheckResult[];
-  timestamp: string;
+  timestamp: new Date().toISOString(),
   uptime: number;
   version: string;
   environment: string;

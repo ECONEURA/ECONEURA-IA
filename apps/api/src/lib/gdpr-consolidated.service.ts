@@ -858,7 +858,7 @@ export class GDPRConsolidatedService {
   private async cleanupExpiredExports(): Promise<void> {
     const now = new Date();
     const expiredExports = Array.from(this.dataExports.values())
-      .filter(exportRecord => exportRecord.expiresAt <= now && exportRecord.status === 'ready');
+      .filter(export => export.expiresAt <= now && export.status === 'ready');
 
     for (const exportRecord of expiredExports) {
       exportRecord.status = 'expired';

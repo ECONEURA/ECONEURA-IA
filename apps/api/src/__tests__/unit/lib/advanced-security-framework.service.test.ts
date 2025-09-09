@@ -1,52 +1,26 @@
-/**
- * PR-28: Advanced Security Framework Service - Unit Tests
- * 
- * Pruebas unitarias para el servicio consolidado de seguridad:
- * - Autenticación multi-factor (MFA)
- * - Autorización basada en roles (RBAC)
- * - Protección CSRF
- * - Sanitización de entrada
- * - Detección de amenazas
- * - Compliance y auditoría
- * - Métricas de seguridad
- */
-
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { AdvancedSecurityFrameworkService } from '../../../lib/advanced-security-framework.service.js';
 
-// Mock de dependencias
-vi.mock('../../../lib/structured-logger.js', () => ({
-  structuredLogger: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn()
+// Mock dependencies
+jest.mock('@econeura/shared/logger', () => ({
+  logger: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn()
   }
 }));
 
-vi.mock('../../../lib/redis.service.js', () => ({
-  getRedisService: vi.fn(() => ({
-    get: vi.fn(),
-    set: vi.fn(),
-    del: vi.fn()
-  }))
-}));
-
-vi.mock('@econeura/db', () => ({
-  getDatabaseService: vi.fn(() => ({
-    getDatabase: vi.fn(() => ({
-      insert: vi.fn(),
-      select: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn()
+jest.mock('@econeura/shared/metrics', () => ({
+  prometheusMetrics: {
+    counter: jest.fn(() => ({
+      inc: jest.fn()
+    })),
+    histogram: jest.fn(() => ({
+      observe: jest.fn()
+    })),
+    gauge: jest.fn(() => ({
+      set: jest.fn()
     }))
-  }))
-}));
-
-vi.mock('@econeura/shared/src/metrics/index.js', () => ({
-  metrics: {
-    increment: vi.fn(),
-    gauge: vi.fn(),
-    histogram: vi.fn()
   }
 }));
 
@@ -55,329 +29,467 @@ describe('AdvancedSecurityFrameworkService', () => {
 
   beforeEach(() => {
     service = new AdvancedSecurityFrameworkService();
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('MFA (Multi-Factor Authentication)', () => {
-    it('should initialize MFA for a user', async () => {
-      const userId = 'user-123';
-      
-      const result = await service.initializeMFA(userId);
-      
-      expect(result).toBeDefined();
-      expect(result.secret).toBeDefined();
-      expect(result.qrCode).toBeDefined();
-      expect(result.backupCodes).toBeDefined();
-      expect(result.backupCodes).toHaveLength(10);
+    describe('initializeMFA', () => {
+      it('should initialize MFA successfully', async () => {
+        const mfaData = {
+          userId: '123e4567-e89b-12d3-a456-426614174000',
+          method: 'totp' as const
+        };
+
+        const result = await service.initializeMFA(mfaData);
+
+        expect(result).toHaveProperty('qrCode');
+        expect(result).toHaveProperty('backupCodes');
+        expect(result.backupCodes).toHaveLength(10);
+        expect(result.qrCode).toContain('otpauth://totp/');
+      });
+
+      it('should throw error for invalid user ID', async () => {
+        const mfaData = {
+          userId: 'invalid-uuid',
+          method: 'totp' as const
+        };
+
+        await expect(service.initializeMFA(mfaData)).rejects.toThrow('Failed to initialize MFA');
+      });
+
+      it('should throw error for invalid method', async () => {
+        const mfaData = {
+          userId: '123e4567-e89b-12d3-a456-426614174000',
+          method: 'invalid' as any
+        };
+
+        await expect(service.initializeMFA(mfaData)).rejects.toThrow('Failed to initialize MFA');
+      });
     });
 
-    it('should verify MFA code', async () => {
-      const userId = 'user-123';
-      const code = '123456';
-      const method = 'totp';
-      
-      const result = await service.verifyMFACode(userId, code, method);
-      
-      expect(typeof result).toBe('boolean');
+    describe('verifyMFACode', () => {
+      beforeEach(async () => {
+        // Initialize MFA first
+        const mfaData = {
+          userId: '123e4567-e89b-12d3-a456-426614174000',
+          method: 'totp' as const
+        };
+        await service.initializeMFA(mfaData);
+      });
+
+      it('should verify valid MFA code', async () => {
+        const codeData = {
+          userId: '123e4567-e89b-12d3-a456-426614174000',
+          code: '123456',
+          method: 'totp' as const
+        };
+
+        const result = await service.verifyMFACode(codeData);
+
+        expect(result).toHaveProperty('valid');
+        expect(result).toHaveProperty('sessionToken');
+      });
+
+      it('should reject invalid MFA code', async () => {
+        const codeData = {
+          userId: '123e4567-e89b-12d3-a456-426614174000',
+          code: '000000',
+          method: 'totp' as const
+        };
+
+        const result = await service.verifyMFACode(codeData);
+
+        expect(result.valid).toBe(false);
+        expect(result.sessionToken).toBeUndefined();
+      });
+
+      it('should throw error for uninitialized user', async () => {
+        const codeData = {
+          userId: '999e4567-e89b-12d3-a456-426614174000',
+          code: '123456',
+          method: 'totp' as const
+        };
+
+        await expect(service.verifyMFACode(codeData)).rejects.toThrow('Failed to verify MFA code');
+      });
     });
 
-    it('should create MFA session', async () => {
-      const userId = 'user-123';
-      const ipAddress = '192.168.1.1';
-      const userAgent = 'Mozilla/5.0';
-      
-      const session = await service.createMFASession(userId, ipAddress, userAgent);
-      
-      expect(session).toBeDefined();
-      expect(session.userId).toBe(userId);
-      expect(session.sessionId).toBeDefined();
-      expect(session.ipAddress).toBe(ipAddress);
-      expect(session.userAgent).toBe(userAgent);
-      expect(session.expiresAt).toBeDefined();
-      expect(session.riskScore).toBeDefined();
+    describe('createMFASession', () => {
+      it('should create MFA session successfully', async () => {
+        const userId = '123e4567-e89b-12d3-a456-426614174000';
+        const sessionData = { device: 'mobile' };
+
+        const sessionId = await service.createMFASession(userId, sessionData);
+
+        expect(sessionId).toBeDefined();
+        expect(sessionId).toContain('mfa_');
+      });
     });
   });
 
   describe('RBAC (Role-Based Access Control)', () => {
-    it('should check user permission', async () => {
-      const userId = 'user-123';
-      const resource = 'users';
-      const action = 'read';
-      
-      const hasPermission = await service.checkPermission(userId, resource, action);
-      
-      expect(typeof hasPermission).toBe('boolean');
+    describe('checkPermission', () => {
+      it('should grant permission for admin user', async () => {
+        const permissionData = {
+          userId: '123e4567-e89b-12d3-a456-426614174000',
+          resource: 'users',
+          action: 'delete'
+        };
+
+        const result = await service.checkPermission(permissionData);
+
+        expect(result.allowed).toBe(true);
+        expect(result.reason).toBeUndefined();
+      });
+
+      it('should deny permission for regular user', async () => {
+        const permissionData = {
+          userId: '456e7890-e89b-12d3-a456-426614174000',
+          resource: 'admin',
+          action: 'delete'
+        };
+
+        const result = await service.checkPermission(permissionData);
+
+        expect(result.allowed).toBe(false);
+        expect(result.reason).toBe('Insufficient permissions');
+      });
+
+      it('should throw error for invalid user ID', async () => {
+        const permissionData = {
+          userId: 'invalid-uuid',
+          resource: 'users',
+          action: 'read'
+        };
+
+        await expect(service.checkPermission(permissionData)).rejects.toThrow('Failed to check permission');
+      });
     });
 
-    it('should check user permission with context', async () => {
-      const userId = 'user-123';
-      const resource = 'users';
-      const action = 'read';
-      const context = { organizationId: 'org-123' };
-      
-      const hasPermission = await service.checkPermission(userId, resource, action, context);
-      
-      expect(typeof hasPermission).toBe('boolean');
-    });
+    describe('assignRole', () => {
+      it('should assign role successfully', async () => {
+        const roleData = {
+          userId: '123e4567-e89b-12d3-a456-426614174000',
+          role: 'manager',
+          assignedBy: '456e7890-e89b-12d3-a456-426614174000'
+        };
 
-    it('should assign role to user', async () => {
-      const userId = 'user-123';
-      const roleId = 'role-456';
-      const assignedBy = 'admin-789';
-      
-      await expect(service.assignRole(userId, roleId, assignedBy)).resolves.not.toThrow();
+        const result = await service.assignRole(roleData.userId, roleData.role, roleData.assignedBy);
+
+        expect(result.success).toBe(true);
+      });
     });
   });
 
   describe('CSRF Protection', () => {
-    it('should generate CSRF token', () => {
-      const token = service.generateCSRFToken();
-      
-      expect(token).toBeDefined();
-      expect(typeof token).toBe('string');
-      expect(token.length).toBeGreaterThan(0);
+    describe('generateCSRFToken', () => {
+      it('should generate CSRF token successfully', async () => {
+        const sessionId = 'session_123';
+
+        const token = await service.generateCSRFToken(sessionId);
+
+        expect(token).toBeDefined();
+        expect(token).toHaveLength(32);
+      });
     });
 
-    it('should verify CSRF token', () => {
-      const token = service.generateCSRFToken();
-      const sessionToken = token; // Same token for valid verification
-      
-      const isValid = service.verifyCSRFToken(token, sessionToken);
-      
-      expect(typeof isValid).toBe('boolean');
-    });
+    describe('verifyCSRFToken', () => {
+      it('should verify valid CSRF token', async () => {
+        const sessionId = 'session_123';
+        const token = await service.generateCSRFToken(sessionId);
 
-    it('should reject invalid CSRF token', () => {
-      const token = 'valid-token';
-      const sessionToken = 'invalid-token';
-      
-      const isValid = service.verifyCSRFToken(token, sessionToken);
-      
-      expect(isValid).toBe(false);
+        const result = await service.verifyCSRFToken({ sessionId, token });
+
+        expect(result.valid).toBe(true);
+      });
+
+      it('should reject invalid CSRF token', async () => {
+        const sessionId = 'session_123';
+        const invalidToken = 'invalid_token_12345678901234567890';
+
+        const result = await service.verifyCSRFToken({ sessionId, token: invalidToken });
+
+        expect(result.valid).toBe(false);
+      });
     });
   });
 
   describe('Input Sanitization', () => {
-    it('should sanitize string input', () => {
-      const input = '<script>alert("xss")</script>';
-      
-      const sanitized = service.sanitizeInput(input);
-      
-      expect(sanitized).toBeDefined();
-      expect(sanitized).not.toContain('<script>');
-      expect(sanitized).toContain('&lt;script&gt;');
-    });
+    describe('sanitizeInput', () => {
+      it('should sanitize clean input', async () => {
+        const inputData = {
+          input: 'Hello, world!',
+          type: 'general' as const
+        };
 
-    it('should sanitize object input', () => {
-      const input = {
-        name: '<script>alert("xss")</script>',
-        email: 'test@example.com',
-        description: 'Safe content'
-      };
-      
-      const sanitized = service.sanitizeInput(input);
-      
-      expect(sanitized).toBeDefined();
-      expect(sanitized.name).not.toContain('<script>');
-      expect(sanitized.email).toBe('test@example.com');
-      expect(sanitized.description).toBe('Safe content');
-    });
+        const result = await service.sanitizeInput(inputData);
 
-    it('should sanitize array input', () => {
-      const input = [
-        '<script>alert("xss")</script>',
-        'Safe content',
-        '<img src="x" onerror="alert(1)">'
-      ];
-      
-      const sanitized = service.sanitizeInput(input);
-      
-      expect(sanitized).toBeDefined();
-      expect(Array.isArray(sanitized)).toBe(true);
-      expect(sanitized[0]).not.toContain('<script>');
-      expect(sanitized[1]).toBe('Safe content');
-      expect(sanitized[2]).not.toContain('onerror');
-    });
+        expect(result.sanitized).toBe('Hello, world!');
+        expect(result.threats).toHaveLength(0);
+      });
 
-    it('should throw error for blocked patterns', () => {
-      const input = 'javascript:alert("xss")';
-      
-      expect(() => service.sanitizeInput(input)).toThrow('Blocked pattern detected');
+      it('should detect and sanitize malicious input', async () => {
+        const inputData = {
+          input: '<script>alert("xss")</script>Hello',
+          type: 'html' as const
+        };
+
+        const result = await service.sanitizeInput(inputData);
+
+        expect(result.sanitized).not.toContain('<script>');
+        expect(result.threats.length).toBeGreaterThan(0);
+      });
+
+      it('should handle long input', async () => {
+        const longInput = 'a'.repeat(15000);
+        const inputData = {
+          input: longInput,
+          type: 'general' as const
+        };
+
+        const result = await service.sanitizeInput(inputData);
+
+        expect(result.sanitized.length).toBeLessThanOrEqual(10000);
+        expect(result.threats).toContain('Input exceeds maximum length');
+      });
     });
   });
 
   describe('Threat Detection', () => {
-    it('should detect threats in request', async () => {
-      const request = { query: "'; DROP TABLE users; --" };
-      const ipAddress = '192.168.1.1';
-      const userAgent = 'Mozilla/5.0';
-      
-      const result = await service.detectThreats(request, ipAddress, userAgent);
-      
-      expect(result).toBeDefined();
-      expect(result.isThreat).toBeDefined();
-      expect(typeof result.isThreat).toBe('boolean');
-      expect(result.riskScore).toBeDefined();
-      expect(typeof result.riskScore).toBe('number');
-      expect(result.threats).toBeDefined();
-      expect(Array.isArray(result.threats)).toBe(true);
-    });
+    describe('detectThreats', () => {
+      it('should detect no threats for clean request', async () => {
+        const threatData = {
+          ipAddress: '192.168.1.1',
+          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          request: { path: '/api/users', method: 'GET' },
+          riskFactors: []
+        };
 
-    it('should detect suspicious user agent', async () => {
-      const request = { data: 'normal data' };
-      const ipAddress = '192.168.1.1';
-      const userAgent = 'curl/7.68.0';
-      
-      const result = await service.detectThreats(request, ipAddress, userAgent);
-      
-      expect(result).toBeDefined();
-      expect(result.isThreat).toBeDefined();
-      expect(result.threats).toContain('suspicious_user_agent');
-    });
+        const result = await service.detectThreats(threatData);
 
-    it('should not detect threats in normal request', async () => {
-      const request = { data: 'normal data' };
-      const ipAddress = '192.168.1.1';
-      const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
-      
-      const result = await service.detectThreats(request, ipAddress, userAgent);
-      
-      expect(result).toBeDefined();
-      expect(result.isThreat).toBe(false);
-      expect(result.riskScore).toBe(0);
-      expect(result.threats).toHaveLength(0);
+        expect(result.threats).toHaveLength(0);
+        expect(result.riskScore).toBe(0);
+        expect(result.blocked).toBe(false);
+      });
+
+      it('should detect bot traffic', async () => {
+        const threatData = {
+          ipAddress: '192.168.1.1',
+          userAgent: 'Googlebot/2.1',
+          request: { path: '/api/users', method: 'GET' },
+          riskFactors: []
+        };
+
+        const result = await service.detectThreats(threatData);
+
+        expect(result.threats).toContain('Bot traffic detected');
+        expect(result.riskScore).toBeGreaterThan(0);
+      });
+
+      it('should detect suspicious patterns', async () => {
+        const threatData = {
+          ipAddress: '192.168.1.1',
+          userAgent: 'Mozilla/5.0',
+          request: { 
+            path: '/api/users', 
+            method: 'GET',
+            query: 'SELECT * FROM users WHERE id = 1'
+          },
+          riskFactors: []
+        };
+
+        const result = await service.detectThreats(threatData);
+
+        expect(result.threats.length).toBeGreaterThan(0);
+        expect(result.riskScore).toBeGreaterThan(0);
+      });
+
+      it('should block high-risk requests', async () => {
+        const threatData = {
+          ipAddress: '192.168.1.1',
+          userAgent: 'bot',
+          request: { 
+            path: '/api/users', 
+            method: 'GET',
+            query: 'SELECT * FROM users WHERE id = 1 OR 1=1'
+          },
+          riskFactors: ['sql injection', 'bot traffic']
+        };
+
+        const result = await service.detectThreats(threatData);
+
+        expect(result.blocked).toBe(true);
+        expect(result.riskScore).toBeGreaterThan(70);
+      });
     });
   });
 
   describe('Compliance', () => {
-    it('should check compliance', async () => {
-      const userId = 'user-123';
-      const action = 'read';
-      const resource = 'users';
-      const data = { userId: 'user-456' };
-      
-      const result = await service.checkCompliance(userId, action, resource, data);
-      
-      expect(result).toBeDefined();
-      expect(result.compliant).toBeDefined();
-      expect(typeof result.compliant).toBe('boolean');
-      expect(result.violations).toBeDefined();
-      expect(Array.isArray(result.violations)).toBe(true);
-    });
+    describe('checkCompliance', () => {
+      it('should check GDPR compliance', async () => {
+        const complianceData = {
+          organizationId: '123e4567-e89b-12d3-a456-426614174000',
+          complianceType: 'gdpr' as const
+        };
 
-    it('should check compliance without data', async () => {
-      const userId = 'user-123';
-      const action = 'read';
-      const resource = 'users';
-      
-      const result = await service.checkCompliance(userId, action, resource);
-      
-      expect(result).toBeDefined();
-      expect(result.compliant).toBeDefined();
-      expect(result.violations).toBeDefined();
+        const result = await service.checkCompliance(complianceData.organizationId, complianceData.complianceType);
+
+        expect(result).toHaveProperty('compliant');
+        expect(result).toHaveProperty('violations');
+        expect(result).toHaveProperty('score');
+        expect(result.score).toBeGreaterThanOrEqual(0);
+        expect(result.score).toBeLessThanOrEqual(100);
+      });
+
+      it('should check SOX compliance', async () => {
+        const complianceData = {
+          organizationId: '123e4567-e89b-12d3-a456-426614174000',
+          complianceType: 'sox' as const
+        };
+
+        const result = await service.checkCompliance(complianceData.organizationId, complianceData.complianceType);
+
+        expect(result).toHaveProperty('compliant');
+        expect(result).toHaveProperty('violations');
+        expect(result).toHaveProperty('score');
+      });
     });
   });
 
-  describe('Security Metrics', () => {
-    it('should get security metrics', async () => {
-      const metrics = await service.getSecurityMetrics();
-      
-      expect(metrics).toBeDefined();
-      expect(metrics.authentication).toBeDefined();
-      expect(metrics.authorization).toBeDefined();
-      expect(metrics.threats).toBeDefined();
-      expect(metrics.compliance).toBeDefined();
-      expect(metrics.performance).toBeDefined();
+  describe('Metrics and Monitoring', () => {
+    describe('getSecurityMetrics', () => {
+      it('should return security metrics', async () => {
+        const metrics = await service.getSecurityMetrics();
+
+        expect(metrics).toHaveProperty('authentication');
+        expect(metrics).toHaveProperty('authorization');
+        expect(metrics).toHaveProperty('threats');
+        expect(metrics).toHaveProperty('compliance');
+        expect(metrics).toHaveProperty('performance');
+
+        expect(metrics.authentication).toHaveProperty('totalLogins');
+        expect(metrics.authentication).toHaveProperty('successfulLogins');
+        expect(metrics.authentication).toHaveProperty('failedLogins');
+        expect(metrics.authentication).toHaveProperty('mfaCompletions');
+        expect(metrics.authentication).toHaveProperty('mfaFailures');
+
+        expect(metrics.authorization).toHaveProperty('permissionChecks');
+        expect(metrics.authorization).toHaveProperty('deniedAccess');
+        expect(metrics.authorization).toHaveProperty('roleAssignments');
+        expect(metrics.authorization).toHaveProperty('permissionGrants');
+
+        expect(metrics.threats).toHaveProperty('detectedThreats');
+        expect(metrics.threats).toHaveProperty('blockedIPs');
+        expect(metrics.threats).toHaveProperty('suspiciousActivities');
+        expect(metrics.threats).toHaveProperty('csrfAttacks');
+
+        expect(metrics.compliance).toHaveProperty('complianceChecks');
+        expect(metrics.compliance).toHaveProperty('violations');
+        expect(metrics.compliance).toHaveProperty('remediations');
+        expect(metrics.compliance).toHaveProperty('auditLogs');
+
+        expect(metrics.performance).toHaveProperty('avgResponseTime');
+        expect(metrics.performance).toHaveProperty('p95ResponseTime');
+        expect(metrics.performance).toHaveProperty('errorRate');
+        expect(metrics.performance).toHaveProperty('throughput');
+      });
     });
 
-    it('should have correct metrics structure', async () => {
-      const metrics = await service.getSecurityMetrics();
-      
-      // Authentication metrics
-      expect(metrics.authentication.totalLogins).toBeDefined();
-      expect(metrics.authentication.successfulLogins).toBeDefined();
-      expect(metrics.authentication.failedLogins).toBeDefined();
-      expect(metrics.authentication.mfaCompletions).toBeDefined();
-      expect(metrics.authentication.mfaFailures).toBeDefined();
-      
-      // Authorization metrics
-      expect(metrics.authorization.permissionChecks).toBeDefined();
-      expect(metrics.authorization.deniedAccess).toBeDefined();
-      expect(metrics.authorization.roleAssignments).toBeDefined();
-      expect(metrics.authorization.permissionGrants).toBeDefined();
-      
-      // Threat metrics
-      expect(metrics.threats.detectedThreats).toBeDefined();
-      expect(metrics.threats.blockedIPs).toBeDefined();
-      expect(metrics.threats.suspiciousActivities).toBeDefined();
-      expect(metrics.threats.csrfAttacks).toBeDefined();
-      
-      // Compliance metrics
-      expect(metrics.compliance.complianceChecks).toBeDefined();
-      expect(metrics.compliance.violations).toBeDefined();
-      expect(metrics.compliance.remediations).toBeDefined();
-      expect(metrics.compliance.auditLogs).toBeDefined();
-      
-      // Performance metrics
-      expect(metrics.performance.avgResponseTime).toBeDefined();
-      expect(metrics.performance.p95ResponseTime).toBeDefined();
-      expect(metrics.performance.errorRate).toBeDefined();
-      expect(metrics.performance.throughput).toBeDefined();
+    describe('getHealthStatus', () => {
+      it('should return health status', async () => {
+        const health = await service.getHealthStatus();
+
+        expect(health).toHaveProperty('status');
+        expect(health).toHaveProperty('services');
+        expect(health).toHaveProperty('lastCheck');
+
+        expect(health.status).toMatch(/^(healthy|degraded)$/);
+        expect(health.services).toHaveProperty('database');
+        expect(health.services).toHaveProperty('mfa');
+        expect(health.services).toHaveProperty('csrf');
+        expect(health.services).toHaveProperty('threatDetection');
+        expect(health.services).toHaveProperty('compliance');
+
+        expect(typeof health.services.database).toBe('boolean');
+        expect(typeof health.services.mfa).toBe('boolean');
+        expect(typeof health.services.csrf).toBe('boolean');
+        expect(typeof health.services.threatDetection).toBe('boolean');
+        expect(typeof health.services.compliance).toBe('boolean');
+      });
     });
   });
 
   describe('Error Handling', () => {
-    it('should handle MFA initialization errors gracefully', async () => {
-      // Mock error in generateMFASecret
-      vi.spyOn(crypto, 'randomBytes').mockImplementation(() => {
-        throw new Error('Crypto error');
-      });
-      
-      const userId = 'user-123';
-      
-      await expect(service.initializeMFA(userId)).rejects.toThrow('Crypto error');
+    it('should handle invalid input gracefully', async () => {
+      const invalidData = {
+        userId: 'invalid',
+        method: 'invalid'
+      };
+
+      await expect(service.initializeMFA(invalidData as any)).rejects.toThrow();
     });
 
-    it('should handle permission check errors gracefully', async () => {
-      // Mock error in getUserRoles
-      const userId = 'user-123';
-      const resource = 'users';
-      const action = 'read';
-      
-      // Should return false on error
-      const result = await service.checkPermission(userId, resource, action);
-      expect(result).toBe(false);
-    });
+    it('should handle missing required fields', async () => {
+      const incompleteData = {
+        userId: '123e4567-e89b-12d3-a456-426614174000'
+        // missing method
+      };
 
-    it('should handle threat detection errors gracefully', async () => {
-      // Mock error in detectThreats
-      const request = { data: 'test' };
-      const ipAddress = '192.168.1.1';
-      const userAgent = 'Mozilla/5.0';
-      
-      // Should return safe defaults on error
-      const result = await service.detectThreats(request, ipAddress, userAgent);
-      expect(result.isThreat).toBe(false);
-      expect(result.riskScore).toBe(0);
-      expect(result.threats).toHaveLength(0);
+      await expect(service.initializeMFA(incompleteData as any)).rejects.toThrow();
     });
   });
 
-  describe('Configuration', () => {
-    it('should have default configuration', () => {
-      // Access private config through public methods
-      const token = service.generateCSRFToken();
-      expect(token).toBeDefined();
+  describe('Integration Tests', () => {
+    it('should complete full MFA flow', async () => {
+      const userId = '123e4567-e89b-12d3-a456-426614174000';
+
+      // Initialize MFA
+      const initResult = await service.initializeMFA({
+        userId,
+        method: 'totp'
+      });
+
+      expect(initResult.qrCode).toBeDefined();
+      expect(initResult.backupCodes).toHaveLength(10);
+
+      // Verify MFA code
+      const verifyResult = await service.verifyMFACode({
+        userId,
+        code: '123456',
+        method: 'totp'
+      });
+
+      expect(verifyResult.valid).toBeDefined();
     });
 
-    it('should handle disabled features', async () => {
-      // Test with disabled CSRF
-      const token = 'test-token';
-      const sessionToken = 'different-token';
-      
-      // Should still work even with different tokens when disabled
-      const result = service.verifyCSRFToken(token, sessionToken);
-      expect(typeof result).toBe('boolean');
+    it('should complete full RBAC flow', async () => {
+      const userId = '123e4567-e89b-12d3-a456-426614174000';
+      const assignedBy = '456e7890-e89b-12d3-a456-426614174000';
+
+      // Assign role
+      const assignResult = await service.assignRole(userId, 'admin', assignedBy);
+      expect(assignResult.success).toBe(true);
+
+      // Check permission
+      const permissionResult = await service.checkPermission({
+        userId,
+        resource: 'users',
+        action: 'delete'
+      });
+
+      expect(permissionResult.allowed).toBe(true);
+    });
+
+    it('should complete full CSRF flow', async () => {
+      const sessionId = 'session_123';
+
+      // Generate token
+      const token = await service.generateCSRFToken(sessionId);
+      expect(token).toBeDefined();
+
+      // Verify token
+      const verifyResult = await service.verifyCSRFToken({ sessionId, token });
+      expect(verifyResult.valid).toBe(true);
     });
   });
 });
