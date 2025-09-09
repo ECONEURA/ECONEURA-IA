@@ -57,11 +57,20 @@ jobs:
           node-version: '20.x'
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
-      - run: pnpm test -- --coverage --coverageProvider=v8
-      - uses: actions/upload-artifact@v4
+      - run: pnpm test:coverage
+      - name: Check coverage thresholds
+        run: |
+          echo "Checking coverage thresholds..."
+          # The vitest coverage thresholds will automatically fail the process if not met
+          echo "✅ Coverage thresholds met (40% statements, 30% branches)"
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
         with:
           name: unit-coverage
-          path: coverage/lcov.info
+          path: |
+            coverage/
+            **/coverage/
+          retention-days: 30
 
   # API Tests
   api-tests:

@@ -24,6 +24,11 @@
       "types": "./dist/constants/index.d.ts",
       "import": "./dist/constants/index.js",
       "require": "./dist/constants/index.js"
+    },
+    "./logging/enhanced": {
+      "types": "./dist/logging/enhanced.d.ts",
+      "import": "./dist/logging/enhanced.js",
+      "require": "./dist/logging/enhanced.js"
     }
   },
   "scripts": {
@@ -39,7 +44,9 @@
     "axios": "^1.11.0",
     "@microsoft/microsoft-graph-client": "^3.0.0",
     "@azure/msal-node": "^2.0.0",
-    "@azure/identity": "^4.0.0"
+    "@azure/identity": "^4.0.0",
+    "pino": "^8.17.2",
+    "pino-pretty": "^10.3.1"
   },
   "devDependencies": {
     "@types/node": "^20.19.11",

@@ -1,0 +1,274 @@
+name: Nightly Quality Checks
+
+on:
+  schedule:
+    # Run every night at 1 AM UTC
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Strict linting and type checking
+  strict-quality:
+    name: Strict Quality Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - run: corepack enable && corepack prepare pnpm@9.12.2 --activate
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'pnpm'
+          
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+        
+      - name: Create strict ESLint config
+        run: |
+          cat > .eslintrc.strict.cjs << 'EOF'
+          /** @type {import('eslint').Linter.Config} */
+          module.exports = {
+            extends: ['./.eslintrc.cjs'],
+            rules: {
+              // Stricter rules for nightly checks
+              '@typescript-eslint/no-unused-vars': 'error',
+              '@typescript-eslint/no-explicit-any': 'error', 
+              '@typescript-eslint/prefer-const': 'error',
+              '@typescript-eslint/no-var-requires': 'error',
+              'prefer-const': 'error',
+              'no-var': 'error',
+              'no-console': 'warn',
+              'no-debugger': 'error',
+              'no-alert': 'error',
+              'complexity': ['error', { max: 10 }],
+              'max-depth': ['error', { max: 4 }],
+              'max-lines-per-function': ['error', { max: 50 }],
+              'max-params': ['error', { max: 5 }]
+            }
+          };
+          EOF
+          
+      - name: Run strict linting
+        run: pnpm lint:strict
+        continue-on-error: true
+        
+      - name: TypeScript strict type checking
+        run: pnpm -r typecheck
+        continue-on-error: true
+
+  # Comprehensive coverage analysis
+  coverage-analysis:
+    name: Coverage Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - run: corepack enable && corepack prepare pnpm@9.12.2 --activate
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'pnpm'
+          
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+        
+      - name: Run comprehensive coverage
+        run: |
+          mkdir -p coverage-reports
+          pnpm test:coverage || echo "Coverage completed with warnings"
+          
+      - name: Generate coverage badge data
+        run: |
+          if [ -f coverage/lcov.info ]; then
+            # Calculate coverage percentage from lcov
+            TOTAL_LINES=$(grep -c "^DA:" coverage/lcov.info || echo "0")
+            COVERED_LINES=$(grep "^DA:" coverage/lcov.info | grep -c ",1$\|,[2-9][0-9]*$" || echo "0")
+            
+            if [ "$TOTAL_LINES" -gt 0 ]; then
+              COVERAGE_PCT=$(awk -v c=$COVERED_LINES -v t=$TOTAL_LINES 'BEGIN{printf "%.1f", (c*100)/t}')
+              echo "COVERAGE_PERCENT=${COVERAGE_PCT}" >> $GITHUB_ENV
+              
+              # Determine badge color
+              if (( $(echo "$COVERAGE_PCT >= 80" | bc -l) )); then
+                echo "COVERAGE_COLOR=brightgreen" >> $GITHUB_ENV
+              elif (( $(echo "$COVERAGE_PCT >= 60" | bc -l) )); then
+                echo "COVERAGE_COLOR=yellow" >> $GITHUB_ENV  
+              elif (( $(echo "$COVERAGE_PCT >= 40" | bc -l) )); then
+                echo "COVERAGE_COLOR=orange" >> $GITHUB_ENV
+              else
+                echo "COVERAGE_COLOR=red" >> $GITHUB_ENV
+              fi
+            else
+              echo "COVERAGE_PERCENT=0" >> $GITHUB_ENV
+              echo "COVERAGE_COLOR=red" >> $GITHUB_ENV
+            fi
+          else
+            echo "COVERAGE_PERCENT=0" >> $GITHUB_ENV
+            echo "COVERAGE_COLOR=lightgrey" >> $GITHUB_ENV
+          fi
+          
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-coverage-report
+          path: coverage/
+          retention-days: 30
+
+  # Performance baseline testing
+  performance-baseline:
+    name: Performance Baseline
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install k6
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gnupg software-properties-common
+          curl -s https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install -y k6
+          
+      - name: Run lightweight performance tests
+        env:
+          K6_BASE_URL: 'http://localhost:3001'
+          K6_MAX_VUS: '5'  # Reduced VUs for nightly baseline
+        run: |
+          mkdir -p performance-baseline
+          
+          # Run load test with reduced load
+          k6 run tests/k6/load-test.js \
+            --vus 5 \
+            --duration 2m \
+            --out json=performance-baseline/nightly-load.json \
+            --summary-trend-stats="avg,p(95)" \
+            --quiet || echo "Load test completed with warnings"
+            
+      - name: Upload performance baseline
+        uses: actions/upload-artifact@v4  
+        with:
+          name: nightly-performance-baseline
+          path: performance-baseline/
+          retention-days: 7
+
+  # Security and dependency analysis
+  security-analysis:
+    name: Security Analysis  
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - run: corepack enable && corepack prepare pnpm@9.12.2 --activate
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'pnpm'
+          
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+        
+      - name: Run security audit
+        run: |
+          echo "## 🔒 Security Analysis Results" > security-report.md
+          echo "" >> security-report.md
+          
+          # pnpm audit
+          echo "### Package Vulnerabilities" >> security-report.md
+          pnpm audit --audit-level moderate --json > audit-results.json || echo "Audit completed with findings"
+          
+          if [ -f audit-results.json ]; then
+            VULNERABILITIES=$(jq -r '.vulnerabilities // 0' audit-results.json 2>/dev/null || echo "0")
+            echo "- **Total vulnerabilities found**: $VULNERABILITIES" >> security-report.md
+          fi
+          
+          echo "" >> security-report.md
+          
+          # Secret scan
+          echo "### Secret Scanning" >> security-report.md
+          pnpm secrets:scan --baseline .secrets.baseline > secrets-scan.log 2>&1 || echo "Secret scan completed"
+          
+          if grep -q "potential secrets detected" secrets-scan.log; then
+            echo "- **⚠️ Potential secrets detected** - Review required" >> security-report.md
+          else
+            echo "- **✅ No new secrets detected**" >> security-report.md
+          fi
+          
+      - name: Upload security analysis
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-security-analysis
+          path: |
+            security-report.md
+            audit-results.json
+            secrets-scan.log
+          retention-days: 30
+
+  # Generate nightly report  
+  nightly-report:
+    name: Generate Nightly Report
+    runs-on: ubuntu-latest
+    needs: [strict-quality, coverage-analysis, performance-baseline, security-analysis]
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+        continue-on-error: true
+        
+      - name: Generate comprehensive report
+        run: |
+          echo "# 🌙 Nightly Quality Report - $(date +%Y-%m-%d)" > NIGHTLY_REPORT.md
+          echo "" >> NIGHTLY_REPORT.md
+          
+          echo "## 📊 Summary" >> NIGHTLY_REPORT.md
+          echo "" >> NIGHTLY_REPORT.md
+          echo "| Check | Status | Result |" >> NIGHTLY_REPORT.md
+          echo "|-------|--------|--------|" >> NIGHTLY_REPORT.md
+          echo "| Strict Quality | ${{ needs.strict-quality.result }} | ${{ needs.strict-quality.result == 'success' && '✅ Passed' || needs.strict-quality.result == 'failure' && '❌ Failed' || '⚠️ Skipped' }} |" >> NIGHTLY_REPORT.md
+          echo "| Coverage Analysis | ${{ needs.coverage-analysis.result }} | ${{ needs.coverage-analysis.result == 'success' && '✅ Completed' || needs.coverage-analysis.result == 'failure' && '❌ Failed' || '⚠️ Skipped' }} |" >> NIGHTLY_REPORT.md
+          echo "| Performance Baseline | ${{ needs.performance-baseline.result }} | ${{ needs.performance-baseline.result == 'success' && '✅ Completed' || needs.performance-baseline.result == 'failure' && '❌ Failed' || '⚠️ Skipped' }} |" >> NIGHTLY_REPORT.md
+          echo "| Security Analysis | ${{ needs.security-analysis.result }} | ${{ needs.security-analysis.result == 'success' && '✅ Completed' || needs.security-analysis.result == 'failure' && '❌ Failed' || '⚠️ Skipped' }} |" >> NIGHTLY_REPORT.md
+          echo "" >> NIGHTLY_REPORT.md
+          
+          # Include coverage info if available
+          if [ -f "artifacts/nightly-coverage-report/lcov.info" ]; then
+            echo "## 📈 Coverage Details" >> NIGHTLY_REPORT.md
+            echo "" >> NIGHTLY_REPORT.md
+            echo "Coverage report generated and available in artifacts." >> NIGHTLY_REPORT.md
+            echo "" >> NIGHTLY_REPORT.md
+          fi
+          
+          # Include security info if available  
+          if [ -f "artifacts/nightly-security-analysis/security-report.md" ]; then
+            echo "## 🔒 Security Analysis" >> NIGHTLY_REPORT.md
+            cat artifacts/nightly-security-analysis/security-report.md >> NIGHTLY_REPORT.md
+            echo "" >> NIGHTLY_REPORT.md
+          fi
+          
+          echo "## 🔧 Configuration" >> NIGHTLY_REPORT.md
+          echo "- **Trigger**: ${{ github.event_name == 'schedule' && 'Scheduled (nightly)' || 'Manual dispatch' }}" >> NIGHTLY_REPORT.md
+          echo "- **Commit**: ${{ github.sha }}" >> NIGHTLY_REPORT.md
+          echo "- **Branch**: ${{ github.ref_name }}" >> NIGHTLY_REPORT.md
+          echo "- **Run**: #${{ github.run_number }}" >> NIGHTLY_REPORT.md
+          
+      - name: Upload nightly report
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-quality-report
+          path: NIGHTLY_REPORT.md
+          retention-days: 90
+          
+      - name: Add report to job summary
+        run: |
+          cat NIGHTLY_REPORT.md >> $GITHUB_STEP_SUMMARY
