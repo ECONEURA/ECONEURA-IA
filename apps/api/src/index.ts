@@ -150,6 +150,7 @@ import { cockpitBFFLiveService } from './services/cockpit-bff-live.service.js';
 
 // PR-100: GDPR HITL Routes
 import gdprHITLRouter from './routes/gdpr-hitl.js';
+import rlsTenantPoliciesRouter from './routes/rls-tenant-policies.js';
 
 // PR-25: Biblioteca de prompts
 import { promptLibrary } from './lib/prompt-library.service.js';
@@ -1459,6 +1460,19 @@ app.get("/", (req, res) => {
         "POST /v1/gdpr-hitl/workflows - Create workflow (PR-100)",
         "GET /v1/gdpr-hitl/workflows - Get workflows (PR-100)"
       ],
+      rlsTenantPolicies: [
+        "GET /v1/rls-tenant-policies/policies/:tenantId - Get tenant policies (PR-101)",
+        "POST /v1/rls-tenant-policies/policies - Create tenant policy (PR-101)",
+        "GET /v1/rls-tenant-policies/policies/:tenantId/:policyId - Get specific policy (PR-101)",
+        "GET /v1/rls-tenant-policies/rules/:tenantId - Get tenant rules (PR-101)",
+        "POST /v1/rls-tenant-policies/rules - Create tenant rule (PR-101)",
+        "POST /v1/rls-tenant-policies/evaluate-access - Evaluate tenant access (PR-101)",
+        "POST /v1/rls-tenant-policies/contexts - Create tenant context (PR-101)",
+        "GET /v1/rls-tenant-policies/contexts/:sessionId - Get tenant context (PR-101)",
+        "GET /v1/rls-tenant-policies/stats/:tenantId - Get tenant statistics (PR-101)",
+        "POST /v1/rls-tenant-policies/generate-policy - Generate tenant policy (PR-101)",
+        "GET /v1/rls-tenant-policies/health - Health check (PR-101)"
+      ],
       sepa: [
         "POST /v1/sepa/parse - Parse SEPA XML data (PR-42)",
         "GET /v1/sepa/transactions - Get parsed transactions"
@@ -1657,6 +1671,7 @@ app.use('/v1/cockpit-bff-live', cockpitBFFLiveRouter);
 
 // PR-100: GDPR HITL Routes
 app.use('/v1/gdpr-hitl', gdprHITLRouter);
+app.use('/v1/rls-tenant-policies', rlsTenantPoliciesRouter);
 
 // Mount Events (SSE) routes
 app.use('/v1/events', eventsRouter);
@@ -1768,6 +1783,7 @@ const server = app.listen(PORT, async () => {
       'PR-42: SEPA Ingest + Parsing',
       'PR-43: GDPR Export/Erase + Audit',
       'PR-100: GDPR HITL Integration',
+      'PR-101: RLS Tenant Policies',
       'PR-45: FinOps Panel completo',
       'PR-46: Quiet Hours + On-Call Management',
       'PR-47: Warmup IA/Search + Performance Optimization',
@@ -1780,6 +1796,7 @@ const server = app.listen(PORT, async () => {
       'FinOps System: Budget management, cost tracking, optimization',
       'GDPR Services: Export, erase, audit compliance',
       'GDPR HITL: Human-in-the-loop GDPR workflows',
+      'RLS Tenant Policies: Row-level security with tenant isolation',
       'SEPA Parser: XML parsing and transaction matching',
       'Analytics: Event tracking and metrics',
       'Cache Manager: Multi-layer caching system',
