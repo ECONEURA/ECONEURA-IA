@@ -148,6 +148,9 @@ import finOpsAdminRouter from './routes/finops-admin.js';
 import cockpitBFFLiveRouter from './routes/cockpit-bff-live.js';
 import { cockpitBFFLiveService } from './services/cockpit-bff-live.service.js';
 
+// PR-100: GDPR HITL Routes
+import gdprHITLRouter from './routes/gdpr-hitl.js';
+
 // PR-25: Biblioteca de prompts
 import { promptLibrary } from './lib/prompt-library.service.js';
 import { promptLibraryRouter } from './routes/prompt-library.js';
@@ -1446,6 +1449,16 @@ app.get("/", (req, res) => {
         "DELETE /v1/gdpr/erase/:userId - Erase user data (PR-43)",
         "GET /v1/gdpr/audit - GDPR audit logs (PR-43)"
       ],
+      gdprHitl: [
+        "POST /v1/gdpr-hitl/requests - Create GDPR HITL request (PR-100)",
+        "GET /v1/gdpr-hitl/requests - Get GDPR HITL requests (PR-100)",
+        "GET /v1/gdpr-hitl/requests/:id - Get GDPR HITL request (PR-100)",
+        "POST /v1/gdpr-hitl/requests/:id/decisions - Make decision (PR-100)",
+        "GET /v1/gdpr-hitl/stats/:organizationId - Get HITL statistics (PR-100)",
+        "POST /v1/gdpr-hitl/gdpr-requests-with-hitl - Create GDPR request with HITL (PR-100)",
+        "POST /v1/gdpr-hitl/workflows - Create workflow (PR-100)",
+        "GET /v1/gdpr-hitl/workflows - Get workflows (PR-100)"
+      ],
       sepa: [
         "POST /v1/sepa/parse - Parse SEPA XML data (PR-42)",
         "GET /v1/sepa/transactions - Get parsed transactions"
@@ -1642,6 +1655,9 @@ app.use('/v1/finops-admin', finOpsAdminRouter);
 // PR-98: Cockpit BFF Live Routes
 app.use('/v1/cockpit-bff-live', cockpitBFFLiveRouter);
 
+// PR-100: GDPR HITL Routes
+app.use('/v1/gdpr-hitl', gdprHITLRouter);
+
 // Mount Events (SSE) routes
 app.use('/v1/events', eventsRouter);
 
@@ -1751,6 +1767,7 @@ const server = app.listen(PORT, async () => {
       'PR-29: Rate limiting + Budget guard',
       'PR-42: SEPA Ingest + Parsing',
       'PR-43: GDPR Export/Erase + Audit',
+      'PR-100: GDPR HITL Integration',
       'PR-45: FinOps Panel completo',
       'PR-46: Quiet Hours + On-Call Management',
       'PR-47: Warmup IA/Search + Performance Optimization',
@@ -1762,6 +1779,7 @@ const server = app.listen(PORT, async () => {
     services: [
       'FinOps System: Budget management, cost tracking, optimization',
       'GDPR Services: Export, erase, audit compliance',
+      'GDPR HITL: Human-in-the-loop GDPR workflows',
       'SEPA Parser: XML parsing and transaction matching',
       'Analytics: Event tracking and metrics',
       'Cache Manager: Multi-layer caching system',
