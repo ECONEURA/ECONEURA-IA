@@ -1,139 +1,228 @@
 #!/usr/bin/env node
+
 /**
- * Script para actualizar imports después de consolidación
- * Lee RENAME_MAP.csv y actualiza todos los imports
+ * Update Imports Script
+ * PR-90: De-duplicación segura (git mv + codemod)
+ * 
+ * Reescribe imports/exports según RENAME_MAP.csv
+ * Actualiza barrels (index.ts) y respeta tsconfig.paths
+ * Falla si tsc --noEmit rompe
  */
 
-import { readFileSync, writeFileSync, readdirSync, statSync } from 'fs';
-import { join, dirname, relative } from 'path';
+import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { parse } from 'csv-parse/sync';
+import { execSync } from 'child_process';
 
-// Mapeo de renombrado
-const renameMap = new Map();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const projectRoot = join(__dirname, '..', '..');
 
 function loadRenameMap() {
   try {
-    const csvContent = readFileSync('docs/RENAME_MAP.csv', 'utf8');
-    const records = parse(csvContent, { columns: true, skip_empty_lines: true });
+    const csvPath = join(projectRoot, 'docs', 'RENAME_MAP.csv');
+    const csvContent = readFileSync(csvPath, 'utf8');
     
-    for (const record of records) {
-      if (record.action === 'move') {
-        renameMap.set(record.old_path, record.new_path);
-      } else if (record.action === 'delete') {
-        renameMap.set(record.old_path, null); // null = eliminar
-      }
-    }
+    const records = parse(csvContent, {
+      columns: true,
+      skip_empty_lines: true
+    });
     
-    console.log(`📋 Cargado mapeo de ${renameMap.size} archivos`);
+    return records;
   } catch (error) {
-    console.error('Error cargando RENAME_MAP.csv:', error.message);
+    console.error(`❌ Error cargando RENAME_MAP.csv: ${error.message}`);
+    throw error;
   }
 }
 
-function findSourceFiles(dir) {
+function findFilesToUpdate() {
+  const extensions = ['.ts', '.tsx', '.js', '.jsx'];
   const files = [];
   
-  function traverse(currentDir) {
-    const items = readdirSync(currentDir);
-    
-    for (const item of items) {
-      const fullPath = join(currentDir, item);
-      const stat = statSync(fullPath);
+  function scanDirectory(dir) {
+    try {
+      const entries = readdirSync(dir, { withFileTypes: true });
       
-      if (stat.isDirectory()) {
-        // Saltar directorios que no nos interesan
-        if (!['node_modules', '.git', '.next', 'dist', 'build', 'coverage'].includes(item)) {
-          traverse(fullPath);
+      for (const entry of entries) {
+        const fullPath = join(dir, entry.name);
+        
+        if (entry.isDirectory()) {
+          // Skip node_modules, dist, build, etc.
+          if (!['node_modules', 'dist', 'build', '.next', '.git', 'coverage'].includes(entry.name)) {
+            scanDirectory(fullPath);
+          }
+        } else if (entry.isFile()) {
+          const ext = entry.name.substring(entry.name.lastIndexOf('.'));
+          if (extensions.includes(ext)) {
+            files.push(fullPath);
+          }
         }
-      } else if (item.endsWith('.ts') || item.endsWith('.tsx')) {
-        files.push(fullPath);
       }
+    } catch (error) {
+      // Skip directories we can't read
     }
   }
   
-  traverse(dir);
+  // Scan main directories
+  const mainDirs = ['apps', 'packages', 'econeura-cockpit'];
+  for (const dir of mainDirs) {
+    const fullDir = join(projectRoot, dir);
+    if (existsSync(fullDir)) {
+      scanDirectory(fullDir);
+    }
+  }
+  
   return files;
 }
 
-function updateImportsInFile(filePath) {
+function updateImportsInFile(filePath, renameMap) {
   try {
     const content = readFileSync(filePath, 'utf8');
-    let updated = false;
-    let newContent = content;
+    let updatedContent = content;
+    let hasChanges = false;
     
-    // Buscar imports que necesiten actualización
-    for (const [oldPath, newPath] of renameMap) {
-      if (newPath === null) continue; // Saltar archivos eliminados
-      
-      // Patrones de import a buscar
+    // Create mapping from old to new paths
+    const pathMap = new Map();
+    for (const record of renameMap) {
+      // Remove .ts extension for imports
+      const fromPath = record.from.replace(/\.ts$/, '');
+      const toPath = record.to.replace(/\.ts$/, '');
+      pathMap.set(fromPath, toPath);
+    }
+    
+    // Update import statements
+    for (const [fromPath, toPath] of pathMap) {
+      // Match various import patterns
       const patterns = [
-        new RegExp(`from ['"]${oldPath.replace(/\.ts$/, '')}['"]`, 'g'),
-        new RegExp(`from ['"]${oldPath.replace(/\.ts$/, '.js')}['"]`, 'g'),
-        new RegExp(`import ['"]${oldPath.replace(/\.ts$/, '')}['"]`, 'g'),
-        new RegExp(`import ['"]${oldPath.replace(/\.ts$/, '.js')}['"]`, 'g')
+        // Relative imports
+        new RegExp(`from ['"]\\.\\.?/.*${fromPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"]`, 'g'),
+        // Absolute imports from packages
+        new RegExp(`from ['"]@econeura/.*${fromPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"]`, 'g'),
+        // Direct file imports
+        new RegExp(`from ['"]${fromPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"]`, 'g')
       ];
       
       for (const pattern of patterns) {
-        if (pattern.test(newContent)) {
-          // Calcular ruta relativa
-          const relativePath = relative(dirname(filePath), newPath.replace(/\.ts$/, ''));
-          const importPath = relativePath.startsWith('.') ? relativePath : `./${relativePath}`;
-          
-          newContent = newContent.replace(pattern, (match) => {
-            return match.replace(oldPath.replace(/\.ts$/, ''), importPath);
-          });
-          updated = true;
+        const matches = updatedContent.match(pattern);
+        if (matches) {
+          for (const match of matches) {
+            const newImport = match.replace(fromPath, toPath);
+            updatedContent = updatedContent.replace(match, newImport);
+            hasChanges = true;
+          }
         }
       }
     }
     
-    if (updated) {
-      writeFileSync(filePath, newContent);
-      console.log(`✅ Actualizado: ${filePath}`);
+    if (hasChanges) {
+      writeFileSync(filePath, updatedContent);
+      console.log(`✅ Updated imports in: ${filePath}`);
       return true;
     }
     
     return false;
   } catch (error) {
-    console.error(`❌ Error actualizando ${filePath}:`, error.message);
+    console.error(`❌ Error updating ${filePath}: ${error.message}`);
     return false;
   }
 }
 
-function updateImports() {
-  console.log('🚀 Iniciando actualización de imports...');
-  
-  loadRenameMap();
-  
-  const sourceFiles = [
-    ...findSourceFiles('apps'),
-    ...findSourceFiles('packages'),
-    ...findSourceFiles('tests')
+function updateBarrelFiles(renameMap) {
+  const barrelFiles = [
+    'packages/shared/src/index.ts',
+    'packages/shared/schemas/index.ts',
+    'packages/shared/utils/index.ts',
+    'packages/shared/middleware/index.ts',
+    'apps/api/src/lib/index.ts',
+    'apps/web/src/lib/index.ts'
   ];
   
-  console.log(`📁 Encontrados ${sourceFiles.length} archivos fuente`);
-  
-  let updatedCount = 0;
-  
-  for (const file of sourceFiles) {
-    if (updateImportsInFile(file)) {
-      updatedCount++;
+  for (const barrelFile of barrelFiles) {
+    const fullPath = join(projectRoot, barrelFile);
+    if (existsSync(fullPath)) {
+      try {
+        const content = readFileSync(fullPath, 'utf8');
+        let updatedContent = content;
+        let hasChanges = false;
+        
+        // Update export statements
+        for (const record of renameMap) {
+          const fromPath = record.from.replace(/\.ts$/, '');
+          const toPath = record.to.replace(/\.ts$/, '');
+          
+          const patterns = [
+            new RegExp(`from ['"]\\.\\.?/.*${fromPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"]`, 'g'),
+            new RegExp(`from ['"]${fromPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"]`, 'g')
+          ];
+          
+          for (const pattern of patterns) {
+            const matches = updatedContent.match(pattern);
+            if (matches) {
+              for (const match of matches) {
+                const newExport = match.replace(fromPath, toPath);
+                updatedContent = updatedContent.replace(match, newExport);
+                hasChanges = true;
+              }
+            }
+          }
+        }
+        
+        if (hasChanges) {
+          writeFileSync(fullPath, updatedContent);
+          console.log(`✅ Updated barrel file: ${barrelFile}`);
+        }
+      } catch (error) {
+        console.error(`❌ Error updating barrel ${barrelFile}: ${error.message}`);
+      }
     }
-  }
-  
-  console.log(`\n📊 RESUMEN DE ACTUALIZACIÓN`);
-  console.log('========================');
-  console.log(`📁 Archivos procesados: ${sourceFiles.length}`);
-  console.log(`✅ Archivos actualizados: ${updatedCount}`);
-  console.log(`📋 Mapeos aplicados: ${renameMap.size}`);
-  
-  if (updatedCount > 0) {
-    console.log('\n💡 Próximos pasos:');
-    console.log('1. Verificar que los imports sean correctos');
-    console.log('2. Ejecutar tests para verificar funcionalidad');
-    console.log('3. Hacer commit de los cambios');
   }
 }
 
-// Ejecutar actualización
-updateImports();
+async function main() {
+  try {
+    console.log(`🔄 Iniciando actualización de imports...`);
+    
+    // Load rename map
+    const renameMap = loadRenameMap();
+    console.log(`📊 Mapeo de renombrado cargado: ${renameMap.length} entradas`);
+    
+    // Find files to update
+    const files = findFilesToUpdate();
+    console.log(`📁 Archivos encontrados: ${files.length}`);
+    
+    // Update imports in files
+    let updatedFiles = 0;
+    for (const file of files) {
+      if (updateImportsInFile(file, renameMap)) {
+        updatedFiles++;
+      }
+    }
+    
+    // Update barrel files
+    updateBarrelFiles(renameMap);
+    
+    console.log(`✅ Archivos actualizados: ${updatedFiles}`);
+    console.log(`📊 Total procesados: ${files.length}`);
+    
+    // Verify TypeScript compilation
+    console.log(`🔍 Verificando compilación TypeScript...`);
+    
+    try {
+      execSync('pnpm -w typecheck', { 
+        cwd: projectRoot, 
+        stdio: 'pipe' 
+      });
+      console.log(`✅ Compilación TypeScript exitosa`);
+    } catch (error) {
+      console.error(`❌ Error en compilación TypeScript: ${error.message}`);
+      process.exit(1);
+    }
+    
+  } catch (error) {
+    console.error(`❌ Error en actualización de imports: ${error.message}`);
+    process.exit(1);
+  }
+}
+
+main();

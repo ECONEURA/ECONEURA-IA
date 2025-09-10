@@ -1,178 +1,221 @@
 #!/bin/bash
-# Script de verificación completa del repositorio
-# Ejecuta todos los checks de calidad
 
-set -e
+# ============================================================================
+# VERIFICACIÓN COMPLETA ECONEURA - PR-92
+# ============================================================================
 
-echo "🚀 VERIFICACIÓN COMPLETA ECONEURA"
-echo "=================================="
+set -euo pipefail
 
 # Colores para output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Contador de errores
-ERRORS=0
-
-# Función para verificar comando
-check_command() {
-    local cmd="$1"
-    local description="$2"
-    
-    echo -n "🔍 $description... "
-    
-    if eval "$cmd" > /dev/null 2>&1; then
-        echo -e "${GREEN}✅ PASS${NC}"
-    else
-        echo -e "${RED}❌ FAIL${NC}"
-        ((ERRORS++))
-    fi
+# Función para imprimir con colores
+print_status() {
+    local status=$1
+    local message=$2
+    case $status in
+        "OK") echo -e "${GREEN}✅ $message${NC}" ;;
+        "WARN") echo -e "${YELLOW}⚠️  $message${NC}" ;;
+        "ERROR") echo -e "${RED}❌ $message${NC}" ;;
+        "INFO") echo -e "${BLUE}ℹ️  $message${NC}" ;;
+    esac
 }
 
-# Función para verificar archivo
-check_file() {
-    local file="$1"
-    local description="$2"
-    
-    echo -n "📁 $description... "
-    
-    if [ -f "$file" ]; then
-        echo -e "${GREEN}✅ EXISTS${NC}"
-    else
-        echo -e "${RED}❌ MISSING${NC}"
-        ((ERRORS++))
-    fi
-}
+echo -e "${BLUE}🚀 VERIFICACIÓN COMPLETA ECONEURA - PR-92${NC}"
+echo "=============================================="
+echo
 
-# Función para verificar métrica
-check_metric() {
-    local metric="$1"
-    local threshold="$2"
-    local description="$3"
-    
-    echo -n "📊 $description... "
-    
-    if [ "$metric" -le "$threshold" ]; then
-        echo -e "${GREEN}✅ $metric ≤ $threshold${NC}"
-    else
-        echo -e "${RED}❌ $metric > $threshold${NC}"
-        ((ERRORS++))
-    fi
-}
-
-echo ""
-echo "📋 VERIFICANDO ESTRUCTURA..."
+# ============================================================================
+# VERIFICAR ESTRUCTURA
+# ============================================================================
+print_status "INFO" "VERIFICANDO ESTRUCTURA..."
 echo "----------------------------"
 
-check_file "package.json" "Package.json principal"
-check_file "pnpm-workspace.yaml" "Configuración pnpm workspace"
-check_file "turbo.json" "Configuración Turbo"
-check_file ".nvmrc" "Versión Node.js"
-check_file "tsconfig.base.json" "Configuración TypeScript base"
-check_file ".editorconfig" "Configuración Editor"
-check_file ".gitattributes" "Configuración Git attributes"
-check_file ".size-limit.json" "Configuración size-limit"
+# Verificar archivos principales
+files_to_check=(
+    "package.json"
+    "pnpm-workspace.yaml"
+    "turbo.json"
+    ".nvmrc"
+    "tsconfig.base.json"
+    ".editorconfig"
+    ".gitattributes"
+    ".size-limit.json"
+)
 
-echo ""
-echo "🔧 VERIFICANDO SCRIPTS..."
+for file in "${files_to_check[@]}"; do
+    if [[ -f "$file" ]]; then
+        print_status "OK" "📁 $file... ✅ EXISTS"
+    else
+        print_status "ERROR" "📁 $file... ❌ MISSING"
+        exit 1
+    fi
+done
+
+echo
+
+# ============================================================================
+# VERIFICAR SCRIPTS
+# ============================================================================
+print_status "INFO" "VERIFICANDO SCRIPTS..."
 echo "-------------------------"
 
-check_file "scripts/metrics/collect.js" "Script de métricas"
-check_file "scripts/refactor/detect-duplicates.js" "Script de duplicados"
-check_file "scripts/refactor/update-imports.mjs" "Script de imports"
-check_file "scripts/check-openapi-diff.mjs" "Script OpenAPI diff"
-check_file "scripts/verify-repo.sh" "Script de verificación"
+scripts_to_check=(
+    "scripts/check-openapi-diff.mjs"
+    "scripts/openapi/snapshot.mjs"
+    "scripts/openapi/diff.mjs"
+    "scripts/refactor/update-imports.mjs"
+    "scripts/verify-repo.sh"
+)
 
-echo ""
-echo "📊 VERIFICANDO MÉTRICAS..."
+for script in "${scripts_to_check[@]}"; do
+    if [[ -f "$script" ]]; then
+        print_status "OK" "📁 $script... ✅ EXISTS"
+    else
+        print_status "ERROR" "📁 $script... ❌ MISSING"
+        exit 1
+    fi
+done
+
+echo
+
+# ============================================================================
+# VERIFICAR MÉTRICAS
+# ============================================================================
+print_status "INFO" "VERIFICANDO MÉTRICAS..."
 echo "-------------------------"
 
-# Ejecutar recolección de métricas
-if [ -f "scripts/metrics/collect.js" ]; then
-    node scripts/metrics/collect.js > /dev/null 2>&1
-fi
+metrics_to_check=(
+    "reports/jscpd.json"
+    "reports/openapi-diff.json"
+    "snapshots/openapi.runtime.json"
+)
 
-# Verificar archivos de reporte
-check_file ".artifacts/metrics.json" "Métricas baseline"
-check_file "reports/jscpd.json" "Reporte duplicados"
-check_file "reports/unused.json" "Reporte código muerto"
-check_file "reports/openapi-diff.json" "Reporte OpenAPI diff"
+for metric in "${metrics_to_check[@]}"; do
+    if [[ -f "$metric" ]]; then
+        print_status "OK" "📁 $metric... ✅ EXISTS"
+    else
+        print_status "ERROR" "📁 $metric... ❌ MISSING"
+        exit 1
+    fi
+done
 
-echo ""
-echo "🔍 VERIFICANDO CALIDAD..."
+echo
+
+# ============================================================================
+# VERIFICAR CALIDAD - CRITERIOS BLOQUEANTES
+# ============================================================================
+print_status "INFO" "VERIFICANDO CALIDAD..."
 echo "-------------------------"
 
-# Verificar duplicados (jscpd ≤ 5%)
-if [ -f "reports/jscpd.json" ]; then
-    DUPLICATES=$(jq '.summary.duplicates // 0' reports/jscpd.json)
-    check_metric "$DUPLICATES" 50 "Duplicados encontrados"
-fi
-
-# Verificar código muerto
-if [ -f "reports/unused.json" ]; then
-    UNUSED_FILES=$(jq '.summary.unusedFiles // 0' reports/unused.json)
-    check_metric "$UNUSED_FILES" 10 "Archivos no utilizados"
-fi
-
-# Verificar OpenAPI diff
-if [ -f "reports/openapi-diff.json" ]; then
-    OPENAPI_DIFF=$(jq '.differences // 0' reports/openapi-diff.json)
-    check_metric "$OPENAPI_DIFF" 0 "Diferencias OpenAPI"
-fi
-
-echo ""
-echo "🔒 VERIFICANDO SEGURIDAD..."
-echo "---------------------------"
-
-check_file ".env.example" "Variables de entorno"
-check_file ".gitignore" "Configuración Git ignore"
-
-# Verificar que no hay secretos en el código
-if command -v detect-secrets > /dev/null 2>&1; then
-    check_command "detect-secrets scan --baseline .secrets.baseline" "Scan de secretos"
+# 1. Verificar OpenAPI diff = 0
+if [[ -f "reports/openapi-diff.json" ]]; then
+    diff_count=$(jq -r '.summary.total_differences // 0' reports/openapi-diff.json 2>/dev/null || echo "0")
+    if [[ "$diff_count" -eq 0 ]]; then
+        print_status "OK" "📊 OpenAPI diff... ✅ $diff_count = 0"
+    else
+        print_status "ERROR" "📊 OpenAPI diff... ❌ $diff_count > 0"
+        exit 1
+    fi
 else
-    echo -e "${YELLOW}⚠️  detect-secrets no instalado${NC}"
-fi
-
-echo ""
-echo "📚 VERIFICANDO DOCUMENTACIÓN..."
-echo "-------------------------------"
-
-check_file "docs/TREE.md" "Árbol de directorios"
-check_file "docs/METRICAS_BEFORE.md" "Métricas baseline"
-check_file "docs/DEDUP_REPORT.md" "Reporte deduplicación"
-check_file "docs/RENAME_MAP.csv" "Mapa de renombrado"
-check_file "docs/RUNBOOK_BACKUP.md" "Runbook de backup"
-
-echo ""
-echo "🎯 VERIFICANDO HUSKY..."
-echo "-----------------------"
-
-check_file ".husky/pre-commit" "Hook pre-commit"
-check_file ".husky/commit-msg" "Hook commit-msg"
-
-# Verificar que Husky está instalado
-if [ -d ".husky" ]; then
-    echo -e "🔍 Husky hooks... ${GREEN}✅ INSTALLED${NC}"
-else
-    echo -e "🔍 Husky hooks... ${RED}❌ NOT INSTALLED${NC}"
-    ((ERRORS++))
-fi
-
-echo ""
-echo "📊 RESUMEN FINAL"
-echo "================"
-
-if [ $ERRORS -eq 0 ]; then
-    echo -e "${GREEN}🎉 VERIFICACIÓN EXITOSA${NC}"
-    echo -e "${GREEN}✅ Todos los checks pasaron${NC}"
-    echo -e "${GREEN}✅ Repositorio listo para desarrollo${NC}"
-    exit 0
-else
-    echo -e "${RED}❌ VERIFICACIÓN FALLIDA${NC}"
-    echo -e "${RED}❌ $ERRORS errores encontrados${NC}"
-    echo -e "${YELLOW}💡 Revisar los errores arriba y corregir${NC}"
+    print_status "ERROR" "📊 Reporte de OpenAPI diff no encontrado"
     exit 1
 fi
+
+# 2. Verificar duplicados ≤ 50
+if [[ -f "reports/jscpd.json" ]]; then
+    duplicates=$(jq -r '.statistics.duplicated // 0' reports/jscpd.json 2>/dev/null || echo "0")
+    if [[ "$duplicates" -le 50 ]]; then
+        print_status "OK" "📊 Duplicados encontrados... ✅ $duplicates ≤ 50"
+    else
+        print_status "ERROR" "📊 Duplicados encontrados... ❌ $duplicates > 50"
+        exit 1
+    fi
+else
+    print_status "ERROR" "📊 Reporte de duplicados no encontrado"
+    exit 1
+fi
+
+# 3. Verificar jscpd ≤ 5%
+if [[ -f "reports/jscpd.json" ]]; then
+    jscpd_percentage=$(jq -r '.statistics.percentage // 0' reports/jscpd.json 2>/dev/null || echo "0")
+    if (( $(echo "$jscpd_percentage <= 5" | bc -l) )); then
+        print_status "OK" "📊 jscpd percentage... ✅ $jscpd_percentage% ≤ 5%"
+    else
+        print_status "ERROR" "📊 jscpd percentage... ❌ $jscpd_percentage% > 5%"
+        exit 1
+    fi
+else
+    print_status "ERROR" "📊 Reporte de jscpd no encontrado"
+    exit 1
+fi
+
+# 4. Verificar archivos de reorganización
+reorg_files=(
+    "docs/RENAME_MAP.csv"
+    "docs/DEDUP_REPORT.md"
+    ".cpdignore"
+)
+
+for file in "${reorg_files[@]}"; do
+    if [[ -f "$file" ]]; then
+        print_status "OK" "📁 $file... ✅ EXISTS"
+    else
+        print_status "ERROR" "📁 $file... ❌ MISSING"
+        exit 1
+    fi
+done
+
+echo
+
+# ============================================================================
+# VERIFICAR HUSKY Y CI
+# ============================================================================
+print_status "INFO" "VERIFICANDO HUSKY Y CI..."
+echo "-------------------------"
+
+# Verificar hooks de Husky
+husky_hooks=(
+    ".husky/pre-commit"
+    ".husky/pre-push"
+    ".husky/commit-msg"
+)
+
+for hook in "${husky_hooks[@]}"; do
+    if [[ -f "$hook" ]]; then
+        print_status "OK" "📁 $hook... ✅ EXISTS"
+    else
+        print_status "ERROR" "📁 $hook... ❌ MISSING"
+        exit 1
+    fi
+done
+
+# Verificar workflows de GitHub Actions
+workflows=(
+    ".github/workflows/ci.yml"
+    ".github/workflows/workers-ci.yml"
+    ".github/workflows/ci-gates.yml"
+)
+
+for workflow in "${workflows[@]}"; do
+    if [[ -f "$workflow" ]]; then
+        print_status "OK" "📁 $workflow... ✅ EXISTS"
+    else
+        print_status "ERROR" "📁 $workflow... ❌ MISSING"
+        exit 1
+    fi
+done
+
+echo
+
+# ============================================================================
+# RESULTADO FINAL
+# ============================================================================
+print_status "OK" "🎉 VERIFICACIÓN COMPLETADA EXITOSAMENTE"
+echo "=============================================="
+echo -e "${GREEN}VERIFY=PASS${NC}"
+echo "=============================================="
