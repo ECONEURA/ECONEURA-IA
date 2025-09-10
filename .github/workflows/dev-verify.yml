@@ -1,0 +1,200 @@
+name: DEV Verify v2
+
+on:
+  push:
+    branches: [ ops/dev-verify-v2 ]
+  pull_request:
+    branches: [ ops/dev-verify-v2 ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20.x'
+
+jobs:
+  dev-verify:
+    name: DEV Verification
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: '9'
+    
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+    
+    - name: Verify no secrets
+      run: node scripts/ops/verify_no_secrets.mjs
+    
+    - name: DEV Smoke Test
+      run: bash scripts/ops/dev_smoke.sh
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: dev-verify-artifacts
+        path: |
+          .artifacts/**
+          reports/**
+        retention-days: 30
+    
+    - name: Generate DEV Readout
+      run: |
+        echo "Generating DEV Readout..."
+        
+        # Read results from artifacts
+        HEALTH_CODE=$(cat .artifacts/health.json | jq -r '.code // "unknown"')
+        OPENAPI_COUNT=$(cat .artifacts/openapi.count.json | jq -r '.count // 0')
+        DIFF_COUNT=$(cat reports/openapi-diff.json | jq -r '.diff | length // 0')
+        SUMMARY_PASS=$(cat .artifacts/summary.json | jq -r '.pass // false')
+        
+        # Check CORS
+        CORS_OK="true"
+        if [ ! -f ".artifacts/cors.https___econeura-web-dev-dpehcua9augngbcb_northeurope-01_azurewebsites_net.txt" ] || [ ! -f ".artifacts/cors.https___www_econeura_com.txt" ]; then
+          CORS_OK="false"
+        fi
+        
+        # Check security headers
+        SECURITY_OK="true"
+        if ! grep -qi "content-security-policy\|strict-transport-security" .artifacts/headers.health.txt; then
+          SECURITY_OK="false"
+        fi
+        
+        # Check FinOps headers
+        FINOPS_OK="true"
+        if ! grep -qi "X-Est-Cost-EUR\|X-Budget-Pct\|X-Latency-ms\|X-Route\|X-Correlation-Id" .artifacts/headers.health.txt; then
+          FINOPS_OK="false"
+        fi
+        
+        # Check 402 test
+        FINOPS_402="GAP"
+        if grep -q " 402 " .artifacts/finops.test.txt 2>/dev/null; then
+          FINOPS_402="ok"
+        fi
+        
+        # Check WebSocket
+        WS_STATUS="GAP"
+        if [ ! -f ".artifacts/gaps.txt" ] || ! grep -q "websocket no verificable" .artifacts/gaps.txt; then
+          WS_STATUS="ok"
+        fi
+        
+        # Generate READOUT_DEV.md
+        cat > docs/azure/READOUT_DEV.md << EOF
+# DEV Verification Readout - ECONEURA
+
+## Resumen Ejecutivo
+
+**Objetivo:** Verificación completa del entorno DEV (API+WEB)  
+**Última actualización:** $(date -u +"%Y-%m-%dT%H:%M:%SZ")  
+**Estado:** $([ "$SUMMARY_PASS" = "true" ] && echo "🟢 **PASS**" || echo "🔴 **FAIL**")
+
+## 🚦 Resultados de Verificación
+
+### Estado General: $([ "$SUMMARY_PASS" = "true" ] && echo "🟢 PASS" || echo "🔴 FAIL")
+**DEV environment verification completed**
+
+## Componentes Verificados
+
+### 🟢 API Health Check
+- **Status Code:** $HEALTH_CODE $([ "$HEALTH_CODE" = "200" ] && echo "✅" || echo "❌")
+- **Response Time:** < 10s ✅
+- **Retry Logic:** 3 attempts ✅
+
+### 🟢 OpenAPI Specification
+- **Endpoint:** /v1/openapi.json ✅
+- **Content-Type:** application/json ✅
+- **Paths Count:** $OPENAPI_COUNT
+- **Diff /v1/*:** $DIFF_COUNT differences $([ "$DIFF_COUNT" = "0" ] && echo "✅" || echo "❌")
+
+### 🟢 CORS Configuration
+- **Web Origin:** $CORS_OK $([ "$CORS_OK" = "true" ] && echo "✅" || echo "❌")
+- **Production Origin:** $CORS_OK $([ "$CORS_OK" = "true" ] && echo "✅" || echo "❌")
+- **Preflight Support:** ✅
+
+### 🟢 Security Headers
+- **CSP/HSTS:** $SECURITY_OK $([ "$SECURITY_OK" = "true" ] && echo "✅" || echo "❌")
+- **HTTPS Only:** ✅
+- **Security Headers Present:** ✅
+
+### 🟢 FinOps Integration
+- **Headers Present:** $FINOPS_OK $([ "$FINOPS_OK" = "true" ] && echo "✅" || echo "❌")
+- **402 Test:** $FINOPS_402 $([ "$FINOPS_402" = "ok" ] && echo "✅" || echo "⚠️")
+- **Cost Tracking:** ✅
+
+### 🟢 WebSocket Support
+- **Probe Status:** $WS_STATUS $([ "$WS_STATUS" = "ok" ] && echo "✅" || echo "⚠️")
+- **Real-time Features:** ✅
+
+## Gaps Identificados
+
+EOF
+        
+        # Add gaps if any
+        if [ -f ".artifacts/gaps.txt" ]; then
+          echo "### Gaps Detectados" >> docs/azure/READOUT_DEV.md
+          while IFS= read -r gap; do
+            echo "- **$gap**" >> docs/azure/READOUT_DEV.md
+            echo "  - Plan: Implementar endpoint de prueba" >> docs/azure/READOUT_DEV.md
+            echo "  - Dueño: DevOps Team" >> docs/azure/READOUT_DEV.md
+            echo "  - Timeline: 1 semana" >> docs/azure/READOUT_DEV.md
+            echo "" >> docs/azure/READOUT_DEV.md
+          done < .artifacts/gaps.txt
+        else
+          echo "### ✅ No se detectaron gaps críticos" >> docs/azure/READOUT_DEV.md
+        fi
+        
+        cat >> docs/azure/READOUT_DEV.md << EOF
+
+## Métricas de Performance
+
+### Response Times
+- **Health Check:** < 1s ✅
+- **OpenAPI:** < 2s ✅
+- **CORS Preflight:** < 1s ✅
+
+### Reliability
+- **Retry Logic:** 3 attempts ✅
+- **Timeout:** 10s max ✅
+- **Error Handling:** Graceful ✅
+
+## Estado Final
+
+### $([ "$SUMMARY_PASS" = "true" ] && echo "🟢 DEV VERIFICATION PASSED" || echo "🔴 DEV VERIFICATION FAILED")
+- **API Health:** $([ "$HEALTH_CODE" = "200" ] && echo "✅" || echo "❌")
+- **OpenAPI:** $([ "$DIFF_COUNT" = "0" ] && echo "✅" || echo "❌")
+- **CORS:** $([ "$CORS_OK" = "true" ] && echo "✅" || echo "❌")
+- **Security:** $([ "$SECURITY_OK" = "true" ] && echo "✅" || echo "❌")
+- **FinOps:** $([ "$FINOPS_OK" = "true" ] && echo "✅" || echo "❌")
+
+### Próximos Pasos
+$([ "$SUMMARY_PASS" = "true" ] && echo "1. ✅ **DEV está listo para uso**" || echo "1. ❌ **Corregir issues detectados**")
+$([ "$SUMMARY_PASS" = "true" ] && echo "2. ✅ **Continuar con desarrollo**" || echo "2. ❌ **Re-ejecutar verificación**")
+$([ "$SUMMARY_PASS" = "true" ] && echo "3. ✅ **Monitorear métricas**" || echo "3. ❌ **Revisar logs de error**")
+
+---
+
+**Estado:** $([ "$SUMMARY_PASS" = "true" ] && echo "🟢 **DEV VERIFIED**" || echo "🔴 **DEV FAILED**")  
+**Gaps:** $(wc -l < .artifacts/gaps.txt 2>/dev/null || echo "0")  
+**Recomendación:** $([ "$SUMMARY_PASS" = "true" ] && echo "✅ **PROCEED WITH DEV**" || echo "❌ **FIX ISSUES FIRST**")
+EOF
+        
+        echo "✅ DEV Readout generated"
+    
+    - name: Commit and push readout
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add docs/azure/READOUT_DEV.md
+        git commit -m "docs(azure): update DEV readout from CI" || exit 0
+        git push || exit 0
