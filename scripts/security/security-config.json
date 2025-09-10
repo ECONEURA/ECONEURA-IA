@@ -1,0 +1,150 @@
+{
+  "version": "1.0.0",
+  "description": "Configuración de herramientas de seguridad para ECONEURA",
+  "antiSecrets": {
+    "enabled": true,
+    "tools": {
+      "detectSecrets": {
+        "enabled": true,
+        "baseline": ".secrets.baseline",
+        "args": ["scan", "--all-files", "--baseline", ".secrets.baseline"]
+      },
+      "trufflehog": {
+        "enabled": true,
+        "args": ["filesystem", ".", "--no-verification", "--format", "json"]
+      },
+      "gitleaks": {
+        "enabled": true,
+        "args": ["detect", "--source", ".", "--report-format", "json", "--report-path", "reports/gitleaks-report.json"]
+      }
+    },
+    "patterns": {
+      "apiKeys": [
+        "api[_-]?key\\s*[:=]\\s*['\"]?[a-zA-Z0-9]{20,}['\"]?",
+        "apikey\\s*[:=]\\s*['\"]?[a-zA-Z0-9]{20,}['\"]?",
+        "access[_-]?key\\s*[:=]\\s*['\"]?[a-zA-Z0-9]{20,}['\"]?"
+      ],
+      "passwords": [
+        "password\\s*[:=]\\s*['\"]?[^'\"]{8,}['\"]?",
+        "passwd\\s*[:=]\\s*['\"]?[^'\"]{8,}['\"]?",
+        "pwd\\s*[:=]\\s*['\"]?[^'\"]{8,}['\"]?"
+      ],
+      "tokens": [
+        "token\\s*[:=]\\s*['\"]?[a-zA-Z0-9]{20,}['\"]?",
+        "bearer\\s*[:=]\\s*['\"]?[a-zA-Z0-9]{20,}['\"]?",
+        "jwt\\s*[:=]\\s*['\"]?[a-zA-Z0-9]{20,}['\"]?"
+      ],
+      "secrets": [
+        "secret\\s*[:=]\\s*['\"]?[a-zA-Z0-9]{20,}['\"]?",
+        "private[_-]?key\\s*[:=]\\s*['\"]?-----BEGIN",
+        "ssh[_-]?key\\s*[:=]\\s*['\"]?-----BEGIN"
+      ]
+    },
+    "excludePatterns": [
+      "\\.env\\.example$",
+      "\\.secrets\\.baseline$",
+      "node_modules",
+      "\\.git",
+      "dist",
+      "build",
+      "coverage",
+      "\\.next",
+      "reports",
+      "\\.pnpm",
+      "\\.cache"
+    ],
+    "fileExtensions": [".ts", ".js", ".json", ".yaml", ".yml", ".env", ".md", ".txt", ".sh", ".ps1"]
+  },
+  "sbom": {
+    "enabled": true,
+    "tools": {
+      "cyclonedx": {
+        "enabled": true,
+        "command": "cyclonedx-npm",
+        "args": ["--output-format", "json", "--output-file", "reports/sbom-cyclonedx.json"]
+      },
+      "spdx": {
+        "enabled": true,
+        "command": "spdx-sbom-generator",
+        "args": ["-f", "json", "-o", "reports/sbom-spdx.json"]
+      },
+      "syft": {
+        "enabled": true,
+        "command": "syft",
+        "args": ["packages", "--output", "json", "--file", "reports/sbom-syft.json"]
+      }
+    },
+    "formats": ["json", "xml", "yaml", "spdx-json", "cyclonedx-json"],
+    "outputDir": "reports",
+    "metadata": {
+      "name": "ECONEURA-IA",
+      "version": "1.0.0",
+      "description": "ECONEURA - Production-ready ERP+CRM cockpit with AI Router",
+      "supplier": "ECONEURA",
+      "license": "MIT",
+      "author": "ECONEURA Team"
+    }
+  },
+  "vulnerabilityScanning": {
+    "enabled": true,
+    "tools": {
+      "npmAudit": {
+        "enabled": true,
+        "command": "npm audit --audit-level=high"
+      },
+      "pnpmAudit": {
+        "enabled": true,
+        "command": "pnpm audit --audit-level=high"
+      },
+      "snyk": {
+        "enabled": true,
+        "command": "npx snyk test --severity-threshold=high"
+      }
+    },
+    "thresholds": {
+      "maxVulnerabilities": 10,
+      "maxHighSeverityVulns": 0,
+      "maxCriticalVulns": 0
+    }
+  },
+  "ci": {
+    "enabled": true,
+    "timeouts": {
+      "antiSecrets": 300000,
+      "sbom": 600000,
+      "audit": 180000,
+      "snyk": 300000
+    },
+    "thresholds": {
+      "maxSecrets": 0,
+      "maxVulnerabilities": 10,
+      "maxHighSeverityVulns": 0,
+      "maxCriticalVulns": 0,
+      "minSecurityScore": 80
+    },
+    "reporting": {
+      "generateJson": true,
+      "generateText": true,
+      "generateGitHub": true,
+      "outputDir": "reports"
+    }
+  },
+  "notifications": {
+    "enabled": true,
+    "channels": {
+      "github": {
+        "enabled": true,
+        "commentOnPR": true,
+        "commentOnFailure": true
+      },
+      "slack": {
+        "enabled": false,
+        "webhook": null
+      },
+      "email": {
+        "enabled": false,
+        "recipients": []
+      }
+    }
+  }
+}
