@@ -152,6 +152,7 @@ import { cockpitBFFLiveService } from './services/cockpit-bff-live.service.js';
 import gdprHITLRouter from './routes/gdpr-hitl.js';
 import rlsTenantPoliciesRouter from './routes/rls-tenant-policies.js';
 import securityConfigRouter from './routes/security-config.js';
+import observabilityOTelRouter from './routes/observability-otel.js';
 
 // PR-25: Biblioteca de prompts
 import { promptLibrary } from './lib/prompt-library.service.js';
@@ -303,11 +304,24 @@ import {
   securityMonitoringMiddleware
 } from './middleware/security-enhanced.middleware.js';
 
+// PR-103: Observabilidad OpenTelemetry
+import { 
+  tracePropagationMiddleware, 
+  traceLoggingMiddleware, 
+  traceValidationMiddleware 
+} from './middleware/trace-propagation.middleware.js';
+import { observabilityOTelService } from './services/observability-otel.service.js';
+
 // Enhanced Helmet configuration
 app.use(enhancedHelmetMiddleware);
 
 // Enhanced CORS configuration
 app.use(enhancedCorsMiddleware);
+
+// PR-103: Trace Propagation Middleware
+app.use(tracePropagationMiddleware());
+app.use(traceLoggingMiddleware());
+app.use(traceValidationMiddleware());
 
 // PR-102: Enhanced security middleware stack
 app.use(additionalSecurityHeadersMiddleware);
@@ -1699,6 +1713,7 @@ app.use('/v1/cockpit-bff-live', cockpitBFFLiveRouter);
 app.use('/v1/gdpr-hitl', gdprHITLRouter);
 app.use('/v1/rls-tenant-policies', rlsTenantPoliciesRouter);
 app.use('/v1/security-config', securityConfigRouter);
+app.use('/v1/observability-otel', observabilityOTelRouter);
 
 // Mount Events (SSE) routes
 app.use('/v1/events', eventsRouter);
@@ -1812,6 +1827,7 @@ const server = app.listen(PORT, async () => {
       'PR-100: GDPR HITL Integration',
       'PR-101: RLS Tenant Policies',
       'PR-102: Security & CORS Configuration',
+      'PR-103: Observabilidad OpenTelemetry',
       'PR-45: FinOps Panel completo',
       'PR-46: Quiet Hours + On-Call Management',
       'PR-47: Warmup IA/Search + Performance Optimization',
@@ -1826,6 +1842,7 @@ const server = app.listen(PORT, async () => {
       'GDPR HITL: Human-in-the-loop GDPR workflows',
       'RLS Tenant Policies: Row-level security with tenant isolation',
       'Security Configuration: Enhanced helmet and CORS management',
+      'Observability OpenTelemetry: Distributed tracing and metrics',
       'SEPA Parser: XML parsing and transaction matching',
       'Analytics: Event tracking and metrics',
       'Cache Manager: Multi-layer caching system',
