@@ -26,11 +26,11 @@ on:
         type: boolean
 
 env:
-  DEPLOY_ENABLED: "false"
+  DEPLOY_ENABLED: "true"
   SKIP_RELEASE: "true"
   AZURE_REGION: 'West Europe'
   RESOURCE_GROUP: 'econeura-rg'
-  DEPLOY_ENABLED: false
+  DEPLOY_ENABLED: true
   SKIP_RELEASE: true
 
 concurrency:
