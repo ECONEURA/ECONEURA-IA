@@ -1,4 +1,9 @@
-# Deployment Slots Strategy - Azure App Service
+# Deployment slots strategy (no deploy in this PR)
+
+- Slots: `staging` and `production`.
+- Approach: deploy to `staging`, validate, then swap.
+- Settings marked as slot-specific should be configured accordingly.
+- This PR does not alter any pipelines or perform deployments.
 
 **Fecha:** 2025-01-09  
 **Versión:** 1.0.0  

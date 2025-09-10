@@ -1,0 +1,8 @@
+[
+  { "name": "NODE_ENV", "value": "production", "slotSetting": false },
+  { "name": "WEBSITES_PORT", "value": "3000", "slotSetting": false },
+  { "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE", "value": "false", "slotSetting": false },
+  { "name": "APPLICATIONINSIGHTS_CONNECTION_STRING", "value": "${APPLICATIONINSIGHTS_CONNECTION_STRING}", "slotSetting": false },
+  { "name": "CORS_ALLOWED_ORIGINS", "value": "${CORS_ALLOWED_ORIGINS}", "slotSetting": false },
+  { "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE", "value": "false", "slotSetting": false }
+]

@@ -1,0 +1,8 @@
+[
+  { "name": "NODE_ENV", "value": "production", "slotSetting": false },
+  { "name": "PORT", "value": "8080", "slotSetting": false },
+  { "name": "WEBSITES_PORT", "value": "8080", "slotSetting": false },
+  { "name": "APPLICATIONINSIGHTS_CONNECTION_STRING", "value": "${APPLICATIONINSIGHTS_CONNECTION_STRING}", "slotSetting": false },
+  { "name": "CORS_ALLOWED_ORIGINS", "value": "${CORS_ALLOWED_ORIGINS}", "slotSetting": false },
+  { "name": "WEBSOCKETS_ENABLED", "value": "1", "slotSetting": false }
+]

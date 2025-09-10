@@ -297,8 +297,8 @@ JWT_SECRET=your-jwt-secret
 ENCRYPTION_KEY=your-encryption-key
 
 # Monitoring
-APPINSIGHTS_INSTRUMENTATIONKEY=your-key
-APPLICATIONINSIGHTS_CONNECTION_STRING=your-connection-string
+APPINSIGHTS_INSTRUMENTATION_KEY=your-key
+APPLICATIONINSIGHTS_CONN_STRING=your-connection-string
 ```
 
 ### Environment Validation

@@ -196,7 +196,7 @@ ELASTICSEARCH_USERNAME=elastic
 ELASTICSEARCH_PASSWORD=password
 
 # Azure Application Insights Configuration
-APPLICATION_INSIGHTS_CONNECTION_STRING=InstrumentationKey=...
+APPLICATION_INSIGHTS_CONNECTION_STRING=Instrumentation_Key=...
 APPLICATION_INSIGHTS_ENABLED=true
 
 # File Logging Configuration

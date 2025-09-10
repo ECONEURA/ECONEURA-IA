@@ -1,4 +1,11 @@
-# App Service Compatibility - ECONEURA-IA
+# App Service compatibility checklist
+
+- Runtime: Node.js 18+ recommended (Node 20 LTS supported). Ensure build produces plain Node artifacts (no system-level dependencies).
+- Start command: If using frameworks, bind to `PORT` or `WEBSITES_PORT`.
+- Storage: `WEBSITES_ENABLE_APP_SERVICE_STORAGE=false` for stateless apps.
+- WebSockets: Enable at app level if required by the web or API.
+- Health probes: Provide `/health` or similar endpoint in API; web can serve a lightweight health page.
+- Logging: Use stdout/stderr; App Service captures logs without agent secrets.
 
 **Fecha:** 2025-01-09  
 **Versión:** 1.0.0  

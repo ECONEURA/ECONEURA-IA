@@ -1,0 +1,41 @@
+name: ci-azure-readiness
+on:
+  pull_request:
+    paths:
+      - 'docs/azure/**'
+      - '.env.example'
+      - 'scripts/azure/**'
+      - '.github/workflows/ci-azure-readiness.yml'
+  push:
+    branches:
+      - pr-94-azure-align
+    paths:
+      - 'docs/azure/**'
+      - '.env.example'
+      - 'scripts/azure/**'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run anti-secrets scanner
+        run: node scripts/azure/verify-no-secrets.mjs
+      - name: Publish READOUT as job summary
+        if: always()
+        run: |
+          echo "## Azure Readout" >> $GITHUB_STEP_SUMMARY
+          if [ -f docs/azure/READOUT_AZURE.md ]; then
+            cat docs/azure/READOUT_AZURE.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "_No READOUT_AZURE.md present_" >> $GITHUB_STEP_SUMMARY
+          fi
+      - name: Upload readout artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: azure-readout
+          path: docs/azure/READOUT_AZURE.md

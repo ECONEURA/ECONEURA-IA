@@ -1,4 +1,9 @@
-# No Deploy Verified - Azure App Service
+# No-deploy verification (guards active)
+
+- Sin workflows de deploy modificados.
+- Sin credenciales/llaves en el repo (verificador anti-secrets obligatorio).
+- Solo docs/azure/**, .env.example, scripts/azure/** y workflow de verificación.
+- El workflow de CI solo verifica y publica el readout, no autentica ni despliega.
 
 **Fecha:** 2025-01-09  
 **Versión:** 1.0.0  

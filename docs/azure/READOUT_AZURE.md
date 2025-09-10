@@ -1,4 +1,28 @@
-# Azure Readiness Readout - ECONEURA-IA
+# Azure Readout
+
+Semáforo: 🟡 Amarillo
+
+Resumen
+- Repo alineado sin secretos. Anti-secrets activo en CI. Sin cambios de deploy.
+
+Gaps (≤3)
+1) App Insights variable pendiente en slots.
+   - Plan (3 pasos):
+     1) Crear el secreto en el entorno (Key Vault o App Settings). 
+     2) Vincularlo a `APPLICATIONINSIGHTS_CONNECTION_STRING` en web y api (staging → prod).
+     3) Validar métricas en staging, luego en prod tras swap.
+
+2) CORS: orígenes finales por confirmar.
+   - Plan (3 pasos):
+     1) Definir lista exacta con producto.
+     2) Aplicar en `CORS_ALLOWED_ORIGINS` (staging) y probar.
+     3) Promover a prod tras validación.
+
+3) Access restrictions / egress.
+   - Plan (3 pasos):
+     1) Obtener IPs de salida del app (staging/prod).
+     2) Coordinar allowlists con sistemas externos.
+     3) Automatizar reglas tras validación manual.
 
 **Fecha:** 2025-01-09  
 **Versión:** 1.0.0  
