@@ -1,0 +1,35 @@
+# Lychee ignore file for unstable external links
+# One URL pattern per line
+
+# Common external services that can be unstable
+https://docs.microsoft.com/
+https://azure.microsoft.com/
+https://github.com/microsoft/
+https://www.microsoft.com/
+
+# Social media links (often block automated requests)  
+https://twitter.com/
+https://linkedin.com/
+https://facebook.com/
+
+# External APIs and services that may rate limit
+https://api.github.com/
+https://registry.npmjs.org/
+
+# Localhost and development URLs
+http://localhost
+http://127.0.0.1
+https://localhost
+
+# Placeholder domains
+https://example.com
+https://example.org
+http://example.com
+
+# Internal/private network ranges (if any in docs)
+http://192.168.
+http://10.0.
+http://172.16.
+
+# URLs that require authentication
+https://portal.azure.com/

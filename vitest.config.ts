@@ -5,7 +5,6 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    setupFiles: ['./test/setup.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
@@ -24,15 +23,36 @@ export default defineConfig({
         '**/drizzle/**',
         '**/migrations/**',
         '**/seed.ts',
-        '**/seed.js'
+        '**/seed.js',
+        // Exclude large directories that aren't part of our core application
+        'scripts/',
+        'tools/',
+        '.analysis/',
+        'postman/',
+        'snapshots/',
+        'infrastructure/',
+        'ops/',
+        'reports/',
+        // Only include specific source directories
+        '!tests/',
+        '!packages/*/src/**',
+        '!apps/*/src/**'
+      ],
+      include: [
+        'tests/**/*.ts',
+        'packages/*/src/**/*.ts',
+        'apps/*/src/**/*.ts'
       ],
       thresholds: {
+        // Lower thresholds for existing code, can be increased gradually
         global: {
-          branches: 30,
+          branches: 40,
           functions: 40,
           lines: 40,
           statements: 40
-        }
+        },
+        // Stricter thresholds for new files can be enforced via changed-file coverage
+        perFile: true
       }
     },
     testTimeout: 10000,

@@ -1,0 +1,57 @@
+# Lychee configuration for link checking
+# See https://lychee.cli.rs/usage/config/ for more options
+
+# Maximum number of concurrent requests
+max_concurrency = 8
+
+# Include files matching the glob pattern
+include = [
+    "**/*.md",
+    "**/*.html",
+    "**/*.rst"
+]
+
+# Exclude files matching the glob pattern  
+exclude = [
+    "node_modules/**/*",
+    "dist/**/*",
+    "build/**/*",
+    ".next/**/*",
+    "coverage/**/*"
+]
+
+# Exclude URLs matching regex patterns from checking
+exclude_link_local = true
+
+# Base URL or directory for checking relative links  
+# base = "."
+
+# Accept invalid certificates
+accept_invalid_certs = false
+
+# User agent
+user_agent = "lychee/0.13.0"
+
+# Timeout per request in seconds
+timeout = 20
+
+# Maximum number of retries per failed request  
+max_retries = 3
+
+# Method used for requests (GET or HEAD)
+method = "get"
+
+# Headers to send with each request
+headers = []
+
+# Verbose mode
+verbose = false
+
+# Skip checking for private network addresses
+skip_missing = false
+
+# Include verbatim URLs from `exclude_file`
+# exclude_file = [".lycheeignore"]
+
+# Check anchors/fragments in links
+include_fragments = true
