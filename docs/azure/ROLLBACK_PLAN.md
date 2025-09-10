@@ -1,690 +1,337 @@
-# Rollback Plan - Azure App Service
+# Rollback Plan - ECONEURA Azure
 
-**Fecha:** 2025-01-09  
-**Versión:** 1.0.0  
-**Objetivo:** Plan completo de rollback para ECONEURA-IA en Azure App Service
+## Resumen Ejecutivo
 
-## 📋 RESUMEN EJECUTIVO
+**Objetivo:** Plan de rollback rápido y seguro para ECONEURA en Azure  
+**Tiempo objetivo:** < 5 minutos para rollback completo  
+**Entornos:** Dev/Staging/Production  
 
-Este documento describe el plan completo de rollback para ECONEURA-IA en Azure App Service, incluyendo estrategias automáticas y manuales, procedimientos de recuperación y planes de contingencia.
+## Triggers de Rollback
 
-## 🎯 OBJETIVOS DEL ROLLBACK
+### Automáticos
+- ❌ **Smoke tests fallan** (> 3 intentos)
+- ❌ **Health checks fallan** (> 5 minutos)
+- ❌ **Error rate > 10%** (5 minutos consecutivos)
+- ❌ **Response time > 10 segundos** (5 minutos consecutivos)
 
-### Objetivos Principales
-- **Recuperación rápida** de problemas de deployment
-- **Minimización de downtime** durante rollback
-- **Preservación de datos** durante rollback
-- **Comunicación efectiva** durante incidentes
-- **Documentación completa** de procedimientos
+### Manuales
+- 🚨 **Incidente crítico reportado**
+- 🚨 **Performance degradada**
+- 🚨 **Security breach detectado**
+- 🚨 **Data corruption detectado**
 
-### Criterios de Rollback
-- ❌ Error rate > 10% por más de 2 minutos
-- ❌ Response time > 5 segundos por más de 2 minutos
-- ❌ Health checks fallando por más de 1 minuto
-- ❌ Database connection issues
-- ❌ Redis connection issues
-- ❌ Critical business functions failing
-- ❌ Security incidents
-- ❌ Data corruption detected
+## Proceso de Rollback
 
-## 🚨 ESTRATEGIAS DE ROLLBACK
+### Fase 1: Evaluación (1 minuto)
+```bash
+# 1. Verificar estado actual
+az containerapp show \
+  --name econeura-devapi \
+  --resource-group econeura-rg \
+  --query properties.configuration.ingress
 
-### 1. Rollback Automático
-```json
-{
-  "automaticRollback": {
-    "enabled": true,
-    "triggers": [
-      {
-        "name": "High Error Rate",
-        "metric": "Http5xx",
-        "threshold": 10,
-        "timeWindow": "PT2M",
-        "action": "Rollback"
-      },
-      {
-        "name": "High Response Time",
-        "metric": "AverageResponseTime",
-        "threshold": 5000,
-        "timeWindow": "PT2M",
-        "action": "Rollback"
-      },
-      {
-        "name": "Health Check Failure",
-        "metric": "HealthCheck",
-        "threshold": "Failed",
-        "timeWindow": "PT1M",
-        "action": "Rollback"
-      },
-      {
-        "name": "Database Connection Issues",
-        "metric": "DatabaseConnection",
-        "threshold": "Failed",
-        "timeWindow": "PT1M",
-        "action": "Rollback"
-      },
-      {
-        "name": "Redis Connection Issues",
-        "metric": "RedisConnection",
-        "threshold": "Failed",
-        "timeWindow": "PT1M",
-        "action": "Rollback"
-      }
-    ],
-    "rollbackAction": "Swap back to previous version",
-    "notificationChannels": [
-      "email",
-      "slack",
-      "teams"
-    ]
-  }
-}
+# 2. Identificar revisión anterior estable
+az containerapp revision list \
+  --name econeura-devapi \
+  --resource-group econeura-rg \
+  --query "[?properties.provisioningState=='Succeeded']"
+
+# 3. Verificar métricas de Application Insights
+az monitor app-insights component show \
+  --app econeura-dev-insights \
+  --resource-group econeura-rg
 ```
 
-### 2. Rollback Manual
-```json
-{
-  "manualRollback": {
-    "triggers": [
-      "Manual decision by DevOps team",
-      "Business stakeholder request",
-      "Security incident",
-      "Data corruption",
-      "Performance degradation",
-      "User complaints"
-    ],
-    "approvalRequired": true,
-    "approvers": [
-      "DevOps Lead",
-      "Technical Lead",
-      "Product Manager"
-    ],
-    "rollbackAction": "Swap back to previous version"
-  }
-}
+### Fase 2: Rollback de API (2 minutos)
+```bash
+# 1. Activar revisión anterior
+az containerapp revision activate \
+  --name econeura-devapi \
+  --resource-group econeura-rg \
+  --revision <previous-stable-revision>
+
+# 2. Verificar activación
+az containerapp revision show \
+  --name econeura-devapi \
+  --resource-group econeura-rg \
+  --revision <previous-stable-revision>
+
+# 3. Health check inmediato
+curl -f https://api-dev.econeura.dev/health
 ```
 
-## 🔄 PROCEDIMIENTOS DE ROLLBACK
+### Fase 3: Rollback de Web (1 minuto)
+```bash
+# 1. Activar revisión anterior
+az containerapp revision activate \
+  --name econeura-devweb \
+  --resource-group econeura-rg \
+  --revision <previous-stable-revision>
 
-### Procedimiento 1: Rollback Rápido (0-5 minutos)
+# 2. Verificar activación
+az containerapp revision show \
+  --name econeura-devweb \
+  --resource-group econeura-rg \
+  --revision <previous-stable-revision>
+
+# 3. Health check inmediato
+curl -f https://web-dev.econeura.dev
+```
+
+### Fase 4: Verificación (1 minuto)
+```bash
+# 1. Smoke tests completos
+curl -f https://api-dev.econeura.dev/health
+curl -f https://web-dev.econeura.dev
+curl -f https://api-dev.econeura.dev/v1/auth/me
+
+# 2. Verificar métricas
+az monitor app-insights component show \
+  --app econeura-dev-insights \
+  --resource-group econeura-rg
+
+# 3. Verificar logs
+az containerapp logs show \
+  --name econeura-devapi \
+  --resource-group econeura-rg \
+  --tail 50
+```
+
+## Scripts de Rollback
+
+### Rollback Rápido (Automático)
 ```bash
 #!/bin/bash
 # rollback-quick.sh
 
-echo "🚨 EMERGENCY ROLLBACK INITIATED"
-echo "Timestamp: $(date)"
-echo "Triggered by: $1"
+ENVIRONMENT="dev"
+RESOURCE_GROUP="econeura-rg"
 
-# Set variables
-RESOURCE_GROUP="econeura-ia-rg"
-APP_NAME="econeura-ia-app"
+echo "🚨 Iniciando rollback rápido para $ENVIRONMENT..."
 
-# Check current status
-echo "📊 Current status:"
-az webapp show --name $APP_NAME --resource-group $RESOURCE_GROUP --query "state" -o tsv
-
-# Perform rollback
-echo "🔄 Performing rollback..."
-az webapp deployment slot swap \
-  --name $APP_NAME \
+# Obtener revisión anterior estable
+PREVIOUS_REVISION=$(az containerapp revision list \
+  --name "econeura-${ENVIRONMENT}api" \
   --resource-group $RESOURCE_GROUP \
-  --slot production \
-  --target-slot staging \
-  --action swap
+  --query "[?properties.provisioningState=='Succeeded' && properties.active==false][0].name" \
+  --output tsv)
 
-# Wait for rollback to complete
-echo "⏳ Waiting for rollback to complete..."
-sleep 30
-
-# Verify rollback
-echo "✅ Verifying rollback..."
-HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://$APP_NAME.azurewebsites.net/health)
-
-if [ $HEALTH_STATUS -eq 200 ]; then
-    echo "✅ Rollback successful - Health check passed"
-else
-    echo "❌ Rollback failed - Health check failed"
-    exit 1
+if [ -z "$PREVIOUS_REVISION" ]; then
+  echo "❌ No se encontró revisión anterior estable"
+  exit 1
 fi
 
-# Send notification
-echo "📧 Sending notification..."
-curl -X POST -H 'Content-type: application/json' \
-  --data '{"text":"🚨 EMERGENCY ROLLBACK COMPLETED for ECONEURA-IA"}' \
-  $SLACK_WEBHOOK_URL
+echo "📦 Revirtiendo a revisión: $PREVIOUS_REVISION"
 
-echo "✅ Emergency rollback completed successfully"
+# Rollback API
+az containerapp revision activate \
+  --name "econeura-${ENVIRONMENT}api" \
+  --resource-group $RESOURCE_GROUP \
+  --revision $PREVIOUS_REVISION
+
+# Rollback Web
+az containerapp revision activate \
+  --name "econeura-${ENVIRONMENT}web" \
+  --resource-group $RESOURCE_GROUP \
+  --revision $PREVIOUS_REVISION
+
+echo "✅ Rollback completado"
+echo "🔍 Verificando health checks..."
+
+# Health checks
+sleep 30
+curl -f "https://api-${ENVIRONMENT}.econeura.dev/health" && echo "✅ API OK"
+curl -f "https://web-${ENVIRONMENT}.econeura.dev" && echo "✅ Web OK"
 ```
 
-### Procedimiento 2: Rollback Completo (5-15 minutos)
+### Rollback Completo (Manual)
 ```bash
 #!/bin/bash
 # rollback-complete.sh
 
-echo "🔄 COMPLETE ROLLBACK INITIATED"
-echo "Timestamp: $(date)"
-echo "Triggered by: $1"
+ENVIRONMENT="dev"
+RESOURCE_GROUP="econeura-rg"
+BACKUP_TAG="stable-backup"
 
-# Set variables
-RESOURCE_GROUP="econeura-ia-rg"
-APP_NAME="econeura-ia-app"
-KEY_VAULT_NAME="econeura-ia-vault"
+echo "🚨 Iniciando rollback completo para $ENVIRONMENT..."
 
-# Step 1: Stop current deployment
-echo "🛑 Stopping current deployment..."
-az webapp stop --name $APP_NAME --resource-group $RESOURCE_GROUP
-
-# Step 2: Rollback to previous version
-echo "🔄 Rolling back to previous version..."
-az webapp deployment slot swap \
-  --name $APP_NAME \
+# 1. Verificar estado actual
+echo "📊 Estado actual:"
+az containerapp show \
+  --name "econeura-${ENVIRONMENT}api" \
   --resource-group $RESOURCE_GROUP \
-  --slot production \
-  --target-slot staging \
-  --action swap
+  --query "{name:name,activeRevision:properties.activeRevisionName,provisioningState:properties.provisioningState}"
 
-# Step 3: Restart application
-echo "🔄 Restarting application..."
-az webapp restart --name $APP_NAME --resource-group $RESOURCE_GROUP
+# 2. Listar revisiones disponibles
+echo "📋 Revisiones disponibles:"
+az containerapp revision list \
+  --name "econeura-${ENVIRONMENT}api" \
+  --resource-group $RESOURCE_GROUP \
+  --query "[].{name:name,active:properties.active,provisioningState:properties.provisioningState,createdTime:properties.createdTime}"
 
-# Step 4: Wait for startup
-echo "⏳ Waiting for application startup..."
+# 3. Seleccionar revisión objetivo
+read -p "Ingrese el nombre de la revisión objetivo: " TARGET_REVISION
+
+# 4. Rollback API
+echo "🔄 Revirtiendo API..."
+az containerapp revision activate \
+  --name "econeura-${ENVIRONMENT}api" \
+  --resource-group $RESOURCE_GROUP \
+  --revision $TARGET_REVISION
+
+# 5. Rollback Web
+echo "🔄 Revirtiendo Web..."
+az containerapp revision activate \
+  --name "econeura-${ENVIRONMENT}web" \
+  --resource-group $RESOURCE_GROUP \
+  --revision $TARGET_REVISION
+
+# 6. Verificación completa
+echo "🔍 Verificación completa..."
 sleep 60
 
-# Step 5: Run comprehensive health checks
-echo "🏥 Running comprehensive health checks..."
-./scripts/health-check-complete.sh
+# Health checks
+curl -f "https://api-${ENVIRONMENT}.econeura.dev/health" && echo "✅ API Health OK"
+curl -f "https://web-${ENVIRONMENT}.econeura.dev" && echo "✅ Web OK"
 
-# Step 6: Verify all systems
-echo "🔍 Verifying all systems..."
-./scripts/verify-systems.sh
+# Smoke tests
+curl -f "https://api-${ENVIRONMENT}.econeura.dev/v1/auth/me" && echo "✅ Auth OK"
+curl -f "https://api-${ENVIRONMENT}.econeura.dev/v1/crm/companies" && echo "✅ CRM OK"
 
-# Step 7: Send notification
-echo "📧 Sending notification..."
-curl -X POST -H 'Content-type: application/json' \
-  --data '{"text":"✅ COMPLETE ROLLBACK COMPLETED for ECONEURA-IA"}' \
-  $SLACK_WEBHOOK_URL
-
-echo "✅ Complete rollback completed successfully"
+echo "✅ Rollback completo finalizado"
 ```
 
-### Procedimiento 3: Rollback de Base de Datos
+## Rollback de Base de Datos
+
+### Escenarios de Rollback DB
+
+#### 1. Rollback de Migración
 ```bash
-#!/bin/bash
-# rollback-database.sh
+# 1. Identificar migración problemática
+az postgres flexible-server show \
+  --name econeura-dev-postgres \
+  --resource-group econeura-rg
 
-echo "🗄️ DATABASE ROLLBACK INITIATED"
-echo "Timestamp: $(date)"
+# 2. Revertir migración específica
+pnpm db:migrate:rollback --target <migration-id>
 
-# Set variables
-RESOURCE_GROUP="econeura-ia-rg"
-DB_NAME="econeura-ia-db"
+# 3. Verificar estado de la base de datos
+pnpm db:migrate:status
+```
 
-# Step 1: Create backup before rollback
-echo "💾 Creating backup before rollback..."
-az postgres flexible-server backup create \
-  --resource-group $RESOURCE_GROUP \
-  --name $DB_NAME \
-  --backup-name "rollback-backup-$(date +%Y%m%d-%H%M%S)"
+#### 2. Restore desde Backup
+```bash
+# 1. Listar backups disponibles
+az postgres flexible-server backup list \
+  --resource-group econeura-rg \
+  --server-name econeura-dev-postgres
 
-# Step 2: Restore from previous backup
-echo "🔄 Restoring from previous backup..."
+# 2. Restaurar desde backup
 az postgres flexible-server restore \
-  --resource-group $RESOURCE_GROUP \
-  --name $DB_NAME \
-  --source-server $DB_NAME \
-  --restore-time $(date -u -d '1 hour ago' +%Y-%m-%dT%H:%M:%SZ)
+  --resource-group econeura-rg \
+  --name econeura-dev-postgres-restored \
+  --source-server econeura-dev-postgres \
+  --restore-time <backup-time>
 
-# Step 3: Verify database
-echo "✅ Verifying database..."
-psql $DATABASE_URL -c "SELECT 1;" || exit 1
-
-echo "✅ Database rollback completed successfully"
+# 3. Actualizar connection strings
+az containerapp update \
+  --name econeura-devapi \
+  --resource-group econeura-rg \
+  --set-env-vars PGHOST=econeura-dev-postgres-restored.postgres.database.azure.com
 ```
 
-## 📊 MONITOREO Y ALERTAS
+## Monitoreo Post-Rollback
 
-### Alertas de Rollback
-```json
-{
-  "rollbackAlerts": [
-    {
-      "name": "Rollback Triggered",
-      "description": "Alert when rollback is triggered",
-      "condition": {
-        "metric": "RollbackOperation",
-        "operator": "equals",
-        "threshold": "Triggered",
-        "timeWindow": "PT1M"
-      },
-      "severity": "Critical",
-      "actions": [
-        {
-          "type": "email",
-          "recipients": ["devops@econeura.com", "alerts@econeura.com"]
-        },
-        {
-          "type": "webhook",
-          "url": "https://hooks.slack.com/services/..."
-        },
-        {
-          "type": "webhook",
-          "url": "https://outlook.office.com/webhook/..."
-        }
-      ]
-    },
-    {
-      "name": "Rollback Failed",
-      "description": "Alert when rollback fails",
-      "condition": {
-        "metric": "RollbackOperation",
-        "operator": "equals",
-        "threshold": "Failed",
-        "timeWindow": "PT1M"
-      },
-      "severity": "Critical",
-      "actions": [
-        {
-          "type": "email",
-          "recipients": ["devops@econeura.com", "alerts@econeura.com"]
-        },
-        {
-          "type": "webhook",
-          "url": "https://hooks.slack.com/services/..."
-        }
-      ]
-    },
-    {
-      "name": "Post-Rollback Health Check",
-      "description": "Alert when health checks fail after rollback",
-      "condition": {
-        "metric": "HealthCheck",
-        "operator": "equals",
-        "threshold": "Failed",
-        "timeWindow": "PT2M"
-      },
-      "severity": "Critical",
-      "actions": [
-        {
-          "type": "email",
-          "recipients": ["devops@econeura.com"]
-        }
-      ]
-    }
-  ]
-}
-```
+### Métricas a Verificar
+- ✅ **Response Time:** < 2 segundos
+- ✅ **Error Rate:** < 1%
+- ✅ **CPU Usage:** < 70%
+- ✅ **Memory Usage:** < 80%
+- ✅ **Database Connections:** < 80% del límite
 
-### Dashboard de Rollback
-```json
-{
-  "rollbackDashboard": {
-    "name": "Rollback Status Dashboard",
-    "widgets": [
-      {
-        "type": "metric",
-        "title": "Rollback Operations",
-        "metric": "RollbackOperation",
-        "aggregation": "count",
-        "timeGrain": "PT1M"
-      },
-      {
-        "type": "metric",
-        "title": "Health Check Status",
-        "metric": "HealthCheck",
-        "aggregation": "avg",
-        "timeGrain": "PT1M"
-      },
-      {
-        "type": "metric",
-        "title": "Error Rate",
-        "metric": "Http5xx",
-        "aggregation": "sum",
-        "timeGrain": "PT1M"
-      },
-      {
-        "type": "metric",
-        "title": "Response Time",
-        "metric": "AverageResponseTime",
-        "aggregation": "avg",
-        "timeGrain": "PT1M"
-      }
-    ]
-  }
-}
-```
+### Alertas Configuradas
+- 🚨 **Error rate > 5%** (5 minutos)
+- 🚨 **Response time > 5 segundos** (5 minutos)
+- 🚨 **CPU > 90%** (10 minutos)
+- 🚨 **Memory > 95%** (10 minutos)
 
-## 🧪 TESTING DE ROLLBACK
-
-### Test de Rollback Automático
+### Logs a Revisar
 ```bash
-#!/bin/bash
-# test-rollback.sh
+# Logs de aplicación
+az containerapp logs show \
+  --name econeura-devapi \
+  --resource-group econeura-rg \
+  --follow
 
-echo "🧪 Testing rollback procedures..."
+# Logs de base de datos
+az postgres flexible-server show \
+  --name econeura-dev-postgres \
+  --resource-group econeura-rg
 
-# Test 1: Simulate high error rate
-echo "Test 1: Simulating high error rate..."
-# This would trigger automatic rollback
-
-# Test 2: Simulate health check failure
-echo "Test 2: Simulating health check failure..."
-# This would trigger automatic rollback
-
-# Test 3: Test manual rollback
-echo "Test 3: Testing manual rollback..."
-./scripts/rollback-quick.sh "TEST"
-
-# Test 4: Test complete rollback
-echo "Test 4: Testing complete rollback..."
-./scripts/rollback-complete.sh "TEST"
-
-# Test 5: Test database rollback
-echo "Test 5: Testing database rollback..."
-./scripts/rollback-database.sh
-
-echo "✅ All rollback tests completed"
+# Logs de Application Insights
+az monitor app-insights component show \
+  --app econeura-dev-insights \
+  --resource-group econeura-rg
 ```
 
-### Test de Recuperación
-```bash
-#!/bin/bash
-# test-recovery.sh
+## Comunicación de Rollback
 
-echo "🧪 Testing recovery procedures..."
+### Notificaciones Automáticas
+- 📧 **Email:** devops@econeura.dev
+- 💬 **Teams:** #econeura-alerts
+- 📱 **SMS:** Números de emergencia
 
-# Test 1: Test health check recovery
-echo "Test 1: Testing health check recovery..."
-curl -f https://econeura-ia-app.azurewebsites.net/health || exit 1
+### Template de Notificación
+```
+🚨 ROLLBACK EJECUTADO - ECONEURA
 
-# Test 2: Test API recovery
-echo "Test 2: Testing API recovery..."
-curl -f https://econeura-ia-app.azurewebsites.net/api/status || exit 1
+Entorno: DEV
+Hora: 2025-09-10 00:30:00 UTC
+Duración: 3 minutos
+Causa: Smoke tests fallaron
+Revisión anterior: econeura-devapi--abc123
+Revisión actual: econeura-devapi--def456
 
-# Test 3: Test database recovery
-echo "Test 3: Testing database recovery..."
-curl -f https://econeura-ia-app.azurewebsites.net/api/health/database || exit 1
+Estado: ✅ COMPLETADO
+Health checks: ✅ PASSING
+Métricas: ✅ NORMALES
 
-# Test 4: Test Redis recovery
-echo "Test 4: Testing Redis recovery..."
-curl -f https://econeura-ia-app.azurewebsites.net/api/health/redis || exit 1
+Próximos pasos:
+1. Investigar causa del fallo
+2. Corregir problema en desarrollo
+3. Re-deploy cuando esté listo
 
-# Test 5: Test WebSocket recovery
-echo "Test 5: Testing WebSocket recovery..."
-# WebSocket test would go here
-
-echo "✅ All recovery tests completed"
+Contacto: devops@econeura.dev
 ```
 
-## 📋 CHECKLIST DE ROLLBACK
+## Escalación
 
-### Pre-Rollback
-- [ ] Identificar el problema
-- [ ] Evaluar la gravedad
-- [ ] Decidir el tipo de rollback
-- [ ] Notificar al equipo
-- [ ] Preparar el rollback
-- [ ] Verificar backups
-- [ ] Documentar el problema
+### Niveles de Escalación
+1. **Nivel 1:** DevOps Team (0-5 min)
+2. **Nivel 2:** Engineering Lead (5-15 min)
+3. **Nivel 3:** CTO (15-30 min)
 
-### Durante Rollback
-- [ ] Ejecutar rollback
-- [ ] Monitorear progreso
-- [ ] Verificar health checks
-- [ ] Comunicar estado
-- [ ] Documentar acciones
-- [ ] Mantener comunicación
+### Criterios de Escalación
+- 🚨 **Rollback falla:** Escalar inmediatamente
+- 🚨 **Múltiples rollbacks:** Escalar a Nivel 2
+- 🚨 **Data loss:** Escalar a Nivel 3
+- 🚨 **Security incident:** Escalar a Nivel 3
 
-### Post-Rollback
-- [ ] Verificar funcionamiento
-- [ ] Ejecutar tests
-- [ ] Monitorear métricas
-- [ ] Comunicar resolución
-- [ ] Documentar lecciones
-- [ ] Planificar corrección
-- [ ] Actualizar documentación
+## Testing del Plan
 
-## 🚨 PLANES DE CONTINGENCIA
+### Pruebas Regulares
+- **Semanal:** Rollback de prueba en DEV
+- **Mensual:** Simulación de rollback en Staging
+- **Trimestral:** Drill completo de rollback
 
-### Contingencia 1: Rollback Fallido
-```bash
-#!/bin/bash
-# contingency-rollback-failed.sh
-
-echo "🚨 CONTINGENCY: Rollback Failed"
-echo "Timestamp: $(date)"
-
-# Step 1: Try alternative rollback method
-echo "🔄 Trying alternative rollback method..."
-az webapp deployment slot swap \
-  --name econeura-ia-app \
-  --resource-group econeura-ia-rg \
-  --slot production \
-  --target-slot staging \
-  --action swap
-
-# Step 2: If still failing, restore from backup
-echo "💾 Restoring from backup..."
-az webapp deployment source config-zip \
-  --name econeura-ia-app \
-  --resource-group econeura-ia-rg \
-  --src econeura-ia-backup.zip
-
-# Step 3: Notify emergency team
-echo "📧 Notifying emergency team..."
-curl -X POST -H 'Content-type: application/json' \
-  --data '{"text":"🚨 EMERGENCY: Rollback failed, manual intervention required"}' \
-  $EMERGENCY_SLACK_WEBHOOK_URL
-
-echo "✅ Contingency plan executed"
-```
-
-### Contingencia 2: Base de Datos Corrupta
-```bash
-#!/bin/bash
-# contingency-database-corrupt.sh
-
-echo "🚨 CONTINGENCY: Database Corrupted"
-echo "Timestamp: $(date)"
-
-# Step 1: Stop application
-echo "🛑 Stopping application..."
-az webapp stop --name econeura-ia-app --resource-group econeura-ia-rg
-
-# Step 2: Restore database from backup
-echo "💾 Restoring database from backup..."
-az postgres flexible-server restore \
-  --resource-group econeura-ia-rg \
-  --name econeura-ia-db \
-  --source-server econeura-ia-db \
-  --restore-time $(date -u -d '2 hours ago' +%Y-%m-%dT%H:%M:%SZ)
-
-# Step 3: Restart application
-echo "🔄 Restarting application..."
-az webapp restart --name econeura-ia-app --resource-group econeura-ia-rg
-
-# Step 4: Verify recovery
-echo "✅ Verifying recovery..."
-sleep 60
-curl -f https://econeura-ia-app.azurewebsites.net/health || exit 1
-
-echo "✅ Database recovery completed"
-```
-
-### Contingencia 3: Pérdida de Recursos
-```bash
-#!/bin/bash
-# contingency-resource-loss.sh
-
-echo "🚨 CONTINGENCY: Resource Loss"
-echo "Timestamp: $(date)"
-
-# Step 1: Check resource status
-echo "🔍 Checking resource status..."
-az resource list --resource-group econeura-ia-rg --output table
-
-# Step 2: Recreate missing resources
-echo "🔄 Recreating missing resources..."
-# This would include recreating any missing resources
-
-# Step 3: Restore from backup
-echo "💾 Restoring from backup..."
-# This would include restoring from backup
-
-# Step 4: Verify recovery
-echo "✅ Verifying recovery..."
-./scripts/verify-systems.sh
-
-echo "✅ Resource recovery completed"
-```
-
-## 📞 COMUNICACIÓN DE INCIDENTES
-
-### Plantilla de Comunicación
-```markdown
-# 🚨 INCIDENTE: ECONEURA-IA Rollback
-
-**Timestamp:** $(date)
-**Severidad:** Critical/High/Medium/Low
-**Estado:** En Progreso/Resuelto
-
-## Resumen
-Breve descripción del problema y acciones tomadas.
-
-## Impacto
-- Usuarios afectados: X
-- Servicios afectados: Lista de servicios
-- Tiempo de inactividad: X minutos
-
-## Acciones Tomadas
-1. Rollback ejecutado
-2. Health checks verificados
-3. Sistemas restaurados
-
-## Próximos Pasos
-1. Investigar causa raíz
-2. Implementar corrección
-3. Prevenir recurrencia
-
-## Contacto
-- DevOps Lead: [nombre]
-- Technical Lead: [nombre]
-- Product Manager: [nombre]
-```
-
-### Canales de Comunicación
-- **Email:** alerts@econeura.com
-- **Slack:** #incidents
-- **Teams:** ECONEURA-IA Alerts
-- **Phone:** Emergency hotline
-- **SMS:** Critical alerts only
-
-## 📚 DOCUMENTACIÓN
-
-### Logs de Rollback
-```bash
-# Crear log de rollback
-echo "Rollback executed at $(date)" >> logs/rollback.log
-echo "Triggered by: $1" >> logs/rollback.log
-echo "Status: $2" >> logs/rollback.log
-echo "Duration: $3" >> logs/rollback.log
-echo "---" >> logs/rollback.log
-```
-
-### Reportes de Incidentes
-```bash
-# Generar reporte de incidente
-cat > reports/incident-$(date +%Y%m%d-%H%M%S).md << EOF
-# Incident Report - $(date)
-
-## Summary
-[Summary of the incident]
-
-## Timeline
-[Timeline of events]
-
-## Root Cause
-[Root cause analysis]
-
-## Actions Taken
-[Actions taken during incident]
-
-## Lessons Learned
-[Lessons learned and improvements]
-
-## Prevention
-[Prevention measures for future]
-EOF
-```
-
-## 🔄 MEJORAS CONTINUAS
-
-### Revisión Post-Incidente
-```bash
-#!/bin/bash
-# post-incident-review.sh
-
-echo "📋 Post-Incident Review"
-echo "Timestamp: $(date)"
-
-# Step 1: Analyze logs
-echo "📊 Analyzing logs..."
-tail -n 100 logs/rollback.log
-
-# Step 2: Review metrics
-echo "📈 Reviewing metrics..."
-az monitor metrics list \
-  --resource /subscriptions/$(az account show --query id -o tsv)/resourceGroups/econeura-ia-rg/providers/Microsoft.Web/sites/econeura-ia-app \
-  --metric "Http5xx,AverageResponseTime" \
-  --interval PT1M \
-  --start-time $(date -u -d '1 hour ago' +%Y-%m-%dT%H:%M:%SZ) \
-  --end-time $(date -u +%Y-%m-%dT%H:%M:%SZ)
-
-# Step 3: Generate report
-echo "📝 Generating report..."
-./scripts/generate-incident-report.sh
-
-echo "✅ Post-incident review completed"
-```
-
-### Mejoras del Plan
-```bash
-#!/bin/bash
-# improve-rollback-plan.sh
-
-echo "🔧 Improving rollback plan"
-echo "Timestamp: $(date)"
-
-# Step 1: Analyze rollback performance
-echo "📊 Analyzing rollback performance..."
-# Analyze rollback times, success rates, etc.
-
-# Step 2: Identify improvements
-echo "🔍 Identifying improvements..."
-# Identify areas for improvement
-
-# Step 3: Update procedures
-echo "📝 Updating procedures..."
-# Update rollback procedures based on learnings
-
-# Step 4: Test improvements
-echo "🧪 Testing improvements..."
-# Test improved procedures
-
-echo "✅ Rollback plan improvements completed"
-```
-
-## 📚 REFERENCIAS
-
-- [Azure App Service Deployment Slots](https://docs.microsoft.com/en-us/azure/app-service/deploy-staging-slots)
-- [Azure App Service Backup and Restore](https://docs.microsoft.com/en-us/azure/app-service/manage-backup)
-- [Azure Database Backup and Restore](https://docs.microsoft.com/en-us/azure/postgresql/backup-restore)
-- [Azure Monitor Alerts](https://docs.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-overview)
-- [Incident Response Best Practices](https://docs.microsoft.com/en-us/azure/architecture/framework/resiliency/incident-response)
+### Métricas de Testing
+- ✅ **Tiempo de rollback:** < 5 minutos
+- ✅ **Tiempo de verificación:** < 2 minutos
+- ✅ **Tiempo de comunicación:** < 1 minuto
+- ✅ **Disponibilidad post-rollback:** > 99%
 
 ---
 
-**Estado:** ✅ **ROLLBACK PLAN COMPLETO**  
-**Próximo:** **Implementar y probar procedimientos de rollback**
-
-Este plan proporciona una guía completa para el rollback de ECONEURA-IA en Azure App Service, incluyendo procedimientos automáticos y manuales, planes de contingencia y comunicación de incidentes.
+**Última actualización:** 2025-09-10  
+**Versión:** 1.0  
+**Estado:** ✅ **READY FOR ROLLBACK**
