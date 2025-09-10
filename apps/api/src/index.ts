@@ -151,6 +151,7 @@ import { cockpitBFFLiveService } from './services/cockpit-bff-live.service.js';
 // PR-100: GDPR HITL Routes
 import gdprHITLRouter from './routes/gdpr-hitl.js';
 import rlsTenantPoliciesRouter from './routes/rls-tenant-policies.js';
+import securityConfigRouter from './routes/security-config.js';
 
 // PR-25: Biblioteca de prompts
 import { promptLibrary } from './lib/prompt-library.service.js';
@@ -285,42 +286,49 @@ const errorHandler = new ErrorHandler();
 const sepaParser = new SEPAParserService();
 // PR-25 & PR-47: Biblioteca de prompts + Warmup (simplified)
 
-// Security middleware (PR-28) + MEJORA 4
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https:"],
-    },
-  },
-  hsts: {
-    maxAge: 31536000,
-    includeSubDomains: true,
-    preload: true
-  }
-}));
+// PR-102: Enhanced Security middleware with improved helmet and CORS
+import { 
+  enhancedHelmetMiddleware,
+  enhancedCorsMiddleware,
+  additionalSecurityHeadersMiddleware,
+  securityHeadersValidationMiddleware,
+  securityLoggingMiddleware,
+  attackProtectionMiddleware,
+  ipBasedRateLimitMiddleware,
+  requestSizeValidationMiddleware,
+  httpMethodValidationMiddleware,
+  contentTypeValidationMiddleware,
+  headerCleanupMiddleware,
+  corsPreflightValidationMiddleware,
+  securityMonitoringMiddleware
+} from './middleware/security-enhanced.middleware.js';
 
-// Aplicar middleware de seguridad avanzada - MEJORA 4
+// Enhanced Helmet configuration
+app.use(enhancedHelmetMiddleware);
+
+// Enhanced CORS configuration
+app.use(enhancedCorsMiddleware);
+
+// PR-102: Enhanced security middleware stack
+app.use(additionalSecurityHeadersMiddleware);
+app.use(securityHeadersValidationMiddleware);
+app.use(securityLoggingMiddleware);
+app.use(attackProtectionMiddleware);
+app.use(ipBasedRateLimitMiddleware);
+app.use(requestSizeValidationMiddleware);
+app.use(httpMethodValidationMiddleware);
+app.use(contentTypeValidationMiddleware);
+app.use(headerCleanupMiddleware);
+app.use(corsPreflightValidationMiddleware);
+app.use(securityMonitoringMiddleware);
+
+// Legacy security middleware (keeping for compatibility)
 app.use(securityHeadersMiddleware);
 app.use(sanitizationMiddleware);
 app.use(suspiciousActivityMiddleware);
 app.use(auditMiddleware);
 app.use(advancedRateLimitMiddleware);
-
-// Middleware de validación de IP
 app.use(ipValidationMiddleware);
-
-// CORS configuration (PR-28)
-app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Org-ID', 'X-User-ID', 'X-Correlation-ID'],
-  exposedHeaders: ['X-System-Mode', 'X-Est-Cost-EUR', 'X-Budget-Pct', 'X-Latency-ms', 'X-Route']
-}));
 
 // Basic middleware
 app.use(express.json({ limit: '10mb' }));
@@ -1473,6 +1481,24 @@ app.get("/", (req, res) => {
         "POST /v1/rls-tenant-policies/generate-policy - Generate tenant policy (PR-101)",
         "GET /v1/rls-tenant-policies/health - Health check (PR-101)"
       ],
+      securityConfig: [
+        "GET /v1/security-config - Get security configuration (PR-102)",
+        "GET /v1/security-config/cors - Get CORS configuration (PR-102)",
+        "PUT /v1/security-config/cors/origins - Update CORS origins (PR-102)",
+        "POST /v1/security-config/cors/origins - Add CORS origin (PR-102)",
+        "DELETE /v1/security-config/cors/origins/:origin - Remove CORS origin (PR-102)",
+        "GET /v1/security-config/rate-limit - Get rate limit configuration (PR-102)",
+        "PUT /v1/security-config/rate-limit - Update rate limit configuration (PR-102)",
+        "GET /v1/security-config/validation - Get validation configuration (PR-102)",
+        "PUT /v1/security-config/validation/max-request-size - Update max request size (PR-102)",
+        "GET /v1/security-config/metrics - Get security metrics (PR-102)",
+        "POST /v1/security-config/metrics/reset - Reset security metrics (PR-102)",
+        "POST /v1/security-config/validate - Validate security configuration (PR-102)",
+        "GET /v1/security-config/headers - Get security headers (PR-102)",
+        "GET /v1/security-config/middleware - Get middleware configuration (PR-102)",
+        "GET /v1/security-config/status - Get service status (PR-102)",
+        "GET /v1/security-config/health - Health check (PR-102)"
+      ],
       sepa: [
         "POST /v1/sepa/parse - Parse SEPA XML data (PR-42)",
         "GET /v1/sepa/transactions - Get parsed transactions"
@@ -1672,6 +1698,7 @@ app.use('/v1/cockpit-bff-live', cockpitBFFLiveRouter);
 // PR-100: GDPR HITL Routes
 app.use('/v1/gdpr-hitl', gdprHITLRouter);
 app.use('/v1/rls-tenant-policies', rlsTenantPoliciesRouter);
+app.use('/v1/security-config', securityConfigRouter);
 
 // Mount Events (SSE) routes
 app.use('/v1/events', eventsRouter);
@@ -1784,6 +1811,7 @@ const server = app.listen(PORT, async () => {
       'PR-43: GDPR Export/Erase + Audit',
       'PR-100: GDPR HITL Integration',
       'PR-101: RLS Tenant Policies',
+      'PR-102: Security & CORS Configuration',
       'PR-45: FinOps Panel completo',
       'PR-46: Quiet Hours + On-Call Management',
       'PR-47: Warmup IA/Search + Performance Optimization',
@@ -1797,6 +1825,7 @@ const server = app.listen(PORT, async () => {
       'GDPR Services: Export, erase, audit compliance',
       'GDPR HITL: Human-in-the-loop GDPR workflows',
       'RLS Tenant Policies: Row-level security with tenant isolation',
+      'Security Configuration: Enhanced helmet and CORS management',
       'SEPA Parser: XML parsing and transaction matching',
       'Analytics: Event tracking and metrics',
       'Cache Manager: Multi-layer caching system',
