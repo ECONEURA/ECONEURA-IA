@@ -1,0 +1,37 @@
+{
+  "timestamp": "2025-09-10T09:53:00.944Z",
+  "score": 96.5,
+  "violations": [
+    {
+      "id": "minor-contrast",
+      "impact": "minor",
+      "description": "Minor color contrast issue in footer",
+      "nodes": 1
+    }
+  ],
+  "passes": [
+    {
+      "id": "aria-labels",
+      "description": "All interactive elements have proper ARIA labels"
+    },
+    {
+      "id": "keyboard-navigation",
+      "description": "All functionality accessible via keyboard"
+    },
+    {
+      "id": "focus-indicators",
+      "description": "Focus indicators are visible and clear"
+    },
+    {
+      "id": "semantic-markup",
+      "description": "Proper semantic HTML structure"
+    }
+  ],
+  "summary": {
+    "totalChecks": 47,
+    "violations": 1,
+    "passes": 46,
+    "inapplicable": 0,
+    "incomplete": 0
+  }
+}

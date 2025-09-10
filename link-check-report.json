@@ -1,0 +1,392 @@
+{
+  "timestamp": "2025-09-10T09:53:09.658Z",
+  "summary": {
+    "total": 76,
+    "ok": 3,
+    "broken": 35,
+    "ignored": 38
+  },
+  "brokenLinks": 35,
+  "results": [
+    {
+      "url": "https://eslint.org/docs/latest/use/configure/configuration-files",
+      "status": "broken",
+      "reason": "Domain not found"
+    },
+    {
+      "url": "https://www.typescriptlang.org/docs/handbook/project-references.html",
+      "status": "broken",
+      "reason": "Domain not found"
+    },
+    {
+      "url": "https://pnpm.io/workspaces",
+      "status": "broken",
+      "reason": "Domain not found"
+    },
+    {
+      "url": "./API-DOCUMENTATION-COMPLETE.md",
+      "status": "broken",
+      "reason": "Local file not found"
+    },
+    {
+      "url": "./CHANGELOG-CONSOLIDADO.md",
+      "status": "broken",
+      "reason": "Local file not found"
+    },
+    {
+      "url": "./ROADMAP-COMPLETO-PR-0-85.md",
+      "status": "broken",
+      "reason": "Local file not found"
+    },
+    {
+      "url": "./AZURE-CONFIGURATION-GUIDE.md",
+      "status": "broken",
+      "reason": "Local file not found"
+    },
+    {
+      "url": "./apps/api/src/test-all-endpoints.ts",
+      "status": "broken",
+      "reason": "Local file not found"
+    },
+    {
+      "url": "https://docs.microsoft.com/graph/",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://prometheus.io/docs/concepts/metric_types/",
+      "status": "broken",
+      "reason": "Domain not found"
+    },
+    {
+      "url": "https://redis.io/commands/",
+      "status": "broken",
+      "reason": "Domain not found"
+    },
+    {
+      "url": "https://crontab.guru/",
+      "status": "broken",
+      "reason": "Domain not found"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/cli/azure/install-azure-cli",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://nodejs.org/",
+      "status": "ok",
+      "code": 307
+    },
+    {
+      "url": "https://git-scm.com/",
+      "status": "broken",
+      "reason": "Domain not found"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/azure-monitor/app/custom-endpoints",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/azure-monitor/app/sampling",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/azure-monitor/app/api-custom-events-metrics",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/app-service/",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/app-service/configure-language-nodejs",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/postgresql/",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/azure-cache-for-redis/",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/app-service/configure-language-nodejs#websocket-support",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/cost-management-billing/",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/azure-monitor/autoscale/autoscale-overview",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/cost-management-billing/reservations/",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/storage/blobs/lifecycle-management-overview",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/cost-management-billing/costs/cost-budget-alert",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/app-service/configure-language-nodejs#environment-variables",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://nodejs.org/api/process.html#process_process_env",
+      "status": "ok",
+      "code": 200
+    },
+    {
+      "url": "https://12factor.net/config",
+      "status": "broken",
+      "reason": "Domain not found"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/app-service/app-service-ip-restrictions",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/app-service/web-sites-integrate-with-vnet",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/web-application-firewall/",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/frontdoor/",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/key-vault/",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/virtual-network/",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "AZURE_META.json",
+      "status": "broken",
+      "reason": "Local file not found"
+    },
+    {
+      "url": "RUNTIME_READINESS.md",
+      "status": "broken",
+      "reason": "Local file not found"
+    },
+    {
+      "url": "APP_SERVICE_COMPAT.md",
+      "status": "broken",
+      "reason": "Local file not found"
+    },
+    {
+      "url": "APP_SETTINGS.template.json",
+      "status": "broken",
+      "reason": "Local file not found"
+    },
+    {
+      "url": "ENV_MAPPING.md",
+      "status": "broken",
+      "reason": "Local file not found"
+    },
+    {
+      "url": "ENV_CHANGELOG.md",
+      "status": "broken",
+      "reason": "Local file not found"
+    },
+    {
+      "url": "APP_INSIGHTS.md",
+      "status": "broken",
+      "reason": "Local file not found"
+    },
+    {
+      "url": "NETWORK_OPTIONS.md",
+      "status": "broken",
+      "reason": "Local file not found"
+    },
+    {
+      "url": "SLOTS_STRATEGY.md",
+      "status": "broken",
+      "reason": "Local file not found"
+    },
+    {
+      "url": "NO_DEPLOY_VERIFIED.md",
+      "status": "broken",
+      "reason": "Local file not found"
+    },
+    {
+      "url": "DEPLOY_PLAYBOOK.md",
+      "status": "broken",
+      "reason": "Local file not found"
+    },
+    {
+      "url": "ROLLBACK_PLAN.md",
+      "status": "broken",
+      "reason": "Local file not found"
+    },
+    {
+      "url": "COST_SCALE.md",
+      "status": "broken",
+      "reason": "Local file not found"
+    },
+    {
+      "url": "READOUT_AZURE.md",
+      "status": "broken",
+      "reason": "Local file not found"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/app-service/deploy-run-package",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/azure-monitor/app/nodejs",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/app-service/deploy-staging-slots",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/app-service/deploy-staging-slots#swap",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/app-service/deploy-staging-slots#configure-auto-swap",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/app-service/deploy-best-practices",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/en-us/azure/architecture/framework/devops/deployment",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://nextjs.org",
+      "status": "broken",
+      "reason": "Domain not found"
+    },
+    {
+      "url": "https://nextjs.org/docs/app/api-reference/cli/create-next-app",
+      "status": "broken",
+      "reason": "Domain not found"
+    },
+    {
+      "url": "http://localhost:3000",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://nextjs.org/docs/app/building-your-application/optimizing/fonts",
+      "status": "broken",
+      "reason": "Domain not found"
+    },
+    {
+      "url": "https://vercel.com/font",
+      "status": "broken",
+      "reason": "Domain not found"
+    },
+    {
+      "url": "https://nextjs.org/docs",
+      "status": "broken",
+      "reason": "Domain not found"
+    },
+    {
+      "url": "https://nextjs.org/learn",
+      "status": "broken",
+      "reason": "Domain not found"
+    },
+    {
+      "url": "https://github.com/vercel/next.js",
+      "status": "ok",
+      "code": 200
+    },
+    {
+      "url": "https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme",
+      "status": "broken",
+      "reason": "Domain not found"
+    },
+    {
+      "url": "https://nextjs.org/docs/app/building-your-application/deploying",
+      "status": "broken",
+      "reason": "Domain not found"
+    },
+    {
+      "url": "https://docs.microsoft.com/azure",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/azure/azure-resource-manager/bicep",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/azure/container-apps",
+      "status": "ignored",
+      "reason": "In ignore list"
+    },
+    {
+      "url": "https://docs.microsoft.com/azure/postgresql/flexible-server",
+      "status": "ignored",
+      "reason": "In ignore list"
+    }
+  ]
+}

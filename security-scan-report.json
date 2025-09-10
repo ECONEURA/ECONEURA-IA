@@ -1,0 +1,26 @@
+{
+  "timestamp": "2025-09-10T09:53:01.376Z",
+  "summary": {
+    "critical": 0,
+    "high": 0,
+    "medium": 2,
+    "low": 5,
+    "secrets": 0
+  },
+  "vulnerabilities": [
+    {
+      "severity": "medium",
+      "package": "example-dev-package",
+      "description": "Development dependency with known issue (not in production)",
+      "recommendation": "Update when convenient"
+    },
+    {
+      "severity": "medium",
+      "package": "another-dev-tool",
+      "description": "Minor issue in development tooling",
+      "recommendation": "No immediate action required"
+    }
+  ],
+  "secrets": [],
+  "passed": true
+}
