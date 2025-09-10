@@ -144,6 +144,10 @@ import { finOpsEnforce } from './middleware/finops-enforce-v2.js';
 // PR-97: FinOps Administration Routes
 import finOpsAdminRouter from './routes/finops-admin.js';
 
+// PR-98: Cockpit BFF Live Routes
+import cockpitBFFLiveRouter from './routes/cockpit-bff-live.js';
+import { cockpitBFFLiveService } from './services/cockpit-bff-live.service.js';
+
 // PR-25: Biblioteca de prompts
 import { promptLibrary } from './lib/prompt-library.service.js';
 import { promptLibraryRouter } from './routes/prompt-library.js';
@@ -1635,6 +1639,9 @@ app.use('/v1/fiscalidad-regional-ue', fiscalidadRegionalUERouter);
 // PR-97: FinOps Administration Routes
 app.use('/v1/finops-admin', finOpsAdminRouter);
 
+// PR-98: Cockpit BFF Live Routes
+app.use('/v1/cockpit-bff-live', cockpitBFFLiveRouter);
+
 // Mount Events (SSE) routes
 app.use('/v1/events', eventsRouter);
 
@@ -1726,6 +1733,9 @@ app.use('/v1/workers-integration', workersIntegrationRouter);
 // =============================================================================
 
 const server = app.listen(PORT, async () => {
+  // Initialize Cockpit BFF Live WebSocket server
+  cockpitBFFLiveService.initializeWebSocketServer(server);
+  
   structuredLogger.info(`ECONEURA API Server running on port ${PORT}`, {
     port: PORT,
     environment: process.env.NODE_ENV || 'development',
