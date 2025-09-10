@@ -1,9 +1,3 @@
 {
-  "timestamp": "2025-09-09T23:10:42.670Z",
-  "summary": {
-    "total_differences": 0,
-    "path_differences": 0,
-    "schema_differences": 0
-  },
-  "differences": []
+  "diff": []
 }

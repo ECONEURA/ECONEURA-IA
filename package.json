@@ -66,7 +66,10 @@
     "lint-staged": "^15.2.0",
     "prettier": "^3.2.0",
     "snyk": "^1.1272.0",
-    "typescript": "^5.3.0"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.0",
+    "ws": "^8.18.3",
+    "zx": "^8.8.1"
   },
   "dependencies": {
     "eventsource-parser": "^3.0.6",
