@@ -53,8 +53,8 @@ export const AgentDescriptorSchema = z.object({
   description: z.string(),
   category: AgentCategory,
   version: z.string().default('1.0.0'),
-  inputs: z.ZodSchema,
-  outputs: z.ZodSchema,
+  inputs: z.any(),
+  outputs: z.any(),
   policy: AgentPolicySchema,
   costHint: z.string(),
   tags: z.array(z.string()).default([]),
@@ -62,8 +62,8 @@ export const AgentDescriptorSchema = z.object({
 });
 
 export type AgentDescriptor = z.infer<typeof AgentDescriptorSchema> & {
-  inputs: z.ZodSchema;
-  outputs: z.ZodSchema;
+  inputs: z.ZodType<any, any, any>;
+  outputs: z.ZodType<any, any, any>;
   run: (inputs: unknown, context: AgentContext) => Promise<AgentResult>;
 };
 

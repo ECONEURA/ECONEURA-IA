@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@econeura/agents':
+        specifier: file:packages/agents
+        version: file:packages/agents
       eventsource-parser:
         specifier: ^3.0.6
         version: 3.0.6
@@ -13891,6 +13894,21 @@ packages:
 
   /zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+
+  file:packages/agents:
+    resolution: {directory: packages/agents, type: directory}
+    name: '@econeura/agents'
+    engines: {node: '>=20.0.0'}
+    dependencies:
+      '@econeura/shared': file:packages/shared
+      zod: 3.25.76
+    transitivePeerDependencies:
+      - '@azure/msal-browser'
+      - buffer
+      - debug
+      - stream-browserify
+      - supports-color
+    dev: false
 
   file:packages/shared:
     resolution: {directory: packages/shared, type: directory}

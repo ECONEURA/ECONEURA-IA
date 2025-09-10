@@ -3,7 +3,7 @@
  * Provides real-time communication with AI services
  */
 
-import { logger } from '@econeura/shared/monitoring/logger';
+import { logger } from '@econeura/shared/src/logging/index';
 
 export interface AIRequest {
   orgId: string;
@@ -101,11 +101,10 @@ export class AIRouterClient {
       this.recordFailure(request.provider || 'default');
 
       // Log error
-      logger.error('AI request failed', {
+      logger.error('AI request failed', error as Error, {
         request_id: requestId,
         org_id: request.orgId,
         provider: request.provider,
-        error: error instanceof Error ? error.message : 'Unknown error',
         processing_time: Date.now() - startTime
       });
 
@@ -196,7 +195,7 @@ export class AIRouterClient {
         throw error;
       }
       
-      if (error.name === 'AbortError') {
+      if (error instanceof Error && error.name === 'AbortError') {
         throw new AIError('TIMEOUT', 'Request timeout', { attempt });
       }
       
