@@ -128,6 +128,25 @@ jobs:
     name: API Tests
     runs-on: ubuntu-latest
     needs: build-lint
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: econeura_ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U ci -d econeura_ci"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/econeura_ci
+      NODE_ENV: test
+      PORT: 3001
+      DEPLOY_ENABLED: "false"
+
     steps:
       - uses: actions/checkout@v4
       - run: corepack enable && corepack prepare pnpm@9.12.2 --activate
@@ -136,12 +155,26 @@ jobs:
           node-version: '20.x'
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @econeura/api test:integration
+
+      - name: Migrate DB
+        run: pnpm --filter apps/api db:migrate
+
+      - name: Seed (opcional)
+        run: pnpm --filter apps/api db:seed || true
+
+      - name: Start API (bg)
+        run: pnpm --filter apps/api start:test &
+
+      - name: Wait /health
+        run: npx wait-on http://127.0.0.1:3001/health
+
+      - name: API e2e
+        run: pnpm --filter apps/api test:e2e
+
       - uses: actions/upload-artifact@v4
         with:
           name: api-test-results
           path: test-results/
-
   # k6 Smoke Tests
   k6-tests:
     name: k6 Smoke Tests
@@ -392,4 +425,3 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🔒 Security" >> $GITHUB_STEP_SUMMARY
           echo "- **Deploy Blocked:** ✅ DEPLOY_ENABLED=false" >> $GITHUB_STEP_SUMMARY
-          echo "- **Release Blocked:** ✅ SKIP_RELEASE=true" >> $GITHUB_STEP_SUMMARY
