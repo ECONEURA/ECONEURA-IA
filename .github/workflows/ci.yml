@@ -1,454 +1,469 @@
-name: CI
-
-permissions:
-  contents: read
+name: Strong CI
 
 on:
-  pull_request:
-    branches: ["main", "develop"]
   push:
-    branches: ["main"]
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
 
 env:
-  DEPLOY_ENABLED: "false"
-  SKIP_RELEASE: "true"
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  NODE_VERSION: '20.x'
+  PNPM_VERSION: '9'
+  COVERAGE_THRESHOLD: '80'
+  TZ: UTC
+  LC_ALL: C.UTF-8
+  NODE_ENV: test
+  NEXT_TELEMETRY_DISABLED: 1
+  CI: 1
+  DEPLOY_ENABLED: 'false'
+  MOCK_EXTERNAL: '1'
 
 jobs:
-  # Build and Lint
-  build-lint:
-    name: Build and Lint
+  # Quality Gates
+  quality-gates:
+    name: Quality Gates
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9
-          
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-          cache: 'pnpm'
-          
-      - name: Install dependencies (with retry)
-        run: |
-          for i in {1..2}; do
-            pnpm install --frozen-lockfile && break
-            echo "Install attempt $i failed, retrying..."
-            sleep 5
-          done
-          
-      - name: Lint (with retry)
-        run: |
-          for i in {1..2}; do
-            pnpm lint && break
-            echo "Lint attempt $i failed, retrying..."
-            sleep 5
-          done
-          
-      - name: Build (with retry)
-        run: |
-          for i in {1..2}; do
-            pnpm -w build && break
-            echo "Build attempt $i failed, retrying..."
-            sleep 5
-          done
-          
-      - name: Type Check (with retry)
-        run: |
-          for i in {1..2}; do
-            pnpm -w typecheck && break
-            echo "TypeCheck attempt $i failed, retrying..."
-            sleep 5
-          done
-          
-      - uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: |
-            apps/*/dist
-            packages/*/dist
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Full history for conventional commits
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+    
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+    
+    - name: Lint
+      run: pnpm lint
+      continue-on-error: false
+    
+    - name: Type check
+      run: pnpm typecheck
+      continue-on-error: false
+    
+    - name: Check conventional commits
+      uses: amannn/action-semantic-pull-request@v5
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        types: |
+          feat
+          fix
+          docs
+          style
+          refactor
+          perf
+          test
+          build
+          ci
+          chore
+          revert
 
-  # Unit Tests
-  unit-tests:
-    name: Unit Tests
+  # Test Coverage
+  test-coverage:
+    name: Test Coverage
     runs-on: ubuntu-latest
-    needs: build-lint
+    timeout-minutes: 20
+    needs: quality-gates
+    
+    strategy:
+      matrix:
+        node-version: [20.x]
+    
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9
-          
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-          cache: 'pnpm'
-          
-      - name: Install dependencies (with retry)
-        run: |
-          for i in {1..2}; do
-            pnpm install --frozen-lockfile && break
-            echo "Install attempt $i failed, retrying..."
-            sleep 5
-          done
-          
-      - name: Run tests with coverage (with retry)
-        run: |
-          for i in {1..2}; do
-            pnpm test:coverage && break
-            echo "Test attempt $i failed, retrying..."
-            sleep 5
-          done
-          
-      - name: Check coverage thresholds
-        run: |
-          echo "Checking coverage thresholds..."
-          # The vitest coverage thresholds will automatically fail the process if not met
-          echo "✅ Coverage thresholds met (80% statements, 80% branches)"
-          
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: unit-coverage
-          path: |
-            coverage/
-            **/coverage/
-          retention-days: 30
-  # API Tests
-  api-tests:
-    name: API Tests
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+    
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+    
+    - name: Run tests with coverage
+      run: pnpm test:coverage
+      env:
+        CI: true
+        NODE_ENV: test
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: true
+        verbose: true
+    
+    - name: Check coverage threshold
+      run: |
+        COVERAGE=$(npx coverage-badges-cli --input=coverage/lcov.info --output=coverage/badges --type=lcov --format=json | jq -r '.coverage')
+        echo "Coverage: $COVERAGE%"
+        if (( $(echo "$COVERAGE < ${{ env.COVERAGE_THRESHOLD }}" | bc -l) )); then
+          echo "❌ Coverage $COVERAGE% is below threshold ${{ env.COVERAGE_THRESHOLD }}%"
+          exit 1
+        fi
+        echo "✅ Coverage $COVERAGE% meets threshold ${{ env.COVERAGE_THRESHOLD }}%"
+
+  # OpenAPI Validation
+  openapi-validation:
+    name: OpenAPI Validation
     runs-on: ubuntu-latest
-    needs: build-lint
-    env:
-      DEPLOY_ENABLED: "false"
-      HEALTH_PATH: "/health"
-    permissions:
-      contents: read
-      pull-requests: write
+    timeout-minutes: 10
+    needs: quality-gates
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+    
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+    
+    - name: Build
+      run: pnpm build
+    
+    - name: Generate OpenAPI spec
+      run: pnpm api:openapi
+    
+    - name: Validate OpenAPI spec
+      run: pnpm openapi:validate
+    
+    - name: Validate OpenAPI schema
+      run: |
+        npx @redocly/openapi-cli lint apps/api/openapi.json
+        echo "✅ OpenAPI schema validation passed"
+    
+    - name: OpenAPI diff check
+      run: |
+        if [ "${{ github.event_name }}" = "pull_request" ]; then
+          # Compare with base branch
+          git fetch origin ${{ github.base_ref }}
+          git checkout origin/${{ github.base_ref }} -- apps/api/openapi.json
+          mv apps/api/openapi.json apps/api/openapi.base.json
+          git checkout ${{ github.sha }} -- apps/api/openapi.json
+          
+          # Run openapi-diff
+          npx @redocly/openapi-cli diff apps/api/openapi.base.json apps/api/openapi.json --fail-on-breaking
+        fi
+
+  # Security Scanning
+  security-scanning:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: quality-gates
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+    
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+    
+    - name: Run CodeQL Analysis
+      uses: github/codeql-action/init@v2
+      with:
+        languages: javascript
+        queries: security-extended,security-and-quality
+    
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+      with:
+        category: "/language:javascript"
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: 'CRITICAL,HIGH'
+    
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+    
+    - name: Run npm audit
+      run: pnpm audit --audit-level=high
+    
+    - name: Run Snyk security scan
+      uses: snyk/actions/node@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      continue-on-error: true
+
+  # Secret Scanning
+  secret-scanning:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: quality-gates
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Run TruffleHog
+      uses: trufflesecurity/trufflehog@main
+      with:
+        args: --only-verified --fail --no-update
+        path: .
+    
+    - name: Run GitGuardian (optional)
+      run: |
+        echo "GitGuardian scanning would run here with API key"
+        echo "Skipping for now - requires GITGUARDIAN_API_KEY secret"
+      continue-on-error: true
+    
+    - name: Run detect-secrets
+      run: |
+        pip install detect-secrets
+        detect-secrets scan --baseline .secrets.baseline
+        detect-secrets audit .secrets.baseline
+
+  # Build & Package
+  build-package:
+    name: Build & Package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [quality-gates, test-coverage, openapi-validation, security-scanning, secret-scanning]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+    
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+    
+    - name: Build all packages
+      run: pnpm build
+    
+    - name: Package applications
+      run: |
+        # Create deployment packages
+        mkdir -p dist
+        tar -czf dist/econeura-api.tar.gz -C apps/api dist
+        tar -czf dist/econeura-web.tar.gz -C apps/web .next
+        tar -czf dist/econeura-workers.tar.gz -C apps/workers dist
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-artifacts
+        path: dist/
+        retention-days: 30
+
+  # Integration Tests
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [quality-gates, test-coverage]
     services:
       postgres:
-        image: postgres:15-alpine
+        image: postgres:15
         env:
-          POSTGRES_USER: ci
-          POSTGRES_PASSWORD: ci
-          POSTGRES_DB: econeura_ci
-        ports: ["5432:5432"]
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: econeura_test
         options: >-
-          --health-cmd="pg_isready -U ci -d econeura_ci"
-          --health-interval=5s --health-timeout=5s --health-retries=20
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with: { node-version: 20 }
-
-      - uses: pnpm/action-setup@v3
-        with: { version: 8 }
-
-      - name: Install
-        run: pnpm -w i
-
-      - name: Install dependencies
-        run: pnpm -w i
-
-      - name: Install Postgres client
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
-
-      - name: Bring-up API
-        run: |
-          echo "🚀 Starting API bring-up process..."
-          mkdir -p .artifacts
-          bash scripts/ci/api-up.sh
-        env:
-          DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/econeura_ci
-          PORT: 3001
-          MOCK_EXTERNAL: "1"
-
-      - name: Verify API is running
-        run: |
-          echo "🔍 Verifying API is running..."
-          curl -f http://127.0.0.1:3001/health || {
-            echo "❌ API health check failed"
-            echo "📋 API logs:"
-            cat .artifacts/api.log || echo "No logs available"
-            exit 1
-          }
-          echo "✅ API is running and healthy"
-
-      - name: Run API E2E
-        run: pnpm --filter apps/api test:e2e
-        env:
-          DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/econeura_ci
-          BASE_URL: http://127.0.0.1:3001
-          HEALTH_PATH: ${{ env.HEALTH_PATH }}
-          MOCK_EXTERNAL: "1"
-      - name: Upload artifacts (always)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: api-e2e-artifacts
-          path: |
-            .artifacts/api.log
-            .artifacts/api-e2e.junit.xml
-            apps/api/test-results/**
-            apps/api/coverage/**
-
-      - name: Teardown
-        if: always()
-        run: bash scripts/ci/api-down.sh
-    name: k6 Smoke Tests
-    runs-on: ubuntu-latest
-    needs: [build-lint, unit-tests]
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9
-          
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-          cache: 'pnpm'
-          
-      - name: Install dependencies (with retry)
-        run: |
-          for i in {1..2}; do
-            pnpm install --frozen-lockfile && break
-            echo "Install attempt $i failed, retrying..."
-            sleep 5
-          done
-          
-      - name: Install k6
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gnupg software-properties-common
-          curl -s https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
-          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-          sudo apt-get update
-          sudo apt-get install -y k6
-          
-      - name: Create artifacts directory
-        run: mkdir -p .artifacts
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+    
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+    
+    - name: Setup test database
+      run: |
+        export PGHOST=localhost
+        export PGUSER=postgres
+        export PGPASSWORD=postgres
+        export PGDATABASE=econeura_test
+        export PGPORT=5432
         
-      - name: Run k6 smoke tests (with retry)
-        run: |
-          for i in {1..2}; do
-            pnpm e2e:smoke --summary-export .artifacts/k6-summary.json && break
-            echo "k6 test attempt $i failed, retrying..."
-            sleep 5
-          done
-          
-      - name: Upload k6 results
-        uses: actions/upload-artifact@v4
-        with:
-          name: k6-results
-          path: |
-            k6-results/
-            .artifacts/k6-summary.json
+        pnpm db:migrate
+        pnpm db:seed
+    
+    - name: Run integration tests
+      run: pnpm test:integration
+      env:
+        NODE_ENV: test
+        PGHOST: localhost
+        PGUSER: postgres
+        PGPASSWORD: postgres
+        PGDATABASE: econeura_test
+        PGPORT: 5432
+        MISTRAL_BASE_URL: http://localhost:8080
+        AZURE_OPENAI_ENDPOINT: https://test.openai.azure.com
+        AZURE_OPENAI_API_KEY: test-key
 
-  # Security Scan
-  security-scan:
-    name: Security Scan
+  # Performance Tests
+  performance-tests:
+    name: Performance Tests
     runs-on: ubuntu-latest
-    needs: build-lint
+    timeout-minutes: 20
+    needs: [quality-gates, test-coverage]
+    
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9
-          
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-          cache: 'pnpm'
-          
-      - name: Install dependencies (with retry)
-        run: |
-          for i in {1..2}; do
-            pnpm install --frozen-lockfile && break
-            echo "Install attempt $i failed, retrying..."
-            sleep 5
-          done
-          
-      - name: Run security audit (with retry)
-        run: |
-          for i in {1..2}; do
-            pnpm audit && break
-            echo "Audit attempt $i failed, retrying..."
-            sleep 5
-          done
-          
-      - name: Run security scan (with retry)
-        run: |
-          for i in {1..2}; do
-            pnpm security:scan && break
-            echo "Security scan attempt $i failed, retrying..."
-            sleep 5
-          done
-          
-      - name: Generate SBOM
-        run: |
-          pnpm security:sbom
-          
-      - uses: actions/upload-artifact@v4
-        with:
-          name: security-report
-          path: |
-            security-report/
-            sbom/
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+    
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+    
+    - name: Build
+      run: pnpm build
+    
+    - name: Run performance tests
+      run: pnpm test:performance
+      env:
+        NODE_ENV: test
+    
+    - name: Upload performance results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: performance-results
+        path: performance-results/
+        retention-days: 7
 
-  # Metrics and Progress
-  metrics-progress:
-    name: Metrics and Progress
+  # Final Status Check
+  status-check:
+    name: Status Check
     runs-on: ubuntu-latest
-    needs: [unit-tests, api-tests, k6-tests]
-    steps:
-      - uses: actions/checkout@v4
-      - run: corepack enable && corepack prepare pnpm@9.12.2 --activate
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-      - run: node scripts/lint-routes.mjs
-      - run: node tools/metrics/collect.mjs > .artifacts/metrics.json
-      - run: node --loader ts-node/esm tools/progress/audit.ts > .artifacts/progress.json
-      - uses: actions/upload-artifact@v4
-        with:
-          name: artifacts
-          path: .artifacts
-
-  # Coverage Summary
-  coverage-summary:
-    name: Coverage Summary
-    runs-on: ubuntu-latest
-    needs: [unit-tests]
+    timeout-minutes: 5
+    needs: [quality-gates, test-coverage, openapi-validation, security-scanning, secret-scanning, build-package, integration-tests, performance-tests]
     if: always()
+    
     steps:
-      - name: Download coverage artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: "*coverage"
-          path: artifacts/
-          merge-multiple: true
-        continue-on-error: true
+    - name: Check all jobs status
+      run: |
+        echo "🔍 Checking CI pipeline status..."
+        
+        # Check if all required jobs succeeded
+        if [[ "${{ needs.quality-gates.result }}" != "success" ]]; then
+          echo "❌ Quality gates failed"
+          exit 1
+        fi
+        
+        if [[ "${{ needs.test-coverage.result }}" != "success" ]]; then
+          echo "❌ Test coverage failed"
+          exit 1
+        fi
+        
+        if [[ "${{ needs.openapi-validation.result }}" != "success" ]]; then
+          echo "❌ OpenAPI validation failed"
+          exit 1
+        fi
+        
+        if [[ "${{ needs.security-scanning.result }}" != "success" ]]; then
+          echo "❌ Security scanning failed"
+          exit 1
+        fi
+        
+        if [[ "${{ needs.secret-scanning.result }}" != "success" ]]; then
+          echo "❌ Secret scanning failed"
+          exit 1
+        fi
+        
+        if [[ "${{ needs.build-package.result }}" != "success" ]]; then
+          echo "❌ Build & package failed"
+          exit 1
+        fi
+        
+        if [[ "${{ needs.integration-tests.result }}" != "success" ]]; then
+          echo "❌ Integration tests failed"
+          exit 1
+        fi
+        
+        echo "✅ All CI checks passed successfully!"
+        echo "🚀 Ready for deployment"
 
-      - name: Merge coverage and generate summary
-        shell: bash
-        run: |
-          echo "## 📊 Combined Coverage" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Check if any coverage artifacts exist
-          if ! ls artifacts/*coverage*/lcov.info 2>/dev/null && ! ls artifacts/lcov.info 2>/dev/null; then
-            echo "| Status | Message |" >> $GITHUB_STEP_SUMMARY
-            echo "|--------|---------|" >> $GITHUB_STEP_SUMMARY
-            echo "| ⚠️ No Coverage | No coverage artifacts found |" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            exit 0
-          fi
-          
-          # Create directory for merging
-          mkdir -p merged_coverage
-          
-          # Find and copy all lcov.info files
-          find artifacts -name "lcov.info" -type f | while read -r file; do
-            echo "Found coverage file: $file"
-            cp "$file" "merged_coverage/$(basename "$(dirname "$file")")_lcov.info"
-          done
-          
-          # Merge coverage files
-          if ls merged_coverage/*.info 1> /dev/null 2>&1; then
-            {
-              echo "TN:"
-              for file in merged_coverage/*.info; do
-                # Remove TN: lines and end_of_record from individual files, then add content
-                awk '!/^TN:/ && !/^end_of_record/' "$file"
-              done
-              echo "end_of_record"
-            } > merged_coverage/merged.lcov
-            
-            # Calculate coverage statistics
-            TOTAL=0
-            COVERED=0
-            while IFS= read -r line; do
-              case $line in
-                DA:*)
-                  data=${line#DA:}
-                  ln=${data%%,*}
-                  cv=${data#*,}
-                  if [ "$cv" -gt 0 ]; then
-                    COVERED=$((COVERED + 1))
-                  fi
-                  TOTAL=$((TOTAL + 1))
-                  ;;
-              esac
-            done < merged_coverage/merged.lcov
-            
-            # Calculate percentage
-            PCT=0
-            if [ "$TOTAL" -gt 0 ]; then
-              PCT=$(awk -v c=$COVERED -v t=$TOTAL 'BEGIN{printf "%.2f", (c*100)/t}')
-            fi
-            
-            echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
-            echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
-            echo "| Total Lines | $TOTAL |" >> $GITHUB_STEP_SUMMARY
-            echo "| Covered Lines | $COVERED |" >> $GITHUB_STEP_SUMMARY
-            echo "| Coverage Percentage | ${PCT}% |" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            
-            # Upload merged coverage artifact
-            mkdir -p merged_artifact
-            cp merged_coverage/merged.lcov merged_artifact/
-          else
-            echo "| Status | Message |" >> $GITHUB_STEP_SUMMARY
-            echo "|--------|---------|" >> $GITHUB_STEP_SUMMARY
-            echo "| ⚠️ Processing Error | Coverage files found but could not be processed |" >> $GITHUB_STEP_SUMMARY
-          fi
-
-      - name: Upload merged coverage
-        uses: actions/upload-artifact@v4
-        with:
-          name: merged-coverage
-          path: merged_artifact/merged.lcov
-        if: hashFiles('merged_artifact/merged.lcov') != ''
-        continue-on-error: true
-
-  # Pipeline Summary
-  pipeline-summary:
-    name: Pipeline Summary
-    runs-on: ubuntu-latest
-    needs: [build-lint, unit-tests, api-tests, k6-tests, security-scan, metrics-progress, coverage-summary]
-    if: always()
-    steps:
-      - name: Pipeline Summary
-        run: |
-          echo "## 🚀 CI Pipeline Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Status:** ${{ needs.build-lint.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Deploy Enabled:** ${{ env.DEPLOY_ENABLED }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Skip Release:** ${{ env.SKIP_RELEASE }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📊 Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "- **Build & Lint:** ${{ needs.build-lint.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Unit Tests:** ${{ needs.unit-tests.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **API Tests:** ${{ needs.api-tests.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **k6 Tests:** ${{ needs.k6-tests.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Security Scan:** ${{ needs.security-scan.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Metrics:** ${{ needs.metrics-progress.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🔒 Security" >> $GITHUB_STEP_SUMMARY
-          echo "- **Deploy Blocked:** ✅ DEPLOY_ENABLED=false" >> $GITHUB_STEP_SUMMARY
+        

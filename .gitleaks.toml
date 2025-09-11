@@ -1,14 +1,6 @@
 title = "ECONEURA Policy"
 
-[[allowlist]]
-description = "docs & snapshots"
-paths = ["^docs/", "^snapshots/"]
-
-[[allowlist]]
-description = "allow placeholder tokens"
-regex = '''(InstrumentationKey=|AZURE_.*=|OPENAI_.*=)(<set in Azure>|test|placeholder)'''
-
-[[allowlist]]
+[allowlist]
 description = "allow fake placeholders and generated passwords"
 regexes = [
   "InstrumentationKey=<redacted>",
@@ -27,37 +19,37 @@ regexes = [
 
 # Rules for detecting real secrets
 [[rules]]
-  id = "azure-app-insights"
-  description = "Azure Application Insights Connection String"
-  regex = '''InstrumentationKey=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}'''
-  tags = ["azure", "application-insights"]
+id = "azure-app-insights"
+description = "Azure Application Insights Connection String"
+regex = '''InstrumentationKey=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}'''
+tags = ["azure", "application-insights"]
 
 [[rules]]
-  id = "azure-client-secret"
-  description = "Azure Client Secret"
-  regex = '''AZURE_CLIENT_SECRET=[a-zA-Z0-9+/]{40,}'''
-  tags = ["azure", "client-secret"]
+id = "azure-client-secret"
+description = "Azure Client Secret"
+regex = '''AZURE_CLIENT_SECRET=[a-zA-Z0-9+/]{40,}'''
+tags = ["azure", "client-secret"]
 
 [[rules]]
-  id = "jwt-secret"
-  description = "JWT Secret"
-  regex = '''JWT_SECRET=[a-zA-Z0-9+/]{32,}'''
-  tags = ["jwt", "secret"]
+id = "jwt-secret"
+description = "JWT Secret"
+regex = '''JWT_SECRET=[a-zA-Z0-9+/]{32,}'''
+tags = ["jwt", "secret"]
 
 [[rules]]
-  id = "database-password"
-  description = "Database Password"
-  regex = '''POSTGRES_PASSWORD=[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}'''
-  tags = ["database", "password"]
+id = "database-password"
+description = "Database Password"
+regex = '''POSTGRES_PASSWORD=[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}'''
+tags = ["database", "password"]
 
 [[rules]]
-  id = "api-key"
-  description = "API Key"
-  regex = '''API_KEY=[a-zA-Z0-9]{32,}'''
-  tags = ["api", "key"]
+id = "api-key"
+description = "API Key"
+regex = '''API_KEY=[a-zA-Z0-9]{32,}'''
+tags = ["api", "key"]
 
 [[rules]]
-  id = "session-secret"
-  description = "Session Secret"
-  regex = '''SESSION_SECRET=[a-zA-Z0-9+/]{32,}'''
-  tags = ["session", "secret"]
+id = "session-secret"
+description = "Session Secret"
+regex = '''SESSION_SECRET=[a-zA-Z0-9+/]{32,}'''
+tags = ["session", "secret"]
