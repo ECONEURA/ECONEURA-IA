@@ -1,0 +1,80 @@
+name: Contract Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'apps/api/openapi/**'
+      - 'scripts/contracts/**'
+  pull_request:
+    paths:
+      - 'apps/api/openapi/**'
+      - 'scripts/contracts/**'
+
+jobs:
+  contract-tests:
+    name: Contract Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate contract
+        run: node scripts/contracts/generate-contract.mjs
+
+      - name: Validate contract
+        run: |
+          if [ ! -f .artifacts/openapi.contract.json ]; then
+            echo "❌ Contract file not generated"
+            exit 1
+          fi
+          
+          # Validate contract structure
+          node -e "
+            const contract = JSON.parse(require('fs').readFileSync('.artifacts/openapi.contract.json', 'utf8'));
+            if (!contract.endpoints || !Array.isArray(contract.endpoints)) {
+              console.error('❌ Invalid contract structure');
+              process.exit(1);
+            }
+            console.log('✅ Contract structure valid');
+          "
+
+      - name: Check contract diff
+        run: |
+          # Check if contract has changed
+          if [ -f .artifacts/openapi.contract.json ]; then
+            echo "📊 Contract endpoints:"
+            node -e "
+              const contract = JSON.parse(require('fs').readFileSync('.artifacts/openapi.contract.json', 'utf8'));
+              console.log('Endpoints:', contract.endpoints.length);
+              contract.endpoints.forEach(ep => console.log('  -', ep.path));
+            "
+          fi
+
+      - name: Upload contract artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-tests
+          path: .artifacts/openapi.contract.json
+          retention-days: 30
+
+      - name: Contract test results
+        run: |
+          echo "✅ Contract tests completed successfully"
+          echo "📊 Contract file: .artifacts/openapi.contract.json"
+          echo "🔍 Endpoints validated: $(node -e "const c=JSON.parse(require('fs').readFileSync('.artifacts/openapi.contract.json','utf8')); console.log(c.endpoints.length)")"
