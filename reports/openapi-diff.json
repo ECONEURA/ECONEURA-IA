@@ -1,3 +1,9 @@
 {
-  "diff": []
+  "timestamp": "2025-09-11T22:22:21.310Z",
+  "hasChanges": false,
+  "currentHash": "b3BlbmFwaTogMy4w",
+  "snapshotHash": "b3BlbmFwaTogMy4w",
+  "snapshotTimestamp": "2025-09-11T22:22:14.517Z",
+  "status": "UNCHANGED",
+  "message": "OpenAPI specification is unchanged"
 }
