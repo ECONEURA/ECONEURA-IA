@@ -385,9 +385,185 @@ components:
         - version
         - timestamp
         - checks
+    MemoryPutRequest:
+      type: object
+      properties:
+        tenantId:
+          type: string
+          description: Tenant identifier
+          example: "tenant-123"
+        userId:
+          type: string
+          description: User identifier (optional)
+          example: "user-456"
+        agentId:
+          type: string
+          description: Agent identifier (optional)
+          example: "agent-789"
+        namespace:
+          type: string
+          description: Memory namespace
+          example: "conversations"
+        vector:
+          type: array
+          items:
+            type: number
+          description: Vector embedding (optional)
+          example: [0.1, 0.2, 0.3, 0.4, 0.5]
+        text:
+          type: string
+          description: Text content (optional)
+          example: "User asked about product pricing"
+        ttlSec:
+          type: integer
+          description: Time to live in seconds (optional)
+          example: 3600
+        meta:
+          type: object
+          additionalProperties: true
+          description: Additional metadata (optional)
+          example:
+            source: "chat"
+            priority: "high"
+      required:
+        - tenantId
+        - namespace
+    MemoryPutResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: true
+        id:
+          type: string
+          description: Generated memory ID
+          example: "mem_1234567890_abc123"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+      required:
+        - ok
+        - id
+        - timestamp
+    MemoryQueryRequest:
+      type: object
+      properties:
+        tenantId:
+          type: string
+          description: Tenant identifier
+          example: "tenant-123"
+        userId:
+          type: string
+          description: User identifier (optional)
+          example: "user-456"
+        agentId:
+          type: string
+          description: Agent identifier (optional)
+          example: "agent-789"
+        namespace:
+          type: string
+          description: Memory namespace
+          example: "conversations"
+        query:
+          type: string
+          description: Search query
+          example: "product pricing"
+        topK:
+          type: integer
+          description: Maximum number of results
+          default: 10
+          example: 5
+      required:
+        - tenantId
+        - namespace
+        - query
+    MemoryQueryResponse:
+      type: object
+      properties:
+        matches:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                example: "mem_1234567890_abc123"
+              score:
+                type: number
+                description: Similarity score (0-1)
+                example: 0.95
+              text:
+                type: string
+                example: "User asked about product pricing"
+              meta:
+                type: object
+                additionalProperties: true
+                example:
+                  source: "chat"
+                  priority: "high"
+            required:
+              - id
+              - score
+        query:
+          type: string
+          example: "product pricing"
+        namespace:
+          type: string
+          example: "conversations"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        totalMatches:
+          type: integer
+          example: 1
+      required:
+        - matches
+        - query
+        - namespace
+        - timestamp
+        - totalMatches
+    MemoryStatsResponse:
+      type: object
+      properties:
+        tenantId:
+          type: string
+          example: "tenant-123"
+        totalRecords:
+          type: integer
+          example: 150
+        namespaces:
+          type: array
+          items:
+            type: string
+          example: ["conversations", "embeddings", "context"]
+        lastUpdated:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+      required:
+        - tenantId
+        - totalRecords
+        - namespaces
+        - lastUpdated
+    MemoryCleanupResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: true
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+      required:
+        - ok
+        - timestamp
 paths:
   /api/v1/auth/login:
     post:
+      operationId: loginUser
       summary: User login
       tags:
         - Authentication
@@ -412,6 +588,7 @@ paths:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/v1/auth/refresh:
     post:
+      operationId: refreshToken
       summary: Refresh access token
       tags:
         - Authentication
@@ -449,6 +626,7 @@ paths:
                         type: string
   /api/v1/auth/logout:
     post:
+      operationId: logoutUser
       summary: User logout
       tags:
         - Authentication
@@ -459,6 +637,7 @@ paths:
           description: Logged out successfully
   /api/v1/auth/me:
     get:
+      operationId: getCurrentUser
       summary: Get current user info
       tags:
         - Authentication
@@ -484,6 +663,7 @@ paths:
                       type: string
   /api/v1/auth/sessions:
     get:
+      operationId: getUserSessions
       summary: Get user sessions
       tags:
         - Authentication
@@ -504,6 +684,7 @@ paths:
                   total:
                     type: integer
     delete:
+      operationId: revokeSession
       summary: Revoke session
       tags:
         - Authentication
@@ -521,6 +702,7 @@ paths:
           description: Session revoked
   /api/v1/crm/companies:
     get:
+      operationId: listCompanies
       summary: List companies
       tags:
         - CRM - Companies
@@ -573,6 +755,7 @@ paths:
                         items:
                           $ref: '#/components/schemas/Company'
     post:
+      operationId: createCompany
       summary: Create company
       tags:
         - CRM - Companies
@@ -599,6 +782,7 @@ paths:
                 $ref: '#/components/schemas/ValidationError'
   /api/v1/crm/companies/{id}:
     get:
+      operationId: getCompanyById
       summary: Get company by ID
       tags:
         - CRM - Companies
@@ -625,6 +809,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
     put:
+      operationId: updateCompany
       summary: Update company
       tags:
         - CRM - Companies
@@ -651,6 +836,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Company'
     delete:
+      operationId: deleteCompany
       summary: Delete company
       tags:
         - CRM - Companies
@@ -668,6 +854,7 @@ paths:
           description: Company deleted
   /api/health:
     get:
+      operationId: healthCheck
       summary: Health check
       tags:
         - System
@@ -680,6 +867,7 @@ paths:
                 $ref: '#/components/schemas/HealthCheck'
   /api/openapi.json:
     get:
+      operationId: getOpenAPISpecification
       summary: Get OpenAPI specification
       tags:
         - System
@@ -690,3 +878,183 @@ paths:
             application/json:
               schema:
                 type: object
+              example:
+                openapi: "3.1.0"
+                info:
+                  title: "ECONEURA API"
+                  version: "1.0.0"
+
+  /v1/memory/put:
+    post:
+      operationId: putMemory
+      summary: Store memory with vector or text
+      description: Store memory records with optional TTL and idempotency
+      tags:
+        - Memory
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemoryPutRequest'
+            example:
+              tenantId: "tenant-123"
+              userId: "user-456"
+              agentId: "agent-789"
+              namespace: "conversations"
+              text: "User asked about product pricing"
+              ttlSec: 3600
+              meta:
+                source: "chat"
+                priority: "high"
+      responses:
+        "200":
+          description: Memory stored successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryPutResponse'
+              example:
+                ok: true
+                id: "mem_1234567890_abc123"
+                timestamp: "2024-01-15T10:30:00Z"
+        "400":
+          description: Validation error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              example:
+                type: "https://econeura/errors/validation-error"
+                title: "Validation Error"
+                status: 400
+                detail: "Either vector or text must be provided"
+                instance: "/v1/memory/put"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+  /v1/memory/query:
+    post:
+      operationId: queryMemory
+      summary: Query memories by text similarity
+      description: Search memories using text similarity with optional filters
+      tags:
+        - Memory
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemoryQueryRequest'
+            example:
+              tenantId: "tenant-123"
+              userId: "user-456"
+              namespace: "conversations"
+              query: "product pricing"
+              topK: 5
+      responses:
+        "200":
+          description: Memory query results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryQueryResponse'
+              example:
+                matches:
+                  - id: "mem_1234567890_abc123"
+                    score: 0.95
+                    text: "User asked about product pricing"
+                    meta:
+                      source: "chat"
+                      priority: "high"
+                query: "product pricing"
+                namespace: "conversations"
+                timestamp: "2024-01-15T10:30:00Z"
+                totalMatches: 1
+        "400":
+          description: Validation error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+  /v1/memory/stats/{tenantId}:
+    get:
+      operationId: getMemoryStats
+      summary: Get memory statistics for tenant
+      description: Retrieve memory usage statistics for a specific tenant
+      tags:
+        - Memory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "tenant-123"
+      responses:
+        "200":
+          description: Memory statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryStatsResponse'
+              example:
+                tenantId: "tenant-123"
+                totalRecords: 150
+                namespaces: ["conversations", "embeddings", "context"]
+                lastUpdated: "2024-01-15T10:30:00Z"
+        "400":
+          description: Validation error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+  /v1/memory/cleanup:
+    post:
+      operationId: cleanupExpiredMemories
+      summary: Cleanup expired memories
+      description: Remove expired memory records from storage
+      tags:
+        - Memory
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Cleanup completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryCleanupResponse'
+              example:
+                ok: true
+                timestamp: "2024-01-15T10:30:00Z"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
