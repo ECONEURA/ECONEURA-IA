@@ -178,6 +178,9 @@ importers:
       drizzle-kit:
         specifier: ^0.20.18
         version: 0.20.18
+      globals:
+        specifier: ^16.4.0
+        version: 16.4.0
       supertest:
         specifier: ^6.3.3
         version: 6.3.4
