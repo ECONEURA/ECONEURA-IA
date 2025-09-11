@@ -1,22 +1,29 @@
-# GitLeaks configuration for ECONEURA
-# Allowlist for fake placeholders and test values
+title = "ECONEURA Policy"
 
-[allowlist]
-  description = "allow fake placeholders and generated passwords"
-  regexes = [
-    "InstrumentationKey=<redacted>",
-    "<set in Azure>",
-    "<redacted>",
-    "{{.*}}",
-    "test.*",
-    "example.*",
-    "placeholder.*",
-    "POSTGRES_PASSWORD=\\$\\(generate_password",
-    "JWT_SECRET=\\$\\(generate_password",
-    "NEXTAUTH_SECRET=\\$\\(generate_password",
-    "REDIS_PASSWORD=\\$\\(generate_password",
-    "WEBHOOK_SECRET=\\$\\(generate_password"
-  ]
+[[allowlist]]
+description = "docs & snapshots"
+paths = ["^docs/", "^snapshots/"]
+
+[[allowlist]]
+description = "allow placeholder tokens"
+regex = '''(InstrumentationKey=|AZURE_.*=|OPENAI_.*=)(<set in Azure>|test|placeholder)'''
+
+[[allowlist]]
+description = "allow fake placeholders and generated passwords"
+regexes = [
+  "InstrumentationKey=<redacted>",
+  "<set in Azure>",
+  "<redacted>",
+  "{{.*}}",
+  "test.*",
+  "example.*",
+  "placeholder.*",
+  "POSTGRES_PASSWORD=\\$\\(generate_password",
+  "JWT_SECRET=\\$\\(generate_password",
+  "NEXTAUTH_SECRET=\\$\\(generate_password",
+  "REDIS_PASSWORD=\\$\\(generate_password",
+  "WEBHOOK_SECRET=\\$\\(generate_password"
+]
 
 # Rules for detecting real secrets
 [[rules]]
