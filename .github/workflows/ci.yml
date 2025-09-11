@@ -156,14 +156,32 @@ jobs:
       - name: Install
         run: pnpm -w i
 
+      - name: Install dependencies
+        run: pnpm -w i
+
+      - name: Install Postgres client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
       - name: Bring-up API
         run: |
+          echo "🚀 Starting API bring-up process..."
           mkdir -p .artifacts
           bash scripts/ci/api-up.sh
         env:
           DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/econeura_ci
           PORT: 3001
           MOCK_EXTERNAL: "1"
+
+      - name: Verify API is running
+        run: |
+          echo "🔍 Verifying API is running..."
+          curl -f http://127.0.0.1:3001/health || {
+            echo "❌ API health check failed"
+            echo "📋 API logs:"
+            cat .artifacts/api.log || echo "No logs available"
+            exit 1
+          }
+          echo "✅ API is running and healthy"
 
       - name: Run API E2E
         run: pnpm --filter apps/api test:e2e
@@ -172,7 +190,6 @@ jobs:
           BASE_URL: http://127.0.0.1:3001
           HEALTH_PATH: ${{ env.HEALTH_PATH }}
           MOCK_EXTERNAL: "1"
-
       - name: Upload artifacts (always)
         if: always()
         uses: actions/upload-artifact@v4
