@@ -1036,7 +1036,7 @@ export class QuietHoursOnCallConsolidatedService {
       return;
     }
 
-    let currentDate = new Date(rotation.startDate);
+    const currentDate = new Date(rotation.startDate);
     let participantIndex = 0;
 
     // Generate shifts for the next 90 days

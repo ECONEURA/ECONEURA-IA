@@ -330,8 +330,8 @@ export class AdvancedSearchEngine {
     if (!sortBy) return results;
 
     return results.sort((a, b) => {
-      let aValue: any = a[sortBy as keyof typeof a];
-      let bValue: any = b[sortBy as keyof typeof b];
+      const aValue: any = a[sortBy as keyof typeof a];
+      const bValue: any = b[sortBy as keyof typeof b];
 
       if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
       if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;

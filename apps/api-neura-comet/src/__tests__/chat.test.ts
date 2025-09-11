@@ -10,8 +10,11 @@ vi.mock('node-fetch');
 vi.mock('../svc/memory');
 
 describe('NEURA Chat API', () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let mockReq: Partial<Request>;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let mockRes: Partial<Response>;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let mockNext: any;
 
   beforeEach(() => {
@@ -55,6 +58,7 @@ describe('NEURA Chat API', () => {
     } as any);
 
     // Import and test the route
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const chatRoute = await import('../routes/chat');
     // Note: In a real test, you'd need to properly test the Express route
     // This is a simplified example

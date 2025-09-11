@@ -25,7 +25,7 @@ const COMMON_PATTERNS = [
   'onClick=.*{',
   'useState<.*>',
   'useEffect.*\(.*\)',
-  'const.*=.*async.*\(',
+  'const.*=.*async.*\\(',
   'throw.*new.*Error',
   'console\.log',
   'console\.error',

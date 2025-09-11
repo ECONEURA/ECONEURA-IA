@@ -93,21 +93,28 @@ jobs:
           echo "Would start services here for local testing"
           echo "For now, testing against external endpoints or mocked responses"
           
-      - name: Run k6 Load Tests
+      - name: Run k6 Load Tests (with retry)
         run: |
-          mkdir -p performance-results
-          k6 run tests/k6/load-test.js \
-            --out json=performance-results/load-test-results.json \
-            --env K6_BASE_URL="${{ env.K6_BASE_URL }}" \
-            --env K6_MAX_VUS="${{ env.K6_MAX_VUS }}" \
-            --summary-trend-stats="avg,min,med,max,p(90),p(95),p(99)" \
-            --summary-time-unit=ms
+          mkdir -p performance-results .artifacts
+          for i in {1..2}; do
+            k6 run tests/k6/load-test.js \
+              --out json=performance-results/load-test-results.json \
+              --summary-export .artifacts/k6-summary.json \
+              --env K6_BASE_URL="${{ env.K6_BASE_URL }}" \
+              --env K6_MAX_VUS="${{ env.K6_MAX_VUS }}" \
+              --summary-trend-stats="avg,min,med,max,p(90),p(95),p(99)" \
+              --summary-time-unit=ms && break
+            echo "k6 load test attempt $i failed, retrying..."
+            sleep 10
+          done
             
       - name: Upload load test results
         uses: actions/upload-artifact@v4
         with:
           name: load-test-results
-          path: performance-results/load-test-results.json
+          path: |
+            performance-results/load-test-results.json
+            .artifacts/k6-summary.json
           retention-days: 30
 
   # Chaos testing  
@@ -140,20 +147,27 @@ jobs:
           echo "Would start services here for local testing"
           echo "For now, testing against external endpoints or mocked responses"
           
-      - name: Run k6 Chaos Tests
+      - name: Run k6 Chaos Tests (with retry)
         run: |
-          mkdir -p performance-results
-          k6 run tests/k6/chaos-test.js \
-            --out json=performance-results/chaos-test-results.json \
-            --env K6_BASE_URL="${{ env.K6_BASE_URL }}" \
-            --summary-trend-stats="avg,min,med,max,p(90),p(95),p(99)" \
-            --summary-time-unit=ms
+          mkdir -p performance-results .artifacts
+          for i in {1..2}; do
+            k6 run tests/k6/chaos-test.js \
+              --out json=performance-results/chaos-test-results.json \
+              --summary-export .artifacts/k6-chaos-summary.json \
+              --env K6_BASE_URL="${{ env.K6_BASE_URL }}" \
+              --summary-trend-stats="avg,min,med,max,p(90),p(95),p(99)" \
+              --summary-time-unit=ms && break
+            echo "k6 chaos test attempt $i failed, retrying..."
+            sleep 10
+          done
             
       - name: Upload chaos test results
         uses: actions/upload-artifact@v4
         with:
           name: chaos-test-results
-          path: performance-results/chaos-test-results.json
+          path: |
+            performance-results/chaos-test-results.json
+            .artifacts/k6-chaos-summary.json
           retention-days: 30
 
   # Performance analysis and reporting

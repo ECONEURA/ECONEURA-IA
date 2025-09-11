@@ -113,7 +113,7 @@ export async function persistTurn(userId: string, dept: string, role: 'user' | '
 }
 
 // Check if summary should be refreshed
-export function shouldRefresh(userId: string, dept: string): boolean {
+export function shouldRefresh(_userId: string, _dept: string): boolean {
   // Simple heuristic: refresh every 10 messages
   // In production, you'd use a more sophisticated approach
   return Math.random() < 0.1; // 10% chance

@@ -242,7 +242,7 @@ export class GraphService {
       const mailboxes = new Set<string>();
 
       for (const sub of subscriptions) {
-        const match = sub.resource.match(/users\/([^\/]+)\/messages/);
+        const match = sub.resource.match(/users\/([^/]+)\/messages/);
         if (match) {
           mailboxes.add(match[1]);
         }

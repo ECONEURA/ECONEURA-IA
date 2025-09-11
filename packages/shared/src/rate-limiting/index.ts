@@ -354,7 +354,7 @@ export class RateLimiter {
 
 import { Request, Response, NextFunction } from 'express';
 
-export interface RateLimitRequest extends Request {
+export interface RateLimitRequestExtended extends Request {
   rateLimit?: RateLimitResult;
   user?: {
     id: string;

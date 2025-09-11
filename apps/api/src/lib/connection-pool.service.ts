@@ -452,7 +452,7 @@ export class ConnectionPoolService {
 
     const startTime = Date.now();
     let healthyConnections = 0;
-    let totalConnections = pool.connections.length;
+    const totalConnections = pool.connections.length;
 
     for (const connection of pool.connections) {
       try {

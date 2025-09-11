@@ -120,8 +120,8 @@ export class SystemHealthService {
     try {
       const startTime = Date.now();
       let status: 'up' | 'down' | 'degraded' = 'up';
-      let errorRate = 0;
-      let throughput = 0;
+      const errorRate = 0;
+      const throughput = 0;
       let details: any = {};
 
       switch (serviceName) {

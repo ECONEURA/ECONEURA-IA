@@ -374,7 +374,7 @@ export class DistributedCache {
    * Serialize value with optional compression/encryption
    */
   private async serialize<T>(value: T): Promise<any> {
-    let serialized = JSON.stringify(value);
+    const serialized = JSON.stringify(value);
 
     if (this.compressionEnabled) {
       // Compression would be implemented here
@@ -393,7 +393,7 @@ export class DistributedCache {
    * Deserialize value with optional decompression/decryption
    */
   private async deserialize<T>(value: any): Promise<T> {
-    let deserialized = value;
+    const deserialized = value;
 
     if (this.encryptionEnabled) {
       // Decryption would be implemented here

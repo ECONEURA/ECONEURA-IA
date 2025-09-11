@@ -10,8 +10,11 @@ vi.mock('node-fetch');
 vi.mock('../svc/runs');
 
 describe('Agent Trigger API', () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let mockReq: Partial<Request>;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let mockRes: Partial<Response>;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let mockNext: any;
 
   beforeEach(() => {
