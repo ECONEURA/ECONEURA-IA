@@ -115,7 +115,7 @@ export class TestingFramework {
   /**
    * Add a skipped test
    */
-  it.skip(name: string, fn: () => Promise<void>): void {
+  itSkip(name: string, fn: () => Promise<void>): void {
     this.it(name, fn, { skip: true });
   }
 
