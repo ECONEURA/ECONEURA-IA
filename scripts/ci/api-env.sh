@@ -8,3 +8,4 @@ export DATABASE_URL="${DATABASE_URL:-postgresql://ci:ci@127.0.0.1:5432/econeura_
 export MOCK_EXTERNAL=1
 export OPENAI_API_KEY="test"
 export AZURE_OPENAI_API_BASE="http://127.0.0.1:9999"
+export LOG_LEVEL="warn"

@@ -1,0 +1,12 @@
+timeout = "20s"
+user_agent = "lychee"
+exclude = [
+  "^https://.*azurewebsites.net",
+  "^mailto:",
+  "^tel:",
+  "^https://localhost",
+  "^https://127.0.0.1"
+]
+retry_wait_time = "2s"
+max_retries = 3
+verbose = true
