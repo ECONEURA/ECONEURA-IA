@@ -1,126 +1,119 @@
 import { Request, Response } from 'express';
-import { MemoryService } from '../services/memory.service';
-import { ProblemDetails } from '../types/problem-details.types';
+import { memoryService } from '../services/memory.service.js';
+import { MemoryPutRequest, MemoryQueryRequest } from '../db/memory.repo.js';
 
 export class MemoryController {
-  private memoryService: MemoryService;
-
-  constructor() {
-    this.memoryService = new MemoryService();
-  }
-
-  /**
-   * Store or update memory entry
-   */
-  async putMemory(req: Request, res: Response): Promise<void> {
+  async putMemory(req: Request, res: Response) {
     try {
-      const {
-        tenantId,
-        userId,
-        agentId,
-        namespace,
-        vector,
-        text,
-        ttlSec,
-        meta
-      } = req.body;
-
-      // Generate idempotency key from request
       const idempotencyKey = req.headers['x-idempotency-key'] as string;
-      
-      const result = await this.memoryService.putMemory({
-        tenantId,
-        userId,
-        agentId,
-        namespace,
-        vector,
-        text,
-        ttlSec,
-        meta,
-        idempotencyKey
-      });
+      const request: MemoryPutRequest = req.body;
 
-      res.status(200).json({
-        ok: true,
-        id: result.id
-      });
+      const result = await memoryService.putMemory(request, idempotencyKey);
+
+      res.status(200).json(result);
     } catch (error) {
-      console.error('Memory put error:', error);
+      console.error('Error in putMemory:', error);
       
-      if (error instanceof Error) {
-        const problemDetails: ProblemDetails = {
-          type: 'https://econeura.com/errors/memory-storage-failed',
-          title: 'Memory Storage Failed',
-          status: 500,
+      if (error instanceof Error && error.message.includes('Validation error')) {
+        res.status(400).json({
+          type: 'https://econeura/errors/validation-error',
+          title: 'Validation Error',
+          status: 400,
           detail: error.message,
-          instance: req.url,
-          timestamp: new Date().toISOString()
-        };
-        
-        res.status(500).json(problemDetails);
-      } else {
-        res.status(500).json({
-          type: 'https://econeura.com/errors/internal-server-error',
-          title: 'Internal Server Error',
-          status: 500,
-          detail: 'An unexpected error occurred',
-          instance: req.url,
-          timestamp: new Date().toISOString()
+          instance: req.path,
         });
+        return;
       }
+
+      res.status(500).json({
+        type: 'https://econeura/errors/internal-error',
+        title: 'Internal Server Error',
+        status: 500,
+        detail: 'An unexpected error occurred',
+        instance: req.path,
+      });
     }
   }
 
-  /**
-   * Query memory entries
-   */
-  async queryMemory(req: Request, res: Response): Promise<void> {
+  async queryMemory(req: Request, res: Response) {
     try {
-      const {
-        tenantId,
-        userId,
-        agentId,
-        namespace,
-        query,
-        topK = 5
-      } = req.body;
+      const request: MemoryQueryRequest = req.body;
 
-      const matches = await this.memoryService.queryMemory({
-        tenantId,
-        userId,
-        agentId,
-        namespace,
-        query,
-        topK
-      });
+      const result = await memoryService.queryMemory(request);
 
-      res.status(200).json({
-        matches
-      });
+      res.status(200).json(result);
     } catch (error) {
-      console.error('Memory query error:', error);
+      console.error('Error in queryMemory:', error);
       
-      if (error instanceof Error) {
-        const problemDetails: ProblemDetails = {
-          type: 'https://econeura.com/errors/memory-query-failed',
-          title: 'Memory Query Failed',
-          status: 500,
+      if (error instanceof Error && error.message.includes('Validation error')) {
+        res.status(400).json({
+          type: 'https://econeura/errors/validation-error',
+          title: 'Validation Error',
+          status: 400,
           detail: error.message,
-          instance: req.url,
-          timestamp: new Date().toISOString()
-        };
-        
-        res.status(500).json(problemDetails);
-      } else {
-        res.status(500).json({
-          type: 'https://econeura.com/errors/internal-server-error',
-          title: 'Internal Server Error',
-          status: 500,
-          detail: 'An unexpected error occurred',
-          instance: req.url,
-          timestamp: new Date().toISOString()
+          instance: req.path,
         });
+        return;
       }
+
+      res.status(500).json({
+        type: 'https://econeura/errors/internal-error',
+        title: 'Internal Server Error',
+        status: 500,
+        detail: 'An unexpected error occurred',
+        instance: req.path,
+      });
+    }
+  }
+
+  async getMemoryStats(req: Request, res: Response) {
+    try {
+      const { tenantId } = req.params;
+
+      if (!tenantId) {
+        res.status(400).json({
+          type: 'https://econeura/errors/validation-error',
+          title: 'Validation Error',
+          status: 400,
+          detail: 'tenantId is required',
+          instance: req.path,
+        });
+        return;
+      }
+
+      const result = await memoryService.getMemoryStats(tenantId);
+
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('Error in getMemoryStats:', error);
+      
+      res.status(500).json({
+        type: 'https://econeura/errors/internal-error',
+        title: 'Internal Server Error',
+        status: 500,
+        detail: 'An unexpected error occurred',
+        instance: req.path,
+      });
+    }
+  }
+
+  async cleanupMemories(req: Request, res: Response) {
+    try {
+      const result = await memoryService.cleanupExpiredMemories();
+
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('Error in cleanupMemories:', error);
+      
+      res.status(500).json({
+        type: 'https://econeura/errors/internal-error',
+        title: 'Internal Server Error',
+        status: 500,
+        detail: 'An unexpected error occurred',
+        instance: req.path,
+      });
     }
   }
 }
+
+export const memoryController = new MemoryController();

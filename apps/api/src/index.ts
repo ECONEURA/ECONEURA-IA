@@ -25,6 +25,9 @@ import { progressRouter } from './routes/progress.js';
 import configurationRouter from './routes/configuration.js';
 import workflowsRouter from './routes/workflows.js';
 
+// PR-95: Memory NEURA API
+import memoryRouter from './routes/memory.routes.js';
+
 // Importar middlewares de mejora
 import { 
   performanceMiddleware, 
@@ -1565,6 +1568,9 @@ app.use('/v1/config', configurationRouter);
 
 // PR-33: Workflows BPMN & State Machines
 app.use('/v1/workflows', workflowsRouter);
+
+// PR-95: Memory NEURA API
+app.use('/v1/memory', memoryRouter);
 
 // Mount Progress routes
 app.use(progressRouter);
