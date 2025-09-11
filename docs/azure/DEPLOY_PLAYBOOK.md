@@ -1,217 +1,387 @@
-# Deploy Playbook - ECONEURA Azure
+# Azure Deployment Playbook
 
-## Resumen Ejecutivo
+Guía completa para deployments en Azure App Service con estrategias de blue-green deployment.
 
-**Objetivo:** Guía completa para deployment seguro de ECONEURA en Azure  
-**Entorno:** Dev/Staging/Production  
-**Estado:** ✅ **DEPLOY_ENABLED=true** (Solo DEV habilitado)
+## Índice
 
-## Pre-requisitos
-
-### 1. Configuración de Azure
-- ✅ Azure CLI instalado y configurado
-- ✅ OIDC configurado para GitHub Actions
-- ✅ Resource Group: `econeura-rg`
-- ✅ Región: `West Europe`
-
-### 2. Secrets de GitHub
-- `AZURE_CLIENT_ID`
-- `AZURE_TENANT_ID` 
-- `AZURE_SUBSCRIPTION_ID`
-- `ACR_USERNAME`
-- `ACR_PASSWORD`
-- `POSTGRES_PASSWORD`
-- `MISTRAL_BASE_URL`
-- `AZURE_OPENAI_ENDPOINT`
-- `AZURE_OPENAI_API_KEY`
-- `AZURE_CLIENT_SECRET`
-- `MAKE_WEBHOOK_HMAC_SECRET`
-- `MAKE_ALLOWED_IPS`
-- `DOMAIN_NAME`
-
-### 3. Verificaciones Pre-Deploy
-- ✅ Código compilado sin errores
-- ✅ Tests pasando
-- ✅ OpenAPI diff = 0
-- ✅ Duplicados ≤ 50
-- ✅ jscpd ≤ 5%
-
-## Proceso de Deployment
-
-### Fase 1: Preparación
-```bash
-# 1. Verificar estado del repositorio
-bash scripts/verify-repo.sh
-# Debe mostrar: VERIFY=PASS
-
-# 2. Verificar secrets de Azure
-az account show
-az group show --name econeura-rg
-
-# 3. Verificar conectividad
-curl -f https://api.econeura.dev/health
-```
-
-### Fase 2: Deployment Manual (Workflow Dispatch)
-1. **Ir a GitHub Actions**
-2. **Seleccionar workflow:** "Deploy to Azure"
-3. **Ejecutar workflow manualmente:**
-   - Environment: `dev` (solo habilitado)
-   - Skip infrastructure: `false` (primera vez)
-4. **Monitorear progreso:**
-   - Infrastructure Deployment
-   - Build and Push Images
-   - Deploy Applications
-   - Database Migration
-   - Smoke Tests
-
-### Fase 3: Verificación Post-Deploy
-```bash
-# 1. Health checks
-curl -f https://api-dev.econeura.dev/health
-curl -f https://web-dev.econeura.dev
-
-# 2. Smoke tests automáticos
-# Se ejecutan automáticamente en el workflow
-
-# 3. Verificar logs
-az containerapp logs show \
-  --name econeura-devapi \
-  --resource-group econeura-rg \
-  --follow
-```
-
-## Entornos Disponibles
-
-### DEV (Habilitado)
-- **URL API:** `https://api-dev.econeura.dev`
-- **URL Web:** `https://web-dev.econeura.dev`
-- **Resource Prefix:** `econeura-dev`
-- **Auto-deploy:** ✅ Habilitado
-
-### Staging (Bloqueado)
-- **Estado:** ❌ Bloqueado por seguridad
-- **Razón:** Requiere aprobación manual
-- **Acceso:** Solo con workflow_dispatch
-
-### Production (Bloqueado)
-- **Estado:** ❌ Bloqueado por seguridad
-- **Razón:** Requiere aprobación manual + review
-- **Acceso:** Solo con workflow_dispatch + approval
-
-## Monitoreo y Alertas
-
-### Health Checks
-- **API Health:** `/health` endpoint
-- **Database:** PostgreSQL connectivity
-- **External APIs:** Mistral, Azure OpenAI
-- **Container Apps:** Azure Container Apps status
-
-### Métricas Clave
-- **Response Time:** < 2 segundos
-- **Error Rate:** < 1%
-- **Uptime:** > 99.9%
-- **Memory Usage:** < 80%
-
-### Alertas Configuradas
-- **Application Insights:** Error rate > 5%
-- **Azure Monitor:** CPU > 80%
-- **Teams Webhook:** Deployment notifications
-
-## Troubleshooting
-
-### Problemas Comunes
-
-#### 1. Deployment Falla
-```bash
-# Verificar logs del workflow
-gh run list --workflow="Deploy to Azure"
-gh run view <run-id>
-
-# Verificar estado de Azure
-az containerapp list --resource-group econeura-rg
-az deployment group list --resource-group econeura-rg
-```
-
-#### 2. Health Check Falla
-```bash
-# Verificar logs de la aplicación
-az containerapp logs show \
-  --name econeura-devapi \
-  --resource-group econeura-rg
-
-# Verificar conectividad de base de datos
-az postgres flexible-server show \
-  --name econeura-dev-postgres \
-  --resource-group econeura-rg
-```
-
-#### 3. Performance Issues
-```bash
-# Verificar métricas de Application Insights
-az monitor app-insights component show \
-  --app econeura-dev-insights \
-  --resource-group econeura-rg
-
-# Verificar escalado automático
-az containerapp show \
-  --name econeura-devapi \
-  --resource-group econeura-rg \
-  --query properties.configuration.ingress
-```
-
-## Rollback Plan
-
-### Rollback Automático
-- **Trigger:** Smoke tests fallan
-- **Acción:** Revertir a imagen anterior
-- **Tiempo:** < 5 minutos
-
-### Rollback Manual
-```bash
-# 1. Identificar imagen anterior
-az containerapp revision list \
-  --name econeura-devapi \
-  --resource-group econeura-rg
-
-# 2. Activar revisión anterior
-az containerapp revision activate \
-  --name econeura-devapi \
-  --resource-group econeura-rg \
-  --revision <previous-revision>
-
-# 3. Verificar rollback
-curl -f https://api-dev.econeura.dev/health
-```
-
-## Seguridad
-
-### Principios Aplicados
-- ✅ **No secrets en repo:** Todos los secrets en GitHub Secrets
-- ✅ **OIDC:** Autenticación sin passwords
-- ✅ **Network Security:** VNet y Private Endpoints
-- ✅ **Encryption:** En tránsito y en reposo
-- ✅ **Access Control:** RBAC y Managed Identity
-
-### Compliance
-- ✅ **GDPR:** Data processing compliance
-- ✅ **SOC 2:** Security controls
-- ✅ **ISO 27001:** Information security
-
-## Contactos de Emergencia
-
-### Escalación
-1. **Nivel 1:** DevOps Team
-2. **Nivel 2:** Engineering Lead
-3. **Nivel 3:** CTO
-
-### Canales
-- **Teams:** #econeura-devops
-- **Email:** devops@econeura.dev
-- **Phone:** +34 XXX XXX XXX (emergencias)
+1. [DEV Environment](#dev-environment)
+2. [Staging Environment](#staging-environment)
+3. [Production Environment](#production-environment)
+4. [Rollback Procedures](#rollback-procedures)
+5. [Monitoring & Alerts](#monitoring--alerts)
+6. [Troubleshooting](#troubleshooting)
 
 ---
 
-**Última actualización:** 2025-09-10  
-**Versión:** 1.0  
-**Estado:** ✅ **READY FOR DEPLOY**
+## DEV Environment
+
+### Overview
+Environment de desarrollo para testing y validación de features antes de staging.
+
+### Configuration
+
+#### App Service Settings
+```bash
+# Environment variables
+ENVIRONMENT=dev
+LOG_LEVEL=debug
+ENABLE_DEBUG_MODE=true
+ENABLE_EXPERIMENTAL_FEATURES=true
+
+# Feature flags
+FEATURE_NEW_UI=false
+FEATURE_AI_FEATURES=true
+FEATURE_ANALYTICS=false
+```
+
+#### Deployment Strategy
+- **Method**: ZIP run-from-package
+- **Branch**: `dev`
+- **Trigger**: Push to `dev` branch
+- **Auto-deploy**: Enabled
+
+#### Deployment Process
+
+1. **Pre-deployment Checks**
+   ```bash
+   # Verify branch
+   git branch --show-current  # Should be 'dev'
+   
+   # Run quality gates
+   pnpm -w lint
+   pnpm -w test
+   pnpm -w build
+   ```
+
+2. **Deploy to DEV**
+   ```bash
+   # Push to dev branch (triggers auto-deploy)
+   git push origin dev
+   
+   # Monitor deployment
+   az webapp deployment list --name econeura-dev --resource-group econeura-rg
+   ```
+
+3. **Post-deployment Verification**
+   ```bash
+   # Health check
+   curl https://econeura-dev.azurewebsites.net/health
+   
+   # Smoke tests
+   pnpm k6:smoke
+   
+   # Check logs
+   az webapp log tail --name econeura-dev --resource-group econeura-rg
+   ```
+
+#### Feature Flags (DEV)
+```json
+{
+  "ENABLE_DEBUG_MODE": true,
+  "ENABLE_EXPERIMENTAL_FEATURES": true,
+  "ENABLE_AI_FEATURES": true,
+  "ENABLE_NEW_UI": false,
+  "ENABLE_ANALYTICS": false,
+  "LOG_LEVEL": "debug"
+}
+```
+
+#### Monitoring
+- **Health Endpoint**: `/health`
+- **Metrics**: Application Insights
+- **Logs**: Azure Monitor
+- **Alerts**: Email notifications for failures
+
+---
+
+## Staging Environment
+
+### Overview
+Environment de staging para validación final antes de producción.
+
+### Configuration
+
+#### App Service Settings
+```bash
+# Environment variables
+ENVIRONMENT=staging
+LOG_LEVEL=info
+ENABLE_DEBUG_MODE=false
+ENABLE_EXPERIMENTAL_FEATURES=false
+
+# Feature flags
+FEATURE_NEW_UI=true
+FEATURE_AI_FEATURES=true
+FEATURE_ANALYTICS=true
+```
+
+#### Deployment Strategy
+- **Method**: Blue-Green with staging slot
+- **Branch**: `main`
+- **Trigger**: Manual or scheduled
+- **Auto-deploy**: Disabled
+
+#### Deployment Process
+
+1. **Pre-deployment Checks**
+   ```bash
+   # Verify main branch
+   git checkout main
+   git pull origin main
+   
+   # Run full test suite
+   pnpm -w lint
+   pnpm -w test -- --coverage
+   pnpm -w build
+   pnpm e2e:ui
+   ```
+
+2. **Deploy to Staging Slot**
+   ```bash
+   # Deploy to staging slot
+   az webapp deployment slot swap \
+     --name econeura-staging \
+     --resource-group econeura-rg \
+     --slot staging \
+     --target-slot production
+   ```
+
+3. **Validation**
+   ```bash
+   # Health check
+   curl https://econeura-staging.azurewebsites.net/health
+   
+   # Full test suite
+   pnpm e2e:ui
+   pnpm k6:load
+   ```
+
+4. **Swap to Production**
+   ```bash
+   # Swap staging to production
+   az webapp deployment slot swap \
+     --name econeura-staging \
+     --resource-group econeura-rg \
+     --slot staging \
+     --target-slot production
+   ```
+
+#### Feature Flags (Staging)
+```json
+{
+  "ENABLE_DEBUG_MODE": false,
+  "ENABLE_EXPERIMENTAL_FEATURES": false,
+  "ENABLE_AI_FEATURES": true,
+  "ENABLE_NEW_UI": true,
+  "ENABLE_ANALYTICS": true,
+  "LOG_LEVEL": "info"
+}
+```
+
+---
+
+## Production Environment
+
+### Overview
+Environment de producción con máxima estabilidad y performance.
+
+### Configuration
+
+#### App Service Settings
+```bash
+# Environment variables
+ENVIRONMENT=production
+LOG_LEVEL=warn
+ENABLE_DEBUG_MODE=false
+ENABLE_EXPERIMENTAL_FEATURES=false
+
+# Feature flags
+FEATURE_NEW_UI=true
+FEATURE_AI_FEATURES=true
+FEATURE_ANALYTICS=true
+```
+
+#### Deployment Strategy
+- **Method**: Blue-Green with zero-downtime
+- **Branch**: `main` (tagged releases)
+- **Trigger**: Manual approval required
+- **Auto-deploy**: Disabled
+
+#### Deployment Process
+
+1. **Release Preparation**
+   ```bash
+   # Create release tag
+   git tag -a v1.0.0 -m "Release v1.0.0"
+   git push origin v1.0.0
+   
+   # Generate changelog
+   pnpm changelog
+   ```
+
+2. **Deploy to Production**
+   ```bash
+   # Deploy to production slot
+   az webapp deployment slot swap \
+     --name econeura-prod \
+     --resource-group econeura-rg \
+     --slot staging \
+     --target-slot production
+   ```
+
+3. **Post-deployment Monitoring**
+   ```bash
+   # Health check
+   curl https://econeura-prod.azurewebsites.net/health
+   
+   # Performance tests
+   pnpm k6:load
+   pnpm k6:chaos
+   ```
+
+#### Feature Flags (Production)
+```json
+{
+  "ENABLE_DEBUG_MODE": false,
+  "ENABLE_EXPERIMENTAL_FEATURES": false,
+  "ENABLE_AI_FEATURES": true,
+  "ENABLE_NEW_UI": true,
+  "ENABLE_ANALYTICS": true,
+  "LOG_LEVEL": "warn"
+}
+```
+
+---
+
+## Rollback Procedures
+
+### Automatic Rollback
+- **Trigger**: Health check failures
+- **Timeout**: 5 minutes
+- **Action**: Revert to previous slot
+
+### Manual Rollback
+
+#### DEV Environment
+```bash
+# Revert to previous commit
+git revert HEAD
+git push origin dev
+```
+
+#### Staging Environment
+```bash
+# Swap back to previous slot
+az webapp deployment slot swap \
+  --name econeura-staging \
+  --resource-group econeura-rg \
+  --slot production \
+  --target-slot staging
+```
+
+#### Production Environment
+```bash
+# Emergency rollback
+az webapp deployment slot swap \
+  --name econeura-prod \
+  --resource-group econeura-rg \
+  --slot production \
+  --target-slot staging
+```
+
+---
+
+## Monitoring & Alerts
+
+### Health Checks
+- **Endpoint**: `/health`
+- **Frequency**: Every 30 seconds
+- **Timeout**: 10 seconds
+- **Retries**: 3
+
+### Metrics
+- **Response Time**: < 2 seconds
+- **Error Rate**: < 1%
+- **CPU Usage**: < 80%
+- **Memory Usage**: < 85%
+
+### Alerts
+- **Email**: ops@econeura.com
+- **Slack**: #alerts-econeura
+- **PagerDuty**: Critical alerts
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+#### Deployment Failures
+```bash
+# Check deployment logs
+az webapp deployment list --name econeura-dev --resource-group econeura-rg
+
+# Check application logs
+az webapp log tail --name econeura-dev --resource-group econeura-rg
+```
+
+#### Performance Issues
+```bash
+# Check metrics
+az monitor metrics list --resource econeura-dev --resource-group econeura-rg
+
+# Scale up if needed
+az webapp update --name econeura-dev --resource-group econeura-rg --sku S2
+```
+
+#### Health Check Failures
+```bash
+# Check health endpoint
+curl -v https://econeura-dev.azurewebsites.net/health
+
+# Check dependencies
+curl -v https://econeura-dev.azurewebsites.net/health/dependencies
+```
+
+### Emergency Procedures
+
+#### Complete Service Outage
+1. Check Azure status page
+2. Verify resource group status
+3. Check application logs
+4. Consider rollback to previous version
+5. Scale up resources if needed
+
+#### Data Issues
+1. Check database connectivity
+2. Verify backup status
+3. Check data migration logs
+4. Consider data restore if necessary
+
+---
+
+## Security Considerations
+
+### Access Control
+- **RBAC**: Role-based access control
+- **Service Principals**: For automated deployments
+- **Key Vault**: For secrets management
+
+### Network Security
+- **VNet Integration**: For private connectivity
+- **Private Endpoints**: For database access
+- **WAF**: Web Application Firewall
+
+### Compliance
+- **GDPR**: Data protection compliance
+- **SOC 2**: Security controls
+- **ISO 27001**: Information security management
+
+---
+
+## Contact Information
+
+- **DevOps Team**: devops@econeura.com
+- **On-Call**: +1-555-ECONEURA
+- **Emergency**: ops@econeura.com
+- **Slack**: #econeura-ops

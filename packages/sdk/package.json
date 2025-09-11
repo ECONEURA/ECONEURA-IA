@@ -1,47 +1,33 @@
 {
   "name": "@econeura/sdk",
   "version": "1.0.0",
-  "description": "SDK for ECONEURA API integration",
+  "description": "TypeScript SDK for ECONEURA API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.js"
-    },
-    "./api": {
-      "types": "./dist/api/index.d.ts",
-      "import": "./dist/api/index.js",
-      "require": "./dist/api/index.js"
-    },
-    "./types": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/types/index.js",
-      "require": "./dist/types/index.js"
-    },
-    "./utils": {
-      "types": "./dist/utils/index.d.ts",
-      "import": "./dist/utils/index.js",
-      "require": "./dist/utils/index.js"
-    }
-  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "clean": "rm -rf dist",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint src",
-    "lint:fix": "eslint src --fix"
+    "generate": "openapi-typescript ../../apps/api/openapi/openapi.yaml -o src/types.ts",
+    "test": "vitest",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "axios": "^1.6.0",
+    "axios": "^1.11.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/node": "^20.19.11",
-    "typescript": "^5.3.0"
+    "openapi-typescript": "^7.0.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.6.1",
+    "eslint": "^8.57.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0"
   },
+  "files": [
+    "dist"
+  ],
   "publishConfig": {
     "access": "restricted"
   }
