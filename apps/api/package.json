@@ -13,7 +13,10 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:integration": "vitest run src/__tests__/workers-integration.test.ts",
-    "test:e2e": "vitest run src/__tests__/end-to-end.test.ts",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts --no-threads --max-workers=1",
+    "start:test": "node dist/index.js || ts-node src/index.ts",
+    "db:migrate": "drizzle-kit migrate || prisma migrate deploy",
+    "db:seed": "node scripts/seed.mjs || true",
     "test:load": "k6 run ../../tests/k6/load-test.js",
     "test:chaos": "k6 run ../../tests/k6/chaos-test.js",
     "test:k6": "../../scripts/run-k6-tests.sh",
@@ -66,12 +69,17 @@
     "@types/node": "^20.10.0",
     "@types/supertest": "^2.0.16",
     "concurrently": "^9.2.1",
+    "cross-env": "^7.0.3",
     "drizzle-kit": "^0.20.18",
     "globals": "^16.4.0",
+    "nock": "^13.5.0",
     "supertest": "^6.3.3",
+    "ts-node": "^10.9.2",
     "tsx": "^4.6.0",
     "typescript": "^5.3.0",
-    "vitest": "^1.0.0"
+    "vitest": "^1.0.0",
+    "wait-on": "^7.2.0",
+    "zx": "^8.1.0"
   },
   "engines": {
     "node": ">=20.0.0"

@@ -82,11 +82,13 @@
     "js-yaml": "^4.1.0",
     "lint-staged": "^15.2.0",
     "lychee": "^0.2.12",
+    "nock": "^14.0.10",
     "prettier": "^3.2.0",
     "semantic-release": "^24.2.8",
     "snyk": "^1.1272.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.0",
+    "wait-on": "^8.0.4",
     "ws": "^8.18.3",
     "zx": "^8.8.1"
   },
