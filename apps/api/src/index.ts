@@ -141,7 +141,11 @@ import fiscalidadRegionalUERouter from './routes/fiscalidad-regional-ue.js';
 
 // Import middlewares (PR-27, PR-28, PR-29)
 import { observabilityMiddleware } from './middleware/observability.js';
-import { finOpsMiddleware } from './middleware/finops.js';
+import { finops as finOpsMiddleware } from './middleware/finops.js';
+import { finOpsEnforce } from './middleware/finops-enforce-v2.js';
+
+// PR-97: FinOps Administration Routes
+import finOpsAdminRouter from './routes/finops-admin.js';
 
 // PR-25: Biblioteca de prompts
 import { promptLibrary } from './lib/prompt-library.service.js';
@@ -326,8 +330,11 @@ app.use(cacheCleanupMiddleware);
 // Apply observability middleware (PR-23)
 app.use(observabilityMiddleware);
 
-// Apply FinOps middleware (PR-29)
+// Apply FinOps middleware (PR-29) - Basic headers
 app.use(finOpsMiddleware);
+
+// Apply FinOps enforcement middleware (PR-97) - 402 BUDGET_EXCEEDED
+app.use(finOpsEnforce);
 
 // Apply new rate limiting middleware (PR-29)
 app.use(standardRateLimit);
@@ -1630,6 +1637,9 @@ app.use('/v1/dunning-3-toques', dunning3ToquesRouter);
 
 // PR-55: Fiscalidad Regional UE Routes
 app.use('/v1/fiscalidad-regional-ue', fiscalidadRegionalUERouter);
+
+// PR-97: FinOps Administration Routes
+app.use('/v1/finops-admin', finOpsAdminRouter);
 
 // Mount Events (SSE) routes
 app.use('/v1/events', eventsRouter);

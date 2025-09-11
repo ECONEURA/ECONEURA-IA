@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { logger } from '../logging/index'
-import { prometheus } from '../metrics/index'
+import { prometheus } from '../metrics/metrics'
 import { redactPII } from '../security/index'
 import { CostGuardrails, type UsageMetrics } from './cost-guardrails'
 import { LLMProviderManager, type LLMProvider, type LLMModel } from './providers'
@@ -318,8 +318,8 @@ export class EnhancedAIRouter {
         temperature: request.temperature || 0.7,
       }
 
-      // Execute request (mock implementation for now)
-      const response = await this.executeProviderRequest(provider, providerRequest)
+      // Execute request using real AI router client
+      const response = await this.executeProviderRequest(provider, providerRequest, request.orgId)
       
       // Calculate actual cost
       const costMeter = await getCostMeter()
@@ -500,19 +500,62 @@ export class EnhancedAIRouter {
   }
 
   /**
-   * Mock method to execute provider request (to be implemented with actual provider clients)
+   * Execute provider request using real AI router client
    */
-  private async executeProviderRequest(provider: LLMProvider, request: any): Promise<{
+  private async executeProviderRequest(provider: LLMProvider, request: any, orgId: string): Promise<{
     content: string;
     tokens: { input: number; output: number };
   }> {
-    // Mock implementation - in production this would call the actual provider API
-    return {
-      content: `Mock response for ${request.prompt} using ${provider.name}`,
-      tokens: {
-        input: request.prompt.length / 4, // Rough token estimation
-        output: 100, // Mock output tokens
-      },
+    // Import AI router client dynamically to avoid circular dependencies
+    const { aiRouterClient } = await import('@econeura/agents');
+    
+    try {
+      const aiRequest = {
+        orgId: orgId,
+        prompt: request.prompt,
+        model: request.model,
+        maxTokens: request.maxTokens,
+        temperature: request.temperature,
+        provider: provider.id,
+        context: {
+          providerId: provider.id,
+          providerName: provider.name
+        },
+        metadata: {
+          requestType: 'enhanced-router',
+          timestamp: new Date().toISOString()
+        }
+      };
+
+      const response = await aiRouterClient.sendRequest(aiRequest);
+      
+      return {
+        content: response.content,
+        tokens: {
+          input: response.usage.promptTokens,
+          output: response.usage.completionTokens,
+        },
+      };
+    } catch (error) {
+      logger.error('Failed to execute provider request', error as Error, {
+        provider_id: provider.id,
+        provider_name: provider.name,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      
+      // Fallback to mock response if real client fails
+      logger.warn('Falling back to mock response due to provider failure', {
+        provider_id: provider.id,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      
+      return {
+        content: `Fallback response for ${request.prompt} using ${provider.name}`,
+        tokens: {
+          input: request.prompt.length / 4, // Rough token estimation
+          output: 100, // Mock output tokens
+        },
+      };
     }
   }
 

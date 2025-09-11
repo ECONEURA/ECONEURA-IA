@@ -87,6 +87,7 @@
     "zx": "^8.8.1"
   },
   "dependencies": {
+    "@econeura/agents": "file:packages/agents",
     "eventsource-parser": "^3.0.6",
     "express-basic-auth": "^1.2.1",
     "express-rate-limit": "^7.1.5",
