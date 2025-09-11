@@ -60,7 +60,7 @@ export class WebAPIGateway {
 
   constructor(config: LoadBalancerConfig) {
     this.loadBalancerConfig = config;
-    console.log('Web API Gateway initialized', { config });
+    
     this.initializeDefaultServices();
     this.initializeDefaultRoutes();
   }
@@ -97,7 +97,7 @@ export class WebAPIGateway {
       this.requestCounts.delete(serviceId);
       this.responseTimes.delete(serviceId);
       this.errorCounts.delete(serviceId);
-      console.log('Service removed from web gateway', { serviceId });
+      
     }
     return deleted;
   }
@@ -135,7 +135,7 @@ export class WebAPIGateway {
   removeRoute(routeId: string): boolean {
     const deleted = this.routes.delete(routeId);
     if (deleted) {
-      console.log('Route removed from web gateway', { routeId });
+      
     }
     return deleted;
   }

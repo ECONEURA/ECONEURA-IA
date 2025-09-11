@@ -376,7 +376,7 @@ class IntelligentAlertSystem {
                    `Time: ${alert.timestamp}\n` +
                    `Description: ${alert.description}`;
 
-    console.log(`📢 Notification sent:\n${message}`);
+    
     
     // Simular delay de red
     await new Promise(resolve => setTimeout(resolve, 100));

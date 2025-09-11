@@ -426,7 +426,7 @@ export class NotificationIntelligenceService {
       throw new Error(`Delivery failed to ${channel.type}`);
     }
     
-    console.log(`Notification ${notification.id} delivered to ${channel.type}: ${channel.address}`);
+    
   }
 
   private calculateAverageDeliveryTime(notifications: Notification[]): number {

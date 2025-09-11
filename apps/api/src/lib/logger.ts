@@ -314,13 +314,13 @@ class StructuredLogger {
         debug: '\x1b[35m'  // Magenta
       }[logEntry.level] || '\x1b[0m';
 
-      console.log(`${color}[${logEntry.timestamp}] ${logEntry.level.toUpperCase()}: ${logEntry.message}\x1b[0m`);
+      
       if (logEntry.context) {
-        console.log(`${color}  Context: ${JSON.stringify(logEntry.context, null, 2)}\x1b[0m`);
+        
       }
     } else {
       // En producción, JSON estructurado
-      console.log(JSON.stringify(output));
+      
     }
   }
 

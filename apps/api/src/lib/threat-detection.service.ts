@@ -432,7 +432,7 @@ export class ThreatDetectionService {
 
   private async performBehavioralAnalysis(detection: ThreatDetection): Promise<void> {
     // Simulate behavioral analysis
-    console.log(`Performing behavioral analysis for threat ${detection.id}`);
+    
     
     // In a real implementation, this would:
     // 1. Analyze user behavior patterns
@@ -443,7 +443,7 @@ export class ThreatDetectionService {
 
   private async performAnomalyDetection(detection: ThreatDetection): Promise<void> {
     // Simulate anomaly detection
-    console.log(`Performing anomaly detection for threat ${detection.id}`);
+    
     
     // In a real implementation, this would:
     // 1. Analyze system behavior patterns
@@ -501,7 +501,7 @@ export class ThreatDetectionService {
     };
 
     this.securityIncidents.set(incident.id, incident);
-    console.log(`Created security incident ${incident.id} for threat ${detection.id}`);
+    
   }
 
   private mapThreatTypeToIncidentCategory(threatType: ThreatDetection['threatType']): SecurityIncident['category'] {
@@ -530,7 +530,7 @@ export class ThreatDetectionService {
 
   private async performThreatHunting(detection: ThreatDetection): Promise<void> {
     // Simulate threat hunting
-    console.log(`Performing threat hunting for threat ${detection.id}`);
+    
     
     // In a real implementation, this would:
     // 1. Search for related indicators across the environment

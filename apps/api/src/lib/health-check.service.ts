@@ -94,7 +94,7 @@ export class HealthCheckService extends EventEmitter {
       this.startCheck(name);
     }
 
-    console.log('🏥 Health Check Service started');
+    
   }
 
   /**
@@ -109,7 +109,7 @@ export class HealthCheckService extends EventEmitter {
     }
     this.timers.clear();
 
-    console.log('🏥 Health Check Service stopped');
+    
   }
 
   private startCheck(name: string): void {

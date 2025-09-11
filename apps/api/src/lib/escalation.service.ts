@@ -289,7 +289,7 @@ export class EscalationService {
     });
 
     // In production, actually send notifications, make calls, etc.
-    console.log(`Executing escalation action: ${action.type} for target: ${action.target}`);
+    
   }
 
   /**

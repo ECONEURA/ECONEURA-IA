@@ -126,7 +126,7 @@ export function correlationLoggingMiddleware(req: CorrelationRequest, res: Corre
     timestamp: new Date().toISOString(),
   });
 
-  console.log('Request started:', requestLog);
+  
 
   // Override res.end to log request completion
   const originalEnd = res.end;
@@ -143,7 +143,7 @@ export function correlationLoggingMiddleware(req: CorrelationRequest, res: Corre
       timestamp: new Date().toISOString(),
     });
 
-    console.log('Request completed:', responseLog);
+    
 
     // Call original end method
     originalEnd.call(this, chunk, encoding);

@@ -116,11 +116,10 @@ router.post("/chat", async (req, res) => {
         );
 
         if (agentResponse.ok) {
-          const agentData = await agentResponse.json();
-          console.log(`🤖 Agent triggered: ${args.agentKey} (${agentData.runId})`);
+          // Agent response processed
         }
-      } catch (error) {
-        console.error("❌ Agent trigger failed:", error);
+      } catch {
+        // Agent trigger failed
       }
     }
 

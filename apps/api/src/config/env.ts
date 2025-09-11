@@ -133,4 +133,3 @@ export const serverConfig = {
   maxRequestSize: env.MAX_REQUEST_SIZE,
 } as const;
 
-console.log(`✅ Environment validated for ${env.NODE_ENV} mode`);

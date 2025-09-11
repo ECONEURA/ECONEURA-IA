@@ -16,9 +16,9 @@ test("a11y ≥95%", async ({ page }) => {
     .toBeLessThanOrEqual(3);
   
   if (violations > 0) {
-    console.log(`⚠️ Found ${violations} accessibility violations:`);
+    
     results.violations.forEach((violation, index) => {
-      console.log(`${index + 1}. ${violation.id}: ${violation.description}`);
+      
     });
   }
 });

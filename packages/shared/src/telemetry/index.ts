@@ -428,7 +428,7 @@ export class TelemetryService {
   private async sendEvents(events: TelemetryEvent[]): Promise<void> {
     if (!this.config.endpoint) {
       if (this.config.debugMode) {
-        console.log('Telemetry events (debug mode):', events);
+        
       }
       return;
     }

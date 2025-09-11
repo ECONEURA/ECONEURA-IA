@@ -124,7 +124,7 @@ export class RealtimeClient extends EventEmitter {
     this.eventSource = new EventSource(url);
     
     this.eventSource.onopen = () => {
-      console.log('EventSource connected');
+      
       this.isConnected = true;
       this.reconnectAttempts = 0;
       this.emit('connected');
@@ -191,7 +191,7 @@ export class RealtimeClient extends EventEmitter {
     this.websocket = new WebSocket(url);
     
     this.websocket.onopen = () => {
-      console.log('WebSocket connected');
+      
       this.isConnected = true;
       this.reconnectAttempts = 0;
       this.emit('connected');
@@ -214,7 +214,7 @@ export class RealtimeClient extends EventEmitter {
     };
     
     this.websocket.onclose = () => {
-      console.log('WebSocket disconnected');
+      
       this.isConnected = false;
       this.emit('disconnected');
       this.scheduleReconnect();
@@ -236,7 +236,7 @@ export class RealtimeClient extends EventEmitter {
     this.reconnectAttempts++;
     const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
     
-    console.log(`Scheduling reconnection attempt ${this.reconnectAttempts} in ${delay}ms`);
+    
     
     setTimeout(() => {
       if (!this.isConnected) {

@@ -16,11 +16,11 @@ describe("API health", () => {
           headers: { 'Accept': 'application/json' }
         });
         if (response.ok) {
-          console.log("✅ API is ready for testing");
+          
           return;
         }
       } catch (error) {
-        console.log(`⏳ API not ready yet, retry ${retries + 1}/${maxRetries}`);
+        
       }
       retries++;
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -62,6 +62,6 @@ describe("API health", () => {
   });
 
   afterAll(() => {
-    console.log("✅ Health tests completed");
+    
   });
 });

@@ -37,14 +37,14 @@ const db = drizzle(client);
 // ============================================================================
 
 async function seed() {
-  console.log('🌱 Starting database seed...');
+  
 
   try {
     // ========================================================================
     // 1. ORGANIZATIONS
     // ========================================================================
     
-    console.log('📊 Creating organizations...');
+    
     
     const orgData: NewOrganization[] = [
       {
@@ -82,13 +82,13 @@ async function seed() {
     ];
 
     const createdOrgs = await db.insert(organizations).values(orgData).returning();
-    console.log(`✅ Created ${createdOrgs.length} organizations`);
+    
 
     // ========================================================================
     // 2. USERS
     // ========================================================================
     
-    console.log('👥 Creating users...');
+    
     
     const userData: NewUser[] = [
       {
@@ -112,13 +112,13 @@ async function seed() {
     ];
 
     const createdUsers = await db.insert(users).values(userData).returning();
-    console.log(`✅ Created ${createdUsers.length} users`);
+    
 
     // ========================================================================
     // 3. COMPANIES
     // ========================================================================
     
-    console.log('🏢 Creating companies...');
+    
     
     const companyData: NewCompany[] = [
       {
@@ -145,13 +145,13 @@ async function seed() {
     ];
 
     const createdCompanies = await db.insert(companies).values(companyData).returning();
-    console.log(`✅ Created ${createdCompanies.length} companies`);
+    
 
     // ========================================================================
     // 4. CONTACTS
     // ========================================================================
     
-    console.log('👤 Creating contacts...');
+    
     
     const contactData: NewContact[] = [
       {
@@ -168,13 +168,13 @@ async function seed() {
     ];
 
     const createdContacts = await db.insert(contacts).values(contactData).returning();
-    console.log(`✅ Created ${createdContacts.length} contacts`);
+    
 
     // ========================================================================
     // 5. PRODUCTS
     // ========================================================================
     
-    console.log('📦 Creating products...');
+    
     
     const productData: NewProduct[] = [
       {
@@ -192,16 +192,16 @@ async function seed() {
     ];
 
     const createdProducts = await db.insert(products).values(productData).returning();
-    console.log(`✅ Created ${createdProducts.length} products`);
+    
 
     // ========================================================================
     // SEED COMPLETE
     // ========================================================================
     
-    console.log('🎉 Database seed completed successfully!');
-    console.log('\n🔑 Default login credentials:');
-    console.log('   admin@econeura.com / admin123 (Owner)');
-    console.log('   manager@econeura.com / manager123 (Manager)');
+    
+    
+    
+    
 
   } catch (error) {
     console.error('❌ Error during seed:', error);

@@ -37,7 +37,7 @@ router.post("/events", express.raw({ type: "application/json" }), async (req, re
 
     // Check idempotency
     if (idempotencyKey && await seen(idempotencyKey)) {
-      console.log("✅ Duplicate event ignored (idempotency)");
+      // Duplicate event ignored (idempotency)
       return res.status(200).json({ ok: true, message: "Already processed" });
     }
 
@@ -57,7 +57,7 @@ router.post("/events", express.raw({ type: "application/json" }), async (req, re
       await markSeen(idempotencyKey);
     }
 
-    console.log(`📥 Event received: ${event.runId} - ${event.status} (${event.progress}%)`);
+    // Event received and processed
 
     // Response with cost tracking headers
     res.set({

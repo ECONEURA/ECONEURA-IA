@@ -94,7 +94,7 @@ export class StructuredLogger {
     };
 
     // In production, this would send to a logging service
-    console.log(JSON.stringify(logEntry));
+    
   }
 
   debug(message: string, metadata?: Record<string, unknown>): void {

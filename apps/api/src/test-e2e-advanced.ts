@@ -13,7 +13,7 @@ class AdvancedE2ETester {
   private testResults: any[] = [];
 
   async runAdvancedTests(): Promise<void> {
-    console.log('🚀 ECONEURA - E2E Testing Suite for Advanced PRs\n');
+    
     
     // Test FinOps workflow
     await this.testFinOpsWorkflow();
@@ -34,7 +34,7 @@ class AdvancedE2ETester {
   }
 
   private async testFinOpsWorkflow(): Promise<void> {
-    console.log('💰 Testing FinOps Workflow...');
+    
     
     try {
       // 1. Get current budgets
@@ -75,7 +75,7 @@ class AdvancedE2ETester {
         details: { budgets: budgets.success, newBudget: newBudget.ok, costs: costsResponse.ok }
       });
       
-      console.log('  ✅ FinOps workflow completed successfully');
+      
       
     } catch (error) {
       this.testResults.push({
@@ -83,12 +83,12 @@ class AdvancedE2ETester {
         status: 'FAILED',
         error: (error as Error).message
       });
-      console.log('  ❌ FinOps workflow failed');
+      
     }
   }
 
   private async testGDPRWorkflow(): Promise<void> {
-    console.log('🔒 Testing GDPR Workflow...');
+    
     
     try {
       // 1. Request data export
@@ -122,7 +122,7 @@ class AdvancedE2ETester {
         }
       });
       
-      console.log('  ✅ GDPR workflow completed successfully');
+      
       
     } catch (error) {
       this.testResults.push({
@@ -130,12 +130,12 @@ class AdvancedE2ETester {
         status: 'FAILED',
         error: (error as Error).message
       });
-      console.log('  ❌ GDPR workflow failed');
+      
     }
   }
 
   private async testSEPAWorkflow(): Promise<void> {
-    console.log('💳 Testing SEPA Workflow...');
+    
     
     try {
       // 1. Parse SEPA XML
@@ -163,7 +163,7 @@ class AdvancedE2ETester {
         }
       });
       
-      console.log('  ✅ SEPA workflow completed successfully');
+      
       
     } catch (error) {
       this.testResults.push({
@@ -171,12 +171,12 @@ class AdvancedE2ETester {
         status: 'FAILED',
         error: (error as Error).message
       });
-      console.log('  ❌ SEPA workflow failed');
+      
     }
   }
 
   private async testAnalyticsWorkflow(): Promise<void> {
-    console.log('📊 Testing Analytics Workflow...');
+    
     
     try {
       // 1. Track event
@@ -213,7 +213,7 @@ class AdvancedE2ETester {
         }
       });
       
-      console.log('  ✅ Analytics workflow completed successfully');
+      
       
     } catch (error) {
       this.testResults.push({
@@ -221,12 +221,12 @@ class AdvancedE2ETester {
         status: 'FAILED',
         error: (error as Error).message
       });
-      console.log('  ❌ Analytics workflow failed');
+      
     }
   }
 
   private async testPromptsWorkflow(): Promise<void> {
-    console.log('📝 Testing Prompts Workflow...');
+    
     
     try {
       // 1. Get prompt library
@@ -259,7 +259,7 @@ class AdvancedE2ETester {
         }
       });
       
-      console.log('  ✅ Prompts workflow completed successfully');
+      
       
     } catch (error) {
       this.testResults.push({
@@ -267,7 +267,7 @@ class AdvancedE2ETester {
         status: 'FAILED',
         error: (error as Error).message
       });
-      console.log('  ❌ Prompts workflow failed');
+      
     }
   }
 
@@ -275,16 +275,16 @@ class AdvancedE2ETester {
     const passed = this.testResults.filter(r => r.status === 'PASSED').length;
     const failed = this.testResults.filter(r => r.status === 'FAILED').length;
     
-    console.log('\n📊 E2E Test Results:');
-    console.log(`✅ Passed: ${passed}`);
-    console.log(`❌ Failed: ${failed}`);
-    console.log(`🎯 Success Rate: ${Math.round((passed / this.testResults.length) * 100)}%`);
+    
+    
+    
+    
     
     if (failed > 0) {
-      console.log('\n❌ Failed Tests:');
+      
       this.testResults
         .filter(r => r.status === 'FAILED')
-        .forEach(r => console.log(`  - ${r.test}: ${r.error}`));
+        .forEach(r => 
     }
     
     structuredLogger.info('E2E testing completed', {

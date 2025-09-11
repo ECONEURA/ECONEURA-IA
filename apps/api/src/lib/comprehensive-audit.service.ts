@@ -187,7 +187,7 @@ export class ComprehensiveAuditService {
   }
 
   private async flagSuspiciousActivity(auditLog: AuditLog, reason: string): Promise<void> {
-    console.log(`Suspicious activity flagged: ${reason} - Log ID: ${auditLog.id}`);
+    
     
     // In a real implementation, this would:
     // 1. Create a security event

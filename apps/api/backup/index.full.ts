@@ -6644,36 +6644,36 @@ app.use("*", (req, res) => {
 // Iniciar servidor
 app.listen(PORT, async () => {
   logger.info(`API Express server running on port ${PORT}`);
-  console.log(`🚀 API Express server running on port ${PORT}`);
-  console.log(`📊 Metrics available at http://localhost:${PORT}/metrics`);
-  console.log(`🔍 Health check at http://localhost:${PORT}/health/live`);
-  console.log(`⚡ Rate limiting enabled with intelligent strategies`);
-  console.log(`🚨 Alert system integrated and monitoring`);
-  console.log(`💾 Cache system initialized with AI and Search caches`);
-  console.log(`💰 FinOps system enabled with cost tracking and budget management`);
-  console.log(`🔒 Row Level Security (RLS) enabled with multi-tenant isolation`);
-  console.log(`🌐 API Gateway enabled with intelligent routing and load balancing`);
-  console.log(`📊 Event Sourcing and CQRS system enabled with aggregates and projections`);
-  console.log(`🔗 Microservices system enabled with service mesh and discovery`);
-  console.log(`⚙️ Configuration system enabled with feature flags and environment management`);
-  console.log(`🔄 Workflow system enabled with BPMN and state machines`);
-  console.log(`🔐 Advanced Security system enabled with MFA, RBAC, and threat detection`);
-  console.log(`🏦 SEPA system enabled with CAMT/MT940 parsing and intelligent matching`);
-  console.log(`🔒 GDPR system enabled with export/erase and compliance management`);
-  console.log(`🛡️ RLS generative suite enabled with CI/CD integration`);
-  console.log(`💰 FinOps system enabled with cost tracking, budget management, optimization, and reporting`);
-  console.log(`🔇 Quiet Hours + On-Call system enabled with intelligent scheduling, escalation, and notifications`);
-  console.log(`🔥 Warm-up IA/Search system enabled with intelligent caching, search optimization, and performance monitoring`);
-  console.log(`📊 Advanced Analytics & BI system enabled with real-time analytics, business intelligence, intelligent reporting, and executive dashboards`);
-console.log(`🛡️ Advanced Security & Compliance system enabled with threat detection, compliance management, comprehensive auditing, and security monitoring`);
-  console.log(`🔧 Advanced improvements enabled: Error handling, Logging, Validation, Rate limiting, Caching, Health monitoring, Security, Process management`);
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
   
   // Inicializar warmup del caché
   try {
     await advancedCacheManager.warmupAll();
-    console.log(`🔥 Cache warmup completed successfully`);
+    
   } catch (error) {
-    console.log(`⚠️ Cache warmup failed: ${error}`);
+    
   }
 });
 

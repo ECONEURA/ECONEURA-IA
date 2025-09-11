@@ -898,7 +898,7 @@ export class SecurityConsolidatedService {
         await this.sendSecurityAlert(event, `Policy violation: ${rule.name}`);
         break;
       case 'log':
-        console.log(`Policy action logged: ${rule.name} for event ${event.id}`);
+        
         break;
       case 'quarantine':
         if (event.userId) {
@@ -909,16 +909,16 @@ export class SecurityConsolidatedService {
   }
 
   private async triggerIncidentResponse(event: SecurityEvent): Promise<void> {
-    console.log(`Critical security event detected: ${event.id} - Triggering incident response`);
+    
   }
 
   private async sendSecurityAlert(event: SecurityEvent, message?: string): Promise<void> {
     const alertMessage = message || `Security event detected: ${event.type} - ${event.severity} severity`;
-    console.log(`Security Alert: ${alertMessage} - Event ID: ${event.id}`);
+    
   }
 
   private async quarantineUser(userId: string, organizationId: string): Promise<void> {
-    console.log(`User ${userId} quarantined for organization ${organizationId}`);
+    
   }
 
   private calculateNextAssessment(standard: ComplianceRequirement['standard']): Date {

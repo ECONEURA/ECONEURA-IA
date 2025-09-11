@@ -23,7 +23,7 @@ beforeAll(async () => {
     const redis = getRedisService();
     await redis.connect();
     
-    console.log('✅ Test setup completed');
+    
   } catch (error) {
     console.error('❌ Test setup failed:', error);
     throw error;
@@ -39,7 +39,7 @@ afterAll(async () => {
     const redis = getRedisService();
     await redis.disconnect();
     
-    console.log('✅ Test cleanup completed');
+    
   } catch (error) {
     console.error('❌ Test cleanup failed:', error);
   }

@@ -82,7 +82,7 @@ export class WebhookManager extends EventEmitter {
     this.subscriptions.set(id, fullSubscription);
     this.emit('subscriptionCreated', fullSubscription);
 
-    console.log(`Webhook subscription created: ${id} -> ${subscription.url}`);
+    
     return id;
   }
 
@@ -94,7 +94,7 @@ export class WebhookManager extends EventEmitter {
     if (subscription) {
       this.subscriptions.delete(subscriptionId);
       this.emit('subscriptionDeleted', subscription);
-      console.log(`Webhook subscription deleted: ${subscriptionId}`);
+      
       return true;
     }
     return false;
@@ -145,7 +145,7 @@ export class WebhookManager extends EventEmitter {
     const subscriptions = this.getSubscriptionsForEvent(fullEvent.type);
     
     if (subscriptions.length === 0) {
-      console.log(`No webhook subscriptions found for event: ${fullEvent.type}`);
+      
       return;
     }
 
@@ -344,7 +344,7 @@ export class WebhookManager extends EventEmitter {
     }
 
     if (cleanedCount > 0) {
-      console.log(`Cleaned up ${cleanedCount} old webhook deliveries`);
+      
     }
   }
 

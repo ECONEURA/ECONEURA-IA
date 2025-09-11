@@ -133,7 +133,7 @@ export class ECONEURAClient {
     this.client.interceptors.response.use(
       (response) => {
         const duration = Date.now() - response.config.metadata?.startTime;
-        console.log(`ECONEURA API request completed in ${duration}ms`);
+        
         return response;
       },
       (error) => {
@@ -186,7 +186,7 @@ export class ECONEURAClient {
         // Exponential backoff
         if (i < attempts - 1) {
           const delay = this.retryDelay * Math.pow(2, i);
-          console.log(`Retrying in ${delay}ms (attempt ${i + 1}/${attempts})`);
+          
           await this.sleep(delay);
         }
       }

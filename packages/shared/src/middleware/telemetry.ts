@@ -19,7 +19,7 @@ export function telemetryMiddleware(req: TelemetryRequest, res: Response, next: 
   res.set('X-Correlation-Id', req.correlationId);
 
   // Track request start
-  console.log(`🤖 [${req.correlationId}] ${req.method} ${req.path} - Start`);
+  
 
   // Override res.end to track completion
   const originalEnd = res.end;
@@ -34,7 +34,7 @@ export function telemetryMiddleware(req: TelemetryRequest, res: Response, next: 
     });
 
     // Log completion
-    console.log(`✅ [${req.correlationId}] ${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`);
+    
 
     // Call original end
     originalEnd.call(this, chunk, encoding);

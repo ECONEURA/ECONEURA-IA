@@ -264,7 +264,7 @@ export class CircuitBreakerService extends EventEmitter {
    * Start the service
    */
   async start(): Promise<void> {
-    console.log('🔧 Circuit Breaker Service started');
+    
   }
 
   /**
@@ -277,7 +277,7 @@ export class CircuitBreakerService extends EventEmitter {
     }
     this.timers.clear();
 
-    console.log('🔧 Circuit Breaker Service stopped');
+    
   }
 }
 

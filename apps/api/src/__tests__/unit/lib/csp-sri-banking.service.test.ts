@@ -77,7 +77,7 @@ describe('CSPBankingService - PR-75', () => {
       const resources = [
         {
           url: 'https://example.com/script.js',
-          content: 'console.log("test");',
+          content: '',
           algorithm: 'sha384' as const
         },
         {

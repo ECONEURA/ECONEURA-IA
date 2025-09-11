@@ -72,7 +72,7 @@ app.use(finalizeFinOps);
 
 const PORT = process.env.PORT || 3101;
 app.listen(PORT, () => {
-  console.log(`🚀 NEURA↔Comet API running on port ${PORT}`);
-  console.log(`📡 Health check: http://localhost:${PORT}/health`);
-  console.log(`💬 Chat endpoint: http://localhost:${PORT}/neura/chat`);
+  
+  
+  
 });

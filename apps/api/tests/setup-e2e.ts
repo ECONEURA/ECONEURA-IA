@@ -2,11 +2,11 @@ import nock from "nock";
 
 export function enableExternalMocks() {
   if (process.env.MOCK_EXTERNAL !== "1") {
-    console.log("🔓 External mocks disabled - MOCK_EXTERNAL != 1");
+    
     return;
   }
   
-  console.log("🔒 Enabling external mocks for CI environment");
+  
   
   // Deshabilitar todas las conexiones de red excepto localhost
   nock.disableNetConnect();
@@ -61,14 +61,14 @@ export function enableExternalMocks() {
       .reply(200, { mocked: true });
   });
   
-  console.log("✅ External mocks enabled successfully");
+  
 }
 
 // Limpiar mocks al finalizar
 export function cleanupMocks() {
   if (process.env.MOCK_EXTERNAL === "1") {
     nock.cleanAll();
-    console.log("🧹 Mocks cleaned up");
+    
   }
 }
 

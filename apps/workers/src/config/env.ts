@@ -108,4 +108,3 @@ export const workerServerConfig = {
   metricsPort: workerEnv.METRICS_PORT,
 } as const;
 
-console.log(`✅ Worker environment validated for ${workerEnv.NODE_ENV} mode`);

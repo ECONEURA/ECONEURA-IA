@@ -73,8 +73,5 @@ app.use(finalizeFinOps);
 
 const PORT = process.env.PORT || 3102;
 app.listen(PORT, () => {
-  console.log(`🤖 Agents↔Make API running on port ${PORT}`);
-  console.log(`📡 Health check: http://localhost:${PORT}/health`);
-  console.log(`🚀 Trigger endpoint: http://localhost:${PORT}/agents/trigger`);
-  console.log(`📥 Events endpoint: http://localhost:${PORT}/agents/events`);
+  // Server startup logs (removed for production)
 });

@@ -578,7 +578,7 @@ export class ExecutiveDashboardService {
       if (alert) {
         alert.lastTriggered = new Date();
         // In a real implementation, this would send notifications
-        console.log(`Alert triggered: ${alert.message}`);
+        
         break;
       }
     }

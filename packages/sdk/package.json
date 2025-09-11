@@ -9,7 +9,7 @@
     "dev": "tsc --watch",
     "generate": "openapi-typescript ../../apps/api/openapi/openapi.yaml -o src/types.ts",
     "test": "vitest",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint src",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

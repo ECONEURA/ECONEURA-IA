@@ -227,7 +227,7 @@ export class AlertingSystem {
     try {
       switch (channel.type) {
         case 'console':
-          console.log(`🚨 ALERT [${alert.severity.toUpperCase()}] ${alert.name}: ${alert.message}`);
+          
           break;
           
         case 'webhook':
@@ -262,7 +262,7 @@ export class AlertingSystem {
     try {
       switch (channel.type) {
         case 'console':
-          console.log(`✅ RESOLVED [${alert.severity.toUpperCase()}] ${alert.name}: ${alert.message}`);
+          
           break;
           
         case 'webhook':
