@@ -121,7 +121,7 @@ export default [
       
       // Instalar dependencias necesarias
       console.log(`    📦 Instalando dependencias...`);
-      execSync(`pnpm add -D globals`, { stdio: 'pipe' });
+      execSync(`pnpm -w add -D globals`, { stdio: 'pipe' });
       
       // Probar linting
       console.log(`    🧪 Probando linting...`);
