@@ -1,12 +1,7 @@
-timeout = "20s"
-user_agent = "lychee"
-exclude = [
-  "^https://.*azurewebsites.net",
-  "^mailto:",
-  "^tel:",
-  "^https://localhost",
-  "^https://127.0.0.1"
-]
-retry_wait_time = "2s"
-max_retries = 3
-verbose = true
+inputs = ["docs"]
+max-concurrency = 8
+timeout = 20
+retry-wait-time = 2
+user-agent = "ECONEURA-CI"
+exclude = ["localhost","127.0.0.1","http://127.0.0.1:*","https://localhost:*"]
+accept = ["200..399"]
