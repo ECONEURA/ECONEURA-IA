@@ -4,8 +4,6 @@ import {
   ECONEURAClient,
   createECONEURAClient,
   ECONEURAError,
-  MemoryPutRequestSchema,
-  MemoryQueryRequestSchema,
 } from '../client.js';
 
 // Mock axios

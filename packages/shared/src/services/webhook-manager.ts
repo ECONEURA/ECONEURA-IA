@@ -344,7 +344,7 @@ export class WebhookManager extends EventEmitter {
     }
 
     if (cleanedCount > 0) {
-      
+      // Cleanup completed
     }
   }
 

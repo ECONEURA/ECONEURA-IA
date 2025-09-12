@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { z } from 'zod';
 
 // Base configuration
@@ -132,7 +132,7 @@ export class ECONEURAClient {
     // Response interceptor
     this.client.interceptors.response.use(
       (response) => {
-        const duration = Date.now() - response.config.metadata?.startTime;
+        // Response processed successfully
         
         return response;
       },
@@ -148,7 +148,7 @@ export class ECONEURAClient {
               error.response.status,
               problemDetails
             );
-          } catch (parseError) {
+          } catch {
             // If parsing fails, throw original error
             throw new ECONEURAError(
               error.message,
