@@ -122,7 +122,7 @@ export class TestingFramework {
   /**
    * Add a test that should be the only one running
    */
-  it.only(name: string, fn: () => Promise<void>): void {
+  itOnly(name: string, fn: () => Promise<void>): void {
     this.it(name, fn, { only: true });
   }
 
