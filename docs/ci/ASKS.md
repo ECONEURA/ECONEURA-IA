@@ -1,8 +1,8 @@
-# CI ASKS - Comandos Requeridos
+# CI ASKS - Comandos Requeridos para Auditoría
 
 ## GitHub CLI Authentication
 
-Para completar el inventario de GitHub, ejecutar:
+Para completar la auditoría completa del repositorio, ejecutar:
 
 ```bash
 gh auth login
@@ -11,27 +11,34 @@ gh auth login
 **Scopes requeridos:**
 - `repo` (acceso completo al repositorio)
 - `workflow` (lectura de workflows y runs)
+- `actions` (lectura de acciones y artefactos)
 
-## Comandos de Inventario
+## Comandos de Auditoría
 
 Una vez autenticado, ejecutar:
 
 ```bash
-# Lista de PRs
+# Lista de PRs (últimos 300)
 gh pr list --state all --limit 300 --json number,title,state,mergedAt,headRefName,baseRefName,updatedAt > docs/status/PR_STATUS_REAL.json
 
-# Lista de runs
-gh run list --limit 100 --json name,status,conclusion,headSha,headBranch,createdAt,event > docs/ci/RUNS_SUMMARY.md
+# Lista de runs (últimos 100)
+gh run list --limit 100 --json name,status,conclusion,headSha,headBranch,createdAt,event > docs/ci/CI_MATRIX.md
+
+# Detalles de workflows
+gh workflow list --json name,state,createdAt,updatedAt > docs/ci/WORKFLOWS.json
 ```
 
 ## Contexto del Repositorio
 
 ```bash
+# Información del repositorio
 git remote -v > .artifacts/context.json
+echo "{\"owner\":\"ECONEURA\",\"repo\":\"ECONEURA-IA\",\"branch\":\"$(git branch --show-current)\",\"sha\":\"$(git rev-parse HEAD)\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" > .artifacts/context.json
 ```
 
 ## Notas
 
-- Sin autenticación de GitHub CLI, el inventario se documenta pero no se ejecuta
-- Los comandos están listos para ejecutar cuando se disponga de permisos
+- Sin autenticación de GitHub CLI, la auditoría se ejecuta en modo local
+- Los scripts de auditoría están preparados para funcionar con o sin permisos
 - El proceso continúa sin fallar por falta de permisos
+- Los comandos están listos para ejecutar cuando se disponga de permisos

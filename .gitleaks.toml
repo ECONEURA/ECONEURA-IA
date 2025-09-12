@@ -1,6 +1,10 @@
 title = "ECONEURA Policy"
 
-[allowlist]
+[[allowlist]]
+description = "docs & snapshots"
+paths = ["^docs/", "^snapshots/"]
+
+[[allowlist]]
 description = "allow fake placeholders and generated passwords"
 regexes = [
   "InstrumentationKey=<redacted>",
@@ -10,6 +14,9 @@ regexes = [
   "test.*",
   "example.*",
   "placeholder.*",
+  "dummy.*",
+  "DUMMY.*",
+  "EXAMPLE.*",
   "POSTGRES_PASSWORD=\\$\\(generate_password",
   "JWT_SECRET=\\$\\(generate_password",
   "NEXTAUTH_SECRET=\\$\\(generate_password",
