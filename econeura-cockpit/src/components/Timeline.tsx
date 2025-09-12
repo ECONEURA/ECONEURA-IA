@@ -11,12 +11,7 @@ export default function Timeline({ events }: TimelineProps) {
   const getEventIcon = (kind: string) => {
     switch (kind) {
       case 'ok': return '✅';
-      case 'warn': return '⚠️';
-      case 'err': return '❌';
-      case 'info': return 'ℹ️';
-      default: return '📝';
-    }
-  };
+      case 'warn': 
 
   const getEventColor = (kind: string) => {
     switch (kind) {
