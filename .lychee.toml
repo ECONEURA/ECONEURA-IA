@@ -1,7 +1,15 @@
 inputs = ["docs"]
 max-concurrency = 8
-timeout = 20
-retry-wait-time = 2
+timeout = 30
+retry-wait-time = 3
 user-agent = "ECONEURA-CI"
-exclude = ["localhost","127.0.0.1","http://127.0.0.1:*","https://localhost:*"]
+exclude = [
+  "localhost",
+  "127.0.0.1", 
+  "http://127.0.0.1:*",
+  "https://localhost:*",
+  "*.local",
+  "*.internal"
+]
 accept = ["200..399"]
+ignore-anchors = true

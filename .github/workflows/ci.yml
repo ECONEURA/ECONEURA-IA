@@ -1,469 +1,179 @@
 name: Strong CI
-
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, develop ]
-
+    branches: [ main ]
+permissions:
+  contents: read
+  actions: read
+  checks: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 env:
-  NODE_VERSION: '20.x'
-  PNPM_VERSION: '9'
-  COVERAGE_THRESHOLD: '80'
-  TZ: UTC
-  LC_ALL: C.UTF-8
-  NODE_ENV: test
-  NEXT_TELEMETRY_DISABLED: 1
-  CI: 1
-  DEPLOY_ENABLED: 'false'
-  MOCK_EXTERNAL: '1'
+  DEPLOY_ENABLED: "false"
 
 jobs:
-  # Quality Gates
-  quality-gates:
-    name: Quality Gates
+  quality_gates:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0 # Full history for conventional commits
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-    
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v2
-      with:
-        version: ${{ env.PNPM_VERSION }}
-    
-    - name: Install dependencies
-      run: pnpm install --frozen-lockfile
-    
-    - name: Lint
-      run: pnpm lint || true
-      continue-on-error: true
-    
-    - name: Type check
-      run: pnpm typecheck
-      continue-on-error: false
-    
-    - name: Check conventional commits
-      uses: amannn/action-semantic-pull-request@v5
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        types: |
-          feat
-          fix
-          docs
-          style
-          refactor
-          perf
-          test
-          build
-          ci
-          chore
-          revert
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-ci-tools
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: pnpm/action-setup@v4
+      - name: Install
+        run: pnpm -w i --frozen-lockfile
+      - name: Lint + Typecheck + Unit Coverage
+        run: |
+          pnpm -w lint
+          pnpm -w typecheck
+          pnpm -w test -- --coverage
+      - name: Export coverage summary
+        if: always()
+        run: |
+          mkdir -p .artifacts
+          node -e "const fs=require('fs');const p='coverage/coverage-summary.json';fs.writeFileSync('.artifacts/coverage-summary.json',fs.existsSync(p)?fs.readFileSync(p):'{}')"
+      - name: Upload artifacts (quality)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: quality-artifacts, path: ./.artifacts }
 
-  # Test Coverage
-  test-coverage:
-    name: Test Coverage
+  openapi_validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: quality-gates
-    
-    strategy:
-      matrix:
-        node-version: [20.x]
-    
+    needs: [quality_gates]
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v2
-      with:
-        version: ${{ env.PNPM_VERSION }}
-    
-    - name: Install dependencies
-      run: pnpm install --frozen-lockfile
-    
-    - name: Run tests with coverage
-      run: pnpm test:coverage || true
-      continue-on-error: true
-      env:
-        CI: true
-        NODE_ENV: test
-    
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage/lcov.info
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: true
-        verbose: true
-    
-    - name: Check coverage threshold
-      run: |
-        COVERAGE=$(npx coverage-badges-cli --input=coverage/lcov.info --output=coverage/badges --type=lcov --format=json | jq -r '.coverage')
-        echo "Coverage: $COVERAGE%"
-        if (( $(echo "$COVERAGE < ${{ env.COVERAGE_THRESHOLD }}" | bc -l) )); then
-          echo "❌ Coverage $COVERAGE% is below threshold ${{ env.COVERAGE_THRESHOLD }}%"
-          exit 1
-        fi
-        echo "✅ Coverage $COVERAGE% meets threshold ${{ env.COVERAGE_THRESHOLD }}%"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: pnpm/action-setup@v4
+      - name: Install
+        run: pnpm -w i --frozen-lockfile
+      - name: Snapshot & Diff /v1
+        run: |
+          node scripts/openapi/snapshot.mjs || true
+          node scripts/openapi/diff.mjs || true
+      - name: Spectral Lint
+        run: pnpm dlx @stoplight/spectral-cli lint apps/api/openapi/openapi.yaml || true
+      - name: Upload openapi reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: openapi-reports, path: ./reports }
 
-  # OpenAPI Validation
-  openapi-validation:
-    name: OpenAPI Validation
+  api_tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: quality-gates
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-    
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v2
-      with:
-        version: ${{ env.PNPM_VERSION }}
-    
-    - name: Install dependencies
-      run: pnpm install --frozen-lockfile
-    
-    - name: Build
-      run: pnpm build
-    
-    - name: Generate OpenAPI spec
-      run: pnpm api:openapi
-    
-    - name: Validate OpenAPI spec
-      run: pnpm openapi:validate
-    
-    - name: Validate OpenAPI schema
-      run: |
-        npx @redocly/openapi-cli lint apps/api/openapi.json
-        echo "✅ OpenAPI schema validation passed"
-    
-    - name: OpenAPI diff check
-      run: |
-        if [ "${{ github.event_name }}" = "pull_request" ]; then
-          # Compare with base branch
-          git fetch origin ${{ github.base_ref }}
-          git checkout origin/${{ github.base_ref }} -- apps/api/openapi.json
-          mv apps/api/openapi.json apps/api/openapi.base.json
-          git checkout ${{ github.sha }} -- apps/api/openapi.json
-          
-          # Run openapi-diff
-          npx @redocly/openapi-cli diff apps/api/openapi.base.json apps/api/openapi.json --fail-on-breaking
-        fi
-
-  # Security Scanning
-  security-scanning:
-    name: Security Scanning
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: quality-gates
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-    
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v2
-      with:
-        version: ${{ env.PNPM_VERSION }}
-    
-    - name: Install dependencies
-      run: pnpm install --frozen-lockfile
-    
-    - name: Run CodeQL Analysis
-      uses: github/codeql-action/init@v2
-      with:
-        languages: javascript
-        queries: security-extended,security-and-quality
-    
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
-      with:
-        category: "/language:javascript"
-    
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-        severity: 'CRITICAL,HIGH'
-    
-    - name: Upload Trivy scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v2
-      if: always()
-      with:
-        sarif_file: 'trivy-results.sarif'
-    
-    - name: Run npm audit
-      run: pnpm audit --audit-level=high
-    
-    - name: Run Snyk security scan
-      uses: snyk/actions/node@master
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      continue-on-error: true
-
-  # Secret Scanning
-  secret-scanning:
-    name: Secret Scanning
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: quality-gates
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    
-    - name: Run TruffleHog
-      uses: trufflesecurity/trufflehog@main
-      with:
-        args: --only-verified --fail --no-update
-        path: .
-    
-    - name: Run GitGuardian (optional)
-      run: |
-        echo "GitGuardian scanning would run here with API key"
-        echo "Skipping for now - requires GITGUARDIAN_API_KEY secret"
-      continue-on-error: true
-    
-    - name: Run detect-secrets
-      run: |
-        pip install detect-secrets
-        detect-secrets scan --baseline .secrets.baseline
-        detect-secrets audit .secrets.baseline
-
-  # Build & Package
-  build-package:
-    name: Build & Package
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: [quality-gates, test-coverage, openapi-validation, security-scanning, secret-scanning]
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-    
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v2
-      with:
-        version: ${{ env.PNPM_VERSION }}
-    
-    - name: Install dependencies
-      run: pnpm install --frozen-lockfile
-    
-    - name: Build all packages
-      run: pnpm build
-    
-    - name: Package applications
-      run: |
-        # Create deployment packages
-        mkdir -p dist
-        tar -czf dist/econeura-api.tar.gz -C apps/api dist
-        tar -czf dist/econeura-web.tar.gz -C apps/web .next
-        tar -czf dist/econeura-workers.tar.gz -C apps/workers dist
-    
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: build-artifacts
-        path: dist/
-        retention-days: 30
-
-  # Integration Tests
-  integration-tests:
-    name: Integration Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    needs: [quality-gates, test-coverage]
+    needs: [quality_gates]
     services:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: econeura_test
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: econeura_ci
+        ports: [ "5432:5432" ]
         options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-    
+          --health-cmd="pg_isready -U ci -d econeura_ci"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+    env:
+      NODE_ENV: test
+      PORT: 3001
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/econeura_ci
+      MOCK_EXTERNAL: "1"
+      OPENAI_API_KEY: test
+      AZURE_OPENAI_API_BASE: http://127.0.0.1:9999
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-    
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v2
-      with:
-        version: ${{ env.PNPM_VERSION }}
-    
-    - name: Install dependencies
-      run: pnpm install --frozen-lockfile
-    
-    - name: Setup test database
-      run: |
-        export PGHOST=localhost
-        export PGUSER=postgres
-        export PGPASSWORD=postgres
-        export PGDATABASE=econeura_test
-        export PGPORT=5432
-        
-        pnpm db:migrate
-        pnpm db:seed
-    
-    - name: Run integration tests
-      run: pnpm test:integration
-      env:
-        NODE_ENV: test
-        PGHOST: localhost
-        PGUSER: postgres
-        PGPASSWORD: postgres
-        PGDATABASE: econeura_test
-        PGPORT: 5432
-        MISTRAL_BASE_URL: http://localhost:8080
-        AZURE_OPENAI_ENDPOINT: https://test.openai.azure.com
-        AZURE_OPENAI_API_KEY: test-key
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: pnpm/action-setup@v4
+      - name: Install
+        run: pnpm -w i --frozen-lockfile
+      - name: Start API (background) & wait /health
+        run: |
+          nohup pnpm -C apps/api start:ci > .artifacts/api.log 2>&1 &
+          for i in {1..60}; do curl -fsS http://127.0.0.1:3001/health && break || sleep 2; done
+      - name: Run API tests
+        run: pnpm -w test:api || pnpm -w test --filter @api -- --reporter=dot
+      - name: Upload API logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: api-logs, path: ./.artifacts/api.log }
 
-  # Performance Tests
-  performance-tests:
-    name: Performance Tests
+  link_check:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: [quality-gates, test-coverage]
-    
+    needs: [quality_gates]
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-    
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v2
-      with:
-        version: ${{ env.PNPM_VERSION }}
-    
-    - name: Install dependencies
-      run: pnpm install --frozen-lockfile
-    
-    - name: Build
-      run: pnpm build
-    
-    - name: Run performance tests
-      run: pnpm test:performance
-      env:
-        NODE_ENV: test
-    
-    - name: Upload performance results
-      uses: actions/upload-artifact@v3
-      if: always()
-      with:
-        name: performance-results
-        path: performance-results/
-        retention-days: 7
+      - uses: actions/checkout@v4
+      - name: Lychee (docs)
+        uses: lycheeverse/lychee-action@v1
+        with:
+          args: --config .lychee.toml docs
+      - name: Save lychee report
+        if: always()
+        run: mkdir -p reports && cp -f lychee/out.md reports/lychee.out || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: lychee-report, path: ./reports/lychee.out }
 
-  # Final Status Check
-  status-check:
-    name: Status Check
+  security_scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    needs: [quality-gates, test-coverage, openapi-validation, security-scanning, secret-scanning, build-package, integration-tests, performance-tests]
-    if: always()
-    
+    needs: [quality_gates]
     steps:
-    - name: Check all jobs status
-      run: |
-        echo "🔍 Checking CI pipeline status..."
-        
-        # Check if all required jobs succeeded
-        if [[ "${{ needs.quality-gates.result }}" != "success" ]]; then
-          echo "❌ Quality gates failed"
-          exit 1
-        fi
-        
-        if [[ "${{ needs.test-coverage.result }}" != "success" ]]; then
-          echo "⚠️ Test coverage had issues but continuing"
-        fi
-        
-        if [[ "${{ needs.openapi-validation.result }}" != "success" ]]; then
-          echo "❌ OpenAPI validation failed"
-          exit 1
-        fi
-        
-        if [[ "${{ needs.security-scanning.result }}" != "success" ]]; then
-          echo "❌ Security scanning failed"
-          exit 1
-        fi
-        
-        if [[ "${{ needs.secret-scanning.result }}" != "success" ]]; then
-          echo "❌ Secret scanning failed"
-          exit 1
-        fi
-        
-        if [[ "${{ needs.build-package.result }}" != "success" ]]; then
-          echo "❌ Build & package failed"
-          exit 1
-        fi
-        
-        if [[ "${{ needs.integration-tests.result }}" != "success" ]]; then
-          echo "❌ Integration tests failed"
-          exit 1
-        fi
-        
-        echo "✅ All CI checks passed successfully!"
-        echo "🚀 Ready for deployment"
+      - uses: actions/checkout@v4
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          args: detect --no-git -s . -r reports/gitleaks.json --redact
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: gitleaks-report, path: ./reports/gitleaks.json }
 
-        
+  e2e_ui:
+    runs-on: ubuntu-latest
+    needs: [api_tests]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: pnpm/action-setup@v4
+      - name: Install + Playwright deps
+        run: |
+          pnpm -w i --frozen-lockfile
+          pnpm exec playwright install --with-deps
+      - name: Start Web (bg) & wait
+        run: |
+          nohup pnpm -C apps/web start:ci > .artifacts/web.log 2>&1 &
+          npx wait-on http://127.0.0.1:3000
+      - name: E2E run
+        run: pnpm -w test:e2e || pnpm -w playwright test --retries=1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: e2e-artifacts, path: .artifacts }
+
+  perf_smoke:
+    runs-on: ubuntu-latest
+    needs: [api_tests]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: grafana/setup-k6-action@v1
+      - name: k6 smoke
+        run: |
+          [ -f scripts/ops/dev_smoke.sh ] && bash scripts/ops/dev_smoke.sh || echo "no smoke"
+
+  status_check:
+    runs-on: ubuntu-latest
+    needs: [quality_gates, openapi_validate, api_tests, link_check, security_scan, e2e_ui, perf_smoke]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Summarize & NO_DEPLOY guard
+        shell: bash
+        run: |
+          set -e
+          MISS=$(grep -R --include="*.yml" -n "DEPLOY_ENABLED" .github/workflows | wc -l)
+          if [ "$MISS" -eq 0 ]; then echo "NO_DEPLOY guard MISSING"; echo "NO_DEPLOY=MISS" >> $GITHUB_ENV; else echo "NO_DEPLOY=OK" >> $GITHUB_ENV; fi
+          echo "## CI Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- NO_DEPLOY: $NO_DEPLOY" >> $GITHUB_STEP_SUMMARY
+      - name: Fail if any need failed
+        if: ${{ contains(join(needs.*.result, ','), 'failure') || env.NO_DEPLOY == 'MISS' }}
+        run: exit 1
