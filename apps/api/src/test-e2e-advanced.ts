@@ -281,10 +281,11 @@ class AdvancedE2ETester {
     
     
     if (failed > 0) {
-      
       this.testResults
         .filter(r => r.status === 'FAILED')
-        .forEach(r => 
+        .forEach(r => {
+          console.error(`Failed test: ${r.name} - ${r.error}`);
+        });
     }
     
     structuredLogger.info('E2E testing completed', {

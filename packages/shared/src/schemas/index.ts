@@ -1,9 +1,33 @@
 // Export all new domain schemas
 export * from './common';
 export * from './auth';
-export * from './crm';
 export * from './erp';
-export * from './finance';
+
+// Export CRM schemas with explicit names to avoid conflicts
+export {
+  Company as CRMCompany,
+  Contact as CRMContact,
+  Deal as CRMDeal,
+  CreateCompany as CRMCreateCompany,
+  CreateContact as CRMCreateContact,
+  CreateDeal as CRMCreateDeal,
+  UpdateCompany as CRMUpdateCompany,
+  UpdateContact as CRMUpdateContact,
+  UpdateDeal as CRMUpdateDeal,
+} from './crm';
+
+// Export Finance schemas with explicit names to avoid conflicts
+export {
+  Company as FinanceCompany,
+  Contact as FinanceContact,
+  Deal as FinanceDeal,
+  CreateCompany as FinanceCreateCompany,
+  CreateContact as FinanceCreateContact,
+  CreateDeal as FinanceCreateDeal,
+  UpdateCompany as FinanceUpdateCompany,
+  UpdateContact as FinanceUpdateContact,
+  UpdateDeal as FinanceUpdateDeal,
+} from './finance';
 
 // Legacy schemas kept for backward compatibility
 import { z } from 'zod';

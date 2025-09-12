@@ -2,9 +2,10 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { EmailProcessor, EmailMessage } from '../processors/email-processor.js';
 
 // Mock dependencies
+const mockGetEmailById = vi.fn();
 vi.mock('../services/graph-service.js', () => ({
   GraphService: vi.fn().mockImplementation(() => ({
-    getEmail: vi.fn()
+    getEmailById: mockGetEmailById
   }))
 }));
 
@@ -37,6 +38,7 @@ describe('EmailProcessor', () => {
 
   beforeEach(() => {
     emailProcessor = new EmailProcessor();
+    mockGetEmailById.mockClear();
     
     mockEmail = {
       id: 'email_123',
@@ -73,9 +75,7 @@ describe('EmailProcessor', () => {
   describe('processEmail', () => {
     it('should process email successfully and categorize as finance', async () => {
       // Mock GraphService.getEmail
-      const { GraphService } = await import('../services/graph-service.js');
-      const mockGraphService = new GraphService();
-      (mockGraphService.getEmail as any).mockResolvedValue(mockEmail);
+      mockGetEmailById.mockResolvedValue(mockEmail);
 
       const result = await emailProcessor.processEmail('email_123', 'org_456');
 
@@ -104,9 +104,7 @@ describe('EmailProcessor', () => {
         }
       };
 
-      const { GraphService } = await import('../services/graph-service.js');
-      const mockGraphService = new GraphService();
-      (mockGraphService.getEmail as any).mockResolvedValue(meetingEmail);
+      mockGetEmailById.mockResolvedValue(meetingEmail);
 
       const result = await emailProcessor.processEmail('email_123', 'org_456');
 
@@ -125,9 +123,7 @@ describe('EmailProcessor', () => {
         }
       };
 
-      const { GraphService } = await import('../services/graph-service.js');
-      const mockGraphService = new GraphService();
-      (mockGraphService.getEmail as any).mockResolvedValue(supportEmail);
+      mockGetEmailById.mockResolvedValue(supportEmail);
 
       const result = await emailProcessor.processEmail('email_123', 'org_456');
 
@@ -146,9 +142,7 @@ describe('EmailProcessor', () => {
         }
       };
 
-      const { GraphService } = await import('../services/graph-service.js');
-      const mockGraphService = new GraphService();
-      (mockGraphService.getEmail as any).mockResolvedValue(positiveEmail);
+      mockGetEmailById.mockResolvedValue(positiveEmail);
 
       const result = await emailProcessor.processEmail('email_123', 'org_456');
 
@@ -165,9 +159,7 @@ describe('EmailProcessor', () => {
         }
       };
 
-      const { GraphService } = await import('../services/graph-service.js');
-      const mockGraphService = new GraphService();
-      (mockGraphService.getEmail as any).mockResolvedValue(negativeEmail);
+      mockGetEmailById.mockResolvedValue(negativeEmail);
 
       const result = await emailProcessor.processEmail('email_123', 'org_456');
 
@@ -183,9 +175,7 @@ describe('EmailProcessor', () => {
         }
       };
 
-      const { GraphService } = await import('../services/graph-service.js');
-      const mockGraphService = new GraphService();
-      (mockGraphService.getEmail as any).mockResolvedValue(emailWithEntities);
+      mockGetEmailById.mockResolvedValue(emailWithEntities);
 
       const result = await emailProcessor.processEmail('email_123', 'org_456');
 
@@ -195,9 +185,7 @@ describe('EmailProcessor', () => {
     });
 
     it('should handle email not found error', async () => {
-      const { GraphService } = await import('../services/graph-service.js');
-      const mockGraphService = new GraphService();
-      (mockGraphService.getEmail as any).mockResolvedValue(null);
+      mockGetEmailById.mockResolvedValue(null);
 
       await expect(
         emailProcessor.processEmail('nonexistent_email', 'org_456')
@@ -205,9 +193,7 @@ describe('EmailProcessor', () => {
     });
 
     it('should handle processing errors gracefully', async () => {
-      const { GraphService } = await import('../services/graph-service.js');
-      const mockGraphService = new GraphService();
-      (mockGraphService.getEmail as any).mockRejectedValue(new Error('Graph API error'));
+      mockGetEmailById.mockRejectedValue(new Error('Graph API error'));
 
       await expect(
         emailProcessor.processEmail('email_123', 'org_456')
@@ -219,9 +205,7 @@ describe('EmailProcessor', () => {
     it('should process multiple emails successfully', async () => {
       const messageIds = ['email_1', 'email_2', 'email_3'];
       
-      const { GraphService } = await import('../services/graph-service.js');
-      const mockGraphService = new GraphService();
-      (mockGraphService.getEmail as any).mockResolvedValue(mockEmail);
+      mockGetEmailById.mockResolvedValue(mockEmail);
 
       const results = await emailProcessor.processBulkEmails(messageIds, 'org_456');
 
@@ -233,9 +217,7 @@ describe('EmailProcessor', () => {
     it('should handle partial failures in bulk processing', async () => {
       const messageIds = ['email_1', 'email_2', 'email_3'];
       
-      const { GraphService } = await import('../services/graph-service.js');
-      const mockGraphService = new GraphService();
-      (mockGraphService.getEmail as any)
+      mockGetEmailById
         .mockResolvedValueOnce(mockEmail)
         .mockRejectedValueOnce(new Error('Processing error'))
         .mockResolvedValueOnce(mockEmail);
@@ -251,9 +233,7 @@ describe('EmailProcessor', () => {
     it('should respect concurrency limit', async () => {
       const messageIds = Array.from({ length: 10 }, (_, i) => `email_${i}`);
       
-      const { GraphService } = await import('../services/graph-service.js');
-      const mockGraphService = new GraphService();
-      (mockGraphService.getEmail as any).mockResolvedValue(mockEmail);
+      mockGetEmailById.mockResolvedValue(mockEmail);
 
       const startTime = Date.now();
       const results = await emailProcessor.processBulkEmails(messageIds, 'org_456');
@@ -276,9 +256,7 @@ describe('EmailProcessor', () => {
         }
       };
 
-      const { GraphService } = await import('../services/graph-service.js');
-      const mockGraphService = new GraphService();
-      (mockGraphService.getEmail as any).mockResolvedValue(spamEmail);
+      mockGetEmailById.mockResolvedValue(spamEmail);
 
       const result = await emailProcessor.processEmail('email_123', 'org_456');
 
@@ -294,9 +272,7 @@ describe('EmailProcessor', () => {
         importance: 'high' as const
       };
 
-      const { GraphService } = await import('../services/graph-service.js');
-      const mockGraphService = new GraphService();
-      (mockGraphService.getEmail as any).mockResolvedValue(urgentEmail);
+      mockGetEmailById.mockResolvedValue(urgentEmail);
 
       const result = await emailProcessor.processEmail('email_123', 'org_456');
 
@@ -315,9 +291,7 @@ describe('EmailProcessor', () => {
         }
       };
 
-      const { GraphService } = await import('../services/graph-service.js');
-      const mockGraphService = new GraphService();
-      (mockGraphService.getEmail as any).mockResolvedValue(generalEmail);
+      mockGetEmailById.mockResolvedValue(generalEmail);
 
       const result = await emailProcessor.processEmail('email_123', 'org_456');
 

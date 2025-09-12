@@ -4,9 +4,33 @@ export * as LegacyTypes from './types/index';
 // Schemas - Export all new schemas
 export * from './schemas/common';
 export * from './schemas/auth';
-export * from './schemas/crm';
 export * from './schemas/erp';
-export * from './schemas/finance';
+
+// Export CRM schemas with explicit names to avoid conflicts
+export {
+  Company as CRMCompany,
+  Contact as CRMContact,
+  Deal as CRMDeal,
+  CreateCompany as CRMCreateCompany,
+  CreateContact as CRMCreateContact,
+  CreateDeal as CRMCreateDeal,
+  UpdateCompany as CRMUpdateCompany,
+  UpdateContact as CRMUpdateContact,
+  UpdateDeal as CRMUpdateDeal,
+} from './schemas/crm';
+
+// Export Finance schemas with explicit names to avoid conflicts
+export {
+  Company as FinanceCompany,
+  Contact as FinanceContact,
+  Deal as FinanceDeal,
+  CreateCompany as FinanceCreateCompany,
+  CreateContact as FinanceCreateContact,
+  CreateDeal as FinanceCreateDeal,
+  UpdateCompany as FinanceUpdateCompany,
+  UpdateContact as FinanceUpdateContact,
+  UpdateDeal as FinanceUpdateDeal,
+} from './schemas/finance';
 
 // Re-export legacy schemas from index for backward compatibility
 export {
