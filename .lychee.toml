@@ -1,9 +1,6 @@
 exclude_all_private = true
-max_retries = 3
-retry_wait_time = 1
+max_retries = 2
+retry_wait_time = 2000
 timeout = 20
 include = ["docs/"]
-exclude = [
-  "http://localhost:*",
-  "https://localhost:*"
-]
+exclude = ["http://localhost:*","https://localhost:*"]
