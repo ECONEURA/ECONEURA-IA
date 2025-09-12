@@ -1,39 +1,37 @@
-# Manual Actions Required
+# CI ASKS - Comandos Requeridos
 
 ## GitHub CLI Authentication
-**Action**: Authenticate with GitHub CLI
-**Owner**: Developer
-**Commands**:
+
+Para completar el inventario de GitHub, ejecutar:
+
 ```bash
 gh auth login
-# Follow prompts to authenticate with GitHub
 ```
 
-## PR Merge Commands (when gh auth is available)
-**Action**: Merge PRs 95-114
-**Owner**: Developer
-**Commands**:
+**Scopes requeridos:**
+- `repo` (acceso completo al repositorio)
+- `workflow` (lectura de workflows y runs)
+
+## Comandos de Inventario
+
+Una vez autenticado, ejecutar:
+
 ```bash
-# For each PR N (95-114):
-gh pr checkout N
-git pull --rebase origin main
-gh pr merge N --merge --delete-branch
+# Lista de PRs
+gh pr list --state all --limit 300 --json number,title,state,mergedAt,headRefName,baseRefName,updatedAt > docs/status/PR_STATUS_REAL.json
+
+# Lista de runs
+gh run list --limit 100 --json name,status,conclusion,headSha,headBranch,createdAt,event > docs/ci/RUNS_SUMMARY.md
 ```
 
-## PR-115 DEV Creation
-**Action**: Create PR-115 DEV ONLY
-**Owner**: Developer
-**Commands**:
+## Contexto del Repositorio
+
 ```bash
-# Push PR-115 branch
-git push origin pr-115-deploy-dev
-
-# Create PR
-gh pr create --title "PR-115: DEV ONLY (NO PROD)" --body "DEV deployment configuration with guards and playbook" --draft
+git remote -v > .artifacts/context.json
 ```
 
-## Status
-- [ ] GitHub CLI authentication required
-- [ ] PR merges pending manual execution
-- [x] PR-115 implementation completed
-- [ ] PR-115 creation pending (requires gh auth)
+## Notas
+
+- Sin autenticación de GitHub CLI, el inventario se documenta pero no se ejecuta
+- Los comandos están listos para ejecutar cuando se disponga de permisos
+- El proceso continúa sin fallar por falta de permisos
