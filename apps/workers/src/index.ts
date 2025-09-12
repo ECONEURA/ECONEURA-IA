@@ -10,7 +10,7 @@ import { EmailProcessor } from './processors/email-processor.js';
 import { JobQueue } from './queues/job-queue.js';
 import { CronService } from './services/cron-service.js';
 import { logger, logApiRequest } from './utils/logger.js';
-import { prometheusMetrics, getMetricsHandler, recordHttpRequest } from './utils/metrics.js';
+import { prometheusMetrics, getMetricsHandler, recordHttpRequest, register } from './utils/metrics.js';
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -25,7 +25,6 @@ const redis = new Redis({
 });
 
 // Use centralized metrics from utils
-const { register } = prometheusMetrics;
 
 // Initialize services
 const graphService = new GraphService();
@@ -142,7 +141,7 @@ app.post('/listen', async (req, res) => {
 
   } catch (error) {
     logger.error('Graph webhook processing error', { error: error instanceof Error ? error.message : 'Unknown error' });
-    prometheusMetrics.errors.inc({ type: 'webhook', source: 'graph' });
+    prometheusMetrics.errorsTotal.inc({ type: 'webhook', component: 'graph', severity: 'medium' });
     res.status(500).json(createApiResponse(false, null, 'Webhook processing error'));
   }
 });
@@ -209,7 +208,7 @@ app.get('/jobs/:jobId', async (req, res) => {
     const { jobId } = req.params;
     const status = await jobQueue.getJobStatus(jobId);
     
-    if (status.status === 'not_found') {
+    if (!status || status.status === 'failed') {
       return res.status(404).json(createApiResponse(false, null, 'Job not found'));
     }
     
@@ -315,7 +314,7 @@ app.post('/delta/:mailbox', async (req, res) => {
 
   } catch (error) {
     logger.error('Delta query failed', { error: error instanceof Error ? error.message : 'Unknown error' });
-    prometheusMetrics.errors.inc({ type: 'delta_query', source: 'graph' });
+    prometheusMetrics.errorsTotal.inc({ type: 'delta_query', component: 'graph', severity: 'medium' });
     res.status(500).json(createApiResponse(false, null, 'Delta query failed'));
   }
 });
@@ -324,8 +323,9 @@ app.post('/delta/:mailbox', async (req, res) => {
 app.get('/metrics', async (req, res) => {
   try {
     const metricsData = await getMetricsHandler();
-    res.set('Content-Type', metricsData.contentType);
-    res.end(metricsData.metrics);
+    res.set('Content-Type', register.contentType);
+    const metrics = await register.metrics();
+    res.end(metrics);
   } catch (error) {
     logger.error('Error getting metrics', { error: error instanceof Error ? error.message : 'Unknown error' });
     res.status(500).end('Error generating metrics');
@@ -371,7 +371,7 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
     url: req.url,
     method: req.method
   });
-  prometheusMetrics.errors.inc({ type: 'api_error', source: 'express' });
+  prometheusMetrics.errorsTotal.inc({ type: 'api_error', component: 'express', severity: 'high' });
   res.status(500).json(createApiResponse(false, null, 'Internal worker service error'));
 });
 

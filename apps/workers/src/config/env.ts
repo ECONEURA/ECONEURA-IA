@@ -76,7 +76,7 @@ function validateWorkerEnv(): WorkerEnvConfig {
         console.error(`  - ${err.path.join('.')}: ${err.message}`);
       });
     } else {
-      console.error(`  - ${error.message}`);
+      console.error(`  - ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
     
     console.error('\n💡 Check your .env file and ensure all required worker variables are set.');

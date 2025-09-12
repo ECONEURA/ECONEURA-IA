@@ -5,7 +5,16 @@
  * into the Workers service startup process.
  */
 
-import { workerLogger } from '@econeura/shared/logging/enhanced';
+// import { workerLogger } from '@econeura/shared/logging/enhanced';
+const workerLogger = {
+  logStartup: (msg: string, data?: any) => console.log(`[STARTUP] ${msg}`, data),
+  logEnvValidation: (msg: string, data?: any) => console.log(`[ENV] ${msg}`, data),
+  logQueueEvent: (msg: string, data?: any) => console.log(`[QUEUE] ${msg}`, data),
+  logShutdown: (msg: string, data?: any) => console.log(`[SHUTDOWN] ${msg}`, data),
+  info: (msg: string) => console.log(`[INFO] ${msg}`),
+  warn: (msg: string) => console.warn(`[WARN] ${msg}`),
+  error: (msg: string, error?: any, data?: any) => console.error(`[ERROR] ${msg}`, error, data)
+};
 import { workerEnv, queueConfig, workerServerConfig } from './config/env.js';
 
 /**

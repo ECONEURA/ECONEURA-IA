@@ -1,6 +1,7 @@
 import Redis from 'ioredis';
 import { logger } from '../utils/logger.js';
 import { prometheusMetrics } from '../utils/metrics.js';
+import { JobQueueMethods } from './job-queue-methods.js';
 
 export interface Job {
     id: string;
@@ -30,8 +31,8 @@ export interface JobStats {
   averageProcessingTime: number;
 }
 
-export class JobQueue {
-  private redis: Redis;
+export class JobQueue extends JobQueueMethods {
+  protected redis: Redis;
   private processingCounter = prometheusMetrics.counter({
     name: 'econeura_jobs_processed_total',
     help: 'Total number of jobs processed',
@@ -51,6 +52,7 @@ export class JobQueue {
   });
 
   constructor() {
+    super();
     this.redis = new Redis({
       host: process.env.REDIS_HOST || 'localhost',
       port: parseInt(process.env.REDIS_PORT || '6379'),
