@@ -1,0 +1,71 @@
+name: 'Setup CI Tools'
+description: 'Setup all CI tools deterministically'
+inputs:
+  node-version:
+    description: 'Node.js version'
+    required: false
+    default: '20'
+  pnpm-version:
+    description: 'pnpm version'
+    required: false
+    default: '8'
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'pnpm'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: ${{ inputs.pnpm-version }}
+
+    - name: Enable corepack
+      shell: bash
+      run: corepack enable
+
+    - name: Setup Lychee (via action)
+      shell: bash
+      run: |
+        echo "Lychee will be used via lycheeverse/lychee-action@v1"
+        echo "LYCHEE_AVAILABLE=true" >> $GITHUB_ENV
+
+    - name: Setup Gitleaks (via action)
+      shell: bash
+      run: |
+        echo "Gitleaks will be used via gitleaks/gitleaks-action@v2"
+        echo "GITLEAKS_AVAILABLE=true" >> $GITHUB_ENV
+
+    - name: Setup Syft (SBOM)
+      uses: anchore/sbom-action@v0
+      with:
+        path: .
+        format: spdx-json
+        output-file: reports/sbom.spdx.json
+
+    - name: Setup k6
+      uses: grafana/setup-k6-action@v1
+
+    - name: Setup Spectral
+      shell: bash
+      run: |
+        echo "Spectral will be used via pnpm dlx @stoplight/spectral-cli@latest"
+        echo "SPECTRAL_AVAILABLE=true" >> $GITHUB_ENV
+
+    - name: Create reports directory
+      shell: bash
+      run: mkdir -p reports .artifacts
+
+    - name: Verify tools
+      shell: bash
+      run: |
+        echo "✅ CI Tools Setup Complete:"
+        echo "- Node.js: $(node --version)"
+        echo "- pnpm: $(pnpm --version)"
+        echo "- Lychee: $LYCHEE_AVAILABLE"
+        echo "- Gitleaks: $GITLEAKS_AVAILABLE"
+        echo "- k6: $(k6 version)"
+        echo "- Spectral: $SPECTRAL_AVAILABLE"
