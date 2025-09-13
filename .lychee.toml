@@ -1,6 +1,3 @@
-exclude_all_private = true
-max_retries = 2
-retry_wait_time = 2000
-timeout = 20
-include = ["docs/"]
-exclude = ["http://localhost:*","https://localhost:*"]
+# Reemplazar la línea correspondiente en el archivo .lychee.toml
+
+exclude = ["http://localhost.*","https://localhost.*"]
