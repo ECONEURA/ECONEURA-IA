@@ -102,6 +102,7 @@
     "express": "^5.1.0",
     "express-basic-auth": "^1.2.1",
     "express-rate-limit": "^7.1.5",
+    "jscpd": "^4.0.5",
     "pm2": "^6.0.8",
     "pnpm": "^8.15.0",
     "prom-client": "^15.1.3",

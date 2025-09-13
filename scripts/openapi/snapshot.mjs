@@ -1,43 +1,44 @@
 #!/usr/bin/env node
-import { promises as fs } from "fs";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import { readFileSync, writeFileSync } from 'fs';
+import { join } from 'path';
 
-const OPENAPI_SOURCE = join(__dirname, "../../apps/api/openapi/openapi.yaml");
-const SNAPSHOT_TARGET = join(__dirname, "../../.artifacts/openapi.snapshot.json");
+const openapiPath = join(process.cwd(), 'apps/api/openapi/openapi.yaml');
+const snapshotPath = join(process.cwd(), 'reports/openapi-snapshot.json');
 
-async function createSnapshot() {
-  try {
-    console.log("📸 Creating OpenAPI snapshot...");
+try {
+  const openapiContent = readFileSync(openapiPath, 'utf8');
+  
+  // Parse YAML and extract v1 endpoints
+  const lines = openapiContent.split('\n');
+  const v1Endpoints = [];
+  let inPaths = false;
+  
+  for (const line of lines) {
+    if (line.startsWith('paths:')) {
+      inPaths = true;
+      continue;
+    }
     
-    // Leer el archivo OpenAPI fuente
-    const openapiContent = await fs.readFile(OPENAPI_SOURCE, "utf8");
+    if (inPaths && line.startsWith('  /v1/')) {
+      v1Endpoints.push(line.trim());
+    }
     
-    // Parsear YAML (asumiendo que es válido)
-    const snapshot = {
-      timestamp: new Date().toISOString(),
-      version: "1.0.0",
-      source: "apps/api/openapi/openapi.yaml",
-      content: openapiContent,
-      hash: Buffer.from(openapiContent).toString('base64').slice(0, 16)
-    };
-    
-    // Crear directorio de artefactos
-    await fs.mkdir(join(__dirname, "../../.artifacts"), { recursive: true });
-    
-    // Escribir snapshot
-    await fs.writeFile(SNAPSHOT_TARGET, JSON.stringify(snapshot, null, 2));
-    
-    console.log(`✅ OpenAPI snapshot created: ${SNAPSHOT_TARGET}`);
-    console.log(`📊 Hash: ${snapshot.hash}`);
-    
-  } catch (error) {
-    console.error("❌ Error creating OpenAPI snapshot:", error.message);
-    process.exit(1);
+    if (inPaths && line.startsWith('  /') && !line.startsWith('  /v1/')) {
+      break; // End of v1 paths
+    }
   }
+  
+  const snapshot = {
+    timestamp: new Date().toISOString(),
+    v1Endpoints: v1Endpoints,
+    totalEndpoints: v1Endpoints.length
+  };
+  
+  writeFileSync(snapshotPath, JSON.stringify(snapshot, null, 2));
+  console.log(`✅ OpenAPI snapshot created: ${v1Endpoints.length} v1 endpoints`);
+  
+} catch (error) {
+  console.error('❌ Error creating OpenAPI snapshot:', error.message);
+  process.exit(1);
 }
-
-createSnapshot();
