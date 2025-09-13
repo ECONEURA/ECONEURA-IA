@@ -1,29 +1,20 @@
 module.exports = {
-  root: true,
+  env: {
+    node: true,
+    es2022: true,
+  },
   extends: [
     'eslint:recommended',
-    'plugin:@typescript-eslint/recommended',
-    'prettier'
   ],
-  parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint'],
   parserOptions: {
-    ecmaVersion: 2022,
+    ecmaVersion: 'latest',
     sourceType: 'module',
-    ecmaFeatures: {
-      jsx: true
-    }
-  },
-  env: {
-    browser: true,
-    es2022: true,
-    node: true
   },
   rules: {
-    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-    '@typescript-eslint/no-explicit-any': 'warn',
+    'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    'no-console': 'warn',
     'prefer-const': 'error',
-    'no-var': 'error'
+    'no-var': 'error',
   },
   overrides: [
     {
@@ -32,11 +23,10 @@ module.exports = {
     }
   ],
   ignorePatterns: [
-    'node_modules/',
-    '.next/',
     'dist/',
     'build/',
-    '*.config.js',
-    '*.config.ts'
-  ]
+    'node_modules/',
+    '*.min.js',
+    '.tsbuildinfo'
+  ],
 };

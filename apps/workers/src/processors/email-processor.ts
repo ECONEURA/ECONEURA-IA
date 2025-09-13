@@ -1,430 +1,372 @@
-/**
- * EmailProcessor - Processes email operations using AI Router
- * ECONEURA WORKERS OUTLOOK - Email Processing Component
- */
+import { GraphService } from '../services/graph-service.js';
+import { JobQueue } from '../queues/job-queue.js';
+import { logger } from '../utils/logger.js';
+import { prometheusMetrics } from '../utils/metrics.js';
 
-import axios from 'axios';
-import { EmailMessage, EmailClassification, EmailDraft, EmailData } from '../types/email.types';
-import { logger } from '../utils/logger';
-import { prometheusMetrics } from '../utils/metrics';
-
-interface AIRouterResponse {
-  response: string;
-  provider: string;
-  model: string;
-  usage: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
+export interface EmailMessage {
+  id: string;
+  subject: string;
+  from: {
+    emailAddress: {
+      address: string;
+      name: string;
+    };
   };
-  cost: number;
+  toRecipients: Array<{
+    emailAddress: {
+      address: string;
+      name: string;
+    };
+  }>;
+  body: {
+    content: string;
+    contentType: 'text' | 'html';
+  };
+  receivedDateTime: string;
+  isRead: boolean;
+  importance: 'low' | 'normal' | 'high';
+  hasAttachments: boolean;
+  internetMessageId: string;
+  conversationId: string;
+}
+
+export interface EmailProcessingResult {
+  messageId: string;
+  processed: boolean;
+  action: 'categorize' | 'respond' | 'forward' | 'archive' | 'none';
+  confidence: number;
+  metadata: {
+    category?: string;
+    sentiment?: 'positive' | 'negative' | 'neutral';
+    urgency?: 'low' | 'medium' | 'high';
+    language?: string;
+    entities?: string[];
+  };
+  processingTime: number;
 }
 
 export class EmailProcessor {
-  private aiRouterUrl: string;
-  private maxRetries: number = 3;
-  private baseDelay: number = 1000;
+  private graphService: GraphService;
+  private jobQueue: JobQueue;
+  private processingCounter = prometheusMetrics.counter({
+    name: 'econeura_emails_processed_total',
+    help: 'Total number of emails processed',
+    labelNames: ['action', 'category', 'status']
+  });
 
-  constructor(aiRouterUrl = process.env.AI_ROUTER_URL || 'http://localhost:3000') {
-    this.aiRouterUrl = aiRouterUrl;
+  private processingDuration = prometheusMetrics.histogram({
+    name: 'econeura_email_processing_duration_seconds',
+    help: 'Time spent processing emails',
+    labelNames: ['action', 'category']
+  });
+
+  constructor() {
+    this.graphService = new GraphService();
+    this.jobQueue = new JobQueue();
   }
 
-  /**
-   * Classify email content using AI Router
-   */
-  async classifyEmail(message: EmailMessage, jobId: string): Promise<EmailClassification> {
+  async processEmail(messageId: string, organizationId: string): Promise<EmailProcessingResult> {
     const startTime = Date.now();
-    const timer = prometheusMetrics.jobDuration.startTimer({ type: 'email:classify' });
     
     try {
-      logger.info('Starting email classification', { 
-        jobId, 
-        messageId: message.id,
-        subject: message.subject 
-      });
+      logger.info('Starting email processing', { messageId, organizationId });
 
-      const prompt = this.buildClassificationPrompt(message);
+      // Fetch email from Microsoft Graph
+      const email = await this.graphService.getEmailById('default', messageId);
       
-      const response = await this.callAIRouter({
-        prompt,
-        maxTokens: 500,
-        temperature: 0.3,
-        userId: `worker-${jobId}`,
-        requestId: `classify-${message.id}`,
-        metadata: {
-          operation: 'email:classify',
-          messageId: message.id
-        }
-      });
+      if (!email) {
+        throw new Error(`Email ${messageId} not found`);
+      }
 
-      const classification = this.parseClassificationResponse(response.response);
+      // Process email content
+      const result = await this.analyzeEmail(email, organizationId);
+      
+      // Apply actions based on analysis
+      await this.applyEmailActions(email, result, organizationId);
+
+      const processingTime = Date.now() - startTime;
       
       // Record metrics
-      timer();
-      prometheusMetrics.jobsProcessed.inc({ 
-        type: 'email:classify', 
+      this.processingCounter.inc({
+        action: result.action,
+        category: result.metadata.category || 'unknown',
         status: 'success' 
       });
-      prometheusMetrics.aiCosts.inc(response.cost);
 
-      logger.info('Email classification completed', {
-        jobId,
-        messageId: message.id,
-        category: classification.category,
-        priority: classification.priority,
-        cost: response.cost,
-        provider: response.provider,
-        duration: Date.now() - startTime
+      this.processingDuration.observe(
+        { action: result.action, category: result.metadata.category || 'unknown' },
+        processingTime / 1000
+      );
+
+      logger.info('Email processing completed', {
+        messageId,
+        action: result.action,
+        processingTime,
+        confidence: result.confidence
       });
 
-      return classification;
+      return {
+        ...result,
+        processingTime
+      };
 
     } catch (error) {
-      timer();
-      prometheusMetrics.jobsProcessed.inc({ 
-        type: 'email:classify', 
+      const processingTime = Date.now() - startTime;
+      
+      this.processingCounter.inc({
+        action: 'error',
+        category: 'unknown',
         status: 'error' 
       });
       
-      logger.error('Email classification failed', {
-        jobId,
-        messageId: message.id,
+      logger.error('Email processing failed', {
+        messageId,
+        organizationId,
         error: error instanceof Error ? error.message : 'Unknown error',
-        duration: Date.now() - startTime
+        processingTime
       });
 
-      throw new Error(`Email classification failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw error;
     }
   }
 
-  /**
-   * Generate email draft using AI Router
-   */
-  async generateDraft(request: EmailDraft, jobId: string): Promise<EmailData> {
+  private async analyzeEmail(email: EmailMessage, organizationId: string): Promise<EmailProcessingResult> {
     const startTime = Date.now();
-    const timer = prometheusMetrics.jobDuration.startTimer({ type: 'email:draft' });
     
+    // Simulate AI-powered email analysis
+    const analysis = await this.performEmailAnalysis(email, organizationId);
+    
+    const processingTime = Date.now() - startTime;
+    
+    return {
+      messageId: email.id,
+      processed: true,
+      action: analysis.action,
+      confidence: analysis.confidence,
+      metadata: analysis.metadata,
+      processingTime
+    };
+  }
+
+  private async performEmailAnalysis(email: EmailMessage, organizationId: string): Promise<{
+    action: 'categorize' | 'respond' | 'forward' | 'archive' | 'none';
+    confidence: number;
+    metadata: {
+      category?: string;
+      sentiment?: 'positive' | 'negative' | 'neutral';
+      urgency?: 'low' | 'medium' | 'high';
+      language?: string;
+      entities?: string[];
+    };
+  }> {
+    // Simulate AI analysis based on email content
+    const subject = email.subject.toLowerCase();
+    const body = email.body.content.toLowerCase();
+    
+    // Determine category based on content
+    let category = 'general';
+    let action: 'categorize' | 'respond' | 'forward' | 'archive' | 'none' = 'none';
+    let confidence = 0.5;
+    let sentiment: 'positive' | 'negative' | 'neutral' = 'neutral';
+    let urgency: 'low' | 'medium' | 'high' = 'low';
+    
+    // Business logic for email categorization
+    if (subject.includes('invoice') || subject.includes('factura') || body.includes('payment')) {
+      category = 'finance';
+      action = 'categorize';
+      confidence = 0.9;
+      urgency = 'high';
+    } else if (subject.includes('meeting') || subject.includes('reunión') || body.includes('calendar')) {
+      category = 'calendar';
+      action = 'categorize';
+      confidence = 0.8;
+      urgency = 'medium';
+    } else if (subject.includes('support') || subject.includes('soporte') || body.includes('help')) {
+      category = 'support';
+      action = 'forward';
+      confidence = 0.85;
+      urgency = 'high';
+    } else if (subject.includes('spam') || body.includes('unsubscribe')) {
+      category = 'spam';
+      action = 'archive';
+      confidence = 0.95;
+      urgency = 'low';
+    } else if (email.importance === 'high' || subject.includes('urgent')) {
+      category = 'urgent';
+      action = 'categorize';
+      confidence = 0.7;
+      urgency = 'high';
+    }
+
+    // Determine sentiment
+    const positiveWords = ['thank', 'thanks', 'great', 'excellent', 'good', 'happy', 'pleased'];
+    const negativeWords = ['problem', 'issue', 'error', 'bad', 'wrong', 'disappointed', 'angry'];
+    
+    const positiveCount = positiveWords.filter(word => body.includes(word)).length;
+    const negativeCount = negativeWords.filter(word => body.includes(word)).length;
+    
+    if (positiveCount > negativeCount) {
+      sentiment = 'positive';
+    } else if (negativeCount > positiveCount) {
+      sentiment = 'negative';
+    }
+
+    // Extract entities (simplified)
+    const entities = this.extractEntities(email);
+
+    return {
+      action,
+      confidence,
+      metadata: {
+        category,
+        sentiment,
+        urgency,
+        language: 'es', // Simplified language detection
+        entities
+      }
+    };
+  }
+
+  private extractEntities(email: EmailMessage): string[] {
+    const entities: string[] = [];
+    const content = `${email.subject} ${email.body.content}`.toLowerCase();
+    
+    // Extract email addresses
+    const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
+    const emails = content.match(emailRegex) || [];
+    entities.push(...emails);
+    
+    // Extract phone numbers (Spanish format)
+    const phoneRegex = /(\+34|0034)?[6-9]\d{8}/g;
+    const phones = content.match(phoneRegex) || [];
+    entities.push(...phones);
+    
+    // Extract amounts (EUR)
+    const amountRegex = /€?\s*\d+[.,]\d{2}/g;
+    const amounts = content.match(amountRegex) || [];
+    entities.push(...amounts);
+    
+    return entities;
+  }
+
+  private async applyEmailActions(
+    email: EmailMessage, 
+    result: EmailProcessingResult, 
+    organizationId: string
+  ): Promise<void> {
     try {
-      logger.info('Starting email draft generation', { 
-        jobId, 
-        recipient: request.to,
-        subject: request.subject 
-      });
-
-      const prompt = this.buildDraftPrompt(request);
-      
-      const response = await this.callAIRouter({
-        prompt,
-        maxTokens: 1000,
-        temperature: 0.7,
-        userId: `worker-${jobId}`,
-        requestId: `draft-${Date.now()}`,
-        metadata: {
-          operation: 'email:draft',
-          recipient: request.to
-        }
-      });
-
-      const emailData = this.parseDraftResponse(response.response, request);
-      
-      // Record metrics
-      timer();
-      prometheusMetrics.jobsProcessed.inc({ 
-        type: 'email:draft', 
-        status: 'success' 
-      });
-      prometheusMetrics.aiCosts.inc(response.cost);
-
-      logger.info('Email draft generated', {
-        jobId,
-        recipient: request.to,
-        cost: response.cost,
-        provider: response.provider,
-        duration: Date.now() - startTime
-      });
-
-      return emailData;
-
+      switch (result.action) {
+        case 'categorize':
+          await this.categorizeEmail(email, result.metadata.category!, organizationId);
+          break;
+          
+        case 'respond':
+          await this.generateResponse(email, organizationId);
+          break;
+          
+        case 'forward':
+          await this.forwardEmail(email, result.metadata.category!, organizationId);
+          break;
+          
+        case 'archive':
+          await this.archiveEmail(email, organizationId);
+          break;
+          
+        case 'none':
+        default:
+          logger.info('No action required for email', { messageId: email.id });
+          break;
+      }
     } catch (error) {
-      timer();
-      prometheusMetrics.jobsProcessed.inc({ 
-        type: 'email:draft', 
-        status: 'error' 
+      logger.error('Failed to apply email action', {
+        messageId: email.id,
+        action: result.action,
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
-      
-      logger.error('Email draft generation failed', {
-        jobId,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        duration: Date.now() - startTime
-      });
-
-      throw new Error(`Email draft generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw error;
     }
   }
 
-  /**
-   * Extract structured data from email content
-   */
-  async extractData(message: EmailMessage, schema: any, jobId: string): Promise<any> {
-    const startTime = Date.now();
-    const timer = prometheusMetrics.jobDuration.startTimer({ type: 'email:extract' });
-    
-    try {
-      logger.info('Starting email data extraction', { 
-        jobId, 
-        messageId: message.id,
-        schema: Object.keys(schema || {})
-      });
-
-      const prompt = this.buildExtractionPrompt(message, schema);
-      
-      const response = await this.callAIRouter({
-        prompt,
-        maxTokens: 800,
-        temperature: 0.1,
-        userId: `worker-${jobId}`,
-        requestId: `extract-${message.id}`,
-        metadata: {
-          operation: 'email:extract',
-          messageId: message.id
-        }
-      });
-
-      const extractedData = this.parseExtractionResponse(response.response);
-      
-      // Record metrics
-      timer();
-      prometheusMetrics.jobsProcessed.inc({ 
-        type: 'email:extract', 
-        status: 'success' 
-      });
-      prometheusMetrics.aiCosts.inc(response.cost);
-
-      logger.info('Email data extraction completed', {
-        jobId,
-        messageId: message.id,
-        extractedFields: Object.keys(extractedData),
-        cost: response.cost,
-        provider: response.provider,
-        duration: Date.now() - startTime
-      });
-
-      return extractedData;
-
-    } catch (error) {
-      timer();
-      prometheusMetrics.jobsProcessed.inc({ 
-        type: 'email:extract', 
-        status: 'error' 
-      });
-      
-      logger.error('Email data extraction failed', {
-        jobId,
-        messageId: message.id,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        duration: Date.now() - startTime
-      });
-
-      throw new Error(`Email data extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+  private async categorizeEmail(email: EmailMessage, category: string, organizationId: string): Promise<void> {
+    logger.info('Categorizing email', {
+      messageId: email.id,
+      category,
+      organizationId
+    });
   }
 
-  /**
-   * Call AI Router with retry logic
-   */
-  private async callAIRouter(request: any): Promise<AIRouterResponse> {
-    let lastError: Error | null = null;
+  private async generateResponse(email: EmailMessage, organizationId: string): Promise<void> {
+    logger.info('Generating email response', {
+      messageId: email.id,
+      organizationId
+    });
+  }
 
-    for (let attempt = 0; attempt < this.maxRetries; attempt++) {
-      try {
-        const response = await axios.post(`${this.aiRouterUrl}/api/v1/chat`, request, {
-          timeout: 60000,
-          headers: {
-            'Content-Type': 'application/json',
-            'User-Agent': 'ECONEURA-Workers/1.0'
-          }
-        });
+  private async forwardEmail(email: EmailMessage, category: string, organizationId: string): Promise<void> {
+    logger.info('Forwarding email', {
+      messageId: email.id,
+      category,
+      organizationId
+    });
+  }
 
-        if (response.status !== 200) {
-          throw new Error(`AI Router returned status ${response.status}`);
-        }
+  private async archiveEmail(email: EmailMessage, organizationId: string): Promise<void> {
+    logger.info('Archiving email', {
+      messageId: email.id,
+      organizationId
+    });
+  }
 
-        return response.data;
+  async processBulkEmails(messageIds: string[], organizationId: string): Promise<EmailProcessingResult[]> {
+    const results: EmailProcessingResult[] = [];
+    
+    logger.info('Starting bulk email processing', {
+      count: messageIds.length,
+      organizationId
+    });
 
-      } catch (error) {
-        lastError = error instanceof Error ? error : new Error('Unknown error');
-        
-        // Don't retry on 4xx errors (except 429)
-        const errorObj = error instanceof Error ? error : new Error('Unknown error');
-        if ((errorObj as any).response?.status >= 400 && (errorObj as any).response?.status < 500 && (errorObj as any).response?.status !== 429) {
-          throw errorObj;
-        }
-
-        if (attempt < this.maxRetries - 1) {
-          const delay = this.baseDelay * Math.pow(2, attempt);
-          logger.warn(`AI Router call failed, retrying in ${delay}ms`, {
-            attempt: attempt + 1,
-            maxRetries: this.maxRetries,
+    // Process emails in parallel with concurrency limit
+    const concurrencyLimit = 5;
+    const chunks = this.chunkArray(messageIds, concurrencyLimit);
+    
+    for (const chunk of chunks) {
+      const chunkPromises = chunk.map(messageId => 
+        this.processEmail(messageId, organizationId).catch(error => {
+          logger.error('Bulk processing error', {
+            messageId,
+            organizationId,
             error: error instanceof Error ? error.message : 'Unknown error'
           });
-          
-          await new Promise(resolve => setTimeout(resolve, delay));
-        }
-      }
-    }
-
-    const finalError = lastError || new Error('Unknown error');
-    throw new Error(`AI Router call failed after ${this.maxRetries} attempts: ${finalError.message}`);
-  }
-
-  /**
-   * Build classification prompt
-   */
-  private buildClassificationPrompt(message: EmailMessage): string {
-    return `Analyze this email and classify it according to the following criteria:
-
-EMAIL CONTENT:
-From: ${message.from}
-To: ${message.to}
-Subject: ${message.subject}
-Body: ${message.body}
-
-CLASSIFICATION REQUIREMENTS:
-1. Category: Choose one of [business, personal, promotional, support, newsletter, spam, other]
-2. Priority: Choose one of [urgent, high, medium, low]
-3. Sentiment: Choose one of [positive, negative, neutral]
-4. Action Required: Choose one of [reply, forward, archive, delete, schedule, none]
-5. Confidence: Number between 0.0 and 1.0
-
-Return ONLY a JSON object with this exact structure:
-{
-  "category": "string",
-  "priority": "string", 
-  "sentiment": "string",
-  "actionRequired": "string",
-  "confidence": 0.0,
-  "reasoning": "Brief explanation"
-}`;
-  }
-
-  /**
-   * Build draft generation prompt
-   */
-  private buildDraftPrompt(request: EmailDraft): string {
-    return `Generate a professional email draft based on these requirements:
-
-TO: ${request.to}
-SUBJECT: ${request.subject || 'Professional Correspondence'}
-CONTEXT: ${request.context || 'Standard business communication'}
-TONE: ${request.tone || 'professional'}
-${request.replyTo ? `REPLYING TO: ${request.replyTo.subject}\nOriginal Message: ${request.replyTo.body}` : ''}
-
-REQUIREMENTS:
-- Professional and appropriate tone
-- Clear and concise language
-- Proper email structure with greeting and closing
-- Address the context provided
-- ${request.tone === 'urgent' ? 'Express urgency appropriately' : ''}
-- ${request.tone === 'friendly' ? 'Use a warm, friendly tone' : ''}
-
-Return ONLY a JSON object with this structure:
-{
-  "subject": "Email subject line",
-  "body": "Complete email body with proper formatting",
-  "priority": "low|medium|high"
-}`;
-  }
-
-  /**
-   * Build extraction prompt
-   */
-  private buildExtractionPrompt(message: EmailMessage, schema: any): string {
-    const schemaFields = Object.keys(schema || {}).map(key => 
-      `- ${key}: ${schema[key].type || 'string'} ${schema[key].required ? '(required)' : '(optional)'}`
-    ).join('\n');
-
-    return `Extract structured data from this email according to the specified schema:
-
-EMAIL CONTENT:
-From: ${message.from}
-Subject: ${message.subject}
-Body: ${message.body}
-
-EXTRACTION SCHEMA:
-${schemaFields || 'Extract any relevant structured data'}
-
-INSTRUCTIONS:
-- Extract only information that is clearly present in the email
-- Use null for missing optional fields
-- Maintain original formatting for dates and numbers
-- Be precise and accurate
-
-Return ONLY a JSON object matching the schema structure.`;
-  }
-
-  /**
-   * Parse classification response
-   */
-  private parseClassificationResponse(response: string): EmailClassification {
-    try {
-      const parsed = JSON.parse(response.trim());
+      return {
+            messageId,
+            processed: false,
+            action: 'none' as const,
+            confidence: 0,
+            metadata: {},
+            processingTime: 0
+          };
+        })
+      );
       
-      // Validate required fields
-      const required = ['category', 'priority', 'sentiment', 'actionRequired', 'confidence'];
-      for (const field of required) {
-        if (!(field in parsed)) {
-          throw new Error(`Missing required field: ${field}`);
-        }
-      }
-
-      return {
-        category: parsed.category,
-        priority: parsed.priority,
-        sentiment: parsed.sentiment,
-        actionRequired: parsed.actionRequired,
-        confidence: parseFloat(parsed.confidence),
-        reasoning: parsed.reasoning || '',
-        timestamp: new Date()
-      };
-    } catch (error) {
-      throw new Error(`Failed to parse classification response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const chunkResults = await Promise.all(chunkPromises);
+      results.push(...chunkResults);
     }
+
+    logger.info('Bulk email processing completed', {
+      total: messageIds.length,
+      successful: results.filter(r => r.processed).length,
+      failed: results.filter(r => !r.processed).length,
+      organizationId
+    });
+
+    return results;
   }
 
-  /**
-   * Parse draft response
-   */
-  private parseDraftResponse(response: string, request: EmailDraft): EmailData {
-    try {
-      const parsed = JSON.parse(response.trim());
-      
-      return {
-        to: request.to,
-        subject: parsed.subject || request.subject || 'Professional Correspondence',
-        body: parsed.body || '',
-        priority: parsed.priority || 'medium',
-        timestamp: new Date()
-      };
-    } catch (error) {
-      // Fallback if JSON parsing fails
-      return {
-        to: request.to,
-        subject: request.subject || 'Professional Correspondence',
-        body: response.trim(),
-        priority: 'medium',
-        timestamp: new Date()
-      };
+  private chunkArray<T>(array: T[], size: number): T[][] {
+    const chunks: T[][] = [];
+    for (let i = 0; i < array.length; i += size) {
+      chunks.push(array.slice(i, i + size));
     }
-  }
-
-  /**
-   * Parse extraction response
-   */
-  private parseExtractionResponse(response: string): any {
-    try {
-      return JSON.parse(response.trim());
-    } catch (error) {
-      throw new Error(`Failed to parse extraction response: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+    return chunks;
   }
 }

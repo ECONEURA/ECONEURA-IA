@@ -1,18 +1,26 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "target": "ES2022",
-  "lib": ["dom", "dom.iterable", "es2021"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "composite": true,
+    "incremental": true,
+    "tsBuildInfoFile": "./dist/.tsbuildinfo",
+    "jsx": "preserve",
+    "lib": ["dom", "dom.iterable", "es6"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
-    "noEmit": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": false,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
     "plugins": [
       {
         "name": "next"
@@ -23,11 +31,16 @@
   "@econeura/shared": ["../../packages/shared/src/index.ts"],
   "@econeura/shared/*": ["../../packages/shared/src/*"],
       "@/*": ["./src/*"],
-      "@/components/*": ["./src/components/*"],
-      "@/lib/*": ["./src/lib/*"],
-      "@/app/*": ["./src/app/*"]
+      "@econeura/shared": ["../../packages/shared/src"],
+      "@econeura/shared/*": ["../../packages/shared/src/*"],
+      "@econeura/sdk": ["../../packages/sdk/src"],
+      "@econeura/sdk/*": ["../../packages/sdk/src/*"]
     }
   },
-  "include": ["next-env.d.ts", "types/**/*.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", "dist", "build", ".next", "coverage", "test-results", "performance-results"],
+  "references": [
+    { "path": "../../packages/shared" },
+    { "path": "../../packages/sdk" }
+  ]
 }

@@ -1,0 +1,47 @@
+{
+  "extraction_timestamp": "2025-09-08T15:25:00Z",
+  "total_prs": 85,
+  "open": 2,
+  "closed": 83,
+  "merged": 65,
+  "pr_states": {
+    "DONE": 65,
+    "MORE": 2,
+    "PEND": 18
+  },
+  "open_prs": [
+    {
+      "number": 85,
+      "title": "docs: add audit and review reports",
+      "head_ref": "codex/conduct-comprehensive-repository-review",
+      "base_ref": "main"
+    },
+    {
+      "number": 84,
+      "title": "sync: mirror main + snapshots de PRs (solo lectura, NO DEPLOY)",
+      "head_ref": "sync/github-readout-20250908-1427",
+      "base_ref": "main"
+    }
+  ],
+  "recent_activity": {
+    "last_merged": {
+      "number": 83,
+      "title": "chore: pin pnpm version",
+      "merged_at": "2025-09-08T12:01:27Z"
+    },
+    "last_closed": {
+      "number": 82,
+      "title": "chore: add license and initial audit artifacts",
+      "closed_at": "2025-09-08T11:35:58Z"
+    }
+  },
+  "extraction_status": "COMPLETED",
+  "files_generated": [
+    "docs/sync/PR_SUMMARY_FIXED.json",
+    "docs/sync/PR_INDEX.csv",
+    "docs/sync/PR_INDEX_FULL.csv",
+    "docs/sync/PR_STATE.csv",
+    "docs/sync/PR_STATE.md",
+    "docs/sync/PR_STATUS.json"
+  ]
+}

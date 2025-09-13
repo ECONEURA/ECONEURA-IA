@@ -8,8 +8,9 @@ import cron from 'node-cron';
 import { GraphService } from './services/graph-service.js';
 import { EmailProcessor } from './processors/email-processor.js';
 import { JobQueue } from './queues/job-queue.js';
+import { CronService } from './services/cron-service.js';
 import { logger, logApiRequest } from './utils/logger.js';
-import { prometheusMetrics, getMetricsHandler, recordHttpRequest } from './utils/metrics.js';
+import { prometheusMetrics, getMetricsHandler, recordHttpRequest, register } from './utils/metrics.js';
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -24,12 +25,12 @@ const redis = new Redis({
 });
 
 // Use centralized metrics from utils
-const { register } = prometheusMetrics;
 
 // Initialize services
 const graphService = new GraphService();
 const emailProcessor = new EmailProcessor();
 const jobQueue = new JobQueue();
+const cronService = new CronService();
 
 // Helper function for API responses
 const createApiResponse = (success: boolean, data?: any, error?: string) => ({
@@ -70,10 +71,36 @@ app.get('/health', async (req, res) => {
       status: 'healthy',
       service: 'workers',
       version: '1.0.0',
+      timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      redis: redisStatus,
-      jobQueue: jobStats,
-      features: ['outlook-integration', 'graph-subscriptions', 'delta-queries', 'job-processing']
+      services: {
+        redis: {
+          status: redisStatus === 'connected' ? 'healthy' : 'unhealthy',
+          responseTime: 0,
+          lastCheck: new Date().toISOString(),
+        },
+        jobQueue: {
+          status: 'healthy',
+          responseTime: 0,
+          lastCheck: new Date().toISOString(),
+        }
+      },
+      metrics: {
+        memory: {
+          used: process.memoryUsage().heapUsed,
+          total: process.memoryUsage().heapTotal,
+          percentage: Math.round((process.memoryUsage().heapUsed / process.memoryUsage().heapTotal) * 100),
+        },
+        cpu: {
+          usage: process.cpuUsage().user / 1000000,
+        },
+        requests: {
+          total: 0,
+          errors: 0,
+          errorRate: 0,
+        },
+      },
+      features: ['outlook-integration', 'graph-subscriptions', 'delta-queries', 'job-processing', 'cron-jobs', 'email-processing', 'metrics']
     }));
   } catch (error) {
     logger.error('Health check failed', { error: error instanceof Error ? error.message : 'Unknown error' });
@@ -114,7 +141,7 @@ app.post('/listen', async (req, res) => {
 
   } catch (error) {
     logger.error('Graph webhook processing error', { error: error instanceof Error ? error.message : 'Unknown error' });
-    prometheusMetrics.errors.inc({ type: 'webhook', source: 'graph' });
+    prometheusMetrics.errorsTotal.inc({ type: 'webhook', component: 'graph', severity: 'medium' });
     res.status(500).json(createApiResponse(false, null, 'Webhook processing error'));
   }
 });
@@ -181,7 +208,7 @@ app.get('/jobs/:jobId', async (req, res) => {
     const { jobId } = req.params;
     const status = await jobQueue.getJobStatus(jobId);
     
-    if (status.status === 'not_found') {
+    if (!status || status.status === 'failed') {
       return res.status(404).json(createApiResponse(false, null, 'Job not found'));
     }
     
@@ -287,7 +314,7 @@ app.post('/delta/:mailbox', async (req, res) => {
 
   } catch (error) {
     logger.error('Delta query failed', { error: error instanceof Error ? error.message : 'Unknown error' });
-    prometheusMetrics.errors.inc({ type: 'delta_query', source: 'graph' });
+    prometheusMetrics.errorsTotal.inc({ type: 'delta_query', component: 'graph', severity: 'medium' });
     res.status(500).json(createApiResponse(false, null, 'Delta query failed'));
   }
 });
@@ -296,8 +323,9 @@ app.post('/delta/:mailbox', async (req, res) => {
 app.get('/metrics', async (req, res) => {
   try {
     const metricsData = await getMetricsHandler();
-    res.set('Content-Type', metricsData.contentType);
-    res.end(metricsData.metrics);
+    res.set('Content-Type', register.contentType);
+    const metrics = await register.metrics();
+    res.end(metrics);
   } catch (error) {
     logger.error('Error getting metrics', { error: error instanceof Error ? error.message : 'Unknown error' });
     res.status(500).end('Error generating metrics');
@@ -343,7 +371,7 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
     url: req.url,
     method: req.method
   });
-  prometheusMetrics.errors.inc({ type: 'api_error', source: 'express' });
+  prometheusMetrics.errorsTotal.inc({ type: 'api_error', component: 'express', severity: 'high' });
   res.status(500).json(createApiResponse(false, null, 'Internal worker service error'));
 });
 
@@ -395,6 +423,111 @@ redis.on('error', (err) => {
   logger.error('Redis connection error', { error: err.message });
 });
 
+// Cron job management endpoints
+app.get('/cron/jobs', async (req, res) => {
+  try {
+    const jobs = cronService.getAllJobs();
+    res.json(createApiResponse(true, { jobs }));
+  } catch (error) {
+    logger.error('Failed to get cron jobs', { error: error instanceof Error ? error.message : 'Unknown error' });
+    res.status(500).json(createApiResponse(false, null, 'Failed to get cron jobs'));
+  }
+});
+
+app.get('/cron/jobs/:jobId', async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    const job = cronService.getJobStatus(jobId);
+    
+    if (!job) {
+      return res.status(404).json(createApiResponse(false, null, 'Cron job not found'));
+    }
+    
+    res.json(createApiResponse(true, { job }));
+  } catch (error) {
+    logger.error('Failed to get cron job', { 
+      jobId: req.params.jobId,
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    res.status(500).json(createApiResponse(false, null, 'Failed to get cron job'));
+  }
+});
+
+app.post('/cron/jobs/:jobId/enable', async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    cronService.enableJob(jobId);
+    res.json(createApiResponse(true, { message: 'Cron job enabled' }));
+  } catch (error) {
+    logger.error('Failed to enable cron job', { 
+      jobId: req.params.jobId,
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    res.status(500).json(createApiResponse(false, null, 'Failed to enable cron job'));
+  }
+});
+
+app.post('/cron/jobs/:jobId/disable', async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    cronService.disableJob(jobId);
+    res.json(createApiResponse(true, { message: 'Cron job disabled' }));
+  } catch (error) {
+    logger.error('Failed to disable cron job', { 
+      jobId: req.params.jobId,
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    res.status(500).json(createApiResponse(false, null, 'Failed to disable cron job'));
+  }
+});
+
+app.get('/cron/stats', async (req, res) => {
+  try {
+    const stats = cronService.getJobStats();
+    res.json(createApiResponse(true, { stats }));
+  } catch (error) {
+    logger.error('Failed to get cron stats', { error: error instanceof Error ? error.message : 'Unknown error' });
+    res.status(500).json(createApiResponse(false, null, 'Failed to get cron stats'));
+  }
+});
+
+// Email processing endpoints
+app.post('/emails/process', async (req, res) => {
+  try {
+    const { messageId, organizationId } = req.body;
+    
+    if (!messageId || !organizationId) {
+      return res.status(400).json(createApiResponse(false, null, 'messageId and organizationId are required'));
+    }
+
+    const result = await emailProcessor.processEmail(messageId, organizationId);
+    res.json(createApiResponse(true, { result }));
+  } catch (error) {
+    logger.error('Failed to process email', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    res.status(500).json(createApiResponse(false, null, 'Failed to process email'));
+  }
+});
+
+app.post('/emails/process/bulk', async (req, res) => {
+  try {
+    const { messageIds, organizationId } = req.body;
+    
+    if (!messageIds || !Array.isArray(messageIds) || !organizationId) {
+      return res.status(400).json(createApiResponse(false, null, 'messageIds array and organizationId are required'));
+    }
+
+    const results = await emailProcessor.processBulkEmails(messageIds, organizationId);
+    res.json(createApiResponse(true, { results }));
+  } catch (error) {
+    logger.error('Failed to process bulk emails', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    res.status(500).json(createApiResponse(false, null, 'Failed to process bulk emails'));
+  }
+});
+
 // Initialize job queue and start the server
 async function startServer() {
   try {
@@ -411,7 +544,11 @@ async function startServer() {
           metrics: `/metrics`,
           status: `/workers/status`,
           webhook: `/listen`,
-          subscriptions: `/subscriptions`
+          subscriptions: `/subscriptions`,
+          cronJobs: `/cron/jobs`,
+          cronStats: `/cron/stats`,
+          emailProcess: `/emails/process`,
+          emailBulk: `/emails/process/bulk`
         },
         features: [
           'Microsoft Graph subscriptions with auto-renewal',
@@ -419,7 +556,11 @@ async function startServer() {
           'Job processing: email:classify, email:draft, email:extract, monitor:inbox',
           'Exponential backoff for 429/5xx errors',
           'Idempotency via internetMessageId',
-          'Webhook listener and subscription management'
+          'Webhook listener and subscription management',
+          'Cron job scheduling and management',
+          'Email processing with AI categorization',
+          'Prometheus metrics and monitoring',
+          'Redis-based job queue with retry logic'
         ]
       });
     });

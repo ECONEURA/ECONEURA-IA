@@ -76,7 +76,7 @@ export class GraphService {
       const currentSubs = await this.redis.hlen('graph:subscriptions');
       // TODO: Add metrics.subscriptions.set(currentSubs);
 
-      console.log(`📞 Created subscription ${mockSubscription.id} for mailbox ${mailbox}`);
+      
       
       return mockSubscription;
 
@@ -118,7 +118,7 @@ export class GraphService {
       const currentSubs = await this.redis.hlen('graph:subscriptions');
       // TODO: Add metrics.subscriptions.set(currentSubs);
 
-      console.log(`🗑️ Deleted subscription ${subscriptionId}`);
+      
 
     } catch (error) {
       console.error('Failed to delete subscription:', error);
@@ -141,7 +141,7 @@ export class GraphService {
         const timeToExpiration = expirationTime.getTime() - now.getTime();
 
         if (timeToExpiration < renewalThreshold) {
-          console.log(`🔄 Renewing subscription ${subscription.id} (expires in ${Math.round(timeToExpiration / (60 * 60 * 1000))}h)`);
+          
           
           // Extend expiration by 71 hours
           const newExpiration = new Date();
@@ -158,7 +158,7 @@ export class GraphService {
 
           await this.redis.hset('graph:subscriptions', subscription.id, JSON.stringify(updatedSubscription));
           
-          console.log(`✅ Renewed subscription ${subscription.id} until ${newExpiration.toISOString()}`);
+          
         }
       }
 
@@ -181,11 +181,11 @@ export class GraphService {
       if (storedDeltaLink) {
         // Use stored deltaLink for incremental changes
         url = storedDeltaLink;
-        console.log(`📥 Using delta query for ${mailbox}`);
+        
       } else {
         // Initial delta query
         url = `/users/${mailbox}/messages/delta`;
-        console.log(`📥 Initial delta query for ${mailbox}`);
+        
       }
 
       // In real implementation, this would call the Graph API:
@@ -212,7 +212,7 @@ export class GraphService {
       // Store new deltaLink
       if (mockResponse['@odata.deltaLink']) {
         await this.redis.set(deltaLinkKey, mockResponse['@odata.deltaLink']);
-        console.log(`💾 Updated deltaLink for ${mailbox}`);
+        
       }
 
       // Update metrics
@@ -242,7 +242,7 @@ export class GraphService {
       const mailboxes = new Set<string>();
 
       for (const sub of subscriptions) {
-        const match = sub.resource.match(/users\/([^\/]+)\/messages/);
+        const match = sub.resource.match(/users\/([^/]+)\/messages/);
         if (match) {
           mailboxes.add(match[1]);
         }
@@ -284,7 +284,7 @@ export class GraphService {
       // Handle rate limiting (429) and server errors (5xx) with exponential backoff
       if ((statusCode === 429 || statusCode >= 500) && retryCount < maxRetries) {
         const delay = baseDelay * Math.pow(2, retryCount); // Exponential backoff
-        console.log(`⏳ Rate limited/server error, retrying in ${delay}ms (attempt ${retryCount + 1}/${maxRetries + 1})`);
+        
         
         // TODO: Add metrics.graphErrors.inc({ error_type: 'rate_limit', status_code: statusCode.toString() });
         
@@ -307,7 +307,7 @@ export class GraphService {
       // In real implementation:
       // await this.client.api(`/users/${mailbox}/sendMail`).post({ message: emailData });
 
-      console.log(`📤 Sent email from ${mailbox}: ${emailData.subject}`);
+      
 
     } catch (error) {
       console.error('Failed to send email:', error);

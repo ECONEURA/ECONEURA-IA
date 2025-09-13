@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useApiClient } from '@/hooks/useApi';
-import {
-  Search,
-  Filter,
-  X,
-  ChevronDown,
-  Package,
+import { apiClient } from '@/lib/api-client';
+import { 
+  Search, 
+  Filter, 
+  X, 
+  ChevronDown, 
+  Package, 
   Building2,
   Tag,
   DollarSign,
@@ -57,7 +57,7 @@ export default function AdvancedSearch({
   placeholder = "Buscar productos y proveedores...",
   className = ""
 }: AdvancedSearchProps) {
-  const apiClient = useApiClient();
+  const api = apiClient;
   const [query, setQuery] = useState('');
   const [filters, setFilters] = useState<SearchFilters>({
     type: 'all'
@@ -109,8 +109,8 @@ export default function AdvancedSearch({
 
   const loadAvailableFilters = async () => {
     try {
-      const response = await apiClient('/search/filters');
-      setAvailableFilters(response.data);
+      const data = await api.request({ url: '/search/filters', method: 'GET' });
+      setAvailableFilters(data.data ?? data);
     } catch (error) {
       console.error('Error loading filters:', error);
     }
@@ -118,8 +118,8 @@ export default function AdvancedSearch({
 
   const loadSuggestions = async () => {
     try {
-      const response = await apiClient(`/search/suggestions?q=${encodeURIComponent(query)}&type=${filters.type || 'all'}`);
-      setSuggestions(response.data);
+      const dataS = await api.request({ url: `/search/suggestions?q=${encodeURIComponent(query)}&type=${filters.type || 'all'}`, method: 'GET' });
+      setSuggestions(dataS.data ?? dataS);
       setShowSuggestions(true);
     } catch (error) {
       console.error('Error loading suggestions:', error);
@@ -141,8 +141,8 @@ export default function AdvancedSearch({
         ...(filters.stock_status && { stock_status: filters.stock_status })
       });
 
-      const response = await apiClient(`/search/inventory?${params.toString()}`);
-      onSearch(response.data);
+      const dataR = await api.request({ url: `/search/inventory?${params.toString()}`, method: 'GET' });
+      onSearch(dataR.data ?? dataR);
       setShowSuggestions(false);
     } catch (error) {
       console.error('Error performing search:', error);

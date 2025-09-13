@@ -1,12 +1,36 @@
 // Types (legacy)
-export * as LegacyTypes from './types';
+export * as LegacyTypes from './types/index';
 
 // Schemas - Export all new schemas
 export * from './schemas/common';
 export * from './schemas/auth';
-export * from './schemas/crm';
 export * from './schemas/erp';
-export * from './schemas/finance';
+
+// Export CRM schemas with explicit names to avoid conflicts
+export {
+  Company as CRMCompany,
+  Contact as CRMContact,
+  Deal as CRMDeal,
+  CreateCompany as CRMCreateCompany,
+  CreateContact as CRMCreateContact,
+  CreateDeal as CRMCreateDeal,
+  UpdateCompany as CRMUpdateCompany,
+  UpdateContact as CRMUpdateContact,
+  UpdateDeal as CRMUpdateDeal,
+} from './schemas/crm';
+
+// Export Finance schemas with explicit names to avoid conflicts
+export {
+  Company as FinanceCompany,
+  Contact as FinanceContact,
+  Deal as FinanceDeal,
+  CreateCompany as FinanceCreateCompany,
+  CreateContact as FinanceCreateContact,
+  CreateDeal as FinanceCreateDeal,
+  UpdateCompany as FinanceUpdateCompany,
+  UpdateContact as FinanceUpdateContact,
+  UpdateDeal as FinanceUpdateDeal,
+} from './schemas/finance';
 
 // Re-export legacy schemas from index for backward compatibility
 export {
@@ -41,44 +65,32 @@ export {
   type SendMessage,
   type UpdateOrgLimits,
   type MetricsQuery,
-} from './schemas';
+} from './schemas/index';
 
 // Security utilities
-export * from './security';
+export * from './security/index';
 
 // Logging
-export * from './logging';
+export * from './logging/index';
 
 // Metrics
-export * from './metrics';
+export * from './metrics/index';
 
 // AI Router
 export { AIRouter, createAIRouter, type RouterDecision, type RouterConfig } from './ai/router';
-export { EnhancedAIRouter, type AIRequest as EnhancedAIRequest, type AIResponse as EnhancedAIResponse } from './ai/enhanced-router';
+export { EnhancedAIRouter, type AIRequest, type AIResponse } from './ai/enhanced-router';
 export { CostGuardrails, type CostLimits, type CostAlert, type UsageMetrics } from './ai/cost-guardrails';
 export { LLMProviderManager, type LLMProvider, type LLMModel, type ProviderHealth } from './ai/providers';
 
 // Environment and configuration
 export { env, getEnv } from './env';
 
-// OpenTelemetry (re-export only tracing helpers to avoid duplicate metric helper exports)
-export {
-  tracer,
-  meter,
-  customMetrics,
-  createSpan,
-  recordException,
-  addEvent,
-  setAttributes,
-  getCurrentSpan,
-  getTraceId,
-  getSpanId,
-  sdk as otelSdk,
-} from './otel';
+// OpenTelemetry
+export * from './otel/index';
 
 // Cost metering
-export { costMeter } from './cost-meter';
-export type { CostUsage, ModelName } from './cost-meter';
+// Avoid exporting cost-meter in Next.js build contexts to prevent resolution of @econeura/db
+// Consumers in server-only contexts can import it directly from './cost-meter.ts'
 
 // Version info
 export const VERSION = '1.0.0';

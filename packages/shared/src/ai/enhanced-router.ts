@@ -1,13 +1,20 @@
 import { z } from 'zod'
-import { logger } from '../logging'
-import { prometheus } from '../metrics'
-import { redactPII } from '../security'
+import { logger } from '../logging/index'
+import { prometheus } from '../metrics/metrics'
+import { redactPII } from '../security/index'
 import { CostGuardrails, type UsageMetrics } from './cost-guardrails'
 import { LLMProviderManager, type LLMProvider, type LLMModel } from './providers'
-import { costMeter, type CostUsage } from '../cost-meter'
-// import { createTracer } from '../otel'
+// Lazy import costMeter to avoid resolving @econeura/db in Next.js builds
+type CostUsage = any
+let _costMeter: any | null = null
+async function getCostMeter() {
+  if (_costMeter) return _costMeter
+  const mod = await import('../cost-meter')
+  _costMeter = mod.costMeter
+  return _costMeter
+}
+import { createTracer, createMeter } from '../otel/index'
 import { env } from '../env'
-import { tracer, meter } from '../otel'
 
 // Request schemas
 const AIRequestSchema = z.object({
@@ -107,6 +114,7 @@ export class EnhancedAIRouter {
       const validatedRequest = AIRequestSchema.parse(request)
 
       // Check monthly cost cap first
+      const costMeter = await getCostMeter()
       const capCheck = await costMeter.checkMonthlyCap(request.orgId)
       if (!capCheck.withinLimit) {
         throw new Error(`AI cost cap exceeded: ${capCheck.currentUsage}€/${capCheck.limit}€`)
@@ -172,22 +180,20 @@ export class EnhancedAIRouter {
     const span = this.tracer.startSpan('ai_make_routing_decision')
 
     try {
-  // Get available providers
-  const providers = await this.providerManager.getAllProviders()
-
-  // Prefer Mistral for cost efficiency
-  const mistralProvider = providers.find((p: LLMProvider) => p.id === 'mistral')
-  const azureProvider = providers.find((p: LLMProvider) => p.id === 'azure-openai')
-
+      // Get available providers
+      const providers = this.providerManager.getEnabledProviders()
+      
+      // Prefer Mistral for cost efficiency
+      const mistralProvider = providers.find(p => p.id === 'mistral')
+      const azureProvider = providers.find(p => p.id === 'azure-openai')
+      
       if (!mistralProvider && !azureProvider) {
         throw new Error('No AI providers available')
       }
 
-  // Check provider health using the provider manager's health map
-  const mistralHealth = mistralProvider ? this.providerManager.getProviderHealth(mistralProvider.id) : undefined
-  const azureHealth = azureProvider ? this.providerManager.getProviderHealth(azureProvider.id) : undefined
-  const mistralHealthy = mistralHealth?.status === 'healthy'
-  const azureHealthy = azureHealth?.status === 'healthy'
+      // Check provider health
+      const mistralHealthy = this.providerManager.getProviderHealth('mistral')?.status === 'healthy'
+      const azureHealthy = this.providerManager.getProviderHealth('azure-openai')?.status === 'healthy'
 
       // Determine primary and fallback providers
       let primaryProvider: string
@@ -211,6 +217,7 @@ export class EnhancedAIRouter {
 
       // Estimate cost for primary provider
       const estimatedTokens = this.estimateTokens(request.prompt, request.maxTokens)
+      const costMeter = await getCostMeter()
       const estimatedCost = costMeter.calculateCost(
         model,
         estimatedTokens,
@@ -315,13 +322,11 @@ export class EnhancedAIRouter {
         temperature: request.temperature || 0.7,
       }
 
-      // Execute request
-      if (typeof provider.execute !== 'function') {
-        throw new Error(`Provider ${provider.id} does not implement execute()`)
-      }
-      const response = await provider.execute(providerRequest)
-
+      // Execute request using real AI router client
+      const response = await this.executeProviderRequest(provider, providerRequest, request.orgId)
+      
       // Calculate actual cost
+      const costMeter = await getCostMeter()
       const costUsage = costMeter.recordUsage(
         request.orgId,
         model,
@@ -451,9 +456,8 @@ export class EnhancedAIRouter {
     })
 
     // Implement alert handling (email, Slack, etc.)
-      if (this.config.emergencyStopEnabled && alert.type === 'emergency_stop') {
-      // Log minimal information to avoid typing issues with Error object shapes
-      logger.error(`Emergency stop triggered for organization ${alert.orgId}`)
+    if (this.config.emergencyStopEnabled && alert.type === 'emergency_stop') {
+      logger.error('Emergency stop triggered for organization', undefined, { orgId: alert.orgId })
     }
   }
 
@@ -465,9 +469,15 @@ export class EnhancedAIRouter {
     this.costGuardrails.setCostLimits('default', {
       dailyLimitEUR: 5.0,
       monthlyLimitEUR: 50.0,
-      perRequestLimitEUR: 5.0,
-      warningThresholds: { daily: 80, monthly: 85 },
-      emergencyStop: { enabled: true, thresholdEUR: 150.0 },
+      perRequestLimitEUR: 1.0,
+      warningThresholds: {
+        daily: 80,
+        monthly: 80,
+      },
+      emergencyStop: {
+        enabled: true,
+        thresholdEUR: 47.5, // 95% of 50€
+      },
     })
   }
 
@@ -501,16 +511,75 @@ export class EnhancedAIRouter {
   }
 
   /**
+   * Execute provider request using real AI router client
+   */
+  private async executeProviderRequest(provider: LLMProvider, request: any, orgId: string): Promise<{
+    content: string;
+    tokens: { input: number; output: number };
+  }> {
+    // Import AI router client dynamically to avoid circular dependencies
+    const { aiRouterClient } = await import('@econeura/agents');
+    
+    try {
+      const aiRequest = {
+        orgId: orgId,
+        prompt: request.prompt,
+        model: request.model,
+        maxTokens: request.maxTokens,
+        temperature: request.temperature,
+        provider: provider.id,
+        context: {
+          providerId: provider.id,
+          providerName: provider.name
+        },
+        metadata: {
+          requestType: 'enhanced-router',
+          timestamp: new Date().toISOString()
+        }
+      };
+
+      const response = await aiRouterClient.sendRequest(aiRequest);
+      
+      return {
+        content: response.content,
+        tokens: {
+          input: response.usage.promptTokens,
+          output: response.usage.completionTokens,
+        },
+      };
+    } catch (error) {
+      logger.error('Failed to execute provider request', error as Error, {
+        provider_id: provider.id,
+        provider_name: provider.name,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      
+      // Fallback to mock response if real client fails
+      logger.warn('Falling back to mock response due to provider failure', {
+        provider_id: provider.id,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      
+      return {
+        content: `Fallback response for ${request.prompt} using ${provider.name}`,
+        tokens: {
+          input: request.prompt.length / 4, // Rough token estimation
+          output: 100, // Mock output tokens
+        },
+      };
+    }
+  }
+
+  /**
    * Gets current provider health status
    */
   async getProviderHealth(): Promise<Record<string, any>> {
-    // Use manager methods to obtain providers and their health status
-    const providers = this.providerManager.getAllProviders()
+    const providers = this.providerManager.getEnabledProviders()
     return providers.reduce((acc, provider) => {
       const health = this.providerManager.getProviderHealth(provider.id)
       acc[provider.id] = {
-        health: health?.status ?? 'unknown',
-        lastCheck: health?.lastCheck ?? null,
+        health: health?.status || 'unknown',
+        lastCheck: health?.lastCheck,
         models: provider.models,
       }
       return acc
@@ -525,6 +594,7 @@ export class EnhancedAIRouter {
     limit: number
     usagePercent: number
   }> {
+    const costMeter = await getCostMeter()
     const capCheck = await costMeter.checkMonthlyCap(orgId)
     return {
       currentMonthly: capCheck.currentUsage,

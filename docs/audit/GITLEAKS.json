@@ -1,0 +1,21 @@
+{
+  "status": "No disponible",
+  "reason": "gitleaks not installed",
+  "plan": [
+    {
+      "comando": "brew install gitleaks || go install github.com/gitleaks/gitleaks/v8@latest",
+      "responsable": "Security",
+      "fecha": "2024-05-24"
+    },
+    {
+      "comando": "gitleaks detect -s . -f json -r docs/audit/GITLEAKS.json",
+      "responsable": "Security",
+      "fecha": "2024-05-24"
+    },
+    {
+      "comando": "commit GITLEAKS.json",
+      "responsable": "Security",
+      "fecha": "2024-05-24"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "name": "ECONEURA Web App",
+    "path": "apps/web/.next/static/chunks/*.js",
+    "limit": "2 MB"
+  },
+  {
+    "name": "ECONEURA API Bundle",
+    "path": "apps/api/dist/**/*.js",
+    "limit": "1 MB"
+  },
+  {
+    "name": "Shared Packages",
+    "path": "packages/*/dist/**/*.js",
+    "limit": "500 KB"
+  }
+]

@@ -1,0 +1,397 @@
+import { Contact } from '../entities/contact.entity.js';
+
+// ============================================================================
+// CONTACT REPOSITORY INTERFACE
+// ============================================================================
+
+export interface ContactRepository {
+  // ========================================================================
+  // BASIC CRUD OPERATIONS
+  // ========================================================================
+
+  save(contact: Contact): Promise<Contact>;
+  findById(id: string): Promise<Contact | null>;
+  findByOrganizationId(organizationId: string): Promise<Contact[]>;
+  findByCompanyId(companyId: string): Promise<Contact[]>;
+  update(contact: Contact): Promise<Contact>;
+  delete(id: string): Promise<void>;
+
+  // ========================================================================
+  // QUERY OPERATIONS
+  // ========================================================================
+
+  findAll(): Promise<Contact[]>;
+  findByType(type: string): Promise<Contact[]>;
+  findByStatus(status: string): Promise<Contact[]>;
+  findBySource(source: string): Promise<Contact[]>;
+  findByPriority(priority: string): Promise<Contact[]>;
+  findByAssignedUser(userId: string): Promise<Contact[]>;
+  findByDepartment(department: string): Promise<Contact[]>;
+  findByIndustry(industry: string): Promise<Contact[]>;
+  findByProfession(profession: string): Promise<Contact[]>;
+
+  // ========================================================================
+  // ORGANIZATION-SPECIFIC QUERIES
+  // ========================================================================
+
+  findByOrganizationAndType(organizationId: string, type: string): Promise<Contact[]>;
+  findByOrganizationAndStatus(organizationId: string, status: string): Promise<Contact[]>;
+  findByOrganizationAndSource(organizationId: string, source: string): Promise<Contact[]>;
+  findByOrganizationAndPriority(organizationId: string, priority: string): Promise<Contact[]>;
+  findByOrganizationAndAssignedUser(organizationId: string, userId: string): Promise<Contact[]>;
+  findByOrganizationAndDepartment(organizationId: string, department: string): Promise<Contact[]>;
+  findByOrganizationAndIndustry(organizationId: string, industry: string): Promise<Contact[]>;
+  findByOrganizationAndProfession(organizationId: string, profession: string): Promise<Contact[]>;
+  findByOrganizationAndCompany(organizationId: string, companyId: string): Promise<Contact[]>;
+
+  // ========================================================================
+  // SEARCH OPERATIONS
+  // ========================================================================
+
+  search(query: string, organizationId: string): Promise<Contact[]>;
+  searchByName(name: string, organizationId: string): Promise<Contact[]>;
+  searchByEmail(email: string, organizationId: string): Promise<Contact[]>;
+  searchByPhone(phone: string, organizationId: string): Promise<Contact[]>;
+  searchByTitle(title: string, organizationId: string): Promise<Contact[]>;
+  searchByDepartment(department: string, organizationId: string): Promise<Contact[]>;
+  searchByCompany(companyName: string, organizationId: string): Promise<Contact[]>;
+
+  // ========================================================================
+  // ADVANCED QUERIES
+  // ========================================================================
+
+  findActiveContacts(organizationId: string): Promise<Contact[]>;
+  findInactiveContacts(organizationId: string): Promise<Contact[]>;
+  findPrimaryContacts(organizationId: string): Promise<Contact[]>;
+  findDecisionMakers(organizationId: string): Promise<Contact[]>;
+  findInfluencers(organizationId: string): Promise<Contact[]>;
+  findTechnicalContacts(organizationId: string): Promise<Contact[]>;
+  findFinancialContacts(organizationId: string): Promise<Contact[]>;
+  findProcurementContacts(organizationId: string): Promise<Contact[]>;
+  findVerifiedContacts(organizationId: string): Promise<Contact[]>;
+  findUnverifiedContacts(organizationId: string): Promise<Contact[]>;
+  findOptedInContacts(organizationId: string): Promise<Contact[]>;
+  findOptedOutContacts(organizationId: string): Promise<Contact[]>;
+
+  // ========================================================================
+  // FOLLOW-UP QUERIES
+  // ========================================================================
+
+  findOverdueForFollowUp(organizationId: string): Promise<Contact[]>;
+  findScheduledForFollowUp(organizationId: string, date: Date): Promise<Contact[]>;
+  findContactsNeedingFollowUp(organizationId: string, days: number): Promise<Contact[]>;
+  findContactsByLastContactDate(organizationId: string, fromDate: Date, toDate: Date): Promise<Contact[]>;
+
+  // ========================================================================
+  // LEAD SCORING QUERIES
+  // ========================================================================
+
+  findHighScoreLeads(organizationId: string, minScore: number): Promise<Contact[]>;
+  findMediumScoreLeads(organizationId: string): Promise<Contact[]>;
+  findLowScoreLeads(organizationId: string): Promise<Contact[]>;
+  findContactsByLeadScoreRange(organizationId: string, minScore: number, maxScore: number): Promise<Contact[]>;
+  findContactsByEngagementScoreRange(organizationId: string, minScore: number, maxScore: number): Promise<Contact[]>;
+
+  // ========================================================================
+  // ENGAGEMENT QUERIES
+  // ========================================================================
+
+  findHighlyEngagedContacts(organizationId: string, minScore: number): Promise<Contact[]>;
+  findModeratelyEngagedContacts(organizationId: string): Promise<Contact[]>;
+  findLowEngagedContacts(organizationId: string): Promise<Contact[]>;
+  findContactsByEmailOpenRate(organizationId: string, minRate: number): Promise<Contact[]>;
+  findContactsByEmailClickRate(organizationId: string, minRate: number): Promise<Contact[]>;
+  findContactsByMeetingAttendanceRate(organizationId: string, minRate: number): Promise<Contact[]>;
+
+  // ========================================================================
+  // REVENUE QUERIES
+  // ========================================================================
+
+  findContactsByRevenueRange(organizationId: string, minRevenue: number, maxRevenue: number, currency: string): Promise<Contact[]>;
+  findHighRevenueContacts(organizationId: string, minRevenue: number, currency: string): Promise<Contact[]>;
+  findContactsBySalaryRange(organizationId: string, minSalary: number, maxSalary: number, currency: string): Promise<Contact[]>;
+  findContactsByExperienceRange(organizationId: string, minExperience: number, maxExperience: number): Promise<Contact[]>;
+
+  // ========================================================================
+  // BIRTHDAY AND ANNIVERSARY QUERIES
+  // ========================================================================
+
+  findContactsWithBirthdayToday(organizationId: string): Promise<Contact[]>;
+  findContactsWithBirthdayThisWeek(organizationId: string): Promise<Contact[]>;
+  findContactsWithBirthdayThisMonth(organizationId: string): Promise<Contact[]>;
+  findContactsWithAnniversaryToday(organizationId: string): Promise<Contact[]>;
+  findContactsWithAnniversaryThisWeek(organizationId: string): Promise<Contact[]>;
+  findContactsWithAnniversaryThisMonth(organizationId: string): Promise<Contact[]>;
+
+  // ========================================================================
+  // INTERACTION QUERIES
+  // ========================================================================
+
+  findContactsByInteractionCount(organizationId: string, minInteractions: number, maxInteractions: number): Promise<Contact[]>;
+  findContactsByEmailSentCount(organizationId: string, minEmails: number, maxEmails: number): Promise<Contact[]>;
+  findContactsByCallCount(organizationId: string, minCalls: number, maxCalls: number): Promise<Contact[]>;
+  findContactsByMeetingCount(organizationId: string, minMeetings: number, maxMeetings: number): Promise<Contact[]>;
+  findContactsByDealCount(organizationId: string, minDeals: number, maxDeals: number): Promise<Contact[]>;
+
+  // ========================================================================
+  // RECENT ACTIVITY QUERIES
+  // ========================================================================
+
+  findContactsByLastEmailOpen(organizationId: string, fromDate: Date, toDate: Date): Promise<Contact[]>;
+  findContactsByLastEmailClick(organizationId: string, fromDate: Date, toDate: Date): Promise<Contact[]>;
+  findContactsByLastWebsiteVisit(organizationId: string, fromDate: Date, toDate: Date): Promise<Contact[]>;
+  findContactsByLastSocialMediaInteraction(organizationId: string, fromDate: Date, toDate: Date): Promise<Contact[]>;
+
+  // ========================================================================
+  // PAGINATION
+  // ========================================================================
+
+  findPaginated(
+    organizationId: string,
+    page: number,
+    limit: number,
+    filters?: ContactFilters
+  ): Promise<PaginatedResult<Contact>>;
+
+  // ========================================================================
+  // COUNTING
+  // ========================================================================
+
+  countByOrganization(organizationId: string): Promise<number>;
+  countByType(type: string, organizationId: string): Promise<number>;
+  countByStatus(status: string, organizationId: string): Promise<number>;
+  countBySource(source: string, organizationId: string): Promise<number>;
+  countByPriority(priority: string, organizationId: string): Promise<number>;
+  countByAssignedUser(userId: string, organizationId: string): Promise<number>;
+  countByDepartment(department: string, organizationId: string): Promise<number>;
+  countByIndustry(industry: string, organizationId: string): Promise<number>;
+  countByProfession(profession: string, organizationId: string): Promise<number>;
+  countByCompany(companyId: string, organizationId: string): Promise<number>;
+  countActiveContacts(organizationId: string): Promise<number>;
+  countInactiveContacts(organizationId: string): Promise<number>;
+  countPrimaryContacts(organizationId: string): Promise<number>;
+  countDecisionMakers(organizationId: string): Promise<number>;
+  countInfluencers(organizationId: string): Promise<number>;
+  countTechnicalContacts(organizationId: string): Promise<number>;
+  countFinancialContacts(organizationId: string): Promise<number>;
+  countProcurementContacts(organizationId: string): Promise<number>;
+  countVerifiedContacts(organizationId: string): Promise<number>;
+  countUnverifiedContacts(organizationId: string): Promise<number>;
+  countOptedInContacts(organizationId: string): Promise<number>;
+  countOptedOutContacts(organizationId: string): Promise<number>;
+  countOverdueForFollowUp(organizationId: string): Promise<number>;
+  countHighScoreLeads(organizationId: string, minScore: number): Promise<number>;
+  countMediumScoreLeads(organizationId: string): Promise<number>;
+  countLowScoreLeads(organizationId: string): Promise<number>;
+  countHighlyEngagedContacts(organizationId: string, minScore: number): Promise<number>;
+  countModeratelyEngagedContacts(organizationId: string): Promise<number>;
+  countLowEngagedContacts(organizationId: string): Promise<number>;
+
+  // ========================================================================
+  // BULK OPERATIONS
+  // ========================================================================
+
+  saveMany(contacts: Contact[]): Promise<Contact[]>;
+  updateMany(contacts: Contact[]): Promise<Contact[]>;
+  deleteMany(ids: string[]): Promise<void>;
+
+  // ========================================================================
+  // TRANSACTION SUPPORT
+  // ========================================================================
+
+  withTransaction<T>(callback: (repo: ContactRepository) => Promise<T>): Promise<T>;
+}
+
+// ============================================================================
+// SUPPORTING TYPES
+// ============================================================================
+
+export interface ContactFilters {
+  type?: string;
+  status?: string;
+  source?: string;
+  priority?: string;
+  assignedUserId?: string;
+  companyId?: string;
+  department?: string;
+  industry?: string;
+  profession?: string;
+  isActive?: boolean;
+  isVerified?: boolean;
+  isOptedIn?: boolean;
+  hasCompany?: boolean;
+  isAssigned?: boolean;
+  leadScoreMin?: number;
+  leadScoreMax?: number;
+  engagementScoreMin?: number;
+  engagementScoreMax?: number;
+  revenueMin?: number;
+  revenueMax?: number;
+  currency?: string;
+  salaryMin?: number;
+  salaryMax?: number;
+  experienceMin?: number;
+  experienceMax?: number;
+  ageMin?: number;
+  ageMax?: number;
+  lastContactAfter?: Date;
+  lastContactBefore?: Date;
+  nextFollowUpAfter?: Date;
+  nextFollowUpBefore?: Date;
+  lastEmailOpenAfter?: Date;
+  lastEmailOpenBefore?: Date;
+  lastEmailClickAfter?: Date;
+  lastEmailClickBefore?: Date;
+  lastWebsiteVisitAfter?: Date;
+  lastWebsiteVisitBefore?: Date;
+  lastSocialMediaInteractionAfter?: Date;
+  lastSocialMediaInteractionBefore?: Date;
+  createdAfter?: Date;
+  createdBefore?: Date;
+  updatedAfter?: Date;
+  updatedBefore?: Date;
+  birthdayAfter?: Date;
+  birthdayBefore?: Date;
+  anniversaryAfter?: Date;
+  anniversaryBefore?: Date;
+  tags?: string[];
+  customFields?: Record<string, any>;
+}
+
+export interface PaginatedResult<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
+export interface ContactSearchOptions {
+  organizationId: string;
+  query?: string;
+  type?: string;
+  status?: string;
+  source?: string;
+  priority?: string;
+  assignedUserId?: string;
+  companyId?: string;
+  department?: string;
+  industry?: string;
+  profession?: string;
+  isActive?: boolean;
+  isVerified?: boolean;
+  isOptedIn?: boolean;
+  hasCompany?: boolean;
+  isAssigned?: boolean;
+  leadScoreMin?: number;
+  leadScoreMax?: number;
+  engagementScoreMin?: number;
+  engagementScoreMax?: number;
+  revenueMin?: number;
+  revenueMax?: number;
+  currency?: string;
+  salaryMin?: number;
+  salaryMax?: number;
+  experienceMin?: number;
+  experienceMax?: number;
+  ageMin?: number;
+  ageMax?: number;
+  lastContactAfter?: Date;
+  lastContactBefore?: Date;
+  nextFollowUpAfter?: Date;
+  nextFollowUpBefore?: Date;
+  lastEmailOpenAfter?: Date;
+  lastEmailOpenBefore?: Date;
+  lastEmailClickAfter?: Date;
+  lastEmailClickBefore?: Date;
+  lastWebsiteVisitAfter?: Date;
+  lastWebsiteVisitBefore?: Date;
+  lastSocialMediaInteractionAfter?: Date;
+  lastSocialMediaInteractionBefore?: Date;
+  createdAfter?: Date;
+  createdBefore?: Date;
+  updatedAfter?: Date;
+  updatedBefore?: Date;
+  birthdayAfter?: Date;
+  birthdayBefore?: Date;
+  anniversaryAfter?: Date;
+  anniversaryBefore?: Date;
+  tags?: string[];
+  customFields?: Record<string, any>;
+  sortBy?: 'firstName' | 'lastName' | 'type' | 'status' | 'source' | 'priority' | 'leadScore' | 'engagementScore' | 'totalRevenue' | 'salary' | 'experience' | 'lastContactDate' | 'nextFollowUpDate' | 'createdAt' | 'updatedAt';
+  sortOrder?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
+}
+
+export interface ContactStats {
+  total: number;
+  byType: Record<string, number>;
+  byStatus: Record<string, number>;
+  bySource: Record<string, number>;
+  byPriority: Record<string, number>;
+  byDepartment: Record<string, number>;
+  byIndustry: Record<string, number>;
+  byProfession: Record<string, number>;
+  active: number;
+  inactive: number;
+  primary: number;
+  decisionMakers: number;
+  influencers: number;
+  technical: number;
+  financial: number;
+  procurement: number;
+  verified: number;
+  unverified: number;
+  optedIn: number;
+  optedOut: number;
+  assigned: number;
+  unassigned: number;
+  withCompany: number;
+  withoutCompany: number;
+  overdueForFollowUp: number;
+  highScoreLeads: number;
+  mediumScoreLeads: number;
+  lowScoreLeads: number;
+  highlyEngaged: number;
+  moderatelyEngaged: number;
+  lowEngaged: number;
+  averageLeadScore: number;
+  averageEngagementScore: number;
+  totalRevenue: number;
+  averageRevenue: number;
+  totalSalary: number;
+  averageSalary: number;
+  totalExperience: number;
+  averageExperience: number;
+  totalInteractions: number;
+  averageInteractions: number;
+  totalEmailsSent: number;
+  totalEmailsOpened: number;
+  totalEmailsClicked: number;
+  totalCallsMade: number;
+  totalMeetingsScheduled: number;
+  totalMeetingsAttended: number;
+  totalDealsWon: number;
+  totalDealsLost: number;
+  averageEmailOpenRate: number;
+  averageEmailClickRate: number;
+  averageMeetingAttendanceRate: number;
+  averageDealWinRate: number;
+  contactsByYear: Record<number, number>;
+  contactsByMonth: Record<string, number>;
+  topDepartments: Array<{ department: string; count: number }>;
+  topIndustries: Array<{ industry: string; count: number }>;
+  topProfessions: Array<{ profession: string; count: number }>;
+  topSources: Array<{ source: string; count: number }>;
+  topAssignedUsers: Array<{ userId: string; count: number }>;
+  topCompanies: Array<{ companyId: string; count: number }>;
+  contactsWithBirthdayToday: number;
+  contactsWithBirthdayThisWeek: number;
+  contactsWithBirthdayThisMonth: number;
+  contactsWithAnniversaryToday: number;
+  contactsWithAnniversaryThisWeek: number;
+  contactsWithAnniversaryThisMonth: number;
+}

@@ -1,0 +1,9 @@
+rules:
+  # Custom rules for our API
+  operation-operationId-required:
+    description: "All operations must have a unique operationId"
+    severity: error
+    given: "$.paths.*.*"
+    then:
+      field: "operationId"
+      function: "truthy"

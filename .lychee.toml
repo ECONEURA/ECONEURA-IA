@@ -1,0 +1,3 @@
+# Reemplazar la línea correspondiente en el archivo .lychee.toml
+
+exclude = ["http://localhost.*","https://localhost.*"]

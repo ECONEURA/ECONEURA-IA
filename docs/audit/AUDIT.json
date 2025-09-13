@@ -1,0 +1,31 @@
+{
+  "message": "403 Forbidden - POST https://registry.npmjs.org/-/npm/v1/security/advisories/bulk",
+  "method": "POST",
+  "uri": "https://registry.npmjs.org/-/npm/v1/security/advisories/bulk",
+  "headers": {
+    "content-length": [
+      "9"
+    ],
+    "content-type": [
+      "text/plain"
+    ],
+    "date": [
+      "Mon, 08 Sep 2025 12:12:06 GMT"
+    ],
+    "server": [
+      "envoy"
+    ],
+    "connection": [
+      "close"
+    ],
+    "x-fetch-attempts": [
+      "1"
+    ]
+  },
+  "statusCode": 403,
+  "body": "Forbidden",
+  "error": {
+    "summary": "",
+    "detail": ""
+  }
+}

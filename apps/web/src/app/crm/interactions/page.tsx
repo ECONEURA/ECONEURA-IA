@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { useApiClient } from '@/hooks/useApi';
+import { apiClient } from '@/lib/api-client';
 import { 
   Plus, 
   Search, 
@@ -81,7 +81,7 @@ const priorityColors = {
 
 export default function InteractionsPage() {
   const { user } = useAuth();
-  const apiClient = useApiClient();
+  const api = apiClient;
   const [interactions, setInteractions] = useState<Interaction[]>([]);
   const [summary, setSummary] = useState<InteractionSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -109,8 +109,8 @@ export default function InteractionsPage() {
         if (value) queryParams.append(key, value);
       });
 
-      const response = await apiClient(`/interactions?${queryParams.toString()}`);
-      setInteractions(response.data);
+      const data = await api.request({ url: `/interactions?${queryParams.toString()}`, method: 'GET' });
+      setInteractions(data.data ?? data);
     } catch (error) {
       console.error('Error loading interactions:', error);
     } finally {
@@ -126,8 +126,8 @@ export default function InteractionsPage() {
         if (value) queryParams.append(key, value);
       });
 
-      const response = await apiClient(`/interactions/summary?${queryParams.toString()}`);
-      setSummary(response.data);
+      const data2 = await api.request({ url: `/interactions/summary?${queryParams.toString()}`, method: 'GET' });
+      setSummary(data2.data ?? data2);
     } catch (error) {
       console.error('Error loading summary:', error);
     } finally {

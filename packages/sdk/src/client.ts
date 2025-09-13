@@ -1,237 +1,262 @@
-/**
- * ECONEURA SDK Client
- * A lightweight TypeScript client for the ECONEURA API
- */
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import { z } from 'zod';
 
-export interface ClientConfig {
-  baseUrl: string;
-  accessToken?: string;
-  refreshToken?: string;
-  onTokenRefresh?: (tokens: { accessToken: string; refreshToken: string }) => void;
+// Base configuration
+export interface ECONEURAClientConfig {
+  baseURL: string;
+  apiKey?: string;
   timeout?: number;
-  retries?: number;
+  retryAttempts?: number;
+  retryDelay?: number;
 }
 
-export interface RequestOptions {
-  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-  path: string;
-  params?: Record<string, any>;
-  query?: Record<string, any>;
-  body?: any;
-  headers?: Record<string, string>;
-  skipAuth?: boolean;
-}
+// Request/Response schemas
+export const MemoryPutRequestSchema = z.object({
+  tenantId: z.string(),
+  userId: z.string().optional(),
+  agentId: z.string().optional(),
+  namespace: z.string(),
+  vector: z.array(z.number()).optional(),
+  text: z.string().optional(),
+  ttlSec: z.number().optional(),
+  meta: z.record(z.any()).optional(),
+});
 
-export interface ApiResponse<T = any> {
-  data: T;
-  headers: Headers;
-  status: number;
-  ok: boolean;
-}
+export const MemoryPutResponseSchema = z.object({
+  ok: z.boolean(),
+  id: z.string(),
+  timestamp: z.string(),
+});
 
-export class ApiError extends Error {
-  public status: number;
-  public type: string;
-  public detail?: string;
-  public traceId?: string;
-  public errors?: Record<string, string[]>;
+export const MemoryQueryRequestSchema = z.object({
+  tenantId: z.string(),
+  userId: z.string().optional(),
+  agentId: z.string().optional(),
+  namespace: z.string(),
+  query: z.string(),
+  topK: z.number().optional().default(10),
+});
 
-  constructor(status: number, problem: any) {
-    super(problem.title || `API Error: ${status}`);
-    this.name = 'ApiError';
-    this.status = status;
-    this.type = problem.type || 'about:blank';
-    this.detail = problem.detail;
-    this.traceId = problem.traceId;
-    this.errors = problem.errors;
+export const MemoryQueryResponseSchema = z.object({
+  matches: z.array(z.object({
+    id: z.string(),
+    score: z.number(),
+    text: z.string().optional(),
+    meta: z.record(z.any()).optional(),
+  })),
+  query: z.string(),
+  namespace: z.string(),
+  timestamp: z.string(),
+  totalMatches: z.number(),
+});
+
+export const MemoryStatsResponseSchema = z.object({
+  tenantId: z.string(),
+  totalRecords: z.number(),
+  namespaces: z.array(z.string()),
+  lastUpdated: z.string(),
+});
+
+export const MemoryCleanupResponseSchema = z.object({
+  ok: z.boolean(),
+  timestamp: z.string(),
+});
+
+export const ProblemDetailsSchema = z.object({
+  type: z.string(),
+  title: z.string(),
+  status: z.number(),
+  detail: z.string().optional(),
+  instance: z.string().optional(),
+  traceId: z.string().optional(),
+  timestamp: z.string().optional(),
+});
+
+// Type exports
+export type MemoryPutRequest = z.infer<typeof MemoryPutRequestSchema>;
+export type MemoryPutResponse = z.infer<typeof MemoryPutResponseSchema>;
+export type MemoryQueryRequest = z.infer<typeof MemoryQueryRequestSchema>;
+export type MemoryQueryResponse = z.infer<typeof MemoryQueryResponseSchema>;
+export type MemoryStatsResponse = z.infer<typeof MemoryStatsResponseSchema>;
+export type MemoryCleanupResponse = z.infer<typeof MemoryCleanupResponseSchema>;
+export type ProblemDetails = z.infer<typeof ProblemDetailsSchema>;
+
+// Error class
+export class ECONEURAError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public details?: ProblemDetails
+  ) {
+    super(message);
+    this.name = 'ECONEURAError';
   }
 }
 
-export class ApiClient {
-  private config: Required<ClientConfig>;
-  private refreshPromise: Promise<void> | null = null;
+// Main client class
+export class ECONEURAClient {
+  private client: AxiosInstance;
+  private retryAttempts: number;
+  private retryDelay: number;
 
-  constructor(config: ClientConfig) {
-    this.config = {
-      baseUrl: config.baseUrl.replace(/\/$/, ''),
-      accessToken: config.accessToken || '',
-      refreshToken: config.refreshToken || '',
-      onTokenRefresh: config.onTokenRefresh || (() => {}),
+  constructor(config: ECONEURAClientConfig) {
+    this.client = axios.create({
+      baseURL: config.baseURL,
       timeout: config.timeout || 30000,
-      retries: config.retries || 3,
-    };
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'ECONEURA-SDK/1.0.0',
+        ...(config.apiKey && { 'Authorization': `Bearer ${config.apiKey}` }),
+      },
+    });
+
+    this.retryAttempts = config.retryAttempts || 3;
+    this.retryDelay = config.retryDelay || 1000;
+
+    this.setupInterceptors();
   }
 
-  public setAccessToken(token: string) {
-    this.config.accessToken = token;
-  }
-
-  public setRefreshToken(token: string) {
-    this.config.refreshToken = token;
-  }
-
-  public async request<T>(options: RequestOptions): Promise<ApiResponse<T>> {
-    const url = this.buildUrl(options.path, options.query);
-    const headers = this.buildHeaders(options);
-
-    let lastError: any;
-    for (let attempt = 0; attempt <= this.config.retries; attempt++) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
-
-        const response = await fetch(url, {
-          method: options.method,
-          headers,
-          body: options.body ? JSON.stringify(options.body) : undefined,
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-
-        // Handle 401 and retry with refreshed token
-        if (response.status === 401 && !options.skipAuth && this.config.refreshToken) {
-          await this.refreshAccessToken();
-          // Retry the request with new token
-          headers['Authorization'] = `Bearer ${this.config.accessToken}`;
-          continue;
-        }
-
-        // Parse response
-        const contentType = response.headers.get('content-type');
-        let data: any = null;
-
-        if (contentType?.includes('application/json')) {
-          data = await response.json();
-        } else if (response.status !== 204) {
-          data = await response.text();
-        }
-
-        // Handle errors
-        if (!response.ok) {
-          throw new ApiError(response.status, data);
-        }
-
-        return {
-          data,
-          headers: response.headers,
-          status: response.status,
-          ok: response.ok,
+  private setupInterceptors(): void {
+    // Request interceptor
+    this.client.interceptors.request.use(
+      (config) => {
+        config.metadata = {
+          startTime: Date.now(),
+          requestId: this.generateRequestId(),
         };
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
 
-      } catch (error: any) {
-        lastError = error;
-
-        // Don't retry on client errors (except 401)
-        if (error instanceof ApiError && error.status >= 400 && error.status < 500 && error.status !== 401) {
-          throw error;
+    // Response interceptor
+    this.client.interceptors.response.use(
+      (response) => {
+        // Response processed successfully
+        
+        return response;
+      },
+      (error) => {
+        const duration = Date.now() - (error.config?.metadata?.startTime || Date.now());
+        console.error(`ECONEURA API request failed after ${duration}ms:`, error.message);
+        
+        if (error.response?.data) {
+          try {
+            const problemDetails = ProblemDetailsSchema.parse(error.response.data);
+            throw new ECONEURAError(
+              problemDetails.detail || error.message,
+              error.response.status,
+              problemDetails
+            );
+          } catch {
+            // If parsing fails, throw original error
+            throw new ECONEURAError(
+              error.message,
+              error.response.status
+            );
+          }
         }
+        
+        throw new ECONEURAError(error.message, error.response?.status || 0);
+      }
+    );
+  }
 
-        // Don't retry on last attempt
-        if (attempt === this.config.retries) {
+  private generateRequestId(): string {
+    return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  private async retryWithBackoff<T>(
+    fn: () => Promise<T>,
+    attempts: number = this.retryAttempts
+  ): Promise<T> {
+    let lastError: Error;
+
+    for (let i = 0; i < attempts; i++) {
+      try {
+        return await fn();
+      } catch (error) {
+        lastError = error as Error;
+        
+        // No retry for client errors (4xx)
+        if (axios.isAxiosError(error) && error.response?.status && error.response.status < 500) {
           throw error;
         }
 
         // Exponential backoff
-        await this.sleep(Math.min(1000 * Math.pow(2, attempt), 10000));
+        if (i < attempts - 1) {
+          const delay = this.retryDelay * Math.pow(2, i);
+          
+          await this.sleep(delay);
+        }
       }
     }
 
-    throw lastError;
-  }
-
-  private buildUrl(path: string, query?: Record<string, any>): string {
-    const url = new URL(`${this.config.baseUrl}${path}`);
-    
-    if (query) {
-      Object.entries(query).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          if (Array.isArray(value)) {
-            value.forEach(v => url.searchParams.append(key, String(v)));
-          } else {
-            url.searchParams.append(key, String(value));
-          }
-        }
-      });
-    }
-
-    return url.toString();
-  }
-
-  private buildHeaders(options: RequestOptions): Record<string, string> {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
-
-    if (!options.skipAuth && this.config.accessToken) {
-      headers['Authorization'] = `Bearer ${this.config.accessToken}`;
-    }
-
-    return headers;
-  }
-
-  private async refreshAccessToken(): Promise<void> {
-    // Prevent multiple simultaneous refresh attempts
-    if (this.refreshPromise) {
-      return this.refreshPromise;
-    }
-
-    this.refreshPromise = this.doRefresh();
-    try {
-      await this.refreshPromise;
-    } finally {
-      this.refreshPromise = null;
-    }
-  }
-
-  private async doRefresh(): Promise<void> {
-    const response = await this.request<{
-      tokens: {
-        accessToken: string;
-        refreshToken: string;
-        expiresIn: number;
-        tokenType: string;
-      };
-    }>({
-      method: 'POST',
-      path: '/api/v1/auth/refresh',
-      body: { refreshToken: this.config.refreshToken },
-      skipAuth: true,
-    });
-
-    this.config.accessToken = response.data.tokens.accessToken;
-    this.config.refreshToken = response.data.tokens.refreshToken;
-
-    // Notify the app about new tokens
-    this.config.onTokenRefresh({
-      accessToken: response.data.tokens.accessToken,
-      refreshToken: response.data.tokens.refreshToken,
-    });
+    throw lastError!;
   }
 
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  // Convenience methods
-  public get<T>(path: string, query?: Record<string, any>, options?: Partial<RequestOptions>): Promise<ApiResponse<T>> {
-    return this.request<T>({ ...options, method: 'GET', path, query });
+  // Memory API methods
+  async putMemory(request: MemoryPutRequest, idempotencyKey?: string): Promise<MemoryPutResponse> {
+    const validatedRequest = MemoryPutRequestSchema.parse(request);
+    
+    return this.retryWithBackoff(async () => {
+      const response = await this.client.post<MemoryPutResponse>('/v1/memory/put', validatedRequest, {
+        headers: idempotencyKey ? { 'x-idempotency-key': idempotencyKey } : {},
+      });
+      
+      return MemoryPutResponseSchema.parse(response.data);
+    });
   }
 
-  public post<T>(path: string, body?: any, options?: Partial<RequestOptions>): Promise<ApiResponse<T>> {
-    return this.request<T>({ ...options, method: 'POST', path, body });
+  async queryMemory(request: MemoryQueryRequest): Promise<MemoryQueryResponse> {
+    const validatedRequest = MemoryQueryRequestSchema.parse(request);
+    
+    return this.retryWithBackoff(async () => {
+      const response = await this.client.post<MemoryQueryResponse>('/v1/memory/query', validatedRequest);
+      return MemoryQueryResponseSchema.parse(response.data);
+    });
   }
 
-  public put<T>(path: string, body?: any, options?: Partial<RequestOptions>): Promise<ApiResponse<T>> {
-    return this.request<T>({ ...options, method: 'PUT', path, body });
+  async getMemoryStats(tenantId: string): Promise<MemoryStatsResponse> {
+    return this.retryWithBackoff(async () => {
+      const response = await this.client.get<MemoryStatsResponse>(`/v1/memory/stats/${tenantId}`);
+      return MemoryStatsResponseSchema.parse(response.data);
+    });
   }
 
-  public patch<T>(path: string, body?: any, options?: Partial<RequestOptions>): Promise<ApiResponse<T>> {
-    return this.request<T>({ ...options, method: 'PATCH', path, body });
+  async cleanupExpiredMemories(): Promise<MemoryCleanupResponse> {
+    return this.retryWithBackoff(async () => {
+      const response = await this.client.post<MemoryCleanupResponse>('/v1/memory/cleanup');
+      return MemoryCleanupResponseSchema.parse(response.data);
+    });
   }
 
-  public delete<T>(path: string, options?: Partial<RequestOptions>): Promise<ApiResponse<T>> {
-    return this.request<T>({ ...options, method: 'DELETE', path });
+  // Generic method for custom requests
+  async request<T>(config: AxiosRequestConfig): Promise<T> {
+    return this.retryWithBackoff(async () => {
+      const response = await this.client.request<T>(config);
+      return response.data;
+    });
   }
 }
+
+// Factory function
+export function createECONEURAClient(config: ECONEURAClientConfig): ECONEURAClient {
+  return new ECONEURAClient(config);
+}
+
+// Default configuration
+export const defaultConfig: ECONEURAClientConfig = {
+  baseURL: process.env.ECONEURA_API_URL || 'http://localhost:4000',
+  apiKey: process.env.ECONEURA_API_KEY,
+  timeout: 30000,
+  retryAttempts: 3,
+  retryDelay: 1000,
+};
+
+// Export default instance
+export const econeuraClient = createECONEURAClient(defaultConfig);

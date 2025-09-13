@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { useApiClient } from '@/hooks/useApi';
+import { apiClient } from '@/lib/api-client';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -71,7 +71,7 @@ interface InventoryAnalytics {
 
 export default function InventoryAnalyticsPage() {
   const { user } = useAuth();
-  const apiClient = useApiClient();
+  const api = apiClient;
   const [analytics, setAnalytics] = useState<InventoryAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('30d');
@@ -93,8 +93,8 @@ export default function InventoryAnalyticsPage() {
         ...(filters.supplier_id && { supplier_id: filters.supplier_id })
       });
 
-      const response = await apiClient(`/inventory/analytics?${params.toString()}`);
-      setAnalytics(response.data);
+      const data = await api.request({ url: `/inventory/analytics?${params.toString()}`, method: 'GET' });
+      setAnalytics(data.data ?? data);
     } catch (error) {
       console.error('Error loading inventory analytics:', error);
     } finally {

@@ -1,0 +1,107 @@
+{
+  "azure_meta": {
+    "version": "1.0.0",
+    "last_updated": "2025-09-10T00:30:00Z",
+    "environment": "dev",
+    "deployment_status": "ready_no_deploy"
+  },
+  "resource_group": {
+    "name": "econeura-rg",
+    "location": "West Europe",
+    "subscription_id": "{{AZURE_SUBSCRIPTION_ID}}",
+    "tenant_id": "{{AZURE_TENANT_ID}}"
+  },
+  "services": {
+    "app_service": {
+      "api": {
+        "name": "econeura-devapi",
+        "sku": "B1",
+        "runtime": "node:20-lts",
+        "always_on": true,
+        "https_only": true
+      },
+      "web": {
+        "name": "econeura-devweb", 
+        "sku": "B1",
+        "runtime": "node:20-lts",
+        "always_on": true,
+        "https_only": true
+      }
+    },
+    "container_registry": {
+      "name": "econeuradevacr",
+      "sku": "Basic",
+      "admin_enabled": false
+    },
+    "key_vault": {
+      "name": "econeura-dev-kv",
+      "sku": "standard",
+      "access_policy": "rbac"
+    },
+    "application_insights": {
+      "name": "econeura-dev-insights",
+      "workspace_mode": true,
+      "retention_days": 90
+    },
+    "postgresql": {
+      "name": "econeura-dev-postgres",
+      "sku": "Standard_B1ms",
+      "version": "15",
+      "backup_retention": 7,
+      "geo_redundant_backup": false
+    },
+    "redis": {
+      "name": "econeura-dev-redis",
+      "sku": "Basic",
+      "capacity": 0
+    }
+  },
+  "networking": {
+    "vnet": {
+      "name": "econeura-dev-vnet",
+      "address_space": "10.0.0.0/16"
+    },
+    "subnets": {
+      "app_service": "10.0.1.0/24",
+      "database": "10.0.2.0/24",
+      "private_endpoints": "10.0.3.0/24"
+    },
+    "private_endpoints": [
+      "postgresql",
+      "redis",
+      "key_vault",
+      "container_registry"
+    ]
+  },
+  "security": {
+    "managed_identity": true,
+    "rbac_enabled": true,
+    "private_endpoints": true,
+    "access_restrictions": true,
+    "ssl_enforcement": true,
+    "firewall_rules": []
+  },
+  "monitoring": {
+    "application_insights": true,
+    "log_analytics": true,
+    "alerts": [
+      "error_rate",
+      "response_time",
+      "cpu_usage",
+      "memory_usage"
+    ]
+  },
+  "deployment": {
+    "method": "github_actions",
+    "oidc_enabled": true,
+    "auto_deploy": false,
+    "manual_approval": true,
+    "rollback_enabled": true
+  },
+  "compliance": {
+    "gdpr": true,
+    "data_residency": "eu",
+    "encryption_at_rest": true,
+    "encryption_in_transit": true
+  }
+}

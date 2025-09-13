@@ -3,22 +3,12 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
-  "target": "ES2022",
-  "module": "ESNext",
-  "moduleResolution": "bundler",
-  "types": ["node"],
-  "isolatedModules": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
+    "sourceMap": true,
     "composite": true,
-  "noEmit": false
+    "noEmit": false
   },
   "include": ["src/**/*"],
-  "paths": {
-    "@econeura/db": ["src/types/db-shim.d.ts"]
-  },
-  "exclude": ["node_modules", "dist", "test", "**/*.test.ts"]
+  "exclude": ["dist", "node_modules", "**/*.test.ts", "**/*.spec.ts"]
 }

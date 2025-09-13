@@ -1,0 +1,21 @@
+archivo,razon,tamaño,ubicacion
+node_modules/**,Excluido por patrón,>100MB,apps/*/node_modules/
+.next/**,Excluido por patrón,>50MB,apps/*/.next/
+dist/**,Excluido por patrón,>20MB,packages/*/dist/
+.turbo/**,Excluido por patrón,>10MB,root/.turbo/
+coverage/**,Excluido por patrón,>5MB,root/coverage/
+logs/**,Excluido por patrón,>5MB,root/logs/
+*.log,Excluido por patrón,>1MB,root/
+*.lock,Excluido por patrón,>1MB,root/
+*.tsbuildinfo,Excluido por patrón,>1MB,root/
+*.backup,Excluido por patrón,>1MB,apps/api/src/
+*.backup.*,Excluido por patrón,>1MB,apps/api/src/
+*.expanded,Excluido por patrón,>1MB,apps/api/src/
+*.intermediate,Excluido por patrón,>1MB,apps/api/src/
+*.mega,Excluido por patrón,>1MB,apps/api/src/
+*.minimal,Excluido por patrón,>1MB,apps/api/src/
+*.restored,Excluido por patrón,>1MB,apps/api/src/
+*.working,Excluido por patrón,>1MB,apps/api/src/
+*.final,Excluido por patrón,>1MB,apps/api/src/
+*.basic,Excluido por patrón,>1MB,apps/api/src/
+*.full,Excluido por patrón,>1MB,apps/api/src/

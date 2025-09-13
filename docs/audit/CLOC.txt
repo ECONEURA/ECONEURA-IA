@@ -1,0 +1,5 @@
+No disponible
+Plan:
+1. npm install -g cloc (DevOps, 2024-05-24)
+2. cloc --json . > docs/audit/CLOC.txt (DevOps, 2024-05-24)
+3. commit CLOC.txt (DevOps, 2024-05-24)

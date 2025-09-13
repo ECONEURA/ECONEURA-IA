@@ -1,0 +1,1044 @@
+openapi: 3.0.3
+info:
+  title: ECONEURA API
+  description: |
+    API completa para el sistema ECONEURA - Plataforma de gestión empresarial con IA integrada.
+    
+    ## Características Principales
+    - Gestión de usuarios y organizaciones
+    - CRM completo (empresas, contactos, interacciones, oportunidades)
+    - Gestión de productos e inventario
+    - Sistema de facturación
+    - Análisis predictivo con IA
+    - Búsqueda inteligente
+    - Observabilidad y monitoreo
+    
+    ## Autenticación
+    La API utiliza JWT (JSON Web Tokens) para autenticación. Incluye el token en el header Authorization:
+    ```
+    Authorization: Bearer <token>
+    ```
+    
+    ## Rate Limiting
+    - Límite general: 1000 requests/hora
+    - Login: 5 requests/5 minutos
+    - Registro: 3 requests/hora
+    - Analytics: 100 requests/hora
+    
+    ## Códigos de Estado
+    - 200: Éxito
+    - 201: Creado
+    - 400: Error de validación
+    - 401: No autenticado
+    - 403: Sin permisos
+    - 404: No encontrado
+    - 429: Rate limit excedido
+    - 500: Error interno del servidor
+  version: 1.0.0
+  contact:
+    name: ECONEURA Support
+    email: support@econeura.com
+    url: https://econeura.com/support
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.econeura.com/v1
+    description: Servidor de producción
+  - url: https://staging-api.econeura.com/v1
+    description: Servidor de staging
+  - url: http://localhost:3000/v1
+    description: Servidor de desarrollo
+
+tags:
+  - name: Authentication
+    description: Endpoints de autenticación y autorización
+  - name: Users
+    description: Gestión de usuarios
+  - name: Organizations
+    description: Gestión de organizaciones
+  - name: Companies
+    description: Gestión de empresas
+  - name: Contacts
+    description: Gestión de contactos
+  - name: Interactions
+    description: Gestión de interacciones CRM
+  - name: Deals
+    description: Gestión de oportunidades de venta
+  - name: Products
+    description: Gestión de productos
+  - name: Invoices
+    description: Gestión de facturas
+  - name: Inventory
+    description: Gestión de inventario
+  - name: Analytics
+    description: Análisis predictivo y métricas
+  - name: Search
+    description: Búsqueda inteligente
+  - name: Health
+    description: Monitoreo y salud del sistema
+
+paths:
+  # ========================================================================
+  # AUTHENTICATION
+  # ========================================================================
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Iniciar sesión
+      description: Autentica un usuario y devuelve un token JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: password123
+      responses:
+        '200':
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                      refreshToken:
+                        type: string
+                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                      user:
+                        $ref: '#/components/schemas/User'
+                  message:
+                    type: string
+                    example: Login successful
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: Registrar nuevo usuario
+      description: Crea una nueva cuenta de usuario y organización
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, firstName, lastName, organizationName]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: newuser@example.com
+                password:
+                  type: string
+                  format: password
+                  example: password123
+                firstName:
+                  type: string
+                  example: John
+                lastName:
+                  type: string
+                  example: Doe
+                organizationName:
+                  type: string
+                  example: My Company
+      responses:
+        '201':
+          description: Usuario registrado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                      refreshToken:
+                        type: string
+                      user:
+                        $ref: '#/components/schemas/User'
+                  message:
+                    type: string
+                    example: User registered successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Usuario ya existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/refresh:
+    post:
+      tags: [Authentication]
+      summary: Renovar token
+      description: Renueva un token JWT usando el refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken:
+                  type: string
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+      responses:
+        '200':
+          description: Token renovado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                      refreshToken:
+                        type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/logout:
+    post:
+      tags: [Authentication]
+      summary: Cerrar sesión
+      description: Invalida el token JWT del usuario
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout exitoso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Logged out successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/me:
+    get:
+      tags: [Authentication]
+      summary: Obtener perfil del usuario
+      description: Devuelve la información del usuario autenticado
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Perfil del usuario
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ========================================================================
+  # USERS
+  # ========================================================================
+  /users:
+    get:
+      tags: [Users]
+      summary: Listar usuarios
+      description: Obtiene una lista paginada de usuarios de la organización
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: Lista de usuarios
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      tags: [Users]
+      summary: Crear usuario
+      description: Crea un nuevo usuario en la organización
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: Usuario creado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                  message:
+                    type: string
+                    example: User created successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /users/{id}:
+    get:
+      tags: [Users]
+      summary: Obtener usuario
+      description: Obtiene la información de un usuario específico
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Información del usuario
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Users]
+      summary: Actualizar usuario
+      description: Actualiza la información de un usuario
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: Usuario actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                  message:
+                    type: string
+                    example: User updated successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Users]
+      summary: Eliminar usuario
+      description: Elimina un usuario de la organización
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Usuario eliminado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: User deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ========================================================================
+  # COMPANIES
+  # ========================================================================
+  /companies:
+    get:
+      tags: [Companies]
+      summary: Listar empresas
+      description: Obtiene una lista paginada de empresas
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: Lista de empresas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Company'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags: [Companies]
+      summary: Crear empresa
+      description: Crea una nueva empresa
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCompanyRequest'
+      responses:
+        '201':
+          description: Empresa creada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      company:
+                        $ref: '#/components/schemas/Company'
+                  message:
+                    type: string
+                    example: Company created successfully
+
+  # ========================================================================
+  # ANALYTICS
+  # ========================================================================
+  /analytics/predictive:
+    post:
+      tags: [Analytics]
+      summary: Análisis predictivo
+      description: Genera predicciones usando modelos de IA
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, data]
+              properties:
+                type:
+                  type: string
+                  enum: [demand_prediction, inventory_optimization, churn_prediction]
+                  example: demand_prediction
+                data:
+                  type: object
+                  properties:
+                    productId:
+                      type: string
+                      example: "123e4567-e89b-12d3-a456-426614174000"
+                    days:
+                      type: integer
+                      example: 30
+      responses:
+        '200':
+          description: Predicción generada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      prediction:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                          result:
+                            type: object
+                          confidence:
+                            type: number
+                          timestamp:
+                            type: string
+                            format: date-time
+
+  # ========================================================================
+  # SEARCH
+  # ========================================================================
+  /search:
+    post:
+      tags: [Search]
+      summary: Búsqueda inteligente
+      description: Realiza búsquedas semánticas y fuzzy en el sistema
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [query]
+              properties:
+                query:
+                  type: string
+                  example: "empresa de tecnología"
+                type:
+                  type: string
+                  enum: [semantic, fuzzy, exact, wildcard]
+                  example: semantic
+                entities:
+                  type: array
+                  items:
+                    type: string
+                    enum: [companies, contacts, products, deals]
+                  example: [companies, contacts]
+                limit:
+                  type: integer
+                  example: 10
+      responses:
+        '200':
+          description: Resultados de búsqueda
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      results:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SearchResult'
+                      total:
+                        type: integer
+                        example: 25
+                      query:
+                        type: string
+                        example: "empresa de tecnología"
+
+  # ========================================================================
+  # HEALTH
+  # ========================================================================
+  /health:
+    get:
+      tags: [Health]
+      summary: Estado del sistema
+      description: Verifica el estado de salud del sistema y sus dependencias
+      responses:
+        '200':
+          description: Sistema saludable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy, degraded, unhealthy]
+                    example: healthy
+                  timestamp:
+                    type: string
+                    format: date-time
+                  services:
+                    type: object
+                    properties:
+                      database:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                            enum: [up, down]
+                          responseTime:
+                            type: number
+                      redis:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                            enum: [up, down]
+                          responseTime:
+                            type: number
+                      azureOpenAI:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                            enum: [up, down]
+                          responseTime:
+                            type: number
+                  metrics:
+                    type: object
+                    properties:
+                      memory:
+                        type: object
+                        properties:
+                          used:
+                            type: number
+                          total:
+                            type: number
+                      cpu:
+                        type: number
+                      uptime:
+                        type: number
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      description: Número de página
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+        example: 1
+
+    LimitParam:
+      name: limit
+      in: query
+      description: Número de elementos por página
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+        example: 20
+
+    SearchParam:
+      name: search
+      in: query
+      description: Término de búsqueda
+      required: false
+      schema:
+        type: string
+        example: "john doe"
+
+    SortParam:
+      name: sort
+      in: query
+      description: Campo de ordenamiento
+      required: false
+      schema:
+        type: string
+        example: "createdAt"
+
+    IdParam:
+      name: id
+      in: path
+      description: ID del recurso
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: "123e4567-e89b-12d3-a456-426614174000"
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        organizationId:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Doe"
+        role:
+          type: string
+          enum: [admin, manager, user]
+          example: "user"
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+
+    Company:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        organizationId:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        name:
+          type: string
+          example: "Acme Corporation"
+        email:
+          type: string
+          format: email
+          example: "contact@acme.com"
+        phone:
+          type: string
+          example: "+1234567890"
+        address:
+          type: object
+          properties:
+            street:
+              type: string
+              example: "123 Main St"
+            city:
+              type: string
+              example: "New York"
+            state:
+              type: string
+              example: "NY"
+            zipCode:
+              type: string
+              example: "10001"
+            country:
+              type: string
+              example: "USA"
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+
+    SearchResult:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        type:
+          type: string
+          enum: [company, contact, product, deal]
+          example: "company"
+        title:
+          type: string
+          example: "Acme Corporation"
+        description:
+          type: string
+          example: "Empresa de tecnología especializada en software"
+        score:
+          type: number
+          example: 0.95
+        metadata:
+          type: object
+          additionalProperties: true
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 100
+        totalPages:
+          type: integer
+          example: 5
+        hasNext:
+          type: boolean
+          example: true
+        hasPrev:
+          type: boolean
+          example: false
+
+    CreateUserRequest:
+      type: object
+      required: [email, firstName, lastName, role]
+      properties:
+        email:
+          type: string
+          format: email
+          example: "newuser@example.com"
+        firstName:
+          type: string
+          example: "Jane"
+        lastName:
+          type: string
+          example: "Smith"
+        role:
+          type: string
+          enum: [admin, manager, user]
+          example: "user"
+        password:
+          type: string
+          format: password
+          example: "password123"
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+          example: "Jane"
+        lastName:
+          type: string
+          example: "Smith"
+        role:
+          type: string
+          enum: [admin, manager, user]
+          example: "manager"
+        isActive:
+          type: boolean
+          example: true
+
+    CreateCompanyRequest:
+      type: object
+      required: [name, email]
+      properties:
+        name:
+          type: string
+          example: "New Company"
+        email:
+          type: string
+          format: email
+          example: "contact@newcompany.com"
+        phone:
+          type: string
+          example: "+1234567890"
+        address:
+          type: object
+          properties:
+            street:
+              type: string
+              example: "456 Oak Ave"
+            city:
+              type: string
+              example: "Los Angeles"
+            state:
+              type: string
+              example: "CA"
+            zipCode:
+              type: string
+              example: "90210"
+            country:
+              type: string
+              example: "USA"
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Error message"
+        errors:
+          type: array
+          items:
+            type: string
+          example: ["Field is required", "Invalid format"]
+
+  responses:
+    BadRequest:
+      description: Error de validación
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Unauthorized:
+      description: No autenticado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Forbidden:
+      description: Sin permisos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    RateLimited:
+      description: Rate limit excedido
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Rate limit exceeded"
+              retryAfter:
+                type: integer
+                example: 3600
+

@@ -1,15 +1,14 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "rootDir": "./src",
     "outDir": "./dist",
-    "composite": true,
+    "rootDir": "./src",
     "declaration": true,
     "declarationMap": true,
-  "noEmit": false,
-  "baseUrl": ".",
-  "paths": {}
+    "sourceMap": true,
+    "composite": true,
+    "noEmit": false
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["dist", "node_modules", "**/*.test.ts", "**/*.spec.ts"]
 }

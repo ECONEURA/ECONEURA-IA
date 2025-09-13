@@ -1,0 +1,15 @@
+# Avoid repository-wide reformat
+node_modules
+.dist
+build
+.out
+.next
+.nuxt
+coverage
+.artifacts
+playwright-report
+test-results
+public
+package-lock.json
+pnpm-lock.yaml
+yarn.lock

@@ -174,12 +174,12 @@ export default function DashboardPage() {
             <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-          </div>
+            </div>
           <div className="text-2xl font-bold">{dashboardData?.overview.active_interactions || 0}</div>
           <p className="text-xs text-gray-500 mt-1">
             <span className="text-red-500">↘</span> -3% from last week
           </p>
-        </div>
+            </div>
 
         <div className="bg-white rounded-lg border shadow-sm p-6">
           <div className="flex items-center justify-between">
@@ -249,8 +249,8 @@ export default function DashboardPage() {
                     <div className={`p-1 rounded ${getSeverityColor(alert.severity)}`}>
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                      </svg>
-                    </div>
+                    </svg>
+                  </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">{alert.title}</p>
                       <p className="text-xs text-gray-500">{alert.message}</p>
@@ -262,21 +262,21 @@ export default function DashboardPage() {
                 ))
               )}
             </div>
-          </div>
-        </div>
-      </div>
+                  </div>
+                </div>
+              </div>
 
       {/* Performance Metrics */}
       <div className="bg-white rounded-lg border shadow-sm">
         <div className="p-6">
           <h3 className="text-lg font-semibold">System Performance</h3>
-        </div>
+                </div>
         <div className="p-6 pt-0">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <p className="text-sm font-medium">API Latency (p95)</p>
               <p className="text-2xl font-bold">{analyticsData?.performance.api_p95_latency || 0}ms</p>
-            </div>
+              </div>
             <div>
               <p className="text-sm font-medium">AI Latency (p95)</p>
               <p className="text-2xl font-bold">{analyticsData?.performance.ai_p95_latency || 0}ms</p>
@@ -284,14 +284,14 @@ export default function DashboardPage() {
             <div>
               <p className="text-sm font-medium">Error Rate</p>
               <p className="text-2xl font-bold">{(parseFloat(analyticsData?.performance.error_rate || '0') * 100).toFixed(2)}%</p>
-            </div>
+                  </div>
             <div>
               <p className="text-sm font-medium">Uptime</p>
               <p className="text-2xl font-bold">{analyticsData?.performance.uptime_percentage || '0'}%</p>
-            </div>
-          </div>
-        </div>
-      </div>
+                  </div>
+                </div>
+              </div>
+                </div>
 
       {/* Recent Activity */}
       <div className="bg-white rounded-lg border shadow-sm">

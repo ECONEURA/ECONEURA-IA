@@ -1,0 +1,83 @@
+name: CI Extended (manual)
+on:
+  workflow_dispatch:
+env:
+  DEPLOY_ENABLED: "false"
+permissions:
+  contents: read
+  security-events: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  openapi_validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with: { version: 8 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: 'pnpm' }
+      - run: pnpm -w install
+      - name: Spectral
+        run: npx @stoplight/spectral lint apps/api/openapi/openapi.yaml
+
+  link_check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lychee (action oficial)
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --config .lychee.toml --no-progress ./docs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  security_scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Gitleaks (action oficial)
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          args: detect --report-format=json --report-path=reports/gitleaks.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: reports/gitleaks.json
+
+  api_e2e:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env: { POSTGRES_USER: ci, POSTGRES_PASSWORD: ci, POSTGRES_DB: econeura_ci }
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd="pg_isready -U ci -d econeura_ci"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with: { version: 8 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: 'pnpm' }
+      - run: pnpm -w install
+      - run: pnpm -w -r build
+      - name: Start API (fallback robusto)
+        run: node scripts/ci/api-start.mjs &
+        env:
+          NODE_ENV: test
+          PORT: 3001
+          HEALTH_PATH: /health
+          DATABASE_URL: postgres://ci:ci@localhost:5432/econeura_ci
+      - name: Esperar API
+        run: npx wait-on -t 180000 http://127.0.0.1:3001/health && curl -fsS http://127.0.0.1:3001/health
+      - name: API tests
+        run: pnpm --filter "./apps/api" test -- --reporter=default
+      - uses: actions/upload-artifact@v4
+        with:
+          name: api-logs
+          path: .artifacts/api.log
