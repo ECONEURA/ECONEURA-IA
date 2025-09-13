@@ -30,6 +30,8 @@
   /sdk         → Cliente TS para Web/BFF
 /infra         → IaC (Azure), Docker, GitHub Actions
 /docs          → Manuales, runbooks, hitos
+
+Documentación principal: ver `docs/MASTER_GUIDE.md` para una guía de inicio rápido, y `docs/ARCHITECTURE.md` para el diagrama arquitectural.
 ```
 
 ### Principios de diseño
@@ -98,39 +100,8 @@ Local:
 
 ## 6) Roadmap completo de PR‑0 → PR‑85 (titular + objetivo + DoD breve)
 
-> **Leyenda**: ✅ listo · ⚠️ parcial/demo · ❌ falta.  
-> *El estado real lo llevamos en GitHub Projects; aquí se describen los objetivos y el "hecho" esperado.*
-
-### **🚨 CORRECCIONES CRÍTICAS IMPLEMENTADAS**
-
-#### **CODE_FIX - Problemas Resueltos**
-1. **✅ FinOps Enforcement Middleware** - `apps/api/src/middleware/finops-enforce.ts`
-   - Bloqueo HTTP 402 cuando se excede presupuesto
-   - Kill switch automático para emergencias
-   - Circuit breaker y retry logic
-
-2. **✅ AI Router Client Real** - `packages/agents/ai-router.client.ts`
-   - Cliente HTTP real para agentes IA
-   - Retry automático con backoff exponencial
-   - Circuit breaker y health checks
-
-3. **✅ Cockpit Real-time** - `econeura-cockpit/src/components/Cockpit.tsx`
-   - Conexión real a APIs (no más mocks)
-   - Fallback a datos demo si API falla
-   - WebSocket/EventSource para tiempo real
-
-4. **✅ Scripts de Corrección Masiva**
-   - `scripts/fix-js-imports.sh` - Corrige 447 imports .js
-   - `scripts/fix-console-logs.sh` - Elimina 174 console.log
-   - `scripts/verify-repo.sh` - Verificación completa
-   - `scripts/smoke.sh` - Tests de humo
-   - `scripts/run-k6-tests.sh` - Tests de performance
-   - `scripts/visual.sh` - Tests visuales
-
-#### **MÉTRICAS BASELINE**
-- **📊 docs/PR_STATUS_FIRM.md** - Estado real PR-0 a PR-85
-- **📊 docs/METRICAS_BASELINE.md** - Métricas completas del proyecto
-- **📊 scripts/metrics/collect.ts** - Recolección automática de métricas
+> **Leyenda**: ✅ listo · ⚠️ parcial/demo · ❌ falta.
+> *El estado real lo llevamos en GitHub Projects; aquí se describen los objetivos y el “hecho” esperado.*
 
 ### **Fase 0 — Base del monorepo (PR‑0 → PR‑21)**
 1. **PR‑00 · Bootstrap monorepo** — Turborepo/PNPM, workspaces, scripts base. *DoD*: build pasa y raíz limpia.
@@ -251,121 +222,14 @@ Local:
 
 ---
 
-## 9) Performance Testing & Chaos Engineering
-
-### K6 Load Testing
-- **Load Tests**: Gradual ramp-up testing with configurable VUs via environment variables
-- **Chaos Tests**: Fault injection testing (malicious payloads, rate limiting, resource exhaustion)
-- **Smoke Tests**: Quick validation of critical endpoints
-
-```bash
-# Run performance tests locally
-pnpm k6:load         # Load testing with stages
-pnpm k6:chaos        # Chaos engineering tests  
-pnpm k6:smoke        # Quick smoke tests
-
-# Configure via environment variables
-K6_BASE_URL=http://localhost:3001 K6_MAX_VUS=20 pnpm k6:load
-```
-
-### Automated Performance Testing
-- **Nightly Schedule**: Automated performance baseline testing
-- **Manual Dispatch**: On-demand testing with configurable parameters
-- **Performance Analysis**: Automated metrics collection and reporting
-- **Thresholds**: p95 < 500ms for load tests, error rate < 10%
-
----
-
-## 10) Code Coverage & Quality
-
-### Coverage Requirements
-- **Minimum Thresholds**: 40% statements, 30% branches (configurable per workspace)
-- **Unified Reporting**: Combined coverage across all workspaces
-- **CI Integration**: Coverage artifacts uploaded and thresholds enforced
-- **Nightly Analysis**: Comprehensive coverage reporting with trend analysis
-
-```bash
-# Run coverage locally
-pnpm test:coverage   # Run tests with coverage across all workspaces
-pnpm coverage        # Alternative command for coverage
-
-# Coverage is generated in coverage/ directory with LCOV format
-# View HTML report: open coverage/index.html
-```
-
-### Quality Assurance
-- **Strict Linting**: Enhanced ESLint rules for nightly checks (`lint:strict`)
-- **Commit Message Standards**: Conventional commits enforced via commitlint
-- **Type Safety**: Comprehensive TypeScript checking across workspaces
-- **Security Scanning**: Dependency auditing and secret detection
-
----
-
-## 11) Structured Logging & Environment Validation
-
-### Enhanced Logging System
-- **Pino-based**: High-performance JSON structured logging
-- **Environment Aware**: Automatic service/version/environment context
-- **Security**: Automatic redaction of sensitive data (passwords, tokens, URLs)
-- **Lifecycle Tracking**: Startup, shutdown, and connection state logging
-
-```typescript
-import { apiLogger } from '@econeura/shared/logging/enhanced';
-
-// Startup logging with phases
-apiLogger.logStartup('Starting API service', {
-  phase: 'initialization',
-  config: { port: 3001, environment: 'development' }
-});
-
-// Database connection logging
-apiLogger.logDatabaseConnection('Database connected', {
-  status: 'connected',
-  latency_ms: 50
-});
-
-// Structured business logic logging
-apiLogger.info('User authentication successful', {
-  user_id: 'user123',
-  org_id: 'org456',
-  method: 'jwt'
-});
-```
-
-### Environment Variables Validation
-- **Zod-based Validation**: Strong typing and validation for all environment variables
-- **Startup Validation**: Process exits with clear errors if critical variables missing
-- **Production Safeguards**: Additional validation rules for production environment
-- **Development Defaults**: Sensible defaults for development workflow
-
-```bash
-# Required variables (process exits if missing):
-DATABASE_URL=postgresql://user:pass@host/db
-REDIS_URL=redis://host:6379
-JWT_SECRET=your-super-secure-secret-at-least-32-chars
-
-# Optional variables with defaults:
-LOG_LEVEL=info          # error, warn, info, debug
-PORT=3001               # Server port
-NODE_ENV=development    # development, staging, production, test
-```
-
-### Environment Configuration Files
-- **API Service**: `apps/api/src/config/env.ts` - Full API configuration validation
-- **Workers Service**: `apps/workers/src/config/env.ts` - Worker-specific validation
-- **Comprehensive .env.example**: Documented template with all available variables
-- **Bootstrap Examples**: Integration examples in `bootstrap.example.ts` files
-
----
-
-## 12) Operación: SLOs, Kill‑switches y Runbooks
+## 9) Operación: SLOs, Kill‑switches y Runbooks
 - SLOs: p95 API ≤ 350 ms; p95 IA ≤ 2.5 s; 5xx < 1 %; conciliación >90 %; inventario >97 %.
 - Kill‑switches: **demo‑mode IA**, **budget guard**, **DLQ visible**; banners de degradación.
 - Runbooks (PR‑85): IA down, Graph throttle, Stripe out, SEPA corrupta, fuga RLS.
 
 ---
 
-## 13) Cómo trabajar las PR en Cursor (resumen práctico)
+## 10) Cómo trabajar las PR en Cursor (resumen práctico)
 1. Rama `feature/PR-XX-slug`.
 2. Cambios mínimos, respetando rutas y estructura.
 3. Migraciones + políticas RLS dentro de transacción.
@@ -376,5 +240,5 @@ NODE_ENV=development    # development, staging, production, test
 
 ---
 
-## 14) Créditos & Licencia
+## 11) Créditos & Licencia
 - Licencia MIT. Hecho con ❤️ en España. Infra recomendada: Azure (UE‑West/Spain Central).
