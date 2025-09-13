@@ -9,6 +9,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  DEPLOY_ENABLED: "false"
+
 jobs:
   build_test:
     name: Build & Unit (pnpm@8, Node 20)
