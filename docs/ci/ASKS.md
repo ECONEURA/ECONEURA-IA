@@ -1,3 +1,12 @@
+# CI / GH Auth: instrucciones
+
+El comando `gh auth status` indicó que no hay sesión activa. Para que el agente pueda abrir PRs y operar con `gh` en CI local, sigue estos pasos manuales (no bloqueante):
+
+1. Ejecuta `gh auth login --scopes repo,workflow` y sigue el asistente para autenticarte contra GitHub.
+2. Verifica con `gh auth status`.
+3. Si no puedes autenticar, el flujo de CI usará artefactos y enlaces manuales; la rama `pr/docs/master-guide` ya fue creada y pusheada.
+
+Notas: no incluir tokens en los archivos del repo. Usa el helper `gh` para operaciones con PR.
 # CI ASKS - Comandos Requeridos para Auditoría
 
 ## GitHub CLI Authentication
