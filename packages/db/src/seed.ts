@@ -161,7 +161,7 @@ async function seed() {
           }
         ]
       }
-  ] as any).returning()
+  ]).returning()
 
     const [task1, task2] = await db.insert(tasks).values([
       {

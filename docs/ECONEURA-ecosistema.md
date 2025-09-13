@@ -1,18 +1,18 @@
 # ECONEURA — Ecosistema de Inteligencia Colectiva (ERP/CRM + IA segura)
 
-**Pitch**  
+**Pitch**
 ECONEURA es un ecosistema de inteligencia colectiva confiable para PYMEs europeas. Orquesta 60 agentes (10 dptos × 5 automatizados + 1 ejecutivo doctor&coach) con seguridad grado banca (AAD/HMAC/Idempotencia, RLS, CSP/SRI), PII→Local (Mistral on‑prem) y elasticidad en Azure. Todo gobernado por FinOps (80/90/100 + kill‑switch) y observabilidad E2E (OTel).
 
-> Estado actual: ver badge de progreso y panel  
-> ![progress](../status/progress-badge.svg)  
+> Estado actual: ver badge de progreso y panel
+> ![progress](../status/progress-badge.svg)
 > Panel: `docs/PROGRESS_PANEL_v3.md` (y `docs/PROGRESS_PANEL_SUP_v3.md` para el supervisor)
 
 ---
 
 ## 1) Visión & Propuesta de valor
 
-- Resultados, no "chatbots": playbooks por departamento que mueven €/SLA con HIL (aprobación humana) y auditoría.  
-- Confianza UE-first: datos sensibles corren en Mistral local, orquestación en Azure EU, trazas y presupuestos visibles.  
+- Resultados, no "chatbots": playbooks por departamento que mueven €/SLA con HIL (aprobación humana) y auditoría.
+- Confianza UE-first: datos sensibles corren en Mistral local, orquestación en Azure EU, trazas y presupuestos visibles.
 - Adopción ejecutiva: cada directivo inicia sesión (AAD) y conversa con su agente doctor&coach entrenado en su dominio y en comunicación empática.
 
 ---
@@ -32,39 +32,39 @@ ECONEURA es un ecosistema de inteligencia colectiva confiable para PYMEs europea
 ```
 
 Patrones obligatorios
-- /v1 sólo en apps/api (web actúa como BFF).  
-- PII→Local: rutas de IA sensibles usan Mistral on‑prem; Azure sólo para cómputo elástico no PII.  
-- FinOps headers: `X-Est-Cost-EUR`, `X-Budget-Pct`, `X-Latency-ms`, `X-Route`, `X-Correlation-Id`.  
+- /v1 sólo en apps/api (web actúa como BFF).
+- PII→Local: rutas de IA sensibles usan Mistral on‑prem; Azure sólo para cómputo elástico no PII.
+- FinOps headers: `X-Est-Cost-EUR`, `X-Budget-Pct`, `X-Latency-ms`, `X-Route`, `X-Correlation-Id`.
 - OTel: spans con `org_id`, `agent_key`, `cost_est`.
 
 ---
 
 ## 3) Seguridad & Cumplimiento (EU)
 
-- Autenticación: Azure AD (OIDC/JWT), `org_id` obligatorio en claims.  
-- Integridad: HMAC de cuerpo + ventana temporal + Idempotency-Key.  
-- Autorización: RBAC por rol/depto (HIL approvals).  
-- Datos: RLS Postgres por `org_id`; retención 90 días por defecto; export/erase (GDPR).  
-- Frontera web: Helmet (CSP/SRI), CORS allowlist.  
+- Autenticación: Azure AD (OIDC/JWT), `org_id` obligatorio en claims.
+- Integridad: HMAC de cuerpo + ventana temporal + Idempotency-Key.
+- Autorización: RBAC por rol/depto (HIL approvals).
+- Datos: RLS Postgres por `org_id`; retención 90 días por defecto; export/erase (GDPR).
+- Frontera web: Helmet (CSP/SRI), CORS allowlist.
 - Auditoría: trail de HIL (eventos), SIEM-friendly (App Insights/Log Analytics).
 
 ---
 
 ## 4) Observabilidad & FinOps
 
-- Métricas SLO: p95, error_rate, costos IA por agente/depto.  
-- Alertas: Teams (p95, 5xx, DEGRADED, budget 80/90/100).  
+- Métricas SLO: p95, error_rate, costos IA por agente/depto.
+- Alertas: Teams (p95, 5xx, DEGRADED, budget 80/90/100).
 - FinOps: presupuesto mensual por depto, kill‑switch por agente y proyección EOM.
 
 ---
 
 ## 5) Calidad (gates CI) & Paneles
 
-- OpenAPI checksum (`.openapi.checksum`) — bloquea drift.  
-- /v1‑only (route-linter) — ninguna ruta fuera de API.  
-- UI visual (Playwright) — dif ≤2% contra Cockpit v3.  
-- Rendimiento (k6) — `/v1/progress` p95 < 2s.  
-- Contrato AAD/HMAC/Idem — 200/202/401/403 + idem 200/202/409.  
+- OpenAPI checksum (`.openapi.checksum`) — bloquea drift.
+- /v1‑only (route-linter) — ninguna ruta fuera de API.
+- UI visual (Playwright) — dif ≤2% contra Cockpit v3.
+- Rendimiento (k6) — `/v1/progress` p95 < 2s.
+- Contrato AAD/HMAC/Idem — 200/202/401/403 + idem 200/202/409.
 - Paneles: `docs/PROGRESS_PANEL_v3.md` (producto) y `docs/PROGRESS_PANEL_SUP_v3.md` (supervisor).
 
 ### Ejecutar gates visuales y perf

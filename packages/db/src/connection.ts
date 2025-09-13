@@ -12,9 +12,10 @@ try {
   connectionString = null
 }
 
-const client = connectionString
+// Postgres tagged client or null when no connection string is available
+const client: ReturnType<typeof postgres> | null = connectionString
   ? postgres(connectionString, { max: 10, idle_timeout: 20, connect_timeout: 10 })
-  : null as any
+  : null
 
 function createDbStub() {
   // minimal chainable stub used by tests in shared cost-meter
@@ -28,18 +29,18 @@ function createDbStub() {
 }
 
 // Create drizzle instance or stub
-export const db: any = connectionString ? drizzle(client, { schema }) : createDbStub()
+export const db: any = connectionString ? drizzle(client!, { schema }) : createDbStub()
 
 // Helper function to set organization context for RLS
 export async function setOrg(orgId: string): Promise<void> {
   if (!client) return
-  await (client as any)`SELECT set_config('app.org_id', ${orgId}, true)`
+  await client`SELECT set_config('app.org_id', ${orgId}, true)`
 }
 
 // Helper function to get current organization context
 export async function getCurrentOrg(): Promise<string | null> {
   if (!client) return null
-  const result = await (client as any)`SELECT current_setting('app.org_id', true) as org_id`
+  const result = await client`SELECT current_setting('app.org_id', true) as org_id`
   return result[0]?.org_id || null
 }
 
@@ -47,7 +48,7 @@ export async function getCurrentOrg(): Promise<string | null> {
 export async function testConnection(): Promise<boolean> {
   if (!client) return false
   try {
-    await (client as any)`SELECT 1`
+  await client`SELECT 1`
     return true
   } catch (error) {
     console.error('Database connection failed:', error)
@@ -58,7 +59,7 @@ export async function testConnection(): Promise<boolean> {
 // Close connection (for graceful shutdown)
 export async function closeConnection(): Promise<void> {
   if (!client) return
-  await (client as any).end()
+  await client.end()
 }
 
 

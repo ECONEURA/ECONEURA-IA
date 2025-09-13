@@ -369,9 +369,11 @@ export const invoice_items = pgTable('invoice_items', {
   quantity: decimal('quantity', { precision: 10, scale: 2 }).notNull(),
   unit_price: decimal('unit_price', { precision: 10, scale: 2 }).notNull(),
   unit: text('unit').default('piece'),
-  tax_rate: decimal('tax_rate', { precision: 5, scale: 2 }).default('0.00'),
+  // tags stored as jsonb array
+  tags: jsonb('tags').$type<string[]>().default([]),
+  tax_rate: decimal('tax_rate', { precision: 5, scale: 2 }).default(sql`0.00`),
   subtotal: decimal('subtotal', { precision: 10, scale: 2 }).notNull(),
-  tax_amount: decimal('tax_amount', { precision: 10, scale: 2 }).default('0.00'),
+  tax_amount: decimal('tax_amount', { precision: 10, scale: 2 }).default(sql`0.00`),
   total: decimal('total', { precision: 10, scale: 2 }).notNull(),
   metadata: jsonb('metadata'),
   created_at: timestamp('created_at').defaultNow(),

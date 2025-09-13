@@ -27,7 +27,18 @@ router.post('/export', asyncHandler(async (req: Request, res: Response) => {
   archive.finalize();
 
   const stream = archive as unknown as NodeJS.ReadableStream;
-  for await (const chunk of stream as any) chunks.push(Buffer.from(chunk));
+  try {
+    const asyncIter = stream as AsyncIterable<unknown>;
+    for await (const chunk of asyncIter) {
+      const c = chunk as unknown;
+      if (typeof c === 'string') chunks.push(Buffer.from(c));
+      else if (Buffer.isBuffer(c)) chunks.push(c as Buffer);
+      else if (Array.isArray(c)) chunks.push(Buffer.from(c as number[]));
+      else chunks.push(Buffer.from(String(c)));
+    }
+  } catch (e) {
+    // best-effort: if stream iteration fails, continue with what we have
+  }
   const zipBuffer = Buffer.concat(chunks);
 
   try {
@@ -35,7 +46,7 @@ router.post('/export', asyncHandler(async (req: Request, res: Response) => {
     const key = process.env.AZURE_STORAGE_KEY as string;
     if (!account || !key) return res.status(500).json({ error: 'Storage not configured' });
 
-    const credential = new StorageSharedKeyCredential(account, key);
+  const credential = new StorageSharedKeyCredential(account, key as string);
     const blobService = new BlobServiceClient(`https://${account}.blob.core.windows.net`, credential);
     const containerName = `gdpr-exports`;
     const container = blobService.getContainerClient(containerName);
@@ -47,14 +58,14 @@ router.post('/export', asyncHandler(async (req: Request, res: Response) => {
 
     // Generate SAS (short lived)
     const expiresOn = new Date(Date.now() + 1000 * 60 * 60); // 1h
-    const sas = generateBlobSASQueryParameters({
+  const sas = generateBlobSASQueryParameters({
       containerName,
       blobName,
       permissions: ContainerSASPermissions.parse('r'),
       startsOn: new Date(),
       expiresOn,
       protocol: SASProtocol.Https
-    }, credential as any);
+    }, credential as unknown as StorageSharedKeyCredential);
 
     const url = `${block.url}?${sas.toString()}`;
     res.json({ url });

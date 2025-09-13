@@ -70,11 +70,11 @@ export class GraphClient {
   private msalApp: ConfidentialClientApplication
   private credential: ClientSecretCredential
   // Use the repo OTEL mock which exposes either helpers or tracer/meter objects.
-  private tracer = (otelTracer && typeof (otelTracer as any).getTracer === 'function')
-    ? (otelTracer as any).getTracer('graph-client')
+  private tracer = (otelTracer && typeof (otelTracer as unknown as { getTracer?: (n: string) => { startSpan: (n: string) => any } }).getTracer === 'function')
+    ? (otelTracer as unknown as { getTracer: (n: string) => { startSpan: (n: string) => any } }).getTracer('graph-client')
     : otelTracer
-  private meter = (otelMeter && typeof (otelMeter as any).getMeter === 'function')
-    ? (otelMeter as any).getMeter('graph-client')
+  private meter = (otelMeter && typeof (otelMeter as unknown as { getMeter?: (n: string) => unknown }).getMeter === 'function')
+    ? (otelMeter as unknown as { getMeter: (n: string) => unknown }).getMeter('graph-client')
     : otelMeter
   private config: GraphConfig
 

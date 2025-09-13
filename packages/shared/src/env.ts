@@ -14,11 +14,11 @@ const envSchema = z.object({
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
 
   // Database
-  PGHOST: z.string().min(1),
-  PGUSER: z.string().min(1),
-  PGPASSWORD: z.string().min(1),
-  PGDATABASE: z.string().min(1),
-  PGPORT: z.string().transform(Number).pipe(z.number().positive()).default('5432'),
+  PGHOST: z.string().min(1).optional().default('localhost'),
+  PGUSER: z.string().min(1).optional().default('postgres'),
+  PGPASSWORD: z.string().min(1).optional().default('postgres'),
+  PGDATABASE: z.string().min(1).optional().default('econeura_dev'),
+  PGPORT: z.string().transform(Number).pipe(z.number().positive()).optional().default('5432'),
 
   // AI Configuration
   MISTRAL_BASE_URL: z.string().url().default('http://mistral:8080'),

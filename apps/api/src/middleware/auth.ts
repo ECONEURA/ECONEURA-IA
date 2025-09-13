@@ -17,21 +17,22 @@ export const authenticateToken = async (
     const token = authHeader?.split(' ')[1];
 
     if (!token) {
-  return (res as any).status(401).json({ message: 'No token provided' });
+      return res.status(401).json({ message: 'No token provided' });
     }
 
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET as string
-    ) as TokenPayload;
+  const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as TokenPayload;
 
-  (req as any).user = decoded;
+  // attach typed user payload to the request in a safe manner
+  (req as Request & { user?: TokenPayload }).user = decoded;
     next();
   } catch (error) {
-    if ((error as any)?.name === 'TokenExpiredError') {
-      return (res as any).status(401).json({ message: 'Token expired' });
+    const errName = (error && typeof error === 'object' && 'name' in error && typeof (error as Record<string, unknown>)['name'] === 'string')
+      ? String((error as Record<string, unknown>)['name'])
+      : undefined;
+    if (errName === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Token expired' });
     }
-    return (res as any).status(403).json({ message: 'Invalid token' });
+    return res.status(403).json({ message: 'Invalid token' });
   }
 };
 
@@ -41,16 +42,18 @@ export const withTenant = async (
   next: NextFunction
 ) => {
   try {
-  const { orgId } = (req as any).user as TokenPayload;
+    const user = (req as Request & { user?: TokenPayload }).user;
+    const orgId = user?.orgId;
 
-    // Verificar que la organización existe
-  const anyPrisma: any = prisma as any;
-  const org = await anyPrisma.organization?.findUnique({
-      where: { id: orgId }
-    });
+    if (!orgId) {
+      return res.status(400).json({ message: 'Missing orgId in token' });
+    }
+
+    // Verificar que la organizaci3n existe
+    const org = await prisma.organization?.findUnique({ where: { id: orgId } });
 
     if (!org) {
-  return (res as any).status(404).json({ message: 'Organization not found' });
+      return res.status(404).json({ message: 'Organization not found' });
     }
 
     // Establecer el tenant ID para RLS
@@ -59,6 +62,6 @@ export const withTenant = async (
     next();
   } catch (error) {
     console.error('Error in tenant middleware:', error);
-  return (res as any).status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 };

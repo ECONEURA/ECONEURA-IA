@@ -6,16 +6,37 @@ try {
 } catch {}
 import { tracer as sharedTracer } from '@econeura/shared/otel/index';
 
-export function withSpan(name:string, fn:()=>Promise<any>|any, attrs?:Record<string,any>) {
+export function withSpan(name: string, fn: () => Promise<any> | any, attrs?: Record<string, any>) {
   const tracer = otel?.trace?.getTracer ? otel.trace.getTracer('econeura-api') : (sharedTracer.getTracer ? sharedTracer.getTracer('econeura-api') : sharedTracer);
-  const span = tracer.startSpan(name);
+  const span = tracer?.startSpan ? tracer.startSpan(name) : null;
+
+  const safeSetAttribute = (key: string, value: string) => {
+    try {
+      const s = span as unknown as {
+        setAttribute?: (k: string, v: unknown) => void;
+      } | null;
+      if (s && typeof s.setAttribute === 'function') s.setAttribute(key, value);
+    } catch {}
+  };
+
+  const safeRecordException = (err: unknown) => {
+    try {
+      const s = span as unknown as {
+        recordException?: (e: Error) => void;
+        addEvent?: (n: string, attrs?: Record<string, unknown>) => void;
+      } | null;
+      if (s && typeof s.recordException === 'function') s.recordException(err as Error);
+  else if (s && typeof s.addEvent === 'function') s.addEvent('exception', { message: String(((err as unknown) as Record<string, unknown>)['message'] || err) });
+    } catch {}
+  };
+
   try {
-    if (attrs) Object.entries(attrs).forEach(([k,v])=> span.setAttribute(k as any, String(v)));
-    return Promise.resolve(fn()).finally(()=> span.end());
+    if (attrs) Object.entries(attrs).forEach(([k, v]) => safeSetAttribute(k, String(v)));
+  return Promise.resolve(fn()).finally(() => { try { const s = span as unknown as { end?: () => void } | null; if (s && typeof s.end === 'function') s.end(); } catch {} });
   } catch (e) {
-  try { (span as any).recordException ? (span as any).recordException(e as any as Error) : span.addEvent?.('exception', { message: String((e as any)?.message || e) } as any) } catch {}
-  try { (span as any).setStatus ? (span as any).setStatus({ code: 2 as any }) : span.setAttribute?.('error', true as any) } catch {}
-  try { span.end() } catch {}
+    try { safeRecordException(e); } catch {}
+  try { const s = span as unknown as { setStatus?: (s: any) => void } | null; if (s) { if (typeof s.setStatus === 'function') s.setStatus({ code: 2 }); else safeSetAttribute('error', 'true'); } } catch {}
+  try { const s = span as unknown as { end?: () => void } | null; if (s && typeof s.end === 'function') s.end(); } catch {}
     throw e;
   }
 }

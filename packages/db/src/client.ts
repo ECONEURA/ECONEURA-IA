@@ -4,12 +4,13 @@ import { config } from './config';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 
-let PrismaCtor: any = null;
+type PrismaNew = new (...args: any[]) => PrismaClient;
+let PrismaCtor: PrismaNew | null = null;
 try {
   // Try to load real Prisma in environments where it's generated
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const pkg = require('@prisma/client');
-  PrismaCtor = pkg?.PrismaClient || null;
+  PrismaCtor = (pkg as { PrismaClient?: PrismaNew })?.PrismaClient || null;
 } catch {
   PrismaCtor = null;
 }
@@ -32,9 +33,9 @@ export function getPrisma(): PrismaClient {
     });
   } else {
     // Provide a minimal stub for tests/CI when Prisma is unavailable
-  const noop = async (...args: any[]) => (Array.isArray(args[0]) ? [] : undefined);
+  const noop = async (...args: unknown[]) => (Array.isArray(args[0]) ? [] : undefined);
     _prisma = {
-      $transaction: async (cb: (tx: any) => Promise<any>) => cb({}),
+      $transaction: async (cb: (tx: PrismaClient) => Promise<unknown>) => cb({} as unknown as PrismaClient) as Promise<any>,
       $executeRaw: noop,
       $queryRaw: noop,
       $use: () => {},
@@ -43,16 +44,16 @@ export function getPrisma(): PrismaClient {
       hitl_task: {
         findMany: async () => [],
         findUnique: async () => null,
-        create: async (args: any) => ({ id: 'stub', ...(args?.data || {}) }),
-        update: async (args: any) => ({ ...(args?.data || {}), id: args?.where?.id || 'stub' }),
+        create: async (args: { data?: Record<string, unknown> }) => ({ id: 'stub', ...(args?.data || {}) }),
+        update: async (args: { data?: Record<string, unknown>; where?: { id?: string } }) => ({ ...(args?.data || {}), id: args?.where?.id || 'stub' }),
       },
       audit_event: {
-        create: async (args: any) => ({ id: 'evt', ...(args?.data || {}) }),
+        create: async (args: { data?: Record<string, unknown> }) => ({ id: 'evt', ...(args?.data || {}) }),
       },
       organization: {
         findUnique: async () => ({ id: 'org-stub' }),
       },
-    } as any;
+    } as unknown as PrismaClient;
   }
   if (config.isDev) global.prisma = _prisma;
   return _prisma!;
@@ -106,23 +107,17 @@ export function initPrisma(): void {
 // Export a lazy proxy that forwards to the real PrismaClient on first access.
 // This avoids constructing PrismaClient at import time unless actually used.
 const prismaProxy = new Proxy(
-  {},
+  {} as Record<string | symbol, unknown>,
   {
-    get(_target, prop) {
-      const real = getPrisma();
-  // @ts-ignore dynamic forward
-      return (real as any)[prop as any];
+    get(_target, prop: string | symbol) {
+      const real = getPrisma() as unknown as Record<string | symbol, unknown>;
+      return Reflect.get(real, prop);
     },
-    set(_target, prop, value) {
-      const real = getPrisma();
-  // @ts-ignore dynamic forward
-      (real as any)[prop as any] = value;
+    set(_target, prop: string | symbol, value: unknown) {
+      const real = getPrisma() as unknown as Record<string | symbol, unknown>;
+      Reflect.set(real, prop, value);
       return true;
     },
-    apply(_target, thisArg, args) {
-      const real = getPrisma();
-      return (real as any).apply(thisArg, args);
-    }
   }
 ) as unknown as import('@prisma/client').PrismaClient;
 

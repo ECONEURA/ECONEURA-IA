@@ -319,9 +319,11 @@ class StructuredLogger {
   }
 
   private formatLog(level: string, message: string, context?: LogContext): LogEntry {
+  const allowedLevels = ['error', 'warn', 'info', 'debug'] as const;
+  const lvl = (typeof level === 'string' && (allowedLevels as readonly string[]).includes(level)) ? (level as 'error' | 'warn' | 'info' | 'debug') : 'info';
     const logEntry: LogEntry = {
       timestamp: new Date().toISOString(),
-      level: level as any,
+      level: lvl,
       message,
       context,
       traceId: context?.requestId || this.generateTraceId(),

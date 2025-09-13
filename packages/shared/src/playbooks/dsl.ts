@@ -103,8 +103,11 @@ export interface AuditEvent {
 export class PlaybookExecutor {
   private tracer = { startSpan: (name: string) => {
     // support different otel module shapes and test mocks
-    if (typeof (otel as any).createSpan === 'function') return (otel as any).createSpan(name)
-    if (typeof (otel as any).createTracer === 'function') return (otel as any).createTracer().startSpan(name)
+  const ot: unknown = otel as unknown;
+  const maybeCreateSpan = (ot as { createSpan?: (n: string) => any }).createSpan;
+  if (typeof maybeCreateSpan === 'function') return maybeCreateSpan(name);
+  const maybeCreateTracer = (ot as { createTracer?: () => { startSpan: (n: string) => any } }).createTracer;
+  if (typeof maybeCreateTracer === 'function') return maybeCreateTracer().startSpan(name);
     // fallback minimal span
     return {
       setAttribute: (_k?: string, _v?: any) => {},

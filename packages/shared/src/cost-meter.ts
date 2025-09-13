@@ -39,8 +39,8 @@ class CostMeter {
     }
   }
 
-  calculateCost(model: ModelName, inputTokens: number, outputTokens: number): number {
-    const rates = COST_RATES[model]
+  calculateCost(model: string, inputTokens: number, outputTokens: number): number {
+    const rates = COST_RATES[model as ModelName]
     if (!rates) {
       throw new Error(`Unknown model: ${model}`)
     }
@@ -52,8 +52,7 @@ class CostMeter {
   }
 
   recordUsage(orgId: string, model: string, inputTokens: number, outputTokens: number): CostUsage {
-    const modelName = model as ModelName
-    const costEur = this.calculateCost(modelName, inputTokens, outputTokens)
+    const costEur = this.calculateCost(model, inputTokens, outputTokens)
 
     const usage: CostUsage = {
       orgId,
@@ -93,13 +92,13 @@ class CostMeter {
   // @ts-ignore - dynamic import
   const { aiCostUsage } = await import('@econeura/db')
 
-        const execChain = () => {
+    const execChain = () => {
           try {
-            const s: any = (db as any).select ? (db as any).select() : db
-            const f = typeof s.from === 'function' ? s.from(aiCostUsage) : s
+      const s: unknown = (db as unknown as { select?: () => unknown }).select ? (db as unknown as { select: () => unknown }).select() : db
+      const f = (s && typeof (s as { from?: (t: unknown) => unknown }).from === 'function') ? (s as { from: (t: unknown) => unknown }).from(aiCostUsage) : s
             // Avoid calling where/orderBy unless they exist and accept zero/lenient args
-            const w = typeof f.where === 'function' ? f.where({}) : f
-            return typeof w.execute === 'function' ? w : (typeof f.execute === 'function' ? f : s)
+      const w = (f && typeof (f as { where?: (q?: unknown) => unknown }).where === 'function') ? (f as { where: (q?: unknown) => unknown }).where({}) : f
+      return (w && typeof (w as { execute?: () => Promise<unknown> }).execute === 'function') ? w : ((f && typeof (f as { execute?: () => Promise<unknown> }).execute === 'function') ? f : s)
           } catch {
             return []
           }
@@ -209,13 +208,13 @@ class CostMeter {
         startDate = new Date(0)
       }
 
-        const execChain = () => {
+    const execChain = () => {
           try {
-            const s: any = (db as any).select ? (db as any).select() : db
-            const f = typeof s.from === 'function' ? s.from(aiCostUsage) : s
-            const w = typeof f.where === 'function' ? f.where({}) : f
-            const ob = typeof w.orderBy === 'function' ? w.orderBy({}) : w
-            return typeof ob.execute === 'function' ? ob : (typeof w.execute === 'function' ? w : (typeof f.execute === 'function' ? f : s))
+      const s: unknown = (db as unknown as { select?: () => unknown }).select ? (db as unknown as { select: () => unknown }).select() : db
+      const f = (s && typeof (s as { from?: (t: unknown) => unknown }).from === 'function') ? (s as { from: (t: unknown) => unknown }).from(aiCostUsage) : s
+      const w = (f && typeof (f as { where?: (q?: unknown) => unknown }).where === 'function') ? (f as { where: (q?: unknown) => unknown }).where({}) : f
+      const ob = (w && typeof (w as { orderBy?: (q?: unknown) => unknown }).orderBy === 'function') ? (w as { orderBy: (q?: unknown) => unknown }).orderBy({}) : w
+      return (ob && typeof (ob as { execute?: () => Promise<unknown> }).execute === 'function') ? ob : ((w && typeof (w as { execute?: () => Promise<unknown> }).execute === 'function') ? w : ((f && typeof (f as { execute?: () => Promise<unknown> }).execute === 'function') ? f : s))
           } catch {
             return []
           }
@@ -314,12 +313,12 @@ class CostMeter {
       const currentDate = new Date()
       const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
 
-    const execChain = () => {
+  const execChain = () => {
       try {
-        const s: any = (db as any).select ? (db as any).select() : db
-        const f = typeof s.from === 'function' ? s.from(aiCostUsage) : s
-        const w = typeof f.where === 'function' ? f.where({}) : f
-        return typeof w.execute === 'function' ? w : (typeof f.execute === 'function' ? f : s)
+    const s: unknown = (db as unknown as { select?: () => unknown }).select ? (db as unknown as { select: () => unknown }).select() : db
+    const f = (s && typeof (s as { from?: (t: unknown) => unknown }).from === 'function') ? (s as { from: (t: unknown) => unknown }).from(aiCostUsage) : s
+    const w = (f && typeof (f as { where?: (q?: unknown) => unknown }).where === 'function') ? (f as { where: (q?: unknown) => unknown }).where({}) : f
+    return (w && typeof (w as { execute?: () => Promise<unknown> }).execute === 'function') ? w : ((f && typeof (f as { execute?: () => Promise<unknown> }).execute === 'function') ? f : s)
       } catch {
         return []
       }

@@ -1,7 +1,7 @@
 import { getEnv } from '@econeura/shared/env';
 
-const env = getEnv();
-export const useLocalMistral = (env as any).USE_LOCAL_MISTRAL === 'true';
+const env = getEnv() as Record<string, any>;
+export const useLocalMistral = String(env.USE_LOCAL_MISTRAL || '').toLowerCase() === 'true';
 
 export async function summarizeLocal(text: string) {
   // Very small, fast deterministic summarizer for local dev/testing.

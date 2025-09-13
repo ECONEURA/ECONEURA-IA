@@ -9,7 +9,6 @@ import { logger } from '../logging/index';
 export function monitorRequest() {
   return (req: Request, res: Response, next: NextFunction): void => {
     const startTime = Date.now();
-    const originalEnd = res.end;
     const route = req.route?.path || 'unknown';
     const method = req.method;
 
@@ -27,37 +26,29 @@ export function monitorRequest() {
     const contentLength = parseInt(req.get('content-length') || '0', 10);
     httpMetrics.requestSizeBytes.observe({ method, route }, contentLength);
 
-    // Override response end to capture metrics
-    res.end = function(...args: any[]): Response {
-      // Calculate duration
+    // Hook on finish to capture metrics and logs without overriding end
+    res.on?.('finish', () => {
       const duration = (Date.now() - startTime) / 1000;
-      const statusCode = res.statusCode.toString();
+      const statusCode = String(res.statusCode ?? 0);
 
-      // Record metrics
-  httpMetrics.requestDuration.observe({ method, route, status_code: statusCode }, duration);
-  httpMetrics.requestsTotal.inc({ method, route, status_code: statusCode });
+      httpMetrics.requestDuration.observe({ method, route, status_code: statusCode }, duration);
+      httpMetrics.requestsTotal.inc({ method, route, status_code: statusCode });
 
-      // Record response size
-      const responseLength = parseInt(res.get('content-length') || '0', 10);
+      const cl = res.get?.('content-length');
+      const responseLength = typeof cl === 'string' ? parseInt(cl, 10) : 0;
       httpMetrics.responseSizeBytes.observe({ method, route }, responseLength);
 
-      // End tracing span
-      tracingManager.endSpan('http_request', {
-        status: undefined,
-        error: undefined,
-      });
+      tracingManager.endSpan('http_request', { status: undefined, error: undefined });
 
-      // Log request
+      const orgIdVal = (req as unknown as Record<string, unknown>)?.org_id;
       logger.logAPIRequest(`${method} ${route} ${statusCode}`, {
         method,
         path: route,
         status_code: Number(statusCode),
         latency_ms: Math.round(duration * 1000),
-        org_id: (req as any).org_id,
+        org_id: typeof orgIdVal === 'string' ? orgIdVal : undefined,
       });
-
-  return originalEnd.apply(this, args as any);
-    };
+    });
 
     next();
   };

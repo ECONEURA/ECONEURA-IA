@@ -1,5 +1,5 @@
 import express, { type Application } from "express";
-import cors from "cors";
+import cors, { type CorsOptions } from "cors";
 import { logger } from "./lib/logger.js";
 import { metrics } from "./lib/metrics.js";
 import { finopsHeaders } from './middleware/finops.js';
@@ -46,7 +46,35 @@ const PORT = process.env.PORT || 4000;
 const cacheManager = new CacheManager();
 
 // Middleware básico
-app.use(cors());
+// CORS endurecido: sólo orígenes explícitos y manejo de preflight
+const allowedOrigins = Array.from(new Set([
+  ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim()).filter(Boolean) : []),
+  process.env.WEB_URL,
+  process.env.NEXT_PUBLIC_WEB_URL,
+  "https://www.econeura.com",
+].filter(Boolean)));
+
+const corsOptions: CorsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // allow non-browser clients
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(null, false);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "X-Correlation-Id",
+    "X-Request-Id",
+    "X-Trace-Id",
+  ],
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json());
 
 // Middleware de Feature Flags (agregar información a todas las respuestas)
@@ -468,6 +496,9 @@ try {
 initializeExampleWorkflows();
 
 // Endpoints de health
+app.get("/health", (_req, res) => {
+  res.status(200).json({ status: "ok", uptime: process.uptime(), timestamp: new Date().toISOString() });
+});
 app.get("/health/live", (req, res) => {
   res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });

@@ -5,9 +5,13 @@ export class AzureOpenAIService {
   private client: OpenAIClient;
 
   constructor() {
+  const cfg = config as unknown as Record<string, any> | { azure?: { endpoint?: string; key?: string } };
+  const cfgAny = cfg as Record<string, any>;
+  const endpoint = cfgAny.AZURE_OPENAI_API_ENDPOINT || cfg.azure?.endpoint;
+  const key = cfgAny.AZURE_OPENAI_API_KEY || cfg.azure?.key;
     this.client = new OpenAIClient(
-  (config as any).AZURE_OPENAI_API_ENDPOINT || (config as any).azure?.endpoint,
-  new AzureKeyCredential((config as any).AZURE_OPENAI_API_KEY || (config as any).azure?.key)
+      endpoint,
+      new AzureKeyCredential(key)
     );
   }
 

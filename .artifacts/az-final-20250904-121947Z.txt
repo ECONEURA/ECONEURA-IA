@@ -1,0 +1,17 @@
+RESULTADOS
+WEB_URL=https://econeura-web-dev-dpehcua9augngbcb.northeurope-01.azurewebsites.net
+API_URL=https://econeura-api-dev.azurewebsites.net
+HEALTH_PATH=/health
+WEB_CODE=200
+API_CODE_ROOT=200
+API_CODE_HEALTH=404
+NEXT_PUBLIC_API_URL=https://econeura-api-dev.azurewebsites.net
+FX=NODE|20-lts
+CORS_ALLOWED=https://www.econeura.com,https://econeura-web-dev-dpehcua9augngbcb.northeurope-01.azurewebsites.net
+AccessRules_ZeroCIDR=0
+SCM_UseMainRules=true
+Preflight_WEB: code=200 acao=
+Preflight_PUB: code=200 acao=
+RESULTADO: FAIL
+CAUSAS: API /health!=200;Sin ACAO para WEB_URL;Sin ACAO para www.econeura.com
+REPORTE: .artifacts/az-final-20250904-121947Z.txt

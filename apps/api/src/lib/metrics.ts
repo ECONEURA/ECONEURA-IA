@@ -85,7 +85,12 @@ export class MetricsService {
       const value = typeof valueOrLabels === 'number' ? valueOrLabels : 1;
       const labels = typeof valueOrLabels === 'object' ? valueOrLabels : maybeLabels || { success: 'true' };
       // Use healthCheckCounter as a safe sink for simple increments
-      this.healthCheckCounter.labels(name, (labels as any).status || 'success').inc(value);
+      let statusLabel = 'success';
+      if (labels && typeof labels === 'object') {
+        const maybeStatus = (labels as Record<string, unknown>)['status'];
+        if (typeof maybeStatus === 'string') statusLabel = maybeStatus;
+      }
+      this.healthCheckCounter.labels(name, statusLabel).inc(value);
     } catch (e) {
       // no-op
     }

@@ -277,7 +277,10 @@ export function createAIRouter(config?: Partial<RouterConfig>): AIRouter {
     openaiApiKey: process.env.OPENAI_API_KEY,
     azureOpenaiEndpoint: process.env.AZURE_OPENAI_ENDPOINT,
     azureOpenaiKey: process.env.AZURE_OPENAI_KEY,
-    defaultProvider: (process.env.ROUTER_DEFAULT_PROVIDER as any) || 'mistral-edge',
+    defaultProvider: ((val: unknown) => {
+      const allowed = new Set(['mistral-edge','openai-cloud','azure-openai'] as const)
+      return (typeof val === 'string' && allowed.has(val as any)) ? (val as typeof val & ('mistral-edge' | 'openai-cloud' | 'azure-openai')) : 'mistral-edge'
+    })(process.env.ROUTER_DEFAULT_PROVIDER),
     costLimitsEnabled: process.env.NODE_ENV === 'production',
   };
 
