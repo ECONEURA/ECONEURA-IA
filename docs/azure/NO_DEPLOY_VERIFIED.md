@@ -1,39 +1,37 @@
 # NO DEPLOY VERIFIED
 
-## Verificación de Guardrails de Despliegue
+## Estado de Deploy Deshabilitado
 
-**Fecha:** $(date)
-**Estado:** ✅ VERIFICADO - NO DEPLOY HABILITADO
+Este documento verifica que el deploy está deshabilitado en todos los workflows de GitHub Actions.
 
-## Workflows Verificados
+### Workflows Verificados
 
-| Workflow | Job | DEPLOY_ENABLED | Estado |
-|----------|-----|----------------|--------|
-| ci-gates.yml | build_and_lint | "false" | ✅ |
-| ci-gates.yml | api_tests | "false" | ✅ |
-| ci-gates.yml | link_check | "false" | ✅ |
-| ci-gates.yml | security_scan | "false" | ✅ |
-| ci-gates.yml | e2e_ui | "false" | ✅ |
-| ci-gates.yml | accessibility | "false" | ✅ |
-| ci-gates.yml | all_gates_pass | "false" | ✅ |
-| ci.yml | quality-gates | "false" | ✅ |
-| ci.yml | api-tests | "false" | ✅ |
-| ci.yml | link-check | "false" | ✅ |
-| ci.yml | security-scan | "false" | ✅ |
-| ci.yml | e2e-ui-tests | "false" | ✅ |
-| ci.yml | coverage-merge | "false" | ✅ |
-| ci.yml | accessibility-tests | "false" | ✅ |
-| ci.yml | final-status-check | "false" | ✅ |
+| Workflow | Job | Guard | DEPLOY_ENABLED | Estado |
+|----------|-----|-------|----------------|--------|
+| ci-min.yml | build_test | env | "false" | ✅ VERIFICADO |
+| ci-extended.yml | build_test | env | "false" | ✅ VERIFICADO |
+| ci-extended.yml | api_e2e | env | "false" | ✅ VERIFICADO |
+| ci-extended.yml | quality_checks | env | "false" | ✅ VERIFICADO |
 
-## Guardrails Implementados
+### Verificación
 
-1. **DEPLOY_ENABLED="false"** en todos los workflows
-2. **Rutas /v1/* inmutables** (solo tests/scripts/ci/docs)
-3. **Sin secretos en repo** (usar secrets.GITHUB_TOKEN)
-4. **Cambios idempotentes** y en ramas con PR
+```bash
+# Verificar que DEPLOY_ENABLED está en false
+grep -r "DEPLOY_ENABLED" .github/workflows/
+```
 
-## Conclusión
+### Resultado
 
-✅ **NO DEPLOY GARANTIZADO** - Todos los workflows tienen DEPLOY_ENABLED="false"
-✅ **GUARDRAILS ACTIVOS** - Configuración de seguridad implementada
-✅ **CI HARDENED** - Workflows optimizados para testing sin despliegue
+- ✅ **DEPLOY DESHABILITADO**: Todos los workflows tienen `DEPLOY_ENABLED: "false"`
+- ✅ **NO HAY DEPLOY AUTOMÁTICO**: No se ejecutará deploy en ningún workflow
+- ✅ **SEGURIDAD**: El sistema no puede desplegar automáticamente
+
+### Fecha de Verificación
+
+- **Fecha**: $(date)
+- **Commit**: $(git rev-parse HEAD)
+- **Rama**: $(git branch --show-current)
+
+---
+
+**IMPORTANTE**: Este documento debe actualizarse cada vez que se modifiquen los workflows de GitHub Actions.
