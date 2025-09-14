@@ -440,12 +440,22 @@ export class APIGateway {
 
   // Inicialización de rutas por defecto
   private initializeDefaultRoutes(): void {
+    // Obtener los IDs reales de los servicios agregados
+    const services = Array.from(this.services.values());
+    const apiExpressService = services.find(s => s.name === 'API Express');
+    const webBffService = services.find(s => s.name === 'Web BFF');
+
+    if (!apiExpressService) {
+      logger.error('API Express service not found during route initialization');
+      return;
+    }
+
     const defaultRoutes = [
       {
         name: 'API Health Check',
         path: '/health',
         method: 'GET',
-        serviceId: 'service_1', // API Express
+        serviceId: apiExpressService.id, // Usar ID real
         priority: 100,
         conditions: [],
         isActive: true,
@@ -454,7 +464,7 @@ export class APIGateway {
         name: 'API AI Chat',
         path: '/v1/ai/chat',
         method: 'POST',
-        serviceId: 'service_1', // API Express
+        serviceId: apiExpressService.id, // Usar ID real
         priority: 90,
         conditions: [],
         isActive: true,
@@ -463,7 +473,7 @@ export class APIGateway {
         name: 'Web Dashboard',
         path: '/dashboard',
         method: 'GET',
-        serviceId: 'service_2', // Web BFF
+        serviceId: webBffService?.id || apiExpressService.id, // Usar ID real o fallback
         priority: 80,
         conditions: [],
         isActive: true,
