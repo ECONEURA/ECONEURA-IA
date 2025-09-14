@@ -6,6 +6,7 @@ import { AGENTS_MASTER } from '../config/agents.master';
 import { getIdempotency, setIdempotency, hmacVerify, sha256Hex } from '@econeura/shared/security';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'node:url';
 import { requireAAD } from '../middleware/aad';
 
 const router = express.Router();
@@ -62,7 +63,7 @@ async function checkIdempotency(key: string) {
 
 async function finopsAllow(departmentKey: string): Promise<{allowed:boolean, reason?:string, estCostEur?:number}> {
   try {
-    const p = path.join(__dirname, '..', '..', '..', 'config', 'finops.departments.json');
+    const p = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'config', 'finops.departments.json');
     const raw = fs.readFileSync(p, 'utf8');
     const arr = JSON.parse(raw) as Array<{department_key:string, monthly_budget_eur:number}>;
     const cfg = arr.find(x => x.department_key === departmentKey);

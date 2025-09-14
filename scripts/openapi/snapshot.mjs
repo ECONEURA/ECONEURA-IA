@@ -1,58 +1,46 @@
-import fs from 'node:fs'
-
-const url = 'http://127.0.0.1:3001/v1/openapi.json'
-const out = 'snapshots/openapi.runtime.json'
-const res = await fetch(url).catch(()=>null)
-if(!res || !res.ok){ console.error('No runtime OpenAPI'); process.exit(1) }
-const json = await res.json()
-fs.mkdirSync('snapshots',{recursive:true})
-fs.writeFileSync(out, JSON.stringify(json, null, 2))
-console.log('Wrote', out)
 #!/usr/bin/env node
 
-import { readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
+import { writeFileSync, mkdirSync } from 'fs';
+import path from 'path';
 
-const snapshotPath = join(process.cwd(), 'snapshots/openapi.runtime.json');
+const API_URL = 'http://127.0.0.1:3001';
+const OUTPUT_DIR = path.join(process.cwd(), 'snapshots');
+const OUTPUT_FILE = path.join(OUTPUT_DIR, 'openapi.runtime.json');
 
-async function fetchOpenAPI() {
+async function fetchOpenAPISpec() {
   try {
-    const response = await fetch('http://localhost:3000/v1/openapi.json');
-    if (!response.ok) throw new Error('Server not running');
-    return await response.json();
-  } catch (error) {
-    console.log('Server not running, using builder TS');
-    // Import builder TS if available
-    try {
-      const { buildOpenAPI } = await import('../apps/api/src/lib/openapi-builder.js');
-      return await buildOpenAPI();
-    } catch (e) {
-      throw new Error('Cannot generate OpenAPI: server not running and no builder available');
+    console.log('📡 Fetching OpenAPI spec from runtime...');
+    
+    const response = await fetch(`${API_URL}/v1/openapi.json`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
+    
+    const spec = await response.json();
+    
+    // Validate it's a valid OpenAPI spec
+    if (!spec.openapi && !spec.swagger) {
+      throw new Error('Response is not a valid OpenAPI specification');
+    }
+    
+    console.log(`✅ Fetched OpenAPI ${spec.openapi || spec.swagger} spec`);
+    console.log(`   Title: ${spec.info?.title || 'Unknown'}`);
+    console.log(`   Version: ${spec.info?.version || 'Unknown'}`);
+    console.log(`   Paths: ${Object.keys(spec.paths || {}).length}`);
+    
+    // Ensure output directory exists
+    mkdirSync(OUTPUT_DIR, { recursive: true });
+    
+    // Write to file
+    writeFileSync(OUTPUT_FILE, JSON.stringify(spec, null, 2));
+    console.log(`💾 Saved snapshot to: ${OUTPUT_FILE}`);
+    
+  } catch (error) {
+    console.error('❌ Failed to fetch OpenAPI spec:');
+    console.error(`   ${error.message}`);
+    process.exit(1);
   }
 }
 
-try {
-  const openapi = await fetchOpenAPI();
-  
-  // Extract v1 paths only, no signatures
-  const v1Paths = {};
-  for (const [path, methods] of Object.entries(openapi.paths || {})) {
-    if (path.startsWith('/v1/')) {
-      v1Paths[path] = methods;
-    }
-  }
-  
-  const snapshot = {
-    timestamp: new Date().toISOString(),
-    v1Paths: v1Paths,
-    totalV1Paths: Object.keys(v1Paths).length
-  };
-  
-  writeFileSync(snapshotPath, JSON.stringify(snapshot, null, 2));
-  console.log(`✅ OpenAPI runtime snapshot created: ${Object.keys(v1Paths).length} v1 paths`);
-  
-} catch (error) {
-  console.error('❌ Error creating OpenAPI snapshot:', error.message);
-  process.exit(1);
-}
+fetchOpenAPISpec();

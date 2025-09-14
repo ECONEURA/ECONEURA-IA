@@ -414,24 +414,30 @@ export class APIGateway {
 
   // Inicialización de servicios por defecto
   private initializeDefaultServices(): void {
-    const defaultServices = [
-      {
-        name: 'API Express',
-        url: 'http://localhost:3001', // Corrected port to match API startup
-        health: 'healthy',
-        weight: 1,
-        maxConnections: 1000,
-        isActive: true,
-      },
-      {
+    const isCI = process.env.CI === 'true' || process.env.DEPLOY_ENABLED === 'false';
+    const defaultServices = [];
+
+    // Always register the API Express service (current service)
+    defaultServices.push({
+      name: 'API Express',
+      url: 'http://localhost:3001', // Corrected port to match API startup
+      health: 'healthy',
+      weight: 1,
+      maxConnections: 1000,
+      isActive: true,
+    });
+
+    // Only register Web BFF service if not in CI environment
+    if (!isCI) {
+      defaultServices.push({
         name: 'Web BFF',
         url: 'http://localhost:3000',
         health: 'healthy',
         weight: 1,
         maxConnections: 500,
         isActive: true,
-      },
-    ];
+      });
+    }
 
     for (const serviceData of defaultServices) {
       this.addService(serviceData);
@@ -460,16 +466,20 @@ export class APIGateway {
         conditions: [],
         isActive: true,
       },
-      {
+    ];
+
+    // Only add Web BFF routes if the service exists
+    if (webBffService) {
+      defaultRoutes.push({
         name: 'Web Dashboard',
         path: '/dashboard',
         method: 'GET',
-        serviceId: webBffService?.id || apiExpressService.id, // Usar ID real o fallback
+        serviceId: webBffService.id,
         priority: 80,
         conditions: [],
         isActive: true,
-      },
-    ];
+      });
+    }
 
     for (const routeData of defaultRoutes) {
       this.addRoute(routeData);
