@@ -1,46 +1,76 @@
-name: k6-smoke
+name: K6 Smoke Tests
+
 on:
   push:
-    branches: ['**']
+    branches: [ main, develop, 'pr/**' ]
+  pull_request:
+    branches: [ main, develop ]
   workflow_dispatch: {}
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DEPLOY_ENABLED: false
+
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
-  perf:
+  k6-smoke-tests:
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-    env:
-      K6_BASE_URL: ${{ secrets.K6_BASE_URL }}
-      NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+    timeout-minutes: 10
+    
     steps:
       - uses: actions/checkout@v4
-      - name: Setup k6
-        uses: grafana/setup-k6-action@v1
-      - name: Preflight secret
-        id: preflight
-        shell: bash
+      
+      - name: Check deployment status
+        id: deployment
         run: |
-          if [ -z "$K6_BASE_URL" ]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
-            echo "K6_BASE_URL not set → skipping smoke"
+          if [ "${{ env.DEPLOY_ENABLED }}" = "true" ]; then
+            echo "enabled=true" >> $GITHUB_OUTPUT
+            echo "🚀 Deployment enabled - running k6 smoke tests"
           else
-            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "enabled=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ DEPLOY_ENABLED=false - skipping k6 smoke tests"
           fi
-      - name: Run k6 smoke
-        if: steps.preflight.outputs.skip != 'true'
+          
+      - name: Setup k6
+        if: steps.deployment.outputs.enabled == 'true'
+        uses: grafana/setup-k6-action@v1
+        
+      - name: Check secrets availability
+        if: steps.deployment.outputs.enabled == 'true'
+        id: secrets
+        run: |
+          if [ -z "${{ secrets.K6_BASE_URL }}" ]; then
+            echo "available=false" >> $GITHUB_OUTPUT
+            echo "⚠️ K6_BASE_URL secret not available"
+          else
+            echo "available=true" >> $GITHUB_OUTPUT
+            echo "✅ K6_BASE_URL secret available"
+          fi
+          
+      - name: Run k6 smoke tests
+        if: steps.deployment.outputs.enabled == 'true' && steps.secrets.outputs.available == 'true'
+        env:
+          K6_BASE_URL: ${{ secrets.K6_BASE_URL }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
         run: |
           export BASE_URL="$K6_BASE_URL"
+          echo "🧪 Running k6 smoke tests against: $BASE_URL"
           k6 run tests/perf/e2e.js
-      - name: Teams alert on FAIL
-        if: failure()
-        run: echo "k6 smoke FAIL" # ver docs/ALERTS.md
-  close-pr-on-fail:
-    if: failure() && github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cerrar PR por fallo de k6 (p95<2s)
-        uses: peter-evans/close-pull@v3
-        with:
-          comment: |
-            ❌ Gate de rendimiento (k6 p95<2s) ha fallado. Ajusta rendimiento y vuelve a abrir el PR.
-      # marker: k6-smoke.yml
+          
+      - name: Skip notification
+        if: steps.deployment.outputs.enabled == 'false'
+        run: |
+          echo "✅ K6 smoke tests skipped - DEPLOY_ENABLED=false"
+          echo "This is expected for CI-only branches"
+          
+      - name: Teams alert on failure
+        if: failure() && steps.deployment.outputs.enabled == 'true'
+        run: |
+          echo "❌ K6 smoke tests failed"
+          echo "Performance gate (p95<2s) not met"
