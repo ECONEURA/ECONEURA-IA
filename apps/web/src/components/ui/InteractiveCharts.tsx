@@ -64,7 +64,7 @@ interface ChartConfig {
 }
 
 interface InteractiveChartsProps {
-  data?: any;
+  data: any;
   className?: string;
   onChartClick?: (chartId: string, dataPoint: any) => void;
 }
@@ -189,6 +189,7 @@ export default function InteractiveCharts({
           scales: {
             y: {
               beginAtZero: true,
+              max: 100,
               grid: {
                 display: true
               }
@@ -232,6 +233,7 @@ export default function InteractiveCharts({
           scales: {
             y: {
               beginAtZero: true,
+              max: 100,
               grid: {
                 display: true
               }

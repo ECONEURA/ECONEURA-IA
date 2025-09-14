@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { apiClient } from '@/lib/api-client';
+import { useApiClient } from '@/hooks/useApi';
 import AdvancedDashboard from '@/components/ui/AdvancedDashboard';
 import InteractiveCharts from '@/components/ui/InteractiveCharts';
 import {
@@ -35,7 +35,7 @@ interface Notification {
 }
 
 export default function AdvancedDashboardPage() {
-  const api = apiClient;
+  const apiClient = useApiClient();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,8 +61,8 @@ export default function AdvancedDashboardPage() {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const data = await api.request({ url: `/dashboard/data/org-123?period=${selectedPeriod}`, method: 'GET' });
-      setDashboardData(data.data ?? data);
+      const response = await apiClient(`/dashboard/data/org-123?period=${selectedPeriod}`);
+      setDashboardData(response.data);
       setError(null);
     } catch (err) {
       setError('Error loading dashboard data');
@@ -74,8 +74,8 @@ export default function AdvancedDashboardPage() {
 
   const loadNotifications = async () => {
     try {
-      const dataN = await api.request({ url: '/notifications/user/current?limit=5', method: 'GET' });
-      setNotifications((dataN.data?.notifications || dataN.notifications) || []);
+      const response = await apiClient('/notifications/user/current?limit=5');
+      setNotifications(response.data.notifications || []);
     } catch (err) {
       console.error('Error loading notifications:', err);
     }
@@ -88,12 +88,14 @@ export default function AdvancedDashboardPage() {
 
   const handleExportData = async () => {
     try {
-      const resp = await fetch('/api/dashboard/export/org-123', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ period: selectedPeriod }) });
-      
+      const response = await apiClient('/dashboard/export/org-123', {
+        method: 'POST',
+        body: JSON.stringify({ period: selectedPeriod })
+      });
+
       // Download the exported data
-      const dataExport = await resp.json();
-      const blob = new Blob([JSON.stringify(dataExport, null, 2)], { 
-        type: 'application/json' 
+      const blob = new Blob([JSON.stringify(response.data, null, 2)], {
+        type: 'application/json'
       });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -289,7 +291,11 @@ export default function AdvancedDashboardPage() {
           <AdvancedDashboard className="mb-8" />
 
           {/* Interactive Charts */}
-          <InteractiveCharts onChartClick={handleChartClick} className="mb-8" />
+          <InteractiveCharts
+            data={dashboardData}
+            onChartClick={handleChartClick}
+            className="mb-8"
+          />
 
           {/* AI Insights Section */}
           {dashboardData?.ai_recommendations && (

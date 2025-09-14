@@ -11,7 +11,7 @@ declare global {
 export const attachOrg: RequestHandler = (req, _res, next) => {
   const aadRequired = (process.env.AAD_REQUIRED ?? 'false') === 'true'
   let id: string | undefined
-  let source: 'aad' | 'header' | 'body' | 'untrusted' | 'none' = 'none'
+  const source: 'aad' | 'header' | 'body' | 'untrusted' | 'none' = 'none'
 
   // Prefer AAD claims (assume aad middleware sets req.user)
   // @ts-ignore

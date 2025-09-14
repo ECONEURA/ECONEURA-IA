@@ -1,6 +1,16 @@
-import { logger } from '../logging/index';
-import { redactPII } from '../security/index';
-import type { AIRequest, AIResponse } from '../types/index';
+import { logger } from '../logging';
+import { redactPII } from '../security';
+import type { AIRequest, AIResponse } from '../types/models/ai';
+
+// Router expects additional fields; extend locally to avoid changing shared model now
+type RouterAIRequest = AIRequest & {
+  org_id: string
+  sensitivity?: 'pii' | 'confidential' | 'none'
+  tokens_est: number
+  budget_cents: number
+  tools_needed: string[]
+  languages: string[]
+}
 
 export interface RouterDecision {
   provider: 'mistral-edge' | 'openai-cloud' | 'azure-openai';

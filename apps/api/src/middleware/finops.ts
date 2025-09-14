@@ -1,20 +1,22 @@
-import { Request, Response, NextFunction } from 'express';
+import crypto from 'node:crypto';
+import type { Request, Response, NextFunction } from 'express';
+import { estimateCostEUR } from '../finops/estimator';
 
-export function finops(req: Request, res: Response, next: NextFunction) {
-  const t = process.hrtime.bigint();
-  const cid = String(req.headers["x-correlation-id"] ?? Math.random().toString(36).slice(2, 10));
-  
-  res.setHeader("X-Correlation-Id", cid);
-  
-  const orig = res.writeHead;
-  res.writeHead = function(statusCode: number, ...args: any[]) {
-    const ms = Number((process.hrtime.bigint() - t) / 1000000n);
-    res.setHeader("X-Latency-ms", String(ms));
-    res.setHeader("X-Est-Cost-EUR", "0.0000");
-    res.setHeader("X-Budget-Pct", "0");
-    res.setHeader("X-Route", req.path);
-    return orig.call(this, statusCode, ...args);
+// Middleware mínimo de FinOps: añade headers requeridos por V3 en todas las rutas /v1
+export function finopsHeaders(defaultEstCost?: number, defaultBudgetPct?: number) {
+  return (req: Request, res: Response, next: NextFunction) => {
+  const cid = (req.headers['x-correlation-id'] as string) || (res.getHeader('X-Correlation-Id') as string) || crypto.randomUUID();
+  if (!res.getHeader('X-Correlation-Id')) res.setHeader('X-Correlation-Id', cid);
+    const agent_key = (req.params?.agent_key as string) || 'unknown';
+    const est = typeof defaultEstCost === 'number' ? defaultEstCost : estimateCostEUR({ agent_key });
+  if (!res.getHeader('X-Est-Cost-EUR')) res.setHeader('X-Est-Cost-EUR', est.toFixed(4));
+    const budgetPct = typeof defaultBudgetPct === 'number' ? defaultBudgetPct : 0;
+  if (!res.getHeader('X-Budget-Pct')) res.setHeader('X-Budget-Pct', String(budgetPct));
+    res.setHeader('X-Route', req.originalUrl);
+    const start = Date.now();
+    res.on('finish', () => {
+      try { res.setHeader('X-Latency-ms', String(Date.now() - start)); } catch {}
+    });
+    next();
   };
-  
-  next();
 }

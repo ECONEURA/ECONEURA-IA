@@ -1,5 +1,5 @@
 import { useApiQuery, useApiMutation } from './useApi'
-import { Company, Contact, Deal } from '@econeura/shared/schemas'
+import type { Company, Contact, Deal } from '@econeura/shared'
 
 // ============ COMPANIES ============
 
@@ -23,7 +23,7 @@ export function useCompanies(params?: {
       total: number
       totalPages: number
     }
-  }>(`companies-${queryString || 'all'}`, `/v1/crm/companies${queryString ? `?${queryString}` : ''}`)
+  }>(['companies', params], `/v1/crm/companies${queryString ? `?${queryString}` : ''}`)
 }
 
 export function useCompany(id: string) {
@@ -90,7 +90,7 @@ export function useContacts(params?: {
       total: number
       totalPages: number
     }
-  }>(`contacts-${queryString || 'all'}`, `/v1/crm/contacts${queryString ? `?${queryString}` : ''}`)
+  }>(['contacts', params], `/v1/crm/contacts${queryString ? `?${queryString}` : ''}`)
 }
 
 export function useContact(id: string) {
@@ -163,7 +163,7 @@ export function useDeals(params?: {
       total: number
       totalPages: number
     }
-  }>(`deals-${queryString || 'all'}`, `/v1/crm/deals${queryString ? `?${queryString}` : ''}`)
+  }>(['deals', params], `/v1/crm/deals${queryString ? `?${queryString}` : ''}`)
 }
 
 export function useDeal(id: string) {

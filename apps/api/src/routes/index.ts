@@ -2,7 +2,7 @@ import express, { type Router as ExpressRouter } from 'express';
 let helmet: any;
 try {
   // prefer import at runtime if available
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+   
   helmet = require('helmet');
 } catch (e) {
   // fallback no-op middleware

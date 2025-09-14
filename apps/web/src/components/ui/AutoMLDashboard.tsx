@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Brain, Zap, TrendingUp, BarChart3, Clock, Target } from 'lucide-react';
-import { apiClient } from '@/lib/api-client';
+import { useApiClient } from '@/hooks/useApi';
 
 interface Model {
   id: string;
@@ -37,7 +37,7 @@ export default function AutoMLDashboard() {
     features: [],
     testSize: 0.2
   });
-  // const api = apiClient
+  const { apiCall } = useApiClient();
 
   useEffect(() => {
     loadModels();

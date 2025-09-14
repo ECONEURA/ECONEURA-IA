@@ -2,36 +2,49 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+  "moduleResolution": "bundler",
     "allowJs": true,
+    "checkJs": true,
+  "noEmit": true,
     "strict": true,
     "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
+    "jsx": "preserve",
     "incremental": true,
-    "tsBuildInfoFile": ".tsbuildinfo",
     "baseUrl": ".",
     "types": ["node", "express", "jest"],
     "paths": {
-      "@/*": ["apps/api/src/*"],
-      "@/lib/*": ["apps/api/src/lib/*"],
-      "@/middleware/*": ["apps/api/src/middleware/*"],
-      "@/routes/*": ["apps/api/src/routes/*"]
+      "@econeura/shared": ["./packages/shared/src"],
+      "@econeura/shared/*": ["./packages/shared/src/*"],
+  "@econeura/db": ["./src/types/external-stubs.d.ts"],
+  "@econeura/db/*": ["./src/types/external-stubs.d.ts"],
+      "@econeura/sdk": ["./packages/sdk/src"],
+      "@econeura/sdk/*": ["./packages/sdk/src/*"],
+      "@/*": ["./apps/web/src/*"]
     }
   },
   "include": [
-    "apps/api/src/**/*",
-    "packages/**/*"
+    "**/*.ts",
+  "**/*.d.ts",
+    "**/*.tsx",
+    "**/*.mts",
+    "**/*.js",
+    "**/*.jsx",
+    "**/*.json"
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "build",
-    "**/*.test.ts",
-    "**/*.spec.ts"
+  "packages/db/**",
+    "**/dist",
+    "**/build",
+    ".next",
+    "out",
+    ".cache"
   ]
+
 }

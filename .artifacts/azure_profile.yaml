@@ -1,0 +1,82 @@
+AZURE_PROFILE:
+  subscription:
+    name: "Suscripción de Azure 1"
+    id: "fc22ced4-6dc1-4f52-aac1-170a62f98c57"
+    tenant_directory: "Default Directory (Samuelpanzardioutlook.onmicrosoft.com)"
+  region: "North Europe"
+  resource_group: "appsvc_linux_northeurope_basic"
+  app_service_plan:
+    name: "appsvc_linux_northeurope_basic"
+    sku: "Basic (B1)"
+    os: "Linux"
+    instances: 1
+  apps:
+    - name: "econeura-web-dev"
+      type: "App Service"
+      runtime: "Node 20-lts"
+      state: "Running"
+      health: "0% (0 ok / 1 degradado)"
+      default_domain: "econeura-web-dev-dpehcua9augngbcb.northeurope-01.azurewebsites.net"
+      vip: "20.107.224.41"
+      vnet_integration: "Not configured"
+    - name: "econeura-api-dev"
+      type: "App Service"
+      runtime: "Node 20-lts"
+      state: "Running"
+      health: "100% (1 ok / 0 degradado)"
+      default_domain: "econeura-api-dev.azurewebsites.net"
+      vip: "20.107.224.41"
+      vnet_integration: "Not configured"
+  egress_ips:
+    primary: ["132.164.218.10","132.164.218.33","132.164.218.34","132.164.218.55","132.164.218.77","132.164.218.87","132.164.216.230","132.164.216.253","132.164.216.255","132.164.217.24","132.164.217.38","132.164.217.58","20.107.224.41"]
+    additional: ["132.164.217.79","132.164.217.81","132.164.217.89","132.164.217.90","132.164.217.98","132.164.217.109","132.164.217.144","132.164.217.164","132.164.217.175","132.164.217.197","132.164.217.238","132.164.217.242","132.164.218.94","132.164.218.127","132.164.218.175","132.164.218.190","132.164.216.5","132.164.218.193","20.107.224.41"]
+  application_insights:
+    workspace_name: "workspace-econeura-web-dev"
+    workspace_id: "ecbaab79-0b91-4a9d-b308-37112e1c9f45"
+    instrumentation_key: "fd107298-6cc0-4d42-b5ac-cd65326fb9f4"
+    connection_string: "InstrumentationKey=fd107298-6cc0-4d42-b5ac-cd65326fb9f4;IngestionEndpoint=https://northeurope-2.in.applicationinsights.azure.com/;LiveEndpoint=https://northeurope.livediagnostics.monitor.azure.com/;ApplicationId=468ffe42-be05-4a0e-9ea8-b9e8ac4cc169"
+    eu_endpoints: true
+  governance_cost:
+    secure_score: "100%"
+    current_cost_eur: "1,63 €"
+    forecast_cost_eur: "4,62 €"
+  notes: ["No VNet integration","Sin dominios personalizados","Plan B1 Linux","Web health degradado; API ok"]
+
+variables_obligatorias:
+  AZURE_TENANT_ID: ""
+  AZURE_SUBSCRIPTION_ID: "fc22ced4-6dc1-4f52-aac1-170a62f98c57"
+  AZURE_CLIENT_ID: ""
+  AZURE_CLIENT_SECRET: ""
+  APPLICATIONINSIGHTS_CONNECTION_STRING: ""
+  AZURE_OPENAI_API_KEY: ""
+  AZURE_OPENAI_API_BASE: ""
+  DATABASE_URL: ""
+  REDIS_URL: ""
+  NODE_ENV: development
+  PORT: 3000
+  NEXT_PUBLIC_API_URL: "https://econeura-api-dev.azurewebsites.net"
+
+app_service_settings_template:
+  WEBSITE_STACK: "node|20-lts"
+  WEBSITE_RUN_FROM_PACKAGE: "1"
+  NODE_ENV: "production"
+  PORT: "8080"
+  APPLICATIONINSIGHTS_CONNECTION_STRING: "<set in Azure>"
+  AZURE_TENANT_ID: "<set in Azure>"
+  AZURE_SUBSCRIPTION_ID: "fc22ced4-6dc1-4f52-aac1-170a62f98c57"
+  AZURE_CLIENT_ID: "<set in Azure>"
+  AZURE_CLIENT_SECRET: "<set in Azure>"
+  AZURE_OPENAI_API_KEY: "<set in Azure>"
+  AZURE_OPENAI_API_BASE: "<eu resource base>"
+  DATABASE_URL: "<set in Azure>"
+  REDIS_URL: "<optional>"
+  NEXT_PUBLIC_API_URL: "https://econeura-api-dev.azurewebsites.net"
+
+ci_checks:
+  - "Node 20 and pnpm@8.15.5 fixed"
+  - "APPLICATIONINSIGHTS_CONNECTION_STRING used, not only instrumentationKey"
+  - "Respect PORT in API/Web"
+  - "Health routes present and documented"
+  - "NO_DEPLOY active in workflows"
+  - "Egress IPs listed in docs/azure/EGRESS_IPS.md"
+  - "VNet not configured documented"

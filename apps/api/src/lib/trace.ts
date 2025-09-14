@@ -1,7 +1,7 @@
 // Prefer shared OTEL mock/helpers when available to keep CI green
 let otel: any = null;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+   
   otel = require('@opentelemetry/api');
 } catch {}
 import { tracer as sharedTracer } from '@econeura/shared/otel/index';
