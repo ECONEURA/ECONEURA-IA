@@ -2,28 +2,9 @@ name: ci-base
 on: [push, pull_request]
 env: { DEPLOY_ENABLED: 'false' }
 permissions: { contents: read }
-concurrency: { group: ${{ github.workflow }}-${{ github.ref }}, cancel-in-progress: true }
-
-jobs:
-  check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node 20 + pnpm
-        uses: actions/setup-node@v4
-        with: { node-version: '20.17.0', cache: 'pnpm' }
-      - run: corepack enable && corepack prepare pnpm@8.15.6 --activate
-      - run: pnpm -w i
-      - run: pnpm -w lint && pnpm -w typecheck
-      - name: Seed ≥60 agents gate
-        run: node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync('configs/agents/registry.json','utf8'));if(j.length<60){process.stderr.write('Need >=60 agents, have '+j.length);process.exit(1)}"
-name: ci-base
-
-on: [push, pull_request]
-
-env: { DEPLOY_ENABLED: 'false' }
-permissions: { contents: read }
-concurrency: { group: ${{ github.workflow }}-${{ github.ref }}, cancel-in-progress: true }
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   check:
