@@ -18,10 +18,12 @@ runs:
         node-version: ${{ inputs.node-version }}
         cache: 'pnpm'
 
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        version: ${{ inputs.pnpm-version }}
+    - name: Enable corepack & pin pnpm
+      shell: bash
+      run: |
+        set -euo pipefail
+        corepack enable
+        corepack prepare pnpm@${{ inputs.pnpm-version }} --activate
 
     - name: Enable corepack
       shell: bash

@@ -1,6 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 export NODE_ENV=test
+export PORT=3001
+export HEALTH_PATH=/health
+export MOCK_EXTERNAL=1
+export LOG_LEVEL=warn
+
+set -euo pipefail
+export NODE_ENV=test
+export PORT=3001
+export HEALTH_PATH=/health
+export MOCK_EXTERNAL=1
+export LOG_LEVEL=warn
+#!/usr/bin/env bash
+set -euo pipefail
+export NODE_ENV=test
 export PORT="${PORT:-3001}"
 export HEALTH_PATH="${HEALTH_PATH:-/health}"
 export DATABASE_URL="${DATABASE_URL:-postgresql://ci:ci@127.0.0.1:5432/econeura_ci}"

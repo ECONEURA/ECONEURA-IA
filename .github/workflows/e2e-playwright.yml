@@ -1,68 +1,65 @@
 name: e2e-playwright
-on:
-  push:
-    branches: ['**']
-  workflow_dispatch: {}
+on: [push, pull_request]
+env: { DEPLOY_ENABLED: 'false', BASE_URL: 'http://127.0.0.1:3000' }
+permissions: { contents: read }
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node 20 + pnpm
+        uses: actions/setup-node@v4
+        with: { node-version: '20.17.0', cache: 'pnpm' }
+      - run: corepack enable && corepack prepare pnpm@8.15.6 --activate
+      - run: pnpm -w i
+      - name: Install Playwright
+        run: npx playwright install --with-deps
+      - name: Start Web (dev)
+        run: pnpm --filter @econeura/web dev &
+      - name: Wait Web health
+        run: for i in {1..90}; do curl -fsS http://127.0.0.1:3000/health && exit 0; sleep 2; done; exit 1
+      - name: Detect baseline
+        id: base
+        run: test -d apps/web/tests/playwright/__snapshots__ && echo "has=1" >> $GITHUB_OUTPUT || echo "has=0" >> $GITHUB_OUTPUT
+      - name: Bootstrap snapshots
+        if: steps.base.outputs.has == '0'
+        run: pnpm --filter @econeura/web test:ui:update
+      - name: Gate snapshots (≤2%)
+        run: pnpm --filter @econeura/web test:ui
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: pw-report, path: apps/web/playwright-report }
+name: e2e-playwright
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+on: [push, pull_request]
 
-env:
-  CI: true
-  DEPLOY_ENABLED: "false"
+env: { DEPLOY_ENABLED: 'false', BASE_URL: 'http://127.0.0.1:3000' }
+permissions: { contents: read }
 
 jobs:
   e2e:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write   # para commitear baseline en bootstrap
-      pull-requests: write
-    env:
-      BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }} # p.ej. https://econeura-web-dev.azurewebsites.net
-      PLAYWRIGHT_BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
-      NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
-      SNAPSHOT_THRESHOLD: '0.02'
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-      - name: Enable Corepack & pin pnpm
-        run: |
-          set -euxo pipefail
-          corepack enable
-          corepack prepare pnpm@9.10.0 --activate
-          pnpm -v && node -v && npm -v
-      - run: pnpm install --frozen-lockfile
-      - name: Install Playwright (browsers)
+      - name: Setup Node 20 + pnpm
+        uses: actions/setup-node@v4
+        with: { node-version: '20.17.0', cache: 'pnpm' }
+      - run: corepack enable && corepack prepare pnpm@8.15.6 --activate
+      - run: pnpm -w i
+      - name: Install Playwright
         run: npx playwright install --with-deps
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: 0
+      - name: Start Web (dev)
+        run: pnpm --filter @econeura/web dev &
+      - name: Wait Web health
+        run: for i in {1..90}; do curl -fsS http://127.0.0.1:3000/health && exit 0; sleep 2; done; exit 1
       - name: Detect baseline
-        id: baseline
-        run: test -d apps/web/tests/playwright/__snapshots__ && echo "has=true" >> $GITHUB_OUTPUT || echo "has=false" >> $GITHUB_OUTPUT
-      - name: Bootstrap snapshots (first run)
-        if: steps.baseline.outputs.has == 'false'
-        run: pnpm e2e:bootstrap
+        id: base
+        run: test -d apps/web/tests/playwright/__snapshots__ && echo "has=1" >> $GITHUB_OUTPUT || echo "has=0" >> $GITHUB_OUTPUT
+      - name: Bootstrap snapshots
+        if: steps.base.outputs.has == '0'
+        run: pnpm --filter @econeura/web test:ui:update
       - name: Gate snapshots (≤2%)
-        if: steps.baseline.outputs.has == 'true'
-        run: pnpm e2e:gate
+        run: pnpm --filter @econeura/web test:ui
       - uses: actions/upload-artifact@v4
         if: always()
-        with:
-          name: playwright-report
-          path: apps/web/playwright-report/**
-      - name: Quality one-liner
-        if: always()
-        run: pnpm ci:gates
-  close-pr-on-fail:
-    if: failure() && github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cerrar PR por fallo de gate visual
-        uses: peter-evans/close-pull@v3
-        with:
-          comment: |
-            ❌ Gate visual (Playwright ≤2%) ha fallado. Revisa el reporte y vuelve a abrir cuando esté verde.
+        with: { name: pw-report, path: apps/web/playwright-report }

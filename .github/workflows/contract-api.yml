@@ -1,43 +1,53 @@
 name: contract-api
-on:
-  push:
-    branches:
-      - '**'
-  workflow_dispatch: {}
+on: [push, pull_request]
+env: { DEPLOY_ENABLED: 'false' }
+permissions: { contents: read }
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env: { POSTGRES_PASSWORD: ci, POSTGRES_USER: ci, POSTGRES_DB: econeura_ci }
+        options: >-
+          --health-cmd="pg_isready -U ci" --health-interval=10s --health-timeout=5s --health-retries=5
+        ports: ['5432:5432']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node 20 + pnpm
+        uses: actions/setup-node@v4
+        with: { node-version: '20.17.0', cache: 'pnpm' }
+      - run: corepack enable && corepack prepare pnpm@8.15.6 --activate
+      - run: pnpm -w i
+      - name: Start API
+        run: bash scripts/ci/api-up.sh
+      - name: Run contract tests
+        run: pnpm -w test:contract
+name: contract-api
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+on: [push, pull_request]
 
-env:
-  CI: true
-  DEPLOY_ENABLED: "false"
+env: { DEPLOY_ENABLED: 'false' }
+permissions: { contents: read }
 
 jobs:
   contract:
     runs-on: ubuntu-latest
-    env:
-      AUTH_REQUIRED: "true"
-      NODE_ENV: "test"
-      MAKE_SIGNING_SECRET: "test"
+    services:
+      postgres:
+        image: postgres:15
+        env: { POSTGRES_PASSWORD: ci, POSTGRES_USER: ci, POSTGRES_DB: econeura_ci }
+        options: >-
+          --health-cmd="pg_isready -U ci" --health-interval=10s --health-timeout=5s --health-retries=5
+        ports: ['5432:5432']
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-      - name: Enable Corepack & pin pnpm
-        run: |
-          set -euxo pipefail
-          corepack enable
-          corepack prepare pnpm@9.10.0 --activate
-          pnpm -v && node -v && npm -v
-      - name: Install deps
-        run: pnpm -w install --frozen-lockfile
-      - name: Typecheck & Lint
-        run: pnpm typecheck && pnpm lint
+      - name: Setup Node 20 + pnpm
+        uses: actions/setup-node@v4
+        with: { node-version: '20.17.0', cache: 'pnpm' }
+      - run: corepack enable && corepack prepare pnpm@8.15.6 --activate
+      - run: pnpm -w i
+      - name: Start API
+        run: bash scripts/ci/api-up.sh
       - name: Run contract tests
-        run: pnpm test:contract
-      - name: Quality one-liner
-        if: always()
-        run: pnpm ci:gates
+        run: pnpm -w test:contract

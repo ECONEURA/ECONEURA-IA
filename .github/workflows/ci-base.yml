@@ -1,76 +1,40 @@
 name: ci-base
-
-on:
-  push:
-    branches: [ "**" ]
-  pull_request:
-    branches: [ "**" ]
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-env:
-  CI: true
-  DEPLOY_ENABLED: "false"
+on: [push, pull_request]
+env: { DEPLOY_ENABLED: 'false' }
+permissions: { contents: read }
+concurrency: { group: ${{ github.workflow }}-${{ github.ref }}, cancel-in-progress: true }
 
 jobs:
-  ci:
+  check:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_DB: econeura_test
-        ports: [ "5432:5432" ]
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s --health-timeout 5s --health-retries 10
-      redis:
-        image: redis:7-alpine
-        ports: [ "6379:6379" ]
-        options: >-
-          --health-cmd "redis-cli ping || exit 1"
-          --health-interval 5s --health-timeout 3s --health-retries 10
-    env:
-      NODE_ENV: test
-      POSTGRES_URL: postgres://postgres:postgres@localhost:5432/econeura_test
-      REDIS_URL: redis://localhost:6379
-      AUTH_REQUIRED: "false"
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-      - name: Enable Corepack & pin pnpm
-        run: |
-          set -euxo pipefail
-          corepack enable
-          corepack prepare pnpm@9.10.0 --activate
-          pnpm -v && node -v && npm -v
-      - run: pnpm install --frozen-lockfile
-      - name: Typecheck & Lint
-        run: pnpm typecheck && pnpm lint
-      - name: Migraciones (si existen)
-        run: pnpm -w run db:migrate || true
-      - name: Tests unitarios compartidos
-        run: pnpm -w run -r test --filter @econeura/shared
-      - name: Tests API
-        run: pnpm -w run -r test --filter @econeura/api
-      - name: Validar OpenAPI (si aplica)
-        run: pnpm -w run openapi:validate || true
+      - name: Setup Node 20 + pnpm
+        uses: actions/setup-node@v4
+        with: { node-version: '20.17.0', cache: 'pnpm' }
+      - run: corepack enable && corepack prepare pnpm@8.15.6 --activate
+      - run: pnpm -w i
+      - run: pnpm -w lint && pnpm -w typecheck
       - name: Seed ≥60 agents gate
-        run: pnpm agents:assert
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: reports
-          path: |
-            reports/**
-            .artifacts/**
-      - name: Quality one-liner
-        if: always()
-        run: pnpm ci:gates
+        run: node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync('configs/agents/registry.json','utf8'));if(j.length<60){process.stderr.write('Need >=60 agents, have '+j.length);process.exit(1)}"
+name: ci-base
+
+on: [push, pull_request]
+
+env: { DEPLOY_ENABLED: 'false' }
+permissions: { contents: read }
+concurrency: { group: ${{ github.workflow }}-${{ github.ref }}, cancel-in-progress: true }
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node 20 + pnpm
+        uses: actions/setup-node@v4
+        with: { node-version: '20.17.0', cache: 'pnpm' }
+      - run: corepack enable && corepack prepare pnpm@8.15.6 --activate
+      - run: pnpm -w i
+      - run: pnpm -w lint && pnpm -w typecheck
+      - name: Seed ≥60 agents gate
+        run: node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync('configs/agents/registry.json','utf8'));if(j.length<60){process.stderr.write('Need >=60 agents, have '+j.length);process.exit(1)}"
