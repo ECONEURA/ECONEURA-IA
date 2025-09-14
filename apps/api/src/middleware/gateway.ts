@@ -24,6 +24,19 @@ export function gatewayRoutingMiddleware(req: GatewayRequest, res: Response, nex
     const query = req.query as Record<string, string>;
     const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
 
+    // Rutas locales que deben bypass el gateway
+    const localRoutes = ['/health', '/metrics', '/v1/gateway'];
+    const isLocalRoute = localRoutes.some(route => path.startsWith(route));
+
+    if (isLocalRoute) {
+      logger.debug('Gateway: local route, passing through to Express', {
+        path,
+        method,
+        clientIp,
+      });
+      return next();
+    }
+
     // Buscar ruta que coincida
     const route = apiGateway.findRoute(path, method, headers, query);
 

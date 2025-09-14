@@ -417,7 +417,7 @@ export class APIGateway {
     const defaultServices = [
       {
         name: 'API Express',
-        url: 'http://localhost:4000',
+        url: 'http://localhost:3001', // Corrected port to match API startup
         health: 'healthy',
         weight: 1,
         maxConnections: 1000,
@@ -451,15 +451,6 @@ export class APIGateway {
     }
 
     const defaultRoutes = [
-      {
-        name: 'API Health Check',
-        path: '/health',
-        method: 'GET',
-        serviceId: apiExpressService.id, // Usar ID real
-        priority: 100,
-        conditions: [],
-        isActive: true,
-      },
       {
         name: 'API AI Chat',
         path: '/v1/ai/chat',
