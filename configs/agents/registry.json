@@ -1,0 +1,302 @@
+[
+  {
+    "name": "agent-1",
+    "type": "basic",
+    "status": "active"
+  },
+  {
+    "name": "agent-2",
+    "type": "advanced",
+    "status": "active"
+  },
+  {
+    "name": "agent-3",
+    "type": "basic",
+    "status": "inactive"
+  },
+  {
+    "name": "agent-4",
+    "type": "advanced",
+    "status": "active"
+  },
+  {
+    "name": "agent-5",
+    "type": "basic",
+    "status": "active"
+  },
+  {
+    "name": "agent-6",
+    "type": "advanced",
+    "status": "inactive"
+  },
+  {
+    "name": "agent-7",
+    "type": "basic",
+    "status": "active"
+  },
+  {
+    "name": "agent-8",
+    "type": "advanced",
+    "status": "active"
+  },
+  {
+    "name": "agent-9",
+    "type": "basic",
+    "status": "inactive"
+  },
+  {
+    "name": "agent-10",
+    "type": "advanced",
+    "status": "active"
+  },
+  {
+    "name": "stub-agent-0",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-1",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-2",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-3",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-4",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-5",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-6",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-7",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-8",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-9",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-10",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-11",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-12",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-13",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-14",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-15",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-16",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-17",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-18",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-19",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-20",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-21",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-22",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-23",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-24",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-25",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-26",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-27",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-28",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-29",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-30",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-31",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-32",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-33",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-34",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-35",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-36",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-37",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-38",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-39",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-40",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-41",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-42",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-43",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-44",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-45",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-46",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-47",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-48",
+    "type": "stub",
+    "status": "inactive"
+  },
+  {
+    "name": "stub-agent-49",
+    "type": "stub",
+    "status": "inactive"
+  }
+]

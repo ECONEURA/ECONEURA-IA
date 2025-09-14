@@ -6,21 +6,33 @@ on:
   schedule:
     - cron: '0 0 * * *' # nightly UTC
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: true
+  DEPLOY_ENABLED: "false"
+
 jobs:
   progress:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 8.15.0
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'pnpm'
+      - name: Enable Corepack & pin pnpm
+        run: |
+          set -euxo pipefail
+          corepack enable
+          corepack prepare pnpm@9.10.0 --activate
+          pnpm -v && node -v && npm -v
       - name: Install deps
         run: pnpm install --frozen-lockfile
+      - name: Typecheck & Lint
+        run: pnpm typecheck && pnpm lint
       - name: Generate progress
         run: pnpm progress
       - name: Commit outputs

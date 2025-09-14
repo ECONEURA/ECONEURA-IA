@@ -4,6 +4,14 @@ on:
     branches: ['**']
   workflow_dispatch: {}
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: true
+  DEPLOY_ENABLED: "false"
+
 jobs:
   e2e:
     runs-on: ubuntu-latest
@@ -17,67 +25,38 @@ jobs:
       SNAPSHOT_THRESHOLD: '0.02'
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 8.15.0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-      - name: Install Playwright
-        run: pnpm dlx playwright install --with-deps
-      - name: Preflight secrets
-        id: preflight
-        shell: bash
+      - name: Enable Corepack & pin pnpm
         run: |
-          if [ -z "${BASE_URL}" ]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
-            echo "PLAYWRIGHT_BASE_URL not set → skipping visual gate"
-          else
-            echo "skip=false" >> $GITHUB_OUTPUT
-          fi
+          set -euxo pipefail
+          corepack enable
+          corepack prepare pnpm@9.10.0 --activate
+          pnpm -v && node -v && npm -v
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright (browsers)
+        run: npx playwright install --with-deps
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: 0
       - name: Detect baseline
         id: baseline
-        shell: bash
-        run: |
-          shopt -s nullglob globstar
-          files=(tests/ui/**/__screenshots__/**/*.png)
-          if [ ${#files[@]} -eq 0 ]; then echo "mode=bootstrap" >> $GITHUB_OUTPUT; else echo "mode=gating" >> $GITHUB_OUTPUT; fi
-      - name: Guardar baseline (auto-commit) si falta
-        if: steps.baseline.outputs.mode == 'bootstrap'
-        run: |
-          if [ -z "$BASE_URL" ]; then
-            echo "PLAYWRIGHT_BASE_URL no configurado → no se puede bootstrapear"; exit 0;
-          fi
-          pnpm test:ui:update
-          echo "::group::Listado de screenshots"
-          ls -R tests/ui/**/__screenshots__ || true
-          echo "::endgroup::"
-      - name: Commit baseline (solo bootstrap)
-        if: steps.baseline.outputs.mode == 'bootstrap'
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -f tests/ui/**/__screenshots__ || true
-          git commit -m 'test(ui): add Playwright baseline (auto-bootstrap)' || echo "No changes to commit"
+        run: test -d apps/web/tests/playwright/__snapshots__ && echo "has=true" >> $GITHUB_OUTPUT || echo "has=false" >> $GITHUB_OUTPUT
       - name: Bootstrap snapshots (first run)
-        if: steps.preflight.outputs.skip != 'true' && steps.baseline.outputs.mode == 'bootstrap'
-        run: echo "Baseline creada y commiteada por CI"
+        if: steps.baseline.outputs.has == 'false'
+        run: pnpm e2e:bootstrap
       - name: Gate snapshots (≤2%)
-        if: steps.preflight.outputs.skip != 'true' && steps.baseline.outputs.mode == 'gating'
-        run: pnpm test:ui
-      - name: Upload Playwright report
+        if: steps.baseline.outputs.has == 'true'
+        run: pnpm e2e:gate
+      - uses: actions/upload-artifact@v4
         if: always()
-        uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: status/playwright-report
-          if-no-files-found: ignore
-      - name: Teams alert on FAIL
-        if: failure()
-        run: echo "Playwright gate FAIL" # ver docs/ALERTS.md
+          path: apps/web/playwright-report/**
+      - name: Quality one-liner
+        if: always()
+        run: pnpm ci:gates
   close-pr-on-fail:
     if: failure() && github.event_name == 'pull_request'
     runs-on: ubuntu-latest

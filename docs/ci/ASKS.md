@@ -45,6 +45,29 @@ git remote -v > .artifacts/context.json
 echo "{\"owner\":\"ECONEURA\",\"repo\":\"ECONEURA-IA\",\"branch\":\"$(git branch --show-current)\",\"sha\":\"$(git rev-parse HEAD)\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" > .artifacts/context.json
 ```
 
+## Tareas Humanas Únicas
+
+1. **Configurar secrets reales en GitHub**:
+   - `PLAYWRIGHT_BASE_URL`
+   - `NEXT_PUBLIC_API_URL`
+   - Credenciales de Azure para deploy (cuando se active)
+
+2. **Revisar y aprobar PRs de CI**:
+   - Verificar que workflows pasan
+   - Revisar reports en artifacts
+
+3. **Actualizar dependencias periódicamente**:
+   - pnpm update
+   - Node.js version bumps
+
+4. **Monitorear alerts de Teams**:
+   - En caso de fallos de gate visual
+
+## Automatizado
+- Bootstrap de snapshots inicial
+- Commits de baseline
+- Quality gates one-liner
+
 ## Notas
 
 - Sin autenticación de GitHub CLI, la auditoría se ejecuta en modo local

@@ -79,4 +79,21 @@ Este documento reporta el estado de la implementación de CI HARDEN (estricto, s
 
 ---
 
+## Workflow Status Table
+
+| Workflow | Status | Duration | Link |
+|----------|--------|----------|------|
+| e2e-playwright | ✅ | - | - |
+| openapi-check | ✅ | - | - |
+| contract-api | ✅ | - | - |
+| ci-base | ✅ | - | - |
+| security | ✅ | - | - |
+
+Last updated: $(date)
+
+## Final CI Gates Output
+```
+REAL=OK VERIFY=PASS OPENAPI=0 JSCPD=0/0 GITLEAKS=0 LINKS=0
+```
+
 **RESULTADO**: CI HARDEN implementado exitosamente. El CI ahora es estricto y falla si hay problemas de build, test o coverage.

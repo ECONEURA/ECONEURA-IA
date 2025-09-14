@@ -1,0 +1,26 @@
+name: reusable-setup
+on:
+  workflow_call:
+    inputs:
+      node:
+        type: string
+        required: false
+        default: '20'
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+      DEPLOY_ENABLED: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node }}
+          cache: 'pnpm'
+      - name: Enable Corepack & pin pnpm
+        run: |
+          set -euxo pipefail
+          corepack enable
+          corepack prepare pnpm@9.10.0 --activate
+          pnpm -v && node -v && npm -v

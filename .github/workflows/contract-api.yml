@@ -4,6 +4,15 @@ on:
     branches:
       - '**'
   workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: true
+  DEPLOY_ENABLED: "false"
+
 jobs:
   contract:
     runs-on: ubuntu-latest
@@ -13,12 +22,22 @@ jobs:
       MAKE_SIGNING_SECRET: "test"
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm test:contract
+      - name: Enable Corepack & pin pnpm
+        run: |
+          set -euxo pipefail
+          corepack enable
+          corepack prepare pnpm@9.10.0 --activate
+          pnpm -v && node -v && npm -v
+      - name: Install deps
+        run: pnpm -w install --frozen-lockfile
+      - name: Typecheck & Lint
+        run: pnpm typecheck && pnpm lint
+      - name: Run contract tests
+        run: pnpm test:contract
+      - name: Quality one-liner
+        if: always()
+        run: pnpm ci:gates
