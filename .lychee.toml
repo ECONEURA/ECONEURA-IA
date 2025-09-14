@@ -1,3 +1,7 @@
-# Reemplazar la línea correspondiente en el archivo .lychee.toml
-
-exclude = ["http://localhost.*","https://localhost.*"]
+# Lychee configuration
+# Ignore mailto links and anchors
+exclude = ["mailto:*", "#*", "http://localhost.*", "https://localhost.*"]
+# Output format
+format = "json"
+# Output file
+output = "reports/links.json"

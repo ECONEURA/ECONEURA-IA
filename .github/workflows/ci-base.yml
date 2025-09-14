@@ -6,6 +6,14 @@ on:
   pull_request:
     branches: [ "**" ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: true
+  DEPLOY_ENABLED: "false"
+
 jobs:
   ci:
     runs-on: ubuntu-latest
@@ -33,15 +41,19 @@ jobs:
       AUTH_REQUIRED: "false"
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with: { version: 9 }
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'pnpm'
+      - name: Enable Corepack & pin pnpm
+        run: |
+          set -euxo pipefail
+          corepack enable
+          corepack prepare pnpm@9.10.0 --activate
+          pnpm -v && node -v && npm -v
       - run: pnpm install --frozen-lockfile
-      - name: Typecheck y lint
-        run: pnpm -w run -r typecheck || true && pnpm -w run -r lint || true
+      - name: Typecheck & Lint
+        run: pnpm typecheck && pnpm lint
       - name: Migraciones (si existen)
         run: pnpm -w run db:migrate || true
       - name: Tests unitarios compartidos
@@ -50,56 +62,15 @@ jobs:
         run: pnpm -w run -r test --filter @econeura/api
       - name: Validar OpenAPI (si aplica)
         run: pnpm -w run openapi:validate || true
-name: CI Base
-
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U test -d test" --health-interval 10s --health-timeout 5s --health-retries 5
-      redis:
-        image: redis:7
-        ports:
-          - 6379:6379
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Use Node.js
-        uses: actions/setup-node@v4
+      - name: Seed ≥60 agents gate
+        run: pnpm agents:assert
+      - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Install pnpm
-        run: corepack enable && corepack prepare pnpm@8.8.0 --activate
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Typecheck (workspace)
-        run: pnpm -w -s typecheck
-
-      - name: Run shared tests
-        env:
-          PGHOST: localhost
-          PGUSER: test
-          PGPASSWORD: test
-          PGDATABASE: test
-          REDIS_URL: redis://localhost:6379
-        run: pnpm -w -r test --filter @econeura/shared --silent
+          name: reports
+          path: |
+            reports/**
+            .artifacts/**
+      - name: Quality one-liner
+        if: always()
+        run: pnpm ci:gates

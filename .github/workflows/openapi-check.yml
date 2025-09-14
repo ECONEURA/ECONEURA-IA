@@ -5,23 +5,47 @@ on:
   pull_request:
     branches: ['**']
   workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: true
+  DEPLOY_ENABLED: "false"
+
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 8.15.0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'pnpm'
+      - name: Enable Corepack & pin pnpm
+        run: |
+          set -euxo pipefail
+          corepack enable
+          corepack prepare pnpm@9.10.0 --activate
+          pnpm -v && node -v && npm -v
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Route linter (/v1-only)
-        run: pnpm route:linter
+      - name: Typecheck & Lint
+        run: pnpm typecheck && pnpm lint
+      - name: Start API (mock external)
+        run: pnpm -w --filter @econeura/api dev &
+      - name: Snapshot OpenAPI
+        run: pnpm openapi:snapshot
+      - name: Diff /v1
+        run: pnpm openapi:diff
       - name: Seed ≥60 agents gate
-        run: pnpm seed:check60
-      - name: OpenAPI checksum
-        run: pnpm openapi:checksum
+        run: pnpm agents:assert
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: openapi
+          path: reports/openapi-diff.json
+      - name: Quality one-liner
+        if: always()
+        run: pnpm ci:gates

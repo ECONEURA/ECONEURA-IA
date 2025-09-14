@@ -3,6 +3,12 @@ on:
   schedule:
     - cron: '15 3 * * *'  # 03:15 UTC diario
   workflow_dispatch: {}
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  CI: true
+  DEPLOY_ENABLED: "false"
 jobs:
   progress:
     runs-on: ubuntu-latest
@@ -10,11 +16,17 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with: { version: 9 }
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: 'pnpm' }
+      - name: Enable Corepack & pin pnpm
+        run: |
+          set -euxo pipefail
+          corepack enable
+          corepack prepare pnpm@9.10.0 --activate
+          pnpm -v && node -v && npm -v
       - run: pnpm install --frozen-lockfile
+      - name: Typecheck & Lint
+        run: pnpm typecheck && pnpm lint
       - run: pnpm progress
       - run: pnpm supervisor:check || true
       - name: Commit paneles de progreso

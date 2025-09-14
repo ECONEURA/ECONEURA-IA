@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createTracer } from '../otel/index'
+import * as otel from '../otel/index'
 import { logger } from '../logging/index'
 
 // Step types

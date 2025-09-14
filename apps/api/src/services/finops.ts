@@ -4,7 +4,7 @@ let cfgCache: DeptCfg[] | null = null;
 export function loadFinopsConfig(): DeptCfg[] {
   if (cfgCache) return cfgCache;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     cfgCache = require('../../config/finops.departments.json') as DeptCfg[];
     return cfgCache!;
   } catch {

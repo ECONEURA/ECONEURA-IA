@@ -6,7 +6,7 @@ import { ConfidentialClientApplication } from '@azure/msal-node'
 import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials'
 // @ts-ignore: external module may be missing in minimal dev environment
 import { ClientSecretCredential } from '@azure/identity'
-import { createTracer } from '../otel/index'
+import { tracer as otelTracer, meter as otelMeter } from '../otel/index'
 import { logger } from '../logging/index'
 import { env } from '../env'
 

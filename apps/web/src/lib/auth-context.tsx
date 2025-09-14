@@ -113,18 +113,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (storedToken && storedRefreshToken) {
           // Initialize SDK with stored tokens
           const sdkInstance = initializeSdk(storedToken, storedRefreshToken);
-          
-          // For now, just load cached data since SDK is not implemented
-          const cachedUser = localStorage.getItem(USER_KEY);
-          const cachedOrg = localStorage.getItem(ORG_KEY);
-          const cachedRole = localStorage.getItem(ROLE_KEY);
-          const cachedPermissions = localStorage.getItem(PERMISSIONS_KEY);
-          
-          if (cachedUser && cachedOrg && cachedRole && cachedPermissions) {
-            setUser(JSON.parse(cachedUser));
-            setOrganization(JSON.parse(cachedOrg));
-            setRole(JSON.parse(cachedRole));
-            setPermissions(JSON.parse(cachedPermissions));
+
+          // Try to get current user info
+          try {
+            if (!sdkInstance) throw new Error('SDK not initialized');
+            const meData = await sdkInstance.auth.me();
+
+            // Update state with user info
+            setUser(meData.user as User);
+            setOrganization(meData.organization as Organization);
+            setRole(meData.role as Role);
+            setPermissions(meData.permissions);
+
+            // Store in localStorage for faster next load
+            localStorage.setItem(USER_KEY, JSON.stringify(meData.user));
+            localStorage.setItem(ORG_KEY, JSON.stringify(meData.organization));
+            localStorage.setItem(ROLE_KEY, JSON.stringify(meData.role));
+            localStorage.setItem(PERMISSIONS_KEY, JSON.stringify(meData.permissions));
+          } catch (error) {
+            console.error('Failed to load user session:', error);
+            // Token might be expired, try to refresh
+            try {
+              if (!sdkInstance) throw new Error('SDK not initialized');
+              const refreshResult = await sdkInstance.auth.refresh({
+                refreshToken: storedRefreshToken
+              });
+
+              // Update tokens
+              localStorage.setItem(TOKEN_KEY, refreshResult.tokens.accessToken);
+              localStorage.setItem(REFRESH_TOKEN_KEY, refreshResult.tokens.refreshToken);
+
+              // Retry getting user info
+              const meData = await sdkInstance.auth.me();
+              setUser(meData.user as User);
+              setOrganization(meData.organization as Organization);
+              setRole(meData.role as Role);
+              setPermissions(meData.permissions);
+            } catch (refreshError) {
+              console.error('Failed to refresh session:', refreshError);
+              // Clear invalid session
+              clearSession();
+            }
           }
         } else {
           // Try to load cached user data for faster UI

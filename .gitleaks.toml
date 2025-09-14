@@ -1,23 +1,12 @@
-title = "ECONEURA Policy"
+# Gitleaks basic configuration
+# No ignoring real secrets
 
-[[allowlist]]
-description = "docs & snapshots"
-paths = ["^docs/", "^snapshots/"]
+[extend]
+useDefault = true
 
-[[allowlist]]
-description = "allow fake placeholders and generated passwords"
-regexes = [
-  "InstrumentationKey=<redacted>",
-  "<set in Azure>",
-  "<redacted>",
-  "{{.*}}",
-  "test.*",
-  "example.*",
-  "placeholder.*",
-  "dummy.*",
-  "DUMMY.*",
-  "EXAMPLE.*",
-  "POSTGRES_PASSWORD=\\$\\(generate_password",
+# Output
+format = "json"
+output = "reports/gitleaks.json"
   "JWT_SECRET=\\$\\(generate_password",
   "NEXTAUTH_SECRET=\\$\\(generate_password",
   "REDIS_PASSWORD=\\$\\(generate_password",

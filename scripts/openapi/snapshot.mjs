@@ -3,40 +3,44 @@
 import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
-const openapiPath = join(process.cwd(), 'apps/api/openapi/openapi.yaml');
-const snapshotPath = join(process.cwd(), 'reports/openapi-snapshot.json');
+const snapshotPath = join(process.cwd(), 'snapshots/openapi.runtime.json');
+
+async function fetchOpenAPI() {
+  try {
+    const response = await fetch('http://localhost:3000/v1/openapi.json');
+    if (!response.ok) throw new Error('Server not running');
+    return await response.json();
+  } catch (error) {
+    console.log('Server not running, using builder TS');
+    // Import builder TS if available
+    try {
+      const { buildOpenAPI } = await import('../apps/api/src/lib/openapi-builder.js');
+      return await buildOpenAPI();
+    } catch (e) {
+      throw new Error('Cannot generate OpenAPI: server not running and no builder available');
+    }
+  }
+}
 
 try {
-  const openapiContent = readFileSync(openapiPath, 'utf8');
+  const openapi = await fetchOpenAPI();
   
-  // Parse YAML and extract v1 endpoints
-  const lines = openapiContent.split('\n');
-  const v1Endpoints = [];
-  let inPaths = false;
-  
-  for (const line of lines) {
-    if (line.startsWith('paths:')) {
-      inPaths = true;
-      continue;
-    }
-    
-    if (inPaths && line.startsWith('  /v1/')) {
-      v1Endpoints.push(line.trim());
-    }
-    
-    if (inPaths && line.startsWith('  /') && !line.startsWith('  /v1/')) {
-      break; // End of v1 paths
+  // Extract v1 paths only, no signatures
+  const v1Paths = {};
+  for (const [path, methods] of Object.entries(openapi.paths || {})) {
+    if (path.startsWith('/v1/')) {
+      v1Paths[path] = methods;
     }
   }
   
   const snapshot = {
     timestamp: new Date().toISOString(),
-    v1Endpoints: v1Endpoints,
-    totalEndpoints: v1Endpoints.length
+    v1Paths: v1Paths,
+    totalV1Paths: Object.keys(v1Paths).length
   };
   
   writeFileSync(snapshotPath, JSON.stringify(snapshot, null, 2));
-  console.log(`✅ OpenAPI snapshot created: ${v1Endpoints.length} v1 endpoints`);
+  console.log(`✅ OpenAPI runtime snapshot created: ${Object.keys(v1Paths).length} v1 paths`);
   
 } catch (error) {
   console.error('❌ Error creating OpenAPI snapshot:', error.message);

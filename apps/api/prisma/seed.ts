@@ -38,8 +38,8 @@ const PERMISSIONS = [
 ];
 
 async function seedPermissions() {
-  
-  
+  console.log('🔑 Seeding permissions...');
+
   const permissions = [];
   for (const perm of PERMISSIONS) {
     for (const action of perm.actions) {
@@ -58,14 +58,14 @@ async function seedPermissions() {
       permissions.push(permission);
     }
   }
-  
-  
+
+  console.log(`✅ Created ${permissions.length} permissions`);
   return permissions;
 }
 
 async function seedSystemRoles(permissions: any[]) {
-  
-  
+  console.log('👤 Seeding system roles...');
+
   const roles = [
     {
       name: 'Admin',
@@ -178,15 +178,15 @@ async function seedSystemRoles(permissions: any[]) {
     }
 
     createdRoles.push(role);
-    
+    console.log(`✅ Created role: ${role.name} with ${rolePermissions.length} permissions`);
   }
 
   return createdRoles;
 }
 
 async function seedOrganizations(roles: any[]) {
-  
-  
+  console.log('🏢 Seeding organizations...');
+
   const organizations = [
     {
       slug: 'ecoretail',
@@ -226,15 +226,15 @@ async function seedOrganizations(roles: any[]) {
       },
     });
     createdOrgs.push(org);
-    
+    console.log(`✅ Created organization: ${org.name}`);
   }
 
   return createdOrgs;
 }
 
 async function seedUsers(organizations: any[], roles: any[]) {
-  
-  
+  console.log('👥 Seeding users...');
+
   const defaultPassword = await bcrypt.hash('Password123!', 10);
   const adminRole = roles.find(r => r.slug === 'admin');
   const salesRole = roles.find(r => r.slug === 'sales');
@@ -364,15 +364,15 @@ async function seedUsers(organizations: any[], roles: any[]) {
     });
 
     createdUsers.push(user);
-    
+    console.log(`✅ Created user: ${user.email} (${userData.role.name} at ${userData.org.name})`);
   }
 
   return createdUsers;
 }
 
 async function seedBusinessData(organizations: any[]) {
-  
-  
+  console.log('📊 Seeding business data...');
+
   for (const org of organizations) {
     // Seed Companies
     const companies = [];
@@ -615,17 +615,17 @@ async function seedBusinessData(organizations: any[]) {
         });
       }
     }
-    
-    
+
+    console.log(`✅ Created business data for ${org.name}`);
   }
 }
 
 async function main() {
-  
-  
+  console.log('🌱 Starting seed process...');
+
   try {
     // Clear existing data in correct order
-    
+    console.log('🧹 Cleaning existing data...');
     await prisma.invoiceItem.deleteMany();
     await prisma.payment.deleteMany();
     await prisma.invoice.deleteMany();
@@ -656,15 +656,15 @@ async function main() {
     const organizations = await seedOrganizations(roles);
     const users = await seedUsers(organizations, roles);
     await seedBusinessData(organizations);
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+    console.log('✅ Seed completed successfully!');
+    console.log('\n📝 Test credentials:');
+    console.log('  Admin: admin@ecoretail.med / Password123!');
+    console.log('  Sales: sales@ecoretail.med / Password123!');
+    console.log('  Ops: ops@ecoretail.med / Password123!');
+    console.log('  CFO: cfo@ecoretail.med / Password123!');
+    console.log('  Viewer: viewer@ecoretail.med / Password123!');
+
   } catch (error) {
     console.error('❌ Seed failed:', error);
     throw error;

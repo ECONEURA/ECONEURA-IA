@@ -1,29 +1,29 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
-type TabsContextType = {
+interface TabsContextValue {
   value: string
-  onValueChange?: (v: string) => void
+  setValue: (v: string) => void
 }
 
-const TabsContext = React.createContext<TabsContextType>({ value: "" })
+const TabsContext = React.createContext<TabsContextValue | null>(null)
 
-export function Tabs({ value, defaultValue, onValueChange, className, children }: {
+export function Tabs({ value: controlled, defaultValue, onValueChange, className, children }: {
   value?: string
   defaultValue?: string
   onValueChange?: (v: string) => void
   className?: string
   children: React.ReactNode
 }) {
-  const [internal, setInternal] = React.useState(defaultValue || "")
-  const actual = value !== undefined ? value : internal
-  const set = (v: string) => {
-    setInternal(v)
+  const [uncontrolled, setUncontrolled] = React.useState(defaultValue || "")
+  const value = controlled ?? uncontrolled
+  const setValue = (v: string) => {
+    if (controlled === undefined) setUncontrolled(v)
     onValueChange?.(v)
   }
   return (
-    <TabsContext.Provider value={{ value: actual, onValueChange: set }}>
-      <div className={cn("w-full", className)}>{children}</div>
+    <TabsContext.Provider value={{ value, setValue }}>
+      <div className={cn(className)}>{children}</div>
     </TabsContext.Provider>
   )
 }
@@ -32,17 +32,17 @@ export function TabsList({ className, children }: { className?: string; children
   return <div className={cn("inline-flex items-center gap-2", className)}>{children}</div>
 }
 
-export function TabsTrigger({ value, className, children }: { value: string; className?: string; children: React.ReactNode }) {
+export function TabsTrigger({ value, children }: { value: string; children: React.ReactNode }) {
   const ctx = React.useContext(TabsContext)
-  const isActive = ctx.value === value
+  if (!ctx) return null
+  const active = ctx.value === value
   return (
     <button
       className={cn(
-        "px-3 py-1.5 text-sm rounded-md border",
-        isActive ? "bg-primary text-primary-foreground border-transparent" : "bg-background hover:bg-accent",
-        className
+        "px-3 py-1.5 rounded-md text-sm",
+        active ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
       )}
-      onClick={() => ctx.onValueChange?.(value)}
+      onClick={() => ctx.setValue(value)}
     >
       {children}
     </button>
@@ -51,11 +51,7 @@ export function TabsTrigger({ value, className, children }: { value: string; cla
 
 export function TabsContent({ value, className, children }: { value: string; className?: string; children: React.ReactNode }) {
   const ctx = React.useContext(TabsContext)
+  if (!ctx) return null
   if (ctx.value !== value) return null
   return <div className={cn(className)}>{children}</div>
 }
-
-
-
-
-

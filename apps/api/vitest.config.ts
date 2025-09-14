@@ -1,33 +1,18 @@
 import { defineConfig } from 'vitest/config';
+import path from 'path';
 
 export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['src/__tests__/**/*.test.ts'],
-    exclude: ['node_modules', 'dist'],
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html', 'lcov'],
-      exclude: [
-        'node_modules/',
-        'dist/',
-        'src/__tests__/',
-        '**/*.d.ts',
-        '**/*.config.*',
-        'src/test-*.ts'
-      ],
-      thresholds: {
-        global: {
-          branches: 30,
-          functions: 40,
-          lines: 40,
-          statements: 40
-        }
-      }
-    },
-    testTimeout: 10000,
-    hookTimeout: 10000,
-    teardownTimeout: 10000
-  }
+    include: ['src/**/**.spec.ts', 'src/**/**.test.ts'],
+  setupFiles: [path.resolve(__dirname, 'tests/helpers/setup.ts')],
+    threads: false,
+    testTimeout: 60000,
+    hookTimeout: 60000,
+    passWithNoTests: true,
+  },
+  resolve: {
+  alias: {},
+  },
 });

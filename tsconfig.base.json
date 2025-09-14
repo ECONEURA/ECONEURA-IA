@@ -1,47 +1,22 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "allowJs": true,
-    "skipLibCheck": true,
+  "target": "ES2020",
+  "module": "CommonJS",
+  "moduleResolution": "Node",
     "strict": true,
-    "noEmit": true,
     "esModuleInterop": true,
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    "skipLibCheck": true,
+    "outDir": "dist",
+  "baseUrl": ".",
+    "types": ["node"],
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "baseUrl": ".",
+    "allowSyntheticDefaultImports": true,
+    "lib": ["ES2020", "DOM"],
     "paths": {
-      "@/*": ["./src/*"],
-      "@/components/*": ["./src/components/*"],
-      "@/lib/*": ["./src/lib/*"],
-      "@/types/*": ["./src/types/*"],
-      "@/utils/*": ["./src/utils/*"],
-      "@econeura/shared/*": ["./packages/shared/src/*"],
-      "@econeura/db/*": ["./packages/db/src/*"],
-      "@econeura/sdk/*": ["./packages/sdk/src/*"],
-      "@econeura/agents/*": ["./packages/agents/src/*"]
+      "@econeura/shared/*": ["packages/shared/src/*"],
+      "@econeura/shared": ["packages/shared/src/index.ts"],
+      "@econeura/db/*": ["packages/db/src/*"],
+      "@econeura/db": ["packages/db/src/index.ts"]
     }
-  },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    ".next",
-    "dist",
-    "build",
-    "coverage"
-  ]
+  }
 }

@@ -1,4 +1,4 @@
-import { logger } from '../logging/index';
+import { logger } from '../logging';
 
 export interface LLMProvider {
   id: string;

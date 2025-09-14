@@ -8,16 +8,54 @@ Este documento verifica que el deploy está deshabilitado en todos los workflows
 
 | Workflow | Job | Guard | DEPLOY_ENABLED | Estado |
 |----------|-----|-------|----------------|--------|
-| ci-min.yml | build_test | env | "false" | ✅ VERIFICADO |
-| ci-extended.yml | build_test | env | "false" | ✅ VERIFICADO |
-| ci-extended.yml | api_e2e | env | "false" | ✅ VERIFICADO |
-| ci-extended.yml | quality_checks | env | "false" | ✅ VERIFICADO |
+| e2e-playwright.yml | e2e | env | "false" | ✅ VERIFICADO |
+| openapi-check.yml | check | env | "false" | ✅ VERIFICADO |
+| contract-api.yml | contract | env | "false" | ✅ VERIFICADO |
+| ci-base.yml | ci | env | "false" | ✅ VERIFICADO |
+| _reusable-setup.yml | setup | env | "false" | ✅ VERIFICADO |
 
 ### Verificación
 
 ```bash
 # Verificar que DEPLOY_ENABLED está en false
 grep -r "DEPLOY_ENABLED" .github/workflows/
+```
+
+## Snippets de Configuración
+
+### e2e-playwright.yml
+```yaml
+env:
+  CI: true
+  DEPLOY_ENABLED: "false"
+```
+
+### openapi-check.yml
+```yaml
+env:
+  CI: true
+  DEPLOY_ENABLED: "false"
+```
+
+### contract-api.yml
+```yaml
+env:
+  CI: true
+  DEPLOY_ENABLED: "false"
+```
+
+### ci-base.yml
+```yaml
+env:
+  CI: true
+  DEPLOY_ENABLED: "false"
+```
+
+### _reusable-setup.yml
+```yaml
+env:
+  CI: true
+  DEPLOY_ENABLED: "false"
 ```
 
 ### Resultado

@@ -5,7 +5,7 @@ beforeAll(() => {
   process.env.AUTH_REQUIRED = 'false';
   process.env.AAD_REQUIRED = 'false';
 });
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+ 
 // @ts-ignore
 import app from '../../src/index';
 

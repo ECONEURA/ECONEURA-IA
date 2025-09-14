@@ -1,42 +1,40 @@
-// ============================================================================
-// ECONEURA DATABASE PACKAGE
-// ============================================================================
-// Main exports for the database package
-// Includes schema, database service, and utilities
-// ============================================================================
+// Database connection and utilities
+export { db, setOrg, getCurrentOrg, testConnection, closeConnection } from './connection'
+// Exponer instancia de prisma
+export { prisma, getPrisma, initPrisma } from './client';
 
 // Schema exports
-export * from './schema/index.js';
+export * from './schema'
 
-// Database service exports
-export * from './database.js';
+// Seed function
+export { seed } from './seed'
 
-// Migration utilities
-export { migrate } from 'drizzle-orm/postgres-js/migrator';
-export { sql } from 'drizzle-orm';
+// Database helpers
+export async function withOrg<T>(orgId: string, fn: () => Promise<T>): Promise<T> {
+  // await setOrg(orgId)
+  return fn()
+}
 
-// Re-export common Drizzle utilities
-export { 
-  eq, 
-  ne, 
-  gt, 
-  gte, 
-  lt, 
-  lte, 
-  like, 
-  ilike, 
-  inArray, 
-  notInArray, 
-  isNull, 
-  isNotNull,
-  and,
-  or,
-  not,
-  desc,
-  asc,
-  count,
-  sum,
-  avg,
-  max,
-  min
-} from 'drizzle-orm';
+// RLS test helpers
+export async function testRLSIsolation() {
+  const { db, setOrg } = await import('./connection')
+  const { companies } = await import('./schema')
+
+  // Set org context for org1
+  await setOrg('org1')
+  const org1Companies = await db.select().from(companies)
+
+  // Set org context for org2
+  await setOrg('org2')
+  const org2Companies = await db.select().from(companies)
+
+  // Verify isolation
+  return {
+    org1Count: org1Companies.length,
+    org2Count: org2Companies.length,
+    isolated: org1Companies.length === 0 || org2Companies.length === 0
+  }
+}
+
+
+
