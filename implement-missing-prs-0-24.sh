@@ -481,7 +481,7 @@ jobs:
           node-version: '20'
           
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+  run: corepack enable && corepack prepare pnpm@8.15.6 --activate
         with:
           version: 8
           

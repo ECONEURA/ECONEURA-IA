@@ -1,3 +1,13 @@
+import fs from 'node:fs'
+
+const url = 'http://127.0.0.1:3001/v1/openapi.json'
+const out = 'snapshots/openapi.runtime.json'
+const res = await fetch(url).catch(()=>null)
+if(!res || !res.ok){ console.error('No runtime OpenAPI'); process.exit(1) }
+const json = await res.json()
+fs.mkdirSync('snapshots',{recursive:true})
+fs.writeFileSync(out, JSON.stringify(json, null, 2))
+console.log('Wrote', out)
 #!/usr/bin/env node
 
 import { readFileSync, writeFileSync } from 'fs';

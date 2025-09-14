@@ -11,7 +11,11 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
+      - name: Enable corepack & pin pnpm
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare pnpm@8.15.6 --activate
         with:
           version: 8.15.0
       - uses: actions/setup-node@v4

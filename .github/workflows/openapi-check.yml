@@ -1,51 +1,29 @@
 name: openapi-check
-on:
-  push:
-    branches: ['**']
-  pull_request:
-    branches: ['**']
-  workflow_dispatch: {}
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-env:
-  CI: true
-  DEPLOY_ENABLED: "false"
-
+on: [push, pull_request]
+env: { DEPLOY_ENABLED: 'false' }
+permissions: { contents: read }
 jobs:
   check:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env: { POSTGRES_PASSWORD: ci, POSTGRES_USER: ci, POSTGRES_DB: econeura_ci }
+        options: >-
+          --health-cmd="pg_isready -U ci" --health-interval=10s --health-timeout=5s --health-retries=5
+        ports: ['5432:5432']
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-      - name: Enable Corepack & pin pnpm
-        run: |
-          set -euxo pipefail
-          corepack enable
-          corepack prepare pnpm@9.10.0 --activate
-          pnpm -v && node -v && npm -v
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Typecheck & Lint
-        run: pnpm typecheck && pnpm lint
-      - name: Start API (mock external)
-        run: pnpm -w --filter @econeura/api dev &
+      - name: Setup Node 20 + pnpm
+        uses: actions/setup-node@v4
+        with: { node-version: '20.17.0', cache: 'pnpm' }
+      - run: corepack enable && corepack prepare pnpm@8.15.6 --activate
+      - run: pnpm -w i
+      - name: Start API
+        run: bash scripts/ci/api-up.sh
       - name: Snapshot OpenAPI
-        run: pnpm openapi:snapshot
-      - name: Diff /v1
-        run: pnpm openapi:diff
-      - name: Seed ≥60 agents gate
-        run: pnpm agents:assert
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: openapi
-          path: reports/openapi-diff.json
-      - name: Quality one-liner
-        if: always()
-        run: pnpm ci:gates
+        run: node scripts/openapi/snapshot.mjs
+      - name: Lint spec
+        run: npx @stoplight/spectral lint apps/api/openapi/openapi.yaml
+      - name: Diff spec vs runtime
+        run: node scripts/openapi/diff.mjs

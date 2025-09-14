@@ -55,7 +55,7 @@ bash scripts/verify-repo.sh
 ## Workflows Actualizados
 
 ### 1. `.github/workflows/ci.yml`
-- Cache de pnpm con `pnpm/action-setup@v2`
+- Cache de pnpm con corepack: `corepack enable && corepack prepare pnpm@8.15.6 --activate`
 - Retries en install, lint, build, typecheck, e2e
 - Coverage thresholds: 80% statements, 80% branches
 

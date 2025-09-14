@@ -342,7 +342,7 @@ jobs:
       SNAPSHOT_THRESHOLD: '0.02'
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+  - run: corepack enable && corepack prepare pnpm@8.15.6 --activate
         with: { version: 9 }
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: 'pnpm' }
@@ -479,7 +479,7 @@ jobs:
     env: { AUTH_REQUIRED: "false", MAKE_SIGNING_SECRET: "test", NODE_ENV: "test" }
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+  - run: corepack enable && corepack prepare pnpm@8.15.6 --activate
         with: { version: 9 }
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: 'pnpm' }

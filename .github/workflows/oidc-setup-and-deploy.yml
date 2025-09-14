@@ -13,6 +13,11 @@ on:
 permissions:
   id-token: write
   contents: read
+env:
+  DEPLOY_ENABLED: "false"
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   setup:
@@ -65,19 +70,11 @@ jobs:
   deploy:
     needs: setup
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && env.DEPLOY_ENABLED == 'true' }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
+      - name: Setup Node + pnpm
+        uses: ./.github/actions/setup-node-pnpm
 
       - name: Azure Login (OIDC)
         uses: azure/login@v2
