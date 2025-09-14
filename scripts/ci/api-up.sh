@@ -9,10 +9,3 @@ for i in {1..90}; do
   sleep 2
 done
 echo "API no arrancó"; exit 1
-
-for i in {1..90}; do
-  curl -fsS "http://127.0.0.1:$PORT$HEALTH_PATH" && exit 0
-  sleep 2
-done
-echo "API no arrancó"; exit 1
-
