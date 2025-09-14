@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 
 export const AgentSchema = z.object({
@@ -20,8 +21,8 @@ export const AgentsArray = z.array(AgentSchema);
 export function loadAgentsMaster() {
   // Prefer monorepo root seed if available, then fallback to app-local seed
   const candidates = [
-    path.join(__dirname, '..', '..', '..', '..', 'seed', 'agents_master.json'),
-    path.join(__dirname, '..', '..', 'seed', 'agents_master.json'),
+    path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', 'seed', 'agents_master.json'),
+    path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'seed', 'agents_master.json'),
   ];
   for (const p of candidates) {
     try {

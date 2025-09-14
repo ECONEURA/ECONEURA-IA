@@ -2,8 +2,9 @@
 // Intenta reexportar desde el módulo real si existe, sino exporta un router vacío.
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'node:url';
 
-const realPath = path.resolve(__dirname, 'monitoring');
+const realPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'monitoring');
 let exported: any;
 try {
   // require the compiled JS if present (common case in dev with ts-node/tsx)

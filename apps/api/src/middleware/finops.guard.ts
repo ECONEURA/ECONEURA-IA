@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { Request, Response, NextFunction } from 'express';
 
 type Deps = {
@@ -14,8 +15,8 @@ function readJSON<T>(p: string, fallback: T): T {
 }
 
 // Usar rutas relativas al archivo para coherencia entre runtime y tests
-const defaultCfgPath = path.resolve(__dirname, '..', 'config', 'finops.departments.json');
-const defaultKillPath = path.resolve(__dirname, '..', 'config', 'finops.kill.json');
+const defaultCfgPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'config', 'finops.departments.json');
+const defaultKillPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'config', 'finops.kill.json');
 
 function headerToString(h?: string | string[] | undefined): string | undefined {
   if (!h) return undefined;

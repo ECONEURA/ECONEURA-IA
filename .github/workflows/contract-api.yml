@@ -1,25 +1,61 @@
-name: contract-api
-on: [push, pull_request]
-env: { DEPLOY_ENABLED: 'false' }
-permissions: { contents: read }
+name: Contract API Tests
+
+on:
+  push:
+    branches: [ main, develop, 'pr/**' ]
+  pull_request:
+    branches: [ main, develop ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20.17.0'
+  PNPM_VERSION: '8.15.6'
+  DEPLOY_ENABLED: false
+
+permissions:
+  contents: read
+
 jobs:
-  contract:
+  contract-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
     services:
       postgres:
         image: postgres:15
-        env: { POSTGRES_PASSWORD: ci, POSTGRES_USER: ci, POSTGRES_DB: econeura_ci }
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: econeura_test
         options: >-
-          --health-cmd="pg_isready -U ci" --health-interval=10s --health-timeout=5s --health-retries=5
-        ports: ['5432:5432']
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+        ports:
+          - 5432:5432
+    
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Node 20 + pnpm
+      
+      - name: Setup Node.js
         uses: actions/setup-node@v4
-        with: { node-version: '20.17.0', cache: 'pnpm' }
-      - run: corepack enable && corepack prepare pnpm@8.15.6 --activate
-      - run: pnpm -w i
-      - name: Start API
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Setup pnpm via Corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Start API for testing
         run: bash scripts/ci/api-up.sh
+        
       - name: Run contract tests
-        run: pnpm -w test:contract
+        run: pnpm test:contract
