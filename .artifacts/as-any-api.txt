@@ -1,6 +1,0 @@
-apps/api/dist/apps/api/src/lib/auth.js:109:// Pass through unknown but avoid 'as any' - keep runtime guard in AuthService
-apps/api/prisma/seed.ts:387:          status: ['ACTIVE', 'PROSPECT', 'INACTIVE'][i % 3] as any,
-apps/api/prisma/seed.ts:435:          stage: ['PROSPECT', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION', 'CLOSED_WON', 'CLOSED_LOST'][i % 6] as any,
-apps/api/prisma/seed.ts:440:          priority: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'][i % 4] as any,
-apps/api/prisma/seed.ts:555:          status: ['DRAFT', 'SENT', 'PAID', 'OVERDUE', 'CANCELLED'][i % 5] as any,
-apps/api/src/lib/auth.ts:126:// Pass through unknown but avoid 'as any' - keep runtime guard in AuthService
