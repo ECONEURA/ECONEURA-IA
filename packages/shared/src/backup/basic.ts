@@ -1,11 +1,11 @@
-import express from "express";
+import express, { type Express } from "express";
 import cors from "cors";
 import { structuredLogger } from './lib/structured-logger.js';
 
 // Import health modes
 import { healthModeManager } from './lib/health-modes.js';
 
-const app = express();
+const app: Express = express();
 const PORT = process.env.PORT || 3001;
 
 // Basic middleware

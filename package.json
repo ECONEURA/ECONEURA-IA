@@ -10,7 +10,7 @@
   ],
   "packageManager": "pnpm@8.15.0",
   "scripts": {
-    "build": "./scripts/clean.sh && ./scripts/validate-types.sh && pnpm -r --filter './packages/*' --if-present build && pnpm -r --filter './apps/*' --if-present build",
+    "build": "pwsh -File ./scripts/clean.ps1 && pwsh -File ./scripts/validate-types.ps1 && pnpm -r --filter './packages/*' --if-present build && pnpm -r --filter './apps/*' --if-present build",
     "build:all": "pnpm -r --if-present build",
     "test:all": "pnpm -r --if-present test --silent",
     "build:web": "pnpm --filter @econeura/web build",
@@ -123,3 +123,4 @@
     "zod": "^3.22.4"
   }
 }
+
