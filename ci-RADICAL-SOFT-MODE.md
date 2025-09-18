@@ -119,8 +119,8 @@ Todos los workflows modificados incluyen este encabezado:
 ## 📆 FECHA LÍMITE RECOMENDADA
 **TODO: Definir fecha límite para revert (máximo 2 semanas desde implementación)**
 
-Fecha de implementación: [COMPLETAR AUTOMÁTICAMENTE]
-Fecha límite sugerida: [COMPLETAR AUTOMÁTICAMENTE + 14 días]
+Fecha de implementación: 2024-09-18
+Fecha límite sugerida: 2024-10-02 (14 días después)
 
 ## 🎫 ISSUE SUGERIDO PARA REVERT
 
