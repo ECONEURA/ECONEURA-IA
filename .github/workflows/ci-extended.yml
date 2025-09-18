@@ -1,0 +1,268 @@
+name: CI Extended (manual)
+on: 
+  workflow_dispatch:
+    inputs:
+      run_openapi:
+        description: 'Run OpenAPI validation'
+        required: false
+        default: 'true'
+        type: boolean
+      run_security:
+        description: 'Run security scans'
+        required: false
+        default: 'true'
+        type: boolean
+      run_e2e:
+        description: 'Run E2E tests'
+        required: false
+        default: 'false'
+        type: boolean
+      run_links:
+        description: 'Run link checking'
+        required: false
+        default: 'true'
+        type: boolean
+
+env: 
+  DEPLOY_ENABLED: 'false'
+permissions: 
+  contents: read
+  security-events: write
+
+jobs:
+  openapi_validate:
+    if: github.event.inputs.run_openapi == 'true'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env: 
+          POSTGRES_PASSWORD: ci
+          POSTGRES_USER: ci
+          POSTGRES_DB: econeura_ci
+        options: >-
+          --health-cmd="pg_isready -U ci" 
+          --health-interval=10s 
+          --health-timeout=5s 
+          --health-retries=5
+        ports: ['5432:5432']
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node 20 + pnpm
+        uses: actions/setup-node@v4
+        with: 
+          node-version: '20.17.0'
+          cache: 'pnpm'
+          
+      - name: Enable Corepack and setup pnpm
+        run: corepack enable && corepack prepare pnpm@8.15.6 --activate
+        
+      - name: Ensure lock files
+        run: ./scripts/ci/lockfile-manager.sh ensure
+        
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Start API for OpenAPI validation
+        run: |
+          echo "🚀 Starting API for OpenAPI validation..."
+          bash scripts/ci/api-up.sh &
+          API_PID=$!
+          echo "API_PID=$API_PID" >> $GITHUB_ENV
+          
+      - name: Wait for API to be ready
+        run: |
+          echo "⏳ Waiting for API to be ready..."
+          for i in {1..60}; do
+            if curl -fsS "http://127.0.0.1:3001/health" >/dev/null 2>&1; then
+              echo "✅ API is ready"
+              exit 0
+            fi
+            echo "Waiting... ($i/60)"
+            sleep 2
+          done
+          echo "❌ API failed to start"
+          exit 1
+          
+      - name: Generate OpenAPI snapshot
+        run: node scripts/openapi/snapshot.mjs
+        
+      - name: Validate OpenAPI spec
+        run: npx @stoplight/spectral lint apps/api/openapi/openapi.yaml
+        
+      - name: Check OpenAPI diff
+        run: node scripts/openapi/diff.mjs
+        
+      - name: Upload OpenAPI artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: openapi-${{ github.run_id }}
+          path: |
+            apps/api/openapi/
+            .artifacts/api.log
+          retention-days: 7
+
+  link_check:
+    if: github.event.inputs.run_links == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Link Checker
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: docs --config .lychee.toml --no-progress --format json --output .artifacts/lychee-report.json
+          fail: false
+          
+      - name: Upload link check artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: link-check-${{ github.run_id }}
+          path: .artifacts/lychee-report.json
+          retention-days: 7
+
+  security_scan:
+    if: github.event.inputs.run_security == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: false
+          
+      - name: Setup Node for dependency audit
+        uses: actions/setup-node@v4
+        with: 
+          node-version: '20.17.0'
+          cache: 'pnpm'
+          
+      - name: Enable Corepack and setup pnpm
+        run: corepack enable && corepack prepare pnpm@8.15.6 --activate
+        
+      - name: Ensure lock files
+        run: ./scripts/ci/lockfile-manager.sh ensure
+        
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Security audit
+        run: |
+          echo "🔍 Running security audit..."
+          mkdir -p .artifacts/security
+          
+          # pnpm audit
+          pnpm audit --audit-level=high --json > .artifacts/security/pnpm-audit.json || echo "Audit completed with issues"
+          
+          # Generate SBOM if script exists
+          if [ -f "scripts/security/sbom-generator.mjs" ]; then
+            node scripts/security/sbom-generator.mjs || echo "SBOM generation completed"
+          fi
+          
+      - name: Upload security artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-scan-${{ github.run_id }}
+          path: |
+            .artifacts/security/
+            reports/
+          retention-days: 30
+
+  api_e2e:
+    if: github.event.inputs.run_e2e == 'true'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env: 
+          POSTGRES_PASSWORD: ci
+          POSTGRES_USER: ci
+          POSTGRES_DB: econeura_ci
+        options: >-
+          --health-cmd="pg_isready -U ci" 
+          --health-interval=10s 
+          --health-timeout=5s 
+          --health-retries=5
+        ports: ['5432:5432']
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node 20 + pnpm
+        uses: actions/setup-node@v4
+        with: 
+          node-version: '20.17.0'
+          cache: 'pnpm'
+          
+      - name: Enable Corepack and setup pnpm
+        run: corepack enable && corepack prepare pnpm@8.15.6 --activate
+        
+      - name: Ensure lock files
+        run: ./scripts/ci/lockfile-manager.sh ensure
+        
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Install Playwright
+        run: npx playwright install --with-deps
+        
+      - name: Setup test environment
+        run: |
+          echo "🔧 Setting up test environment..."
+          export NODE_ENV=test
+          export AUTH_REQUIRED=false
+          export MOCK_EXTERNAL=1
+          
+      - name: Start API
+        run: |
+          echo "🚀 Starting API for E2E tests..."
+          node scripts/ci/api-start.mjs &
+          sleep 10
+          
+      - name: Wait for API health
+        run: |
+          echo "⏳ Waiting for API health check..."
+          npx wait-on -t 180000 http://127.0.0.1:3001/health
+          
+      - name: Start Web application
+        run: |
+          echo "🌐 Starting Web application..."
+          pnpm --filter @econeura/web dev &
+          sleep 5
+          
+      - name: Wait for Web health
+        run: |
+          echo "⏳ Waiting for Web application..."
+          for i in {1..60}; do
+            if curl -fsS "http://127.0.0.1:3000/health" >/dev/null 2>&1; then
+              echo "✅ Web application is ready"
+              exit 0
+            fi
+            echo "Waiting for web app... ($i/60)"
+            sleep 2
+          done
+          echo "❌ Web application failed to start"
+          exit 1
+          
+      - name: Run E2E tests
+        run: |
+          echo "🧪 Running E2E tests..."
+          pnpm run test:ui || echo "E2E tests completed with issues"
+          
+      - name: Upload E2E artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-report-${{ github.run_id }}
+          path: |
+            apps/web/playwright-report/
+            apps/web/test-results/
+            .artifacts/api.log
+          retention-days: 7

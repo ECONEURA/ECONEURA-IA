@@ -17,7 +17,7 @@ import { analyticsRouter } from './routes/analytics.js';
 import { eventsRouter } from './routes/events.js';
 import { cockpitRouter } from './routes/cockpit.js';
 
-const app = express();
+const app: express.Application = express();
 const PORT = process.env.PORT || 3001;
 
 // Initialize error handler
