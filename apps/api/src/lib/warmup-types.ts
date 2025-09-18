@@ -472,14 +472,7 @@ export interface TriggerWarmupRequest {
   organizationId: string;
 }
 
-export interface SearchRequest {
-  query: string;
-  filters?: SearchFilter[];
-  limit?: number;
-  offset?: number;
-  semanticSearch?: boolean;
-  organizationId: string;
-}
+// ...definición única arriba...
 
 export interface GenerateEmbeddingRequest {
   text: string;
@@ -493,12 +486,7 @@ export interface OptimizeQueryRequest {
   organizationId: string;
 }
 
-export interface CacheWarmingRequest {
-  cacheName: string;
-  dataSource: DataSource;
-  priority?: 'high' | 'medium' | 'low';
-  organizationId: string;
-}
+// ...definición única arriba...
 
 export interface PerformanceOptimizationRequest {
   serviceName: string;
@@ -518,12 +506,7 @@ export interface WarmupResponse {
   error?: string;
 }
 
-export interface SearchResponse {
-  success: boolean;
-  data?: SearchResponse | EmbeddingResponse | SearchOptimization | SearchAnalytics;
-  message?: string;
-  error?: string;
-}
+// ...definición única arriba...
 
 export interface CacheResponse {
   success: boolean;

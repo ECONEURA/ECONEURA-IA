@@ -680,10 +680,9 @@ class DLQGroomingService {
     const now = new Date();
     
     switch (pattern.action.type) {
-      case 'auto_retry':
+      case 'auto_retry': {
         const retryDelay = pattern.action.config.retryDelay || 30000;
         const scheduledAt = new Date(now.getTime() + retryDelay);
-        
         const retryJob: DLQRetryJob = {
           id: `retry_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
           organizationId: message.organizationId,
@@ -705,6 +704,7 @@ class DLQGroomingService {
         this.retryJobs.set(retryJob.id, retryJob);
         message.grooming.autoRetryScheduled = scheduledAt.toISOString();
         break;
+      }
 
       case 'skip':
         message.grooming.status = 'skipped';

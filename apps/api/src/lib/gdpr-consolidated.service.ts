@@ -117,8 +117,7 @@ export class GDPRConsolidatedService {
       userId,
       type,
       requestedBy,
-      dataCategories,
-      requestId: ''
+      dataCategories
     });
 
     return gdprRequest;
@@ -183,8 +182,7 @@ export class GDPRConsolidatedService {
     structuredLogger.info('GDPR request status updated', {
       requestId,
       status,
-      processedBy,
-      requestId: ''
+      processedBy
     });
 
     return updatedRequest;
@@ -218,11 +216,7 @@ export class GDPRConsolidatedService {
 
       // Start export generation in background
       this.generateExport(dataExport).catch(error => {
-        structuredLogger.error('Export generation failed', {
-          exportId: dataExport.id,
-          error: error instanceof Error ? error.message : String(error),
-          requestId: ''
-        });
+        structuredLogger.error('Export generation failed', error);
       });
 
     } catch (error) {
@@ -271,11 +265,7 @@ export class GDPRConsolidatedService {
         error: error instanceof Error ? error.message : String(error)
       });
 
-      structuredLogger.error('Export generation failed', {
-        exportId: dataExport.id,
-        error: error instanceof Error ? error.message : String(error),
-        requestId: ''
-      });
+    structuredLogger.error('Export generation failed');
       throw error;
     }
   }
@@ -336,11 +326,7 @@ export class GDPRConsolidatedService {
 
       // Start erase process in background
       this.processErase(dataErase).catch(error => {
-        structuredLogger.error('Erase process failed', {
-          eraseId: dataErase.id,
-          error: error instanceof Error ? error.message : String(error),
-          requestId: ''
-        });
+        structuredLogger.error('Erase process failed', error);
       });
 
     } catch (error) {
@@ -400,11 +386,7 @@ export class GDPRConsolidatedService {
         error: error instanceof Error ? error.message : String(error)
       });
 
-      structuredLogger.error('Erase process failed', {
-        eraseId: dataErase.id,
-        error: error instanceof Error ? error.message : String(error),
-        requestId: ''
-      });
+    structuredLogger.error('Erase process failed');
       throw error;
     }
   }

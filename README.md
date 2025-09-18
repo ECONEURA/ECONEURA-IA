@@ -74,6 +74,16 @@ Documentación principal: ver `docs/MASTER_GUIDE.md` para una guía de inicio r�
 - **Staging/Prod (Azure)**: App Services o Container Apps, PostgreSQL flexible, Azure Storage (Blob), Key Vault, Monitor/Log Analytics.
 - **CI/CD** (GitHub Actions): build+test → despliegue a *slot idle* → smokes/gates → swap → post‑deploy smokes. Canary (5%→25%→100%) en PR‑84.
 
+### Azure OIDC Setup
+Para configurar autenticación OIDC (sin secretos de larga duración):
+
+1. **Desde GitHub Actions** (recomendado): Ejecuta el workflow `.github/workflows/setup-azure-oidc.yml` via workflow_dispatch
+2. **Desde local**: Ejecuta `./scripts/setup-azure-oidc.sh` (requiere `az login` previo)
+3. **Guarda los secretos** devueltos en GitHub: `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`
+4. **Usa el workflow** `.github/workflows/deploy-api-oidc.yml` como ejemplo de deploy con OIDC
+
+Más detalles en [infrastructure/azure/oidc-README.md](infrastructure/azure/oidc-README.md).
+
 ---
 
 ## 5) Calidad, DoD & Smokes

@@ -887,7 +887,7 @@ class InteractionsSasAvService {
     let data: any = {};
 
     switch (reportType) {
-      case 'sentiment_summary':
+      case 'sentiment_summary': {
         const sentimentCounts = interactions.reduce((acc, i) => {
           acc[i.sentimentAnalysis.overallSentiment] = (acc[i.sentimentAnalysis.overallSentiment] || 0) + 1;
           return acc;
@@ -909,8 +909,9 @@ class InteractionsSasAvService {
         };
         data = { sentimentCounts, interactions };
         break;
+      }
 
-      case 'voice_analysis':
+      case 'voice_analysis': {
         const voiceInteractions = interactions.filter(i => i.voiceAnalysis);
         const avgAudioQuality = voiceInteractions.reduce((sum, i) => {
           const quality = i.voiceAnalysis!.audioQuality;
@@ -927,7 +928,13 @@ class InteractionsSasAvService {
         };
         data = { avgAudioQuality, voiceInteractions };
         break;
+      }
+      default: {
+        // handle other report types or do nothing
+        break;
+      }
     }
+
 
     const report: InteractionReport = {
       id: `report_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
@@ -950,64 +957,6 @@ class InteractionsSasAvService {
     return report;
   }
 
-  // Statistics
-  async getInteractionStats(organizationId: string) {
-    const interactions = Array.from(this.interactions.values()).filter(i => i.organizationId === organizationId);
-    const sentimentInsights = Array.from(this.sentimentInsights.values()).filter(si => si.organizationId === organizationId);
-    const voiceInsights = Array.from(this.voiceInsights.values()).filter(vi => vi.organizationId === organizationId);
-
-    const now = new Date();
-    const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-    const recentInteractions = interactions.filter(i => new Date(i.timing.startTime) >= last24Hours);
-
-    return {
-      totalInteractions: interactions.length,
-      activeInteractions: interactions.filter(i => i.status === 'active').length,
-      completedInteractions: interactions.filter(i => i.status === 'completed' || i.status === 'resolved').length,
-      averageSentiment: interactions.reduce((sum, i) => {
-        const sentiment = i.sentimentAnalysis.overallSentiment;
-        const score = sentiment === 'positive' ? 1 : sentiment === 'negative' ? -1 : 0;
-        return sum + score;
-      }, 0) / interactions.length,
-      positiveInteractions: interactions.filter(i => i.sentimentAnalysis.overallSentiment === 'positive').length,
-      negativeInteractions: interactions.filter(i => i.sentimentAnalysis.overallSentiment === 'negative').length,
-      activeInsights: sentimentInsights.filter(si => si.isActive).length + voiceInsights.filter(vi => vi.isActive).length,
-      highPriorityInsights: sentimentInsights.filter(si => si.severity === 'high' || si.severity === 'critical').length + 
-                           voiceInsights.filter(vi => vi.severity === 'high' || vi.severity === 'critical').length,
-      last24Hours: {
-        interactions: recentInteractions.length,
-        averageSentiment: recentInteractions.reduce((sum, i) => {
-          const sentiment = i.sentimentAnalysis.overallSentiment;
-          const score = sentiment === 'positive' ? 1 : sentiment === 'negative' ? -1 : 0;
-          return sum + score;
-        }, 0) / recentInteractions.length || 0,
-        averageDuration: recentInteractions.reduce((sum, i) => sum + (i.timing.duration || 0), 0) / recentInteractions.length || 0
-      },
-      last7Days: {
-        interactions: interactions.filter(i => new Date(i.timing.startTime) >= last7Days).length,
-        newInsights: sentimentInsights.filter(si => new Date(si.createdAt) >= last7Days).length + 
-                    voiceInsights.filter(vi => new Date(vi.createdAt) >= last7Days).length
-      },
-      byType: interactions.reduce((acc, i) => {
-        acc[i.type] = (acc[i.type] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>),
-      byChannel: interactions.reduce((acc, i) => {
-        acc[i.channel] = (acc[i.channel] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>),
-      bySentiment: interactions.reduce((acc, i) => {
-        acc[i.sentimentAnalysis.overallSentiment] = (acc[i.sentimentAnalysis.overallSentiment] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>),
-      byPriority: interactions.reduce((acc, i) => {
-        acc[i.priority] = (acc[i.priority] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>)
-    };
-  }
 }
 
 export const interactionsSasAvService = new InteractionsSasAvService();

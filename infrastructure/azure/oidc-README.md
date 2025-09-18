@@ -29,7 +29,7 @@ Example GitHub Actions snippet (OIDC)
 
 ```yaml
 - name: Login to Azure
-  uses: azure/login@v1
+  uses: azure/login@v2
   with:
     client-id: ${{ secrets.AZURE_CLIENT_ID }} # optional - you can store the client-id as secret or set it in the workflow env
     tenant-id: ${{ secrets.AZURE_TENANT_ID }}
