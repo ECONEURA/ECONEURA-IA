@@ -23,25 +23,7 @@ export class MetricsService {
       registers: [register]
     });
   }
-  private healthCheckCounter: Counter;
-  private healthCheckDuration: Histogram;
-
-  constructor() {
-    this.healthCheckCounter = new Counter({
-      name: 'health_check_total',
-      help: 'Total number of health checks',
-      labelNames: ['type'],
-      registers: [register]
-    });
-
-    this.healthCheckDuration = new Histogram({
-      name: 'health_check_duration_seconds',
-      help: 'Health check duration in seconds',
-      labelNames: ['type'],
-      buckets: [0.1, 0.5, 1, 2, 5],
-      registers: [register]
-    });
-  }
+  // Removed duplicate members and constructor
 
   constructor() {
     this.initializeDefaultMetrics();

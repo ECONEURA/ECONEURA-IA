@@ -266,7 +266,7 @@ export class DataAnalyticsDashboardService {
   private dashboards: Map<string, Dashboard> = new Map();
   private reports: Map<string, Report> = new Map();
   private alerts: Map<string, Alert> = new Map();
-  private demoData: AnalyticsData;
+  private demoData: AnalyticsData | undefined;
 
   constructor() {
     this.initializeDemoData();
@@ -467,12 +467,12 @@ export class DataAnalyticsDashboardService {
 
     // Aplicar filtros de tiempo
     if (filters?.timeRange) {
-      data.trends = this.filterTrendsByTimeRange(data.trends, filters.timeRange);
+  data.trends = this.filterTrendsByTimeRange(data.trends ?? { users: [], sessions: [], revenue: [], conversions: [] }, filters.timeRange);
     }
 
     // Aplicar filtros de métricas
     if (filters?.metrics && filters.metrics.length > 0) {
-      data.metrics = this.filterMetrics(data.metrics, filters.metrics);
+  data.metrics = this.filterMetrics(data.metrics ?? { totalUsers: 0, activeUsers: 0, totalSessions: 0, averageSessionDuration: 0, bounceRate: 0, conversionRate: 0, revenue: 0, costPerAcquisition: 0, returnOnInvestment: 0 }, filters.metrics);
     }
 
     structuredLogger.info('Analytics data retrieved', {
@@ -481,7 +481,17 @@ export class DataAnalyticsDashboardService {
       requestId: ''
     });
 
-    return data;
+    // Garantizar que data cumple con AnalyticsData
+    return {
+      ...data,
+      metrics: data.metrics ?? { totalUsers: 0, activeUsers: 0, totalSessions: 0, averageSessionDuration: 0, bounceRate: 0, conversionRate: 0, revenue: 0, costPerAcquisition: 0, returnOnInvestment: 0 },
+      trends: data.trends ?? { users: [], sessions: [], revenue: [], conversions: [] },
+      topPages: data.topPages ?? [],
+      trafficSources: data.trafficSources ?? [],
+      deviceBreakdown: data.deviceBreakdown ?? [],
+      geographicData: data.geographicData ?? [],
+      realTimeData: data.realTimeData ?? { activeUsers: 0, currentSessions: 0, topPages: [], topReferrers: [] }
+    };
   }
 
   async getWidgetData(widget: DashboardWidget, organizationId: string): Promise<any> {
@@ -503,7 +513,8 @@ export class DataAnalyticsDashboardService {
       case 'trend':
         return this.generateTrendData(widget, analyticsData);
       default:
-        return {};
+  // return de objeto vacío intencional: no hay datos para el tipo de widget
+  return {};
     }
   }
 
@@ -572,6 +583,7 @@ export class DataAnalyticsDashboardService {
     const alert: Alert = {
       id: this.generateId(),
       ...data,
+      description: typeof data.description === 'string' ? data.description : '',
       isActive: true,
       organizationId,
       triggerCount: 0,
@@ -702,24 +714,51 @@ export class DataAnalyticsDashboardService {
     };
   }
 
-  private generateTrendData(type: string, days: number): Array<{ date: string; value: number }> {
-    const data = [];
-    const baseValue = type === 'revenue' ? 3000 : type === 'conversions' ? 150 : type === 'sessions' ? 800 : 500;
-    
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      
-      const variation = (Math.random() - 0.5) * 0.3; // ±15% variation
-      const value = Math.max(0, baseValue * (1 + variation));
-      
-      data.push({
-        date: date.toISOString().split('T')[0],
-        value: Math.round(value)
-      });
+  /**
+   * Método combinado para generar datos de tendencia.
+   * Si se pasan type y days, genera datos sintéticos por tipo/días.
+   * Si se pasan widget y data, genera datos reales para el dashboard.
+   */
+  private generateTrendData(
+    typeOrWidget: string | DashboardWidget,
+    daysOrData: number | AnalyticsData
+  ): any {
+    // Modo sintético: (type: string, days: number)
+    if (typeof typeOrWidget === 'string' && typeof daysOrData === 'number') {
+      const type = typeOrWidget;
+      const days = daysOrData;
+      const data = [];
+      const baseValue = type === 'revenue' ? 3000 : type === 'conversions' ? 150 : type === 'sessions' ? 800 : 500;
+      for (let i = days - 1; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const variation = (Math.random() - 0.5) * 0.3; // ±15% variation
+        const value = Math.max(0, baseValue * (1 + variation));
+        data.push({
+          date: date.toISOString().split('T')[0],
+          value: Math.round(value)
+        });
+      }
+      return data;
     }
-    
-    return data;
+    // Modo dashboard: (widget: DashboardWidget, data: AnalyticsData)
+    if (typeof typeOrWidget === 'object' && typeof daysOrData === 'object') {
+      const widget = typeOrWidget as DashboardWidget;
+      const data = daysOrData as AnalyticsData;
+      const metrics = widget.configuration.metrics;
+      if (metrics.includes('users')) {
+        return {
+          current: data.metrics.totalUsers,
+          previous: Math.round(data.metrics.totalUsers * 0.95),
+          change: 5.2,
+          trend: 'up',
+          data: data.trends.users.slice(-7)
+        };
+      }
+      return { current: 0, previous: 0, change: 0, trend: 'stable', data: [] };
+    }
+    // Si los argumentos no coinciden, retorna vacío
+    return null;
   }
 
   private createDefaultDashboards(): void {
@@ -880,21 +919,7 @@ export class DataAnalyticsDashboardService {
     };
   }
 
-  private generateTrendData(widget: DashboardWidget, data: AnalyticsData): any {
-    const metrics = widget.configuration.metrics;
-    
-    if (metrics.includes('users')) {
-      return {
-        current: data.metrics.totalUsers,
-        previous: Math.round(data.metrics.totalUsers * 0.95),
-        change: 5.2,
-        trend: 'up',
-        data: data.trends.users.slice(-7)
-      };
-    }
-    
-    return { current: 0, previous: 0, change: 0, trend: 'stable', data: [] };
-  }
+  // ...el método generateTrendData ahora está combinado arriba...
 
   private convertToCSV(data: AnalyticsData): string {
     const headers = ['Metric', 'Value'];

@@ -380,8 +380,7 @@ export class GDPRHITLService extends EventEmitter {
         decisionId,
         decision,
         decisionBy,
-        reasoning: reasoning.substring(0, 100),
-        requestId: ''
+        reasoning: reasoning.substring(0, 100)
       });
 
       this.emit('decisionMade', { hitlRequest, decision: decisionRecord });
@@ -391,8 +390,7 @@ export class GDPRHITLService extends EventEmitter {
       structuredLogger.error('Failed to make GDPR HITL decision', error as Error, {
         requestId,
         decision,
-        decisionBy,
-        requestId: ''
+        decisionBy
       });
       throw error;
     }
@@ -672,7 +670,7 @@ export class GDPRHITLService extends EventEmitter {
             title: request.title,
             slaHours: request.slaHours,
             hoursElapsed: Math.round(hoursElapsed),
-            requestId: ''
+          // requestId: '' // Removed duplicate key
           });
         }
       }
@@ -682,7 +680,7 @@ export class GDPRHITLService extends EventEmitter {
       structuredLogger.warn('GDPR HITL SLA compliance check', {
         overdueRequests: overdueCount,
         totalRequests: this.hitlRequests.size,
-        requestId: ''
+        // requestId: '' // Removed duplicate key
       });
     }
   }

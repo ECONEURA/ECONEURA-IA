@@ -740,7 +740,7 @@ class SupplierScorecardService {
     );
 
     switch (reportType) {
-      case 'performance_summary':
+      case 'performance_summary': {
         summary = {
           totalSuppliers: suppliers.length,
           evaluatedSuppliers: evaluations.length,
@@ -751,8 +751,8 @@ class SupplierScorecardService {
         };
         data = { suppliers, evaluations };
         break;
-
-      case 'scorecard_analysis':
+      }
+      case 'scorecard_analysis': {
         const scoreDistribution = suppliers.reduce((acc, s) => {
           acc[s.scorecard.grade] = (acc[s.scorecard.grade] || 0) + 1;
           return acc;
@@ -773,8 +773,8 @@ class SupplierScorecardService {
         };
         data = { scoreDistribution, riskDistribution, suppliers };
         break;
-
-      case 'risk_assessment':
+      }
+      case 'risk_assessment': {
         const riskSuppliers = suppliers.filter(s => s.riskAssessment.overallRisk === 'high' || s.riskAssessment.overallRisk === 'medium');
         summary = {
           totalSuppliers: suppliers.length,
@@ -786,6 +786,11 @@ class SupplierScorecardService {
         };
         data = { riskSuppliers, riskFactors: this.analyzeRiskFactors(suppliers) };
         break;
+      }
+      default: {
+        // handle other report types or do nothing
+        break;
+      }
     }
 
     const report: SupplierReport = {

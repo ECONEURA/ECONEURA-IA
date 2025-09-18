@@ -83,7 +83,7 @@ echo "  AZURE_SUBSCRIPTION_ID=${SUBSCRIPTION_ID}"
 echo "Notes: no client secret is required for OIDC. Configure your GitHub workflow to use azure/login with 'client-id' and 'tenant-id'."
 
 echo "Example minimal GitHub Actions snippet (uses OIDC):\n\n  - name: Login to Azure
-    uses: azure/login@v1
+    uses: azure/login@v2
     with:
       client-id: $APP_ID
       tenant-id: $TENANT_ID

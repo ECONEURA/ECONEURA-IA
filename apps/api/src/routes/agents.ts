@@ -45,7 +45,9 @@ function verifyHmac(req: Request): boolean {
         require('node:crypto').timingSafeEqual(Buffer.from(legacyDot), Buffer.from(provided))) {
       return true;
     }
-  } catch {}
+  } catch (e) {
+    // catch vacío intencional: si la comparación falla, simplemente no es igual
+  }
   // Path 3: body-only variant used by older tests
   const bodyOnly = sha256Hex(body, secret);
   try {
@@ -53,7 +55,9 @@ function verifyHmac(req: Request): boolean {
         require('node:crypto').timingSafeEqual(Buffer.from(bodyOnly), Buffer.from(provided))) {
       return true;
     }
-  } catch {}
+  } catch (e) {
+    // catch vacío intencional: si la comparación falla, simplemente no es igual
+  }
   return false;
 }
 

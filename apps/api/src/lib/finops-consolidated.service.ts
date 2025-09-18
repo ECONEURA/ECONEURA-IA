@@ -322,17 +322,22 @@ export class FinOpsConsolidatedService {
 
   private getBudgetStartDate(budget: Budget, currentDate: Date): Date {
     switch (budget.period) {
-      case 'monthly':
+      case 'monthly': {
         return new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      case 'quarterly':
+      }
+      case 'quarterly': {
         const quarter = Math.floor(currentDate.getMonth() / 3);
         return new Date(currentDate.getFullYear(), quarter * 3, 1);
-      case 'yearly':
+      }
+      case 'yearly': {
         return new Date(currentDate.getFullYear(), 0, 1);
-      case 'custom':
+      }
+      case 'custom': {
         return budget.startDate;
-      default:
+      }
+      default: {
         return budget.startDate;
+      }
     }
   }
 
