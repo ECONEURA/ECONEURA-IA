@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { db, setOrg, testConnection } from './connection'
-import { companies, contacts, deals, users } from './schema'
+import { db, setOrg, testConnection } from './connection.js'
+import { companies, contacts, deals, users } from './schema.js'
 import { eq } from 'drizzle-orm'
 
 describe('Database Schema', () => {

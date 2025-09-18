@@ -1,6 +1,6 @@
 import { Router } from "express";
 import crypto from "crypto";
-import { seen, markSeen, upsertRun } from "../svc/runs";
+import { seen, markSeen, upsertRun } from '../svc/runs.js';
 import { z } from "zod";
 
 const router = Router();

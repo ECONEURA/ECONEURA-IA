@@ -1,10 +1,10 @@
 import { Router, type Router as ExpressRouter, type Request, type Response } from 'express';
 import { Redis } from 'ioredis';
 import { prisma } from '@econeura/db';
-import { metrics } from '../lib/metrics';
-import { logger } from '../lib/logger';
-import { AzureOpenAIService } from '../services/ai/azure-openai.service';
-import { asyncHandler } from '../lib/errors';
+import { metrics } from '../lib/metrics.js';
+import { logger } from '../lib/logger.js';
+import { AzureOpenAIService } from '../services/ai/azure-openai.service.js';
+import { asyncHandler } from '../lib/errors.js';
 
 interface HealthCheckResult {
   component: string;

@@ -2,8 +2,8 @@ import { Router, type Router as ExpressRouter, type Request, type Response } fro
 import { BlobServiceClient, StorageSharedKeyCredential, generateBlobSASQueryParameters, ContainerSASPermissions, SASProtocol } from '@azure/storage-blob';
 import archiver from 'archiver';
 import { Readable } from 'stream';
-import { logger } from '../lib/logger';
-import { asyncHandler } from '../lib/errors';
+import { logger } from '../lib/logger.js';
+import { asyncHandler } from '../lib/errors.js';
 
 const router: ExpressRouter = Router();
 

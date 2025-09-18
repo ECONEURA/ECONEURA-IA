@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
 // @ts-ignore
-import app from '../../apps/api/src/index';
+import app from '../../apps/api/src/index.js';
 
 describe('HIL approvals contract (alias /v1/hitl → /v1/hil)', () => {
   beforeAll(() => {

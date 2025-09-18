@@ -1,4 +1,4 @@
-import { SepaMovement } from './types';
+import { SepaMovement } from './types.js';
 import { parseStringPromise } from 'xml2js';
 
 export async function parseCamt(xml: string): Promise<SepaMovement[]> {

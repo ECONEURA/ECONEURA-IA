@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { env } from './env.ts'
+import { env } from './env.ts.js'
 
 describe('env()', () => {
   beforeEach(() => {

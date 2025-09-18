@@ -8,7 +8,7 @@ import {
   createHealthCheckErrorHandler,
   asyncHandler,
   errorBoundary,
-} from '../middleware/error-handler';
+} from '../middleware/error-handler.js';
 import {
   AppError,
   ValidationError,

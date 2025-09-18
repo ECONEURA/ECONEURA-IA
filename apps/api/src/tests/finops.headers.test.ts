@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import { finopsHeaders } from '../middleware/finops';
+import { finopsHeaders } from '../middleware/finops.js';
 
 describe('FinOps headers middleware', () => {
   it('adds FinOps headers on /v1 routes', async () => {

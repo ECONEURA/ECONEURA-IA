@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { EnhancedAIRouter } from '../enhanced-router';
+import { EnhancedAIRouter } from '../enhanced-router.js';
 
 // Mock the AI router client
 vi.mock('@econeura/agents/ai-router.client', () => ({

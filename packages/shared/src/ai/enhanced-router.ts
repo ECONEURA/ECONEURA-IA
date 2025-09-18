@@ -1,13 +1,13 @@
 import { z } from 'zod'
-import { logger } from '../logging'
-import { prometheus } from '../metrics'
-import { redactPII } from '../security'
-import { CostGuardrails, type UsageMetrics } from './cost-guardrails'
-import { LLMProviderManager, type LLMProvider, type LLMModel } from './providers'
-import { costMeter, type CostUsage } from '../cost-meter'
-// import { createTracer } from '../otel'
-import { env } from '../env'
-import { tracer, meter } from '../otel'
+import { logger } from '../logging.js'
+import { prometheus } from '../metrics.js'
+import { redactPII } from '../security.js'
+import { CostGuardrails, type UsageMetrics } from './cost-guardrails.js'
+import { LLMProviderManager, type LLMProvider, type LLMModel } from './providers.js'
+import { costMeter, type CostUsage } from '../cost-meter.js'
+// import { createTracer } from '../otel.js'
+import { env } from '../env.js'
+import { tracer, meter } from '../otel.js'
 
 // Request schemas
 const AIRequestSchema = z.object({

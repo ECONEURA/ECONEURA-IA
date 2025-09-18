@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
-import { logger } from './logger';
-import { metrics } from './metrics';
+import { logger } from './logger.js';
+import { metrics } from './metrics.js';
 
 function headerToString(h?: string | string[] | undefined): string | undefined {
   if (!h) return undefined;

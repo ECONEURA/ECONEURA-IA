@@ -93,7 +93,7 @@ export class InventoryKardex extends BaseEntity {
     const now = new Date();
     return new InventoryKardex({
       ...props,
-      id: { value: crypto.randomUUID() },
+      id: crypto.randomUUID(),
       createdAt: now,
       updatedAt: now,
     });
@@ -188,7 +188,7 @@ export class InventoryKardex extends BaseEntity {
       productId: this.props.productId,
       warehouseId: this.props.warehouseId,
       locationId: this.props.locationId,
-      movementType: { value: 'in' },
+      movementType: 'in',
       movementReason: reason,
       quantity,
       unitCost,
@@ -202,7 +202,7 @@ export class InventoryKardex extends BaseEntity {
       supplierId,
       userId,
       movementDate: new Date(),
-      status: { value: 'completed' }
+      status: 'completed'
     };
 
     this.addMovement(movement);
@@ -228,7 +228,7 @@ export class InventoryKardex extends BaseEntity {
       productId: this.props.productId,
       warehouseId: this.props.warehouseId,
       locationId: this.props.locationId,
-      movementType: { value: 'out' },
+      movementType: 'out',
       movementReason: reason,
       quantity: -quantity,
       unitCost: this.props.averageCost,
@@ -241,7 +241,7 @@ export class InventoryKardex extends BaseEntity {
       customerId,
       userId,
       movementDate: new Date(),
-      status: { value: 'completed' }
+      status: 'completed'
     };
 
     this.addMovement(movement);
@@ -251,7 +251,7 @@ export class InventoryKardex extends BaseEntity {
     quantity: number,
     toWarehouseId: string,
     toLocationId?: string,
-    reason: MovementReason = { value: 'transfer_out' },
+    reason: MovementReason = 'transfer_out',
     reference?: string,
     referenceId?: string,
     notes?: string,
@@ -266,7 +266,7 @@ export class InventoryKardex extends BaseEntity {
       productId: this.props.productId,
       warehouseId: this.props.warehouseId,
       locationId: this.props.locationId,
-      movementType: { value: 'transfer' },
+      movementType: 'transfer',
       movementReason: reason,
       quantity: -quantity,
       unitCost: this.props.averageCost,
@@ -276,7 +276,7 @@ export class InventoryKardex extends BaseEntity {
       notes,
       userId,
       movementDate: new Date(),
-      status: { value: 'completed' }
+      status: 'completed'
     };
 
     this.addMovement(movement);
@@ -285,7 +285,7 @@ export class InventoryKardex extends BaseEntity {
   recordAdjustmentMovement(
     quantity: number,
     unitCost: Money,
-    reason: MovementReason = { value: 'adjustment' },
+    reason: MovementReason = 'adjustment',
     reference?: string,
     referenceId?: string,
     notes?: string,
@@ -296,7 +296,7 @@ export class InventoryKardex extends BaseEntity {
       productId: this.props.productId,
       warehouseId: this.props.warehouseId,
       locationId: this.props.locationId,
-      movementType: { value: 'adjustment' },
+      movementType: 'adjustment',
       movementReason: reason,
       quantity,
       unitCost,
@@ -306,7 +306,7 @@ export class InventoryKardex extends BaseEntity {
       notes,
       userId,
       movementDate: new Date(),
-      status: { value: 'completed' }
+      status: 'completed'
     };
 
     this.addMovement(movement);
@@ -525,8 +525,8 @@ export class InventoryKardex extends BaseEntity {
       productId,
       warehouseId,
       locationId,
-      movementType: { value: 'in' },
-      movementReason: { value: 'purchase' },
+      movementType: 'in',
+      movementReason: 'purchase',
       quantity,
       unitCost,
       totalCost: Money.create(quantity * unitCost.amount, unitCost.currency),
@@ -537,7 +537,7 @@ export class InventoryKardex extends BaseEntity {
       expirationDate,
       supplierId,
       movementDate: new Date(),
-      status: { value: 'completed' }
+      status: 'completed'
     };
   }
 
@@ -557,8 +557,8 @@ export class InventoryKardex extends BaseEntity {
       productId,
       warehouseId,
       locationId,
-      movementType: { value: 'out' },
-      movementReason: { value: 'sale' },
+      movementType: 'out',
+      movementReason: 'sale',
       quantity: -quantity,
       unitCost,
       totalCost: Money.create(-quantity * unitCost.amount, unitCost.currency),
@@ -567,7 +567,7 @@ export class InventoryKardex extends BaseEntity {
       notes,
       customerId,
       movementDate: new Date(),
-      status: { value: 'completed' }
+      status: 'completed'
     };
   }
 
@@ -577,7 +577,7 @@ export class InventoryKardex extends BaseEntity {
     unitCost: Money,
     warehouseId?: string,
     locationId?: string,
-    reason: MovementReason = { value: 'adjustment' },
+    reason: MovementReason = 'adjustment',
     reference?: string,
     referenceId?: string,
     notes?: string
@@ -587,7 +587,7 @@ export class InventoryKardex extends BaseEntity {
       productId,
       warehouseId,
       locationId,
-      movementType: { value: 'adjustment' },
+      movementType: 'adjustment',
       movementReason: reason,
       quantity,
       unitCost,
@@ -596,7 +596,7 @@ export class InventoryKardex extends BaseEntity {
       referenceId,
       notes,
       movementDate: new Date(),
-      status: { value: 'completed' }
+      status: 'completed'
     };
   }
 }

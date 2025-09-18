@@ -1,5 +1,5 @@
 // FSM (Finite State Machine) para estados de agentes - ECONEURA Cockpit
-import { AgentStatus } from './models';
+import { AgentStatus } from './models.js';
 
 export const can = (from: AgentStatus, to: AgentStatus): boolean => {
   const transitions: Record<AgentStatus, AgentStatus[]> = {

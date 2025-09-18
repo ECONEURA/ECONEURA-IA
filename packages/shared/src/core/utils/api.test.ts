@@ -3,7 +3,7 @@ import {
   createSuccessResponse,
   createErrorResponse,
   createPaginatedResponse
-} from './api';
+} from './api.js';
 
 describe('API Utilities', () => {
   describe('createSuccessResponse', () => {

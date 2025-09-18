@@ -1,1 +1,1 @@
-export { default } from './quiet-hours.ts';
+export { default } from './quiet-hours.ts.js';

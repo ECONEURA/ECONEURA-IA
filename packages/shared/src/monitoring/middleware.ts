@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { httpMetrics, systemMetrics } from './metrics';
-import { tracingManager } from './tracing';
-import { logger } from '../logging/index';
+import { httpMetrics, systemMetrics } from './metrics.js';
+import { tracingManager } from './tracing.js';
+import { logger } from '../logging/index.js';
 
 /**
  * HTTP request monitoring middleware

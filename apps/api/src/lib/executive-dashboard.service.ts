@@ -167,11 +167,11 @@ export class ExecutiveDashboardService {
         config: {
           metricId: 'revenue',
           thresholds: [
-            { value: 1000000, color: '#10B981', label: 'Target', operator: 'greater_than' },
-            { value: 800000, color: '#F59E0B', label: 'Warning', operator: 'less_than' }
+            1000000, color: '#10B981', label: 'Target', operator: 'greater_than',
+            800000, color: '#F59E0B', label: 'Warning', operator: 'less_than'
           ]
         },
-        data: { value: 1250000, unit: 'USD', trend: 'increasing' },
+        data: 1250000, unit: 'USD', trend: 'increasing',
         refreshInterval: 30000,
         isVisible: true
       },
@@ -183,12 +183,12 @@ export class ExecutiveDashboardService {
         config: {
           metricId: 'profit_margin',
           thresholds: [
-            { value: 20, color: '#10B981', label: 'Excellent', operator: 'greater_than' },
-            { value: 15, color: '#F59E0B', label: 'Good', operator: 'greater_than' },
-            { value: 10, color: '#EF4444', label: 'Poor', operator: 'less_than' }
+            20, color: '#10B981', label: 'Excellent', operator: 'greater_than',
+            15, color: '#F59E0B', label: 'Good', operator: 'greater_than',
+            10, color: '#EF4444', label: 'Poor', operator: 'less_than'
           ]
         },
-        data: { value: 18.5, unit: '%', trend: 'stable' },
+        data: 18.5, unit: '%', trend: 'stable',
         refreshInterval: 30000,
         isVisible: true
       },
@@ -213,11 +213,11 @@ export class ExecutiveDashboardService {
         config: {
           metricId: 'customer_growth',
           thresholds: [
-            { value: 10, color: '#10B981', label: 'High Growth', operator: 'greater_than' },
-            { value: 5, color: '#F59E0B', label: 'Moderate Growth', operator: 'greater_than' }
+            10, color: '#10B981', label: 'High Growth', operator: 'greater_than',
+            5, color: '#F59E0B', label: 'Moderate Growth', operator: 'greater_than'
           ]
         },
-        data: { value: 12.3, unit: '%', trend: 'increasing' },
+        data: 12.3, unit: '%', trend: 'increasing',
         refreshInterval: 30000,
         isVisible: true
       },
@@ -229,12 +229,12 @@ export class ExecutiveDashboardService {
         config: {
           metricId: 'operational_efficiency',
           thresholds: [
-            { value: 90, color: '#10B981', label: 'Excellent', operator: 'greater_than' },
-            { value: 80, color: '#F59E0B', label: 'Good', operator: 'greater_than' },
-            { value: 70, color: '#EF4444', label: 'Needs Improvement', operator: 'less_than' }
+            90, color: '#10B981', label: 'Excellent', operator: 'greater_than',
+            80, color: '#F59E0B', label: 'Good', operator: 'greater_than',
+            70, color: '#EF4444', label: 'Needs Improvement', operator: 'less_than'
           ]
         },
-        data: { value: 87.5, unit: '%', trend: 'stable' },
+        data: 87.5, unit: '%', trend: 'stable',
         refreshInterval: 30000,
         isVisible: true
       },
@@ -245,7 +245,7 @@ export class ExecutiveDashboardService {
         position: { x: 8, y: 2, width: 4, height: 2 },
         config: {
           thresholds: [
-            { value: 0, color: '#EF4444', label: 'Critical', operator: 'greater_than' }
+            0, color: '#EF4444', label: 'Critical', operator: 'greater_than'
           ]
         },
         data: { alerts: await this.getCriticalAlerts(organizationId) },
@@ -344,7 +344,7 @@ export class ExecutiveDashboardService {
       case 'trend':
         return await this.getTrendData(widget, organizationId);
       default:
-        return { value: 0, unit: '', trend: 'stable' };
+        return 0, unit: '', trend: 'stable';
     }
   }
 

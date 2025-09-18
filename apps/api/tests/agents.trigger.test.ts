@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import request from 'supertest';
-import app from '../src/index';
+import app from '../src/index.js';
 import { hmacSign } from '@econeura/shared/security';
 import crypto from 'node:crypto';
 

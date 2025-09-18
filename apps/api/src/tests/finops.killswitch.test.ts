@@ -7,7 +7,7 @@ beforeAll(() => {
 });
  
 // @ts-ignore
-import app from '../../src/index';
+import app from '../../src/index.js';
 
 const AGENT = 'cfo_dunning';
 

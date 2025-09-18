@@ -14,7 +14,7 @@ import {
   CreateOnCallScheduleRequest,
   UpdateOnCallScheduleRequest,
   OnCallStats
-} from './quiet-hours-types';
+} from './quiet-hours-types.js';
 
 export class OnCallService {
   private schedules: Map<string, OnCallSchedule> = new Map();

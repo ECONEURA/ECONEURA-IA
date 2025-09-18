@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { BaseDTOs } from './base.dto';
-import { SearchResultType, SearchType } from '../../domain/entities/search-result.entity';
+import { BaseDTOs } from './base.dto.js';
+import { SearchResultType, SearchType } from '../../domain/entities/search-result.entity.js';
 
 /**
  * Search DTOs - Data Transfer Objects para búsqueda inteligente

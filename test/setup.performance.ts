@@ -1,5 +1,5 @@
 import { beforeAll, afterAll } from 'vitest'
-import { mkdir, writeFile } from 'fs/promises'
+import { mkdir, writeFile } from 'fs/promises.js'
 import { join } from 'path'
 
 // Global setup for performance tests

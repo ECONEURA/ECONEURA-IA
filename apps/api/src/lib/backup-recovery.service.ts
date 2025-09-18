@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { logger } from './logger.js';
-import fs from 'fs/promises';
+import fs from 'fs/promises.js';
 import path from 'path';
 import { createHash, createCipher, createDecipher } from 'crypto';
 

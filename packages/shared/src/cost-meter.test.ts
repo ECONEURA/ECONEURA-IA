@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { costMeter } from './cost-meter.ts'
+import { costMeter } from './cost-meter.ts.js'
 
 // Mock database imports
 vi.mock('@econeura/db', () => ({

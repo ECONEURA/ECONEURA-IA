@@ -14,7 +14,7 @@ import {
   PerformanceTrend,
   TimeSeriesPoint,
   PerformanceStats
-} from './warmup-types';
+} from './warmup-types.js';
 
 export class PerformanceOptimizationService {
   private metrics: Map<string, PerformanceMetrics[]> = new Map();

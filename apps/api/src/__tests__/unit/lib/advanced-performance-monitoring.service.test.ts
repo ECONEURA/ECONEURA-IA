@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { AdvancedPerformanceMonitoringService } from '../../lib/advanced-performance-monitoring.service.ts';
+import { AdvancedPerformanceMonitoringService } from '../../lib/advanced-performance-monitoring.service.ts.js';
 
 // Mock logger
 vi.mock('../../lib/logger.ts', () => ({

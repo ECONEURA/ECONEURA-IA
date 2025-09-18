@@ -6,7 +6,7 @@ import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
 // @ts-ignore: optional opentelemetry SDK may not be installed in dev env
 import { SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { envSchema } from '../core/config/env';
+import { envSchema } from '../core/config/env.js';
 
 const env = envSchema.parse(process.env);
 

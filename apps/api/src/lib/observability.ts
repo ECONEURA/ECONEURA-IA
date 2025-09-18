@@ -1,5 +1,5 @@
-import { metrics } from './metrics';
-import { logger } from './logger';
+import { metrics } from './metrics.js';
+import { logger } from './logger.js';
 import { Request, Response, NextFunction } from 'express';
 
 export class ObservabilityService {

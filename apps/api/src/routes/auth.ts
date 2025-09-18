@@ -4,7 +4,8 @@ import { Request, Response } from 'express';
 import { structuredLogger } from '../lib/structured-logger.js';
 import { authService } from '../lib/auth.service.js';
 import { rbacService } from '../lib/rbac.service.js';
-import { authenticateToken, optionalAuth } from '../middleware/auth.js';
+import { authenticateToken } from '../middleware/auth.js';
+import { getDatabaseService } from '../lib/database.service.js';
 
 // ============================================================================
 // AUTHENTICATION ROUTES
@@ -513,12 +514,73 @@ router.post('/change-password', authenticateToken, async (req: Request, res: Res
 
     const { currentPassword, newPassword } = validation.data;
 
-    // TODO: Implement password change logic
-    // This would involve:
-    // 1. Verify current password
-    // 2. Hash new password
-    // 3. Update user password in database
-    // 4. Invalidate all existing sessions (optional)
+    // Password change implementation
+    try {
+      const prisma = getDatabaseService();
+      
+      // 1. Get user from database
+      const user = await prisma.user.findUnique({
+        where: { id: req.user!.id }
+      });
+
+      if (!user) {
+        res.status(404).json({
+          success: false,
+          error: {
+            code: 'USER_NOT_FOUND',
+            message: 'User not found'
+          }
+        });
+        return;
+      }
+
+      // 2. Verify current password
+      const bcrypt = await import('bcrypt');
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
+      
+      if (!isCurrentPasswordValid) {
+        res.status(400).json({
+          success: false,
+          error: {
+            code: 'INVALID_CURRENT_PASSWORD',
+            message: 'Current password is incorrect'
+          }
+        });
+        return;
+      }
+
+      // 3. Hash new password
+      const saltRounds = 12;
+      const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
+
+      // 4. Update user password in database
+      await prisma.user.update({
+        where: { id: req.user!.id },
+        data: { 
+          passwordHash: newPasswordHash,
+          passwordChangedAt: new Date()
+        }
+      });
+
+      // 5. Optionally invalidate all existing sessions
+      // This could be implemented by updating a tokenVersion field
+      // or maintaining a blacklist of tokens
+
+    } catch (error) {
+      structuredLogger.error('Password change failed', {
+        userId: req.user!.id,
+        error: error.message
+      });
+      
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'PASSWORD_CHANGE_FAILED',
+          message: 'Failed to change password'
+        }
+      });
+      return;
+    }
 
     const processingTime = Date.now() - startTime;
 

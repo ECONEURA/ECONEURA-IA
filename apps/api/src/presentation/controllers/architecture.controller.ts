@@ -77,7 +77,7 @@ export class ArchitectureController extends BaseController {
       }
 
       if (requestData.type !== undefined) {
-        existingArchitecture.updateType({ value: requestData.type });
+        existingArchitecture.updateType(requestData.type);
       }
 
       if (requestData.description !== undefined) {

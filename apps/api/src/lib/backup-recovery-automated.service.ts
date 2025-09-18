@@ -15,7 +15,7 @@
 import { structuredLogger } from './structured-logger.js';
 import { getDatabaseService } from '@econeura/db';
 import crypto from 'crypto';
-import fs from 'fs/promises';
+import fs from 'fs/promises.js';
 import path from 'path';
 
 export interface BackupConfig {

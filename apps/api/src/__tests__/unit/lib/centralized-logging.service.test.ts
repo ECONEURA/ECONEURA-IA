@@ -6,7 +6,7 @@ import CentralizedLoggingService, {
   LogAlertRule, 
   LogRetentionPolicy, 
   CentralizedLoggingConfig 
-} from '../../lib/centralized-logging.service.ts';
+} from '../../lib/centralized-logging.service.ts.js';
 
 // Mock del logger
 vi.mock('../../lib/logger.ts', () => ({

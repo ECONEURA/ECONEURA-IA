@@ -1,4 +1,4 @@
-import { env } from '../env'
+import { env } from '../env.js'
 
 // Temporary mock implementations for build
 export const tracer = {

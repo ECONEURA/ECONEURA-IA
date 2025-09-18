@@ -17,7 +17,7 @@ export interface WarmupResult {
 }
 
 export class CacheWarmupService {
-  private cache: Map<string, { value: any; expires: number }> = new Map();
+  private cache: Map<string, any; expires: number> = new Map();
   private stats = { hits: 0, misses: 0 };
   private isWarmingUp = false;
 

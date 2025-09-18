@@ -566,8 +566,8 @@ export class NextAIPlatformService {
       },
       prediction: {
         predictions: [
-          { value: 85, confidence: 0.8, timeframe: '1 month' },
-          { value: 92, confidence: 0.7, timeframe: '3 months' },
+          85, confidence: 0.8, timeframe: '1 month',
+          92, confidence: 0.7, timeframe: '3 months',
         ],
         confidence: 0.75,
         timeframe: '1-3 months',

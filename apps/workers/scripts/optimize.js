@@ -14,7 +14,7 @@
 import { performance } from 'perf_hooks';
 import { promisify } from 'util';
 import { exec } from 'child_process';
-import fs from 'fs/promises';
+import fs from 'fs/promises.js';
 import path from 'path';
 
 const execAsync = promisify(exec);

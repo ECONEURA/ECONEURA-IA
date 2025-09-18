@@ -1,6 +1,6 @@
 // Conector Make - ECONEURA Cockpit
-import { env } from './env';
-import type { RunOrder, AgentEvent } from './models';
+import { env } from './env.js';
+import type { RunOrder, AgentEvent } from './models.js';
 
 export interface MakeClient {
   trigger(order: RunOrder): Promise<{ accepted: boolean }>;

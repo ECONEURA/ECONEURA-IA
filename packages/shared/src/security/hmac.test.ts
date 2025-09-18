@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { sha256Hex, verifyHmacSignature } from './hmac';
+import { sha256Hex, verifyHmacSignature } from './hmac.js';
 
 describe('hmac helpers', () => {
   it('sha256Hex produces expected hex', () => {

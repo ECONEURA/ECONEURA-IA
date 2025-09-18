@@ -22,7 +22,7 @@ export interface CacheStats {
 }
 
 export class AdvancedCache {
-  private cache: Map<string, { value: any; timestamp: number; accessCount: number; lastAccessed: number }> = new Map();
+  private cache: Map<string, any; timestamp: number; accessCount: number; lastAccessed: number> = new Map();
   private options: Required<CacheOptions>;
   private stats: CacheStats;
 

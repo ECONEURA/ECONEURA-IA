@@ -155,7 +155,7 @@ export class UserDomainService {
       }
 
       // Check if user is in the same organization
-      return !existingUser.canAccessOrganization({ value: organizationId });
+      return !existingUser.canAccessOrganization(organizationId);
     } catch (error) {
       return false;
     }
@@ -184,7 +184,7 @@ export class UserDomainService {
         return false;
       }
 
-      return user.canAccessOrganization({ value: organizationId });
+      return user.canAccessOrganization(organizationId);
     } catch (error) {
       return false;
     }

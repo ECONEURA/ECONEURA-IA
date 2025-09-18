@@ -1,5 +1,5 @@
 // GDPR Audit Service for PR-43
-import { GDPRRequest, AuditEntry, GDPRStats, BreachRecord } from './gdpr-types';
+import { GDPRRequest, AuditEntry, GDPRStats, BreachRecord } from './gdpr-types.js';
 import { logger } from './logger.js';
 
 export class GDPRAuditService {

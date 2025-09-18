@@ -1,6 +1,6 @@
 // Reconciliation Service for PR-42
-import { SEPATransaction, ReconciliationResult } from './sepa-types';
-import { MatchingEngineService } from './matching-engine.service';
+import { SEPATransaction, ReconciliationResult } from './sepa-types.js';
+import { MatchingEngineService } from './matching-engine.service.js';
 
 export class ReconciliationService {
   private matchingEngine: MatchingEngineService;

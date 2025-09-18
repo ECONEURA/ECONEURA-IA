@@ -5,7 +5,7 @@ import {
   ValidationConfig,
   DeploymentConfig,
   NotificationConfig 
-} from './rls-types';
+} from './rls-types.js';
 import { logger } from './logger.js';
 
 export class RLSCICDService {

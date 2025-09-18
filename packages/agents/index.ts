@@ -1,3 +1,3 @@
-export * from './ai-router.client';
-export * from './memory';
-export * from './src/types';
+export * from './ai-router.client.js';
+export * from './memory.js';
+export * from './src/types.js';

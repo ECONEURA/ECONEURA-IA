@@ -6,7 +6,7 @@ import AdvancedMetricsAlertsService, {
   SLA, 
   MetricTrend, 
   MetricsAlertsConfig 
-} from '../../lib/advanced-metrics-alerts.service.ts';
+} from '../../lib/advanced-metrics-alerts.service.ts.js';
 
 // Mock del logger
 vi.mock('../../lib/logger.ts', () => ({

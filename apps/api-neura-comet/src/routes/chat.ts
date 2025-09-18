@@ -8,7 +8,7 @@ import {
   shouldRefresh, 
   upsertSummary, 
   persona 
-} from "../svc/memory";
+} from '../svc/memory.js';
 import { z } from "zod";
 
 const router = Router();

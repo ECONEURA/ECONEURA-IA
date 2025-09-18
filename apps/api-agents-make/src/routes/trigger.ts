@@ -1,6 +1,6 @@
 import { Router } from "express";
 import fetch from "node-fetch";
-import { upsertRun } from "../svc/runs";
+import { upsertRun } from '../svc/runs.js';
 import { z } from "zod";
 
 const router = Router();

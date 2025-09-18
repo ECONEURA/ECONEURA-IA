@@ -1,4 +1,4 @@
-import http from 'k6/http';
+import http from 'k6/http.js';
 import { check } from 'k6';
 
 export default function () {

@@ -267,7 +267,7 @@ export class InvoiceController extends BaseController {
 
       invoice.recordPayment(
         { amount: requestData.amount.amount, currency: requestData.amount.currency },
-        { value: requestData.paymentMethod },
+        requestData.paymentMethod,
         requestData.paidDate
       );
 

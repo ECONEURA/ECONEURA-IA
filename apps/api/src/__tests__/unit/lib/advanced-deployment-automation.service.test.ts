@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { AdvancedDeploymentAutomationService } from '../../lib/advanced-deployment-automation.service.ts';
+import { AdvancedDeploymentAutomationService } from '../../lib/advanced-deployment-automation.service.ts.js';
 
 // Mock logger
 vi.mock('../../lib/logger.ts', () => ({

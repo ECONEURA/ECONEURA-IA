@@ -1,4 +1,4 @@
-import { BaseEntity } from './base';
+import { BaseEntity } from './base.js';
 
 // AI Request types
 export interface AIRequest {

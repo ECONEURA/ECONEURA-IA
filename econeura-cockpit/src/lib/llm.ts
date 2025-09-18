@@ -1,6 +1,6 @@
 // Conector LLM - ECONEURA Cockpit
-import { env } from './env';
-import type { LlmMsg } from './models';
+import { env } from './env.js';
+import type { LlmMsg } from './models.js';
 
 export interface LLMClient {
   chat(messages: LlmMsg[], opts?: { temp?: number; maxTokens?: number }): Promise<string>;

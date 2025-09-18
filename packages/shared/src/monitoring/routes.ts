@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { healthCheck } from './middleware';
-import { registry } from './metrics';
-import { logger } from '../logging/index';
+import { healthCheck } from './middleware.js';
+import { registry } from './metrics.js';
+import { logger } from '../logging/index.js';
 const monitoringRouter: Router = Router();
 
 /**

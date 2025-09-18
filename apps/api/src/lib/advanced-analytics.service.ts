@@ -630,7 +630,7 @@ export class AdvancedAnalyticsService {
       default: result = values.reduce((sum, val) => sum + val, 0) / values.length;
     }
 
-    return { value: result };
+    return result;
   }
 
   private calculateAggregations(groups: any[]): Record<string, number> {

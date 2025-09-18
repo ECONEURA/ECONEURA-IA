@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { logger } from '../lib/logger';
-import { db } from '../lib/db';
+import { logger } from '../lib/logger.js';
+import { db } from '../lib/db.js';
 import { eq, desc, gte, and } from 'drizzle-orm';
 import { 
   aiCostOptimization, 
@@ -10,7 +10,7 @@ import {
   aiTrainingJobs,
   aiSecurityCompliance,
   aiPerformanceOptimization
-} from '../lib/schema';
+} from '../lib/schema.js';
 
 // Schemas de validación
 const DashboardMetricsSchema = z.object({

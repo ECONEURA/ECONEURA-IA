@@ -110,7 +110,7 @@ export class Architecture extends BaseEntity {
     const now = new Date();
     return new Architecture({
       ...props,
-      id: { value: crypto.randomUUID() },
+      id: crypto.randomUUID(),
       createdAt: now,
       updatedAt: now,
     });
@@ -387,21 +387,21 @@ export class Architecture extends BaseEntity {
   static createHexagonalArchitecture(props: Omit<ArchitectureProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): Architecture {
     return Architecture.create({
       ...props,
-      type: { value: 'hexagonal' },
+      type: 'hexagonal',
     });
   }
 
   static createMicroservicesArchitecture(props: Omit<ArchitectureProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): Architecture {
     return Architecture.create({
       ...props,
-      type: { value: 'microservices' },
+      type: 'microservices',
     });
   }
 
   static createLayeredArchitecture(props: Omit<ArchitectureProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): Architecture {
     return Architecture.create({
       ...props,
-      type: { value: 'layered' },
+      type: 'layered',
     });
   }
 }

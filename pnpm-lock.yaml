@@ -214,9 +214,15 @@ importers:
       concurrently:
         specifier: ^9.2.1
         version: 9.2.1
+
       eslint:
         specifier: ^8.56.0
         version: 8.57.1
+
+      globals:
+        specifier: ^16.4.0
+        version: 16.4.0
+
       supertest:
         specifier: ^7.1.4
         version: 7.1.4
@@ -719,11 +725,7 @@ importers:
         specifier: ^3.2.4
         version: 3.2.4(@types/node@24.5.2)(tsx@4.20.5)(yaml@2.8.1)
 
-  studio:
-    dependencies:
-      _comment:
-        specifier: Las dependencias serán agregadas cuando se complete el merge desde ECONEURA/studio
-        version: link:Las dependencias serán agregadas cuando se complete el merge desde ECONEURA/studio
+  studio: {}
 
 packages:
 

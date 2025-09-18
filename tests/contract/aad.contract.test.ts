@@ -54,7 +54,7 @@ beforeAll(async () => {
 // Importa la app DESPUÉS de setear envs
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import app from "../../apps/api/src/index";
+import app from '../../apps/api/src/index.js';
 
 afterAll(async () => {
   await new Promise<void>((r) => server.close(() => r()));

@@ -1,4 +1,4 @@
-import { BaseEntity, Metadata, Status } from './base';
+import { BaseEntity, Metadata, Status } from './base.js';
 
 /**
  * Organization settings interface

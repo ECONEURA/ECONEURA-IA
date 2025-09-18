@@ -1,7 +1,7 @@
 // Export all new domain schemas
-export * from './common';
-export * from './auth';
-export * from './erp';
+export * from './common.js';
+export * from './auth.js';
+export * from './erp.js';
 
 // Export CRM schemas with explicit names to avoid conflicts
 export {
@@ -14,7 +14,7 @@ export {
   UpdateCompany as CRMUpdateCompany,
   UpdateContact as CRMUpdateContact,
   UpdateDeal as CRMUpdateDeal,
-} from './crm';
+} from './crm.js';
 
 // Export Finance schemas with explicit names to avoid conflicts
 export {
@@ -27,7 +27,7 @@ export {
   UpdateCompany as FinanceUpdateCompany,
   UpdateContact as FinanceUpdateContact,
   UpdateDeal as FinanceUpdateDeal,
-} from './finance';
+} from './finance.js';
 
 // Legacy schemas kept for backward compatibility
 import { z } from 'zod';

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BaseEntity } from './base.entity';
+import { BaseEntity } from './base.entity.js';
 
 /**
  * Search Result Entity - Resultado de búsqueda inteligente

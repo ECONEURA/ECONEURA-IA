@@ -1,12 +1,12 @@
 import { Router } from 'express';
-import { SearchController } from '../controllers/search.controller';
-import { IntelligentSearchUseCase } from '../../application/use-cases/search/intelligent-search.use-case';
-import { GetSuggestionsUseCase } from '../../application/use-cases/search/get-suggestions.use-case';
-import { IndexEntityUseCase } from '../../application/use-cases/search/index-entity.use-case';
-import { SearchRepository } from '../../domain/repositories/search.repository';
-import { authMiddleware } from '../middleware/auth';
-import { validationMiddleware } from '../middleware/validation.middleware';
-import { IntelligentSearchRequestSchema, GetSuggestionsRequestSchema, IndexEntityRequestSchema } from '../dto/search.dto';
+import { SearchController } from '../controllers/search.controller.js';
+import { IntelligentSearchUseCase } from '../../application/use-cases/search/intelligent-search.use-case.js';
+import { GetSuggestionsUseCase } from '../../application/use-cases/search/get-suggestions.use-case.js';
+import { IndexEntityUseCase } from '../../application/use-cases/search/index-entity.use-case.js';
+import { SearchRepository } from '../../domain/repositories/search.repository.js';
+import { authMiddleware } from '../middleware/auth.js';
+import { validationMiddleware } from '../middleware/validation.middleware.js';
+import { IntelligentSearchRequestSchema, GetSuggestionsRequestSchema, IndexEntityRequestSchema } from '../dto/search.dto.js';
 
 /**
  * Search Routes - Rutas para búsqueda inteligente

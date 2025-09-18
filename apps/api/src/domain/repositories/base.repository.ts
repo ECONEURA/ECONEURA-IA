@@ -3,8 +3,8 @@
 // ============================================================================
 
 export interface BaseEntity {
-  id: { value: string };
-  organizationId: { value: string };
+  id: string;
+  organizationId: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;

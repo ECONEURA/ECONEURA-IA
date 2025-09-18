@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { setIdempotency, getIdempotency } from './idempotency';
+import { setIdempotency, getIdempotency } from './idempotency.js';
 
 describe('idempotency store', () => {
   it('stores and retrieves values in memory fallback', async () => {

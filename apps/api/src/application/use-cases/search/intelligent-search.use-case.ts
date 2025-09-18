@@ -1,6 +1,6 @@
-import { UseCase } from '../base.use-case';
-import { SearchRepository } from '../../../domain/repositories/search.repository';
-import { SearchResult, SearchQuery, SearchFilters, SearchType } from '../../../domain/entities/search-result.entity';
+import { UseCase } from '../base.use-case.js';
+import { SearchRepository } from '../../../domain/repositories/search.repository.js';
+import { SearchResult, SearchQuery, SearchFilters, SearchType } from '../../../domain/entities/search-result.entity.js';
 
 export interface IntelligentSearchRequest {
   query: string;

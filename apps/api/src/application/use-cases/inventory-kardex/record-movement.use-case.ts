@@ -95,7 +95,7 @@ export class RecordMovementUseCase extends BaseUseCase<RecordMovementRequest, Re
         existingInventoryKardex.recordInMovement(
           request.quantity,
           unitCost,
-          { value: request.movementReason },
+          request.movementReason,
           request.reference,
           request.referenceId,
           request.notes,
@@ -110,7 +110,7 @@ export class RecordMovementUseCase extends BaseUseCase<RecordMovementRequest, Re
       case 'out':
         existingInventoryKardex.recordOutMovement(
           request.quantity,
-          { value: request.movementReason },
+          request.movementReason,
           request.reference,
           request.referenceId,
           request.notes,
@@ -126,7 +126,7 @@ export class RecordMovementUseCase extends BaseUseCase<RecordMovementRequest, Re
           request.quantity,
           request.toWarehouseId!,
           request.toLocationId,
-          { value: request.movementReason },
+          request.movementReason,
           request.reference,
           request.referenceId,
           request.notes,
@@ -139,7 +139,7 @@ export class RecordMovementUseCase extends BaseUseCase<RecordMovementRequest, Re
         existingInventoryKardex.recordAdjustmentMovement(
           request.quantity,
           adjustmentUnitCost,
-          { value: request.movementReason },
+          request.movementReason,
           request.reference,
           request.referenceId,
           request.notes,
