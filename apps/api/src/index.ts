@@ -1,7 +1,9 @@
-import express from "express";
-import cors from "cors";
+import express, { type Application } from "express";
+import cors, { type CorsOptions } from "cors";
 import { logger } from "./lib/logger.js";
 import { metrics } from "./lib/metrics.js";
+import { finopsHeaders } from './middleware/finops.js';
+import { finopsGuardDefault } from './middleware/finops.guard.js';
 import { tracing } from "./lib/tracing.js";
 import { observabilityMiddleware, errorObservabilityMiddleware, healthCheckMiddleware } from "./middleware/observability.js";
 import { rateLimitMiddleware, rateLimitByEndpoint, rateLimitByUser, rateLimitByApiKey } from "./middleware/rate-limiting.js";
@@ -9,7 +11,6 @@ import { alertSystem } from "./lib/alerts.js";
 import { rateLimiter } from "./lib/rate-limiting.js";
 import { CacheManager } from "./lib/cache.js";
 import { finOpsSystem } from "./lib/finops.js";
-import { finOpsMiddleware, finOpsCostTrackingMiddleware, finOpsBudgetCheckMiddleware } from "./middleware/finops.js";
 import { rlsSystem } from "./lib/rls.js";
 import { rlsMiddleware, rlsAccessControlMiddleware, rlsDataSanitizationMiddleware, rlsResponseValidationMiddleware, rlsCleanupMiddleware } from "./middleware/rls.js";
 import { apiGateway } from "./lib/gateway.js";
@@ -24,15 +25,56 @@ import { workflowEngine } from "./lib/workflows.js";
 import { inventorySystem } from "./lib/inventory.js";
 import { securitySystem } from "./lib/security.js";
 import sepaRouter from './routes/sepa';
+import progressRouter from './routes/progress';
+import hilRouter from './routes/hil';
+import { agentsRoutes } from './routes/agents';
+import { makeHealthRouter } from './routes/integrations.make.health';
+import { runAutoCancel } from './jobs/hil-autocancel';
+import { startHilExpirer } from './cron/hil-expirer.js';
+import { latency } from './middleware/latency.js';
+import { hilApprovals } from './routes/hil.approvals';
+import { hilAliasRouter } from './routes/hil.alias.js';
+import { hilApprovalsRouterV2 } from './routes/hil.approvals.v2.js';
+import adminFinopsRouter from './routes/admin.finops.js';
+// NOTE: Avoid static import of the DB package to keep tests lightweight.
+// We'll dynamically import and init Prisma only when DB env is present.
 
-const app = express();
+const app: Application = express();
 const PORT = process.env.PORT || 4000;
 
 // Inicializar cache manager
 const cacheManager = new CacheManager();
 
 // Middleware básico
-app.use(cors());
+// CORS endurecido: sólo orígenes explícitos y manejo de preflight
+const allowedOrigins = Array.from(new Set([
+  ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim()).filter(Boolean) : []),
+  process.env.WEB_URL,
+  process.env.NEXT_PUBLIC_WEB_URL,
+  "https://www.econeura.com",
+].filter(Boolean)));
+
+const corsOptions: CorsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // allow non-browser clients
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(null, false);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "X-Correlation-Id",
+    "X-Request-Id",
+    "X-Trace-Id",
+  ],
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json());
 
 // Middleware de Feature Flags (agregar información a todas las respuestas)
@@ -44,17 +86,32 @@ app.use(observabilityMiddleware);
 // Middleware de rate limiting (aplicar antes de las rutas)
 app.use(rateLimitMiddleware);
 
+// FinOps guard + headers en todas las rutas /v1/*
+app.use('/v1', finopsGuardDefault);
+app.use('/v1', finopsHeaders());
+// Latency header para todas las rutas
+app.use(latency());
+
 // Middleware de health check
 app.use(healthCheckMiddleware);
-
-// Middleware de FinOps
-app.use(finOpsMiddleware);
-app.use(finOpsBudgetCheckMiddleware);
-app.use(finOpsCostTrackingMiddleware);
 
 // Middleware de Row Level Security
 app.use(rlsMiddleware);
 app.use(rlsCleanupMiddleware);
+
+// Inicializar Prisma middleware sólo si hay configuración de BD disponible (sin await de nivel superior)
+(() => {
+  if (process.env.POSTGRES_URL || process.env.DATABASE_URL) {
+    import('@econeura/db')
+      .then((mod: any) => {
+        const init = mod.initPrisma ?? mod.default?.initPrisma;
+        if (typeof init === 'function') init();
+      })
+      .catch((err: any) => {
+        logger.warn('initPrisma failed', { error: (err as Error).message });
+      });
+  }
+})();
 
 // Middleware de API Gateway
 app.use(gatewayMetricsMiddleware);
@@ -64,6 +121,18 @@ app.use(gatewayProxyMiddleware);
 
 // SEPA import/reconciliation (PR-42 scaffold)
 app.use('/v1/sepa', sepaRouter);
+// Serve generated progress status
+app.use(progressRouter);
+app.use(hilRouter);
+app.use(hilApprovals);
+app.use(hilAliasRouter);
+app.use(hilApprovalsRouterV2);
+// Admin FinOps endpoints
+app.use(adminFinopsRouter);
+// Agents endpoints
+app.use(agentsRoutes);
+// Integrations health endpoints
+app.use(makeHealthRouter);
 
 // Inicializar sistema de Event Sourcing
 registerUserHandlers();
@@ -147,6 +216,25 @@ const registerDefaultServices = () => {
 };
 
 registerDefaultServices();
+
+// Run auto-cancel job in background (best-effort)
+runAutoCancel().catch(err => logger.warn('HIL auto-cancel job failed', { error: (err as Error).message }));
+
+// Start HIL expirer cron (best-effort, only when DB is configured)
+try {
+  const hasDb = !!(process.env.POSTGRES_URL || process.env.DATABASE_URL);
+  if (hasDb) {
+    // Lazy getter to avoid importing @econeura/db at module init
+    const getPrisma = () => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const mod = require('@econeura/db');
+      return (mod.getPrisma ?? mod.default?.getPrisma)();
+    };
+    startHilExpirer(getPrisma);
+  }
+} catch (err) {
+  logger.warn('HIL expirer not started', { error: (err as Error).message });
+}
 
   // Inicializar workflows de ejemplo
   const initializeExampleWorkflows = () => {
@@ -408,6 +496,9 @@ registerDefaultServices();
 initializeExampleWorkflows();
 
 // Endpoints de health
+app.get("/health", (_req, res) => {
+  res.status(200).json({ status: "ok", uptime: process.uptime(), timestamp: new Date().toISOString() });
+});
 app.get("/health/live", (req, res) => {
   res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
@@ -420,7 +511,7 @@ app.get("/health/ready", (req, res) => {
 app.get("/v1/rate-limit/organizations", (req, res) => {
   try {
     const organizations = rateLimiter.getAllOrganizations();
-    res.json({
+  return res.json({
       success: true,
       data: {
         organizations: organizations.map(org => ({
@@ -433,7 +524,7 @@ app.get("/v1/rate-limit/organizations", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to get organizations', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+  return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -441,12 +532,12 @@ app.get("/v1/rate-limit/organizations/:organizationId", (req, res) => {
   try {
     const { organizationId } = req.params;
     const stats = rateLimiter.getOrganizationStats(organizationId);
-    
+
     if (!stats) {
       return res.status(404).json({ error: 'Organization not found' });
     }
 
-    res.json({
+  return res.json({
       success: true,
       data: {
         organizationId,
@@ -457,21 +548,21 @@ app.get("/v1/rate-limit/organizations/:organizationId", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to get organization stats', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+  return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 app.post("/v1/rate-limit/organizations", (req, res) => {
   try {
     const { organizationId, config } = req.body;
-    
+
     if (!organizationId) {
       return res.status(400).json({ error: 'Organization ID is required' });
     }
 
     rateLimiter.addOrganization(organizationId, config || {});
-    
-    res.status(201).json({
+
+  return res.status(201).json({
       success: true,
       data: {
         organizationId,
@@ -480,7 +571,7 @@ app.post("/v1/rate-limit/organizations", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to add organization', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+  return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -488,14 +579,14 @@ app.put("/v1/rate-limit/organizations/:organizationId", (req, res) => {
   try {
     const { organizationId } = req.params;
     const { config } = req.body;
-    
+
     const updated = rateLimiter.updateOrganization(organizationId, config || {});
-    
+
     if (!updated) {
       return res.status(404).json({ error: 'Organization not found' });
     }
 
-    res.json({
+  return res.json({
       success: true,
       data: {
         organizationId,
@@ -504,7 +595,7 @@ app.put("/v1/rate-limit/organizations/:organizationId", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to update organization', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+  return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -512,12 +603,12 @@ app.delete("/v1/rate-limit/organizations/:organizationId", (req, res) => {
   try {
     const { organizationId } = req.params;
     const removed = rateLimiter.removeOrganization(organizationId);
-    
+
     if (!removed) {
       return res.status(404).json({ error: 'Organization not found' });
     }
 
-    res.json({
+  return res.json({
       success: true,
       data: {
         organizationId,
@@ -526,7 +617,7 @@ app.delete("/v1/rate-limit/organizations/:organizationId", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to remove organization', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+  return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -534,12 +625,12 @@ app.post("/v1/rate-limit/organizations/:organizationId/reset", (req, res) => {
   try {
     const { organizationId } = req.params;
     const reset = rateLimiter.resetOrganization(organizationId);
-    
+
     if (!reset) {
       return res.status(404).json({ error: 'Organization not found' });
     }
 
-    res.json({
+  return res.json({
       success: true,
       data: {
         organizationId,
@@ -548,15 +639,15 @@ app.post("/v1/rate-limit/organizations/:organizationId/reset", (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to reset organization', { error: (error as Error).message });
-    res.status(500).json({ error: 'Internal server error' });
+  return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 app.get("/v1/rate-limit/stats", (req, res) => {
   try {
     const stats = rateLimiter.getGlobalStats();
-    
-    res.json({
+
+  return res.json({
       success: true,
       data: {
         stats,
@@ -573,7 +664,7 @@ app.get("/v1/rate-limit/stats", (req, res) => {
 app.get("/v1/alerts/rules", rateLimitByEndpoint, (req, res) => {
   try {
     const rules = alertSystem.getAllRules();
-    res.json({
+  return res.json({
       success: true,
       data: {
         rules: rules,
@@ -589,7 +680,7 @@ app.get("/v1/alerts/rules", rateLimitByEndpoint, (req, res) => {
 app.get("/v1/alerts/active", rateLimitByEndpoint, (req, res) => {
   try {
     const alerts = alertSystem.getActiveAlerts();
-    res.json({
+  return res.json({
       success: true,
       data: {
         alerts: alerts,
@@ -605,7 +696,7 @@ app.get("/v1/alerts/active", rateLimitByEndpoint, (req, res) => {
 app.get("/v1/alerts/stats", rateLimitByEndpoint, (req, res) => {
   try {
     const stats = alertSystem.getAlertStats();
-    res.json({
+  return res.json({
       success: true,
       data: stats
     });
@@ -619,8 +710,8 @@ app.post("/v1/alerts/rules", rateLimitByEndpoint, (req, res) => {
   try {
     const rule = req.body;
     alertSystem.addRule(rule);
-    
-    res.status(201).json({
+
+  return res.status(201).json({
       success: true,
       data: {
         rule,
@@ -637,14 +728,14 @@ app.put("/v1/alerts/rules/:ruleId", rateLimitByEndpoint, (req, res) => {
   try {
     const { ruleId } = req.params;
     const updates = req.body;
-    
+
     const updated = alertSystem.updateRule(ruleId, updates);
-    
+
     if (!updated) {
       return res.status(404).json({ error: 'Alert rule not found' });
     }
 
-    res.json({
+  return res.json({
       success: true,
       data: {
         ruleId,
@@ -661,12 +752,12 @@ app.delete("/v1/alerts/rules/:ruleId", rateLimitByEndpoint, (req, res) => {
   try {
     const { ruleId } = req.params;
     const removed = alertSystem.removeRule(ruleId);
-    
+
     if (!removed) {
       return res.status(404).json({ error: 'Alert rule not found' });
     }
 
-    res.json({
+  return res.json({
       success: true,
       data: {
         ruleId,
@@ -683,14 +774,14 @@ app.post("/v1/alerts/:alertId/acknowledge", rateLimitByEndpoint, (req, res) => {
   try {
     const { alertId } = req.params;
     const { acknowledgedBy } = req.body;
-    
+
     const acknowledged = alertSystem.acknowledgeAlert(alertId, acknowledgedBy);
-    
+
     if (!acknowledged) {
       return res.status(404).json({ error: 'Alert not found' });
     }
 
-    res.json({
+  return res.json({
       success: true,
       data: {
         alertId,
@@ -707,14 +798,14 @@ app.post("/v1/alerts/:alertId/resolve", rateLimitByEndpoint, (req, res) => {
   try {
     const { alertId } = req.params;
     const { resolvedBy } = req.body;
-    
+
     const resolved = alertSystem.resolveAlert(alertId);
-    
+
     if (!resolved) {
       return res.status(404).json({ error: 'Alert not found' });
     }
 
-    res.json({
+  return res.json({
       success: true,
       data: {
         alertId,
@@ -731,7 +822,7 @@ app.post("/v1/alerts/:alertId/resolve", rateLimitByEndpoint, (req, res) => {
 app.get("/v1/observability/logs", (req, res) => {
   try {
     const logs = logger.getLogs();
-    res.json({
+  return res.json({
       success: true,
       data: {
         logs,
@@ -747,7 +838,7 @@ app.get("/v1/observability/logs", (req, res) => {
 app.get("/v1/observability/metrics", (req, res) => {
   try {
     const metricsData = metrics.getMetricsSummary();
-    res.json({
+  return res.json({
       success: true,
       data: {
         summary: metricsData,
@@ -760,11 +851,14 @@ app.get("/v1/observability/metrics", (req, res) => {
   }
 });
 
-app.get("/v1/observability/metrics/prometheus", (req, res) => {
+app.get("/v1/observability/metrics/prometheus", async (req, res) => {
   try {
-    const prometheusMetrics = metrics.exportPrometheus();
-    res.set('Content-Type', 'text/plain');
-    res.send(prometheusMetrics);
+    const [contentType, prometheusMetrics] = await Promise.all([
+      metrics.getMetricsContentType(),
+      metrics.exportPrometheus(),
+    ]);
+    res.set('Content-Type', contentType || 'text/plain');
+    return res.send(prometheusMetrics);
   } catch (error) {
     logger.error('Failed to get Prometheus metrics', { error: (error as Error).message });
     res.status(500).send('# Error generating Prometheus metrics\n');
@@ -774,7 +868,7 @@ app.get("/v1/observability/metrics/prometheus", (req, res) => {
 app.get("/v1/observability/traces", (req, res) => {
   try {
     const traces = tracing.getTraces();
-    res.json({
+  return res.json({
       success: true,
       data: {
         traces,
@@ -794,8 +888,8 @@ app.get("/v1/observability/stats", (req, res) => {
       metrics: metrics.getMetricsStats(),
       traces: tracing.getStats()
     };
-    
-    res.json({
+
+  return res.json({
       success: true,
       data: stats
     });
@@ -809,7 +903,7 @@ app.get("/v1/observability/stats", (req, res) => {
 app.get("/v1/cache/stats", (req, res) => {
   try {
     const stats = cacheManager.getStats();
-    res.json({
+  return res.json({
       success: true,
       data: stats
     });
@@ -822,7 +916,7 @@ app.get("/v1/cache/stats", (req, res) => {
 app.post("/v1/cache/warmup", (req, res) => {
   try {
     cacheManager.warmupAll();
-    res.json({
+  return res.json({
       success: true,
       data: {
         message: 'Cache warmup initiated successfully'
@@ -838,7 +932,7 @@ app.post("/v1/cache/warmup/start", (req, res) => {
   try {
     const { intervalMinutes = 60 } = req.body;
     cacheManager.startPeriodicWarmup(intervalMinutes);
-    res.json({
+  return res.json({
       success: true,
       data: {
         message: 'Periodic cache warmup started',
@@ -854,7 +948,7 @@ app.post("/v1/cache/warmup/start", (req, res) => {
 app.post("/v1/cache/warmup/stop", (req, res) => {
   try {
     cacheManager.stopPeriodicWarmup();
-    res.json({
+  return res.json({
       success: true,
       data: {
         message: 'Periodic cache warmup stopped'
@@ -869,7 +963,7 @@ app.post("/v1/cache/warmup/stop", (req, res) => {
 app.delete("/v1/cache/ai", (req, res) => {
   try {
     cacheManager.getAICache().clear();
-    res.json({
+  return res.json({
       success: true,
       data: {
         message: 'AI cache cleared successfully'
@@ -884,7 +978,7 @@ app.delete("/v1/cache/ai", (req, res) => {
 app.delete("/v1/cache/search", (req, res) => {
   try {
     cacheManager.getSearchCache().clear();
-    res.json({
+  return res.json({
       success: true,
       data: {
         message: 'Search cache cleared successfully'
@@ -900,7 +994,7 @@ app.delete("/v1/cache/all", (req, res) => {
   try {
     cacheManager.getAICache().clear();
     cacheManager.getSearchCache().clear();
-    res.json({
+  return res.json({
       success: true,
       data: {
         message: 'All caches cleared successfully'
@@ -920,8 +1014,8 @@ app.get("/v1/finops/costs", (req, res) => {
       organizationId as string,
       period as string
     );
-    
-    res.json({
+
+  return res.json({
       success: true,
       data: metrics
     });
@@ -934,11 +1028,11 @@ app.get("/v1/finops/costs", (req, res) => {
 app.get("/v1/finops/budgets", (req, res) => {
   try {
     const { organizationId } = req.query;
-    const budgets = organizationId 
+    const budgets = organizationId
       ? finOpsSystem.getBudgetsByOrganization(organizationId as string)
       : Array.from(finOpsSystem['budgets'].values());
-    
-    res.json({
+
+  return res.json({
       success: true,
       data: {
         budgets,
@@ -955,8 +1049,8 @@ app.post("/v1/finops/budgets", (req, res) => {
   try {
     const budgetData = req.body;
     const budgetId = finOpsSystem.createBudget(budgetData);
-    
-    res.status(201).json({
+
+  return res.status(201).json({
       success: true,
       data: {
         budgetId,
@@ -973,14 +1067,14 @@ app.put("/v1/finops/budgets/:budgetId", (req, res) => {
   try {
     const { budgetId } = req.params;
     const updates = req.body;
-    
+
     const updated = finOpsSystem.updateBudget(budgetId, updates);
-    
+
     if (!updated) {
       return res.status(404).json({ error: 'Budget not found' });
     }
 
-    res.json({
+  return res.json({
       success: true,
       data: {
         budgetId,
@@ -997,12 +1091,12 @@ app.delete("/v1/finops/budgets/:budgetId", (req, res) => {
   try {
     const { budgetId } = req.params;
     const deleted = finOpsSystem.deleteBudget(budgetId);
-    
+
     if (!deleted) {
       return res.status(404).json({ error: 'Budget not found' });
     }
 
-    res.json({
+  return res.json({
       success: true,
       data: {
         budgetId,
@@ -1019,8 +1113,8 @@ app.get("/v1/finops/alerts", (req, res) => {
   try {
     const { organizationId } = req.query;
     const alerts = finOpsSystem.getActiveAlerts(organizationId as string);
-    
-    res.json({
+
+  return res.json({
       success: true,
       data: {
         alerts,
@@ -1037,14 +1131,14 @@ app.post("/v1/finops/alerts/:alertId/acknowledge", (req, res) => {
   try {
     const { alertId } = req.params;
     const { acknowledgedBy } = req.body;
-    
+
     const acknowledged = finOpsSystem.acknowledgeAlert(alertId, acknowledgedBy);
-    
+
     if (!acknowledged) {
       return res.status(404).json({ error: 'Alert not found' });
     }
 
-    res.json({
+  return res.json({
       success: true,
       data: {
         alertId,
@@ -1060,8 +1154,8 @@ app.post("/v1/finops/alerts/:alertId/acknowledge", (req, res) => {
 app.get("/v1/finops/stats", (req, res) => {
   try {
     const stats = finOpsSystem.getStats();
-    
-    res.json({
+
+  return res.json({
       success: true,
       data: stats
     });
@@ -1078,12 +1172,12 @@ app.get("/v1/finops/budgets/:budgetId/usage", (req, res) => {
     const currentSpend = finOpsSystem.getCurrentBudgetSpend(budgetId);
     const usagePercentage = finOpsSystem.getBudgetUsagePercentage(budgetId);
     const budget = finOpsSystem.getBudget(budgetId);
-    
+
     if (!budget) {
       return res.status(404).json({ error: 'Budget not found' });
     }
 
-    res.json({
+  return res.json({
       success: true,
       data: {
         budgetId,
@@ -1106,8 +1200,8 @@ app.get("/v1/finops/budgets/near-limit", (req, res) => {
   try {
     const { threshold = 80 } = req.query;
     const budgetsNearLimit = finOpsSystem.getBudgetsNearLimit(Number(threshold));
-    
-    res.json({
+
+  return res.json({
       success: true,
       data: {
         budgets: budgetsNearLimit,
@@ -1126,8 +1220,8 @@ app.get("/v1/finops/organizations/:organizationId/cost", (req, res) => {
     const { organizationId } = req.params;
     const { period } = req.query;
     const totalCost = finOpsSystem.getOrganizationCost(organizationId, period as string);
-    
-    res.json({
+
+  return res.json({
       success: true,
       data: {
         organizationId,
@@ -1145,7 +1239,7 @@ app.get("/v1/finops/organizations/:organizationId/cost", (req, res) => {
 app.post("/v1/finops/costs/estimate", (req, res) => {
   try {
     const { operation, service, responseSize, complexity } = req.body;
-    
+
     // Simular cálculo de costo estimado
     const baseCosts: Record<string, number> = {
       'ai': 0.01,
@@ -1154,14 +1248,14 @@ app.post("/v1/finops/costs/estimate", (req, res) => {
       'search': 0.005,
       'unknown': 0.001,
     };
-    
+
     const baseCost = baseCosts[operation] || baseCosts['unknown'];
     const sizeMultiplier = Math.max(1, (responseSize || 1000) / 1000);
     const complexityMultiplier = complexity || 1;
-    
+
     const estimatedCost = baseCost * sizeMultiplier * complexityMultiplier;
-    
-    res.json({
+
+  return res.json({
       success: true,
       data: {
         operation,
@@ -1184,11 +1278,11 @@ app.post("/v1/finops/costs/estimate", (req, res) => {
 app.get("/v1/rls/rules", rlsAccessControlMiddleware('rls', 'read'), (req, res) => {
   try {
     const { organizationId } = req.query;
-    const rules = organizationId 
+    const rules = organizationId
       ? rlsSystem.getRulesByOrganization(organizationId as string)
       : Array.from(rlsSystem['rules'].values());
-    
-    res.json({
+
+  return res.json({
       success: true,
       data: {
         rules,
@@ -1205,8 +1299,8 @@ app.post("/v1/rls/rules", rlsAccessControlMiddleware('rls', 'write'), rlsDataSan
   try {
     const ruleData = req.body;
     const ruleId = rlsSystem.createRule(ruleData);
-    
-    res.status(201).json({
+
+  return res.status(201).json({
       success: true,
       data: {
         ruleId,
@@ -1223,14 +1317,14 @@ app.put("/v1/rls/rules/:ruleId", rlsAccessControlMiddleware('rls', 'write'), rls
   try {
     const { ruleId } = req.params;
     const updates = req.body;
-    
+
     const updated = rlsSystem.updateRule(ruleId, updates);
-    
+
     if (!updated) {
       return res.status(404).json({ error: 'RLS rule not found' });
     }
 
-    res.json({
+  return res.json({
       success: true,
       data: {
         ruleId,
@@ -1247,12 +1341,12 @@ app.delete("/v1/rls/rules/:ruleId", rlsAccessControlMiddleware('rls', 'write'), 
   try {
     const { ruleId } = req.params;
     const deleted = rlsSystem.deleteRule(ruleId);
-    
+
     if (!deleted) {
       return res.status(404).json({ error: 'RLS rule not found' });
     }
 
-    res.json({
+  return res.json({
       success: true,
       data: {
         ruleId,
@@ -1268,8 +1362,8 @@ app.delete("/v1/rls/rules/:ruleId", rlsAccessControlMiddleware('rls', 'write'), 
 app.get("/v1/rls/context", (req, res) => {
   try {
     const context = rlsSystem.getContext();
-    
-    res.json({
+
+  return res.json({
       success: true,
       data: context
     });
@@ -1283,8 +1377,8 @@ app.post("/v1/rls/check-access", rlsDataSanitizationMiddleware('access_check'), 
   try {
     const { resource, action } = req.body;
     const hasAccess = rlsSystem.checkAccess(resource, action);
-    
-    res.json({
+
+  return res.json({
       success: true,
       data: {
         resource,
@@ -1302,7 +1396,7 @@ app.post("/v1/rls/check-access", rlsDataSanitizationMiddleware('access_check'), 
 app.get("/v1/rls/stats", (req, res) => {
   try {
     const stats = rlsSystem.getStats();
-    
+
     res.json({
       success: true,
       data: stats
@@ -1317,7 +1411,7 @@ app.get("/v1/rls/stats", (req, res) => {
 app.get("/v1/gateway/services", (req, res) => {
   try {
     const services = apiGateway.getAllServices();
-    
+
     res.json({
       success: true,
       data: {
@@ -1335,7 +1429,7 @@ app.post("/v1/gateway/services", (req, res) => {
   try {
     const serviceData = req.body;
     const serviceId = apiGateway.addService(serviceData);
-    
+
     res.status(201).json({
       success: true,
       data: {
@@ -1353,7 +1447,7 @@ app.delete("/v1/gateway/services/:serviceId", (req, res) => {
   try {
     const { serviceId } = req.params;
     const deleted = apiGateway.removeService(serviceId);
-    
+
     if (!deleted) {
       return res.status(404).json({ error: 'Service not found' });
     }
@@ -1374,7 +1468,7 @@ app.delete("/v1/gateway/services/:serviceId", (req, res) => {
 app.get("/v1/gateway/routes", (req, res) => {
   try {
     const routes = apiGateway.getAllRoutes();
-    
+
     res.json({
       success: true,
       data: {
@@ -1392,7 +1486,7 @@ app.post("/v1/gateway/routes", (req, res) => {
   try {
     const routeData = req.body;
     const routeId = apiGateway.addRoute(routeData);
-    
+
     res.status(201).json({
       success: true,
       data: {
@@ -1410,7 +1504,7 @@ app.delete("/v1/gateway/routes/:routeId", (req, res) => {
   try {
     const { routeId } = req.params;
     const deleted = apiGateway.removeRoute(routeId);
-    
+
     if (!deleted) {
       return res.status(404).json({ error: 'Route not found' });
     }
@@ -1431,7 +1525,7 @@ app.delete("/v1/gateway/routes/:routeId", (req, res) => {
 app.get("/v1/gateway/stats", (req, res) => {
   try {
     const stats = apiGateway.getStats();
-    
+
     res.json({
       success: true,
       data: stats
@@ -1446,7 +1540,7 @@ app.post("/v1/gateway/test-route", (req, res) => {
   try {
     const { path, method, headers, query } = req.body;
     const route = apiGateway.findRoute(path, method, headers || {}, query || {});
-    
+
     if (!route) {
       return res.status(404).json({
         success: false,
@@ -1457,7 +1551,7 @@ app.post("/v1/gateway/test-route", (req, res) => {
     }
 
     const service = apiGateway.getService(route.serviceId);
-    
+
     res.json({
       success: true,
       data: {
@@ -1586,7 +1680,7 @@ app.get("/v1/events/events", async (req, res) => {
 app.post("/v1/events/replay", async (req, res) => {
   try {
     const { fromTimestamp } = req.body;
-    
+
     await eventSourcingSystem.replayEvents(fromTimestamp ? new Date(fromTimestamp) : undefined);
 
     res.json({
@@ -1604,7 +1698,7 @@ app.post("/v1/events/replay", async (req, res) => {
 app.get("/v1/events/stats", async (req, res) => {
   try {
     const stats = eventSourcingSystem.getStatistics();
-    
+
     res.json({
       success: true,
       data: stats
@@ -1620,7 +1714,7 @@ app.post("/v1/microservices/register", (req, res) => {
   try {
     const serviceData = req.body;
     const serviceId = serviceRegistry.register(serviceData);
-    
+
     res.status(201).json({
       success: true,
       data: {
@@ -1638,7 +1732,7 @@ app.delete("/v1/microservices/deregister/:serviceId", (req, res) => {
   try {
     const { serviceId } = req.params;
     const deregistered = serviceRegistry.deregister(serviceId);
-    
+
     if (!deregistered) {
       return res.status(404).json({ error: 'Service not found' });
     }
@@ -1659,9 +1753,9 @@ app.delete("/v1/microservices/deregister/:serviceId", (req, res) => {
 app.get("/v1/microservices/services", (req, res) => {
   try {
     const { name, version, environment, region, health, status } = req.query;
-    
+
     let services = serviceRegistry.getAllServices();
-    
+
     // Aplicar filtros
     if (name) {
       services = services.filter(s => s.name === name);
@@ -1681,7 +1775,7 @@ app.get("/v1/microservices/services", (req, res) => {
     if (status) {
       services = services.filter(s => s.status === status);
     }
-    
+
     res.json({
       success: true,
       data: {
@@ -1699,16 +1793,16 @@ app.get("/v1/microservices/discover/:serviceName", (req, res) => {
   try {
     const { serviceName } = req.params;
     const { version, environment, region, health, status } = req.query;
-    
+
     const filters: any = {};
     if (version) filters.version = version;
     if (environment) filters.environment = environment;
     if (region) filters.region = region;
     if (health) filters.health = health;
     if (status) filters.status = status;
-    
+
     const instances = serviceDiscovery.discover(serviceName, filters);
-    
+
     res.json({
       success: true,
       data: {
@@ -1726,7 +1820,7 @@ app.get("/v1/microservices/discover/:serviceName", (req, res) => {
 app.post("/v1/microservices/request", async (req, res) => {
   try {
     const { serviceName, path, method, headers, body, timeout, retries } = req.body;
-    
+
     const response = await serviceMesh.request({
       serviceName,
       path,
@@ -1736,14 +1830,14 @@ app.post("/v1/microservices/request", async (req, res) => {
       timeout,
       retries,
     });
-    
+
     res.json({
       success: true,
       data: response
     });
   } catch (error) {
     logger.error('Service mesh request failed', { error: (error as Error).message });
-    res.status(500).json({ 
+    res.status(500).json({
       error: (error as Error).message,
       code: 'SERVICE_MESH_ERROR'
     });
@@ -1758,7 +1852,7 @@ app.get("/v1/microservices/stats", (req, res) => {
       healthyServices: serviceRegistry.getAllServices().filter(s => s.health === 'healthy').length,
       onlineServices: serviceRegistry.getAllServices().filter(s => s.status === 'online').length,
     };
-    
+
     res.json({
       success: true,
       data: {
@@ -1776,7 +1870,7 @@ app.post("/v1/microservices/heartbeat/:serviceId", (req, res) => {
   try {
     const { serviceId } = req.params;
     const success = serviceRegistry.heartbeat(serviceId);
-    
+
     if (!success) {
       return res.status(404).json({ error: 'Service not found' });
     }
@@ -1798,9 +1892,9 @@ app.put("/v1/microservices/health/:serviceId", (req, res) => {
   try {
     const { serviceId } = req.params;
     const { health } = req.body;
-    
+
     const success = serviceRegistry.updateHealth(serviceId, health);
-    
+
     if (!success) {
       return res.status(404).json({ error: 'Service not found' });
     }
@@ -1823,7 +1917,7 @@ app.post("/v1/microservices/circuit-breaker/reset/:serviceName", (req, res) => {
   try {
     const { serviceName } = req.params;
     const success = serviceMesh.resetCircuitBreaker(serviceName);
-    
+
     if (!success) {
       return res.status(404).json({ error: 'Circuit breaker not found' });
     }
@@ -1845,12 +1939,12 @@ app.post("/v1/microservices/circuit-breaker/reset/:serviceName", (req, res) => {
 app.get("/v1/config/feature-flags", (req, res) => {
   try {
     const { environment } = req.query;
-    
+
     let flags = configurationManager.getAllFeatureFlags();
     if (environment) {
       flags = flags.filter(flag => flag.environment === environment);
     }
-    
+
     res.json({
       success: true,
       data: {
@@ -1868,7 +1962,7 @@ app.post("/v1/config/feature-flags", (req, res) => {
   try {
     const flagData = req.body;
     const flagId = configurationManager.createFeatureFlag(flagData);
-    
+
     res.status(201).json({
       success: true,
       data: {
@@ -1886,9 +1980,9 @@ app.put("/v1/config/feature-flags/:flagId", (req, res) => {
   try {
     const { flagId } = req.params;
     const updates = req.body;
-    
+
     const updated = configurationManager.updateFeatureFlag(flagId, updates);
-    
+
     if (!updated) {
       return res.status(404).json({ error: 'Feature flag not found' });
     }
@@ -1910,7 +2004,7 @@ app.delete("/v1/config/feature-flags/:flagId", (req, res) => {
   try {
     const { flagId } = req.params;
     const deleted = configurationManager.deleteFeatureFlag(flagId);
-    
+
     if (!deleted) {
       return res.status(404).json({ error: 'Feature flag not found' });
     }
@@ -1932,9 +2026,9 @@ app.post("/v1/config/feature-flags/:flagId/check", (req, res) => {
   try {
     const { flagId } = req.params;
     const context = req.body;
-    
+
     const isEnabled = configurationManager.isFeatureEnabled(flagId, context);
-    
+
     res.json({
       success: true,
       data: {
@@ -1952,13 +2046,13 @@ app.post("/v1/config/feature-flags/:flagId/check", (req, res) => {
 app.get("/v1/config/environments", (req, res) => {
   try {
     const { name } = req.query;
-    
+
     if (name) {
       const config = configurationManager.getEnvironmentConfig(name as string);
       if (!config) {
         return res.status(404).json({ error: 'Environment not found' });
       }
-      
+
       res.json({
         success: true,
         data: config
@@ -1983,9 +2077,9 @@ app.put("/v1/config/environments/:environment", (req, res) => {
   try {
     const { environment } = req.params;
     const config = req.body;
-    
+
     const updated = configurationManager.setEnvironmentConfig(environment, config);
-    
+
     if (!updated) {
       return res.status(400).json({ error: 'Failed to update environment config' });
     }
@@ -2007,9 +2101,9 @@ app.get("/v1/config/values/:key", (req, res) => {
   try {
     const { key } = req.params;
     const { environment, defaultValue } = req.query;
-    
+
     const value = configurationManager.getConfigValue(key, environment as string, defaultValue);
-    
+
     res.json({
       success: true,
       data: {
@@ -2028,9 +2122,9 @@ app.put("/v1/config/values/:key", (req, res) => {
   try {
     const { key } = req.params;
     const { value, environment } = req.body;
-    
+
     const set = configurationManager.setConfigValue(key, value, environment);
-    
+
     if (!set) {
       return res.status(400).json({ error: 'Failed to set config value' });
     }
@@ -2054,9 +2148,9 @@ app.get("/v1/config/secrets/:key", (req, res) => {
   try {
     const { key } = req.params;
     const { environment } = req.query;
-    
+
     const secret = configurationManager.getSecret(key, environment as string);
-    
+
     if (!secret) {
       return res.status(404).json({ error: 'Secret not found' });
     }
@@ -2079,9 +2173,9 @@ app.put("/v1/config/secrets/:key", (req, res) => {
   try {
     const { key } = req.params;
     const { value, environment } = req.body;
-    
+
     const set = configurationManager.setSecret(key, value, environment);
-    
+
     if (!set) {
       return res.status(400).json({ error: 'Failed to set secret' });
     }
@@ -2104,7 +2198,7 @@ app.put("/v1/config/secrets/:key", (req, res) => {
 app.get("/v1/config/stats", (req, res) => {
   try {
     const stats = configurationManager.getStats();
-    
+
     res.json({
       success: true,
       data: stats
@@ -2118,7 +2212,7 @@ app.get("/v1/config/stats", (req, res) => {
 app.post("/v1/config/validate", (req, res) => {
   try {
     const isValid = configurationManager.validateConfiguration();
-    
+
     res.json({
       success: true,
       data: {
@@ -2135,7 +2229,7 @@ app.post("/v1/config/validate", (req, res) => {
 app.post("/v1/config/reload", (req, res) => {
   try {
     configurationManager.reloadConfiguration();
-    
+
     res.json({
       success: true,
       data: {
@@ -2168,7 +2262,7 @@ app.get("/v1/config/beta-features", requireFeatureFlag('beta_features'), (req, r
 app.get("/v1/workflows", async (req, res) => {
   try {
     const { type, category, status, tags } = req.query;
-    
+
     const filters: any = {};
     if (type) filters.type = type;
     if (category) filters.category = category;
@@ -2180,9 +2274,9 @@ app.get("/v1/workflows", async (req, res) => {
         filters.tags = [tags];
       }
     }
-    
+
     const workflows = await workflowEngine.listWorkflows(filters);
-    
+
     res.json(workflows);
   } catch (error) {
     logger.error('Failed to get workflows', { error: (error as Error).message });
@@ -2194,7 +2288,7 @@ app.post("/v1/workflows", async (req, res) => {
   try {
     const workflowData = req.body;
     const workflow = await workflowEngine.createWorkflow(workflowData);
-    
+
     res.status(201).json({
       data: workflow,
       message: 'Workflow created successfully'
@@ -2209,7 +2303,7 @@ app.get("/v1/workflows/:workflowId", async (req, res) => {
   try {
     const { workflowId } = req.params;
     const workflow = await workflowEngine.getWorkflow(workflowId);
-    
+
     if (!workflow) {
       return res.status(404).json({ error: 'Workflow not found' });
     }
@@ -2228,9 +2322,9 @@ app.put("/v1/workflows/:workflowId", async (req, res) => {
   try {
     const { workflowId } = req.params;
     const updates = req.body;
-    
+
     const workflow = await workflowEngine.updateWorkflow(workflowId, updates);
-    
+
     res.json({
       data: workflow,
       message: 'Workflow updated successfully'
@@ -2245,7 +2339,7 @@ app.delete("/v1/workflows/:workflowId", async (req, res) => {
   try {
     const { workflowId } = req.params;
     await workflowEngine.deleteWorkflow(workflowId);
-    
+
     res.json({
       message: 'Workflow deleted successfully'
     });
@@ -2259,9 +2353,9 @@ app.post("/v1/workflows/:workflowId/start", async (req, res) => {
   try {
     const { workflowId } = req.params;
     const { context = {}, metadata = {} } = req.body;
-    
+
     const instance = await workflowEngine.startWorkflow(workflowId, context, metadata);
-    
+
     res.status(200).json({
       data: instance,
       message: 'Workflow started successfully'
@@ -2275,7 +2369,7 @@ app.post("/v1/workflows/:workflowId/start", async (req, res) => {
 app.get("/v1/workflows/instances", async (req, res) => {
   try {
     const { workflowId, status, userId, orgId, fromDate, toDate } = req.query;
-    
+
     const filters: any = {};
     if (workflowId) filters.workflowId = workflowId;
     if (status) filters.status = status;
@@ -2283,9 +2377,9 @@ app.get("/v1/workflows/instances", async (req, res) => {
     if (orgId) filters.orgId = orgId;
     if (fromDate) filters.fromDate = new Date(fromDate as string);
     if (toDate) filters.toDate = new Date(toDate as string);
-    
+
     const instances = await workflowEngine.listInstances(filters);
-    
+
     res.json(instances);
   } catch (error) {
     logger.error('Failed to get workflow instances', { error: (error as Error).message });
@@ -2297,7 +2391,7 @@ app.get("/v1/workflows/instances/:instanceId", async (req, res) => {
   try {
     const { instanceId } = req.params;
     const instance = await workflowEngine.getInstance(instanceId);
-    
+
     if (!instance) {
       return res.status(404).json({ error: 'Workflow instance not found' });
     }
@@ -2316,7 +2410,7 @@ app.post("/v1/workflows/instances/:instanceId/pause", async (req, res) => {
   try {
     const { instanceId } = req.params;
     await workflowEngine.pauseInstance(instanceId);
-    
+
     res.json({
       message: 'Workflow instance paused successfully'
     });
@@ -2330,7 +2424,7 @@ app.post("/v1/workflows/instances/:instanceId/resume", async (req, res) => {
   try {
     const { instanceId } = req.params;
     await workflowEngine.resumeInstance(instanceId);
-    
+
     res.json({
       message: 'Workflow instance resumed successfully'
     });
@@ -2344,7 +2438,7 @@ app.post("/v1/workflows/instances/:instanceId/cancel", async (req, res) => {
   try {
     const { instanceId } = req.params;
     await workflowEngine.cancelInstance(instanceId);
-    
+
     res.json({
       message: 'Workflow instance cancelled successfully'
     });
@@ -2358,9 +2452,9 @@ app.post("/v1/workflows/instances/:instanceId/actions", async (req, res) => {
   try {
     const { instanceId } = req.params;
     const { actionId } = req.body;
-    
+
     await workflowEngine.executeAction(instanceId, actionId);
-    
+
     res.json({
       message: 'Action executed successfully'
     });
@@ -2373,7 +2467,7 @@ app.post("/v1/workflows/instances/:instanceId/actions", async (req, res) => {
 app.get("/v1/workflows/stats", async (req, res) => {
   try {
     const stats = await workflowEngine.getStats();
-    
+
     res.json(stats);
   } catch (error) {
     logger.error('Failed to get workflow stats', { error: (error as Error).message });
@@ -2388,8 +2482,8 @@ app.get("/v1/demo/health", rateLimitByEndpoint, (req: any, res) => {
     data: {
       status: "healthy",
       timestamp: new Date().toISOString(),
-      organizationId: req.organizationId,
-      requestId: req.requestId
+  organizationId: String(req.organizationId ?? ''),
+  requestId: String(req.requestId ?? '')
     }
   });
 });
@@ -2411,25 +2505,25 @@ app.get("/v1/demo/metrics", rateLimitByEndpoint, (req: any, res) => {
 app.get("/v1/demo/ai", rateLimitByEndpoint, async (req: any, res) => {
   try {
     const { prompt = "Hello, how are you?", model = "gpt-4" } = req.query;
-    
+
     // Check cache first
     const cachedResponse = await cacheManager.getAICache().getAIResponse(prompt as string, model as string);
-    
+
     if (cachedResponse) {
-      logger.info('AI response served from cache', { 
-        prompt: prompt as string, 
+      logger.info('AI response served from cache', {
+        prompt: prompt as string,
         model: model as string,
-        requestId: req.requestId 
+        requestId: req.requestId
       });
-      
+
       return res.json({
         success: true,
         data: {
           ...cachedResponse,
           cached: true,
           timestamp: new Date().toISOString(),
-          organizationId: req.organizationId,
-          requestId: req.requestId
+          organizationId: String(req.organizationId ?? ''),
+          requestId: String(req.requestId ?? '')
         }
       });
     }
@@ -2443,21 +2537,21 @@ app.get("/v1/demo/ai", rateLimitByEndpoint, async (req: any, res) => {
 
     // Cache the response
     await cacheManager.getAICache().setAIResponse(prompt as string, model as string, demoResponse);
-    
-    logger.info('AI response generated and cached', { 
-      prompt: prompt as string, 
-      model: model as string,
-      requestId: req.requestId 
+
+    logger.info('AI response generated and cached', {
+      prompt: String(prompt ?? ''),
+      model: String(model ?? ''),
+      requestId: req.requestId
     });
 
-    res.json({
+  res.json({
       success: true,
       data: {
         ...demoResponse,
         cached: false,
         timestamp: new Date().toISOString(),
-        organizationId: req.organizationId,
-        requestId: req.requestId
+    organizationId: String(req.organizationId ?? ''),
+    requestId: String(req.requestId ?? '')
       }
     });
   } catch (error) {
@@ -2469,25 +2563,25 @@ app.get("/v1/demo/ai", rateLimitByEndpoint, async (req: any, res) => {
 app.get("/v1/demo/search", rateLimitByEndpoint, async (req: any, res) => {
   try {
     const { query = "artificial intelligence", filters } = req.query;
-    
+
     // Check cache first
     const cachedResults = await cacheManager.getSearchCache().getSearchResults(query as string, filters);
-    
+
     if (cachedResults) {
-      logger.info('Search results served from cache', { 
-        query: query as string, 
+      logger.info('Search results served from cache', {
+        queryJson: JSON.stringify({ q: query, filters }),
         filters,
-        requestId: req.requestId 
+        requestId: req.requestId
       });
-      
-      return res.json({
+
+    return res.json({
         success: true,
         data: {
           ...cachedResults,
           cached: true,
           timestamp: new Date().toISOString(),
-          organizationId: req.organizationId,
-          requestId: req.requestId
+      organizationId: String(req.organizationId ?? ''),
+      requestId: String(req.requestId ?? '')
         }
       });
     }
@@ -2507,21 +2601,21 @@ app.get("/v1/demo/search", rateLimitByEndpoint, async (req: any, res) => {
 
     // Cache the results
     await cacheManager.getSearchCache().setSearchResults(query as string, demoResults, filters);
-    
-    logger.info('Search results generated and cached', { 
-      query: query as string, 
+
+    logger.info('Search results generated and cached', {
+      queryJson: JSON.stringify({ q: query, filters }),
       filters,
-      requestId: req.requestId 
+      requestId: req.requestId
     });
 
-    res.json({
+  res.json({
       success: true,
       data: {
         ...demoResults,
         cached: false,
         timestamp: new Date().toISOString(),
-        organizationId: req.organizationId,
-        requestId: req.requestId
+    organizationId: String(req.organizationId ?? ''),
+    requestId: String(req.requestId ?? '')
       }
     });
   } catch (error) {
@@ -2536,8 +2630,8 @@ app.get("/v1/demo/crm", rateLimitByEndpoint, (req: any, res) => {
     data: {
       message: "CRM endpoint demo",
       timestamp: new Date().toISOString(),
-      organizationId: req.organizationId,
-      requestId: req.requestId
+  organizationId: String(req.organizationId ?? ''),
+  requestId: String(req.requestId ?? '')
     }
   });
 });
@@ -2548,8 +2642,8 @@ app.get("/v1/demo/products", rateLimitByEndpoint, (req: any, res) => {
     data: {
       message: "Products endpoint demo",
       timestamp: new Date().toISOString(),
-      organizationId: req.organizationId,
-      requestId: req.requestId
+  organizationId: String(req.organizationId ?? ''),
+  requestId: String(req.requestId ?? '')
     }
   });
 });
@@ -2560,8 +2654,8 @@ app.get("/v1/demo/dashboard", rateLimitByEndpoint, (req: any, res) => {
     data: {
       message: "Dashboard endpoint demo",
       timestamp: new Date().toISOString(),
-      organizationId: req.organizationId,
-      requestId: req.requestId
+  organizationId: String(req.organizationId ?? ''),
+  requestId: String(req.requestId ?? '')
     }
   });
 });
@@ -2873,16 +2967,16 @@ app.post("/v1/security/auth/login", async (req, res) => {
     const { email, password } = req.body;
     const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
     const userAgent = req.get('User-Agent') || 'unknown';
-    
+
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
-    
+
     const result = await securitySystem.authenticateUser(email, password);
     if (!result) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-    
+
     res.json(result);
   } catch (error) {
     logger.error('Authentication failed', { error: (error as Error).message });
@@ -2897,7 +2991,7 @@ app.post("/v1/security/mfa/setup", async (req, res) => {
     if (!userId || !method) {
       return res.status(400).json({ error: 'userId and method are required' });
     }
-    
+
     const result = await securitySystem.setupMFA(userId, method);
     res.status(201).json(result);
   } catch (error) {
@@ -2912,7 +3006,7 @@ app.post("/v1/security/mfa/verify", async (req, res) => {
     if (!userId || !code) {
       return res.status(400).json({ error: 'userId and code are required' });
     }
-    
+
     const isValid = await securitySystem.verifyMFA(userId, code);
     res.json({ valid: isValid });
   } catch (error) {
@@ -2928,7 +3022,7 @@ app.post("/v1/security/roles", async (req, res) => {
     if (!name || !orgId) {
       return res.status(400).json({ error: 'name and orgId are required' });
     }
-    
+
     const role = await securitySystem.createRole(name, description || '', permissions || [], orgId);
     res.status(201).json(role);
   } catch (error) {
@@ -2938,16 +3032,7 @@ app.post("/v1/security/roles", async (req, res) => {
 });
 
 // Role and Permission Management
-app.post("/v1/security/roles", async (req, res) => {
-  try {
-    const { name, description, permissions, orgId } = req.body;
-    const role = await securitySystem.createRole(name, description || '', permissions || [], orgId);
-    res.json(role);
-  } catch (error) {
-    logger.error('Failed to create role', { error: (error as Error).message });
-    res.status(500).json({ error: (error as Error).message });
-  }
-});
+// (ruta duplicada eliminada: POST /v1/security/roles)
 
 app.get("/v1/security/roles", async (req, res) => {
   try {
@@ -2965,7 +3050,7 @@ app.post("/v1/security/permissions", async (req, res) => {
     if (!name || !resource || !action || !orgId) {
       return res.status(400).json({ error: 'name, resource, action, and orgId are required' });
     }
-    
+
     const permission = await securitySystem.createPermission(name, description || '', resource, action, orgId);
     res.status(201).json(permission);
   } catch (error) {
@@ -2990,7 +3075,7 @@ app.post("/v1/security/permissions/check", async (req, res) => {
     if (!userId || !resource || !action) {
       return res.status(400).json({ error: 'userId, resource, and action are required' });
     }
-    
+
     const hasPermission = await securitySystem.checkPermission(userId, resource, action);
     res.json({ hasPermission });
   } catch (error) {
@@ -3030,7 +3115,7 @@ app.get("/v1/security/threats", async (req, res) => {
     if (!ipAddress) {
       return res.status(400).json({ error: 'ipAddress is required' });
     }
-    
+
     const threatIntel = await securitySystem.checkIPReputation(ipAddress);
     res.json(threatIntel);
   } catch (error) {
@@ -3045,7 +3130,7 @@ app.post("/v1/security/threats/check", async (req, res) => {
     if (!ipAddress) {
       return res.status(400).json({ error: 'ipAddress is required' });
     }
-    
+
     const threatIntel = await securitySystem.checkIPReputation(ipAddress);
     res.json(threatIntel);
   } catch (error) {
@@ -3066,10 +3151,13 @@ app.get("/v1/security/stats", async (req, res) => {
 });
 
 // Endpoint de métricas para Prometheus
-app.get("/metrics", (req, res) => {
+app.get("/metrics", async (req, res) => {
   try {
-    const prometheusMetrics = metrics.getPrometheusMetrics();
-    res.set('Content-Type', 'text/plain');
+    const [contentType, prometheusMetrics] = await Promise.all([
+      metrics.getMetricsContentType(),
+      metrics.getPrometheusMetrics(),
+    ]);
+    res.set('Content-Type', contentType || 'text/plain');
     res.send(prometheusMetrics);
   } catch (error) {
     logger.error('Failed to get Prometheus metrics', { error: (error as Error).message });
@@ -3089,8 +3177,8 @@ app.use("*", (req, res) => {
   });
 });
 
-// Iniciar servidor
-app.listen(PORT, async () => {
+// Iniciar servidor (evitar durante tests)
+if (process.env.NODE_ENV !== 'test') app.listen(PORT, async () => {
   logger.info(`API Express server running on port ${PORT}`);
   console.log(`🚀 API Express server running on port ${PORT}`);
   console.log(`📊 Metrics available at http://localhost:${PORT}/metrics`);
@@ -3106,7 +3194,7 @@ app.listen(PORT, async () => {
   console.log(`⚙️ Configuration system enabled with feature flags and environment management`);
   console.log(`🔄 Workflow system enabled with BPMN and state machines`);
   console.log(`🔐 Advanced Security system enabled with MFA, RBAC, and threat detection`);
-  
+
   // Inicializar warmup del caché
   try {
     await cacheManager.warmupAll();
@@ -3126,3 +3214,5 @@ process.on('SIGINT', () => {
   logger.info('SIGINT received, shutting down gracefully');
   process.exit(0);
 });
+
+export default app;

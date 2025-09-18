@@ -1,17 +1,19 @@
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter, type Request, type Response } from 'express';
 import { asyncHandler } from '../lib/errors';
 import { importAndReconcile } from '../services/sepa';
 import { logger } from '../lib/logger';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
-router.post('/import', asyncHandler(async (req, res) => {
-  const content = (req.body && typeof req.body === 'string') ? req.body : req.file?.buffer?.toString() || '';
-  const type = req.headers['content-type']?.includes('xml') ? 'camt' : 'mt940';
+router.post('/import', asyncHandler(async (req: Request, res: Response) => {
+  const maybeBody = req.body as unknown;
+  const maybeFile = (req as Request & { file?: { buffer?: Buffer } }).file;
+  const content = (typeof maybeBody === 'string') ? maybeBody : (maybeFile?.buffer?.toString?.() || '');
+  const type = (req.headers['content-type'] as string | undefined)?.includes('xml') ? 'camt' : 'mt940';
   if (!content) return res.status(400).json({ error: 'No content provided' });
 
   try {
-    const summary = await importAndReconcile(content, type as any);
+  const summary = await importAndReconcile(content, type as 'camt' | 'mt940');
     res.json({ ok: true, summary });
   } catch (err) {
     const e = err as Error;

@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useApiClient } from '@/hooks/useApi';
-import { 
-  Search, 
-  Filter, 
-  X, 
-  ChevronDown, 
-  Package, 
+import {
+  Search,
+  Filter,
+  X,
+  ChevronDown,
+  Package,
   Building2,
   Tag,
   DollarSign,
@@ -152,13 +152,17 @@ export default function AdvancedSearch({
   };
 
   const handleFilterChange = (key: keyof SearchFilters, value: any) => {
-    const newFilters = { ...filters, [key]: value };
+    // Enforce allowed union for 'type'
+    const normalized = key === 'type'
+      ? (['all', 'products', 'suppliers'].includes(value) ? value as 'all' | 'products' | 'suppliers' : 'all')
+      : value;
+    const newFilters: SearchFilters = { ...filters, [key]: normalized };
     setFilters(newFilters);
     onFiltersChange(newFilters);
   };
 
   const clearFilters = () => {
-    const newFilters = { type: 'all' };
+    const newFilters: SearchFilters = { type: 'all' };
     setFilters(newFilters);
     onFiltersChange(newFilters);
   };
@@ -201,7 +205,7 @@ export default function AdvancedSearch({
     }
   };
 
-  const activeFiltersCount = Object.keys(filters).filter(key => 
+  const activeFiltersCount = Object.keys(filters).filter(key =>
     key !== 'type' && filters[key as keyof SearchFilters]
   ).length;
 

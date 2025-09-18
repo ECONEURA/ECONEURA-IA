@@ -1,0 +1,20 @@
+{
+  "status": "No disponible",
+  "plan": [
+    {
+      "comando": "gh pr list --state all --json number,state,mergedAt > PR_STATUS.json",
+      "responsable": "DevOps",
+      "fecha": "2024-05-24"
+    },
+    {
+      "comando": "apply completion rules",
+      "responsable": "DevOps",
+      "fecha": "2024-05-24"
+    },
+    {
+      "comando": "commit PR_STATUS.json",
+      "responsable": "DevOps",
+      "fecha": "2024-05-24"
+    }
+  ]
+}

@@ -1,332 +1,146 @@
 import { z } from 'zod';
 
-// Base entity
-const BaseEntity = z.object({
-  id: z.string().uuid(),
-  orgId: z.string().uuid(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-  deletedAt: z.string().datetime().nullable().optional(),
-});
-
 // Invoice schemas
-export const InvoiceStatusSchema = z.enum([
-  'draft',
-  'sent',
-  'viewed',
-  'partial',
-  'paid',
-  'overdue',
-  'cancelled',
-  'refunded'
-]);
-
-export const InvoiceSchema = BaseEntity.extend({
-  invoiceNumber: z.string().min(1).max(50),
-  type: z.enum(['sales', 'purchase', 'credit_note', 'debit_note']).default('sales'),
-  entityType: z.enum(['company', 'contact', 'supplier']),
+export const InvoiceSchema = z.object({
+  id: z.string().uuid().optional(),
+  invoiceNumber: z.string().min(1),
+  type: z.enum(['invoice', 'credit_note', 'debit_note']).default('invoice'),
+  status: z.enum(['draft', 'sent', 'viewed', 'paid', 'overdue', 'cancelled']).default('draft'),
+  entityType: z.enum(['company', 'contact']),
   entityId: z.string().uuid(),
-  status: InvoiceStatusSchema.default('draft'),
   issueDate: z.string().datetime(),
   dueDate: z.string().datetime(),
-  paymentTerms: z.string().max(200).optional(),
-  currency: z.string().length(3).default('EUR'),
-  
-  // Amounts
-  subtotal: z.number().min(0).default(0),
-  discountPercentage: z.number().min(0).max(100).default(0),
-  discountAmount: z.number().min(0).default(0),
-  taxAmount: z.number().min(0).default(0),
-  shippingCost: z.number().min(0).default(0),
-  totalAmount: z.number().min(0).default(0),
-  paidAmount: z.number().min(0).default(0),
-  balanceDue: z.number().min(0).default(0),
-  
-  // References
-  purchaseOrderId: z.string().uuid().optional(),
-  salesOrderId: z.string().uuid().optional(),
-  projectId: z.string().uuid().optional(),
-  
-  // Billing info
-  billingAddress: z.object({
-    line1: z.string().max(200),
-    line2: z.string().max(200).optional(),
-    city: z.string().max(100),
-    state: z.string().max(100).optional(),
-    postalCode: z.string().max(20),
-    country: z.string().max(100),
-  }),
-  
-  shippingAddress: z.object({
-    line1: z.string().max(200),
-    line2: z.string().max(200).optional(),
-    city: z.string().max(100),
-    state: z.string().max(100).optional(),
-    postalCode: z.string().max(20),
-    country: z.string().max(100),
-  }).optional(),
-  
-  // Additional fields
-  notes: z.string().max(5000).optional(),
-  internalNotes: z.string().max(5000).optional(),
-  termsAndConditions: z.string().max(10000).optional(),
-  
-  // Workflow
-  submittedAt: z.string().datetime().optional(),
-  submittedByUserId: z.string().uuid().optional(),
-  approvedAt: z.string().datetime().optional(),
-  approvedByUserId: z.string().uuid().optional(),
-  sentAt: z.string().datetime().optional(),
-  viewedAt: z.string().datetime().optional(),
-  paidAt: z.string().datetime().optional(),
-  cancelledAt: z.string().datetime().optional(),
-  cancelledReason: z.string().max(500).optional(),
-  
-  tags: z.array(z.string()).default([]),
-  metadata: z.record(z.unknown()).optional(),
-});
-
-export const InvoiceItemSchema = z.object({
-  id: z.string().uuid(),
-  invoiceId: z.string().uuid(),
-  productId: z.string().uuid().optional(),
-  description: z.string().min(1).max(500),
-  quantity: z.number().min(0),
-  unitPrice: z.number().min(0),
-  unit: z.string().max(50).default('unit'),
-  discount: z.number().min(0).max(100).default(0), // percentage
-  taxRate: z.number().min(0).max(100).default(21),
+  currency: z.string().default('EUR'),
   subtotal: z.number().min(0),
-  taxAmount: z.number().min(0),
+  taxAmount: z.number().min(0).default(0),
+  totalAmount: z.number().min(0),
+  paidAmount: z.number().min(0).default(0),
+  balanceDue: z.number().min(0),
+  taxRate: z.number().min(0).max(100).default(21),
+  notes: z.string().optional(),
+  terms: z.string().optional(),
+  lineItems: z.array(z.object({
+    id: z.string().uuid().optional(),
+    description: z.string().min(1),
+    quantity: z.number().positive(),
+    unitPrice: z.number().min(0),
   total: z.number().min(0),
-  accountCode: z.string().max(50).optional(),
-  metadata: z.record(z.unknown()).optional(),
+    taxRate: z.number().min(0).max(100).default(21)
+  })),
+  orgId: z.string(),
+  createdAt: z.string().datetime().optional(),
+  updatedAt: z.string().datetime().optional()
 });
 
-export const CreateInvoiceSchema = InvoiceSchema.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-  deletedAt: true,
-  invoiceNumber: true, // auto-generated
-  balanceDue: true, // calculated
-}).extend({
-  items: z.array(InvoiceItemSchema.omit({ id: true, invoiceId: true })),
-});
-
-export const UpdateInvoiceSchema = CreateInvoiceSchema.partial();
-
-export const InvoiceFilterSchema = z.object({
-  q: z.string().optional(),
-  type: z.enum(['sales', 'purchase', 'credit_note', 'debit_note']).optional(),
-  status: InvoiceStatusSchema.optional(),
-  entityType: z.enum(['company', 'contact', 'supplier']).optional(),
-  entityId: z.string().uuid().optional(),
-  dateFrom: z.string().datetime().optional(),
-  dateTo: z.string().datetime().optional(),
-  minAmount: z.number().min(0).optional(),
-  maxAmount: z.number().optional(),
-  overdue: z.boolean().optional(),
-  tags: z.array(z.string()).optional(),
-});
+export const CreateInvoiceSchema = InvoiceSchema.omit({ id: true, createdAt: true, updatedAt: true });
+export const UpdateInvoiceSchema = InvoiceSchema.partial().omit({ id: true, orgId: true });
 
 // Payment schemas
-export const PaymentMethodSchema = z.enum([
-  'cash',
-  'check',
-  'bank_transfer',
-  'credit_card',
-  'debit_card',
-  'paypal',
-  'stripe',
-  'other'
-]);
-
-export const PaymentSchema = BaseEntity.extend({
-  paymentNumber: z.string().min(1).max(50),
-  invoiceId: z.string().uuid().optional(),
-  entityType: z.enum(['company', 'contact', 'supplier']),
-  entityId: z.string().uuid(),
-  amount: z.number().min(0),
-  currency: z.string().length(3).default('EUR'),
-  paymentDate: z.string().datetime(),
-  paymentMethod: PaymentMethodSchema,
-  referenceNumber: z.string().max(100).optional(),
-  
-  // Bank details
-  bankAccount: z.string().max(100).optional(),
-  bankName: z.string().max(200).optional(),
-  
-  // Processing info
-  processingFee: z.number().min(0).default(0),
-  netAmount: z.number().min(0),
-  
-  status: z.enum(['pending', 'processing', 'completed', 'failed', 'cancelled']).default('pending'),
+export const PaymentSchema = z.object({
+  id: z.string().uuid().optional(),
+  invoiceId: z.string().uuid(),
+  amount: z.number().positive(),
+  currency: z.string().default('EUR'),
+  method: z.enum(['cash', 'bank_transfer', 'credit_card', 'paypal', 'stripe', 'sepa']),
+  reference: z.string().optional(),
+  transactionId: z.string().optional(),
+  status: z.enum(['pending', 'completed', 'failed', 'cancelled']).default('pending'),
   processedAt: z.string().datetime().optional(),
-  failureReason: z.string().max(500).optional(),
-  
-  notes: z.string().max(5000).optional(),
-  reconciledAt: z.string().datetime().optional(),
-  reconciledByUserId: z.string().uuid().optional(),
-  
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.any()).optional(),
+  orgId: z.string(),
+  createdAt: z.string().datetime().optional(),
+  updatedAt: z.string().datetime().optional()
 });
 
-export const CreatePaymentSchema = PaymentSchema.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-  deletedAt: true,
-  paymentNumber: true, // auto-generated
-  netAmount: true, // calculated
+export const CreatePaymentSchema = PaymentSchema.omit({ id: true, createdAt: true, updatedAt: true });
+
+// SEPA schemas
+export const SEPATransactionSchema = z.object({
+  id: z.string().optional(),
+  messageId: z.string().optional(),
+  accountId: z.string(),
+  amount: z.number(),
+  currency: z.string().default('EUR'),
+  valueDate: z.string().datetime(),
+  bookingDate: z.string().datetime().optional(),
+  creditorName: z.string().optional(),
+  creditorIBAN: z.string().optional(),
+  debtorName: z.string().optional(),
+  debtorIBAN: z.string().optional(),
+  remittanceInfo: z.string().optional(),
+  endToEndId: z.string().optional(),
+  mandateId: z.string().optional(),
+  creditorId: z.string().optional(),
+  reasonCode: z.string().optional(),
+  status: z.enum(['pending', 'processed', 'rejected', 'returned']).default('pending'),
+  orgId: z.string(),
+  createdAt: z.string().datetime().optional()
 });
 
-export const UpdatePaymentSchema = CreatePaymentSchema.partial();
-
-// Expense schemas
-export const ExpenseSchema = BaseEntity.extend({
-  expenseNumber: z.string().min(1).max(50),
-  category: z.enum([
-    'travel',
-    'meals',
-    'supplies',
-    'utilities',
-    'rent',
-    'salaries',
-    'marketing',
-    'professional_fees',
-    'equipment',
-    'maintenance',
-    'insurance',
-    'taxes',
-    'other'
-  ]),
-  description: z.string().min(1).max(500),
-  amount: z.number().min(0),
-  currency: z.string().length(3).default('EUR'),
-  expenseDate: z.string().datetime(),
-  
-  // Related entities
-  employeeId: z.string().uuid().optional(),
-  projectId: z.string().uuid().optional(),
-  departmentId: z.string().uuid().optional(),
-  supplierId: z.string().uuid().optional(),
-  
-  // Receipt info
-  hasReceipt: z.boolean().default(false),
-  receiptUrl: z.string().url().optional(),
-  
-  // Payment info
-  paymentMethod: PaymentMethodSchema.optional(),
-  reimbursable: z.boolean().default(false),
-  reimbursedAt: z.string().datetime().optional(),
-  
-  // Approval workflow
-  status: z.enum(['draft', 'submitted', 'approved', 'rejected', 'paid']).default('draft'),
-  submittedAt: z.string().datetime().optional(),
-  submittedByUserId: z.string().uuid().optional(),
-  approvedAt: z.string().datetime().optional(),
-  approvedByUserId: z.string().uuid().optional(),
-  rejectedReason: z.string().max(500).optional(),
-  
-  taxDeductible: z.boolean().default(false),
-  taxRate: z.number().min(0).max(100).default(0),
-  
-  accountCode: z.string().max(50).optional(),
-  notes: z.string().max(5000).optional(),
-  tags: z.array(z.string()).default([]),
-  metadata: z.record(z.unknown()).optional(),
+export const SEPAUploadResultSchema = z.object({
+  fileId: z.string(),
+  fileName: z.string(),
+  format: z.enum(['CAMT', 'MT940']),
+  transactionsCount: z.number().min(0),
+  processedCount: z.number().min(0),
+  errorsCount: z.number().min(0),
+  status: z.enum(['processing', 'completed', 'failed']),
+  errors: z.array(z.string()).default([]),
+  createdAt: z.string().datetime(),
+  transactions: z.array(SEPATransactionSchema).optional()
 });
 
-export const CreateExpenseSchema = ExpenseSchema.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-  deletedAt: true,
-  expenseNumber: true, // auto-generated
+// Budget schemas (enhanced)
+export const BudgetSchema = z.object({
+  id: z.string().uuid().optional(),
+  organizationId: z.string(),
+  name: z.string().min(1),
+  description: z.string().optional(),
+  amount: z.number().positive(),
+  currency: z.string().default('EUR'),
+  period: z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'yearly']).default('monthly'),
+  startDate: z.string().datetime(),
+  endDate: z.string().datetime().optional(),
+  categories: z.array(z.string()).default([]),
+  alertThreshold: z.number().min(0).max(100).default(80),
+  criticalThreshold: z.number().min(0).max(100).default(95),
+  isActive: z.boolean().default(true),
+  notifications: z.object({
+    email: z.boolean().default(true),
+    sms: z.boolean().default(false),
+    teams: z.boolean().default(true),
+    slack: z.boolean().default(false)
+  }).default({}),
+  createdAt: z.string().datetime().optional(),
+  updatedAt: z.string().datetime().optional()
 });
 
-export const UpdateExpenseSchema = CreateExpenseSchema.partial();
-
-// Financial Summary schemas
-export const FinancialSummarySchema = z.object({
-  orgId: z.string().uuid(),
-  period: z.object({
-    start: z.string().datetime(),
-    end: z.string().datetime(),
-  }),
-  
-  // Revenue metrics
-  revenue: z.object({
-    total: z.number(),
-    byCategory: z.record(z.string(), z.number()),
-    growth: z.number(), // percentage
-  }),
-  
-  // Accounts receivable
-  accountsReceivable: z.object({
-    total: z.number(),
-    current: z.number(),
-    overdue30: z.number(),
-    overdue60: z.number(),
-    overdue90: z.number(),
-    overdue90Plus: z.number(),
-  }),
-  
-  // Accounts payable
-  accountsPayable: z.object({
-    total: z.number(),
-    current: z.number(),
-    overdue30: z.number(),
-    overdue60: z.number(),
-    overdue90: z.number(),
-    overdue90Plus: z.number(),
-  }),
-  
-  // Cash flow
-  cashFlow: z.object({
-    opening: z.number(),
-    inflow: z.number(),
-    outflow: z.number(),
-    closing: z.number(),
-  }),
-  
-  // Expenses
-  expenses: z.object({
-    total: z.number(),
-    byCategory: z.record(z.string(), z.number()),
-  }),
-  
-  // Profitability
-  grossProfit: z.number(),
-  grossProfitMargin: z.number(), // percentage
-  netProfit: z.number(),
-  netProfitMargin: z.number(), // percentage
-  
-  // Key metrics
-  averageDaysToPayment: z.number(),
-  averageOrderValue: z.number(),
-  outstandingInvoices: z.number().int(),
-  
-  currency: z.string().length(3).default('EUR'),
-  generatedAt: z.string().datetime(),
-});
+export const CreateBudgetSchema = BudgetSchema.omit({ id: true, createdAt: true, updatedAt: true });
+export const UpdateBudgetSchema = BudgetSchema.partial().omit({ id: true, organizationId: true });
 
 // Export types
+export type Company = z.infer<typeof CompanySchema>;
+export type CreateCompany = z.infer<typeof CreateCompanySchema>;
+export type UpdateCompany = z.infer<typeof UpdateCompanySchema>;
+
+export type Contact = z.infer<typeof ContactSchema>;
+export type CreateContact = z.infer<typeof CreateContactSchema>;
+export type UpdateContact = z.infer<typeof UpdateContactSchema>;
+
+export type Deal = z.infer<typeof DealSchema>;
+export type CreateDeal = z.infer<typeof CreateDealSchema>;
+export type UpdateDeal = z.infer<typeof UpdateDealSchema>;
+
 export type Invoice = z.infer<typeof InvoiceSchema>;
-export type InvoiceItem = z.infer<typeof InvoiceItemSchema>;
 export type CreateInvoice = z.infer<typeof CreateInvoiceSchema>;
 export type UpdateInvoice = z.infer<typeof UpdateInvoiceSchema>;
-export type InvoiceFilter = z.infer<typeof InvoiceFilterSchema>;
-export type InvoiceStatus = z.infer<typeof InvoiceStatusSchema>;
 
 export type Payment = z.infer<typeof PaymentSchema>;
 export type CreatePayment = z.infer<typeof CreatePaymentSchema>;
-export type UpdatePayment = z.infer<typeof UpdatePaymentSchema>;
-export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
 
-export type Expense = z.infer<typeof ExpenseSchema>;
-export type CreateExpense = z.infer<typeof CreateExpenseSchema>;
-export type UpdateExpense = z.infer<typeof UpdateExpenseSchema>;
+export type SEPATransaction = z.infer<typeof SEPATransactionSchema>;
+export type SEPAUploadResult = z.infer<typeof SEPAUploadResultSchema>;
 
-export type FinancialSummary = z.infer<typeof FinancialSummarySchema>;
+export type Budget = z.infer<typeof BudgetSchema>;
+export type CreateBudget = z.infer<typeof CreateBudgetSchema>;
+export type UpdateBudget = z.infer<typeof UpdateBudgetSchema>;

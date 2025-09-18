@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { 
+import {
   Send,
   Cpu,
   Clock,
@@ -15,7 +15,6 @@ import {
 import LoadingSpinner from '../ui/LoadingSpinner';
 import toast from 'react-hot-toast';
 import { iaText, iaTTS, iaImage, webSearch } from '@/lib/ia';
-import { intelligentCache } from '@/lib/cache';
 import { PromptTemplates } from './PromptTemplates';
 
 interface ChatMessage {
@@ -83,9 +82,9 @@ export function AIChatPlayground() {
       const history = messages
         .slice(-8)
         .filter((i) => typeof i.content === "string")
-        .map((i) => ({ 
-          role: (i.role === "user" ? "user" : "model") as "user" | "model", 
-          text: i.content as string 
+        .map((i) => ({
+          role: (i.role === "user" ? "user" : "model") as "user" | "model",
+          text: i.content as string
         }));
 
       const systemInstruction = `Eres ECONEURA, asistente de IA empresarial. Sé conciso y proactivo. Da respuestas accionables y en tono profesional.`;
@@ -111,7 +110,7 @@ export function AIChatPlayground() {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
-      
+
       // Detectar modo demo
       if (responseText.includes('🧪 DEMO')) {
         toast('Modo demo activo - configura claves de Azure OpenAI', { icon: '🧪' });
@@ -241,7 +240,7 @@ export function AIChatPlayground() {
       {/* Options Panel */}
       <div className="bg-white border-b border-gray-200 p-4">
         <h3 className="text-lg font-medium text-gray-900 mb-3">Request Options</h3>
-        
+
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">Task Type</label>
@@ -371,7 +370,7 @@ export function AIChatPlayground() {
               }`}
             >
               <div className="text-sm" dangerouslySetInnerHTML={{ __html: message.content }}></div>
-              
+
               {message.metadata && (
                 <div className="mt-2 pt-2 border-t border-gray-200 text-xs space-y-1">
                   <div className="flex items-center space-x-4">
@@ -401,7 +400,7 @@ export function AIChatPlayground() {
                   )}
                 </div>
               )}
-              
+
               {/* Action buttons for assistant messages */}
               {message.role === 'assistant' && typeof message.content === 'string' && (
                 <div className="mt-2 flex gap-2">
@@ -415,14 +414,14 @@ export function AIChatPlayground() {
                   </button>
                 </div>
               )}
-              
+
               <div className="mt-1 text-xs opacity-70">
                 {message.timestamp.toLocaleTimeString()}
               </div>
             </div>
           </div>
         ))}
-        
+
         {loading && (
           <div className="flex justify-start">
             <div className="bg-white text-gray-800 shadow px-4 py-2 rounded-lg">

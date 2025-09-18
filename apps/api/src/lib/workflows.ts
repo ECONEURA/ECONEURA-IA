@@ -578,7 +578,7 @@ class WorkflowEngineImpl implements IWorkflowEngine {
     const { functionName, parameters } = action.config;
     
     // Simular ejecución de función
-    console.log(`Executing function: ${functionName} with parameters:`, parameters);
+    
     
     // Aquí se ejecutaría la función real
     return { success: true, functionName, parameters };
@@ -588,7 +588,7 @@ class WorkflowEngineImpl implements IWorkflowEngine {
     const { url, method, headers, body } = action.config;
     
     // Simular llamada HTTP
-    console.log(`Making HTTP ${method} request to: ${url}`);
+    
     
     // Aquí se haría la llamada HTTP real
     return { success: true, status: 200, url, method };
@@ -597,7 +597,7 @@ class WorkflowEngineImpl implements IWorkflowEngine {
   private async executeDelayAction(action: Action): Promise<any> {
     const { duration } = action.config;
     
-    console.log(`Delaying for ${duration}ms`);
+    
     await new Promise(resolve => setTimeout(resolve, duration));
     
     return { success: true, duration };
@@ -615,7 +615,7 @@ class WorkflowEngineImpl implements IWorkflowEngine {
   private async executeNotificationAction(action: Action, context: Record<string, any>): Promise<any> {
     const { type, recipient, message, template } = action.config;
     
-    console.log(`Sending ${type} notification to: ${recipient}`);
+    
     
     // Aquí se enviaría la notificación real
     return { success: true, type, recipient, message };

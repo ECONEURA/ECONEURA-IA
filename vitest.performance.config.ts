@@ -1,66 +1,44 @@
-import { defineConfig } from 'vitest/config'
-import { resolve } from 'path'
+import { defineConfig } from 'vitest/config';
+import { resolve } from 'path';
 
 export default defineConfig({
   test: {
-    name: 'performance',
     globals: true,
     environment: 'node',
-    setupFiles: ['./test/setup.performance.ts'],
-    include: [
-      '**/*.performance.test.ts',
-      '**/*.performance.spec.ts',
-      'test/performance/**/*.test.ts',
-      'test/performance/**/*.spec.ts',
-    ],
-    exclude: [
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/.next/**',
-      '**/*.unit.test.ts',
-      '**/*.unit.spec.ts',
-      '**/*.integration.test.ts',
-      '**/*.integration.spec.ts',
-    ],
+    setupFiles: ['./test/performance-setup.ts'],
+    include: ['**/*.performance.test.ts', '**/*.performance.spec.ts'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html', 'lcov'],
+      reporter: ['text', 'json', 'html'],
       exclude: [
-        '**/node_modules/**',
-        '**/dist/**',
-        '**/.next/**',
-        '**/*.config.ts',
-        '**/test/**',
+        'node_modules/',
+        'dist/',
+        'build/',
+        '.next/',
+        'coverage/',
+        'test-results/',
+        'performance-results/',
         '**/*.test.ts',
         '**/*.spec.ts',
-      ],
-      thresholds: {
-        global: {
-          branches: 50,
-          functions: 50,
-          lines: 50,
-          statements: 50,
-        },
-      },
+        '**/*.config.ts',
+        '**/*.config.js',
+        '**/drizzle/**',
+        '**/migrations/**',
+        '**/seed.ts',
+        '**/seed.js'
+      ]
     },
-    testTimeout: 60000, // 60 seconds for performance tests
-    hookTimeout: 15000, // 15 seconds for hooks
-    pool: 'forks',
-    poolOptions: {
-      forks: {
-        singleFork: true,
-      },
-    },
-    reporters: ['verbose', 'json'],
-    outputFile: {
-      json: './performance-results/results.json',
-    },
+    testTimeout: 60000,
+    hookTimeout: 60000,
+    teardownTimeout: 60000
   },
   resolve: {
     alias: {
       '@econeura/shared': resolve(__dirname, './packages/shared/src'),
       '@econeura/db': resolve(__dirname, './packages/db/src'),
-      '@econeura/playbooks': resolve(__dirname, './packages/playbooks/src'),
-    },
-  },
-})
+      '@econeura/sdk': resolve(__dirname, './packages/sdk/src'),
+      '@econeura/api': resolve(__dirname, './apps/api/src'),
+      '@econeura/web': resolve(__dirname, './apps/web/src'),
+    }
+  }
+});

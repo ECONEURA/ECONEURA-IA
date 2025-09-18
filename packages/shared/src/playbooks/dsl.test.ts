@@ -10,6 +10,12 @@ vi.mock('../otel/index.js', () => ({
       end: vi.fn(),
     })),
   }),
+  createSpan: (name: string) => ({
+    setAttribute: vi.fn(),
+    setAttributes: vi.fn(),
+    recordException: vi.fn(),
+    end: vi.fn(),
+  }),
 }))
 
 vi.mock('../logging/index.js', () => ({
@@ -431,7 +437,7 @@ describe('Playbook DSL', () => {
       const result = await executor.execute()
 
       expect(result.auditTrail.length).toBeGreaterThan(0)
-      
+
       // Check audit trail structure
       const auditEvent = result.auditTrail[0]
       expect(auditEvent).toHaveProperty('timestamp')

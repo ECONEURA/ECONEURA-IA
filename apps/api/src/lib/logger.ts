@@ -3,12 +3,12 @@ interface LogContext {
   org?: string;
   orgTier?: string;
   orgFeatures?: string[];
-  
+
   // Contexto de usuario
   userId?: string;
   userRole?: string;
   userPermissions?: string[];
-  
+
   // Contexto de request
   requestId?: string;
   correlationId?: string;
@@ -19,12 +19,13 @@ interface LogContext {
   method?: string;
   path?: string;
   query?: Record<string, unknown>;
-  
+  queryJson?: string;
+
   // Métricas de rendimiento
   duration?: number;
   startTime?: number;
   endTime?: number;
-  
+
   // Métricas de IA
   tokens?: number;
   cost?: number;
@@ -32,7 +33,7 @@ interface LogContext {
   aiProvider?: string;
   promptTokens?: number;
   completionTokens?: number;
-  
+
   // Contexto técnico
   userAgent?: string;
   ip?: string;
@@ -42,12 +43,12 @@ interface LogContext {
   port?: number;
   environment?: string;
   version?: string;
-  
+
   // Contexto de negocio
   businessUnit?: string;
   operationType?: string;
   resourceType?: string;
-  
+
   // Flags y estados
   isRetry?: boolean;
   isCached?: boolean;
@@ -318,9 +319,11 @@ class StructuredLogger {
   }
 
   private formatLog(level: string, message: string, context?: LogContext): LogEntry {
+  const allowedLevels = ['error', 'warn', 'info', 'debug'] as const;
+  const lvl = (typeof level === 'string' && (allowedLevels as readonly string[]).includes(level)) ? (level as 'error' | 'warn' | 'info' | 'debug') : 'info';
     const logEntry: LogEntry = {
       timestamp: new Date().toISOString(),
-      level: level as any,
+      level: lvl,
       message,
       context,
       traceId: context?.requestId || this.generateTraceId(),
@@ -389,7 +392,7 @@ class StructuredLogger {
   request(method: string, path: string, statusCode: number, duration: number, context?: LogContext): void {
     const level = statusCode >= 400 ? 'error' : statusCode >= 300 ? 'warn' : 'info';
     const message = `${method} ${path} - ${statusCode} (${duration}ms)`;
-    
+
     this[level](message, {
       ...context,
       method,

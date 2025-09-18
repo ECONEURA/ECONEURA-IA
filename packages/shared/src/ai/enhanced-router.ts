@@ -212,7 +212,7 @@ export class EnhancedAIRouter {
       // Estimate cost for primary provider
       const estimatedTokens = this.estimateTokens(request.prompt, request.maxTokens)
       const estimatedCost = costMeter.calculateCost(
-        model as any,
+        model,
         estimatedTokens,
         estimatedTokens * 0.5 // Assume 50% output ratio
       )
@@ -230,10 +230,12 @@ export class EnhancedAIRouter {
         'ai.model': model,
         'ai.estimated_cost': estimatedCost,
       }
-      if (typeof (span as any)?.setAttributes === 'function') {
-        ;(span as any).setAttributes(_attrs)
-      } else if (typeof (span as any)?.setAttribute === 'function') {
-        Object.entries(_attrs).forEach(([k, v]) => (span as any).setAttribute(k, v))
+      const s1 = span as unknown as { setAttributes?: (a: Record<string, unknown>) => void }
+      const s2 = span as unknown as { setAttribute?: (k: string, v: unknown) => void }
+      if (typeof s1?.setAttributes === 'function') {
+        s1.setAttributes(_attrs)
+      } else if (typeof s2?.setAttribute === 'function') {
+        Object.entries(_attrs).forEach(([k, v]) => s2.setAttribute!(k, v))
       }
 
       return {
@@ -336,10 +338,12 @@ export class EnhancedAIRouter {
         'ai.latency_ms': latency,
         'ai.fallback_used': isFallback,
       }
-      if (typeof (span as any)?.setAttributes === 'function') {
-        ;(span as any).setAttributes(_execAttrs)
-      } else if (typeof (span as any)?.setAttribute === 'function') {
-        Object.entries(_execAttrs).forEach(([k, v]) => (span as any).setAttribute(k, v))
+      const e1 = span as unknown as { setAttributes?: (a: Record<string, unknown>) => void }
+      const e2 = span as unknown as { setAttribute?: (k: string, v: unknown) => void }
+      if (typeof e1?.setAttributes === 'function') {
+        e1.setAttributes(_execAttrs)
+      } else if (typeof e2?.setAttribute === 'function') {
+        Object.entries(_execAttrs).forEach(([k, v]) => e2.setAttribute!(k, v))
       }
 
       return {

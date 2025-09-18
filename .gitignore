@@ -126,6 +126,14 @@ test-results/
 playwright-report/
 coverage/
 
+# ▶ Artefactos de auditor / CI (generados)
+PROGRESS.md
+status/progress.json
+status/progress-history.jsonl
+status/progress-badge.svg
+# snapshots Playwright (baseline generada en CI)
+tests/ui/**/__screenshots__/
+
 # Database
 *.db
 *.sqlite

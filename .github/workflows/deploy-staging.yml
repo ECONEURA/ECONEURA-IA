@@ -6,6 +6,7 @@ on:
 
 jobs:
   deploy:
+    if: ${{ env.DEPLOY_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -20,10 +21,11 @@ jobs:
       with:
         node-version: 20
 
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v2
-      with:
-        version: 8
+    - name: Enable corepack & pin pnpm
+      run: |
+        set -euo pipefail
+        corepack enable
+        corepack prepare pnpm@8.15.6 --activate
 
     - name: Install dependencies
       run: pnpm install --frozen-lockfile

@@ -3,18 +3,18 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "isolatedModules": true,
-    "allowImportingTsExtensions": true,
+  "target": "ES2022",
+  "module": "ESNext",
+  "moduleResolution": "bundler",
+  "types": ["node"],
+  "isolatedModules": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
     "composite": true,
-    "noEmit": false
+  "noEmit": false
   },
   "include": ["src/**/*"],
   "paths": {

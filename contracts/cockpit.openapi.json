@@ -1,0 +1,403 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "ECONEURA Cockpit API",
+    "description": "NEURA↔Comet + Agentes↔Make with persistent memory and voice",
+    "version": "1.0.0",
+    "contact": {
+      "name": "ECONEURA Team",
+      "url": "https://www.econeura.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3101",
+      "description": "NEURA↔Comet API"
+    },
+    {
+      "url": "http://localhost:3102",
+      "description": "Agentes↔Make API"
+    }
+  ],
+  "paths": {
+    "/neura/chat": {
+      "post": {
+        "summary": "Chat with NEURA using persistent memory",
+        "description": "Send a message to NEURA with context from persistent memory and tool calling capabilities",
+        "tags": ["NEURA"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Chat response with optional tool call",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Est-Cost-EUR": {
+                "description": "Estimated cost in EUR",
+                "schema": { "type": "string" }
+              },
+              "X-Budget-Pct": {
+                "description": "Budget percentage used",
+                "schema": { "type": "string" }
+              },
+              "X-Latency-ms": {
+                "description": "Response latency in milliseconds",
+                "schema": { "type": "string" }
+              },
+              "X-Route": {
+                "description": "Route identifier",
+                "schema": { "type": "string" }
+              },
+              "X-Correlation-Id": {
+                "description": "Correlation ID for tracing",
+                "schema": { "type": "string" }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agents/trigger": {
+      "post": {
+        "summary": "Trigger agent execution",
+        "description": "Trigger an agent workflow via Make webhook",
+        "tags": ["Agents"],
+        "parameters": [
+          {
+            "name": "x-idempotency-key",
+            "in": "header",
+            "description": "Idempotency key for request deduplication",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "x-tenant-id",
+            "in": "header",
+            "description": "Tenant identifier",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TriggerRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Agent execution triggered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TriggerResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agents/events": {
+      "post": {
+        "summary": "Receive agent execution events",
+        "description": "Webhook endpoint for Make to send agent execution updates",
+        "tags": ["Agents"],
+        "parameters": [
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "HMAC signature for webhook verification",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "x-idempotency-key",
+            "in": "header",
+            "description": "Idempotency key for event deduplication",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Event processed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid signature",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ChatRequest": {
+        "type": "object",
+        "required": ["userId", "dept", "text"],
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "User identifier"
+          },
+          "dept": {
+            "type": "string",
+            "description": "Department identifier",
+            "enum": ["ceo", "cfo", "ciso", "cto", "cpo", "cmo", "chro", "coo", "cso", "cco"]
+          },
+          "text": {
+            "type": "string",
+            "description": "User message text"
+          }
+        }
+      },
+      "ChatResponse": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "NEURA response content"
+          },
+          "tool": {
+            "type": "object",
+            "description": "Tool call if triggered",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Tool name"
+              },
+              "arguments": {
+                "type": "string",
+                "description": "Tool arguments as JSON string"
+              }
+            }
+          }
+        }
+      },
+      "TriggerRequest": {
+        "type": "object",
+        "required": ["dept", "agentKey"],
+        "properties": {
+          "dept": {
+            "type": "string",
+            "description": "Department identifier"
+          },
+          "agentKey": {
+            "type": "string",
+            "description": "Agent identifier"
+          },
+          "params": {
+            "type": "object",
+            "description": "Agent parameters",
+            "additionalProperties": true
+          },
+          "hitl": {
+            "type": "boolean",
+            "description": "Human in the loop flag"
+          }
+        }
+      },
+      "TriggerResponse": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string",
+            "description": "Unique run identifier"
+          },
+          "status": {
+            "type": "string",
+            "description": "Initial run status",
+            "enum": ["RUNNING"]
+          },
+          "message": {
+            "type": "string",
+            "description": "Status message"
+          }
+        }
+      },
+      "EventRequest": {
+        "type": "object",
+        "required": ["runId", "status"],
+        "properties": {
+          "runId": {
+            "type": "string",
+            "description": "Run identifier"
+          },
+          "status": {
+            "type": "string",
+            "description": "Run status",
+            "enum": ["RUNNING", "HITL", "FAILED", "COMPLETED"]
+          },
+          "progress": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Progress percentage"
+          },
+          "summary": {
+            "type": "string",
+            "description": "Status summary"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message if failed"
+          }
+        }
+      },
+      "EventResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "description": "Processing success"
+          },
+          "message": {
+            "type": "string",
+            "description": "Response message"
+          },
+          "runId": {
+            "type": "string",
+            "description": "Run identifier"
+          },
+          "status": {
+            "type": "string",
+            "description": "Current status"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error type"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Authorization"
+      },
+      "HMACAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-signature"
+      }
+    }
+  },
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "NEURA",
+      "description": "NEURA chat with persistent memory"
+    },
+    {
+      "name": "Agents",
+      "description": "Agent execution and orchestration"
+    }
+  ]
+}
+

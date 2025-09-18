@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter, type Request, type Response } from 'express';
 import { Redis } from 'ioredis';
 import { prisma } from '@econeura/db';
 import { metrics } from '../lib/metrics';
@@ -43,19 +43,19 @@ interface SystemStatus {
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 const aiService = new AzureOpenAIService();
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 // Health check básico (Liveness)
-router.get('/live', asyncHandler(async (req, res) => {
+router.get('/live', asyncHandler(async (req: Request, res: Response) => {
   const uptime = process.uptime();
   const memUsage = process.memoryUsage();
-  
+
   try {
     metrics.incrementHealthCheck('liveness');
   } catch (e) {
     // no-op: metrics may be a no-op in some environments
   }
-  
+
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -69,15 +69,15 @@ router.get('/live', asyncHandler(async (req, res) => {
 }));
 
 // Readiness check completo
-router.get('/ready', asyncHandler(async (req, res) => {
+router.get('/ready', asyncHandler(async (req: Request, res: Response) => {
   const checks: HealthCheckResult[] = [];
   const startTime = Date.now();
-  
+
   try {
     // Database check
     // Use shared prisma instance; protect with timeout via Promise.race
     await Promise.race([
-      prisma.$queryRaw`SELECT 1`,
+      prisma.$executeRaw`SELECT 1`,
       new Promise((_, rej) => setTimeout(() => rej(new Error('db timeout')), 2000))
     ]);
     checks.push({
@@ -95,7 +95,7 @@ router.get('/ready', asyncHandler(async (req, res) => {
       error: error.message
     });
   }
-  
+
   try {
     // Redis check
     await Promise.race([
@@ -117,7 +117,7 @@ router.get('/ready', asyncHandler(async (req, res) => {
       error: error.message
     });
   }
-  
+
   try {
     // Azure OpenAI check
     // aiService may use external SDKs; guard with timeout
@@ -148,14 +148,14 @@ router.get('/ready', asyncHandler(async (req, res) => {
   // Calcular estado general
   const isHealthy = checks.every(check => check.status === 'healthy');
   const totalTime = Date.now() - startTime;
-  
+
   try {
     metrics.recordHealthCheckDuration('readiness', totalTime);
     metrics.incrementHealthCheck('readiness');
   } catch (e) {
     // ignore metrics errors
   }
-  
+
   const response = {
     status: isHealthy ? 'ok' : 'degraded',
     timestamp: new Date().toISOString(),
@@ -167,7 +167,7 @@ router.get('/ready', asyncHandler(async (req, res) => {
 }));
 
 // Métricas Prometheus
-router.get('/metrics', async (req, res) => {
+router.get('/metrics', async (req: Request, res: Response) => {
   try {
   const metricsData = await metrics.getMetrics();
   res.set('Content-Type', 'text/plain');
@@ -180,7 +180,7 @@ router.get('/metrics', async (req, res) => {
 });
 
 // Estado del sistema
-router.get('/status', async (req, res) => {
+router.get('/status', async (req: Request, res: Response) => {
   const systemStatus: SystemStatus = {
     api: {
       status: 'ok',
@@ -203,7 +203,7 @@ router.get('/status', async (req, res) => {
   try {
     // Check DB con latencia
     const dbStart = Date.now();
-    await prisma.$queryRaw`SELECT 1`;
+  await prisma.$executeRaw`SELECT 1`;
     systemStatus.database = {
       status: 'ok',
       latency: Date.now() - dbStart

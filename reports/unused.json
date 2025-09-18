@@ -1,0 +1,20 @@
+{
+  "timestamp": "2025-09-09T18:56:11.183Z",
+  "summary": {
+    "unusedFiles": 0,
+    "unusedDependencies": 0,
+    "unusedExports": 0,
+    "missingDependencies": 0
+  },
+  "unused": {
+    "files": [],
+    "dependencies": [],
+    "exports": [],
+    "missing": []
+  },
+  "recommendations": [],
+  "safeToRemove": {
+    "files": [],
+    "dependencies": []
+  }
+}

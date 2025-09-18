@@ -1,20 +1,15 @@
-import { defineConfig } from 'drizzle-kit'
-import { env } from '@econeura/shared'
+import { defineConfig } from 'drizzle-kit';
 
 export default defineConfig({
-  schema: './src/schema.ts',
-  out: './migrations',
+  schema: './src/schema/index.ts',
+  out: './drizzle',
   dialect: 'postgresql',
   dbCredentials: {
-    host: env().PGHOST,
-    user: env().PGUSER,
-    password: env().PGPASSWORD,
-    database: env().PGDATABASE,
-    port: env().PGPORT,
+    url: process.env.DATABASE_URL || 'postgresql://econeura_user:econeura_password@localhost:5432/econeura_dev',
   },
   verbose: true,
   strict: true,
-})
-
-
-
+  migrations: {
+    prefix: 'timestamp'
+  }
+});

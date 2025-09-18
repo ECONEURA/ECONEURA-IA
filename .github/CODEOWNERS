@@ -1,0 +1,60 @@
+# CODEOWNERS - ECONEURA Project
+# This file defines code ownership and review requirements
+
+# Global owners
+* @econeura/core-team
+
+# API and Backend
+/apps/api/ @econeura/api-team
+/apps/api-agents-make/ @econeura/api-team
+/apps/api-neura-comet/ @econeura/api-team
+/apps/workers/ @econeura/api-team
+
+# Frontend and UI
+/apps/web/ @econeura/frontend-team
+/packages/ui/ @econeura/frontend-team
+
+# Database and Infrastructure
+/packages/db/ @econeura/infrastructure-team
+/infra/ @econeura/infrastructure-team
+/terraform/ @econeura/infrastructure-team
+
+# Shared Packages
+/packages/shared/ @econeura/core-team
+/packages/sdk/ @econeura/core-team
+
+# Documentation
+/docs/ @econeura/docs-team
+*.md @econeura/docs-team
+
+# CI/CD and DevOps
+/.github/ @econeura/devops-team
+/scripts/ @econeura/devops-team
+/.github/workflows/ @econeura/devops-team
+
+# Configuration Files
+/package.json @econeura/core-team
+/pnpm-workspace.yaml @econeura/core-team
+/turbo.json @econeura/core-team
+/tsconfig.base.json @econeura/core-team
+
+# Security and Compliance
+/scripts/security/ @econeura/security-team
+/scripts/ops/ @econeura/security-team
+/.gitleaks.toml @econeura/security-team
+/LICENSES_DENYLIST.md @econeura/security-team
+
+# Testing
+/tests/ @econeura/qa-team
+/scripts/test/ @econeura/qa-team
+
+# OpenAPI and Contracts
+/apps/api/openapi/ @econeura/api-team
+/scripts/contracts/ @econeura/api-team
+
+# Runbooks and Operations
+/docs/runbooks/ @econeura/ops-team
+/docs/azure/ @econeura/ops-team
+
+# Auto-labels for PRs
+# These will be automatically applied based on file changes

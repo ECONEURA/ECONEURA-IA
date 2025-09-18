@@ -1,0 +1,194 @@
+name: Strong CI
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+permissions:
+  contents: read
+  actions: read
+  checks: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  DEPLOY_ENABLED: "false"
+
+jobs:
+  quality_gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-ci-tools
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+  - run: corepack enable && corepack prepare pnpm@8.15.6 --activate
+      - name: Install
+        run: pnpm -w i --frozen-lockfile
+      - name: Lint + Typecheck + Unit Coverage
+        run: |
+          pnpm -w lint
+          pnpm -w typecheck
+          pnpm -w test -- --coverage
+      - name: Export coverage summary
+        if: always()
+        run: |
+          mkdir -p .artifacts
+          node -e "const fs=require('fs');const p='coverage/coverage-summary.json';fs.writeFileSync('.artifacts/coverage-summary.json',fs.existsSync(p)?fs.readFileSync(p):'{}')"
+      - name: Upload artifacts (quality)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: quality-artifacts, path: ./.artifacts }
+
+  openapi_validate:
+    runs-on: ubuntu-latest
+    needs: [quality_gates]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+  - run: corepack enable && corepack prepare pnpm@8.15.6 --activate
+      - name: Install
+        run: pnpm -w i --frozen-lockfile
+      - name: Snapshot & Diff /v1
+        run: |
+          node scripts/openapi/snapshot.mjs || true
+          node scripts/openapi/diff.mjs || true
+      - name: Spectral Lint
+        run: pnpm dlx @stoplight/spectral-cli lint apps/api/openapi/openapi.yaml || true
+      - name: Upload openapi reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: openapi-reports, path: ./reports }
+
+  api_tests:
+    name: API Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: econeura_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd="pg_isready -U ci -d econeura_ci"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+  - run: corepack enable && corepack prepare pnpm@8.15.6 --activate
+        with: { version: 8 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - run: pnpm -w install
+      - name: Build Monorepo
+        run: pnpm -w -r build
+      - name: Start API in Background (Port 3001)
+        env:
+          NODE_ENV: test
+          PORT: 3001
+          HEALTH_PATH: /health
+          DATABASE_URL: postgres://ci:ci@localhost:5432/econeura_ci
+          MOCK_EXTERNAL: "1"
+          OPENAI_API_KEY: test
+          AZURE_OPENAI_API_BASE: http://127.0.0.1:9999
+        run: |
+          set -euo pipefail
+          mkdir -p .artifacts
+          pnpm --filter apps/api prisma migrate deploy
+          pnpm --filter apps/api start:ci > .artifacts/api.log 2>&1 &
+      - name: Wait for API Health Endpoint
+        run: npx wait-on -t 180000 http://127.0.0.1:3001${HEALTH_PATH:-/health}
+      - name: Run API Tests
+        run: pnpm --filter apps/api test -- --coverage
+      - name: Upload API Logs on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-logs
+          path: .artifacts/api.log
+
+  link_check:
+    name: Link Check (Lychee)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Lychee Link Checker
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --config .lychee.toml --no-progress ./docs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  security_scan:
+    name: Security Scan (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run Gitleaks Scan
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          report_format: json
+          report_path: reports/gitleaks.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gitleaks-report
+          path: reports/gitleaks.json
+
+  e2e_ui:
+    runs-on: ubuntu-latest
+    needs: [api_tests]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+  - run: corepack enable && corepack prepare pnpm@8.15.6 --activate
+      - name: Install + Playwright deps
+        run: |
+          pnpm -w i --frozen-lockfile
+          pnpm exec playwright install --with-deps
+      - name: Start Web (bg) & wait
+        run: |
+          nohup pnpm -C apps/web start:ci > .artifacts/web.log 2>&1 &
+          npx wait-on http://127.0.0.1:3000
+      - name: E2E run
+        run: pnpm -w test:e2e || pnpm -w playwright test --retries=1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: e2e-artifacts, path: .artifacts }
+
+  perf_smoke:
+    runs-on: ubuntu-latest
+    needs: [api_tests]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: grafana/setup-k6-action@v1
+      - name: k6 smoke
+        run: |
+          [ -f scripts/ops/dev_smoke.sh ] && bash scripts/ops/dev_smoke.sh || echo "no smoke"
+
+  status_check:
+    name: Final Status Check
+    runs-on: ubuntu-latest
+    needs: [api_tests, link_check, security_scan]
+    if: always()
+    steps:
+      - name: Verify outcome of all critical jobs
+        run: |
+          NEEDS_CONTEXT='${{ toJson(needs) }}'
+          FAILED_JOBS=$(echo "$NEEDS_CONTEXT" | jq -r 'to_entries[] | select(.value.result != "success") | .key')
+
+          if [ -n "$FAILED_JOBS" ]; then
+            echo "🔴 Failure detected in the following critical jobs:"
+            echo "$FAILED_JOBS"
+            exit 1
+          else
+            echo "✅ All critical jobs passed."
+          fi

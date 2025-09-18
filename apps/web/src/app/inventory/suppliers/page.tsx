@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { useApiClient } from '@/hooks/useApi';
+import { apiClient } from '@/lib/api-client';
 import { 
   Building2, 
   Plus, 
@@ -59,7 +59,7 @@ interface SuppliersResponse {
 
 export default function SuppliersPage() {
   const { user } = useAuth();
-  const apiClient = useApiClient();
+  const api = apiClient;
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -84,12 +84,13 @@ export default function SuppliersPage() {
         ...(searchTerm && { search: searchTerm })
       });
 
-      const response: SuppliersResponse = await apiClient(`/suppliers?${params.toString()}`);
-      setSuppliers(response.data);
+      const data: SuppliersResponse = await api.request({ url: `/suppliers?${params.toString()}`, method: 'GET' });
+      const list = (data as any).data ?? (data as any);
+      setSuppliers(list);
       setPagination(prev => ({
         ...prev,
-        total: response.pagination.total,
-        hasMore: response.pagination.hasMore
+        total: (data as any).pagination?.total ?? prev.total,
+        hasMore: (data as any).pagination?.hasMore ?? prev.hasMore
       }));
     } catch (error) {
       console.error('Error loading suppliers:', error);

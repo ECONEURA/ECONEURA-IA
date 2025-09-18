@@ -508,7 +508,7 @@ class WebWorkflowSystem {
         },
       });
 
-      console.log('Created User Onboarding workflow:', userOnboardingWorkflow.id);
+      
 
       // Workflow State Machine: Order Processing
       const orderProcessingWorkflow = await this.createWorkflow({
@@ -589,7 +589,7 @@ class WebWorkflowSystem {
         },
       });
 
-      console.log('Created Order Processing workflow:', orderProcessingWorkflow.id);
+      
 
     } catch (error) {
       console.error('Error creating sample workflows:', error);

@@ -23,7 +23,10 @@ describe('Environment Configuration', () => {
     });
 
     it('should provide default values', () => {
-      const result = envSchema.parse(process.env);
+  // Ensure NODE_ENV is not set so defaults apply
+  // process.env properties are readonly in TS types; assign undefined
+  (process.env as any).NODE_ENV = undefined
+  const result = envSchema.parse(process.env);
       expect(result.NODE_ENV).toBe('development');
       expect(result.LOG_LEVEL).toBe('info');
       expect(result.PORT).toBe(3000);

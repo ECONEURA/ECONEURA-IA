@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["dom", "dom.iterable", "es6"],
+  "lib": ["dom", "dom.iterable", "es2021"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -20,12 +20,14 @@
     ],
     "baseUrl": ".",
     "paths": {
+  "@econeura/shared": ["../../packages/shared/src/index.ts"],
+  "@econeura/shared/*": ["../../packages/shared/src/*"],
       "@/*": ["./src/*"],
       "@/components/*": ["./src/components/*"],
       "@/lib/*": ["./src/lib/*"],
       "@/app/*": ["./src/app/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": ["next-env.d.ts", "types/**/*.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }

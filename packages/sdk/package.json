@@ -8,7 +8,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "build": "tsc --noEmit --skipLibCheck || echo 'Build completed with warnings'",
+    "build": "tsc -p tsconfig.json",
     "dev": "tsc --watch",
     "generate": "npm run generate:types && npm run generate:client",
     "generate:types": "npx openapi-typescript ../../apps/api/openapi.json -o src/types.ts",
@@ -19,7 +19,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@econeura/shared": "file:../shared"
+  "@econeura/shared": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

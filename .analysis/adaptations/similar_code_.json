@@ -1,0 +1,108 @@
+{
+  "similar_entities": [
+    {
+      "name": "contact",
+      "file": "/Users/samu/ECONEURA-IA-1/apps/api/src/domain/entities/contact.entity.ts",
+      "type": "entity"
+    },
+    {
+      "name": "user",
+      "file": "/Users/samu/ECONEURA-IA-1/apps/api/src/domain/entities/user.entity.ts",
+      "type": "entity"
+    },
+    {
+      "name": "deal",
+      "file": "/Users/samu/ECONEURA-IA-1/apps/api/src/domain/entities/deal.entity.ts",
+      "type": "entity"
+    },
+    {
+      "name": "organization",
+      "file": "/Users/samu/ECONEURA-IA-1/apps/api/src/domain/entities/organization.entity.ts",
+      "type": "entity"
+    },
+    {
+      "name": "company",
+      "file": "/Users/samu/ECONEURA-IA-1/apps/api/src/domain/entities/company.entity.ts",
+      "type": "entity"
+    }
+  ],
+  "similar_repositories": [
+    {
+      "name": "organization",
+      "file": "/Users/samu/ECONEURA-IA-1/apps/api/src/domain/repositories/organization.repository.ts",
+      "type": "repository"
+    },
+    {
+      "name": "company",
+      "file": "/Users/samu/ECONEURA-IA-1/apps/api/src/domain/repositories/company.repository.ts",
+      "type": "repository"
+    },
+    {
+      "name": "user",
+      "file": "/Users/samu/ECONEURA-IA-1/apps/api/src/domain/repositories/user.repository.ts",
+      "type": "repository"
+    },
+    {
+      "name": "deal",
+      "file": "/Users/samu/ECONEURA-IA-1/apps/api/src/domain/repositories/deal.repository.ts",
+      "type": "repository"
+    },
+    {
+      "name": "contact",
+      "file": "/Users/samu/ECONEURA-IA-1/apps/api/src/domain/repositories/contact.repository.ts",
+      "type": "repository"
+    }
+  ],
+  "similar_use_cases": [
+    {
+      "name": "update-deal",
+      "file": "/Users/samu/ECONEURA-IA-1/apps/api/src/application/use-cases/deal/update-deal.use-case.ts",
+      "type": "use_case"
+    },
+    {
+      "name": "create-deal",
+      "file": "/Users/samu/ECONEURA-IA-1/apps/api/src/application/use-cases/deal/create-deal.use-case.ts",
+      "type": "use_case"
+    },
+    {
+      "name": "update-contact",
+      "file": "/Users/samu/ECONEURA-IA-1/apps/api/src/application/use-cases/contact/update-contact.use-case.ts",
+      "type": "use_case"
+    },
+    {
+      "name": "create-contact",
+      "file": "/Users/samu/ECONEURA-IA-1/apps/api/src/application/use-cases/contact/create-contact.use-case.ts",
+      "type": "use_case"
+    },
+    {
+      "name": "delete-user",
+      "file": "/Users/samu/ECONEURA-IA-1/apps/api/src/application/use-cases/user/delete-user.use-case.ts",
+      "type": "use_case"
+    },
+    {
+      "name": "create-user",
+      "file": "/Users/samu/ECONEURA-IA-1/apps/api/src/application/use-cases/user/create-user.use-case.ts",
+      "type": "use_case"
+    },
+    {
+      "name": "update-user",
+      "file": "/Users/samu/ECONEURA-IA-1/apps/api/src/application/use-cases/user/update-user.use-case.ts",
+      "type": "use_case"
+    },
+    {
+      "name": "update-company",
+      "file": "/Users/samu/ECONEURA-IA-1/apps/api/src/application/use-cases/company/update-company.use-case.ts",
+      "type": "use_case"
+    },
+    {
+      "name": "create-company",
+      "file": "/Users/samu/ECONEURA-IA-1/apps/api/src/application/use-cases/company/create-company.use-case.ts",
+      "type": "use_case"
+    }
+  ],
+  "similar_dtos": [],
+  "similar_controllers": [],
+  "similar_routes": [],
+  "similar_patterns": [],
+  "adaptation_opportunities": []
+}

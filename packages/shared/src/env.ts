@@ -1,17 +1,25 @@
+export const Env = {
+  NODE_ENV: process.env.NODE_ENV || 'development',
+  AAD_REQUIRED: process.env.AAD_REQUIRED || 'false',
+  REDIS_URL: process.env.REDIS_URL || '',
+  POSTGRES_URL: process.env.POSTGRES_URL || '',
+  MAKE_SIGNING_SECRET: process.env.MAKE_SIGNING_SECRET || 'dev',
+  USE_LOCAL_MISTRAL: process.env.USE_LOCAL_MISTRAL || 'false',
+};
 import { z } from 'zod'
 
 const envSchema = z.object({
   // Node environment
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
-  
+
   // Database
-  PGHOST: z.string().min(1),
-  PGUSER: z.string().min(1),
-  PGPASSWORD: z.string().min(1),
-  PGDATABASE: z.string().min(1),
-  PGPORT: z.string().transform(Number).pipe(z.number().positive()).default('5432'),
-  
+  PGHOST: z.string().min(1).optional().default('localhost'),
+  PGUSER: z.string().min(1).optional().default('postgres'),
+  PGPASSWORD: z.string().min(1).optional().default('postgres'),
+  PGDATABASE: z.string().min(1).optional().default('econeura_dev'),
+  PGPORT: z.string().transform(Number).pipe(z.number().positive()).optional().default('5432'),
+
   // AI Configuration
   MISTRAL_BASE_URL: z.string().url().default('http://mistral:8080'),
   AZURE_OPENAI_ENDPOINT: z.string().url().optional(),
@@ -19,21 +27,26 @@ const envSchema = z.object({
   AZURE_OPENAI_DEPLOYMENT: z.string().default('gpt-4o-mini'),
   AZURE_OPENAI_API_KEY: z.string().optional(),
   AI_MONTHLY_CAP_EUR: z.string().transform(Number).pipe(z.number().positive()).default('50'),
-  
+  // Local flags
+  USE_LOCAL_MISTRAL: z.string().optional(),
+
   // Microsoft Graph
   AZURE_TENANT_ID: z.string().optional(),
   AZURE_CLIENT_ID: z.string().optional(),
   AZURE_CLIENT_SECRET: z.string().optional(),
   GRAPH_DEFAULT_TEAM_ID: z.string().optional(),
   GRAPH_DEFAULT_CHANNEL_ID: z.string().optional(),
-  
+
   // Webhooks Make
   MAKE_WEBHOOK_HMAC_SECRET: z.string().optional(),
   MAKE_ALLOWED_IPS: z.string().optional(),
-  
+
+  // Cache / Redis (optional for local/dev)
+  REDIS_URL: z.string().optional(),
+
   // BFF Configuration
   BFF_TARGET_API: z.string().url().default('http://localhost:3001'),
-  
+
   // Server
   PORT: z.string().transform(Number).pipe(z.number().positive()).default('3001'),
   FRONTEND_URL: z.string().url().default('http://localhost:3000'),
@@ -47,7 +60,7 @@ export function env(): Env {
   if (envCache) {
     return envCache
   }
-  
+
   try {
     envCache = envSchema.parse(process.env)
     return envCache

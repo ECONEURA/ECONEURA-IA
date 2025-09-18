@@ -10,7 +10,8 @@ const companySchema = z.object({
   industry: z.string().optional(),
   website: z.string().url('URL inválida').optional().or(z.literal('')),
   employees: z.number().min(0).optional(),
-  status: z.enum(['PROSPECT', 'LEAD', 'CUSTOMER', 'PARTNER', 'COMPETITOR', 'CHURNED']),
+  // Alinear con @econeura/shared Company.status (obligatorio)
+  status: z.enum(['active', 'inactive', 'prospect']),
   taxId: z.string().optional(),
   address: z.string().optional(),
   city: z.string().optional(),
@@ -39,7 +40,7 @@ export function CompanyForm({ company, onClose, onSuccess }: CompanyFormProps) {
   } = useForm<CompanyFormData>({
     resolver: zodResolver(companySchema),
     defaultValues: company || {
-      status: 'PROSPECT'
+  status: 'prospect'
     }
   })
 
@@ -60,7 +61,7 @@ export function CompanyForm({ company, onClose, onSuccess }: CompanyFormProps) {
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75" onClick={onClose} />
-        
+
         <div className="relative bg-white rounded-lg max-w-2xl w-full p-6">
           <h2 className="text-2xl font-bold mb-6">
             {isEdit ? 'Editar Empresa' : 'Nueva Empresa'}
@@ -93,7 +94,7 @@ export function CompanyForm({ company, onClose, onSuccess }: CompanyFormProps) {
                 />
               </div>
 
-              <div>
+        <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Estado
                 </label>
@@ -101,12 +102,9 @@ export function CompanyForm({ company, onClose, onSuccess }: CompanyFormProps) {
                   {...register('status')}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 >
-                  <option value="PROSPECT">Prospecto</option>
-                  <option value="LEAD">Lead</option>
-                  <option value="CUSTOMER">Cliente</option>
-                  <option value="PARTNER">Partner</option>
-                  <option value="COMPETITOR">Competidor</option>
-                  <option value="CHURNED">Perdido</option>
+          <option value="prospect">Prospecto</option>
+          <option value="active">Activo</option>
+          <option value="inactive">Inactivo</option>
                 </select>
               </div>
 

@@ -1,0 +1,67 @@
+%% Mermaid diagram that visualizes the recent edits in branch fix/progress-merge-and-gates
+%% Open this file in VS Code with Mermaid preview or view on GitHub (mermaid supported in markdown)
+graph TD
+  subgraph BRANCH[fix/progress-merge-and-gates]
+    BRANCH_ID((Work: fix/progress-merge-and-gates))
+  end
+
+  subgraph SHARED[packages/shared]
+    SHARED_TYPES[test-shims.d.ts]\n(packages/shared/src/types/test-shims.d.ts)
+  end
+
+  subgraph API[apps/api/src]
+    AUTH[middleware/auth.ts]
+    ERR[lib/errors.ts]
+    OBS[middleware/observability.ts]
+    HIL[routes/hil.ts]
+    CLIENTS[lib/clients.ts]
+    LIBAUTH[lib/auth.ts]
+    AI[services/ai.ts]
+    HILAPP[routes/hil.approvals.v2.ts]
+    RAWRAW[middleware/raw-body.ts]
+    AAD[middleware/aadRole.ts]
+    TRACE[lib/trace.ts]
+    HILALIAS[routes/hil.alias.ts]
+  end
+
+  %% Connections
+  BRANCH_ID --> SHARED_TYPES
+  BRANCH_ID --> AUTH
+  BRANCH_ID --> ERR
+  BRANCH_ID --> OBS
+  BRANCH_ID --> HIL
+  BRANCH_ID --> CLIENTS
+  BRANCH_ID --> LIBAUTH
+  BRANCH_ID --> AI
+  BRANCH_ID --> HILAPP
+  BRANCH_ID --> RAWRAW
+  BRANCH_ID --> AAD
+  BRANCH_ID --> TRACE
+  BRANCH_ID --> HILALIAS
+
+  %% Logical flows between files / domains
+  OBS --> ERR
+  OBS --> CLIENTS
+  OBS --> AI
+  AI --> CLIENTS
+  LIBAUTH --> AUTH
+  AUTH --> HIL
+  HIL --> HILAPP
+  HILAPP --> HILALIAS
+  TRACE --> OBS
+  SHARED_TYPES --> HIL
+
+  style BRANCH_ID fill:#f9f,stroke:#333,stroke-width:2px
+  style SHARED_TYPES fill:#efe,stroke:#333
+  style AUTH fill:#ffd,stroke:#333
+  style ERR fill:#ffd,stroke:#333
+  style OBS fill:#dff,stroke:#333
+  style HIL fill:#ffd,stroke:#333
+  style CLIENTS fill:#efe,stroke:#333
+  style LIBAUTH fill:#ffd,stroke:#333
+  style AI fill:#fdd,stroke:#333
+  style HILAPP fill:#ffd,stroke:#333
+  style RAWRAW fill:#fff,stroke:#333
+  style AAD fill:#fff,stroke:#333
+  style TRACE fill:#dfd,stroke:#333
+  style HILALIAS fill:#fff,stroke:#333

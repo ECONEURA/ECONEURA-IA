@@ -1,0 +1,239 @@
+{
+  "branches": [
+    "main",
+    {
+      "name": "develop",
+      "prerelease": "beta"
+    },
+    {
+      "name": "release/*",
+      "prerelease": "rc"
+    }
+  ],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/changelog",
+    "@semantic-release/npm",
+    "@semantic-release/git",
+    "@semantic-release/github"
+  ],
+  "preset": "conventionalcommits",
+  "releaseRules": [
+    {
+      "type": "feat",
+      "release": "minor"
+    },
+    {
+      "type": "fix",
+      "release": "patch"
+    },
+    {
+      "type": "perf",
+      "release": "patch"
+    },
+    {
+      "type": "refactor",
+      "release": "patch"
+    },
+    {
+      "type": "docs",
+      "release": "patch"
+    },
+    {
+      "type": "style",
+      "release": "patch"
+    },
+    {
+      "type": "test",
+      "release": "patch"
+    },
+    {
+      "type": "build",
+      "release": "patch"
+    },
+    {
+      "type": "ci",
+      "release": "patch"
+    },
+    {
+      "type": "chore",
+      "release": "patch"
+    },
+    {
+      "type": "revert",
+      "release": "patch"
+    },
+    {
+      "type": "BREAKING CHANGE",
+      "release": "major"
+    }
+  ],
+  "changelogFile": "CHANGELOG.md",
+  "changelogTitle": "# ECONEURA Changelog",
+  "changelogSections": [
+    {
+      "type": "feat",
+      "section": "🚀 Features"
+    },
+    {
+      "type": "fix",
+      "section": "🐛 Bug Fixes"
+    },
+    {
+      "type": "perf",
+      "section": "⚡ Performance Improvements"
+    },
+    {
+      "type": "refactor",
+      "section": "♻️ Code Refactoring"
+    },
+    {
+      "type": "docs",
+      "section": "📚 Documentation"
+    },
+    {
+      "type": "style",
+      "section": "💄 Styles"
+    },
+    {
+      "type": "test",
+      "section": "🧪 Tests"
+    },
+    {
+      "type": "build",
+      "section": "🏗️ Build System"
+    },
+    {
+      "type": "ci",
+      "section": "👷 CI/CD"
+    },
+    {
+      "type": "chore",
+      "section": "🔧 Chores"
+    },
+    {
+      "type": "revert",
+      "section": "⏪ Reverts"
+    }
+  ],
+  "commitAnalyzer": {
+    "preset": "conventionalcommits",
+    "releaseRules": [
+      {
+        "type": "feat",
+        "release": "minor"
+      },
+      {
+        "type": "fix",
+        "release": "patch"
+      },
+      {
+        "type": "perf",
+        "release": "patch"
+      },
+      {
+        "type": "refactor",
+        "release": "patch"
+      },
+      {
+        "type": "docs",
+        "release": "patch"
+      },
+      {
+        "type": "style",
+        "release": "patch"
+      },
+      {
+        "type": "test",
+        "release": "patch"
+      },
+      {
+        "type": "build",
+        "release": "patch"
+      },
+      {
+        "type": "ci",
+        "release": "patch"
+      },
+      {
+        "type": "chore",
+        "release": "patch"
+      },
+      {
+        "type": "revert",
+        "release": "patch"
+      },
+      {
+        "type": "BREAKING CHANGE",
+        "release": "major"
+      }
+    ]
+  },
+  "releaseNotesGenerator": {
+    "preset": "conventionalcommits",
+    "presetConfig": {
+      "types": [
+        {
+          "type": "feat",
+          "section": "🚀 Features"
+        },
+        {
+          "type": "fix",
+          "section": "🐛 Bug Fixes"
+        },
+        {
+          "type": "perf",
+          "section": "⚡ Performance Improvements"
+        },
+        {
+          "type": "refactor",
+          "section": "♻️ Code Refactoring"
+        },
+        {
+          "type": "docs",
+          "section": "📚 Documentation"
+        },
+        {
+          "type": "style",
+          "section": "💄 Styles"
+        },
+        {
+          "type": "test",
+          "section": "🧪 Tests"
+        },
+        {
+          "type": "build",
+          "section": "🏗️ Build System"
+        },
+        {
+          "type": "ci",
+          "section": "👷 CI/CD"
+        },
+        {
+          "type": "chore",
+          "section": "🔧 Chores"
+        },
+        {
+          "type": "revert",
+          "section": "⏪ Reverts"
+        }
+      ]
+    }
+  },
+  "changelog": {
+    "changelogFile": "CHANGELOG.md",
+    "changelogTitle": "# ECONEURA Changelog"
+  },
+  "git": {
+    "assets": [
+      "CHANGELOG.md",
+      "package.json",
+      "package-lock.json"
+    ],
+    "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+  },
+  "github": {
+    "successComment": "🎉 This PR is included in version ${nextRelease.version} :tada:\n\nThe release is available on:\n- [GitHub release](https://github.com/ECONEURA/ECONEURA-IA/releases/tag/${nextRelease.gitTag})\n- [npm package](https://www.npmjs.com/package/@econeura/api/v/${nextRelease.version})\n\n**Full Changelog**: https://github.com/ECONEURA/ECONEURA-IA/compare/${lastRelease.gitTag}...${nextRelease.gitTag}"
+  }
+}

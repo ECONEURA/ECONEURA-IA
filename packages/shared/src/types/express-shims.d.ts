@@ -1,3 +1,30 @@
+// Augment Express types with application-specific fields used across the API
+// This file is a safe shim to reduce `(req as any)` / `(res as any)` casts.
+import type * as express from 'express';
+
+declare global {
+  namespace Express {
+    interface Request {
+      logger?: { info?: Function; debug?: Function; error?: Function; request?: Function } | any;
+      user?: { oid?: string; roles?: string[] } | any;
+      requestId?: string;
+      path?: string;
+      startTime?: number;
+      _rawBody?: string;
+      ip?: string;
+    }
+
+    interface Response {
+  locals?: any;
+  setHeader?: (name: string, value: string) => void;
+  on?: (event: string, listener: (...args: any[]) => void) => this;
+  statusCode?: number;
+  getHeader?: (name: string) => string | number | string[] | undefined;
+    }
+  }
+}
+
+export {};
 declare namespace Express {
   export interface Request {
     path?: string

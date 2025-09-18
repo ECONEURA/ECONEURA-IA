@@ -1,0 +1,12 @@
+name: trigger-ci
+on:
+  push:
+    branches: [ "pr/bootstrapping/local-setup" ]
+concurrency:
+  group: trigger-ci-bootstrap
+  cancel-in-progress: false
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "CI triggered for pr/bootstrapping/local-setup at $(date)"

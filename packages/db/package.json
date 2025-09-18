@@ -10,9 +10,9 @@
     "./migrations": "./src/migrations.ts"
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "test": "vitest run",
+  "build": "tsc -p tsconfig.json",
+  "dev": "tsc --watch",
+  "test": "vitest run",
     "test:unit": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint src/**/*.ts",
@@ -23,7 +23,7 @@
     "db:seed": "tsx src/seed.ts"
   },
   "dependencies": {
-    "@econeura/shared": "file:../shared",
+  "@econeura/shared": "workspace:*",
     "drizzle-orm": "^0.29.3",
     "postgres": "^3.4.4",
     "zod": "^3.22.4"

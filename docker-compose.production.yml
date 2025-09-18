@@ -1,0 +1,137 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: econeura-postgres
+    environment:
+      POSTGRES_DB: econeura
+      POSTGRES_USER: econeura
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secure_password_change_me}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./apps/api/prisma/migrations:/docker-entrypoint-initdb.d/
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U econeura -d econeura"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: econeura-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  # ECONEURA API
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile.production
+    container_name: econeura-api
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://econeura:${POSTGRES_PASSWORD:-secure_password_change_me}@postgres:5432/econeura
+      REDIS_URL: redis://redis:6379
+      API_SECRET: ${API_SECRET:-change_me_in_production}
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`api.econeura.local`)"
+      - "traefik.http.routers.api.tls=true"
+
+  # ECONEURA Web
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: econeura-web
+    environment:
+      NODE_ENV: production
+      API_BASE_URL: http://api:3001
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-change_me_in_production}
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web.rule=Host(`app.econeura.local`)"
+      - "traefik.http.routers.web.tls=true"
+
+  # Prometheus Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: econeura-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infra/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+
+  # Grafana Dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: econeura-grafana
+    ports:
+      - "3003:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infra/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./infra/grafana/datasources:/etc/grafana/provisioning/datasources
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  default:
+    name: econeura-network

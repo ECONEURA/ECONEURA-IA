@@ -62,7 +62,7 @@ export class WebFinOpsSystem {
   private costHistory: CostEntry[] = [];
 
   constructor() {
-    console.log('Web FinOps system initialized');
+    
     this.initializeDefaultBudgets();
   }
 
@@ -121,14 +121,14 @@ export class WebFinOpsSystem {
     };
 
     this.budgets.set(budgetId, updatedBudget);
-    console.log('Budget updated', { budgetId, updates });
+    
     return true;
   }
 
   deleteBudget(budgetId: string): boolean {
     const deleted = this.budgets.delete(budgetId);
     if (deleted) {
-      console.log('Budget deleted', { budgetId });
+      
     }
     return deleted;
   }
@@ -260,7 +260,7 @@ export class WebFinOpsSystem {
     alert.acknowledgedBy = acknowledgedBy;
     alert.acknowledgedAt = new Date();
 
-    console.log('Budget alert acknowledged', { alertId, acknowledgedBy });
+    
     return true;
   }
 

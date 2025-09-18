@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { useApiClient } from '@/hooks/useApi';
+import { apiClient } from '@/lib/api-client';
 import { 
   Package, 
   Plus, 
@@ -49,7 +49,7 @@ interface ProductsResponse {
 
 export default function ProductsPage() {
   const { user } = useAuth();
-  const apiClient = useApiClient();
+  const api = apiClient;
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -76,12 +76,13 @@ export default function ProductsPage() {
         ...(selectedCategory && { category: selectedCategory })
       });
 
-      const response: ProductsResponse = await apiClient(`/products?${params.toString()}`);
-      setProducts(response.data);
+      const data: ProductsResponse = await api.request({ url: `/products?${params.toString()}`, method: 'GET' });
+      const list = (data as any).data ?? (data as any);
+      setProducts(list);
       setPagination(prev => ({
         ...prev,
-        total: response.pagination.total,
-        hasMore: response.pagination.hasMore
+        total: (data as any).pagination?.total ?? prev.total,
+        hasMore: (data as any).pagination?.hasMore ?? prev.hasMore
       }));
     } catch (error) {
       console.error('Error loading products:', error);

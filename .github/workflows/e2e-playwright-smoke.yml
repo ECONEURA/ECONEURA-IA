@@ -1,0 +1,42 @@
+name: E2E Playwright Smoke
+
+on:
+  push:
+    paths:
+      - 'e2e/**'
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: true
+  DEPLOY_ENABLED: "false"
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - name: Enable Corepack & pin pnpm
+        run: |
+          set -euxo pipefail
+          corepack enable
+          corepack prepare pnpm@9.10.0 --activate
+          pnpm -v && node -v && npm -v
+      - name: Install deps
+        run: pnpm install
+      - name: Typecheck & Lint
+        run: pnpm typecheck && pnpm lint
+      - name: Run Playwright smoke
+        if: ${{ always() }}
+        run: pnpm dlx playwright test e2e/playwright.smoke.spec.ts --timeout 60000 || true
+      - name: Quality one-liner
+        if: always()
+        run: pnpm ci:gates
+      # marker: e2e-playwright-smoke.yml

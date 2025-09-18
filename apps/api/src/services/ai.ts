@@ -30,7 +30,7 @@ export class AzureOpenAIService {
   constructor(config?: AIServiceConfig) {
     const endpoint = config?.endpoint || process.env.AZURE_OPENAI_API_ENDPOINT;
     const apiKey = config?.apiKey || process.env.AZURE_OPENAI_API_KEY;
-    
+
     if (!endpoint || !apiKey) {
       throw new Error('Azure OpenAI credentials not configured');
     }
@@ -51,7 +51,7 @@ export class AzureOpenAIService {
 
       return { status: 'ok', latency };
     } catch (error) {
-  logger.error('Health check failed', error as any);
+      try { logger.error('Health check failed', { error: (error as Error).message ?? String(error) }); } catch {}
       return { status: 'error', latency: 0 };
     }
   }
@@ -74,21 +74,22 @@ export class AzureOpenAIService {
         }
       );
 
-      // Calcular métricas
-      const metrics = this.calculateMetrics(startTime, result);
-      
-      // Registrar métricas y costos
-      await this.recordMetrics(metrics, model, request.orgId);
+  // Calcular métricas
+  const aiMetrics = this.calculateMetrics(startTime, result);
 
-      return result.choices[0].text;
+  // Registrar métricas y costos (best-effort)
+  try { await this.recordMetrics(aiMetrics, model, request.orgId); } catch {}
+
+  return result.choices?.[0]?.text ?? '';
     } catch (error) {
       this.handleError(error);
     }
   }
 
   private async checkQuota(orgId: string): Promise<void> {
-  const quota = await (metrics as any).getAIQuota?.(orgId) || { remaining: Infinity };
-    
+  const getAIQuota = (metrics as unknown as { getAIQuota?: (orgId: string) => Promise<{ remaining: number }> }).getAIQuota;
+  const quota = typeof getAIQuota === 'function' ? await getAIQuota(orgId) : { remaining: Infinity };
+
     if (quota.remaining <= 0) {
       throw new AppError(
         429,
@@ -113,34 +114,24 @@ export class AzureOpenAIService {
   }
 
   private async recordMetrics(
-    metrics: AIServiceMetrics,
+    aiMetrics: AIServiceMetrics,
     model: string,
     orgId: string
   ): Promise<void> {
     try {
-      (metrics as any).recordAIRequest?.({
-      duration: metrics.requestDuration,
-      tokens: metrics.tokensUsed,
-      cost: metrics.estimatedCost,
-      model,
-      orgId
-    });
-    } catch (e) {
-      // fallback: increment a metric
-      try { (metrics as any).increment('ai_request', { model }); } catch (e) {}
-    }
+      const m = metrics as unknown as { recordAIRequest?: (payload: any) => void; increment?: (key: string, labels?: Record<string, unknown>) => void };
+      if (typeof m.recordAIRequest === 'function') {
+        m.recordAIRequest({ duration: aiMetrics.requestDuration, tokens: aiMetrics.tokensUsed, cost: aiMetrics.estimatedCost, model, orgId });
+      } else if (typeof m.increment === 'function') {
+        try { m.increment('ai_request', { model }); } catch {}
+      }
+    } catch {}
 
-    logger.info('AI request completed', {
-      duration: metrics.requestDuration,
-      tokens: metrics.tokensUsed,
-      cost: metrics.estimatedCost,
-      model,
-      orgId
-    });
+    try { logger.info('AI request completed', { duration: aiMetrics.requestDuration, tokens: aiMetrics.tokensUsed, cost: aiMetrics.estimatedCost, model, orgId }); } catch {}
   }
 
   private handleError(error: any): never {
-  logger.error('AI request failed', error as any);
+  try { logger.error('AI request failed', { error: (error as Error).message ?? String(error) }); } catch {}
 
     if (error instanceof AppError) {
       throw error;

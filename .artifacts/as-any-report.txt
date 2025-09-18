@@ -1,0 +1,53 @@
+./tests/contract/aad.contract.test.ts:16:  privateKey = pk as any;
+./tests/contract/aad.contract.test.ts:17:  badPrivateKey = pkBad as any;
+./tests/contract/aad.contract.test.ts:18:  const pubJwk = await exportJWK(publicKey as any);
+./tests/contract/aad.contract.test.ts:19:  (pubJwk as any).kid = kid;
+./tests/contract/aad.contract.test.ts:30:  const { port } = server.address() as any;
+./tests/contract/aad.contract.test.ts:44:    .sign(key as any);
+./tests/contract/aad.contract.test.ts:109:      .sign(badPrivateKey as any);
+./docs/prompt-principal.md:456:    const h = headers(body); (h as any)["Idempotency-Key"]=idem;
+./docs/graphs/changes-summary.md:4:- Se endurecieron middlewares y utilidades en `apps/api/src` para reducir uso de `as any` y evitar ruido en typecheck:
+./docs/graphs/changes-summary.md:15:- Búsqueda inicial mostró ~125 `as any` en `apps/api/src`; tras dos lotes esa cifra está en ~82.
+./docs/ISSUE_DB_SHARED_SYNC.md:9:Hemos reducido el ruido de `as any` en `apps/api` para exponer errores reales. Antes de continuar, necesitamos que `packages/db` y `packages/shared` ofrezcan contratos estables. Este issue documenta los pasos, evidencia y checklist para un PR coordinado.
+./scripts/progress-v3.ts:63:    const paths = (api as any).paths || {};
+./scripts/seed/check-sixty.ts:68:const unknownDepts = Array.from(new Set(data.map(a => a.department_key))).filter(d => !depts.includes(d as any));
+./packages/shared/src/cost-meter.test.ts:62:        costMeter.calculateCost('unknown-model' as any, 1000, 500)
+./packages/shared/src/cost-meter.test.ts:122:      } as any)
+./packages/shared/src/cost-meter.test.ts:144:      } as any)
+./packages/shared/src/cost-meter.test.ts:215:      } as any)
+./packages/shared/src/cost-meter.test.ts:242:      } as any)
+./packages/shared/src/cost-meter.ts:259:                console.debug('[cost-meter] for-in key:', k, 'value:', (row as any)[k])
+./packages/shared/src/types/express-shims.d.ts:2:// This file is a safe shim to reduce `(req as any)` / `(res as any)` casts.
+./packages/shared/src/core/config/env.test.ts:28:  (process.env as any).NODE_ENV = undefined
+./packages/shared/src/env.test.ts:31:    (process.env as any).PGHOST = undefined
+./packages/shared/src/ai/router.ts:282:      return (typeof val === 'string' && allowed.has(val as any)) ? (val as typeof val & ('mistral-edge' | 'openai-cloud' | 'azure-openai')) : 'mistral-edge'
+./packages/db/src/schema.test.ts:16:      return (global as any).vitest?.skip?.()
+./packages/db/src/connection.ts:28:  } as any
+./PR-23-OBSERVABILIDAD-COHERENTE.md:331:      requestId: (req as any).requestId,
+./PR-23-OBSERVABILIDAD-COHERENTE.md:332:      traceId: (req as any).traceContext?.traceId
+./PR-23-OBSERVABILIDAD-COHERENTE.md:348:      requestId: (req as any).requestId,
+./PR-23-OBSERVABILIDAD-COHERENTE.md:349:      traceId: (req as any).traceContext?.traceId
+./apps/web/src/app/crm/contacts/page.tsx:241:                  onChange={(e) => setSelectedStatus(e.target.value as any)}
+./apps/web/src/app/crm/page.tsx:150:                  onClick={() => setSelectedTab(tab.id as any)}
+./apps/web/src/app/finance/page.tsx:234:                  onClick={() => setSelectedTab(tab.id as any)}
+./apps/web/src/app/erp/products/page.tsx:502:                  setSortBy(field as any);
+./apps/web/src/app/erp/products/page.tsx:503:                  setSortOrder(order as any);
+./apps/web/src/app/erp/suppliers/page.tsx:537:                  setSortBy(field as any);
+./apps/web/src/app/erp/suppliers/page.tsx:538:                  setSortOrder(order as any);
+./apps/web/src/app/erp/page.tsx:225:                  onClick={() => setSelectedTab(tab.id as any)}
+./apps/web/src/components/ui/AdvancedDashboard.tsx:260:              onClick={() => setSelectedView(view.key as any)}
+./apps/web/src/components/ui/InteractiveCharts.tsx:386:            onChange={(e) => setSelectedTimeframe(e.target.value as any)}
+./apps/web/src/components/ai/AIChatPlayground.tsx:249:              onChange={(e) => setOptions(prev => ({ ...prev, taskType: e.target.value as any }))}
+./apps/web/src/components/ai/AIChatPlayground.tsx:263:              onChange={(e) => setOptions(prev => ({ ...prev, sensitivity: e.target.value as any }))}
+./apps/web/src/components/ai/AIChatPlayground.tsx:277:              onChange={(e) => setOptions(prev => ({ ...prev, priority: e.target.value as any }))}
+./apps/web/src/hooks/useApi.ts:47:  ;(apiFn as any).apiCall = apiCall
+./apps/web/src/lib/auth-context.tsx:92:            user: null as any,
+./apps/web/src/lib/auth-context.tsx:93:            organization: null as any,
+./apps/web/src/lib/auth-context.tsx:94:            role: null as any,
+./apps/api/prisma/seed.ts:387:          status: ['ACTIVE', 'PROSPECT', 'INACTIVE'][i % 3] as any,
+./apps/api/prisma/seed.ts:435:          stage: ['PROSPECT', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION', 'CLOSED_WON', 'CLOSED_LOST'][i % 6] as any,
+./apps/api/prisma/seed.ts:440:          priority: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'][i % 4] as any,
+./apps/api/prisma/seed.ts:555:          status: ['DRAFT', 'SENT', 'PAID', 'OVERDUE', 'CANCELLED'][i % 5] as any,
+./apps/api/src/lib/auth.ts:126:// Pass through unknown but avoid 'as any' - keep runtime guard in AuthService
+./apps/workers/src/processors/email-processor.ts:259:        if ((errorObj as any).response?.status >= 400 && (errorObj as any).response?.status < 500 && (errorObj as any).response?.status !== 429) {
+./apps/workers/src/services/graph-service.ts:224:        nextLink: (mockResponse as any)['@odata.nextLink']

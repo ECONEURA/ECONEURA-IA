@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useApiClient } from '@/hooks/useApi';
+import { apiClient } from '@/lib/api-client';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -88,7 +88,7 @@ export default function AdvancedDashboard({
   className = "",
   refreshInterval = 30000
 }: DashboardProps) {
-  const apiClient = useApiClient();
+  const api = apiClient;
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -104,8 +104,8 @@ export default function AdvancedDashboard({
   const loadMetrics = async () => {
     try {
       setLoading(true);
-      const response = await apiClient(`/metrics/kpi-scorecard?period=${selectedPeriod}`);
-      setMetrics(response.data);
+      const data = await api.request({ url: `/metrics/kpi-scorecard?period=${selectedPeriod}`, method: 'GET' });
+      setMetrics(data.data ?? data);
       setError(null);
     } catch (err) {
       setError('Error loading dashboard metrics');

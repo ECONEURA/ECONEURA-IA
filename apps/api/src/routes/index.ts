@@ -1,8 +1,8 @@
-import express from 'express';
+import express, { type Router as ExpressRouter } from 'express';
 let helmet: any;
 try {
   // prefer import at runtime if available
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+   
   helmet = require('helmet');
 } catch (e) {
   // fallback no-op middleware
@@ -19,8 +19,9 @@ import { invoiceRoutes } from './invoice';
 import { supplierRoutes } from './supplier';
 import { dealRoutes } from './deal';
 import { interactionRoutes } from './interaction';
+import { agentsRoutes } from './agents';
 
-const router = express.Router();
+const router: ExpressRouter = express.Router();
 
 // Configuración de seguridad básica
 router.use(helmet());
@@ -56,6 +57,7 @@ router.use('/v1', authenticateToken, withTenant, [
   invoiceRoutes,
   supplierRoutes,
   dealRoutes,
+  agentsRoutes,
   interactionRoutes
 ]);
 

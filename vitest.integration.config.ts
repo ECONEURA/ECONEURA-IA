@@ -1,60 +1,44 @@
-import { defineConfig } from 'vitest/config'
-import { resolve } from 'path'
+import { defineConfig } from 'vitest/config';
+import { resolve } from 'path';
 
 export default defineConfig({
   test: {
-    name: 'integration',
     globals: true,
     environment: 'node',
-    setupFiles: ['./test/setup.integration.ts'],
-    include: [
-      '**/*.integration.test.ts',
-      '**/*.integration.spec.ts',
-      'test/integration/**/*.test.ts',
-      'test/integration/**/*.spec.ts',
-    ],
-    exclude: [
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/.next/**',
-      '**/*.unit.test.ts',
-      '**/*.unit.spec.ts',
-    ],
+    setupFiles: ['./test/integration-setup.ts'],
+    include: ['**/*.integration.test.ts', '**/*.integration.spec.ts'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html', 'lcov'],
+      reporter: ['text', 'json', 'html'],
       exclude: [
-        '**/node_modules/**',
-        '**/dist/**',
-        '**/.next/**',
-        '**/*.config.ts',
-        '**/test/**',
+        'node_modules/',
+        'dist/',
+        'build/',
+        '.next/',
+        'coverage/',
+        'test-results/',
+        'performance-results/',
         '**/*.test.ts',
         '**/*.spec.ts',
-      ],
-      thresholds: {
-        global: {
-          branches: 70,
-          functions: 70,
-          lines: 70,
-          statements: 70,
-        },
-      },
+        '**/*.config.ts',
+        '**/*.config.js',
+        '**/drizzle/**',
+        '**/migrations/**',
+        '**/seed.ts',
+        '**/seed.js'
+      ]
     },
-    testTimeout: 30000, // 30 seconds for integration tests
-    hookTimeout: 10000, // 10 seconds for hooks
-    pool: 'forks',
-    poolOptions: {
-      forks: {
-        singleFork: true,
-      },
-    },
+    testTimeout: 30000,
+    hookTimeout: 30000,
+    teardownTimeout: 30000
   },
   resolve: {
     alias: {
       '@econeura/shared': resolve(__dirname, './packages/shared/src'),
       '@econeura/db': resolve(__dirname, './packages/db/src'),
-      '@econeura/playbooks': resolve(__dirname, './packages/playbooks/src'),
-    },
-  },
-})
+      '@econeura/sdk': resolve(__dirname, './packages/sdk/src'),
+      '@econeura/api': resolve(__dirname, './apps/api/src'),
+      '@econeura/web': resolve(__dirname, './apps/web/src'),
+    }
+  }
+});

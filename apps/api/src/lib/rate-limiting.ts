@@ -81,13 +81,14 @@ export class IntelligentRateLimiter {
 
     const organization: OrganizationRateLimit = {
       organizationId,
+      // Store canonical RateLimitConfig without renaming keys
       config: fullConfig,
       createdAt: new Date(),
       updatedAt: new Date()
     };
 
     this.organizations.set(organizationId, organization);
-    
+
     // Initialize state
     this.states.set(organizationId, {
       tokens: fullConfig.burstSize || fullConfig.maxRequests,
@@ -105,11 +106,11 @@ export class IntelligentRateLimiter {
   removeOrganization(organizationId: string): boolean {
     const removed = this.organizations.delete(organizationId);
     this.states.delete(organizationId);
-    
+
     if (removed) {
       logger.info('Organization rate limit removed', { organizationId });
     }
-    
+
     return removed;
   }
 
@@ -120,7 +121,7 @@ export class IntelligentRateLimiter {
     }
 
     const updatedConfig: RateLimitConfig = {
-      ...existing.config,
+  ...existing.config,
       ...config
     };
 
@@ -141,6 +142,17 @@ export class IntelligentRateLimiter {
     });
 
     return true;
+  }
+
+  // Returns the effective config for a given organization key or the default one if not present
+  getEffectiveConfig(organizationId: string): RateLimitConfig {
+    const organization = this.organizations.get(organizationId);
+    return organization?.config ?? this.defaultConfig;
+  }
+
+  // Whether an organization key has an explicit configuration
+  hasOrganization(organizationId: string): boolean {
+    return this.organizations.has(organizationId);
   }
 
   isAllowed(organizationId: string, requestId: string): { allowed: boolean; remaining: number; resetTime: number; retryAfter?: number } {
@@ -186,14 +198,8 @@ export class IntelligentRateLimiter {
       }
     }
 
-    // Record metrics
-    metrics.recordRateLimit({
-      organizationId,
-      allowed,
-      strategy: config.strategy,
-      remaining,
-      requestId
-    });
+  // Record metrics (simplified placeholder)
+  metrics.recordRateLimit(config.strategy, organizationId);
 
     // Log rate limit events
     if (!allowed) {
@@ -212,12 +218,12 @@ export class IntelligentRateLimiter {
   private tokenBucketStrategy(state: RateLimitState, config: RateLimitConfig, now: number): { allowed: boolean; remaining: number; resetTime: number; retryAfter?: number } {
     const timePassed = now - state.lastRefill;
     const tokensToAdd = Math.floor(timePassed / 1000) * (config.refillRate || 1);
-    
+
     state.tokens = Math.min(
       config.burstSize || config.maxRequests,
       state.tokens + tokensToAdd
     );
-    
+
     const allowed = state.tokens > 0;
     const remaining = allowed ? state.tokens - 1 : 0;
     const resetTime = now + (1000 / (config.refillRate || 1));
@@ -228,7 +234,7 @@ export class IntelligentRateLimiter {
 
   private slidingWindowStrategy(state: RateLimitState, config: RateLimitConfig, now: number): { allowed: boolean; remaining: number; resetTime: number } {
     const windowStart = now - config.windowMs;
-    
+
     if (state.windowStart < windowStart) {
       // Reset window
       state.requestCount = 0;
@@ -306,9 +312,10 @@ export class IntelligentRateLimiter {
     return {
       totalOrganizations: organizations.length,
       totalRequests: states.reduce((sum, state) => sum + state.requestCount, 0),
-      averageUtilization: states.reduce((sum, state) => {
+      averageUtilization: states.length === 0 ? 0 : states.reduce((sum, state) => {
         const org = organizations.find(o => this.states.get(o.organizationId) === state);
-        return sum + (state.requestCount / (org?.config.maxRequests || 1)) * 100;
+        const max = org?.config.maxRequests || this.defaultConfig.maxRequests;
+        return sum + (state.requestCount / Math.max(1, max)) * 100;
       }, 0) / states.length,
       strategies: {
         'token-bucket': organizations.filter(o => o.config.strategy === 'token-bucket').length,

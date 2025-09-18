@@ -52,7 +52,7 @@ export class WebMicroservicesSystem {
   private requestStats: Map<string, { total: number; success: number; failed: number; responseTimes: number[] }> = new Map();
 
   constructor() {
-    console.log('Web Microservices System initialized');
+    
   }
 
   // Service Registry methods
@@ -83,7 +83,7 @@ export class WebMicroservicesSystem {
   deregister(serviceId: string): boolean {
     const deleted = this.services.delete(serviceId);
     if (deleted) {
-      console.log('Service deregistered from web system', { serviceId });
+      
     }
     return deleted;
   }

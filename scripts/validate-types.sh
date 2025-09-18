@@ -1,35 +1,17 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
+set -euo pipefail
 
-echo "🔍 Validando tipos en todo el proyecto..."
+echo " Validando tipos en todo el proyecto..."
 
-# Validar packages primero
+echo "\n🧱 Precompilando tipos de @econeura/shared..."
+pnpm --filter "@econeura/shared" build || { echo "❌ Falló la build de @econeura/shared"; exit 1; }
+
 echo "\n📦 Validando packages..."
-for pkg in packages/*; do
-  if [ -d "$pkg" ]; then
-    echo "\n🔸 Validando $pkg..."
-    cd $pkg
-    pnpm tsc --noEmit
-    if [ $? -ne 0 ]; then
-      echo "❌ Error en $pkg"
-      exit 1
-    fi
-    cd ../..
-  fi
-done
+pnpm -r --filter "./packages/*" exec tsc --noEmit || { echo "❌ Error en packages"; exit 1; }
 
-# Validar apps después
 echo "\n📱 Validando apps..."
-for app in apps/*; do
-  if [ -d "$app" ]; then
-    echo "\n🔸 Validando $app..."
-    cd $app
-    pnpm tsc --noEmit
-    if [ $? -ne 0 ]; then
-      echo "❌ Error en $app"
-      exit 1
-    fi
-    cd ../..
-  fi
-done
+pnpm -r --filter "./apps/*" exec tsc --noEmit || { echo "❌ Error en apps"; exit 1; }
+
+echo "✅ Typecheck completo OK"
 
 echo "\n✅ Validación de tipos completada exitosamente!"

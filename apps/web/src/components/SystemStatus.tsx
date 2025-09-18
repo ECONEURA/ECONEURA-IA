@@ -50,7 +50,7 @@ export default function SystemStatus() {
     } catch (error) {
       console.error('Error fetching system status:', error);
       setSystemStatus({
-        web: { status: 'down', mode: 'down', ai: 'down', search: 'down' },
+        web: { status: 'down', mode: 'degraded', ai: 'down', search: 'down' },
         api: { status: 'down', checks: { database: 'down', queues: 'down', integrations: 'down' } }
       });
     } finally {
@@ -100,7 +100,7 @@ export default function SystemStatus() {
     return null;
   }
 
-  const overallStatus = systemStatus.web.status === 'ok' && systemStatus.api.status === 'ok' ? 'ok' : 
+  const overallStatus = systemStatus.web.status === 'ok' && systemStatus.api.status === 'ok' ? 'ok' :
                        systemStatus.web.status === 'down' || systemStatus.api.status === 'down' ? 'down' : 'degraded';
 
   return (
@@ -111,7 +111,7 @@ export default function SystemStatus() {
           <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(overallStatus)}`}>
             {getStatusIcon(overallStatus)} {overallStatus.toUpperCase()}
           </span>
-          <button 
+          <button
             onClick={fetchSystemStatus}
             className="text-xs text-gray-500 hover:text-gray-700"
           >

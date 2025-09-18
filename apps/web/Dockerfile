@@ -1,46 +1,61 @@
-# Use Node.js 20 Alpine as base image
+# Multi-stage build for production
 FROM node:20-alpine AS base
 
-# Install dependencies only when needed
-FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
+# Install pnpm
+RUN npm install -g pnpm@8.15.0
+
+# Set working directory
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
-COPY package.json pnpm-lock.yaml* ./
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+# Copy package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/web/package.json ./apps/web/
+COPY packages/*/package.json ./packages/*/
 
-# Rebuild the source code only when needed
-FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy source code
 COPY . .
 
 # Build the application
-RUN npm install -g pnpm && pnpm build
+RUN pnpm build:web
 
-# Production image, copy all the files and run the app
-FROM base AS runner
+# Production stage
+FROM node:20-alpine AS production
+
+# Install pnpm
+RUN npm install -g pnpm@8.15.0
+
+# Create app user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
+
+# Set working directory
 WORKDIR /app
 
-ENV NODE_ENV=production
-ENV PORT=3000
+# Copy package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/web/package.json ./apps/web/
+COPY packages/*/package.json ./packages/*/
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Install production dependencies only
+RUN pnpm install --frozen-lockfile --prod
 
-# Copy the built application
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
+# Copy built application
+COPY --from=base --chown=nextjs:nodejs /app/apps/web/.next ./apps/web/.next
+COPY --from=base --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
+COPY --from=base --chown=nextjs:nodejs /app/packages ./packages
 
+# Switch to non-root user
 USER nextjs
 
+# Expose port
 EXPOSE 3000
 
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000/api/health || exit 1
 
 # Start the application
-CMD ["node", "server.js"]
+CMD ["pnpm", "start:web"]

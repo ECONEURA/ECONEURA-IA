@@ -9,50 +9,51 @@ export class ObservabilityService {
   requestObservability() {
     return (req: Request, res: Response, next: NextFunction) => {
       const startTime = Date.now();
-      const requestId = req.headers['x-request-id'] as string || this.generateRequestId();
-      const orgId = req.headers['x-org-id'] as string;
+      const requestId = (req.headers['x-request-id'] as string) || this.generateRequestId();
+      const orgId = req.headers['x-org-id'] as string | undefined;
 
-      // Añadir ID de request a headers de respuesta
-      (res as any).setHeader?.('x-request-id', requestId);
+  // Añadir ID de request a headers de respuesta
+  try { res.setHeader('x-request-id', requestId); } catch {}
 
-      // Crear logger con contexto (usar logger singleton o el logger de la request)
-      const requestLogger = (req as any).logger || logger;
+  // Crear logger con contexto (usar logger singleton o el logger de la request)
+  const requestLogger = (req as Request & { logger?: typeof logger }).logger || logger;
 
-      // Registrar inicio de request (si existe logger)
-      if ((req as any).logger && typeof (req as any).logger.info === 'function') {
-        (req as any).logger.info('Request started');
-      }
+  // Registrar inicio de request (si existe logger)
+  try { if (requestLogger && typeof requestLogger.info === 'function') requestLogger.info('Request started'); } catch {}
 
   // Interceptar finalización de request
-  (res as any).on?.('finish', () => {
+      res.on?.('finish', () => {
         const duration = Date.now() - startTime;
 
-  // Registrar métricas (firma: route, method, statusCode, durationMs)
-  metrics.recordHttpRequest((req as any).path || (req as any).url || '/', (req as any).method || 'GET', (res as any).statusCode || 0, duration);
+        // Registrar métricas (firma: route, method, statusCode, durationMs) - best-effort
+          try {
+            const m = metrics as unknown as { recordHttpRequest?: (route: string, method: string, status: number, duration: number) => void; recordAIRequest?: (m: any) => void };
+            m.recordHttpRequest?.(req.path || req.url || '/', req.method || 'GET', res.statusCode || 0, duration);
+          } catch {}
 
         // Registrar métricas de IA si están disponibles
-    if ((res as any).locals?.aiMetrics) {
-          // Si existe un helper específico para IA, intentar usarlo; si no, no hacer nada
+        if (res.locals?.aiMetrics) {
           try {
-      (metrics as any).recordAIRequest((res as any).locals.aiMetrics);
-          } catch (e) {
-            // no-op
-          }
+            const m = metrics as unknown as { recordAIRequest?: (m: unknown) => void };
+            m.recordAIRequest?.(res.locals.aiMetrics);
+          } catch {}
         }
 
         // Log de finalización
-        if ((requestLogger as any)?.info && typeof (requestLogger as any).info === 'function') {
-          (requestLogger as any).info('Request completed', {
-            statusCode: (res as any).statusCode,
-            duration,
-            contentLength: (res as any).getHeader?.('content-length'),
-            aiMetrics: (res as any).locals?.aiMetrics
-          });
-        }
+        try {
+          if (requestLogger && typeof requestLogger.info === 'function') {
+            requestLogger.info('Request completed', {
+              statusCode: res.statusCode,
+              duration,
+              contentLength: res.getHeader?.('content-length'),
+              aiMetrics: res.locals?.aiMetrics
+            });
+          }
+        } catch {}
       });
 
   // Guardar logger en request para uso en rutas
-  (req as any).logger = (req as any).logger || requestLogger;
+  (req as Request & { logger?: typeof logger }).logger = (req as Request & { logger?: typeof logger }).logger || requestLogger;
       next();
     };
   }
@@ -62,11 +63,11 @@ export class ObservabilityService {
     return async (req: Request, res: Response, next: NextFunction) => {
       try {
         const health = await this.checkSystemHealth();
-        
+
         if (health.isDegraded) {
-          (res as any).setHeader?.('x-system-degraded', 'true');
-          (res as any).setHeader?.('x-degradation-reason', health.reason || 'unknown');
-          
+          try { res.setHeader('x-system-degraded', 'true'); } catch {}
+          try { res.setHeader('x-degradation-reason', health.reason || 'unknown'); } catch {}
+
           logger.warn?.('System degraded', {
             ...health,
             reason: health.reason || undefined
@@ -126,7 +127,8 @@ export class ObservabilityService {
   }
 
   private async checkErrorRate() {
-  const errorRate = await (metrics as any).getErrorRate?.();
+  const getErrorRate = (metrics as unknown as { getErrorRate?: () => Promise<number> }).getErrorRate;
+  const errorRate = typeof getErrorRate === 'function' ? await getErrorRate() : 0;
     const limit = 5; // 5% error rate
 
     return {
@@ -137,7 +139,8 @@ export class ObservabilityService {
   }
 
   private async checkAIQuota() {
-  const quota = await (metrics as any).getAIQuotaStatus?.();
+  const getAIQuotaStatus = (metrics as unknown as { getAIQuotaStatus?: () => Promise<{ percentageUsed: number }> }).getAIQuotaStatus;
+  const quota = typeof getAIQuotaStatus === 'function' ? await getAIQuotaStatus() : { percentageUsed: 0 };
     const limit = 90; // 90% uso de cuota
 
     return {

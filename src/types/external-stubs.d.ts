@@ -45,6 +45,8 @@ declare module '@econeura/db' {
   export const db: any
   export const prisma: any
   export const aiCostUsage: any
+  export function getPrisma(): any
+  export function initPrisma(): void
   export function setOrg(orgId: string): void
   export function seed(...args: any[]): Promise<any>
   export const organizations: any

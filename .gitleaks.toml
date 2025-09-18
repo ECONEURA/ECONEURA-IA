@@ -1,0 +1,51 @@
+# Gitleaks basic configuration
+# No ignoring real secrets
+
+[extend]
+useDefault = true
+
+# Output
+format = "json"
+output = "reports/gitleaks.json"
+  "JWT_SECRET=\\$\\(generate_password",
+  "NEXTAUTH_SECRET=\\$\\(generate_password",
+  "REDIS_PASSWORD=\\$\\(generate_password",
+  "WEBHOOK_SECRET=\\$\\(generate_password"
+]
+
+# Rules for detecting real secrets
+[[rules]]
+id = "azure-app-insights"
+description = "Azure Application Insights Connection String"
+regex = '''InstrumentationKey=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}'''
+tags = ["azure", "application-insights"]
+
+[[rules]]
+id = "azure-client-secret"
+description = "Azure Client Secret"
+regex = '''AZURE_CLIENT_SECRET=[a-zA-Z0-9+/]{40,}'''
+tags = ["azure", "client-secret"]
+
+[[rules]]
+id = "jwt-secret"
+description = "JWT Secret"
+regex = '''JWT_SECRET=[a-zA-Z0-9+/]{32,}'''
+tags = ["jwt", "secret"]
+
+[[rules]]
+id = "database-password"
+description = "Database Password"
+regex = '''POSTGRES_PASSWORD=[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}'''
+tags = ["database", "password"]
+
+[[rules]]
+id = "api-key"
+description = "API Key"
+regex = '''API_KEY=[a-zA-Z0-9]{32,}'''
+tags = ["api", "key"]
+
+[[rules]]
+id = "session-secret"
+description = "Session Secret"
+regex = '''SESSION_SECRET=[a-zA-Z0-9+/]{32,}'''
+tags = ["session", "secret"]

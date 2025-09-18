@@ -56,7 +56,7 @@ export class WebConfigurationSystem {
   constructor() {
     this.initializeDefaultEnvironments();
     this.initializeDefaultFeatureFlags();
-    console.log('Web Configuration System initialized');
+    
   }
 
   getFeatureFlag(flagId: string): FeatureFlag | undefined {
@@ -167,7 +167,7 @@ export class WebConfigurationSystem {
   deleteFeatureFlag(flagId: string): boolean {
     const deleted = this.featureFlags.delete(flagId);
     if (deleted) {
-      console.log('Feature flag deleted from web system', { flagId });
+      
     }
     return deleted;
   }
@@ -296,7 +296,7 @@ export class WebConfigurationSystem {
         }
       }
 
-      console.log('Configuration validation passed in web system');
+      
       return true;
     } catch (error) {
       console.error('Configuration validation failed in web system', { error: (error as Error).message });
@@ -305,7 +305,7 @@ export class WebConfigurationSystem {
   }
 
   reloadConfiguration(): void {
-    console.log('Reloading configuration in web system');
+    
     this.validateConfiguration();
   }
 

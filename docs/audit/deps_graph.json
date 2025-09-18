@@ -1,0 +1,21 @@
+{
+  "status": "No disponible",
+  "reason": "madge not installed",
+  "plan": [
+    {
+      "comando": "npm install -g madge",
+      "responsable": "DevOps",
+      "fecha": "2024-05-24"
+    },
+    {
+      "comando": "madge --json --circular --extensions ts,tsx --ts-config tsconfig.json > docs/audit/deps_graph.json",
+      "responsable": "DevOps",
+      "fecha": "2024-05-24"
+    },
+    {
+      "comando": "commit deps_graph.json",
+      "responsable": "DevOps",
+      "fecha": "2024-05-24"
+    }
+  ]
+}
