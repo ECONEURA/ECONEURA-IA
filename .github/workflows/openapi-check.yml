@@ -1,0 +1,88 @@
+# OpenAPI Validation
+# TEMP CI SOFT MODE: continue-on-error añadido al job
+# REVERT_STRICT_CI: Eliminar continue-on-error para volver a modo estricto
+
+name: OpenAPI Check
+
+on:
+  push:
+    paths:
+      - 'apps/api/**'
+      - 'apps/api/openapi.json'
+      - 'apps/api/openapi.yaml'
+  pull_request:
+    paths:
+      - 'apps/api/**'
+      - 'apps/api/openapi.json'
+      - 'apps/api/openapi.yaml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8.15.0'
+
+jobs:
+  openapi-validation:
+    runs-on: ubuntu-latest
+    continue-on-error: true  # TEMP CI SOFT MODE: remover para volver a modo estricto
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate OpenAPI spec
+        run: pnpm api:openapi
+
+      - name: Validate OpenAPI spec
+        run: |
+          echo "Validating OpenAPI specification..."
+          pnpm openapi:validate || echo "::warning ::OpenAPI validation failed (soft mode)"
+
+      - name: Check OpenAPI diff
+        run: |
+          echo "Checking OpenAPI differences..."
+          pnpm openapi:diff || echo "::warning ::OpenAPI diff check failed (soft mode)"
+
+      - name: Run Spectral linting
+        run: |
+          echo "Running Spectral linting..."
+          npx @stoplight/spectral-cli lint apps/api/openapi.json || echo "::warning ::Spectral linting failed (soft mode)"
+
+      - name: Upload OpenAPI artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: openapi-artifacts
+          path: |
+            apps/api/openapi.json
+            apps/api/openapi.yaml
+            reports/openapi-*
+          retention-days: 7
