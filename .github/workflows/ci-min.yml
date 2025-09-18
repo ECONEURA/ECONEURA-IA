@@ -44,7 +44,7 @@ jobs:
       run: pnpm lint || echo "::warning ::Lint failed (radical soft)"
       
     - name: Type check
-      run: pnpm type-check || echo "::warning ::Type check failed (radical soft)"
+      run: pnpm typecheck || echo "::warning ::Type check failed (radical soft)"
       
     - name: Unit tests
       run: pnpm test || echo "::warning ::Unit tests failed (radical soft)"
