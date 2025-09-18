@@ -1,7 +1,7 @@
 import { Router, type Router as ExpressRouter, type Request, type Response } from 'express';
-import { asyncHandler } from '../lib/errors';
-import { importAndReconcile } from '../services/sepa';
-import { logger } from '../lib/logger';
+import { asyncHandler } from '../lib/errors.js';
+import { importAndReconcile } from '../services/sepa.js';
+import { logger } from '../lib/logger.js';
 
 const router: ExpressRouter = Router();
 

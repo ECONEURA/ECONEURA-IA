@@ -1,6 +1,6 @@
-import type { CustomerPreferences, CustomerType, CustomerSegment, CustomerPriority } from '../models/customer';
-import type { OrganizationSettings, SubscriptionPlan } from '../models/org';
-import type { Metadata, PaginationParams, FilterParams } from '../models/base';
+import type { CustomerPreferences, CustomerType, CustomerSegment, CustomerPriority } from '../models/customer.js';
+import type { OrganizationSettings, SubscriptionPlan } from '../models/org.js';
+import type { Metadata, PaginationParams, FilterParams } from '../models/base.js';
 
 /**
  * Base list request interface

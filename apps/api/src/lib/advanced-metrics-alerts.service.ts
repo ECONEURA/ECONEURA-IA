@@ -5,7 +5,7 @@ import { z } from 'zod';
 const mockPrometheus = {
   register: {
     getSingleMetric: (name: string) => ({
-      get: () => ({ values: [{ value: Math.random() * 100 }] })
+      get: () => ({ values: [Math.random() * 100] })
     }),
     getMetricsAsJSON: () => [
       { name: 'http_requests_total', help: 'Total HTTP requests', type: 'counter', values: [] },

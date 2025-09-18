@@ -1,5 +1,5 @@
 import { Gauge, Counter, Histogram, Registry } from 'prom-client';
-import { envSchema } from '../core/config/env';
+import { envSchema } from '../core/config/env.js';
 
 const env = envSchema.parse(process.env);
 

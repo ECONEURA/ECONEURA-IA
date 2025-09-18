@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "@econeura/studio",
   "version": "1.0.0",
   "description": "ECONEURA Cockpit Operacional - Dashboard y mejoras avanzadas (PRs 54-57)",
@@ -19,13 +19,7 @@
   ],
   "author": "ECONEURA Team",
   "license": "MIT",
-  "dependencies": {
-    "_comment": "Las dependencias serán agregadas cuando se complete el merge desde ECONEURA/studio"
-  },
-  "devDependencies": {
-    "_comment": "Las devDependencies serán agregadas cuando se complete el merge desde ECONEURA/studio"
-  },
-  "peerDependencies": {
-    "_comment": "Las peerDependencies serán agregadas cuando se complete el merge desde ECONEURA/studio"
-  }
+  "dependencies": {},
+  "devDependencies": {},
+  "peerDependencies": {}
 }

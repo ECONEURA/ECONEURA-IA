@@ -1,6 +1,6 @@
-import { logger } from '../logging';
-import { redactPII } from '../security';
-import type { AIRequest, AIResponse } from '../types/models/ai';
+import { logger } from '../logging.js';
+import { redactPII } from '../security.js';
+import type { AIRequest, AIResponse } from '../types/models/ai.js';
 
 // Router expects additional fields; extend locally to avoid changing shared model now
 type RouterAIRequest = AIRequest & {

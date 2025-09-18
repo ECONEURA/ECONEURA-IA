@@ -19,7 +19,7 @@ import {
   UpdateNotificationPreferencesRequest,
   SendNotificationRequest,
   NotificationStats
-} from './quiet-hours-types';
+} from './quiet-hours-types.js';
 
 export class NotificationIntelligenceService {
   private preferences: Map<string, NotificationPreferences> = new Map();

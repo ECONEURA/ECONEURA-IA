@@ -2,10 +2,10 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import bodyParser from "body-parser";
-import trigger from "./routes/trigger";
-import events from "./routes/events";
-import { initFinOps, finalizeFinOps } from "./middleware/finops";
-import { telemetryMiddleware } from "./middleware/telemetry";
+import trigger from './routes/trigger.js';
+import events from './routes/events.js';
+import { initFinOps, finalizeFinOps } from './middleware/finops.js';
+import { telemetryMiddleware } from './middleware/telemetry.js';
 
 const app = express();
 app.use(bodyParser.json());

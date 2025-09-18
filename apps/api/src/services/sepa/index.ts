@@ -1,6 +1,6 @@
-import { parseCamt, parseMt940 } from './parser';
-import { reconcile } from './reconciler';
-import { SepaMovement, ReconcileSummary } from './types';
+import { parseCamt, parseMt940 } from './parser.js';
+import { reconcile } from './reconciler.js';
+import { SepaMovement, ReconcileSummary } from './types.js';
 
 // Optional DB persistence (drizzle) — imported lazily
 async function tryDb() {

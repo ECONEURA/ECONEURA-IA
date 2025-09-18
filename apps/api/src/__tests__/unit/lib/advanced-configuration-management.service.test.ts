@@ -456,7 +456,7 @@ describe('AdvancedConfigurationManagementService', () => {
     });
 
     it('should handle update of non-existent configuration', async () => {
-      const updated = await service.updateConfig('non_existent_id', { value: 'new_value' }, 'test-user');
+      const updated = await service.updateConfig('non_existent_id', 'new_value', 'test-user');
       expect(updated).toBeNull();
     });
 

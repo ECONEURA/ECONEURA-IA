@@ -4,7 +4,7 @@ import {
   PolicyDeployment, 
   DeploymentAuditEntry,
   DeploymentConfig 
-} from './rls-types';
+} from './rls-types.js';
 import { logger } from './logger.js';
 
 export class RLSPolicyDeployerService {

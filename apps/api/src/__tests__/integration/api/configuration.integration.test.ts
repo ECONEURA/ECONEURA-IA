@@ -296,7 +296,7 @@ describe('Configuration API Integration Tests', () => {
       // Primero establecer un secreto
       await request(app)
         .put(`${baseUrl}/secrets/testSecret`)
-        .send({ value: 'secretValue', environment: 'development' })
+        .send('secretValue', environment: 'development')
         .expect(200);
 
       const response = await request(app)
@@ -320,7 +320,7 @@ describe('Configuration API Integration Tests', () => {
       // Primero establecer un secreto
       await request(app)
         .put(`${baseUrl}/secrets/tempSecret`)
-        .send({ value: 'tempValue' })
+        .send('tempValue')
         .expect(200);
 
       const response = await request(app)

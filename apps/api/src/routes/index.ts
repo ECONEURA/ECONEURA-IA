@@ -10,16 +10,16 @@ try {
 }
 import cors from 'cors';
 import { rateLimit } from 'express-rate-limit';
-import { authenticateToken, withTenant } from '../middleware/auth';
-import { organizationRoutes } from './organization';
-import { companyRoutes } from './company';
-import { contactRoutes } from './contact';
-import { productRoutes } from './product';
-import { invoiceRoutes } from './invoice';
-import { supplierRoutes } from './supplier';
-import { dealRoutes } from './deal';
-import { interactionRoutes } from './interaction';
-import { agentsRoutes } from './agents';
+import { authenticateToken, withTenant } from '../middleware/auth.js';
+import { organizationRoutes } from './organization.js';
+import { companyRoutes } from './company.js';
+import { contactRoutes } from './contact.js';
+import { productRoutes } from './product.js';
+import { invoiceRoutes } from './invoice.js';
+import { supplierRoutes } from './supplier.js';
+import { dealRoutes } from './deal.js';
+import { interactionRoutes } from './interaction.js';
+import { agentsRoutes } from './agents.js';
 
 const router: ExpressRouter = express.Router();
 

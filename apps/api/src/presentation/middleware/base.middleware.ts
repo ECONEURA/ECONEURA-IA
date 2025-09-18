@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
+import jwt from 'jsonwebtoken';
 
 // ============================================================================
 // BASE MIDDLEWARE - Middleware base para todas las rutas
@@ -82,13 +83,50 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
     return;
   }
 
-  // TODO: Implementar validación de JWT
-  // Por ahora, simular usuario autenticado
-  req.user = {
-    id: 'user-123',
-    email: 'user@example.com',
-    organizationId: req.headers['x-organization-id'] as string || 'org-123'
+  // JWT validation implementation
+  const validateJWT = (token: string) => {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default-secret') as any;
+      return decoded;
+    } catch (error) {
+      throw new Error('Invalid or expired token');
+    }
   };
+
+  // Extract and validate JWT from Authorization header
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) {
+    res.status(401).json({ 
+      success: false,
+      error: {
+        code: 'INVALID_AUTH_HEADER',
+        message: 'Missing or invalid authorization header'
+      }
+    });
+    return;
+  }
+
+  try {
+    const token = authHeader.substring(7);
+    const decoded = validateJWT(token);
+    
+    req.user = {
+      id: decoded.userId || decoded.sub,
+      email: decoded.email,
+      organizationId: decoded.organizationId || req.headers['x-organization-id'] as string || 'org-123',
+      role: decoded.role || 'user',
+      permissions: decoded.permissions || []
+    };
+  } catch (error) {
+    res.status(401).json({ 
+      success: false,
+      error: {
+        code: 'INVALID_TOKEN',
+        message: 'Invalid or expired token'
+      }
+    });
+    return;
+  }
 
   next();
 };
@@ -110,8 +148,27 @@ export const authorize = (requiredPermissions: string[] = []) => {
       return;
     }
 
-    // TODO: Implementar verificación de permisos
-    // Por ahora, permitir acceso a todos los usuarios autenticados
+    // Permission verification implementation
+    const verifyPermissions = (user: any, permissions: string[]) => {
+      if (!permissions || permissions.length === 0) return true; // No permission required
+      if (user.role === 'admin' || user.role === 'superadmin') return true; // Admin access
+      return permissions.some(perm => user.permissions?.includes(perm));
+    };
+
+    // Check if user has required permissions
+    if (requiredPermissions.length > 0 && !verifyPermissions(req.user, requiredPermissions)) {
+      res.status(403).json({
+        success: false,
+        error: {
+          code: 'INSUFFICIENT_PERMISSIONS',
+          message: `Required permissions: ${requiredPermissions.join(', ')}`,
+          required: requiredPermissions,
+          userPermissions: req.user?.permissions || []
+        }
+      });
+      return;
+    }
+
     next();
   };
 };

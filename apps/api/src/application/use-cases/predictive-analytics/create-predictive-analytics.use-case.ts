@@ -100,14 +100,14 @@ export class CreatePredictiveAnalyticsUseCase extends BaseUseCase<CreatePredicti
     // ========================================================================
 
     const predictiveAnalytics = PredictiveAnalytics.create({
-      organizationId: { value: request.organizationId },
+      organizationId: request.organizationId,
       name: request.name,
-      type: { value: request.type },
-      status: { value: 'pending' },
+      type: request.type,
+      status: 'pending',
       modelId: request.modelId,
       description: request.description,
       settings: {
-        modelType: { value: request.settings.modelType },
+        modelType: request.settings.modelType,
         trainingPeriod: request.settings.trainingPeriod,
         predictionHorizon: request.settings.predictionHorizon,
         confidenceThreshold: request.settings.confidenceThreshold,

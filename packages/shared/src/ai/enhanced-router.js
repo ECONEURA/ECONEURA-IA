@@ -1,6 +1,6 @@
 import { logger } from '../logging/index.js';
 import { prometheus } from '../metrics/index.js';
-import { redactPII } from '../security/index.ts';
+import { redactPII } from '../security/index.ts.js';
 import { CostGuardrails } from './cost-guardrails.js';
 import { LLMProviderManager } from './providers.js';
 export class EnhancedAIRouter {

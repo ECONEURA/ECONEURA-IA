@@ -1,10 +1,10 @@
-import type { EnvConfig } from './config/env';
-import type { AppError } from './errors';
-import type { ApiResponse } from './utils/api';
+import type { EnvConfig } from './config/env.js';
+import type { AppError } from './errors.js';
+import type { ApiResponse } from './utils/api.js';
 
-export * from './config/env';
-export * from './errors';
-export * from './utils';
+export * from './config/env.js';
+export * from './errors.js';
+export * from './utils.js';
 
 export type {
   EnvConfig,

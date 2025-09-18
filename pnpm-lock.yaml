@@ -205,6 +205,9 @@ importers:
       concurrently:
         specifier: ^9.2.1
         version: 9.2.1
+      globals:
+        specifier: ^16.4.0
+        version: 16.4.0
       supertest:
         specifier: ^7.1.4
         version: 7.1.4
@@ -668,11 +671,7 @@ importers:
         specifier: ^1.2.0
         version: 1.6.1(@types/node@24.3.3)
 
-  studio:
-    dependencies:
-      _comment:
-        specifier: Las dependencias serán agregadas cuando se complete el merge desde ECONEURA/studio
-        version: link:Las dependencias serán agregadas cuando se complete el merge desde ECONEURA/studio
+  studio: {}
 
 packages:
 
@@ -9742,6 +9741,11 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       type-fest: 0.20.2
+    dev: true
+
+  /globals@16.4.0:
+    resolution: {integrity: sha512-ob/2LcVVaVGCYN+r14cnwnoDPUufjiYgSqRhiFD0Q1iI4Odora5RE8Iv1D24hAz5oMophRGkGz+yuvQmmUMnMw==}
+    engines: {node: '>=18'}
     dev: true
 
   /globalthis@1.0.4:

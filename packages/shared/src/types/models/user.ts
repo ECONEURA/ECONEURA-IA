@@ -1,4 +1,4 @@
-import { TenantEntity } from './base';
+import { TenantEntity } from './base.js';
 
 // User type definitions
 export interface User extends TenantEntity {

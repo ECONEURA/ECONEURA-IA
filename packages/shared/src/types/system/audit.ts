@@ -1,4 +1,4 @@
-import { TenantEntity } from '../models/base';
+import { TenantEntity } from '../models/base.js';
 
 /**
  * Audit event types

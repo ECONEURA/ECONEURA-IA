@@ -1,6 +1,6 @@
 import { logger } from './logger.js';
 import { z } from 'zod';
-import { mkdir, writeFile } from 'fs/promises';
+import { mkdir, writeFile } from 'fs/promises.js';
 import * as path from 'path';
 
 // Schemas de validación

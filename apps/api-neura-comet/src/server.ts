@@ -1,10 +1,10 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import chat from "./routes/chat";
+import chat from './routes/chat.js';
 import bodyParser from "body-parser";
-import { initFinOps, finalizeFinOps } from "./middleware/finops";
-import { telemetryMiddleware } from "./middleware/telemetry";
+import { initFinOps, finalizeFinOps } from './middleware/finops.js';
+import { telemetryMiddleware } from './middleware/telemetry.js';
 
 const app = express();
 app.use(bodyParser.json());

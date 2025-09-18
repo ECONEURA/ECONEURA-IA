@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { logger } from "./logger.js";
+import { logger } from './logger.js';
 import { WebSocket, WebSocketServer } from "ws";
 import { EventEmitter } from "events";
 

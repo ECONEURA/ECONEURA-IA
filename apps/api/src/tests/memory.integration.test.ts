@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
-import { app } from '../app';
-import { MemoryRepository } from '../db/memory.repo';
+import { app } from '../app.js';
+import { MemoryRepository } from '../db/memory.repo.js';
 
 describe('Memory API Integration Tests', () => {
   let memoryRepo: MemoryRepository;

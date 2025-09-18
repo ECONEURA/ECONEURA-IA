@@ -196,7 +196,7 @@ describe('DistributedCache', () => {
         number: 42,
         boolean: true,
         array: [1, 2, 3],
-        object: { nested: { value: 'deep' } },
+        object: { nested: 'deep' },
         null: null,
         undefined: undefined
       };

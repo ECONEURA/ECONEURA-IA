@@ -1,5 +1,5 @@
-import type { Organization } from '../models/org';
-import type { Customer } from '../models/customer';
+import type { Organization } from '../models/org.js';
+import type { Customer } from '../models/customer.js';
 
 /**
  * Pagination metadata

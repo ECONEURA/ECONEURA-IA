@@ -1,13 +1,13 @@
 // Database connection and utilities
-export { db, setOrg, getCurrentOrg, testConnection, closeConnection } from './connection'
+export { db, setOrg, getCurrentOrg, testConnection, closeConnection } from './connection.js'
 // Exponer instancia de prisma
-export { prisma, getPrisma, initPrisma } from './client';
+export { prisma, getPrisma, initPrisma } from './client.js';
 
 // Schema exports
-export * from './schema'
+export * from './schema.js'
 
 // Seed function
-export { seed } from './seed'
+export { seed } from './seed.js'
 
 // Database helpers
 export async function withOrg<T>(orgId: string, fn: () => Promise<T>): Promise<T> {

@@ -94,7 +94,7 @@ export function memoize<T extends (...args: any[]) => any>(
   } = {}
 ): T {
   const { maxSize = 100, ttl } = options;
-  const cache = new Map<string, { value: any; timestamp: number }>();
+  const cache = new Map<string, any; timestamp: number>();
 
   return ((...args: Parameters<T>): ReturnType<T> => {
     const key = JSON.stringify(args);

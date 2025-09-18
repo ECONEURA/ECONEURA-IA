@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import { env } from '@econeura/shared'
-import * as schema from './schema'
+import * as schema from './schema.js'
 
 // Safe env read; when missing, we provide stubs to keep tests/CI green
 let connectionString: string | null = null

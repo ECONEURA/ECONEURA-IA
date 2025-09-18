@@ -1,5 +1,5 @@
-export * from './hmac';
-export * from './idempotency';
+export * from './hmac.js';
+export * from './idempotency.js';
 
 import crypto from 'crypto';
 

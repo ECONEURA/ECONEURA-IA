@@ -35,8 +35,8 @@ describe('BaseEntity', () => {
 
   beforeEach(() => {
     validProps = {
-      id: { value: crypto.randomUUID() },
-      organizationId: { value: crypto.randomUUID() },
+      id: crypto.randomUUID(),
+      organizationId: crypto.randomUUID(),
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -105,14 +105,14 @@ describe('BaseEntity', () => {
     });
 
     it('should return false for entity without id', () => {
-      const invalidProps = { ...validProps, id: { value: '' } };
+      const invalidProps = { ...validProps, id: '' };
       const invalidEntity = new TestEntity(invalidProps);
       
       expect(invalidEntity.validate()).toBe(false);
     });
 
     it('should return false for entity without organizationId', () => {
-      const invalidProps = { ...validProps, organizationId: { value: '' } };
+      const invalidProps = { ...validProps, organizationId: '' };
       const invalidEntity = new TestEntity(invalidProps);
       
       expect(invalidEntity.validate()).toBe(false);
@@ -160,14 +160,14 @@ describe('BaseEntity', () => {
 
   describe('Edge cases', () => {
     it('should handle null id value', () => {
-      const invalidProps = { ...validProps, id: { value: null as any } };
+      const invalidProps = { ...validProps, id: null as any };
       const invalidEntity = new TestEntity(invalidProps);
       
       expect(invalidEntity.validate()).toBe(false);
     });
 
     it('should handle null organizationId value', () => {
-      const invalidProps = { ...validProps, organizationId: { value: null as any } };
+      const invalidProps = { ...validProps, organizationId: null as any };
       const invalidEntity = new TestEntity(invalidProps);
       
       expect(invalidEntity.validate()).toBe(false);

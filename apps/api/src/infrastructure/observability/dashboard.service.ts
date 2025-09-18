@@ -208,8 +208,8 @@ export class DashboardService {
             max: 100,
             unit: '%',
             thresholds: [
-              { value: 5, color: 'yellow' },
-              { value: 10, color: 'red' }
+              5, color: 'yellow',
+              10, color: 'red'
             ]
           },
           dataSource: {
@@ -452,8 +452,8 @@ export class DashboardService {
             max: 100,
             unit: '%',
             thresholds: [
-              { value: 70, color: 'yellow' },
-              { value: 90, color: 'red' }
+              70, color: 'yellow',
+              90, color: 'red'
             ]
           },
           dataSource: {
@@ -479,8 +479,8 @@ export class DashboardService {
             max: 100,
             unit: '%',
             thresholds: [
-              { value: 80, color: 'yellow' },
-              { value: 95, color: 'red' }
+              80, color: 'yellow',
+              95, color: 'red'
             ]
           },
           dataSource: {
@@ -506,8 +506,8 @@ export class DashboardService {
             max: 100,
             unit: '%',
             thresholds: [
-              { value: 80, color: 'yellow' },
-              { value: 90, color: 'red' }
+              80, color: 'yellow',
+              90, color: 'red'
             ]
           },
           dataSource: {

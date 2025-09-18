@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { logger } from '../lib/logger';
-import { authenticateToken } from '../middleware/auth';
-import { rateLimiter } from '../middleware/rate-limiter';
-import { cockpitIntegrationService } from '../services/cockpit-integration.service';
+import { logger } from '../lib/logger.js';
+import { authenticateToken } from '../middleware/auth.js';
+import { rateLimiter } from '../middleware/rate-limiter.js';
+import { cockpitIntegrationService } from '../services/cockpit-integration.service.js';
 
 const router = Router();
 

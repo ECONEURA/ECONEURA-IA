@@ -16,7 +16,7 @@ import {
   SearchOptimization,
   QueryImprovement,
   SearchStats
-} from './warmup-types';
+} from './warmup-types.js';
 
 export class IntelligentSearchService {
   private searchHistory: Map<string, SearchAnalytics> = new Map();

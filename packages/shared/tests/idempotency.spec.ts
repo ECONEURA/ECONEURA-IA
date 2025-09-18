@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createIdempotencyStore } from '../src/idempotency/store';
+import { createIdempotencyStore } from '../src/idempotency/store.js';
 
 describe('Idempotency', () => {
   it('crea y reutiliza', async () => {

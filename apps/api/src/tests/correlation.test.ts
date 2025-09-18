@@ -12,7 +12,7 @@ import {
   addCorrelationToResponse,
   createMockCorrelationRequest,
   createMockCorrelationResponse,
-} from '../middleware/correlation';
+} from '../middleware/correlation.js';
 import {
   generateCorrelationId,
   generateRequestId,

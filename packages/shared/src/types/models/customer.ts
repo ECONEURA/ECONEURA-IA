@@ -1,4 +1,4 @@
-import { Metadata, Status, TenantEntity } from './base';
+import { Metadata, Status, TenantEntity } from './base.js';
 
 /**
  * Customer type definitions

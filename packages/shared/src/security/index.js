@@ -148,5 +148,5 @@ export const SECURITY_HEADERS = {
 };
 
 // Ensure JS index also re-exports HMAC and idempotency helpers used by TS code
-export { hmacSign, hmacVerify, sha256Hex } from './hmac';
-export { getIdempotency, setIdempotency } from './idempotency';
+export { hmacSign, hmacVerify, sha256Hex } from './hmac.js';
+export { getIdempotency, setIdempotency } from './idempotency.js';

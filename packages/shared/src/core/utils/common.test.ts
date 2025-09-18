@@ -9,7 +9,7 @@ import {
   chunk,
   debounce,
   throttle
-} from './common';
+} from './common.js';
 
 describe('Common Utilities', () => {
   describe('assertions', () => {

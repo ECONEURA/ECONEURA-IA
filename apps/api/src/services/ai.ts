@@ -1,7 +1,7 @@
 import { OpenAIClient, AzureKeyCredential } from '@azure/openai';
-import { logger } from '../lib/logger';
-import { metrics } from '../lib/metrics';
-import { AppError } from '../lib/errors';
+import { logger } from '../lib/logger.js';
+import { metrics } from '../lib/metrics.js';
+import { AppError } from '../lib/errors.js';
 
 interface AIServiceConfig {
   endpoint: string;

@@ -1,4 +1,4 @@
-import { BaseEntity } from './base';
+import { BaseEntity } from './base.js';
 
 // Invoice types
 export interface Invoice extends BaseEntity {

@@ -109,7 +109,7 @@ export class CreateInventoryKardexUseCase extends BaseUseCase<CreateInventoryKar
     const totalCost = Money.create(request.initialQuantity * request.unitCost.amount, request.unitCost.currency);
 
     const inventoryKardex = InventoryKardex.create({
-      organizationId: { value: request.organizationId },
+      organizationId: request.organizationId,
       productId: request.productId,
       warehouseId: request.warehouseId,
       locationId: request.locationId,

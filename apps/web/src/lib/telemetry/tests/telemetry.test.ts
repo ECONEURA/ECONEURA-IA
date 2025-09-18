@@ -87,7 +87,7 @@ import {
   usePerformanceTracking,
   withTelemetry,
   TelemetryErrorBoundary
-} from '../telemetry';
+} from '../telemetry.js';
 
 import {
   TelemetryProvider,
@@ -96,7 +96,7 @@ import {
   TrackedLink,
   TrackedForm,
   PerformanceTracker
-} from '../../components/TelemetryProvider';
+} from '../../components/TelemetryProvider.js';
 
 describe('Web Telemetry Integration', () => {
   beforeEach(() => {

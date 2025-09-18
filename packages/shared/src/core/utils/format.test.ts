@@ -8,7 +8,7 @@ import {
   parseDate,
   formatNumber,
   formatCurrency
-} from './format';
+} from './format.js';
 
 describe('Format Utilities', () => {
   describe('bytesToHuman', () => {

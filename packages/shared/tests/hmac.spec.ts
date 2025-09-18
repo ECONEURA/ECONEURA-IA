@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { hmacSign, hmacVerify } from '../src/security/hmac';
+import { hmacSign, hmacVerify } from '../src/security/hmac.js';
 
 describe('HMAC', () => {
   const secret = 'test_secret';

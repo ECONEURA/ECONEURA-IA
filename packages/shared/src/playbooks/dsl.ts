@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import * as otel from '../otel/index'
-import { logger } from '../logging/index'
+import * as otel from '../otel/index.js'
+import { logger } from '../logging/index.js'
 
 // Step types
 export const StepTypeSchema = z.enum([

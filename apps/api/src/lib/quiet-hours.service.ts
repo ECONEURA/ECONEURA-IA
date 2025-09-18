@@ -13,7 +13,7 @@ import {
   CreateQuietHoursRequest,
   UpdateQuietHoursRequest,
   QuietHoursStats
-} from './quiet-hours-types';
+} from './quiet-hours-types.js';
 
 export class QuietHoursService {
   private quietHoursConfigs: Map<string, QuietHoursConfig> = new Map();

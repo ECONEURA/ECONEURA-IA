@@ -140,7 +140,7 @@ export class Contact {
     const now = new Date();
     return new Contact({
       ...props,
-      id: { value: crypto.randomUUID() },
+      id: crypto.randomUUID(),
       createdAt: now,
       updatedAt: now
     });
@@ -148,18 +148,18 @@ export class Contact {
 
   static fromPersistence(data: any): Contact {
     return new Contact({
-      id: { value: data.id },
-      organizationId: { value: data.organizationId },
-      companyId: data.companyId ? { value: data.companyId } : undefined,
+      id: data.id,
+      organizationId: data.organizationId,
+      companyId: data.companyId ? data.companyId : undefined,
       firstName: data.firstName,
       lastName: data.lastName,
       middleName: data.middleName,
       title: data.title,
       department: data.department,
-      type: { value: data.type },
-      status: { value: data.status },
-      source: { value: data.source },
-      priority: { value: data.priority },
+      type: data.type,
+      status: data.status,
+      source: data.source,
+      priority: data.priority,
       email: data.email,
       phone: data.phone,
       mobile: data.mobile,
@@ -485,22 +485,22 @@ export class Contact {
   }
 
   updateType(type: ContactType['value']): void {
-    this.props.type = { value: type };
+    this.props.type = type;
     this.props.updatedAt = new Date();
   }
 
   updateStatus(status: ContactStatus['value']): void {
-    this.props.status = { value: status };
+    this.props.status = status;
     this.props.updatedAt = new Date();
   }
 
   updateSource(source: ContactSource['value']): void {
-    this.props.source = { value: source };
+    this.props.source = source;
     this.props.updatedAt = new Date();
   }
 
   updatePriority(priority: ContactPriority['value']): void {
-    this.props.priority = { value: priority };
+    this.props.priority = priority;
     this.props.updatedAt = new Date();
   }
 
@@ -552,7 +552,7 @@ export class Contact {
   }
 
   assignToCompany(companyId: string): void {
-    this.props.companyId = { value: companyId };
+    this.props.companyId = companyId;
     this.props.updatedAt = new Date();
   }
 

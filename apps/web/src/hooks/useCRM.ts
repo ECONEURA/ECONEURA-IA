@@ -1,4 +1,4 @@
-import { useApiQuery, useApiMutation } from './useApi'
+import { useApiQuery, useApiMutation } from './useApi.js'
 import type { Company, Contact, Deal } from '@econeura/shared'
 
 // ============ COMPANIES ============
@@ -154,7 +154,7 @@ export function useDeals(params?: {
     data: Deal[]
     metrics: Array<{
       stage: string
-      _sum: { value: number | null }
+      _sum: number | null
       _count: { id: number }
     }>
     pagination: {

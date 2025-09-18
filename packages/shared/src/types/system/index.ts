@@ -1,3 +1,3 @@
 // Export all system types
-export * from './audit';
-export * from './monitoring';
+export * from './audit.js';
+export * from './monitoring.js';

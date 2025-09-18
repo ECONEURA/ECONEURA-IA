@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'node:url';
-import { importAndReconcile } from '../src/services/sepa';
+import { importAndReconcile } from '../src/services/sepa.js';
 
 async function run() {
   const camtSample = fs.readFileSync(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../test/samples/camt.sample.xml'), 'utf-8');

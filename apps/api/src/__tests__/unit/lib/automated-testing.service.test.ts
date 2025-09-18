@@ -4,7 +4,7 @@ import AutomatedTestingService, {
   SecretRotation, 
   SecurityChecklist, 
   AutomatedTestingConfig 
-} from '../../lib/automated-testing.service.ts';
+} from '../../lib/automated-testing.service.ts.js';
 
 // Mock del logger
 vi.mock('../../lib/logger.ts', () => ({

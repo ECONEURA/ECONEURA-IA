@@ -147,17 +147,17 @@ export class CreateProductUseCase {
     // ========================================================================
 
     const product = Product.create({
-      organizationId: { value: request.organizationId },
+      organizationId: request.organizationId,
       name: request.name.trim(),
       description: request.description,
       shortDescription: request.shortDescription,
       sku: request.sku.trim(),
       barcode: request.barcode,
-      type: { value: request.type },
-      status: { value: request.status },
-      category: { value: request.category },
-      brand: request.brand ? { value: request.brand } : undefined,
-      supplier: request.supplier ? { value: request.supplier } : undefined,
+      type: request.type,
+      status: request.status,
+      category: request.category,
+      brand: request.brand ? request.brand : undefined,
+      supplier: request.supplier ? request.supplier : undefined,
       settings: {
         inventory: request.settings.inventory,
         pricing: {

@@ -1,5 +1,5 @@
 // Tipos, FSM y contratos de datos - ECONEURA Cockpit
-import { DeptKey } from './palette';
+import { DeptKey } from './palette.js';
 
 export type AgentStatus = 'idle' | 'running' | 'hitl_wait' | 'completed' | 'warning' | 'failed' | 'paused';
 

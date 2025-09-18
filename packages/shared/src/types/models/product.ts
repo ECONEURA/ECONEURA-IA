@@ -1,4 +1,4 @@
-import { TenantEntity } from './base';
+import { TenantEntity } from './base.js';
 
 // Product type definitions
 export interface Product extends TenantEntity {

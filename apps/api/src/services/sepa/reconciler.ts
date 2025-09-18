@@ -1,4 +1,4 @@
-import { SepaMovement, ReconcileSummary, ReconcileResultItem } from './types';
+import { SepaMovement, ReconcileSummary, ReconcileResultItem } from './types.js';
 
 export function reconcile(movements: SepaMovement[], invoices: { id: string; amount: number; date?: string }[]): ReconcileSummary {
   const details: ReconcileResultItem[] = [];

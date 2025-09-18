@@ -96,7 +96,7 @@ export class PredictiveAnalytics extends BaseEntity {
     const now = new Date();
     return new PredictiveAnalytics({
       ...props,
-      id: { value: crypto.randomUUID() },
+      id: crypto.randomUUID(),
       createdAt: now,
       updatedAt: now,
     });
@@ -231,24 +231,24 @@ export class PredictiveAnalytics extends BaseEntity {
   // ========================================================================
 
   startTraining(): void {
-    this.props.status = { value: 'processing' };
+    this.props.status = 'processing';
     this.updateTimestamp();
   }
 
   completeTraining(metrics: AnalyticsMetrics): void {
-    this.props.status = { value: 'completed' };
+    this.props.status = 'completed';
     this.props.metrics = metrics;
     this.updateNextRetrainDate();
     this.updateTimestamp();
   }
 
   failTraining(error: string): void {
-    this.props.status = { value: 'failed' };
+    this.props.status = 'failed';
     this.updateTimestamp();
   }
 
   retrainModel(): void {
-    this.props.status = { value: 'processing' };
+    this.props.status = 'processing';
     this.updateTimestamp();
   }
 
@@ -382,56 +382,56 @@ export class PredictiveAnalytics extends BaseEntity {
   static createSalesForecast(props: Omit<PredictiveAnalyticsProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): PredictiveAnalytics {
     return PredictiveAnalytics.create({
       ...props,
-      type: { value: 'sales_forecast' },
+      type: 'sales_forecast',
     });
   }
 
   static createDemandPrediction(props: Omit<PredictiveAnalyticsProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): PredictiveAnalytics {
     return PredictiveAnalytics.create({
       ...props,
-      type: { value: 'demand_prediction' },
+      type: 'demand_prediction',
     });
   }
 
   static createChurnPrediction(props: Omit<PredictiveAnalyticsProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): PredictiveAnalytics {
     return PredictiveAnalytics.create({
       ...props,
-      type: { value: 'churn_prediction' },
+      type: 'churn_prediction',
     });
   }
 
   static createRevenueForecast(props: Omit<PredictiveAnalyticsProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): PredictiveAnalytics {
     return PredictiveAnalytics.create({
       ...props,
-      type: { value: 'revenue_forecast' },
+      type: 'revenue_forecast',
     });
   }
 
   static createInventoryOptimization(props: Omit<PredictiveAnalyticsProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): PredictiveAnalytics {
     return PredictiveAnalytics.create({
       ...props,
-      type: { value: 'inventory_optimization' },
+      type: 'inventory_optimization',
     });
   }
 
   static createCustomerLifetimeValue(props: Omit<PredictiveAnalyticsProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): PredictiveAnalytics {
     return PredictiveAnalytics.create({
       ...props,
-      type: { value: 'customer_lifetime_value' },
+      type: 'customer_lifetime_value',
     });
   }
 
   static createMarketTrend(props: Omit<PredictiveAnalyticsProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): PredictiveAnalytics {
     return PredictiveAnalytics.create({
       ...props,
-      type: { value: 'market_trend' },
+      type: 'market_trend',
     });
   }
 
   static createRiskAssessment(props: Omit<PredictiveAnalyticsProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): PredictiveAnalytics {
     return PredictiveAnalytics.create({
       ...props,
-      type: { value: 'risk_assessment' },
+      type: 'risk_assessment',
     });
   }
 }

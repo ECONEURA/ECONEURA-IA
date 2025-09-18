@@ -1,7 +1,7 @@
-import type { ApiResponse } from './api';
-import type { AppError } from '../errors';
-import { createSuccessResponse, createErrorResponse } from './api';
-import { bytesToHuman, parseDuration } from './format';
+import type { ApiResponse } from './api.js';
+import type { AppError } from '../errors.js';
+import { createSuccessResponse, createErrorResponse } from './api.js';
+import { bytesToHuman, parseDuration } from './format.js';
 import {
   assertDefined,
   assertTrue,
@@ -12,7 +12,7 @@ import {
   chunk,
   debounce,
   throttle
-} from './common';
+} from './common.js';
 
 export {
   // API utilities

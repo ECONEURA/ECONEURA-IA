@@ -5,7 +5,7 @@ import ProjectCompletionDeploymentService, {
   ValidationResult, 
   DeploymentResult, 
   ProjectCompletionConfig 
-} from '../../lib/project-completion-deployment.service.ts';
+} from '../../lib/project-completion-deployment.service.ts.js';
 
 // Mock del logger
 vi.mock('../../lib/logger.ts', () => ({

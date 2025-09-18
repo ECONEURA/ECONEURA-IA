@@ -162,7 +162,7 @@ describe('TelemetryService', () => {
 
     it('should track custom event with metrics', () => {
       expect(() => {
-        telemetry.trackCustom('custom_metric', { type: 'test' }, { value: 42 });
+        telemetry.trackCustom('custom_metric', { type: 'test' }, 42);
       }).not.toThrow();
     });
   });

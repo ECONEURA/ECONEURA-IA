@@ -5,7 +5,7 @@ import AutomatedDocumentationService, {
   ArchitectureDocumentation, 
   Runbook, 
   DocumentationConfig 
-} from '../../lib/automated-documentation.service.ts';
+} from '../../lib/automated-documentation.service.ts.js';
 
 // Mock del logger
 vi.mock('../../lib/logger.ts', () => ({

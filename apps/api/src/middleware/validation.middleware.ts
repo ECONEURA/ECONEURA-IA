@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { ProblemDetails } from '../types/problem-details.types';
+import { ProblemDetails } from '../types/problem-details.types.js';
 
 /**
  * Validation middleware for memory put endpoint

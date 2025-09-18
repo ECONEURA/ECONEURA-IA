@@ -16,7 +16,7 @@ import {
   UpdateWarmupScheduleRequest,
   TriggerWarmupRequest,
   WarmupStats
-} from './warmup-types';
+} from './warmup-types.js';
 
 export class WarmupService {
   private schedules: Map<string, WarmupSchedule> = new Map();
