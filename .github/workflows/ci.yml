@@ -1,0 +1,223 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - feature/**
+  pull_request:
+    branches:
+      - main
+      - develop
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    name: Prepare & Install
+    runs-on: ubuntu-latest
+    outputs:
+      pnpm_store: ${{ steps.pnpm-cache-dir.outputs.dir }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        run: corepack enable && corepack prepare pnpm@8.15.6 --activate
+
+      - name: Get PNPM Store Dir
+        id: pnpm-cache-dir
+        run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Cache PNPM Store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache-dir.outputs.dir }}
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-store-${{ runner.os }}-
+
+      - name: Install Dependencies
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            pnpm install --frozen-lockfile
+          else
+            echo "WARNING: No pnpm-lock.yaml found. Deterministic install not guaranteed." >&2
+            pnpm install
+          fi
+
+      - name: Workspace Info
+        run: pnpm list -r --depth 0 || true
+
+  lint_typecheck:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+    needs: prepare
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Setup pnpm
+        run: corepack enable && corepack prepare pnpm@8.15.6 --activate
+      - name: Restore PNPM Store
+        uses: actions/cache@v4
+        with:
+          path: ${{ needs.prepare.outputs.pnpm_store }}
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-store-${{ runner.os }}-
+      - name: Install
+        run: |
+          if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm install; fi
+      - name: Lint
+        run: pnpm lint
+      - name: Typecheck (monorepo)
+        run: pnpm typecheck
+
+  build:
+    name: Build Packages & Apps
+    runs-on: ubuntu-latest
+    needs: [prepare, lint_typecheck]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Setup pnpm
+        run: corepack enable && corepack prepare pnpm@8.15.6 --activate
+      - name: Restore PNPM Store
+        uses: actions/cache@v4
+        with:
+          path: ${{ needs.prepare.outputs.pnpm_store }}
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-store-${{ runner.os }}-
+      - name: Install
+        run: |
+          if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm install; fi
+      - name: Build All
+        run: pnpm build:all || pnpm build
+
+  tests:
+    name: Tests (Unit & Coverage)
+    runs-on: ubuntu-latest
+    needs: [prepare]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Setup pnpm
+        run: corepack enable && corepack prepare pnpm@8.15.6 --activate
+      - name: Restore PNPM Store
+        uses: actions/cache@v4
+        with:
+          path: ${{ needs.prepare.outputs.pnpm_store }}
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-store-${{ runner.os }}-
+      - name: Install
+        run: |
+          if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm install; fi
+      - name: Unit Tests
+        run: pnpm test
+      - name: Coverage (optional)
+        if: always()
+        run: pnpm test:coverage || true
+      - name: Upload Coverage Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage
+          if-no-files-found: ignore
+          retention-days: 7
+
+  openapi_and_routes:
+    name: OpenAPI & Route Checks
+    runs-on: ubuntu-latest
+    needs: [prepare]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Setup pnpm
+        run: corepack enable && corepack prepare pnpm@8.15.6 --activate
+      - name: Restore PNPM Store
+        uses: actions/cache@v4
+        with:
+          path: ${{ needs.prepare.outputs.pnpm_store }}
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-store-${{ runner.os }}-
+      - name: Install
+        run: |
+          if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm install; fi
+      - name: Route Lint
+        run: pnpm route:lint
+      - name: Build API (for openapi if needed)
+        run: pnpm build:api || echo "API build optional"
+      - name: OpenAPI Checksum
+        run: pnpm openapi:checksum
+      - name: OpenAPI Lint (optional)
+        run: pnpm openapi:validate || echo "OpenAPI lint non-blocking"
+
+  ci_strict:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [build, tests, openapi_and_routes, lint_typecheck]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Summary
+        run: |
+          echo "All dependent jobs completed successfully." \
+            && echo "Lint/Typecheck OK" \
+            && echo "Build OK" \
+            && echo "Tests OK" \
+            && echo "OpenAPI & Routes OK" \
+            && echo "CI pipeline passed."
+
+  artifacts:
+    name: Package Artifacts
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Setup pnpm
+        run: corepack enable && corepack prepare pnpm@8.15.6 --activate
+      - name: Restore PNPM Store
+        uses: actions/cache@v4
+        with:
+          path: ${{ needs.prepare.outputs.pnpm_store }}
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-store-${{ runner.os }}-
+      - name: Install
+        run: |
+          if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm install; fi
+      - name: Build Web
+        run: pnpm build:web || echo "Web build optional"
+      - name: Build API
+        run: pnpm build:api || echo "API build optional"
+      - name: Upload Dist Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: |
+            apps/**/dist
+            packages/**/dist
+          if-no-files-found: warn
+          retention-days: 7
