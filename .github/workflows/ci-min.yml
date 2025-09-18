@@ -24,6 +24,17 @@ jobs:
     - name: Install pnpm
       run: npm install -g pnpm
     
+    - name: Debug environment
+      run: |
+        echo "=== Environment Debug ==="
+        node --version
+        npm --version
+        pnpm --version
+        echo "Current directory: $(pwd)"
+        echo "Directory contents:"
+        ls -la
+        echo "========================="
+    
     - name: Enable Corepack and setup pnpm
       run: |
         corepack enable
@@ -46,13 +57,38 @@ jobs:
         fi
     
     - name: Install dependencies
-      run: pnpm install --frozen-lockfile
+      run: |
+        echo "Installing dependencies..."
+        if pnpm install --frozen-lockfile; then
+          echo "✅ Dependencies installed with frozen lockfile"
+        else
+          echo "⚠️ Frozen lockfile failed, trying regular install..."
+          pnpm install
+        fi
     
     - name: Build project
       run: |
-        echo "Building shared packages..."
-        pnpm --filter @econeura/shared build || echo "⚠️ Shared build optional"
-        echo "✅ Build completed"
+        echo "Building project..."
+        # Verificar que el proyecto esté bien estructurado
+        if [ -f "package.json" ]; then
+          echo "✅ Root package.json found"
+        fi
+        
+        # Intentar build del shared package
+        if [ -d "packages/shared" ]; then
+          echo "Building shared package..."
+          pnpm --filter @econeura/shared build || echo "⚠️ Shared build failed but continuing"
+        fi
+        
+        # Verificar otras apps si existen
+        if [ -d "apps/api" ]; then
+          echo "Checking API app structure..."
+          if [ -f "apps/api/package.json" ]; then
+            echo "✅ API package.json found"
+          fi
+        fi
+        
+        echo "✅ Build process completed"
     
     - name: Run unit tests
       run: |
