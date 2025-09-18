@@ -148,30 +148,31 @@ class SEPARobustService {
     };
 
     const transaction2: SEPARobustTransaction = {
-      id: 'sepa_robust_2',
-      organizationId: 'demo-org-1',
-      accountId: 'acc_001',
-      transactionId: 'TXN-2024-002',
-      amount: 2500.00,
-      currency: 'EUR',
-      date: twoDaysAgo.toISOString(),
-      valueDate: twoDaysAgo.toISOString(),
-      description: 'Invoice payment',
-      reference: 'INV-2024-001',
-      counterparty: {
-        name: 'LogiFlow Distribution',
-        iban: 'ES9876543210987654321098',
-        bic: 'LOGIESMM'
-      },
-      category: 'invoice',
-      status: 'exception',
-      matchingScore: 45,
-      exceptionType: 'missing_reference',
-      exceptionDetails: 'Reference number does not match expected format',
-      validationErrors: ['Invalid reference format'],
-      processingFlags: ['requires_manual_review'],
-      createdAt: twoDaysAgo.toISOString(),
-      updatedAt: twoDaysAgo.toISOString()
+        id: 'sepa_robust_2',
+        organizationId: 'demo-org-1',
+        accountId: 'acc_001',
+        transactionId: 'TXN-2024-002',
+        amount: 2500.00,
+        currency: 'EUR',
+        date: twoDaysAgo.toISOString(),
+        valueDate: twoDaysAgo.toISOString(),
+        description: 'Invoice payment',
+        reference: 'INV-2024-001',
+        counterparty: {
+          name: 'LogiFlow Distribution',
+          iban: 'ES9876543210987654321098',
+          bic: 'LOGIESMM'
+        },
+        category: 'invoice',
+        status: 'exception',
+        matchingScore: 45,
+        exceptionType: 'missing_reference',
+        exceptionDetails: 'Reference number does not match expected format',
+        validationErrors: ['Invalid reference format'],
+        processingFlags: ['requires_manual_review'],
+        camtVersion: '053',
+        createdAt: twoDaysAgo.toISOString(),
+        updatedAt: twoDaysAgo.toISOString()
     };
 
     const transaction3: SEPARobustTransaction = {
@@ -197,6 +198,7 @@ class SEPARobustService {
       exceptionDetails: 'Transaction appears to be a duplicate of TXN-2024-001',
       validationErrors: ['Potential duplicate transaction'],
       processingFlags: ['duplicate_detected', 'requires_manual_review'],
+      camtVersion: '053',
       createdAt: oneDayAgo.toISOString(),
       updatedAt: oneDayAgo.toISOString()
     };
@@ -706,20 +708,22 @@ class SEPARobustService {
         break;
 
       case 'exception_analysis':
-        const exceptionTypes = exceptions.reduce((acc, e) => {
-          acc[e.exceptionType] = (acc[e.exceptionType] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>);
+        {
+          const exceptionTypes = exceptions.reduce((acc, e) => {
+            acc[e.exceptionType] = (acc[e.exceptionType] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>);
 
-        summary = {
-          totalTransactions: transactions.length,
-          processedTransactions: transactions.filter(t => t.status !== 'pending').length,
-          exceptionTransactions: exceptions.length,
-          matchedTransactions: transactions.filter(t => t.status === 'matched').length,
-          averageProcessingTime: 2.5,
-          successRate: (transactions.filter(t => t.status === 'matched').length / transactions.length) * 100
-        };
-        data = { exceptionTypes, exceptions };
+          summary = {
+            totalTransactions: transactions.length,
+            processedTransactions: transactions.filter(t => t.status !== 'pending').length,
+            exceptionTransactions: exceptions.length,
+            matchedTransactions: transactions.filter(t => t.status === 'matched').length,
+            averageProcessingTime: 2.5,
+            successRate: (transactions.filter(t => t.status === 'matched').length / transactions.length) * 100
+          };
+          data = { exceptionTypes, exceptions };
+        }
         break;
     }
 

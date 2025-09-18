@@ -38,10 +38,10 @@ export class SimpleRBACService {
     action: string
   ): Promise<boolean> {
     try {
-      const userRoles = this.getUserRoles(userId, orgId);
-      const userPermissions = this.getUserPermissions(userRoles);
+      const userRolesArr = this.userRoles.get(`${userId}:${orgId}`) || [];
+      const userPermissions = this.getUserPermissionsFromRoles(userRolesArr);
 
-      return userPermissions.some(permission => 
+      return userPermissions.some((permission: Permission) => 
         permission.resource === resource && permission.action === action
       );
     } catch (error) {
@@ -52,8 +52,8 @@ export class SimpleRBACService {
 
   // Check if user has role
   async hasRole(userId: string, orgId: string, roleName: string): Promise<boolean> {
-    const userRoles = this.getUserRoles(userId, orgId);
-    return userRoles.some(userRole => {
+    const userRolesArr = this.userRoles.get(`${userId}:${orgId}`) || [];
+    return userRolesArr.some((userRole: UserRole) => {
       const role = this.roles.get(userRole.roleId);
       return role && role.name === roleName;
     });
@@ -61,15 +61,15 @@ export class SimpleRBACService {
 
   // Get user permissions
   async getUserPermissions(userId: string, orgId: string): Promise<Permission[]> {
-    const userRoles = this.getUserRoles(userId, orgId);
-    return this.getUserPermissionsFromRoles(userRoles);
+  const userRolesArr = this.userRoles.get(`${userId}:${orgId}`) || [];
+  return this.getUserPermissionsFromRoles(userRolesArr);
   }
 
   // Get user roles
   async getUserRoles(userId: string, orgId: string): Promise<Role[]> {
-    const userRoles = this.getUserRoles(userId, orgId);
-    return userRoles
-      .map(ur => this.roles.get(ur.roleId))
+    const userRolesArr = this.userRoles.get(`${userId}:${orgId}`) || [];
+    return userRolesArr
+      .map((ur: UserRole) => this.roles.get(ur.roleId))
       .filter((role): role is Role => role !== undefined);
   }
 
@@ -109,10 +109,7 @@ export class SimpleRBACService {
   }
 
   // Private helper methods
-  private getUserRoles(userId: string, orgId: string): UserRole[] {
-    const key = `${userId}:${orgId}`;
-    return this.userRoles.get(key) || [];
-  }
+  // Removed duplicate getUserRoles method (already defined above)
 
   private getUserPermissionsFromRoles(userRoles: UserRole[]): Permission[] {
     const permissions: Permission[] = [];

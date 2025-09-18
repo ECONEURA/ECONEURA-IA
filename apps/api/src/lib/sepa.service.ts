@@ -597,17 +597,21 @@ export class SEPAService {
       switch (condition.operator) {
         case 'equals':
           return fieldValue === condition.value ? 100 : 0;
-        case 'contains':
+        case 'contains': {
           return fieldValue?.toString().toLowerCase().includes(condition.value.toString().toLowerCase()) ? 100 : 0;
-        case 'regex':
+        }
+        case 'regex': {
           const regex = new RegExp(condition.value);
           return regex.test(fieldValue?.toString() || '') ? 100 : 0;
-        case 'range':
+        }
+        case 'range': {
           const numValue = parseFloat(fieldValue?.toString() || '0');
           const range = condition.value as { min: number; max: number };
           return (numValue >= range.min && numValue <= range.max) ? 100 : 0;
-        default:
+        }
+        default: {
           return 0;
+        }
       }
     } catch (error) {
       return 0;

@@ -593,12 +593,10 @@ export class NextAIPlatformService {
         recommendations: ['Implement suggested improvements', 'Monitor performance metrics'],
       },
       insights: {
-        insights: ['Insight 1', 'Insight 2', 'Insight 3'],
-        patterns: ['Pattern A', 'Pattern B'],
-        recommendations: ['Recommendation 1', 'Recommendation 2'],
-        confidence: 0.80,
         insights: ['Clear patterns identified', 'Actionable insights available'],
+        patterns: ['Pattern A', 'Pattern B'],
         recommendations: ['Act on high-confidence insights', 'Investigate patterns further'],
+        confidence: 0.80,
       },
     };
 

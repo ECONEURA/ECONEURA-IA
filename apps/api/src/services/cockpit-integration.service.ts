@@ -297,17 +297,18 @@ export class CockpitIntegrationService {
         message = `Agente ${request.agentId} pausado`;
         break;
         
-      case 'stop':
+      case 'stop': {
         status = 'stopped';
         message = `Agente ${request.agentId} detenido`;
         break;
-        
-      case 'status':
+      }
+      case 'status': {
         const currentState = this.agentStates.get(request.agentId);
         if (currentState) {
           return currentState;
         }
         status = 'active';
+      }
         message = `Estado actual de ${request.agentId}`;
         break;
     }

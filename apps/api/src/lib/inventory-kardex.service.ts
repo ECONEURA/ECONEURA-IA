@@ -801,7 +801,7 @@ class InventoryKardexService {
     let data: any = {};
 
     switch (reportType) {
-      case 'stock_levels':
+      case 'stock_levels': {
         const stockLevels = await this.getStockLevels(organizationId);
         summary = {
           totalProducts: stockLevels.length,
@@ -819,8 +819,8 @@ class InventoryKardexService {
         };
         data = { stockLevels };
         break;
-
-      case 'movements':
+      }
+      case 'movements': {
         const movements = await this.getKardexEntries(organizationId, { startDate, endDate });
         summary = {
           totalProducts: new Set(movements.map(m => m.productId)).size,
@@ -832,8 +832,8 @@ class InventoryKardexService {
         };
         data = { movements };
         break;
-
-      case 'abc_analysis':
+      }
+      case 'abc_analysis': {
         const allStockLevels = await this.getStockLevels(organizationId);
         const sortedByValue = allStockLevels.sort((a, b) => b.totalValue - a.totalValue);
         const totalValue = sortedByValue.reduce((sum, s) => sum + s.totalValue, 0);
@@ -868,6 +868,11 @@ class InventoryKardexService {
         };
         data = { abcAnalysis };
         break;
+      }
+      default: {
+        // handle other report types or do nothing
+        break;
+      }
     }
 
     const report: InventoryReport = {

@@ -252,10 +252,7 @@ export class GranularRBACService {
   }
 
   // Private helper methods
-  private getUserRoles(userId: string, orgId: string): UserRole[] {
-    const key = `${userId}:${orgId}`;
-    return this.userRoles.get(key) || [];
-  }
+  // Removed duplicate getUserRoles method (already defined above)
 
   private getUserPermissionsFromRoles(userRoles: UserRole[]): Permission[] {
     const permissions: Permission[] = [];
