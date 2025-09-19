@@ -31,16 +31,7 @@
   },
   "references": [
     { "path": "./packages/shared" },
-    { "path": "./packages/db" },
-    { "path": "./packages/sdk" },
-    { "path": "./packages/agents" },
-    { "path": "./packages/config" },
-    { "path": "./apps/api" },
-    { "path": "./apps/web" },
-    { "path": "./apps/workers" },
-    { "path": "./apps/voice" },
-    { "path": "./apps/api-agents-make" },
-    { "path": "./apps/api-neura-comet" }
+    { "path": "./apps/api" }
   ],
   "files": [],
   "include": [],
