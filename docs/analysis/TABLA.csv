@@ -1,7 +1,0 @@
-PR_ID,Title,Status,Branch,Commit,Description,Priority,Impact
-PR-97,FinOps ENFORCE e2e,completed,pr-97-finops-enforce-e2e,41f9bef,Cost tracking quota management budget alerts,CRITICAL,Operational
-PR-100,GDPR Export/Erase,completed,pr-100-gdpr-export-erase,ed3a145,Data export erase consent management HITL,CRITICAL,Compliance
-PR-101,Datos & RLS,completed,pr-101-datos-rls-tenantid,9ef7e89,Row-Level Security tenant isolation multi-tenancy,CRITICAL,Security
-PR-116,Contract Tests,completed,pr-116-contract-tests,b9d00c8,Contract generation validation diff checking,HIGH,Quality
-PR-118,gitleaks + SBOM,completed,pr-118-gitleaks-sbom,e5d3ef8,Security scanning SBOM generation licenses denylist,HIGH,Security
-PR-120,CODEOWNERS,completed,pr-120-codeowners,463a88d,Code ownership auto-labels team matrix,MEDIUM,Operations

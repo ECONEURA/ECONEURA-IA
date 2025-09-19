@@ -1,0 +1,63 @@
+import { AnalyticsMetric, TrendAnalysis, AnomalyData, AnalyticsQuery, AnalyticsResult, StatisticalAnalysis, CreateMetricRequest, UpdateMetricRequest, AnalyticsConfig } from './analytics-types.js';
+export declare class AdvancedAnalyticsService {
+    private config;
+    private metrics;
+    private trends;
+    private anomalies;
+    constructor(config?: Partial<AnalyticsConfig>);
+    createMetric(request: CreateMetricRequest, organizationId: string): Promise<AnalyticsMetric>;
+    updateMetric(metricId: string, request: UpdateMetricRequest): Promise<AnalyticsMetric | null>;
+    getMetric(metricId: string): Promise<AnalyticsMetric | null>;
+    getMetrics(organizationId: string, filters?: {
+        type?: string;
+        category?: string;
+        status?: string;
+        tags?: string[];
+    }): Promise<AnalyticsMetric[]>;
+    deleteMetric(metricId: string): Promise<boolean>;
+    recordMetric(metricId: string, value: number, metadata?: Record<string, any>): Promise<void>;
+    private processRealTimeData;
+    analyzeTrends(metricId: string, period: TrendAnalysis['period']): Promise<TrendAnalysis>;
+    private createTrendAnalysis;
+    private updateTrendAnalysis;
+    private calculateChangePercentage;
+    private determineTrend;
+    private calculateConfidence;
+    private generateForecast;
+    private updateForecasts;
+    private analyzeSeasonality;
+    private detectAnomalies;
+    private calculateExpectedValue;
+    private determineSeverity;
+    private determineAnomalyType;
+    private generateAnomalyDescription;
+    private assessImpact;
+    private generateRecommendations;
+    performStatisticalAnalysis(metricId: string, dataPoints: number[]): Promise<StatisticalAnalysis>;
+    private calculateMedian;
+    private calculateMode;
+    private calculateVariance;
+    private calculateSkewness;
+    private calculateKurtosis;
+    private calculatePercentile;
+    executeQuery(query: AnalyticsQuery): Promise<AnalyticsResult>;
+    private applyFilters;
+    private getFilterValue;
+    private evaluateFilter;
+    private groupData;
+    private aggregateData;
+    private performAggregation;
+    private calculateAggregations;
+    private calculateTrendsForQuery;
+    private getAnomaliesForQuery;
+    private generateId;
+    getAnomalies(metricId: string): Promise<AnomalyData[]>;
+    getAllAnomalies(organizationId: string): Promise<AnomalyData[]>;
+    getServiceStats(): Promise<{
+        totalMetrics: number;
+        totalTrends: number;
+        totalAnomalies: number;
+        config: AnalyticsConfig;
+    }>;
+}
+//# sourceMappingURL=advanced-analytics.service.d.ts.map
