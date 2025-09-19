@@ -1,14 +1,11 @@
-
 # RADICAL_SOFT_MODE: Este workflow ha sido modificado para NO fallar nunca.
 # Revertir buscando la etiqueta RADICAL_SOFT_MODE y eliminando continue-on-error / restaurando triggers.
-
 
 
 name: CI Min
 
 on:
   push:
-
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
@@ -103,60 +100,3 @@ jobs:
           .next/
           apps/*/dist/
         if-no-files-found: ignore
-=======
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
-jobs:
-  ci-min:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Setup Node.js 20
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-    
-    - name: Basic validation
-      run: |
-        echo "🚀 Starting CI Min validation..."
-        echo "Repository: ${{ github.repository }}"
-        echo "Commit: ${{ github.sha }}"
-        echo "Node version: $(node --version)"
-        echo "NPM version: $(npm --version)"
-        
-        # Check basic structure
-        if [ -f "package.json" ]; then
-          echo "✅ Root package.json found"
-        else
-          echo "⚠️ No root package.json"
-        fi
-        
-        if [ -d "apps" ]; then
-          echo "✅ Apps directory found"
-          ls -la apps/
-        else
-          echo "⚠️ No apps directory"
-        fi
-        
-        if [ -d "packages" ]; then
-          echo "✅ Packages directory found"
-          ls -la packages/
-        else
-          echo "⚠️ No packages directory"
-        fi
-        
-        echo "✅ Basic validation completed"
-    
-    - name: Success
-      run: |
-        echo "🎉 CI Min workflow completed successfully!"
-        echo "✅ All checks passed"
-        echo "✅ Repository structure validated"
-        echo "✅ Ready for development"
-
