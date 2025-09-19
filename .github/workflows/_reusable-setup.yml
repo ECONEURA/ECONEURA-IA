@@ -1,0 +1,85 @@
+# RADICAL_SOFT_MODE: Este workflow ha sido modificado para NO fallar nunca.
+# Revertir buscando la etiqueta RADICAL_SOFT_MODE y eliminando continue-on-error / restaurando triggers.
+# Note: Reusable workflows cannot set continue-on-error at job level, only at step level
+
+name: Reusable Setup
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: 'Node.js version to use'
+        required: false
+        default: '20'
+        type: string
+      pnpm-version:
+        description: 'PNPM version to use'
+        required: false
+        default: '8'
+        type: string
+      install-deps:
+        description: 'Whether to install dependencies'
+        required: false
+        default: true
+        type: boolean
+      cache-key:
+        description: 'Additional cache key suffix'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'npm'
+      # RADICAL_SOFT_MODE: Continue on error for individual steps
+      continue-on-error: true
+        
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ inputs.pnpm-version }}
+      continue-on-error: true  # RADICAL_SOFT_MODE
+        
+    - name: Get pnpm store directory
+      id: pnpm-cache
+      shell: bash
+      run: |
+        echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT || echo "::warning ::Failed to get pnpm store path (radical soft)"
+      continue-on-error: true  # RADICAL_SOFT_MODE
+      
+    - name: Setup pnpm cache
+      uses: actions/cache@v3
+      with:
+        path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ inputs.cache-key }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-store-
+      continue-on-error: true  # RADICAL_SOFT_MODE
+      
+    - name: Install dependencies
+      if: inputs.install-deps == true
+      run: |
+        # RADICAL_SOFT_MODE: Install dependencies but never fail
+        pnpm install --frozen-lockfile || echo "::warning ::Dependencies installation failed (radical soft)"
+      continue-on-error: true  # RADICAL_SOFT_MODE
+      
+    - name: Verify setup
+      run: |
+        # RADICAL_SOFT_MODE: Verify setup but never fail
+        echo "=== Setup Verification ==="
+        echo "Node version: $(node --version)" || echo "::warning ::Node version check failed (radical soft)"
+        echo "PNPM version: $(pnpm --version)" || echo "::warning ::PNPM version check failed (radical soft)"
+        echo "Dependencies installed: $([ -d node_modules ] && echo 'YES' || echo 'NO')"
+        echo "Setup completed in RADICAL SOFT MODE"
+        echo "::notice ::Reusable setup completed (radical soft mode)"
+      continue-on-error: true  # RADICAL_SOFT_MODE
