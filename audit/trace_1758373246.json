@@ -1,7 +1,7 @@
 {
   "timestamp": "2025-09-20T13:00:46+00:00",
   "trace_id": "trace_1758373246",
-  "prompt": "Validación cruzada con gitleaks completada. Clasificación de riesgos generada. Alerta automática activada. Integración con GitHub configurada.",
+  "prompt": "<REDACTED>",
   "response": "🔍 Auditando: Validación cruzada con gitleaks completada. Clasificación de riesgos generada. Alerta automática activada. Integración con GitHub configurada.
 ✅ Operación estándar auditada",
   "user": "vscode",

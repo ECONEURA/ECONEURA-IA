@@ -1,0 +1,63 @@
+{
+  "scoring_config": {
+    "base_scores": {
+      "api_key": 90,
+      "aws_key": 95,
+      "azure_key": 95,
+      "gcp_key": 95,
+      "password": 85,
+      "secret": 80,
+      "token": 85,
+      "private_key": 100,
+      "hardcoded_password": 95,
+      "hardcoded_secret": 90,
+      "generic_secret": 60,
+      "potential_secret": 50,
+      "url_with_credentials": 80,
+      "database_url": 75,
+      "oauth_token": 85,
+      "jwt_token": 80,
+      "ssl_certificate": 70,
+      "encryption_key": 95
+    },
+    "path_modifiers": {
+      ".env": 15,
+      "config": 10,
+      "settings": 10,
+      "secrets": 20,
+      "credentials": 20,
+      "test": -20,
+      "spec": -20,
+      "mock": -20,
+      "log": -10,
+      "tmp": -10,
+      "cache": -10,
+      "node_modules": -30,
+      "vendor": -30,
+      ".git": -50
+    },
+    "confidence_multipliers": {
+      "high": 1.2,
+      "medium": 1.0,
+      "low": 0.8
+    },
+    "age_modifiers": {
+      "hours_0_24": 10,
+      "hours_24_168": 5,
+      "days_7_30": 0,
+      "days_30_90": -5,
+      "days_90_plus": -15
+    },
+    "thresholds": {
+      "high": 80,
+      "medium": 45,
+      "low": 0
+    }
+  },
+  "risk_levels": {
+    "critical": {"min_score": 95, "description": "Immediate action required"},
+    "high": {"min_score": 80, "description": "Action required within 24 hours"},
+    "medium": {"min_score": 45, "description": "Action required within 1 week"},
+    "low": {"min_score": 0, "description": "Monitor and review periodically"}
+  }
+}

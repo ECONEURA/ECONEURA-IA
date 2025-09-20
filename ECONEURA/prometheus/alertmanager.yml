@@ -1,0 +1,61 @@
+global:
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'alerts@econeura-ia.com'
+  smtp_auth_username: 'alerts@econeura-ia.com'
+  smtp_auth_password: 'your-smtp-password'
+
+route:
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'security-team'
+  routes:
+  - match:
+      severity: critical
+    receiver: 'security-pager'
+  - match:
+      team: security
+    receiver: 'security-team'
+  - match:
+      team: platform
+    receiver: 'platform-team'
+
+receivers:
+- name: 'security-pager'
+  pagerduty_configs:
+  - service_key: 'your-pagerduty-service-key'
+  slack_configs:
+  - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+    channel: '#security-alerts'
+    title: '{{ .GroupLabels.alertname }}'
+    text: '{{ .CommonAnnotations.description }}'
+
+- name: 'security-team'
+  email_configs:
+  - to: 'security@econeura-ia.com'
+    subject: '{{ .GroupLabels.alertname }}'
+    body: '{{ .CommonAnnotations.description }}'
+  slack_configs:
+  - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+    channel: '#security-notifications'
+    title: '{{ .GroupLabels.alertname }}'
+    text: '{{ .CommonAnnotations.description }}'
+
+- name: 'platform-team'
+  email_configs:
+  - to: 'platform@econeura-ia.com'
+    subject: '{{ .GroupLabels.alertname }}'
+    body: '{{ .CommonAnnotations.description }}'
+  slack_configs:
+  - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+    channel: '#platform-alerts'
+    title: '{{ .GroupLabels.alertname }}'
+    text: '{{ .CommonAnnotations.description }}'
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'instance']

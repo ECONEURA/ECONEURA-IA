@@ -1,7 +1,7 @@
 {
   "timestamp": "2025-09-20T12:52:08+00:00",
   "trace_id": "trace_1758372728",
-  "prompt": "Explica cómo funciona scan-secrets.sh, qué riesgos cubre y cómo se integra con ECONEURA",
+  "prompt": "<REDACTED>",
   "response": "🔍 Auditando: Explica cómo funciona scan-secrets.sh, qué riesgos cubre y cómo se integra con ECONEURA
 🚨 ALERTA: Operación sensible detectada
 📋 Recomendación: Usar herramientas como trufflehog o gitleaks",
