@@ -61,7 +61,7 @@ export class WorkflowEngine {
    */
   async execute(action: BusinessAction): Promise<{ success: boolean; data?: any }> {
     try {
-      const workflow = this.selectOptimalWorkflow(action);
+      const workflow = await this.selectOptimalWorkflow(action);
 
       if (!workflow) {
         // Ejecutar acción directamente si no hay workflow
@@ -192,7 +192,7 @@ export class WorkflowEngine {
     }
 
     try {
-      let currentStepId = workflow.entryPoint;
+      let currentStepId: string | undefined = workflow.entryPoint;
 
       while (currentStepId) {
         const step = workflow.steps.get(currentStepId);

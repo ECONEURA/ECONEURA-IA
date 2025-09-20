@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@econeura/shared": "workspace:*",
+    "applicationinsights": "^3.9.0",
     "@headlessui/react": "^1.7.18",
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^5.2.1",

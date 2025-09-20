@@ -1,0 +1,97 @@
+name: Deploy to Azure App Service
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'apps/api/**'
+      - 'apps/web/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20.x'
+
+jobs:
+  build-and-deploy-api:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v5
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Type check
+      run: pnpm typecheck
+
+    - name: Build shared packages
+      run: pnpm build:shared
+
+    - name: Build API
+      run: pnpm build:api
+
+    - name: Run tests
+      run: pnpm test --filter=@econeura/api
+
+    - name: Deploy to Azure App Service (API)
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: 'econeura-api-dev'
+        slot-name: 'production'
+        publish-profile: ${{ secrets.AZURE_API_PUBLISH_PROFILE }}
+        package: './apps/api'
+
+  build-and-deploy-web:
+    runs-on: ubuntu-latest
+    environment: production
+    needs: build-and-deploy-api
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v5
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Build shared packages
+      run: pnpm build:shared
+
+    - name: Build Web App
+      run: pnpm build:web
+
+    - name: Run tests
+      run: pnpm test --filter=@econeura/web
+
+    - name: Deploy to Azure App Service (Web)
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: 'econeura-web-dev'
+        slot-name: 'production'
+        publish-profile: ${{ secrets.AZURE_WEB_PUBLISH_PROFILE }}
+        package: './apps/web'

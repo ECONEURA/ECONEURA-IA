@@ -19,7 +19,7 @@ export interface DecisionContext {
 export interface DecisionResult {
   canExecute: boolean;
   confidence: number;
-  riskLevel: 'low' | 'medium' | 'high';
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
   reasoning: string[];
   requiredApprovals: string[];
   alternatives: DecisionAlternative[];
@@ -28,7 +28,7 @@ export interface DecisionResult {
 export interface DecisionAlternative {
   action: string;
   confidence: number;
-  riskLevel: 'low' | 'medium' | 'high';
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
   description: string;
 }
 

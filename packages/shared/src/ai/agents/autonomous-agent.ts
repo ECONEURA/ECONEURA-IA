@@ -70,7 +70,8 @@ export class AutonomousAgent extends EventEmitter {
 
     this.decisionEngine = new DecisionEngine({
       autonomyLevel: config.autonomyLevel,
-      confidenceThreshold: 0.85
+      confidenceThreshold: 0.85,
+      riskTolerance: 'medium'
     });
 
     this.setupEventHandlers();
@@ -212,7 +213,7 @@ export class AutonomousAgent extends EventEmitter {
       this.emit('action-failed', {
         agentId: this.config.id,
         action: action.type,
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       });
 
       return executionResult;

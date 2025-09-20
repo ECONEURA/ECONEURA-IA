@@ -1,3 +1,5 @@
+/// <reference types="vitest" />
+import { describe, it, expect } from 'vitest';
 import { interactionsSasAvService } from './interactions-sas-av.service.js';
 
 describe('InteractionsSasAvService', () => {
