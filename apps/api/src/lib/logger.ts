@@ -1,14 +1,40 @@
 interface LogContext {
+  // Contexto organizacional
   org?: string;
+  orgTier?: string;
+  orgFeatures?: string[];
+
+  // Contexto de usuario
   userId?: string;
+  userRole?: string;
+  userPermissions?: string[];
+
+  // Contexto de request
   requestId?: string;
+  correlationId?: string;
   traceId?: string;
   spanId?: string;
+  parentSpanId?: string;
   endpoint?: string;
   method?: string;
+  path?: string;
+  query?: Record<string, unknown>;
+  queryJson?: string;
+
+  // Métricas de rendimiento
   duration?: number;
+  startTime?: number;
+  endTime?: number;
+
+  // Métricas de IA
   tokens?: number;
   cost?: number;
+  aiModel?: string;
+  aiProvider?: string;
+  promptTokens?: number;
+  completionTokens?: number;
+
+  // Contexto técnico
   userAgent?: string;
   ip?: string;
   statusCode?: number;
@@ -16,8 +42,18 @@ interface LogContext {
   stack?: string;
   port?: number;
   environment?: string;
-  aiModel?: string;
-  aiProvider?: string;
+  version?: string;
+
+  // Contexto de negocio
+  businessUnit?: string;
+  operationType?: string;
+  resourceType?: string;
+
+  // Flags y estados
+  isRetry?: boolean;
+  isCached?: boolean;
+  isDegraded?: boolean;
+  isRateLimited?: boolean;
   service?: string;
   status?: string;
   metricName?: string;
@@ -43,10 +79,9 @@ interface LogContext {
   // Rate limiting fields
   organizationId?: string;
   // Request fields
-  path?: string;
   prompt?: string;
-  query?: string;
   current?: number;
+  // note: `path` and `query` are declared above in 'Contexto de request' to avoid duplicates
   // FinOps fields
   headers?: Record<string, string>;
   reason?: string;
@@ -221,7 +256,6 @@ interface LogContext {
   count?: number;
   enabled?: boolean;
   toVersion?: number;
-  version?: string;
   url?: string;
   notificationsCount?: number;
   features?: string[];
@@ -285,9 +319,11 @@ class StructuredLogger {
   }
 
   private formatLog(level: string, message: string, context?: LogContext): LogEntry {
+  const allowedLevels = ['error', 'warn', 'info', 'debug'] as const;
+  const lvl = (typeof level === 'string' && (allowedLevels as readonly string[]).includes(level)) ? (level as 'error' | 'warn' | 'info' | 'debug') : 'info';
     const logEntry: LogEntry = {
       timestamp: new Date().toISOString(),
-      level: level as any,
+      level: lvl,
       message,
       context,
       traceId: context?.requestId || this.generateTraceId(),
@@ -356,7 +392,7 @@ class StructuredLogger {
   request(method: string, path: string, statusCode: number, duration: number, context?: LogContext): void {
     const level = statusCode >= 400 ? 'error' : statusCode >= 300 ? 'warn' : 'info';
     const message = `${method} ${path} - ${statusCode} (${duration}ms)`;
-    
+
     this[level](message, {
       ...context,
       method,

@@ -1,8 +1,9 @@
 // import { PrismaClient } from '@prisma/client'
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
+import { getPrisma } from '@econeura/db/client.lazy'
 
-const prisma = new PrismaClient();
+const prisma = getPrisma();
 
 // System permissions definition
 const PERMISSIONS = [
@@ -11,24 +12,24 @@ const PERMISSIONS = [
   { resource: 'crm:contacts', actions: ['view', 'create', 'edit', 'delete'] },
   { resource: 'crm:deals', actions: ['view', 'create', 'edit', 'delete', 'move_stage'] },
   { resource: 'crm:activities', actions: ['view', 'create', 'edit', 'delete', 'complete'] },
-  
+
   // ERP permissions
   { resource: 'erp:products', actions: ['view', 'create', 'edit', 'delete'] },
   { resource: 'erp:inventory', actions: ['view', 'adjust', 'count', 'transfer'] },
   { resource: 'erp:suppliers', actions: ['view', 'create', 'edit', 'delete'] },
   { resource: 'erp:warehouses', actions: ['view', 'create', 'edit', 'delete'] },
   { resource: 'erp:purchase_orders', actions: ['view', 'create', 'edit', 'delete', 'approve'] },
-  
+
   // Finance permissions
   { resource: 'finance:invoices', actions: ['view', 'create', 'edit', 'delete', 'submit', 'approve'] },
   { resource: 'finance:payments', actions: ['view', 'create', 'edit', 'delete', 'reconcile'] },
   { resource: 'finance:expenses', actions: ['view', 'create', 'edit', 'delete', 'submit', 'approve'] },
   { resource: 'finance:reports', actions: ['view', 'export'] },
-  
+
   // AI permissions
   { resource: 'ai:router', actions: ['view', 'use'] },
   { resource: 'ai:insights', actions: ['view'] },
-  
+
   // Admin permissions
   { resource: 'admin:users', actions: ['view', 'create', 'edit', 'delete'] },
   { resource: 'admin:organizations', actions: ['view', 'edit'] },
@@ -38,7 +39,7 @@ const PERMISSIONS = [
 
 async function seedPermissions() {
   console.log('🔑 Seeding permissions...');
-  
+
   const permissions = [];
   for (const perm of PERMISSIONS) {
     for (const action of perm.actions) {
@@ -57,14 +58,14 @@ async function seedPermissions() {
       permissions.push(permission);
     }
   }
-  
+
   console.log(`✅ Created ${permissions.length} permissions`);
   return permissions;
 }
 
 async function seedSystemRoles(permissions: any[]) {
   console.log('👤 Seeding system roles...');
-  
+
   const roles = [
     {
       name: 'Admin',
@@ -126,11 +127,11 @@ async function seedSystemRoles(permissions: any[]) {
       ],
     },
   ];
-  
+
   const createdRoles = [];
   for (const roleData of roles) {
     const role = await prisma.role.upsert({
-      where: { 
+      where: {
         slug_organizationId: {
           slug: roleData.slug,
           organizationId: null,
@@ -145,11 +146,11 @@ async function seedSystemRoles(permissions: any[]) {
         organizationId: null,
       },
     });
-    
+
     // Assign permissions to role
-    const rolePermissions = roleData.permissionSlugs.includes('*') 
-      ? permissions 
-      : permissions.filter(p => 
+    const rolePermissions = roleData.permissionSlugs.includes('*')
+      ? permissions
+      : permissions.filter(p =>
           roleData.permissionSlugs.some(slug => {
             if (slug.endsWith(':*')) {
               const resource = slug.replace(':*', '');
@@ -158,7 +159,7 @@ async function seedSystemRoles(permissions: any[]) {
             return p.slug === slug;
           })
         );
-    
+
     for (const permission of rolePermissions) {
       await prisma.rolePermission.upsert({
         where: {
@@ -175,17 +176,17 @@ async function seedSystemRoles(permissions: any[]) {
         },
       });
     }
-    
+
     createdRoles.push(role);
     console.log(`✅ Created role: ${role.name} with ${rolePermissions.length} permissions`);
   }
-  
+
   return createdRoles;
 }
 
 async function seedOrganizations(roles: any[]) {
   console.log('🏢 Seeding organizations...');
-  
+
   const organizations = [
     {
       slug: 'ecoretail',
@@ -208,7 +209,7 @@ async function seedOrganizations(roles: any[]) {
       maxUsers: 50,
     },
   ];
-  
+
   const createdOrgs = [];
   for (const orgData of organizations) {
     const org = await prisma.organization.upsert({
@@ -227,20 +228,20 @@ async function seedOrganizations(roles: any[]) {
     createdOrgs.push(org);
     console.log(`✅ Created organization: ${org.name}`);
   }
-  
+
   return createdOrgs;
 }
 
 async function seedUsers(organizations: any[], roles: any[]) {
   console.log('👥 Seeding users...');
-  
+
   const defaultPassword = await bcrypt.hash('Password123!', 10);
   const adminRole = roles.find(r => r.slug === 'admin');
   const salesRole = roles.find(r => r.slug === 'sales');
   const opsRole = roles.find(r => r.slug === 'ops');
   const cfoRole = roles.find(r => r.slug === 'cfo');
   const viewerRole = roles.find(r => r.slug === 'viewer');
-  
+
   const users = [
     // EcoRetail users
     {
@@ -283,7 +284,7 @@ async function seedUsers(organizations: any[], roles: any[]) {
       org: organizations[0],
       role: viewerRole,
     },
-    
+
     // Mediterráneo Trading users
     {
       email: 'admin@mediterraneo-trading.com',
@@ -326,7 +327,7 @@ async function seedUsers(organizations: any[], roles: any[]) {
       role: viewerRole,
     },
   ];
-  
+
   const createdUsers = [];
   for (const userData of users) {
     const user = await prisma.user.upsert({
@@ -343,7 +344,7 @@ async function seedUsers(organizations: any[], roles: any[]) {
         emailVerifiedAt: new Date(),
       },
     });
-    
+
     // Create UserOrganization relationship
     await prisma.userOrganization.upsert({
       where: {
@@ -361,17 +362,17 @@ async function seedUsers(organizations: any[], roles: any[]) {
         status: 'ACTIVE',
       },
     });
-    
+
     createdUsers.push(user);
     console.log(`✅ Created user: ${user.email} (${userData.role.name} at ${userData.org.name})`);
   }
-  
+
   return createdUsers;
 }
 
 async function seedBusinessData(organizations: any[]) {
   console.log('📊 Seeding business data...');
-  
+
   for (const org of organizations) {
     // Seed Companies
     const companies = [];
@@ -395,7 +396,7 @@ async function seedBusinessData(organizations: any[]) {
       });
       companies.push(company);
     }
-    
+
     // Seed Contacts (3 per company)
     const contacts = [];
     for (const company of companies) {
@@ -418,7 +419,7 @@ async function seedBusinessData(organizations: any[]) {
         contacts.push(contact);
       }
     }
-    
+
     // Seed Deals (25 deals in various stages)
     const deals = [];
     for (let i = 1; i <= 25; i++) {
@@ -442,7 +443,7 @@ async function seedBusinessData(organizations: any[]) {
       });
       deals.push(deal);
     }
-    
+
     // Seed Products (50 products)
     const products = [];
     for (let i = 1; i <= 50; i++) {
@@ -468,7 +469,7 @@ async function seedBusinessData(organizations: any[]) {
       });
       products.push(product);
     }
-    
+
     // Seed Suppliers (15 suppliers)
     const suppliers = [];
     for (let i = 1; i <= 15; i++) {
@@ -495,7 +496,7 @@ async function seedBusinessData(organizations: any[]) {
       });
       suppliers.push(supplier);
     }
-    
+
     // Seed Warehouses (2 warehouses per org)
     const warehouses = [];
     for (let i = 1; i <= 2; i++) {
@@ -518,7 +519,7 @@ async function seedBusinessData(organizations: any[]) {
       });
       warehouses.push(warehouse);
     }
-    
+
     // Seed Inventory for products in warehouses
     for (const product of products.slice(0, 30)) { // First 30 products have inventory
       for (const warehouse of warehouses) {
@@ -539,7 +540,7 @@ async function seedBusinessData(organizations: any[]) {
         });
       }
     }
-    
+
     // Seed Invoices (30 invoices in various states)
     for (let i = 1; i <= 30; i++) {
       const company = companies[i % companies.length];
@@ -570,12 +571,12 @@ async function seedBusinessData(organizations: any[]) {
           tags: [`invoice_${i % 3}`],
         },
       });
-      
+
       // Update calculated fields
       const taxAmount = invoice.subtotal * 0.21;
       const totalAmount = invoice.subtotal + taxAmount;
       const paidAmount = invoice.status === 'PAID' ? totalAmount : 0;
-      
+
       await prisma.invoice.update({
         where: { id: invoice.id },
         data: {
@@ -585,7 +586,7 @@ async function seedBusinessData(organizations: any[]) {
           balanceDue: totalAmount - paidAmount,
         },
       });
-      
+
       // Add invoice items
       for (let j = 1; j <= 3; j++) {
         const product = products[(i * 3 + j) % products.length];
@@ -606,7 +607,7 @@ async function seedBusinessData(organizations: any[]) {
           const subtotal = item.quantity * item.unitPrice;
           const taxAmount = subtotal * (item.taxRate / 100);
           const total = subtotal + taxAmount;
-          
+
           await prisma.invoiceItem.update({
             where: { id: item.id },
             data: { subtotal, taxAmount, total },
@@ -614,14 +615,14 @@ async function seedBusinessData(organizations: any[]) {
         });
       }
     }
-    
+
     console.log(`✅ Created business data for ${org.name}`);
   }
 }
 
 async function main() {
   console.log('🌱 Starting seed process...');
-  
+
   try {
     // Clear existing data in correct order
     console.log('🧹 Cleaning existing data...');
@@ -648,14 +649,14 @@ async function main() {
     await prisma.rolePermission.deleteMany();
     await prisma.role.deleteMany();
     await prisma.permission.deleteMany();
-    
+
     // Seed in correct order
     const permissions = await seedPermissions();
     const roles = await seedSystemRoles(permissions);
     const organizations = await seedOrganizations(roles);
     const users = await seedUsers(organizations, roles);
     await seedBusinessData(organizations);
-    
+
     console.log('✅ Seed completed successfully!');
     console.log('\n📝 Test credentials:');
     console.log('  Admin: admin@ecoretail.med / Password123!');
@@ -663,7 +664,7 @@ async function main() {
     console.log('  Ops: ops@ecoretail.med / Password123!');
     console.log('  CFO: cfo@ecoretail.med / Password123!');
     console.log('  Viewer: viewer@ecoretail.med / Password123!');
-    
+
   } catch (error) {
     console.error('❌ Seed failed:', error);
     throw error;

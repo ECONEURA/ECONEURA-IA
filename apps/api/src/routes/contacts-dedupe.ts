@@ -1,7 +1,7 @@
 /**
- * PR-52: Contacts Dedupe Proactivo Routes
+ * PR-52: Contacts Dedupe Routes
  * 
- * Endpoints para el sistema de deduplicación proactiva de contactos
+ * Rutas para el sistema de deduplicación de contactos
  */
 
 import { Router } from 'express';
@@ -11,396 +11,330 @@ import { structuredLogger } from '../lib/structured-logger.js';
 
 const router = Router();
 
-// Schemas de validación
-const processDeduplicationSchema = z.object({
-  organizationId: z.string().uuid(),
-  autoMerge: z.boolean().optional(),
-  confidenceThreshold: z.number().min(0).max(1).optional(),
-  similarityThreshold: z.number().min(0).max(1).optional()
+// Validation schemas
+const contactSchema = z.object({
+  id: z.string().min(1),
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  email: z.string().email().optional(),
+  phone: z.string().optional(),
+  phoneE164: z.string().optional(),
+  company: z.string().optional(),
+  organizationId: z.string().min(1),
+  createdAt: z.string(),
+  updatedAt: z.string()
 });
 
-const executeMergeSchema = z.object({
-  mergeId: z.string(),
-  approvedBy: z.string(),
-  reason: z.string().optional()
-});
-
-const updateConfigSchema = z.object({
+const dedupeConfigSchema = z.object({
   enabled: z.boolean().optional(),
   autoMerge: z.boolean().optional(),
   confidenceThreshold: z.number().min(0).max(1).optional(),
-  similarityThreshold: z.number().min(0).max(1).optional()
+  similarityThreshold: z.number().min(0).max(1).optional(),
+  fuzzyMatching: z.boolean().optional(),
+  machineLearning: z.boolean().optional(),
+  batchSize: z.number().min(1).optional(),
+  maxProcessingTime: z.number().min(1000).optional(),
+  notificationChannels: z.array(z.string()).optional()
 });
 
-/**
- * GET /contacts-dedupe/stats
- * Obtiene estadísticas del servicio de deduplicación
- */
+const mergeOperationSchema = z.object({
+  mergeId: z.string().min(1),
+  approvedBy: z.string().min(1)
+});
+
+// GET /api/contacts-dedupe/stats
 router.get('/stats', async (req, res) => {
   try {
     const stats = contactsDedupeService.getStats();
-    
-    res.json({
-      success: true,
-      data: stats,
-      timestamp: new Date().toISOString()
-    });
+    res.json({ success: true, data: stats });
   } catch (error) {
     structuredLogger.error('Failed to get dedupe stats', {
-      error: error instanceof Error ? error.message : String(error),
+      error: (error as Error).message,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get dedupe stats',
-      message: error instanceof Error ? error.message : String(error)
-    });
+    res.status(500).json({ success: false, error: 'Failed to get stats' });
   }
 });
 
-/**
- * POST /contacts-dedupe/process
- * Inicia el proceso de deduplicación
- */
+// POST /api/contacts-dedupe/process
 router.post('/process', async (req, res) => {
   try {
-    const validatedData = processDeduplicationSchema.parse(req.body);
-    
-    // Actualizar configuración temporal si se proporciona
-    if (validatedData.autoMerge !== undefined || 
-        validatedData.confidenceThreshold !== undefined || 
-        validatedData.similarityThreshold !== undefined) {
-      contactsDedupeService.updateConfig({
-        autoMerge: validatedData.autoMerge,
-        confidenceThreshold: validatedData.confidenceThreshold,
-        similarityThreshold: validatedData.similarityThreshold
-      });
-    }
-
     const stats = await contactsDedupeService.processDeduplication();
-    
-    structuredLogger.info('Deduplication process completed', {
-      organizationId: validatedData.organizationId,
-      duplicatesFound: stats.duplicatesFound,
-      processingTime: stats.mergeOperations,
-      requestId: req.headers['x-request-id'] as string || ''
-    });
-    
-    res.json({
-      success: true,
-      data: stats,
-      message: 'Deduplication process completed successfully',
-      timestamp: new Date().toISOString()
-    });
+    res.json({ success: true, data: stats });
   } catch (error) {
     structuredLogger.error('Failed to process deduplication', {
-      error: error instanceof Error ? error.message : String(error),
+      error: (error as Error).message,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
-    res.status(500).json({
-      success: false,
-      error: 'Failed to process deduplication',
-      message: error instanceof Error ? error.message : String(error)
-    });
+    res.status(500).json({ success: false, error: 'Failed to process deduplication' });
   }
 });
 
-/**
- * GET /contacts-dedupe/duplicates
- * Obtiene duplicados encontrados
- */
-router.get('/duplicates', async (req, res) => {
+// GET /api/contacts-dedupe/contacts
+router.get('/contacts', async (req, res) => {
   try {
-    const { organizationId, limit = 100, offset = 0 } = req.query;
-    
-    if (!organizationId) {
-      return res.status(400).json({
-        success: false,
-        error: 'organizationId is required'
-      });
-    }
-
-    // En un sistema real, esto vendría de la base de datos
-    const duplicates = []; // contactsDedupeService.getDuplicates(organizationId as string, Number(limit), Number(offset));
-    
-    res.json({
-      success: true,
-      data: {
-        duplicates,
-        pagination: {
-          limit: Number(limit),
-          offset: Number(offset),
-          total: duplicates.length
-        }
-      },
-      timestamp: new Date().toISOString()
-    });
+    const contacts = await contactsDedupeService.getAllContacts();
+    res.json({ success: true, data: contacts });
   } catch (error) {
-    structuredLogger.error('Failed to get duplicates', {
-      error: error instanceof Error ? error.message : String(error),
+    structuredLogger.error('Failed to get contacts', {
+      error: (error as Error).message,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get duplicates',
-      message: error instanceof Error ? error.message : String(error)
-    });
+    res.status(500).json({ success: false, error: 'Failed to get contacts' });
   }
 });
 
-/**
- * GET /contacts-dedupe/merges/pending
- * Obtiene operaciones de merge pendientes
- */
+// POST /api/contacts-dedupe/contacts
+router.post('/contacts', async (req, res) => {
+  try {
+    const contact = contactSchema.parse(req.body);
+    await contactsDedupeService.addContact(contact);
+    res.json({ success: true, message: 'Contact added successfully' });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ success: false, error: 'Invalid contact data', details: error.errors });
+      return;
+    }
+    
+    structuredLogger.error('Failed to add contact', {
+      error: (error as Error).message,
+      requestId: req.headers['x-request-id'] as string || ''
+    });
+    res.status(500).json({ success: false, error: 'Failed to add contact' });
+  }
+});
+
+// GET /api/contacts-dedupe/contacts/:id
+router.get('/contacts/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const contact = await contactsDedupeService.getContact(id);
+    
+    if (!contact) {
+      res.status(404).json({ success: false, error: 'Contact not found' });
+      return;
+    }
+    
+    res.json({ success: true, data: contact });
+  } catch (error) {
+    structuredLogger.error('Failed to get contact', {
+      error: (error as Error).message,
+      contactId: req.params.id,
+      requestId: req.headers['x-request-id'] as string || ''
+    });
+    res.status(500).json({ success: false, error: 'Failed to get contact' });
+  }
+});
+
+// DELETE /api/contacts-dedupe/contacts/:id
+router.delete('/contacts/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await contactsDedupeService.removeContact(id);
+    res.json({ success: true, message: 'Contact removed successfully' });
+  } catch (error) {
+    structuredLogger.error('Failed to remove contact', {
+      error: (error as Error).message,
+      contactId: req.params.id,
+      requestId: req.headers['x-request-id'] as string || ''
+    });
+    res.status(500).json({ success: false, error: 'Failed to remove contact' });
+  }
+});
+
+// GET /api/contacts-dedupe/duplicates/:contactId
+router.get('/duplicates/:contactId', async (req, res) => {
+  try {
+    const { contactId } = req.params;
+    const duplicates = await contactsDedupeService.getDuplicatesForContact(contactId);
+    res.json({ success: true, data: duplicates });
+  } catch (error) {
+    structuredLogger.error('Failed to get duplicates for contact', {
+      error: (error as Error).message,
+      contactId: req.params.contactId,
+      requestId: req.headers['x-request-id'] as string || ''
+    });
+    res.status(500).json({ success: false, error: 'Failed to get duplicates' });
+  }
+});
+
+// GET /api/contacts-dedupe/merges
+router.get('/merges', async (req, res) => {
+  try {
+    const merges = await contactsDedupeService.getAllMergeOperations();
+    res.json({ success: true, data: merges });
+  } catch (error) {
+    structuredLogger.error('Failed to get merge operations', {
+      error: (error as Error).message,
+      requestId: req.headers['x-request-id'] as string || ''
+    });
+    res.status(500).json({ success: false, error: 'Failed to get merge operations' });
+  }
+});
+
+// GET /api/contacts-dedupe/merges/pending
 router.get('/merges/pending', async (req, res) => {
   try {
     const pendingMerges = contactsDedupeService.getPendingMerges();
-    
-    res.json({
-      success: true,
-      data: pendingMerges,
-      count: pendingMerges.length,
-      timestamp: new Date().toISOString()
-    });
+    res.json({ success: true, data: pendingMerges });
   } catch (error) {
     structuredLogger.error('Failed to get pending merges', {
-      error: error instanceof Error ? error.message : String(error),
+      error: (error as Error).message,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get pending merges',
-      message: error instanceof Error ? error.message : String(error)
-    });
+    res.status(500).json({ success: false, error: 'Failed to get pending merges' });
   }
 });
 
-/**
- * POST /contacts-dedupe/merges/:mergeId/execute
- * Ejecuta una operación de merge
- */
+// POST /api/contacts-dedupe/merges/:mergeId/approve
+router.post('/merges/:mergeId/approve', async (req, res) => {
+  try {
+    const { mergeId } = req.params;
+    const { approvedBy } = mergeOperationSchema.parse({ mergeId, ...req.body });
+    
+    await contactsDedupeService.approveMerge(mergeId, approvedBy);
+    res.json({ success: true, message: 'Merge operation approved' });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ success: false, error: 'Invalid request data', details: error.errors });
+      return;
+    }
+    
+    structuredLogger.error('Failed to approve merge', {
+      error: (error as Error).message,
+      mergeId: req.params.mergeId,
+      requestId: req.headers['x-request-id'] as string || ''
+    });
+    res.status(500).json({ success: false, error: 'Failed to approve merge' });
+  }
+});
+
+// POST /api/contacts-dedupe/merges/:mergeId/execute
 router.post('/merges/:mergeId/execute', async (req, res) => {
   try {
     const { mergeId } = req.params;
-    const validatedData = executeMergeSchema.parse({
-      mergeId,
-      ...req.body
-    });
+    const { approvedBy } = mergeOperationSchema.parse({ mergeId, ...req.body });
     
-    await contactsDedupeService.executeMerge(validatedData.mergeId, validatedData.approvedBy);
-    
-    structuredLogger.info('Merge operation executed', {
-      mergeId: validatedData.mergeId,
-      approvedBy: validatedData.approvedBy,
-      requestId: req.headers['x-request-id'] as string || ''
-    });
-    
-    res.json({
-      success: true,
-      message: 'Merge operation executed successfully',
-      data: {
-        mergeId: validatedData.mergeId,
-        approvedBy: validatedData.approvedBy,
-        executedAt: new Date().toISOString()
-      },
-      timestamp: new Date().toISOString()
-    });
+    await contactsDedupeService.executeMerge(mergeId, approvedBy);
+    res.json({ success: true, message: 'Merge operation executed' });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ success: false, error: 'Invalid request data', details: error.errors });
+      return;
+    }
+    
     structuredLogger.error('Failed to execute merge', {
+      error: (error as Error).message,
       mergeId: req.params.mergeId,
-      error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
-    res.status(500).json({
-      success: false,
-      error: 'Failed to execute merge',
-      message: error instanceof Error ? error.message : String(error)
-    });
+    res.status(500).json({ success: false, error: 'Failed to execute merge' });
   }
 });
 
-/**
- * GET /contacts-dedupe/merges/:mergeId
- * Obtiene detalles de una operación de merge
- */
-router.get('/merges/:mergeId', async (req, res) => {
+// POST /api/contacts-dedupe/merges/:mergeId/revert
+router.post('/merges/:mergeId/revert', async (req, res) => {
   try {
     const { mergeId } = req.params;
+    const { approvedBy } = mergeOperationSchema.parse({ mergeId, ...req.body });
     
-    // En un sistema real, esto vendría de la base de datos
-    const mergeOperation = null; // contactsDedupeService.getMergeOperation(mergeId);
-    
-    if (!mergeOperation) {
-      return res.status(404).json({
-        success: false,
-        error: 'Merge operation not found'
-      });
+    await contactsDedupeService.revertMerge(mergeId, approvedBy);
+    res.json({ success: true, message: 'Merge operation reverted' });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ success: false, error: 'Invalid request data', details: error.errors });
+      return;
     }
     
-    res.json({
-      success: true,
-      data: mergeOperation,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    structuredLogger.error('Failed to get merge operation', {
+    structuredLogger.error('Failed to revert merge', {
+      error: (error as Error).message,
       mergeId: req.params.mergeId,
-      error: error instanceof Error ? error.message : String(error),
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get merge operation',
-      message: error instanceof Error ? error.message : String(error)
-    });
+    res.status(500).json({ success: false, error: 'Failed to revert merge' });
   }
 });
 
-/**
- * GET /contacts-dedupe/audit
- * Obtiene el historial de auditoría
- */
-router.get('/audit', async (req, res) => {
-  try {
-    const { limit = 100 } = req.query;
-    
-    // En un sistema real, esto vendría de la base de datos
-    const auditTrail = []; // contactsDedupeService.getAuditTrail(Number(limit));
-    
-    res.json({
-      success: true,
-      data: auditTrail,
-      count: auditTrail.length,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    structuredLogger.error('Failed to get audit trail', {
-      error: error instanceof Error ? error.message : String(error),
-      requestId: req.headers['x-request-id'] as string || ''
-    });
-    
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get audit trail',
-      message: error instanceof Error ? error.message : String(error)
-    });
-  }
-});
-
-/**
- * PUT /contacts-dedupe/config
- * Actualiza la configuración del servicio
- */
+// PUT /api/contacts-dedupe/config
 router.put('/config', async (req, res) => {
   try {
-    const validatedData = updateConfigSchema.parse(req.body);
-    
-    contactsDedupeService.updateConfig(validatedData);
-    
-    structuredLogger.info('Dedupe configuration updated', {
-      config: validatedData,
-      requestId: req.headers['x-request-id'] as string || ''
-    });
-    
-    res.json({
-      success: true,
-      message: 'Configuration updated successfully',
-      data: validatedData,
-      timestamp: new Date().toISOString()
-    });
+    const config = dedupeConfigSchema.parse(req.body);
+    contactsDedupeService.updateConfig(config);
+    res.json({ success: true, message: 'Configuration updated successfully' });
   } catch (error) {
-    structuredLogger.error('Failed to update dedupe config', {
-      error: error instanceof Error ? error.message : String(error),
-      requestId: req.headers['x-request-id'] as string || ''
-    });
-    
-    res.status(500).json({
-      success: false,
-      error: 'Failed to update configuration',
-      message: error instanceof Error ? error.message : String(error)
-    });
-  }
-});
-
-/**
- * GET /contacts-dedupe/config
- * Obtiene la configuración actual del servicio
- */
-router.get('/config', async (req, res) => {
-  try {
-    // En un sistema real, esto vendría del servicio
-    const config = {
-      enabled: true,
-      autoMerge: false,
-      confidenceThreshold: 0.8,
-      similarityThreshold: 0.7
-    };
-    
-    res.json({
-      success: true,
-      data: config,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    structuredLogger.error('Failed to get dedupe config', {
-      error: error instanceof Error ? error.message : String(error),
-      requestId: req.headers['x-request-id'] as string || ''
-    });
-    
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get configuration',
-      message: error instanceof Error ? error.message : String(error)
-    });
-  }
-});
-
-/**
- * POST /contacts-dedupe/validate
- * Valida si dos contactos son duplicados
- */
-router.post('/validate', async (req, res) => {
-  try {
-    const { contact1, contact2 } = req.body;
-    
-    if (!contact1 || !contact2) {
-      return res.status(400).json({
-        success: false,
-        error: 'Both contact1 and contact2 are required'
-      });
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ success: false, error: 'Invalid configuration data', details: error.errors });
+      return;
     }
-
-    // En un sistema real, esto usaría el servicio de deduplicación
-    const isDuplicate = false; // contactsDedupeService.validateDuplicates(contact1, contact2);
-    const confidence = 0.0; // contactsDedupeService.calculateConfidence(contact1, contact2);
     
-    res.json({
-      success: true,
-      data: {
-        isDuplicate,
-        confidence,
-        reasons: isDuplicate ? ['Potential duplicate detected'] : []
-      },
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    structuredLogger.error('Failed to validate duplicates', {
-      error: error instanceof Error ? error.message : String(error),
+    structuredLogger.error('Failed to update configuration', {
+      error: (error as Error).message,
       requestId: req.headers['x-request-id'] as string || ''
     });
-    
-    res.status(500).json({
-      success: false,
-      error: 'Failed to validate duplicates',
-      message: error instanceof Error ? error.message : String(error)
-    });
+    res.status(500).json({ success: false, error: 'Failed to update configuration' });
   }
 });
 
-export default router;
+// GET /api/contacts-dedupe/health
+router.get('/health', async (req, res) => {
+  try {
+    const health = await contactsDedupeService.getHealthStatus();
+    res.json({ success: true, data: health });
+  } catch (error) {
+    structuredLogger.error('Failed to get health status', {
+      error: (error as Error).message,
+      requestId: req.headers['x-request-id'] as string || ''
+    });
+    res.status(500).json({ success: false, error: 'Failed to get health status' });
+  }
+});
+
+// POST /api/contacts-dedupe/import
+router.post('/import', async (req, res) => {
+  try {
+    const contacts = z.array(contactSchema).parse(req.body);
+    await contactsDedupeService.importContacts(contacts);
+    res.json({ success: true, message: `${contacts.length} contacts imported successfully` });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ success: false, error: 'Invalid contacts data', details: error.errors });
+      return;
+    }
+    
+    structuredLogger.error('Failed to import contacts', {
+      error: (error as Error).message,
+      requestId: req.headers['x-request-id'] as string || ''
+    });
+    res.status(500).json({ success: false, error: 'Failed to import contacts' });
+  }
+});
+
+// GET /api/contacts-dedupe/export
+router.get('/export', async (req, res) => {
+  try {
+    const duplicates = await contactsDedupeService.exportDuplicates();
+    res.json({ success: true, data: duplicates });
+  } catch (error) {
+    structuredLogger.error('Failed to export duplicates', {
+      error: (error as Error).message,
+      requestId: req.headers['x-request-id'] as string || ''
+    });
+    res.status(500).json({ success: false, error: 'Failed to export duplicates' });
+  }
+});
+
+// DELETE /api/contacts-dedupe/clear
+router.delete('/clear', async (req, res) => {
+  try {
+    await contactsDedupeService.clearAllData();
+    res.json({ success: true, message: 'All data cleared successfully' });
+  } catch (error) {
+    structuredLogger.error('Failed to clear data', {
+      error: (error as Error).message,
+      requestId: req.headers['x-request-id'] as string || ''
+    });
+    res.status(500).json({ success: false, error: 'Failed to clear data' });
+  }
+});
+
+export { router as contactsDedupeRoutes };

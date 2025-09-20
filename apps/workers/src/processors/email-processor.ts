@@ -72,7 +72,7 @@ export class EmailProcessor {
       logger.info('Starting email processing', { messageId, organizationId });
 
       // Fetch email from Microsoft Graph
-      const email = await this.graphService.getEmail(messageId);
+      const email = await this.graphService.getEmailById('default', messageId);
       
       if (!email) {
         throw new Error(`Email ${messageId} not found`);

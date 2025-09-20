@@ -10,7 +10,7 @@ class WebInventorySystem {
 
   constructor() {
     this.baseUrl = '/api/inventory';
-    console.log('WebInventorySystem initialized (client-side)');
+    
   }
 
   // ============================================================================

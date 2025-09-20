@@ -55,7 +55,7 @@ export class User {
     const now = new Date();
     return new User({
       ...props,
-      id: { value: crypto.randomUUID() },
+      id: crypto.randomUUID(),
       createdAt: now,
       updatedAt: now
     });
@@ -63,14 +63,14 @@ export class User {
 
   static fromPersistence(data: any): User {
     return new User({
-      id: { value: data.id },
-      organizationId: { value: data.organizationId },
-      email: { value: data.email },
-      passwordHash: { value: data.passwordHash },
+      id: data.id,
+      organizationId: data.organizationId,
+      email: data.email,
+      passwordHash: data.passwordHash,
       firstName: data.firstName,
       lastName: data.lastName,
-      role: { value: data.role },
-      status: { value: data.status },
+      role: data.role,
+      status: data.status,
       isEmailVerified: data.isEmailVerified,
       mfaEnabled: data.mfaEnabled,
       lastLoginAt: data.lastLoginAt ? new Date(data.lastLoginAt) : undefined,

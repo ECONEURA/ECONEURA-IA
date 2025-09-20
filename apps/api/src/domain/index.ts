@@ -12,6 +12,12 @@ export { Organization } from './entities/organization.entity.js';
 export { Company } from './entities/company.entity.js';
 export { Contact } from './entities/contact.entity.js';
 export { Product } from './entities/product.entity.js';
+export { Invoice } from './entities/invoice.entity.js';
+export { InventoryKardex } from './entities/inventory-kardex.entity.js';
+export { PredictiveAnalytics } from './entities/predictive-analytics.entity.js';
+export { Architecture } from './entities/architecture.entity.js';
+export { SearchResult, SearchResultBuilder } from './entities/search-result.entity.js';
+export type { SearchQuery, SearchFilters, SearchSuggestion, SearchAnalytics, SearchResultType, SearchType } from './entities/search-result.entity.js';
 
 // Value Objects
 export { Email } from './value-objects/email.vo.js';
@@ -27,6 +33,12 @@ export { OrganizationRepository } from './repositories/organization.repository.j
 export { CompanyRepository } from './repositories/company.repository.js';
 export { ContactRepository } from './repositories/contact.repository.js';
 export { ProductRepository } from './repositories/product.repository.js';
+export { InvoiceRepository } from './repositories/invoice.repository.js';
+export { InventoryKardexRepository } from './repositories/inventory-kardex.repository.js';
+export { PredictiveAnalyticsRepository } from './repositories/predictive-analytics.repository.js';
+export { ArchitectureRepository } from './repositories/architecture.repository.js';
+export { SearchRepository } from './repositories/search.repository.js';
+export type { SearchConfig } from './repositories/search.repository.js';
 
 // Domain Services
 export { UserDomainService } from './services/user.domain.service.js';
@@ -37,6 +49,10 @@ export type { OrganizationSlug, SubscriptionTier, OrganizationStatus, Organizati
 export type { CompanyId, CompanyType, CompanyStatus, CompanySize, CompanyIndustry, CompanySource, CompanySettings } from './entities/company.entity.js';
 export type { ContactId, ContactType, ContactStatus, ContactSource, ContactPriority, ContactSettings } from './entities/contact.entity.js';
 export type { ProductId, ProductType, ProductStatus, ProductCategory, ProductBrand, ProductSupplier, ProductSettings, ProductVariant } from './entities/product.entity.js';
+export type { InvoiceId, InvoiceNumber, InvoiceType, InvoiceStatus, InvoicePaymentStatus, InvoicePaymentMethod, InvoiceItem, InvoiceSettings } from './entities/invoice.entity.js';
+export type { InventoryKardexId, MovementType, MovementStatus, MovementReason, InventoryMovement, InventorySettings } from './entities/inventory-kardex.entity.js';
+export type { PredictiveAnalyticsId, AnalyticsType, AnalyticsStatus, AnalyticsModel, AnalyticsAccuracy, PredictionData, AnalyticsSettings, AnalyticsMetrics } from './entities/predictive-analytics.entity.js';
+export type { ArchitectureId, ArchitectureType, ArchitectureStatus, LayerType, ComponentType, ArchitectureComponent, ArchitectureLayer, ArchitectureSettings, ArchitectureMetrics } from './entities/architecture.entity.js';
 export type { Currency } from './value-objects/money.vo.js';
 export type { AddressProps } from './value-objects/address.vo.js';
 export type { UserFilters, PaginatedResult, UserSearchOptions } from './repositories/user.repository.js';
@@ -44,6 +60,10 @@ export type { OrganizationFilters, OrganizationSearchOptions } from './repositor
 export type { CompanyFilters, CompanySearchOptions, CompanyStats } from './repositories/company.repository.js';
 export type { ContactFilters, ContactSearchOptions, ContactStats } from './repositories/contact.repository.js';
 export type { ProductStats, InventoryStats, PricingStats, CategoryStats, BrandStats, SupplierStats } from './repositories/product.repository.js';
+export type { InvoiceFilters, InvoiceSearchOptions, InvoiceStats } from './repositories/invoice.repository.js';
+export type { InventoryKardexFilters, InventoryKardexSearchOptions, InventoryKardexStats } from './repositories/inventory-kardex.repository.js';
+export type { PredictiveAnalyticsFilters, PredictiveAnalyticsSearchOptions, PredictiveAnalyticsStats } from './repositories/predictive-analytics.repository.js';
+export type { ArchitectureFilters, ArchitectureSearchOptions, ArchitectureStats } from './repositories/architecture.repository.js';
 
 // Re-export shared utilities for convenience
 export * from '../shared/index.js';

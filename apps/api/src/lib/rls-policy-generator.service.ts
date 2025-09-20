@@ -6,7 +6,7 @@ import {
   DatabaseSchema, 
   PolicyRule,
   PolicyGenerationOptions 
-} from './rls-types';
+} from './rls-types.js';
 import { logger } from './logger.js';
 
 export class RLSPolicyGeneratorService {

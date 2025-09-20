@@ -164,23 +164,23 @@ export class UpdateProductUseCase {
     }
 
     if (request.type !== undefined) {
-      existingProduct.updateType({ value: request.type });
+      existingProduct.updateType(request.type);
     }
 
     if (request.status !== undefined) {
-      existingProduct.updateStatus({ value: request.status });
+      existingProduct.updateStatus(request.status);
     }
 
     if (request.category !== undefined) {
-      existingProduct.updateCategory({ value: request.category });
+      existingProduct.updateCategory(request.category);
     }
 
     if (request.brand !== undefined) {
-      existingProduct.updateBrand({ value: request.brand });
+      existingProduct.updateBrand(request.brand);
     }
 
     if (request.supplier !== undefined) {
-      existingProduct.updateSupplier({ value: request.supplier });
+      existingProduct.updateSupplier(request.supplier);
     }
 
     // Update settings

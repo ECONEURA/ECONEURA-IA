@@ -4,7 +4,7 @@ import {
   CostOptimization, 
   OptimizationLog,
   ResourceUtilization 
-} from './finops-types';
+} from './finops-types.js';
 import { structuredLogger } from './structured-logger.js';
 import { ErrorHandler } from './error-handler.js';
 

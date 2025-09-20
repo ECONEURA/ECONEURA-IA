@@ -185,7 +185,7 @@ export abstract class BaseController {
   // MÉTODOS DE TRANSFORMACIÓN COMUNES
   // ========================================================================
 
-  protected transformEntityToResponse<T extends { id: { value: string }; organizationId: { value: string }; createdAt: Date; updatedAt: Date }>(
+  protected transformEntityToResponse<T extends { id: string; organizationId: string; createdAt: Date; updatedAt: Date }>(
     entity: T
   ): any {
     return {
@@ -197,7 +197,7 @@ export abstract class BaseController {
     };
   }
 
-  protected transformEntityListToResponse<T extends { id: { value: string }; organizationId: { value: string }; createdAt: Date; updatedAt: Date }>(
+  protected transformEntityListToResponse<T extends { id: string; organizationId: string; createdAt: Date; updatedAt: Date }>(
     entities: T[]
   ): any[] {
     return entities.map(entity => this.transformEntityToResponse(entity));

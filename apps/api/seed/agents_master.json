@@ -1,0 +1,21 @@
+[
+  {"department":"Finanzas (CFO)","department_key":"cfo","type":"director","agent_key":"cfo_finance_orchestrator","agent_name":"Orquestador Financiero","hitl":false,"SLA_minutes":120,"make_scenario_id":"SCEN-CFO-000"},
+  {"department":"Finanzas (CFO)","department_key":"cfo","type":"agent","agent_key":"cfo_dunning","agent_name":"Dunning Inteligente","hitl":true,"SLA_minutes":120,"make_scenario_id":"SCEN-CFO-001"},
+  {"department":"Operaciones (COO)","department_key":"coo","type":"agent","agent_key":"coo_reabastecimiento","agent_name":"Reabastecimiento","hitl":true,"SLA_minutes":90,"make_scenario_id":"SCEN-COO-010"},
+  {"department":"RRHH (CHRO)","department_key":"chro","type":"agent","agent_key":"chro_onboarding","agent_name":"Paquete de Onboarding","hitl":true,"SLA_minutes":120,"make_scenario_id":"SCEN-HR-020"},
+  {"department":"Tecnología (CTO)","department_key":"cto","type":"agent","agent_key":"cto_deploy_report","agent_name":"Informe de Despliegues","hitl":false,"SLA_minutes":60,"make_scenario_id":"SCEN-CTO-030"}
+]
+[
+  {
+    "department": "Finanzas (CFO)",
+    "department_key": "cfo",
+    "type": "agent",
+    "agent_key": "cfo_dunning",
+    "agent_name": "Dunning Inteligente",
+    "hitl": true,
+    "SLA_minutes": 120,
+    "make_scenario_id": "SCENARIO-123",
+    "approval_tool": "Slack Approvals",
+    "budget_weight": 1.0
+  }
+]

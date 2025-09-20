@@ -146,3 +146,7 @@ export const SECURITY_HEADERS = {
     'Referrer-Policy': 'strict-origin-when-cross-origin',
     'Content-Security-Policy': CSP_HEADER,
 };
+
+// Ensure JS index also re-exports HMAC and idempotency helpers used by TS code
+export { hmacSign, hmacVerify, sha256Hex } from './hmac.js';
+export { getIdempotency, setIdempotency } from './idempotency.js';

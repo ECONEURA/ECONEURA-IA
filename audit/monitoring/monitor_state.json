@@ -1,0 +1,64 @@
+{
+  "timestamp": "2025-09-20T14:25:27+00:00",
+  "files": {
+    "package.json": {
+      "hash": "59f269332479eaefb6e0443c56fe95f2bc9e45501ae8413c30b0a71ebe7c0ed6",
+      "size": "2803",
+      "mtime": "2025-09-20 09:34:32"
+    }
+,
+    "pnpm-lock.yaml": {
+      "hash": "f9b97afadcd91004bf520385d4d4103db9136cfeb6c41cf8a35eb3428f5f0641",
+      "size": "65412",
+      "mtime": "2025-09-20 09:34:32"
+    }
+,
+    "tsconfig.base.json": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": "0",
+      "mtime": "2025-09-20 09:34:32"
+    }
+,
+    "apps/api/src/db/schema.prisma": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": "0",
+      "mtime": "2025-09-20 09:34:32"
+    }
+,
+    "scripts/validate_env.sh": {
+      "hash": "df5699ec1c0c4e62aeab8b17eb8cde20699979720fe9cb81b7f65f93d428436b",
+      "size": "1040",
+      "mtime": "2025-09-20 13:24:06"
+    }
+,
+    "scripts/ai.sh": {
+      "hash": "FILE_NOT_FOUND",
+      "size": "0",
+      "mtime": "FILE_NOT_FOUND"
+    }
+,
+    "dry-run-executor.sh": {
+      "hash": "7cd27174876bed5b394a96754fe2c26f9b3665bd6048ae4e715f9912b93c5e40",
+      "size": "12326",
+      "mtime": "2025-09-20 14:21:44"
+    }
+,
+    ".github/copilot-instructions.md": {
+      "hash": "38ce0c917d40175b08700e0d08ff56c758a0a30671d104b75bab50d03d9bf250",
+      "size": "4616",
+      "mtime": "2025-09-20 09:34:32"
+    }
+,
+    "README.md": {
+      "hash": "a6d66b8a8d9304733272ea5557d405482346f0a349203b518242d7d9ee52a652",
+      "size": "7296",
+      "mtime": "2025-09-20 12:30:15"
+    }
+,
+    "README.dev.md": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": "0",
+      "mtime": "2025-09-20 09:34:32"
+    }
+  }
+}

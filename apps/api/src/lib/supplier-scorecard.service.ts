@@ -42,6 +42,11 @@ interface Supplier {
     communicationScore: number; // 1-10
     innovationScore: number; // 1-10
     sustainabilityScore: number; // 1-10
+    // PR-69: Métricas específicas de vendor scorecard
+    otif: number; // On-Time In-Full percentage
+    leadTime: number; // Average lead time in days
+    ppv: number; // Purchase Price Variance percentage
+    sl: number; // Service Level percentage
   };
   riskAssessment: {
     financialRisk: 'low' | 'medium' | 'high';
@@ -112,6 +117,11 @@ interface SupplierPerformance {
     averageResponseTime: number;
     costSavings: number;
     innovationContributions: number;
+    // PR-69: Métricas específicas de vendor scorecard
+    otifRate: number; // On-Time In-Full percentage
+    averageLeadTime: number; // Average lead time in days
+    ppvRate: number; // Purchase Price Variance percentage
+    serviceLevel: number; // Service Level percentage
   };
   trends: {
     deliveryTrend: 'improving' | 'stable' | 'declining';
@@ -120,10 +130,14 @@ interface SupplierPerformance {
     overallTrend: 'improving' | 'stable' | 'declining';
   };
   alerts: {
-    type: 'performance_decline' | 'quality_issue' | 'delivery_delay' | 'cost_increase' | 'communication_issue';
+    type: 'performance_decline' | 'quality_issue' | 'delivery_delay' | 'cost_increase' | 'communication_issue' | 'otif_decline' | 'lead_time_increase' | 'ppv_variance' | 'service_level_decline';
     severity: 'low' | 'medium' | 'high' | 'critical';
     message: string;
     createdAt: string;
+    // PR-69: Alertas específicas de vendor scorecard
+    threshold?: number;
+    currentValue?: number;
+    targetValue?: number;
   }[];
   lastUpdated: string;
 }
@@ -238,7 +252,12 @@ class SupplierScorecardService {
         costCompetitiveness: 8.5,
         communicationScore: 9.0,
         innovationScore: 8.8,
-        sustainabilityScore: 8.0
+        sustainabilityScore: 8.0,
+        // PR-69: Métricas específicas de vendor scorecard
+        otif: 92.5, // On-Time In-Full percentage
+        leadTime: 7.2, // Average lead time in days
+        ppv: -2.1, // Purchase Price Variance percentage (negative = savings)
+        sl: 98.3 // Service Level percentage
       },
       riskAssessment: {
         financialRisk: 'low',
@@ -296,7 +315,12 @@ class SupplierScorecardService {
         costCompetitiveness: 9.0,
         communicationScore: 8.2,
         innovationScore: 7.5,
-        sustainabilityScore: 8.5
+        sustainabilityScore: 8.5,
+        // PR-69: Métricas específicas de vendor scorecard
+        otif: 84.2, // On-Time In-Full percentage
+        leadTime: 12.5, // Average lead time in days
+        ppv: 1.8, // Purchase Price Variance percentage (positive = over budget)
+        sl: 94.7 // Service Level percentage
       },
       riskAssessment: {
         financialRisk: 'medium',
@@ -354,7 +378,12 @@ class SupplierScorecardService {
         costCompetitiveness: 7.8,
         communicationScore: 9.2,
         innovationScore: 9.8,
-        sustainabilityScore: 10.0
+        sustainabilityScore: 10.0,
+        // PR-69: Métricas específicas de vendor scorecard
+        otif: 89.8, // On-Time In-Full percentage
+        leadTime: 5.8, // Average lead time in days
+        ppv: -3.2, // Purchase Price Variance percentage (negative = savings)
+        sl: 96.1 // Service Level percentage
       },
       riskAssessment: {
         financialRisk: 'medium',
@@ -436,7 +465,12 @@ class SupplierScorecardService {
         qualityDefectRate: 4.4,
         averageResponseTime: 4.5,
         costSavings: 5000,
-        innovationContributions: 3
+        innovationContributions: 3,
+        // PR-69: Métricas específicas de vendor scorecard
+        otifRate: 92.5, // On-Time In-Full percentage
+        averageLeadTime: 7.2, // Average lead time in days
+        ppvRate: -2.1, // Purchase Price Variance percentage
+        serviceLevel: 98.3 // Service Level percentage
       },
       trends: {
         deliveryTrend: 'stable',
@@ -706,7 +740,7 @@ class SupplierScorecardService {
     );
 
     switch (reportType) {
-      case 'performance_summary':
+      case 'performance_summary': {
         summary = {
           totalSuppliers: suppliers.length,
           evaluatedSuppliers: evaluations.length,
@@ -717,8 +751,8 @@ class SupplierScorecardService {
         };
         data = { suppliers, evaluations };
         break;
-
-      case 'scorecard_analysis':
+      }
+      case 'scorecard_analysis': {
         const scoreDistribution = suppliers.reduce((acc, s) => {
           acc[s.scorecard.grade] = (acc[s.scorecard.grade] || 0) + 1;
           return acc;
@@ -739,8 +773,8 @@ class SupplierScorecardService {
         };
         data = { scoreDistribution, riskDistribution, suppliers };
         break;
-
-      case 'risk_assessment':
+      }
+      case 'risk_assessment': {
         const riskSuppliers = suppliers.filter(s => s.riskAssessment.overallRisk === 'high' || s.riskAssessment.overallRisk === 'medium');
         summary = {
           totalSuppliers: suppliers.length,
@@ -752,6 +786,11 @@ class SupplierScorecardService {
         };
         data = { riskSuppliers, riskFactors: this.analyzeRiskFactors(suppliers) };
         break;
+      }
+      default: {
+        // handle other report types or do nothing
+        break;
+      }
     }
 
     const report: SupplierReport = {
@@ -846,6 +885,108 @@ class SupplierScorecardService {
     });
 
     return riskFactors;
+  }
+
+  // PR-69: Método para generar alertas específicas de vendor scorecard
+  async generateVendorScorecardAlerts(organizationId: string): Promise<{
+    supplierId: string;
+    supplierName: string;
+    alerts: {
+      type: 'otif_decline' | 'lead_time_increase' | 'ppv_variance' | 'service_level_decline';
+      severity: 'low' | 'medium' | 'high' | 'critical';
+      message: string;
+      threshold: number;
+      currentValue: number;
+      targetValue: number;
+      createdAt: string;
+    }[];
+  }[]> {
+    const suppliers = Array.from(this.suppliers.values())
+      .filter(s => s.organizationId === organizationId);
+    
+    const alerts: {
+      supplierId: string;
+      supplierName: string;
+      alerts: any[];
+    }[] = [];
+
+    suppliers.forEach(supplier => {
+      const supplierAlerts: any[] = [];
+      const now = new Date().toISOString();
+
+      // OTIF Alert (On-Time In-Full)
+      if (supplier.performanceMetrics.otif < 90) {
+        supplierAlerts.push({
+          type: 'otif_decline',
+          severity: supplier.performanceMetrics.otif < 80 ? 'critical' : 
+                   supplier.performanceMetrics.otif < 85 ? 'high' : 'medium',
+          message: `OTIF below target: ${supplier.performanceMetrics.otif}% (target: 90%)`,
+          threshold: 90,
+          currentValue: supplier.performanceMetrics.otif,
+          targetValue: 90,
+          createdAt: now
+        });
+      }
+
+      // Lead Time Alert
+      if (supplier.performanceMetrics.leadTime > 10) {
+        supplierAlerts.push({
+          type: 'lead_time_increase',
+          severity: supplier.performanceMetrics.leadTime > 15 ? 'critical' : 
+                   supplier.performanceMetrics.leadTime > 12 ? 'high' : 'medium',
+          message: `Lead time above target: ${supplier.performanceMetrics.leadTime} days (target: 10 days)`,
+          threshold: 10,
+          currentValue: supplier.performanceMetrics.leadTime,
+          targetValue: 10,
+          createdAt: now
+        });
+      }
+
+      // PPV Alert (Purchase Price Variance)
+      if (supplier.performanceMetrics.ppv > 5) {
+        supplierAlerts.push({
+          type: 'ppv_variance',
+          severity: supplier.performanceMetrics.ppv > 10 ? 'critical' : 
+                   supplier.performanceMetrics.ppv > 7 ? 'high' : 'medium',
+          message: `PPV above target: ${supplier.performanceMetrics.ppv}% (target: <5%)`,
+          threshold: 5,
+          currentValue: supplier.performanceMetrics.ppv,
+          targetValue: 5,
+          createdAt: now
+        });
+      }
+
+      // Service Level Alert
+      if (supplier.performanceMetrics.sl < 95) {
+        supplierAlerts.push({
+          type: 'service_level_decline',
+          severity: supplier.performanceMetrics.sl < 90 ? 'critical' : 
+                   supplier.performanceMetrics.sl < 93 ? 'high' : 'medium',
+          message: `Service level below target: ${supplier.performanceMetrics.sl}% (target: 95%)`,
+          threshold: 95,
+          currentValue: supplier.performanceMetrics.sl,
+          targetValue: 95,
+          createdAt: now
+        });
+      }
+
+      if (supplierAlerts.length > 0) {
+        alerts.push({
+          supplierId: supplier.id,
+          supplierName: supplier.name,
+          alerts: supplierAlerts
+        });
+      }
+    });
+
+    structuredLogger.info('Vendor scorecard alerts generated', { 
+      organizationId,
+      totalSuppliers: suppliers.length,
+      suppliersWithAlerts: alerts.length,
+      totalAlerts: alerts.reduce((sum, a) => sum + a.alerts.length, 0)
+    });
+
+    return alerts;
   }
 }
 

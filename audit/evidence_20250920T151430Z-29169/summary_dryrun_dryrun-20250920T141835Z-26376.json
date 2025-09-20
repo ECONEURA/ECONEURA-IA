@@ -1,0 +1,14 @@
+{
+  "trace_id": "dryrun-20250920T141835Z-26376",
+  "timestamp": "2025-09-20T14:18:35+00:00",
+  "agent_executed": "./ai.sh",
+  "mega_prompt": "mega_prompt_template.txt",
+  "environment_check": "/workspaces/ECONEURA-IA/audit/env_check_dryrun-20250920T141835Z-26376.json",
+  "ai_output_masked": "/workspaces/ECONEURA-IA/audit/ai_run_dry_dryrun-20250920T141835Z-26376_masked.json",
+  "planned_files": "/workspaces/ECONEURA-IA/audit/planned_files_dryrun-20250920T141835Z-26376.json",
+  "planned_count": 0,
+  "remote_actions": "none_detected",
+  "remote_commands_preview": "",
+  "approvals_hints": "",
+  "notes": "Review planned_files JSON and ai_output_masked before creating REVIEW_OK. No pushes were performed."
+}

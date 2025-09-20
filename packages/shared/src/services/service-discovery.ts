@@ -48,7 +48,7 @@ export class ServiceDiscovery extends EventEmitter {
     });
 
     this.emit('serviceRegistered', serviceInfo);
-    console.log(`Service registered: ${serviceInfo.name} (${serviceInfo.id})`);
+    
   }
 
   /**
@@ -60,7 +60,7 @@ export class ServiceDiscovery extends EventEmitter {
       this.services.delete(serviceId);
       this.endpoints.delete(serviceId);
       this.emit('serviceUnregistered', service);
-      console.log(`Service unregistered: ${service.name} (${serviceId})`);
+      
     }
   }
 

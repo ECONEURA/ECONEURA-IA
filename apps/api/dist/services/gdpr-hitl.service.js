@@ -1,0 +1,705 @@
+import { EventEmitter } from 'events';
+import { gdprConsolidated } from '../lib/gdpr-consolidated.service.js';
+import { hitlV2Service } from '../lib/hitl-v2.service.js';
+import { structuredLogger } from '../lib/structured-logger.js';
+export class GDPRHITLService extends EventEmitter {
+    hitlRequests = new Map();
+    decisions = new Map();
+    workflows = new Map();
+    CACHE_TTL = 300;
+    constructor() {
+        super();
+        this.initializeWorkflows();
+        this.startMonitoring();
+    }
+    async createGDPRHITLRequest(gdprRequestId, type, organizationId, assignedBy, options = {}) {
+        try {
+            const gdprRequest = await gdprConsolidated.getGDPRRequest(gdprRequestId);
+            if (!gdprRequest) {
+                throw new Error(`GDPR request ${gdprRequestId} not found`);
+            }
+            const riskLevel = this.assessRiskLevel(gdprRequest);
+            const requiresLegalReview = this.requiresLegalReview(gdprRequest, riskLevel);
+            const hitlTask = await hitlV2Service.createTask({
+                organizationId,
+                type: this.mapGDPRTypeToHITLType(type),
+                status: 'pending',
+                priority: options.priority || this.mapRiskToPriority(riskLevel),
+                title: this.generateTitle(gdprRequest, type),
+                description: this.generateDescription(gdprRequest, type, riskLevel),
+                content: this.generateContent(gdprRequest, type),
+                metadata: {
+                    gdprRequestId,
+                    type,
+                    riskLevel,
+                    requiresLegalReview,
+                    dataCategories: gdprRequest.dataCategories,
+                    ...options.metadata
+                },
+                assignedTo: options.assignedTo,
+                assignedBy,
+                slaHours: options.slaHours || this.getDefaultSLA(type, riskLevel),
+                tags: this.generateTags(gdprRequest, type, riskLevel)
+            });
+            const id = this.generateId();
+            const now = new Date().toISOString();
+            const hitlRequest = {
+                id,
+                gdprRequestId,
+                hitlTaskId: hitlTask.id,
+                type,
+                status: 'pending',
+                priority: options.priority || this.mapRiskToPriority(riskLevel),
+                title: hitlTask.title,
+                description: hitlTask.description,
+                dataCategories: gdprRequest.dataCategories,
+                riskLevel,
+                requiresLegalReview,
+                assignedTo: options.assignedTo,
+                assignedBy,
+                organizationId,
+                metadata: {
+                    originalRequest: gdprRequest,
+                    dataSummary: await this.generateDataSummary(gdprRequest),
+                    legalBasis: gdprRequest.legalBasis || 'consent',
+                    retentionPeriod: this.getRetentionPeriod(gdprRequest.dataCategories),
+                    affectedRecords: await this.estimateAffectedRecords(gdprRequest),
+                    businessImpact: this.assessBusinessImpact(gdprRequest),
+                    complianceNotes: this.generateComplianceNotes(gdprRequest),
+                    ...options.metadata
+                },
+                reviewCriteria: this.generateReviewCriteria(gdprRequest, type, riskLevel),
+                decisions: [],
+                createdAt: now,
+                updatedAt: now,
+                dueDate: options.dueDate,
+                slaHours: options.slaHours || this.getDefaultSLA(type, riskLevel)
+            };
+            this.hitlRequests.set(id, hitlRequest);
+            const workflow = this.getWorkflowForType(type);
+            if (workflow) {
+                await this.setupWorkflow(hitlRequest, workflow);
+            }
+            structuredLogger.info('GDPR HITL request created', {
+                hitlRequestId: id,
+                gdprRequestId,
+                hitlTaskId: hitlTask.id,
+                type,
+                riskLevel,
+                requiresLegalReview,
+                organizationId,
+                requestId: ''
+            });
+            this.emit('hitlRequestCreated', hitlRequest);
+            return hitlRequest;
+        }
+        catch (error) {
+            structuredLogger.error('Failed to create GDPR HITL request', error, {
+                gdprRequestId,
+                type,
+                organizationId,
+                requestId: ''
+            });
+            throw error;
+        }
+    }
+    async getGDPRHITLRequest(requestId) {
+        return this.hitlRequests.get(requestId) || null;
+    }
+    async getGDPRHITLRequests(organizationId, filters) {
+        let requests = Array.from(this.hitlRequests.values())
+            .filter(req => req.organizationId === organizationId);
+        if (filters) {
+            if (filters.type) {
+                requests = requests.filter(req => req.type === filters.type);
+            }
+            if (filters.status) {
+                requests = requests.filter(req => req.status === filters.status);
+            }
+            if (filters.priority) {
+                requests = requests.filter(req => req.priority === filters.priority);
+            }
+            if (filters.riskLevel) {
+                requests = requests.filter(req => req.riskLevel === filters.riskLevel);
+            }
+            if (filters.assignedTo) {
+                requests = requests.filter(req => req.assignedTo === filters.assignedTo);
+            }
+        }
+        return requests.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+    async makeDecision(requestId, decision, decisionBy, reasoning, options = {}) {
+        try {
+            const hitlRequest = this.hitlRequests.get(requestId);
+            if (!hitlRequest) {
+                throw new Error(`GDPR HITL request ${requestId} not found`);
+            }
+            const decisionId = this.generateId();
+            const now = new Date().toISOString();
+            const decisionRecord = {
+                id: decisionId,
+                requestId,
+                decision,
+                decisionBy,
+                decisionAt: now,
+                reasoning,
+                conditions: options.conditions,
+                riskMitigation: options.riskMitigation,
+                legalBasis: options.legalBasis || hitlRequest.metadata.legalBasis,
+                complianceNotes: options.complianceNotes || '',
+                attachments: options.attachments,
+                requiresFollowUp: options.requiresFollowUp || false,
+                followUpDate: options.followUpDate,
+                metadata: options.metadata || {}
+            };
+            this.decisions.set(decisionId, decisionRecord);
+            hitlRequest.decisions.push(decisionRecord);
+            hitlRequest.status = decision === 'approved' ? 'approved' :
+                decision === 'rejected' ? 'rejected' :
+                    decision === 'escalated' ? 'escalated' : 'in_progress';
+            hitlRequest.updatedAt = now;
+            if (decision === 'approved' || decision === 'rejected') {
+                hitlRequest.completedAt = now;
+            }
+            await hitlV2Service.updateTask(hitlRequest.hitlTaskId, {
+                status: hitlRequest.status === 'approved' ? 'approved' :
+                    hitlRequest.status === 'rejected' ? 'rejected' : 'in_progress'
+            });
+            await hitlV2Service.addComment(hitlRequest.hitlTaskId, {
+                userId: decisionBy,
+                userName: `User ${decisionBy}`,
+                content: `Decision: ${decision}\nReasoning: ${reasoning}`,
+                type: decision === 'approved' ? 'approval' : 'rejection'
+            });
+            await this.processDecision(hitlRequest, decisionRecord);
+            structuredLogger.info('GDPR HITL decision made', {
+                requestId,
+                decisionId,
+                decision,
+                decisionBy,
+                reasoning: reasoning.substring(0, 100)
+            });
+            this.emit('decisionMade', { hitlRequest, decision: decisionRecord });
+            return decisionRecord;
+        }
+        catch (error) {
+            structuredLogger.error('Failed to make GDPR HITL decision', error, {
+                requestId,
+                decision,
+                decisionBy
+            });
+            throw error;
+        }
+    }
+    async getDecisions(requestId) {
+        const hitlRequest = this.hitlRequests.get(requestId);
+        return hitlRequest ? hitlRequest.decisions : [];
+    }
+    async createWorkflow(workflowData) {
+        const id = this.generateId();
+        const now = new Date().toISOString();
+        const workflow = {
+            ...workflowData,
+            id,
+            createdAt: now,
+            updatedAt: now
+        };
+        this.workflows.set(id, workflow);
+        structuredLogger.info('GDPR HITL workflow created', {
+            workflowId: id,
+            name: workflow.name,
+            type: workflow.type,
+            steps: workflow.steps.length,
+            requestId: ''
+        });
+        return workflow;
+    }
+    async getWorkflow(workflowId) {
+        return this.workflows.get(workflowId) || null;
+    }
+    async getWorkflows(type) {
+        let workflows = Array.from(this.workflows.values());
+        if (type) {
+            workflows = workflows.filter(w => w.type === type);
+        }
+        return workflows.filter(w => w.isActive)
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+    async getStats(organizationId) {
+        const requests = Array.from(this.hitlRequests.values())
+            .filter(req => req.organizationId === organizationId);
+        const now = new Date();
+        const overdueRequests = requests.filter(req => {
+            if (req.status === 'approved' || req.status === 'rejected')
+                return false;
+            const createdAt = new Date(req.createdAt);
+            const hoursElapsed = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+            return hoursElapsed > req.slaHours;
+        }).length;
+        const completedRequests = requests.filter(req => req.status === 'approved' || req.status === 'rejected');
+        const averageProcessingTime = completedRequests.length > 0
+            ? completedRequests.reduce((sum, req) => {
+                const createdAt = new Date(req.createdAt);
+                const completedAt = new Date(req.completedAt);
+                return sum + (completedAt.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+            }, 0) / completedRequests.length
+            : 0;
+        const slaCompliance = requests.length > 0
+            ? ((requests.length - overdueRequests) / requests.length) * 100
+            : 100;
+        const requestsByType = requests.reduce((acc, req) => {
+            acc[req.type] = (acc[req.type] || 0) + 1;
+            return acc;
+        }, {});
+        const requestsByRiskLevel = requests.reduce((acc, req) => {
+            acc[req.riskLevel] = (acc[req.riskLevel] || 0) + 1;
+            return acc;
+        }, {});
+        const requestsByAssignee = requests.reduce((acc, req) => {
+            if (req.assignedTo) {
+                acc[req.assignedTo] = (acc[req.assignedTo] || 0) + 1;
+            }
+            return acc;
+        }, {});
+        const decisionsByType = Array.from(this.decisions.values()).reduce((acc, decision) => {
+            acc[decision.decision] = (acc[decision.decision] || 0) + 1;
+            return acc;
+        }, {});
+        return {
+            totalRequests: requests.length,
+            pendingRequests: requests.filter(r => r.status === 'pending').length,
+            approvedRequests: requests.filter(r => r.status === 'approved').length,
+            rejectedRequests: requests.filter(r => r.status === 'rejected').length,
+            escalatedRequests: requests.filter(r => r.status === 'escalated').length,
+            averageProcessingTime: Math.round(averageProcessingTime * 100) / 100,
+            slaCompliance: Math.round(slaCompliance * 100) / 100,
+            requestsByType,
+            requestsByRiskLevel,
+            requestsByAssignee,
+            decisionsByType
+        };
+    }
+    initializeWorkflows() {
+        const exportWorkflow = {
+            id: 'default-export-workflow',
+            name: 'Default Export Workflow',
+            description: 'Standard workflow for GDPR data export requests',
+            type: 'export',
+            steps: [
+                {
+                    id: 'data-review',
+                    name: 'Data Review',
+                    type: 'data_review',
+                    assignedRole: 'data_analyst',
+                    isRequired: true,
+                    order: 1,
+                    criteria: ['Verify data categories', 'Check data completeness', 'Assess data quality'],
+                    slaHours: 24
+                },
+                {
+                    id: 'legal-review',
+                    name: 'Legal Review',
+                    type: 'legal_review',
+                    assignedRole: 'legal_counsel',
+                    isRequired: true,
+                    order: 2,
+                    criteria: ['Verify legal basis', 'Check retention requirements', 'Assess privacy impact'],
+                    escalationConditions: ['High risk data', 'Legal basis unclear'],
+                    slaHours: 48
+                },
+                {
+                    id: 'final-approval',
+                    name: 'Final Approval',
+                    type: 'final_approval',
+                    assignedRole: 'data_protection_officer',
+                    isRequired: true,
+                    order: 3,
+                    criteria: ['Overall compliance check', 'Risk assessment', 'Business justification'],
+                    slaHours: 12
+                }
+            ],
+            autoApprovalThreshold: 0.7,
+            escalationRules: [
+                {
+                    id: 'high-risk-escalation',
+                    condition: 'riskLevel === "high" || riskLevel === "critical"',
+                    escalationLevel: 1,
+                    assignedRole: 'senior_legal_counsel',
+                    slaHours: 24,
+                    notificationChannels: ['email', 'slack']
+                }
+            ],
+            slaHours: 72,
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        const eraseWorkflow = {
+            id: 'default-erase-workflow',
+            name: 'Default Erase Workflow',
+            description: 'Standard workflow for GDPR data erase requests',
+            type: 'erase',
+            steps: [
+                {
+                    id: 'data-identification',
+                    name: 'Data Identification',
+                    type: 'data_review',
+                    assignedRole: 'data_analyst',
+                    isRequired: true,
+                    order: 1,
+                    criteria: ['Identify all data locations', 'Check for backups', 'Verify data dependencies'],
+                    slaHours: 24
+                },
+                {
+                    id: 'legal-hold-check',
+                    name: 'Legal Hold Check',
+                    type: 'legal_review',
+                    assignedRole: 'legal_counsel',
+                    isRequired: true,
+                    order: 2,
+                    criteria: ['Check active legal holds', 'Verify retention requirements', 'Assess legal obligations'],
+                    escalationConditions: ['Active legal holds found', 'Retention requirements conflict'],
+                    slaHours: 48
+                },
+                {
+                    id: 'business-impact',
+                    name: 'Business Impact Assessment',
+                    type: 'business_approval',
+                    assignedRole: 'business_owner',
+                    isRequired: true,
+                    order: 3,
+                    criteria: ['Assess business impact', 'Check system dependencies', 'Plan mitigation'],
+                    slaHours: 24
+                },
+                {
+                    id: 'final-approval',
+                    name: 'Final Approval',
+                    type: 'final_approval',
+                    assignedRole: 'data_protection_officer',
+                    isRequired: true,
+                    order: 4,
+                    criteria: ['Final compliance check', 'Risk mitigation review', 'Approval decision'],
+                    slaHours: 12
+                }
+            ],
+            autoApprovalThreshold: 0.8,
+            escalationRules: [
+                {
+                    id: 'legal-hold-escalation',
+                    condition: 'activeLegalHolds.length > 0',
+                    escalationLevel: 1,
+                    assignedRole: 'senior_legal_counsel',
+                    slaHours: 12,
+                    notificationChannels: ['email', 'phone']
+                }
+            ],
+            slaHours: 96,
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        this.workflows.set(exportWorkflow.id, exportWorkflow);
+        this.workflows.set(eraseWorkflow.id, eraseWorkflow);
+    }
+    startMonitoring() {
+        setInterval(() => {
+            this.checkSLACompliance();
+        }, 60 * 60 * 1000);
+    }
+    checkSLACompliance() {
+        const now = new Date();
+        let overdueCount = 0;
+        for (const request of this.hitlRequests.values()) {
+            if (request.status === 'pending' || request.status === 'in_progress') {
+                const createdAt = new Date(request.createdAt);
+                const hoursElapsed = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+                if (hoursElapsed > request.slaHours) {
+                    overdueCount++;
+                    this.emit('slaOverdue', request);
+                    structuredLogger.warn('GDPR HITL request SLA overdue', {
+                        requestId: request.id,
+                        gdprRequestId: request.gdprRequestId,
+                        title: request.title,
+                        slaHours: request.slaHours,
+                        hoursElapsed: Math.round(hoursElapsed),
+                    });
+                }
+            }
+        }
+        if (overdueCount > 0) {
+            structuredLogger.warn('GDPR HITL SLA compliance check', {
+                overdueRequests: overdueCount,
+                totalRequests: this.hitlRequests.size,
+            });
+        }
+    }
+    assessRiskLevel(gdprRequest) {
+        const highRiskCategories = ['financial_data', 'sepa_transactions', 'audit_logs'];
+        const mediumRiskCategories = ['personal_info', 'crm_data'];
+        const hasHighRisk = gdprRequest.dataCategories.some(cat => highRiskCategories.includes(cat));
+        const hasMediumRisk = gdprRequest.dataCategories.some(cat => mediumRiskCategories.includes(cat));
+        if (hasHighRisk)
+            return 'high';
+        if (hasMediumRisk)
+            return 'medium';
+        return 'low';
+    }
+    requiresLegalReview(gdprRequest, riskLevel) {
+        return riskLevel === 'high' ||
+            riskLevel === 'critical' ||
+            gdprRequest.type === 'erase' ||
+            gdprRequest.dataCategories.includes('financial_data') ||
+            gdprRequest.dataCategories.includes('sepa_transactions');
+    }
+    mapGDPRTypeToHITLType(type) {
+        switch (type) {
+            case 'export_approval':
+            case 'erase_approval':
+                return 'approval';
+            case 'data_review':
+                return 'review';
+            case 'legal_hold_review':
+                return 'review';
+            default:
+                return 'review';
+        }
+    }
+    mapRiskToPriority(riskLevel) {
+        switch (riskLevel) {
+            case 'critical': return 'urgent';
+            case 'high': return 'high';
+            case 'medium': return 'normal';
+            case 'low': return 'low';
+            default: return 'normal';
+        }
+    }
+    generateTitle(gdprRequest, type) {
+        const typeMap = {
+            'export_approval': 'Export Approval',
+            'erase_approval': 'Erase Approval',
+            'data_review': 'Data Review',
+            'legal_hold_review': 'Legal Hold Review'
+        };
+        return `${typeMap[type]} - ${gdprRequest.type.toUpperCase()} Request for User ${gdprRequest.userId}`;
+    }
+    generateDescription(gdprRequest, type, riskLevel) {
+        return `GDPR ${type.replace('_', ' ')} request for user ${gdprRequest.userId}. ` +
+            `Data categories: ${gdprRequest.dataCategories.join(', ')}. ` +
+            `Risk level: ${riskLevel}. ` +
+            `Legal basis: ${gdprRequest.legalBasis || 'consent'}. ` +
+            `Reason: ${gdprRequest.reason || 'Not specified'}.`;
+    }
+    generateContent(gdprRequest, type) {
+        return JSON.stringify({
+            gdprRequest: {
+                id: gdprRequest.id,
+                type: gdprRequest.type,
+                userId: gdprRequest.userId,
+                dataCategories: gdprRequest.dataCategories,
+                legalBasis: gdprRequest.legalBasis,
+                reason: gdprRequest.reason,
+                priority: gdprRequest.priority,
+                scope: gdprRequest.scope
+            },
+            requestType: type,
+            timestamp: new Date().toISOString()
+        }, null, 2);
+    }
+    generateTags(gdprRequest, type, riskLevel) {
+        return [
+            'gdpr',
+            gdprRequest.type,
+            type,
+            riskLevel,
+            ...gdprRequest.dataCategories
+        ];
+    }
+    async generateDataSummary(gdprRequest) {
+        return {
+            userId: gdprRequest.userId,
+            dataCategories: gdprRequest.dataCategories,
+            estimatedRecords: await this.estimateAffectedRecords(gdprRequest),
+            dataTypes: gdprRequest.dataCategories.map(cat => this.getDataCategoryInfo(cat)),
+            lastUpdated: new Date().toISOString()
+        };
+    }
+    getRetentionPeriod(dataCategories) {
+        const maxRetention = Math.max(...dataCategories.map(cat => {
+            switch (cat) {
+                case 'financial_data':
+                case 'sepa_transactions':
+                    return 3650;
+                case 'audit_logs':
+                    return 2555;
+                case 'personal_info':
+                case 'crm_data':
+                    return 1095;
+                default:
+                    return 365;
+            }
+        }));
+        return maxRetention;
+    }
+    async estimateAffectedRecords(gdprRequest) {
+        let totalRecords = 0;
+        for (const category of gdprRequest.dataCategories) {
+            switch (category) {
+                case 'personal_info':
+                    totalRecords += Math.floor(Math.random() * 10) + 1;
+                    break;
+                case 'financial_data':
+                    totalRecords += Math.floor(Math.random() * 50) + 1;
+                    break;
+                case 'sepa_transactions':
+                    totalRecords += Math.floor(Math.random() * 100) + 1;
+                    break;
+                case 'crm_data':
+                    totalRecords += Math.floor(Math.random() * 20) + 1;
+                    break;
+                case 'audit_logs':
+                    totalRecords += Math.floor(Math.random() * 200) + 1;
+                    break;
+                default:
+                    totalRecords += Math.floor(Math.random() * 5) + 1;
+            }
+        }
+        return totalRecords;
+    }
+    assessBusinessImpact(gdprRequest) {
+        if (gdprRequest.type === 'erase') {
+            return 'High - Data erasure may affect business operations and analytics';
+        }
+        else if (gdprRequest.dataCategories.includes('financial_data')) {
+            return 'Medium - Financial data export may contain sensitive information';
+        }
+        else {
+            return 'Low - Standard data export with minimal business impact';
+        }
+    }
+    generateComplianceNotes(gdprRequest) {
+        const notes = [];
+        if (gdprRequest.dataCategories.includes('financial_data')) {
+            notes.push('Financial data subject to banking regulations');
+        }
+        if (gdprRequest.dataCategories.includes('sepa_transactions')) {
+            notes.push('SEPA transactions subject to EU payment regulations');
+        }
+        if (gdprRequest.type === 'erase') {
+            notes.push('Verify no active legal holds before erasure');
+        }
+        return notes.join('; ') || 'Standard GDPR compliance requirements apply';
+    }
+    generateReviewCriteria(gdprRequest, type, riskLevel) {
+        return {
+            dataSensitivity: gdprRequest.dataCategories,
+            legalRequirements: this.getLegalRequirements(gdprRequest),
+            businessJustification: gdprRequest.reason || 'Not provided',
+            technicalFeasibility: 'To be assessed by technical team',
+            riskAssessment: `Risk level: ${riskLevel}`
+        };
+    }
+    getLegalRequirements(gdprRequest) {
+        const requirements = ['GDPR Article 15 (Right of access)', 'GDPR Article 17 (Right to erasure)'];
+        if (gdprRequest.dataCategories.includes('financial_data')) {
+            requirements.push('EU Banking Regulation', 'PCI DSS compliance');
+        }
+        if (gdprRequest.dataCategories.includes('sepa_transactions')) {
+            requirements.push('SEPA Regulation', 'PSD2 compliance');
+        }
+        return requirements;
+    }
+    getDataCategoryInfo(category) {
+        const categoryMap = {
+            'personal_info': 'Basic personal information',
+            'financial_data': 'Financial account and transaction data',
+            'sepa_transactions': 'SEPA payment transactions',
+            'crm_data': 'Customer relationship management data',
+            'audit_logs': 'System access and operation logs'
+        };
+        return categoryMap[category] || 'Unknown data category';
+    }
+    getDefaultSLA(type, riskLevel) {
+        const baseSLA = {
+            'export_approval': 48,
+            'erase_approval': 72,
+            'data_review': 24,
+            'legal_hold_review': 12
+        };
+        const riskMultiplier = {
+            'low': 1,
+            'medium': 1.2,
+            'high': 1.5,
+            'critical': 2
+        };
+        return Math.round(baseSLA[type] * riskMultiplier[riskLevel]);
+    }
+    getWorkflowForType(type) {
+        const workflowType = type.includes('export') ? 'export' :
+            type.includes('erase') ? 'erase' : 'data_review';
+        return Array.from(this.workflows.values())
+            .find(w => w.type === workflowType && w.isActive) || null;
+    }
+    async setupWorkflow(hitlRequest, workflow) {
+        const workflowSteps = workflow.steps.map(step => ({
+            id: step.id,
+            name: step.name,
+            type: step.type,
+            assignedTo: undefined,
+            assignedBy: hitlRequest.assignedBy,
+            status: 'pending',
+            order: step.order,
+            comments: '',
+            dueDate: new Date(Date.now() + step.slaHours * 60 * 60 * 1000).toISOString()
+        }));
+        await hitlV2Service.updateTask(hitlRequest.hitlTaskId, {
+            workflow: workflowSteps,
+            currentStep: 0
+        });
+    }
+    async processDecision(hitlRequest, decision) {
+        try {
+            if (decision.decision === 'approved') {
+                const gdprRequest = hitlRequest.metadata.originalRequest;
+                if (gdprRequest.type === 'export') {
+                    structuredLogger.info('GDPR export approved via HITL', {
+                        gdprRequestId: gdprRequest.id,
+                        hitlRequestId: hitlRequest.id,
+                        requestId: ''
+                    });
+                }
+                else if (gdprRequest.type === 'erase') {
+                    structuredLogger.info('GDPR erase approved via HITL', {
+                        gdprRequestId: gdprRequest.id,
+                        hitlRequestId: hitlRequest.id,
+                        requestId: ''
+                    });
+                }
+            }
+            else if (decision.decision === 'rejected') {
+                await gdprConsolidated.updateGDPRRequestStatus(hitlRequest.gdprRequestId, 'failed', decision.decisionBy, {
+                    reason: 'Rejected by HITL review',
+                    hitlRequestId: hitlRequest.id,
+                    decisionReasoning: decision.reasoning
+                });
+                structuredLogger.info('GDPR request rejected via HITL', {
+                    gdprRequestId: hitlRequest.gdprRequestId,
+                    hitlRequestId: hitlRequest.id,
+                    reason: decision.reasoning,
+                    requestId: ''
+                });
+            }
+        }
+        catch (error) {
+            structuredLogger.error('Failed to process HITL decision', error, {
+                hitlRequestId: hitlRequest.id,
+                decision: decision.decision,
+                requestId: ''
+            });
+        }
+    }
+    generateId() {
+        return `gdpr_hitl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+}
+export const gdprHITLService = new GDPRHITLService();
+//# sourceMappingURL=gdpr-hitl.service.js.map

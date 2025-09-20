@@ -1,0 +1,42 @@
+import { Request, Response, NextFunction } from 'express';
+import { ContactRepository } from '../../domain/repositories/contact.repository.js';
+export declare class ContactController {
+    private contactRepository;
+    private createContactUseCase;
+    private updateContactUseCase;
+    constructor(contactRepository: ContactRepository);
+    createContact(req: Request, res: Response, next: NextFunction): Promise<void>;
+    updateContact(req: Request, res: Response, next: NextFunction): Promise<void>;
+    deleteContact(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getContactById(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getContactsByOrganization(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getContactsByCompany(req: Request, res: Response, next: NextFunction): Promise<void>;
+    searchContacts(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getContactStats(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getContactsByType(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getContactsByStatus(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getContactsByDepartment(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getContactsByIndustry(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getContactsByAssignedUser(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getOverdueForFollowUp(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getScheduledForFollowUp(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getHighScoreLeads(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getMediumScoreLeads(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getLowScoreLeads(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getHighlyEngagedContacts(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getModeratelyEngagedContacts(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getLowEngagedContacts(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getContactsWithBirthdayToday(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getContactsWithBirthdayThisWeek(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getContactsWithBirthdayThisMonth(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getContactsWithAnniversaryToday(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getContactsWithAnniversaryThisWeek(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getContactsWithAnniversaryThisMonth(req: Request, res: Response, next: NextFunction): Promise<void>;
+    bulkUpdateContacts(req: Request, res: Response, next: NextFunction): Promise<void>;
+    bulkDeleteContacts(req: Request, res: Response, next: NextFunction): Promise<void>;
+    private calculateContactStats;
+    private isToday;
+    private isThisWeek;
+    private isThisMonth;
+}
+//# sourceMappingURL=contact.controller.d.ts.map

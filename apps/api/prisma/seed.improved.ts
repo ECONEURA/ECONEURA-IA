@@ -1,7 +1,8 @@
 // import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import { getPrisma } from '@econeura/db/client.lazy'
 
-const prisma = new PrismaClient()
+const prisma = getPrisma()
 
 // Utility to create or update records
 async function upsertRecord<T>(
@@ -28,7 +29,7 @@ async function upsertRecord<T>(
 
 async function seed() {
   console.log('🌱 Starting idempotent seed...')
-  
+
   try {
     // 1. Create Organizations
     console.log('\n📦 Seeding Organizations...')
@@ -108,7 +109,7 @@ async function seed() {
       for (const roleName of roles) {
         const role = await upsertRecord(
           prisma.role,
-          { 
+          {
             organizationId: org.id,
             name: roleName
           },
@@ -130,7 +131,7 @@ async function seed() {
     // 3. Create Users
     console.log('\n👤 Seeding Users...')
     const hashedPassword = await bcrypt.hash('Demo1234!', 10)
-    
+
     const users = [
       // EcoRetail users
       { email: 'admin@ecoretail.com', name: 'Admin User', org: org1, role: 'admin' },
@@ -172,7 +173,7 @@ async function seed() {
     for (let i = 1; i <= 20; i++) {
       const company = await upsertRecord(
         prisma.company,
-        { 
+        {
           orgId: org1.id,
           name: `Company ${i}`
         },
@@ -538,7 +539,7 @@ async function seed() {
     }
 
     console.log('\n✅ Seed completed successfully!')
-    
+
     // Print summary
     console.log('\n📊 Summary:')
     console.log('- Organizations: 2')
@@ -552,7 +553,7 @@ async function seed() {
     console.log('- Purchase Orders: 15')
     console.log('- Invoices: 30')
     console.log('- Activities: 50')
-    
+
     console.log('\n🔑 Login credentials:')
     console.log('Email: admin@ecoretail.com')
     console.log('Password: Demo1234!')

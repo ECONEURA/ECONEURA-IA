@@ -86,7 +86,7 @@ class ApiClient {
    */
   private getOrgId(): string | null {
     if (typeof window === 'undefined') return null
-    
+
     try {
       const user = localStorage.getItem('econeura_user')
       if (user) {
@@ -96,7 +96,7 @@ class ApiClient {
     } catch (error) {
       console.error('Error getting org ID:', error)
     }
-    
+
     return null
   }
 
@@ -105,7 +105,7 @@ class ApiClient {
    */
   private getAuthToken(): string | null {
     if (typeof window === 'undefined') return null
-    
+
     try {
       return localStorage.getItem('econeura_token')
     } catch (error) {
@@ -128,10 +128,10 @@ class ApiClient {
 
     // Show error message
     const message = errorData?.detail || errorData?.title || error.message || 'API Error'
-    
-    if (status && status >= 500) {
+
+  if (typeof status === 'number' && status >= 500) {
       toast.error(`Server Error: ${message}`)
-    } else if (status && status >= 400) {
+  } else if (typeof status === 'number' && status >= 400) {
       toast.error(message)
     } else {
       toast.error('Network Error')
@@ -310,3 +310,6 @@ class ApiClient {
 
 // Export singleton instance
 export const apiClient = new ApiClient()
+
+// Export types
+// Types are already declared above; consumers can import from this module directly

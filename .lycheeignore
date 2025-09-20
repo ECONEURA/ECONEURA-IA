@@ -1,0 +1,26 @@
+# URLs locales que no deben ser verificadas
+localhost:*
+127.0.0.1:*
+*.local
+*.dev
+
+# URLs de desarrollo
+http://localhost:3000
+http://localhost:3001
+http://localhost:8080
+
+# URLs de staging que pueden no estar disponibles
+https://staging.econeura.com
+https://dev.econeura.com
+
+# URLs de Azure que requieren autenticación
+https://*.azurewebsites.net
+https://*.azurecontainerapps.io
+
+# URLs de GitHub que pueden cambiar
+https://github.com/ECONEURA/ECONEURA-IA/issues/*
+https://github.com/ECONEURA/ECONEURA-IA/pull/*
+
+# URLs de documentación externa
+https://docs.microsoft.com/*
+https://learn.microsoft.com/*

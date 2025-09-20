@@ -1,9 +1,9 @@
 import { EventEmitter } from 'events';
 import { z } from 'zod';
-import { logger } from './logger';
-import { metrics } from './metrics';
-import { tracing } from './tracing';
-import { finOpsSystem } from './finops';
+import { logger } from './logger.js';
+import { metrics } from './metrics.js';
+import { tracing } from './tracing.js';
+import { finOpsSystem } from './finops.js';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 

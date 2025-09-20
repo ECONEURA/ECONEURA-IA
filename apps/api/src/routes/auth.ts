@@ -3,14 +3,16 @@ import { z } from 'zod';
 import { Request, Response } from 'express';
 import { structuredLogger } from '../lib/structured-logger.js';
 import { authService } from '../lib/auth.service.js';
+import type { LoginRequest } from '../lib/auth.service.js';
 import { rbacService } from '../lib/rbac.service.js';
-import { authenticateToken, optionalAuth } from '../middleware/auth.js';
+import { authenticateToken } from '../middleware/auth.js';
+import { getDatabaseService } from '../lib/database.service.js';
 
 // ============================================================================
 // AUTHENTICATION ROUTES
 // ============================================================================
 
-const router = Router();
+const router: import('express').Router = Router();
 
 // Validation schemas
 const loginSchema = z.object({
@@ -68,7 +70,16 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
     const loginData = validation.data;
 
     // Perform login
-    const loginResult = await authService.login(loginData);
+    if (!loginData.email) {
+      res.status(400).json({
+        error: 'Validation error',
+        message: 'Email is required',
+        requestId,
+        timestamp: new Date().toISOString()
+      });
+      return;
+    }
+    const loginResult = await authService.login(loginData as LoginRequest);
 
     const processingTime = Date.now() - startTime;
 
@@ -92,15 +103,12 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
     structuredLogger.error('Login failed', {
-      error: errorMessage,
-      requestId,
-      email: req.body.email,
-      processingTime
+  message: errorMessage
     });
 
     res.status(401).json({
-      error: 'Login failed',
-      message: errorMessage,
+  error: 'Login failed',
+  message: errorMessage,
       requestId,
       timestamp: new Date().toISOString()
     });
@@ -149,14 +157,12 @@ router.post('/refresh', async (req: Request, res: Response): Promise<void> => {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
     structuredLogger.error('Token refresh failed', {
-      error: errorMessage,
-      requestId,
-      processingTime
+  message: errorMessage
     });
 
     res.status(401).json({
-      error: 'Token refresh failed',
-      message: errorMessage,
+  error: 'Token refresh failed',
+  message: errorMessage,
       requestId,
       timestamp: new Date().toISOString()
     });
@@ -218,15 +224,12 @@ router.post('/logout', authenticateToken, async (req: Request, res: Response): P
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
     structuredLogger.error('Logout failed', {
-      error: errorMessage,
-      requestId,
-      userId: req.user?.id,
-      processingTime
+  message: errorMessage
     });
 
     res.status(500).json({
-      error: 'Logout failed',
-      message: errorMessage,
+  error: 'Logout failed',
+  message: errorMessage,
       requestId,
       timestamp: new Date().toISOString()
     });
@@ -272,15 +275,12 @@ router.post('/logout-all', authenticateToken, async (req: Request, res: Response
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
     structuredLogger.error('Logout all failed', {
-      error: errorMessage,
-      requestId,
-      userId: req.user?.id,
-      processingTime
+  message: errorMessage
     });
 
     res.status(500).json({
-      error: 'Logout all failed',
-      message: errorMessage,
+  error: 'Logout all failed',
+  message: errorMessage,
       requestId,
       timestamp: new Date().toISOString()
     });
@@ -350,15 +350,12 @@ router.post('/api-keys', authenticateToken, async (req: Request, res: Response):
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
     structuredLogger.error('API key creation failed', {
-      error: errorMessage,
-      requestId,
-      userId: req.user?.id,
-      processingTime
+  message: errorMessage
     });
 
     res.status(500).json({
-      error: 'API key creation failed',
-      message: errorMessage,
+  error: 'API key creation failed',
+  message: errorMessage,
       requestId,
       timestamp: new Date().toISOString()
     });
@@ -407,15 +404,12 @@ router.get('/me', authenticateToken, async (req: Request, res: Response): Promis
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
     structuredLogger.error('Get user info failed', {
-      error: errorMessage,
-      requestId,
-      userId: req.user?.id,
-      processingTime
+  message: errorMessage
     });
 
     res.status(500).json({
-      error: 'Get user info failed',
-      message: errorMessage,
+  error: 'Get user info failed',
+  message: errorMessage,
       requestId,
       timestamp: new Date().toISOString()
     });
@@ -464,15 +458,12 @@ router.get('/permissions', authenticateToken, async (req: Request, res: Response
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
     structuredLogger.error('Get permissions failed', {
-      error: errorMessage,
-      requestId,
-      userId: req.user?.id,
-      processingTime
+  message: errorMessage
     });
 
     res.status(500).json({
-      error: 'Get permissions failed',
-      message: errorMessage,
+  error: 'Get permissions failed',
+  message: errorMessage,
       requestId,
       timestamp: new Date().toISOString()
     });
@@ -513,12 +504,73 @@ router.post('/change-password', authenticateToken, async (req: Request, res: Res
 
     const { currentPassword, newPassword } = validation.data;
 
-    // TODO: Implement password change logic
-    // This would involve:
-    // 1. Verify current password
-    // 2. Hash new password
-    // 3. Update user password in database
-    // 4. Invalidate all existing sessions (optional)
+    // Password change implementation
+    try {
+      const prisma = getDatabaseService();
+      
+      // 1. Get user from database
+  const user = await prisma.user.findUnique({
+        where: { id: req.user!.id }
+      });
+
+      if (!user) {
+        res.status(404).json({
+          success: false,
+          error: {
+            code: 'USER_NOT_FOUND',
+            message: 'User not found'
+          }
+        });
+        return;
+      }
+
+      // 2. Verify current password
+      const bcrypt = await import('bcrypt');
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
+      
+      if (!isCurrentPasswordValid) {
+        res.status(400).json({
+          success: false,
+          error: {
+            code: 'INVALID_CURRENT_PASSWORD',
+            message: 'Current password is incorrect'
+          }
+        });
+        return;
+      }
+
+      // 3. Hash new password
+      const saltRounds = 12;
+      const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
+
+      // 4. Update user password in database
+  await prisma.user.update({
+        where: { id: req.user!.id },
+        data: { 
+          passwordHash: newPasswordHash,
+          passwordChangedAt: new Date()
+        }
+      });
+
+      // 5. Optionally invalidate all existing sessions
+      // This could be implemented by updating a tokenVersion field
+      // or maintaining a blacklist of tokens
+
+    } catch (error) {
+      structuredLogger.error('Password change failed', {
+        userId: req.user!.id,
+        error: error.message
+      });
+      
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'PASSWORD_CHANGE_FAILED',
+          message: 'Failed to change password'
+        }
+      });
+      return;
+    }
 
     const processingTime = Date.now() - startTime;
 
@@ -540,15 +592,12 @@ router.post('/change-password', authenticateToken, async (req: Request, res: Res
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
     structuredLogger.error('Password change failed', {
-      error: errorMessage,
-      requestId,
-      userId: req.user?.id,
-      processingTime
+  message: errorMessage
     });
 
     res.status(500).json({
-      error: 'Password change failed',
-      message: errorMessage,
+  error: 'Password change failed',
+  message: errorMessage,
       requestId,
       timestamp: new Date().toISOString()
     });
@@ -560,7 +609,7 @@ router.post('/change-password', authenticateToken, async (req: Request, res: Res
 // ============================================================================
 
 // GET /auth/health - Auth service health check
-router.get('/health', optionalAuth, async (req: Request, res: Response): Promise<void> => {
+router.get('/health', async (req: Request, res: Response): Promise<void> => {
   const startTime = Date.now();
   const requestId = req.headers['x-request-id'] as string || `req_${Date.now()}`;
 
@@ -586,14 +635,12 @@ router.get('/health', optionalAuth, async (req: Request, res: Response): Promise
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
     structuredLogger.error('Auth health check failed', {
-      error: errorMessage,
-      requestId,
-      processingTime
+  message: errorMessage
     });
 
     res.status(500).json({
-      error: 'Auth health check failed',
-      message: errorMessage,
+  error: 'Auth health check failed',
+  message: errorMessage,
       requestId,
       timestamp: new Date().toISOString()
     });

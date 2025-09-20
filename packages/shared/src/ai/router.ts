@@ -1,6 +1,16 @@
-import { logger } from '../logging/index';
-import { redactPII } from '../security/index';
-import type { AIRequest, AIResponse } from '../types/index';
+import { logger } from '../logging.js';
+import { redactPII } from '../security.js';
+import type { AIRequest, AIResponse } from '../types/models/ai.js';
+
+// Router expects additional fields; extend locally to avoid changing shared model now
+type RouterAIRequest = AIRequest & {
+  org_id: string
+  sensitivity?: 'pii' | 'confidential' | 'none'
+  tokens_est: number
+  budget_cents: number
+  tools_needed: string[]
+  languages: string[]
+}
 
 export interface RouterDecision {
   provider: 'mistral-edge' | 'openai-cloud' | 'azure-openai';
@@ -32,21 +42,22 @@ export class AIRouter {
    * Routes AI request to appropriate provider based on decision matrix
    */
   async routeRequest(request: AIRequest): Promise<RouterDecision> {
+    const r = request as unknown as RouterAIRequest;
     logger.info('Routing AI request', {
-      org_id: request.org_id,
+      org_id: r.org_id,
     });
 
     // Decision Matrix Implementation
-    const decision = await this.makeRoutingDecision(request);
-    
+    const decision = await this.makeRoutingDecision(r);
+
     logger.info('AI routing decision made', {
-      org_id: request.org_id,
+      org_id: r.org_id,
     });
 
     return decision;
   }
 
-  private async makeRoutingDecision(request: AIRequest): Promise<RouterDecision> {
+  private async makeRoutingDecision(request: RouterAIRequest): Promise<RouterDecision> {
     // Rule 1: PII/Sensitive data -> Edge only
     if (request.sensitivity === 'pii' || request.sensitivity === 'confidential') {
       return {
@@ -62,13 +73,13 @@ export class AIRouter {
     }
 
     // Rule 2: Check cost budget
-    const currentCost = this.costTracker.get(request.org_id) || 0;
-    const estimatedCost = this.estimateCostEUR(request.tokens_est, 'openai-cloud');
-    
+  const currentCost = this.costTracker.get(request.org_id) || 0;
+  const estimatedCost = this.estimateCostEUR(request.tokens_est, 'openai-cloud');
+
     if (currentCost + estimatedCost > request.budget_cents / 100) {
       logger.logFinOpsEvent('Budget exceeded, routing to edge', {
         event_type: 'budget_exceeded',
-        org_id: request.org_id,
+    org_id: request.org_id,
         current_cost_eur: currentCost,
         budget_cap_eur: request.budget_cents / 100,
       });
@@ -86,11 +97,11 @@ export class AIRouter {
     }
 
     // Rule 3: Special tools/languages -> Cloud
-    const requiresCloudTools = request.tools_needed.some(tool => 
+    const requiresCloudTools = request.tools_needed.some((tool: any) =>
       ['function_calling', 'vision', 'code_interpreter'].includes(tool)
     );
 
-    const requiresSpecialLanguages = request.languages.some(lang => 
+    const requiresSpecialLanguages = request.languages.some((lang: any) =>
       !['en', 'es', 'fr'].includes(lang)
     );
 
@@ -166,9 +177,10 @@ export class AIRouter {
     request: AIRequest
   ): Promise<{ processedContent: string; tokens?: Record<string, string> }> {
     if (decision.shouldRedact) {
+      const r = request as unknown as RouterAIRequest;
       const { redacted, tokens } = redactPII(content);
       logger.info('PII redacted for cloud processing', {
-        org_id: request.org_id,
+        org_id: r.org_id,
       });
       return { processedContent: redacted, tokens };
     }
@@ -196,7 +208,7 @@ export class AIRouter {
   updateCostTracking(orgId: string, costEUR: number): void {
     const currentCost = this.costTracker.get(orgId) || 0;
     this.costTracker.set(orgId, currentCost + costEUR);
-    
+
     logger.logFinOpsEvent('AI cost updated', {
       event_type: 'cost_calculation',
       org_id: orgId,
@@ -212,12 +224,12 @@ export class AIRouter {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
-      
+
       const response = await fetch(`${this.config.mistralEdgeUrl}/health`, {
         method: 'GET',
         signal: controller.signal,
       });
-      
+
       clearTimeout(timeoutId);
       return response.ok;
     } catch (error) {
@@ -265,7 +277,10 @@ export function createAIRouter(config?: Partial<RouterConfig>): AIRouter {
     openaiApiKey: process.env.OPENAI_API_KEY,
     azureOpenaiEndpoint: process.env.AZURE_OPENAI_ENDPOINT,
     azureOpenaiKey: process.env.AZURE_OPENAI_KEY,
-    defaultProvider: (process.env.ROUTER_DEFAULT_PROVIDER as any) || 'mistral-edge',
+    defaultProvider: ((val: unknown) => {
+      const allowed = new Set(['mistral-edge','openai-cloud','azure-openai'] as const)
+      return (typeof val === 'string' && allowed.has(val as any)) ? (val as typeof val & ('mistral-edge' | 'openai-cloud' | 'azure-openai')) : 'mistral-edge'
+    })(process.env.ROUTER_DEFAULT_PROVIDER),
     costLimitsEnabled: process.env.NODE_ENV === 'production',
   };
 

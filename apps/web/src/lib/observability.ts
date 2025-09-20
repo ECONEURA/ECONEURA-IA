@@ -48,9 +48,9 @@ class WebObservability {
         debug: '\x1b[35m'
       }[level] || '\x1b[0m';
 
-      console.log(`${color}[${logEntry.timestamp}] ${level.toUpperCase()}: ${message}\x1b[0m`);
+      
       if (context) {
-        console.log(`${color}  Context: ${JSON.stringify(context, null, 2)}\x1b[0m`);
+        
       }
     }
   }

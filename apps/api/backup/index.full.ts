@@ -1,69 +1,69 @@
 import express from "express";
 import cors from "cors";
-import { logger } from "./lib/logger.js";
-import { metrics } from "./lib/metrics.js";
-import { tracing } from "./lib/tracing.js";
-import { observabilityMiddleware, errorObservabilityMiddleware, healthCheckMiddleware } from "./middleware/observability.js";
-import { rateLimitMiddleware, rateLimitByEndpoint, rateLimitByUser, rateLimitByApiKey } from "./middleware/rate-limiting.js";
-import { alertSystem } from "./lib/alerts.js";
-import { rateLimiter } from "./lib/rate-limiting.js";
-import { CacheManager } from "./lib/cache.js";
-import { finOpsSystem } from "./lib/finops.js";
-import { finOpsMiddleware, finOpsCostTrackingMiddleware, finOpsBudgetCheckMiddleware } from "./middleware/finops.js";
-import { rlsSystem } from "./lib/rls.js";
-import { rlsMiddleware, rlsAccessControlMiddleware, rlsDataSanitizationMiddleware, rlsResponseValidationMiddleware, rlsCleanupMiddleware } from "./middleware/rls.js";
-import { apiGateway } from "./lib/gateway.js";
-import { gatewayRoutingMiddleware, gatewayProxyMiddleware, gatewayMetricsMiddleware, gatewayCircuitBreakerMiddleware } from "./middleware/gateway.js";
-import { eventSourcingSystem, createCommand, createQuery } from "./lib/events.js";
-import { registerUserHandlers } from "./lib/handlers/user-handlers.js";
-import { serviceRegistry, serviceDiscovery } from "./lib/service-discovery.js";
-import { serviceMesh } from "./lib/service-mesh.js";
-import { configurationManager } from "./lib/configuration.js";
-import { featureFlagInfoMiddleware, requireFeatureFlag } from "./middleware/feature-flags.js";
-import { workflowEngine } from "./lib/workflows.js";
-import { inventorySystem } from "./lib/inventory.js";
-import { securitySystem } from "./lib/security.js";
-import { SEPAParserService } from "./lib/sepa-parser.service.js";
-import { MatchingEngineService } from "./lib/matching-engine.service.js";
-import { ReconciliationService } from "./lib/reconciliation.service.js";
-import { RuleEngineService } from "./lib/rule-engine.service.js";
-import { GDPRExportService } from "./lib/gdpr-export.service.js";
-import { GDPREraseService } from "./lib/gdpr-erase.service.js";
-import { GDPRAuditService } from "./lib/gdpr-audit.service.js";
-import { RLSPolicyGeneratorService } from "./lib/rls-policy-generator.service.js";
-import { RLSPolicyValidatorService } from "./lib/rls-policy-validator.service.js";
-import { RLSPolicyDeployerService } from "./lib/rls-policy-deployer.service.js";
-import { RLSCICDService } from "./lib/rls-cicd.service.js";
-import { ErrorHandler, ValidationError, NotFoundError } from "./lib/error-handler.js";
-import { structuredLogger } from "./lib/structured-logger.js";
-import { ValidationMiddleware } from "./middleware/validation.js";
-import { RateLimitMiddleware } from "./middleware/rate-limiter.js";
-import { SecurityMiddleware } from "./middleware/security.js";
-import { cacheManager as advancedCacheManager } from "./lib/advanced-cache.js";
-import { healthMonitor } from "./lib/health-monitor.js";
-import { databasePool } from "./lib/database-pool.js";
-import { processManager } from "./lib/process-manager.js";
-import { CostTrackerService } from "./lib/cost-tracker.service.js";
-import { BudgetManagerService } from "./lib/budget-manager.service.js";
-import { CostOptimizerService } from "./lib/cost-optimizer.service.js";
-import { ReportingEngineService } from "./lib/reporting-engine.service.js";
-import { QuietHoursService } from "./lib/quiet-hours.service.js";
-import { OnCallService } from "./lib/oncall.service.js";
-import { EscalationService } from "./lib/escalation.service.js";
-import { NotificationIntelligenceService } from "./lib/notification-intelligence.service.js";
-import { WarmupService } from "./lib/warmup.service.js";
-import { IntelligentSearchService } from "./lib/intelligent-search.service.js";
-import { SmartCacheService } from "./lib/smart-cache.service.js";
-import { PerformanceOptimizationService } from "./lib/performance-optimization.service.js";
-import { AdvancedAnalyticsService } from "./lib/advanced-analytics.service.js";
-import { BusinessIntelligenceService } from "./lib/business-intelligence.service.js";
-import { IntelligentReportingService } from "./lib/intelligent-reporting.service.js";
-import { ExecutiveDashboardService } from "./lib/executive-dashboard.service.js";
-import { AdvancedSecurityService } from "./lib/advanced-security.service.js";
-import { ComplianceManagementService } from "./lib/compliance-management.service.js";
-import { ComprehensiveAuditService } from "./lib/comprehensive-audit.service.js";
-import { ThreatDetectionService } from "./lib/threat-detection.service.js";
-import { chaosMiddleware, createChaosToggleEndpoints } from "./middleware/chaos.js";
+import { logger } from './lib/logger.js';
+import { metrics } from './lib/metrics.js';
+import { tracing } from './lib/tracing.js';
+import { observabilityMiddleware, errorObservabilityMiddleware, healthCheckMiddleware } from './middleware/observability.js';
+import { rateLimitMiddleware, rateLimitByEndpoint, rateLimitByUser, rateLimitByApiKey } from './middleware/rate-limiting.js';
+import { alertSystem } from './lib/alerts.js';
+import { rateLimiter } from './lib/rate-limiting.js';
+import { CacheManager } from './lib/cache.js';
+import { finOpsSystem } from './lib/finops.js';
+import { finOpsMiddleware, finOpsCostTrackingMiddleware, finOpsBudgetCheckMiddleware } from './middleware/finops.js';
+import { rlsSystem } from './lib/rls.js';
+import { rlsMiddleware, rlsAccessControlMiddleware, rlsDataSanitizationMiddleware, rlsResponseValidationMiddleware, rlsCleanupMiddleware } from './middleware/rls.js';
+import { apiGateway } from './lib/gateway.js';
+import { gatewayRoutingMiddleware, gatewayProxyMiddleware, gatewayMetricsMiddleware, gatewayCircuitBreakerMiddleware } from './middleware/gateway.js';
+import { eventSourcingSystem, createCommand, createQuery } from './lib/events.js';
+import { registerUserHandlers } from './lib/handlers/user-handlers.js';
+import { serviceRegistry, serviceDiscovery } from './lib/service-discovery.js';
+import { serviceMesh } from './lib/service-mesh.js';
+import { configurationManager } from './lib/configuration.js';
+import { featureFlagInfoMiddleware, requireFeatureFlag } from './middleware/feature-flags.js';
+import { workflowEngine } from './lib/workflows.js';
+import { inventorySystem } from './lib/inventory.js';
+import { securitySystem } from './lib/security.js';
+import { SEPAParserService } from './lib/sepa-parser.service.js';
+import { MatchingEngineService } from './lib/matching-engine.service.js';
+import { ReconciliationService } from './lib/reconciliation.service.js';
+import { RuleEngineService } from './lib/rule-engine.service.js';
+import { GDPRExportService } from './lib/gdpr-export.service.js';
+import { GDPREraseService } from './lib/gdpr-erase.service.js';
+import { GDPRAuditService } from './lib/gdpr-audit.service.js';
+import { RLSPolicyGeneratorService } from './lib/rls-policy-generator.service.js';
+import { RLSPolicyValidatorService } from './lib/rls-policy-validator.service.js';
+import { RLSPolicyDeployerService } from './lib/rls-policy-deployer.service.js';
+import { RLSCICDService } from './lib/rls-cicd.service.js';
+import { ErrorHandler, ValidationError, NotFoundError } from './lib/error-handler.js';
+import { structuredLogger } from './lib/structured-logger.js';
+import { ValidationMiddleware } from './middleware/validation.js';
+import { RateLimitMiddleware } from './middleware/rate-limiter.js';
+import { SecurityMiddleware } from './middleware/security.js';
+import { cacheManager as advancedCacheManager } from './lib/advanced-cache.js';
+import { healthMonitor } from './lib/health-monitor.js';
+import { databasePool } from './lib/database-pool.js';
+import { processManager } from './lib/process-manager.js';
+import { CostTrackerService } from './lib/cost-tracker.service.js';
+import { BudgetManagerService } from './lib/budget-manager.service.js';
+import { CostOptimizerService } from './lib/cost-optimizer.service.js';
+import { ReportingEngineService } from './lib/reporting-engine.service.js';
+import { QuietHoursService } from './lib/quiet-hours.service.js';
+import { OnCallService } from './lib/oncall.service.js';
+import { EscalationService } from './lib/escalation.service.js';
+import { NotificationIntelligenceService } from './lib/notification-intelligence.service.js';
+import { WarmupService } from './lib/warmup.service.js';
+import { IntelligentSearchService } from './lib/intelligent-search.service.js';
+import { SmartCacheService } from './lib/smart-cache.service.js';
+import { PerformanceOptimizationService } from './lib/performance-optimization.service.js';
+import { AdvancedAnalyticsService } from './lib/advanced-analytics.service.js';
+import { BusinessIntelligenceService } from './lib/business-intelligence.service.js';
+import { IntelligentReportingService } from './lib/intelligent-reporting.service.js';
+import { ExecutiveDashboardService } from './lib/executive-dashboard.service.js';
+import { AdvancedSecurityService } from './lib/advanced-security.service.js';
+import { ComplianceManagementService } from './lib/compliance-management.service.js';
+import { ComprehensiveAuditService } from './lib/comprehensive-audit.service.js';
+import { ThreatDetectionService } from './lib/threat-detection.service.js';
+import { chaosMiddleware, createChaosToggleEndpoints } from './middleware/chaos.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -6644,36 +6644,36 @@ app.use("*", (req, res) => {
 // Iniciar servidor
 app.listen(PORT, async () => {
   logger.info(`API Express server running on port ${PORT}`);
-  console.log(`🚀 API Express server running on port ${PORT}`);
-  console.log(`📊 Metrics available at http://localhost:${PORT}/metrics`);
-  console.log(`🔍 Health check at http://localhost:${PORT}/health/live`);
-  console.log(`⚡ Rate limiting enabled with intelligent strategies`);
-  console.log(`🚨 Alert system integrated and monitoring`);
-  console.log(`💾 Cache system initialized with AI and Search caches`);
-  console.log(`💰 FinOps system enabled with cost tracking and budget management`);
-  console.log(`🔒 Row Level Security (RLS) enabled with multi-tenant isolation`);
-  console.log(`🌐 API Gateway enabled with intelligent routing and load balancing`);
-  console.log(`📊 Event Sourcing and CQRS system enabled with aggregates and projections`);
-  console.log(`🔗 Microservices system enabled with service mesh and discovery`);
-  console.log(`⚙️ Configuration system enabled with feature flags and environment management`);
-  console.log(`🔄 Workflow system enabled with BPMN and state machines`);
-  console.log(`🔐 Advanced Security system enabled with MFA, RBAC, and threat detection`);
-  console.log(`🏦 SEPA system enabled with CAMT/MT940 parsing and intelligent matching`);
-  console.log(`🔒 GDPR system enabled with export/erase and compliance management`);
-  console.log(`🛡️ RLS generative suite enabled with CI/CD integration`);
-  console.log(`💰 FinOps system enabled with cost tracking, budget management, optimization, and reporting`);
-  console.log(`🔇 Quiet Hours + On-Call system enabled with intelligent scheduling, escalation, and notifications`);
-  console.log(`🔥 Warm-up IA/Search system enabled with intelligent caching, search optimization, and performance monitoring`);
-  console.log(`📊 Advanced Analytics & BI system enabled with real-time analytics, business intelligence, intelligent reporting, and executive dashboards`);
-console.log(`🛡️ Advanced Security & Compliance system enabled with threat detection, compliance management, comprehensive auditing, and security monitoring`);
-  console.log(`🔧 Advanced improvements enabled: Error handling, Logging, Validation, Rate limiting, Caching, Health monitoring, Security, Process management`);
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
   
   // Inicializar warmup del caché
   try {
     await advancedCacheManager.warmupAll();
-    console.log(`🔥 Cache warmup completed successfully`);
+    
   } catch (error) {
-    console.log(`⚠️ Cache warmup failed: ${error}`);
+    
   }
 });
 

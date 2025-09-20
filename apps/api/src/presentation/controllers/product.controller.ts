@@ -605,16 +605,16 @@ export class ProductController {
       const updatedProducts = await Promise.all(
         validProducts.map(product => {
           if (requestData.updates.status) {
-            product!.updateStatus({ value: requestData.updates.status });
+            product!.updateStatus(requestData.updates.status);
           }
           if (requestData.updates.category) {
-            product!.updateCategory({ value: requestData.updates.category });
+            product!.updateCategory(requestData.updates.category);
           }
           if (requestData.updates.brand) {
-            product!.updateBrand({ value: requestData.updates.brand });
+            product!.updateBrand(requestData.updates.brand);
           }
           if (requestData.updates.supplier) {
-            product!.updateSupplier({ value: requestData.updates.supplier });
+            product!.updateSupplier(requestData.updates.supplier);
           }
           if (requestData.updates.tags) {
             const currentSettings = product!.settings;

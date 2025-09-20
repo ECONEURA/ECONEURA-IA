@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query'
 import { useAuth } from '@/lib/auth-context'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
@@ -12,7 +12,7 @@ export function useApiClient() {
 
   const apiCall = async (endpoint: string, options: ApiOptions = {}) => {
     const { skipAuth = false, ...fetchOptions } = options
-    
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(options.headers as Record<string, string>),
@@ -40,19 +40,24 @@ export function useApiClient() {
     return response.json()
   }
 
-  return { apiCall }
+  // Return a callable function for backward compatibility (apiClient('/path'))
+  const apiFn = (apiCall as unknown) as ((endpoint: string, options?: ApiOptions) => Promise<any>) & {
+    apiCall?: (endpoint: string, options?: ApiOptions) => Promise<any>
+  }
+  ;(apiFn as any).apiCall = apiCall
+  return apiFn
 }
 
 // Generic query hook
 export function useApiQuery<T = any>(
-  key: string | string[],
+  key: QueryKey,
   endpoint: string,
   options?: ApiOptions & { enabled?: boolean }
 ) {
-  const { apiCall } = useApiClient()
-  
+  const apiCall = useApiClient()
+
   return useQuery<T>({
-    queryKey: Array.isArray(key) ? key : [key],
+    queryKey: (Array.isArray(key) ? key : [key]) as QueryKey,
     queryFn: () => apiCall(endpoint, options),
     enabled: options?.enabled !== false,
   })
@@ -68,14 +73,14 @@ export function useApiMutation<TData = any, TVariables = any>(
     onError?: (error: Error) => void
   }
 ) {
-  const { apiCall } = useApiClient()
+  const apiCall = useApiClient()
   const queryClient = useQueryClient()
-  
+
   return useMutation<TData, Error, TVariables>({
     mutationFn: async (variables: TVariables) => {
       const url = typeof endpoint === 'function' ? endpoint(variables) : endpoint
       const method = options?.method || 'POST'
-      
+
       return apiCall(url, {
         method,
         body: method === 'DELETE' ? undefined : JSON.stringify(variables),

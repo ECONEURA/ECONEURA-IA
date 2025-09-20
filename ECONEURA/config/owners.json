@@ -1,0 +1,27 @@
+{
+  "owners": {
+    "apps/api/src/routes/": "backend-team@econeura.com",
+    "apps/web/src/": "frontend-team@econeura.com",
+    "packages/shared/src/": "platform-team@econeura.com",
+    "packages/shared/src/clients/": "integrations-team@econeura.com",
+    "packages/shared/src/schemas/": "data-team@econeura.com",
+    "scripts/": "devops-team@econeura.com",
+    ".env": "security-team@econeura.com",
+    "*.key": "security-team@econeura.com",
+    "*.pem": "security-team@econeura.com",
+    "*secret*": "security-team@econeura.com",
+    "*token*": "security-team@econeura.com",
+    "*password*": "security-team@econeura.com",
+    "*api_key*": "security-team@econeura.com"
+  },
+  "default_owner": "security@org",
+  "escalation_paths": {
+    "security-team@econeura.com": "ciso@econeura.com",
+    "backend-team@econeura.com": "tech-lead@econeura.com",
+    "frontend-team@econeura.com": "tech-lead@econeura.com",
+    "platform-team@econeura.com": "platform-lead@econeura.com",
+    "integrations-team@econeura.com": "integrations-lead@econeura.com",
+    "data-team@econeura.com": "data-lead@econeura.com",
+    "devops-team@econeura.com": "devops-lead@econeura.com"
+  }
+}

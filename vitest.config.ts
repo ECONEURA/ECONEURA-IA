@@ -6,9 +6,35 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     setupFiles: ['./test/setup.ts'],
+    include: [
+      '**/*.test.ts',
+      '**/*.spec.ts',
+      '**/*.integration.test.ts',
+      '**/*.integration.spec.ts',
+      '**/*.e2e.test.ts',
+      '**/*.e2e.spec.ts'
+    ],
+    exclude: [
+      '**/*.performance.test.ts',
+      '**/*.performance.spec.ts',
+      'node_modules/',
+      'dist/',
+      'build/',
+      '.next/',
+      'coverage/',
+      'test-results/',
+      'performance-results/',
+      '**/*.config.ts',
+      '**/*.config.js',
+      '**/drizzle/**',
+      '**/migrations/**',
+      '**/seed.ts',
+      '**/seed.js'
+    ],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text', 'json', 'html', 'lcov', 'cobertura'],
+      reportsDirectory: './coverage',
       exclude: [
         'node_modules/',
         'dist/',
@@ -19,12 +45,18 @@ export default defineConfig({
         'performance-results/',
         '**/*.test.ts',
         '**/*.spec.ts',
+        '**/*.integration.test.ts',
+        '**/*.integration.spec.ts',
+        '**/*.e2e.test.ts',
+        '**/*.e2e.spec.ts',
         '**/*.config.ts',
         '**/*.config.js',
         '**/drizzle/**',
         '**/migrations/**',
         '**/seed.ts',
-        '**/seed.js'
+        '**/seed.js',
+        '**/types/**',
+        '**/generated/**'
       ],
       thresholds: {
         global: {
@@ -32,12 +64,29 @@ export default defineConfig({
           functions: 80,
           lines: 80,
           statements: 80
+        },
+        './apps/api/': {
+          branches: 85,
+          functions: 85,
+          lines: 85,
+          statements: 85
+        },
+        './packages/shared/': {
+          branches: 90,
+          functions: 90,
+          lines: 90,
+          statements: 90
         }
-      }
+      },
+      all: true,
+      include: [
+        'apps/*/src/**/*.{ts,tsx}',
+        'packages/*/src/**/*.{ts,tsx}'
+      ]
     },
     testTimeout: 10000,
     hookTimeout: 10000,
-    teardownTimeout: 10000
+    teardownTimeout: 5000
   },
   resolve: {
     alias: {
