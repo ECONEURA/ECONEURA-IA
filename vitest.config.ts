@@ -31,6 +31,34 @@ export default defineConfig({
       '**/seed.ts',
       '**/seed.js'
     ],
+
+    passWithNoTests: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'json-summary'],
+      reportsDirectory: './coverage',
+      exclude: [
+        'coverage/**',
+        'dist/**',
+        'packages/*/test{,s}/**',
+        '**/*.d.ts',
+        'cypress/**',
+        'test{,s}/**',
+        'test{,-*}.{js,cjs,mjs,ts,tsx,jsx}',
+        '**/*{.,-}test.{js,cjs,mjs,ts,tsx,jsx}',
+        '**/*{.,-}spec.{js,cjs,mjs,ts,tsx,jsx}',
+        '**/__tests__/**',
+        '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
+        '**/.{eslint,mocha,prettier}rc.{js,cjs,yml}',
+      ],
+      thresholds: {
+        lines: 60,
+        functions: 60,
+        branches: 60,
+        statements: 60,
+      },
+    },
+
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov', 'cobertura'],
@@ -87,6 +115,7 @@ export default defineConfig({
     testTimeout: 10000,
     hookTimeout: 10000,
     teardownTimeout: 5000
+
   },
   resolve: {
     alias: {
