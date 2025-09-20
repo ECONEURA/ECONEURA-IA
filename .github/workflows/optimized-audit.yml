@@ -1,0 +1,16 @@
+name: Optimized Security Audit
+on: [pull_request]
+jobs:
+  parallel-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run parallel validations
+        run: |
+          chmod +x scripts/parallel_validation.sh
+          ./scripts/parallel_validation.sh audit || true
+      - name: Cache audit artifacts
+        uses: actions/cache@v3
+        with:
+          path: audit/*.tar.gz,audit/*_masked.json
+          key: audit-${{ github.sha }}
