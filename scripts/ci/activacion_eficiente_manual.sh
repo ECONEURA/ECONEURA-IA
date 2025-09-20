@@ -175,4 +175,4 @@ echo "🏆 ¡ACTIVACIÓN EFICIENTE COMPLETADA!"
 
 # cleanup sensitive variables
 unset NEW_HEX_64 VAULT_APPROVAL_KEY
-exit 0
+exit 0# Sat Sep 20 20:17:40 UTC 2025 - Force PR update
