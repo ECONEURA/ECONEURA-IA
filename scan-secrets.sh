@@ -10,7 +10,7 @@ DIRECTORIO_ACTUAL="$(pwd)"
 
 # 🔍 Función para verificar si trufflehog está instalado
 verificar_trufflehog() {
-    echo -e "\033[1;34m� Verificando instalación de trufflehog...\033[0m"
+    echo -e "\033[1;34m🔍 Verificando instalación de trufflehog...\033[0m"
 
     # Verificar si trufflehog está disponible en el PATH
     if command -v trufflehog &> /dev/null; then
@@ -305,15 +305,6 @@ main() {
 
 # Ejecutar función principal
 main "$@"
-            echo -e "\033[1;31m❌ Error: No se pudo instalar TruffleHog\033[0m"
-            return 1
-        fi
-    else
-        echo -e "\033[1;31m❌ Error: pip no está disponible para instalar TruffleHog\033[0m"
-        echo -e "\033[1;33m💡 Instala manualmente: pip install trufflehog\033[0m"
-        return 1
-    fi
-}
 
 # 🛡️ Función para solicitar confirmación antes de ejecutar
 solicitar_confirmacion() {

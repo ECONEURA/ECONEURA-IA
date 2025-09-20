@@ -1,13 +1,6 @@
 #!/bin/bash
 
-# AI Terminal Assis# Procesar comandos especiales
-case "$1" in
-    --help)
-        echo -e "${CYAN}🤖 AI Terminal Assistant Pro v1.0${NC}"
-        echo ""
-        echo -e "${YELLOW}Comandos disponibles:${NC}"
-        echo "  ai 'pregunta'    # Preguntar a la IA"
-        echo "  ai --help        # Esta ayuda"
+# AI Terminal Assistant Pro
 # Uso: ai "tu pregunta aquí"
 
 # Definir colores para mejor presentación
@@ -42,7 +35,7 @@ case "$1" in
     --help)
         echo -e "${CYAN}🤖 AI Terminal Assistant Pro v1.0${NC}"
         echo ""
-        echo "Comandos disponibles:"
+        echo -e "${YELLOW}Comandos disponibles:${NC}"
         echo "  ai 'pregunta'    # Preguntar a la IA"
         echo "  ai --help        # Esta ayuda"
         echo "  ai --version     # Versión del asistente"
