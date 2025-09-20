@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Script de resolución agresiva de conflictos en dependencias
-# Estrategia: Preferir la versión más reciente de las dependencias
+# Script para resolver conflictos automáticamente en PRs
+# Solo resuelve conflictos simples y seguros
 
 set -e
 
@@ -13,155 +13,54 @@ log() {
     echo "[$(date +'%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE"
 }
 
-log "🔧 INICIANDO RESOLUCIÓN AGRESIVA DE CONFLICTOS"
-log "==============================================="
+log "🔧 INICIANDO RESOLUCIÓN AUTOMÁTICA DE CONFLICTOS"
+log "================================================"
 
-# Verificar que estamos en un repositorio git
-if ! git rev-parse --git-dir > /dev/null 2>&1; then
-    log "❌ Error: No es un repositorio git"
+# Verificar que estamos en el directorio correcto
+if [ ! -d ".git" ]; then
+    log "❌ Error: No se encuentra repositorio Git"
     exit 1
 fi
 
-# Verificar que estamos en un estado de merge
-if ! git diff --name-only --diff-filter=U | grep -q .; then
-    log "ℹ️  No hay conflictos activos para resolver"
+# Verificar que GitHub CLI esté disponible
+if ! command -v gh &> /dev/null; then
+    log "❌ Error: GitHub CLI no está instalado"
+    exit 1
+fi
+
+# Verificar autenticación
+if ! gh auth status &> /dev/null; then
+    log "❌ Error: No estás autenticado en GitHub CLI"
+    log "Ejecuta: gh auth login"
+    exit 1
+fi
+
+log "✅ Verificaciones completadas"
+
+# Obtener lista de PRs con conflictos
+log "📋 Buscando PRs con conflictos..."
+CONFLICT_PRS=$(gh pr list --state open --limit 20 --json number,title,author,mergeable,headRefName | jq -r '.[] | select(.mergeable == "CONFLICTING") | .number')
+
+if [ -z "$CONFLICT_PRS" ]; then
+    log "✅ No hay PRs con conflictos"
     exit 0
 fi
 
-log "📋 Archivos con conflictos:"
-git diff --name-only --diff-filter=U | tee -a "$LOG_FILE"
+log "🔍 Encontrados $(echo "$CONFLICT_PRS" | wc -l) PRs con conflictos"
 
-# Estrategia agresiva: preferir la versión entrante (THEIRS) para archivos de dependencias
-for file in $(git diff --name-only --diff-filter=U); do
-    if [[ "$file" == *"package.json" ]] || [[ "$file" == *"pnpm-lock.yaml" ]] || [[ "$file" == *"yarn.lock" ]] || [[ "$file" == *"package-lock.json" ]]; then
-        log "🔧 Resolviendo conflicto en $file (estrategia: preferir THEIRS)"
-        git checkout --theirs "$file"
-        git add "$file"
-    else
-        log "⚠️  Archivo $file requiere resolución manual"
-    fi
-done
-
-# Verificar si quedan conflictos
-if git diff --name-only --diff-filter=U | grep -q .; then
-    log "⚠️  Quedan conflictos en archivos no relacionados con dependencias:"
-    git diff --name-only --diff-filter=U | tee -a "$LOG_FILE"
-    log "🔧 Abortando merge - requiere resolución manual"
-    git merge --abort
-    exit 1
-else
-    log "✅ Todos los conflictos resueltos automáticamente"
-    log "📝 Creando commit de resolución"
-    git commit -m "fix: resolver conflictos de dependencias automáticamente
-
-- Resolución agresiva de conflictos en package.json y pnpm-lock.yaml
-- Estrategia: preferir versión más reciente (THEIRS)
-- Commit automático generado por script de resolución"
-
-    log "🎉 Resolución completada exitosamente"
-fi
-
-log "📄 Log completo: $LOG_FILE"
-
-}
-
-log "🔧 INICIANDO RESOLUCIÓN AGRESIVA DE CONFLICTOS"
-
-log "==============================================="log "🔧 INICIANDO RESOLUCIÓN AUTOMÁTICA DE CONFLICTOS"
-
-log "================================================"
-
-# Verificar que estamos en un repositorio git
-
-if ! git rev-parse --git-dir > /dev/null 2>&1; then# Verificar que estamos en el directorio correcto
-
-    log "❌ Error: No es un repositorio git"if [ ! -d ".git" ]; then
-
-    exit 1    log "❌ Error: No se encuentra repositorio Git"
-
-fi    exit 1
-
-fi
-
-# Verificar que estamos en un estado de merge
-
-if ! git diff --name-only --diff-filter=U | grep -q .; then# Verificar que GitHub CLI esté disponible
-
-    log "ℹ️  No hay conflictos activos para resolver"if ! command -v gh &> /dev/null; then
-
-    exit 0    log "❌ Error: GitHub CLI no está instalado"
-
-fi    exit 1
-
-fi
-
-log "📋 Archivos con conflictos:"
-
-git diff --name-only --diff-filter=U | tee -a "$LOG_FILE"# Verificar autenticación
-
-if ! gh auth status &> /dev/null; then
-
-# Estrategia agresiva: preferir la versión entrante (THEIRS) para archivos de dependencias    log "❌ Error: No estás autenticado en GitHub CLI"
-
-for file in $(git diff --name-only --diff-filter=U); do    log "Ejecuta: gh auth login"
-
-    if [[ "$file" == *"package.json" ]] || [[ "$file" == *"pnpm-lock.yaml" ]] || [[ "$file" == *"yarn.lock" ]] || [[ "$file" == *"package-lock.json" ]]; then    exit 1
-
-        log "🔧 Resolviendo conflicto en $file (estrategia: preferir THEIRS)"fi
-
-        git checkout --theirs "$file"
-
-        git add "$file"log "✅ Verificaciones completadas"
-
-    else
-
-        log "⚠️  Archivo $file requiere resolución manual"# Obtener lista de PRs con conflictos
-
-    filog "📋 Buscando PRs con conflictos..."
-
-doneCONFLICT_PRS=$(gh pr list --state open --limit 20 --json number,title,author,mergeable,headRefName | jq -r '.[] | select(.mergeable == "CONFLICTING") | .number')
-
-
-
-# Verificar si quedan conflictosif [ -z "$CONFLICT_PRS" ]; then
-
-if git diff --name-only --diff-filter=U | grep -q .; then    log "✅ No hay PRs con conflictos"
-
-    log "⚠️  Quedan conflictos en archivos no relacionados con dependencias:"    exit 0
-
-    git diff --name-only --diff-filter=U | tee -a "$LOG_FILE"fi
-
-    log "🔧 Abortando merge - requiere resolución manual"
-
-    git merge --abortlog "🔍 Encontrados $(echo "$CONFLICT_PRS" | wc -l) PRs con conflictos"
-
-    exit 1
-
-else# Procesar cada PR con conflictos
-
-    log "✅ Todos los conflictos resueltos automáticamente"echo "$CONFLICT_PRS" | while read -r pr_number; do
-
-    log "📝 Creando commit de resolución"    if [ -z "$pr_number" ]; then
-
-    git commit -m "fix: resolver conflictos de dependencias automáticamente        continue
-
+# Procesar cada PR con conflictos
+echo "$CONFLICT_PRS" | while read -r pr_number; do
+    if [ -z "$pr_number" ]; then
+        continue
     fi
 
-- Resolución agresiva de conflictos en package.json y pnpm-lock.yaml
-
-- Estrategia: preferir versión más reciente (THEIRS)    log "🔧 Procesando PR #$pr_number..."
-
-- Commit automático generado por script de resolución"
+    log "🔧 Procesando PR #$pr_number..."
 
     # Obtener información del PR
-
-    log "🎉 Resolución completada exitosamente"    PR_INFO=$(gh pr view "$pr_number" --json title,headRefName,author)
-
-fi    PR_TITLE=$(echo "$PR_INFO" | jq -r '.title')
-
+    PR_INFO=$(gh pr view "$pr_number" --json title,headRefName,author)
+    PR_TITLE=$(echo "$PR_INFO" | jq -r '.title')
     PR_BRANCH=$(echo "$PR_INFO" | jq -r '.headRefName')
-
-log "📄 Log completo: $LOG_FILE"    PR_AUTHOR=$(echo "$PR_INFO" | jq -r '.author.login')
+    PR_AUTHOR=$(echo "$PR_INFO" | jq -r '.author.login')
 
     log "   📝 Título: $PR_TITLE"
     log "   🌿 Branch: $PR_BRANCH"
