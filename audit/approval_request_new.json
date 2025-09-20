@@ -1,0 +1,6 @@
+{
+  "trace_id": "20250920T154500Z-new",
+  "action": "promote_models_and_apply_infra", 
+  "created_at": "2025-09-20T15:45:00+00:00",
+  "note": "Security lead must sign HMAC/GPG - New approval with current key"
+}
