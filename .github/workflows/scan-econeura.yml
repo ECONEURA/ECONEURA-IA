@@ -1,0 +1,20 @@
+name: ECONEURA Scan
+on: [push, pull_request]
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup dependencies
+        run: sudo apt-get update && sudo apt-get install -y gitleaks jq
+      - name: Run scan-secrets (TruffleHog)
+        run: |
+          mkdir -p audit
+          trufflehog filesystem --path ./ --json > audit/secretos_github.json || true
+      - name: Run gitleaks validation
+        run: gitleaks detect --source . --report-format json --report-path audit/validacion_gitleaks_github.json || true
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: econeura-audit
+          path: audit/*.json
