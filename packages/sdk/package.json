@@ -24,11 +24,11 @@
   "@econeura/shared": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^20.11.0",
+    "@types/node": "^24.5.2",
     "eslint": "^8.56.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^6.19.0",
-    "openapi-typescript": "^6.7.3",
+    "openapi-typescript": "^7.9.1",
     "typescript": "^5.3.0",
     "vitest": "^3.2.4",
     "@vitest/coverage-v8": "^3.2.4"

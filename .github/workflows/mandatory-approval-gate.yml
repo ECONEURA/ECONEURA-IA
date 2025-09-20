@@ -11,7 +11,7 @@ jobs:
     outputs:
       approval_valid: ${{ steps.validate.outputs.valid }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Ensure audit artifact exists
         id: ensure
         run: |
