@@ -40,7 +40,7 @@
     "@types/winston": "^2.4.4",
     "applicationinsights": "^3.9.0",
     "crypto": "^1.0.1",
-    "pino": "^8.17.2",
+    "pino": "^9.11.0",
     "prom-client": "^15.1.0",
     "uuid": "^9.0.1",
     "winston": "^3.13.1",
