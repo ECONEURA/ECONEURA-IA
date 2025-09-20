@@ -401,7 +401,6 @@ suggest_related_commands() {
             ;;
     esac
 }
-}
 
 # Ejecutar la función con todos los argumentos
 ask_ai "$*"
