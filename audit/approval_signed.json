@@ -1,10 +1,5 @@
 {
-  "trace": "20250920T153628Z-1191",
-  "action": "promote_models_and_apply_infra",
-  "required": "HMAC or GPG signature by Security Lead",
-  "details": "Review audit/final_manifest_20250920T153628Z-1191_masked.json and evidence",
-  "timestamp": "2025-09-20T15:36:28+00:00",
-  "hmac": "c501fe0256f713169ccf32f1d73ff4d3153e21127bb9c68faf93b912c4ee6b16",
-  "payload_b64": "ewogICJ0cmFjZSI6IjIwMjUwOTIwVDE1MzYyOFotMTE5MSIsCiAgImFjdGlvbiI6InByb21vdGVfbW9kZWxzX2FuZF9hcHBseV9pbmZyYSIsCiAgInJlcXVpcmVkIjoiSE1BQyBvciBHUEcgc2lnbmF0dXJlIGJ5IFNlY3VyaXR5IExlYWQiLAogICJkZXRhaWxzIjoiUmV2aWV3IGF1ZGl0L2ZpbmFsX21hbmlmZXN0XzIwMjUwOTIwVDE1MzYyOFotMTE5MV9tYXNrZWQuanNvbiBhbmQgZXZpZGVuY2UiLAogICJ0aW1lc3RhbXAiOiIyMDI1LTA5LTIwVDE1OjM2OjI4KzAwOjAwIgp9Cg==",
-  "signed_at": "2025-09-20T16:41:39Z"
+  "hmac": "a2cbe7840fcf869902a3a1691b725c77ab5a2dd3a1f4d87f34f1dfa2c7db730e",
+  "payload_b64": "eyJ0cmFjZSI6IjIwMjUwOTIwVDE1MzYyOFotMTE5MSIsImFjdGlvbiI6InByb21vdGVfbW9kZWxzX2FuZF9hcHBseV9pbmZyYSIsInJlcXVpcmVkIjoiSE1BQyBvciBHUEcgc2lnbmF0dXJlIGJ5IFNlY3VyaXR5IExlYWQiLCJkZXRhaWxzIjoiUmV2aWV3IGF1ZGl0L2ZpbmFsX21hbmlmZXN0XzIwMjUwOTIwVDE1MzYyOFotMTE5MV9tYXNrZWQuanNvbiBhbmQgZXZpZGVuY2UiLCJ0aW1lc3RhbXAiOiIyMDI1LTA5LTIwVDE1OjM2OjI4KzAwOjAwIn0=",
+  "signed_at": "2025-09-20T17:09:00Z"
 }
