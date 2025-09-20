@@ -7,6 +7,7 @@ permissions:
 jobs:
   check_artifact_and_validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       approval_valid: ${{ steps.validate.outputs.valid }}
     steps:
@@ -14,24 +15,41 @@ jobs:
       - name: Ensure audit artifact exists
         id: ensure
         run: |
-          if [ -f audit/approval_signed.json ]; then echo "found=true" > /tmp/artifact.txt; else echo "found=false" > /tmp/artifact.txt; fi
-          cat /tmp/artifact.txt
+          if [ -f audit/approval_signed.json ]; then
+            echo "found=true" >> $GITHUB_OUTPUT
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+            echo "::error::Missing audit/approval_signed.json"
+            exit 1
+          fi
       - name: Validate HMAC approval (fast)
         id: validate
         run: |
-          if [ "$(cat /tmp/artifact.txt | cut -d'=' -f2)" != "true" ]; then echo "::error::Missing audit/approval_signed.json"; echo "::set-output name=valid::false"; exit 1; fi
-          chmod +x scripts/vault/validate_hmac_approval.sh
+          if [ "${{ steps.ensure.outputs.found }}" != "true" ]; then
+            echo "::error::Missing audit/approval_signed.json"
+            echo "valid=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          if [ ! -x "scripts/vault/validate_hmac_approval.sh" ]; then
+            echo "::error::Validation script not found or not executable"
+            echo "valid=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
           ./scripts/vault/validate_hmac_approval.sh audit/approval_signed.json
-          echo "::set-output name=valid::true"
+          echo "valid=true" >> $GITHUB_OUTPUT
         env:
           VAULT_ADDR: ${{ secrets.VAULT_ADDR || '' }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN || '' }}
   block_merge_if_invalid:
     needs: check_artifact_and_validate
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     if: needs.check_artifact_and_validate.outputs.approval_valid != 'true'
     steps:
       - name: Fail protectively
         run: |
-          echo "::error::Approval not valid; blocking PR."
+          echo "::error::Approval not valid; blocking PR merge."
+          echo "Approval validation failed. Please ensure audit/approval_signed.json exists and is valid."
           exit 1

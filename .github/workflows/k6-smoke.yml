@@ -1,10 +1,13 @@
-# RADICAL_SOFT_MODE: Este workflow ha sido modificado para NO fallar nunca.
-# Revertir buscando la etiqueta RADICAL_SOFT_MODE y eliminando continue-on-error / restaurando triggers.
-
 name: k6-smoke
 
 on:
-  workflow_dispatch:  # RADICAL_SOFT_MODE: Only manual trigger, removed push/pull_request
+  pull_request:
+    paths:
+      - 'apps/api/**'
+      - 'apps/web/**'
+      - 'packages/**'
+      - 'tests/performance/**'
+  workflow_dispatch:
 
 env:
   DEPLOY_ENABLED: "false"
@@ -12,33 +15,33 @@ env:
 jobs:
   perf:
     runs-on: ubuntu-latest
-    continue-on-error: true  # RADICAL_SOFT_MODE: Never fail
-    
+    timeout-minutes: 20
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        
+
     - name: Setup pnpm
       uses: pnpm/action-setup@v2
       with:
         version: 8
-        
+
     - name: Install dependencies
-      run: pnpm install --frozen-lockfile || echo "::warning ::Dependencies install failed (radical soft)"
-      
+      run: pnpm install --frozen-lockfile
+
     - name: Start API
       run: |
-        node scripts/ci/api-start.mjs || echo "::warning ::API start failed (radical soft)"
-      
+        node scripts/ci/api-start.mjs
+
     - name: Wait for API
       run: |
-        npx wait-on http://localhost:3001/health -t 180000 || echo "::warning ::API health check failed (radical soft)"
-      
+        npx wait-on http://localhost:3001/health -t 180000
+
     - name: Run k6 smoke tests
       run: |
         # Install k6
@@ -47,11 +50,11 @@ jobs:
         echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
         sudo apt-get update
         sudo apt-get install k6
-        
-        # RADICAL_SOFT_MODE: Run k6 but never fail
-        k6 run tests/performance/smoke.js --summary-export=.artifacts/k6-summary.json || echo "::warning ::k6 smoke test failed (radical soft)"
-        
-        # Check p95 threshold but only warn
+
+        # Run k6 smoke tests
+        k6 run tests/performance/smoke.js --summary-export=.artifacts/k6-summary.json
+
+        # Check p95 threshold
         if [ -f .artifacts/k6-summary.json ]; then
           P95=$(node -e "
             const fs = require('fs');
@@ -63,19 +66,20 @@ jobs:
               console.log('9999');
             }
           ")
-          
+
           echo "P95 latency: ${P95}ms"
-          
-          # RADICAL_SOFT_MODE: Warning instead of exit 1
+
           if (( $(echo "$P95 > 2000" | bc -l) )); then
-            echo "::warning ::P95 ${P95}ms exceeds 2000ms threshold (radical soft)"
+            echo "::error ::P95 ${P95}ms exceeds 2000ms threshold"
+            exit 1
           else
             echo "::notice ::P95 ${P95}ms meets threshold"
           fi
         else
-          echo "::warning ::No k6 summary file found (radical soft)"
+          echo "::error ::No k6 summary file found"
+          exit 1
         fi
-      
+
     - name: Upload k6 results
       uses: actions/upload-artifact@v4
       if: always()
@@ -84,19 +88,18 @@ jobs:
         path: .artifacts/
         if-no-files-found: ignore
 
-  # RADICAL_SOFT_MODE: close-pr-on-fail job commented
-  # close-pr-on-fail:
-  #   runs-on: ubuntu-latest
-  #   needs: perf
-  #   if: failure() && github.event_name == 'pull_request'
-  #   steps:
-  #   - name: Close PR on performance failure
-  #     uses: actions/github-script@v7
-  #     with:
-  #       script: |
-  #         github.rest.pulls.update({
-  #           owner: context.repo.owner,
-  #           repo: context.repo.repo,
-  #           pull_number: context.issue.number,
-  #           state: 'closed'
-  #         })
+  close-pr-on-fail:
+    runs-on: ubuntu-latest
+    needs: perf
+    if: failure() && github.event_name == 'pull_request'
+    steps:
+    - name: Close PR on performance failure
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.pulls.update({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number,
+            state: 'closed'
+          })

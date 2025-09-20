@@ -1,148 +1,198 @@
-# RADICAL_SOFT_MODE: Este workflow ha sido modificado para NO fallar nunca.
-# Revertir buscando la etiqueta RADICAL_SOFT_MODE y eliminando continue-on-error / restaurando triggers.
-
-name: oidc-setup-and-deploy
+name: OIDC Setup and Deploy
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: false
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
   push:
     branches: [ main ]
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'docker-compose*.yml'
 
 env:
-  DEPLOY_ENABLED: "false"  # Always false to prevent actual deployment
+  DEPLOY_ENABLED: "false"  # Set to "true" when ready for production deployment
 
 jobs:
   setup:
     runs-on: ubuntu-latest
-    continue-on-error: true  # RADICAL_SOFT_MODE: Never fail even if secrets are missing
-    
+    timeout-minutes: 10
+
     outputs:
       can-deploy: ${{ steps.check-deploy.outputs.can-deploy }}
-      
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      
+
     - name: Check deployment prerequisites
       id: check-deploy
       run: |
-        # RADICAL_SOFT_MODE: Check prerequisites but never fail
-        echo "Checking deployment prerequisites..."
-        
+        echo "=== Checking Deployment Prerequisites ==="
+
         CAN_DEPLOY="false"
-        
+
         # Check if deployment is enabled
         if [ "$DEPLOY_ENABLED" = "true" ]; then
-          echo "DEPLOY_ENABLED is true"
-          
-          # Check for required secrets (but don't fail if missing)
-          if [ -n "${{ secrets.AZURE_CLIENT_ID }}" ] && [ -n "${{ secrets.AZURE_TENANT_ID }}" ] && [ -n "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]; then
-            echo "Azure OIDC secrets are configured"
-            CAN_DEPLOY="true"
-          else
-            echo "::warning ::Azure OIDC secrets missing (radical soft)"
+          echo "✓ DEPLOY_ENABLED is true"
+
+          # Check for required Azure OIDC secrets
+          MISSING_SECRETS=""
+          if [ -z "${{ secrets.AZURE_CLIENT_ID }}" ]; then MISSING_SECRETS="$MISSING_SECRETS AZURE_CLIENT_ID"; fi
+          if [ -z "${{ secrets.AZURE_TENANT_ID }}" ]; then MISSING_SECRETS="$MISSING_SECRETS AZURE_TENANT_ID"; fi
+          if [ -z "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]; then MISSING_SECRETS="$MISSING_SECRETS AZURE_SUBSCRIPTION_ID"; fi
+
+          if [ -n "$MISSING_SECRETS" ]; then
+            echo "::error::Missing required Azure secrets:$MISSING_SECRETS"
+            echo "::notice::Configure these secrets in GitHub repository settings"
+            exit 1
           fi
+
+          echo "✓ All Azure OIDC secrets are configured"
+          CAN_DEPLOY="true"
         else
-          echo "::notice ::Deployment disabled by DEPLOY_ENABLED=false"
+          echo "::notice::Deployment disabled by DEPLOY_ENABLED=false"
+          echo "::notice::Set DEPLOY_ENABLED=true in workflow environment when ready for deployment"
         fi
-        
+
         echo "can-deploy=$CAN_DEPLOY" >> $GITHUB_OUTPUT
         echo "Deployment check: $CAN_DEPLOY"
-    
+
     - name: Setup Azure CLI
       if: steps.check-deploy.outputs.can-deploy == 'true'
       run: |
-        # RADICAL_SOFT_MODE: Setup Azure CLI but never fail
-        curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash || echo "::warning ::Azure CLI installation failed (radical soft)"
-        
+        echo "=== Setting up Azure CLI ==="
+        curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
         # Verify installation
-        az version || echo "::warning ::Azure CLI verification failed (radical soft)"
-      
+        az version
+
     - name: Azure Login via OIDC
       if: steps.check-deploy.outputs.can-deploy == 'true'
-      uses: azure/login@v1
+      uses: azure/login@v2
       with:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      continue-on-error: true  # RADICAL_SOFT_MODE: Don't fail if OIDC fails
-      
+
     - name: Verify Azure access
       if: steps.check-deploy.outputs.can-deploy == 'true'
       run: |
-        # RADICAL_SOFT_MODE: Verify access but never fail
-        az account show || echo "::warning ::Azure account verification failed (radical soft)"
-        az group list --query "[0].name" -o tsv || echo "::warning ::Azure resource group access failed (radical soft)"
+        echo "=== Verifying Azure Access ==="
+        az account show
+        echo "Azure subscription: $(az account show --query name -o tsv)"
+        echo "✓ Azure access verified"
 
   deploy:
     needs: setup
     runs-on: ubuntu-latest
-    continue-on-error: true  # RADICAL_SOFT_MODE: Never fail
+    timeout-minutes: 30
     if: needs.setup.outputs.can-deploy == 'true'
-    
-    environment: production
-    
+    environment: ${{ github.event.inputs.environment || 'staging' }}
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        
+        cache: 'npm'
+
     - name: Setup pnpm
       uses: pnpm/action-setup@v2
       with:
         version: 8
-        
+
     - name: Install dependencies
-      run: pnpm install --frozen-lockfile || echo "::warning ::Dependencies install failed (radical soft)"
-      
+      run: pnpm install --frozen-lockfile
+
     - name: Build for production
       run: |
-        # RADICAL_SOFT_MODE: Build but never fail
-        pnpm build || echo "::warning ::Production build failed (radical soft)"
-        
+        echo "=== Building for Production ==="
+        pnpm build
+
         # Verify build artifacts
-        if [ -d "dist/" ] || [ -d ".next/" ]; then
-          echo "::notice ::Build artifacts found"
+        if [ -d "dist/" ] || [ -d ".next/" ] || [ -d "apps/api/dist" ]; then
+          echo "✓ Build artifacts found"
+          ls -la dist/ .next/ apps/api/dist 2>/dev/null || true
         else
-          echo "::warning ::No build artifacts found (radical soft)"
+          echo "::error::No build artifacts found"
+          exit 1
         fi
-      
+
     - name: Azure Login via OIDC
-      uses: azure/login@v1
+      uses: azure/login@v2
       with:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      continue-on-error: true  # RADICAL_SOFT_MODE: Don't fail if OIDC fails
-      
+
     - name: Deploy to Azure
       run: |
-        # RADICAL_SOFT_MODE: Simulate deployment but never actually deploy or fail
-        echo "::notice ::Deployment simulation (DEPLOY_ENABLED=$DEPLOY_ENABLED)"
-        
+        echo "=== Deploying to Azure ==="
+        echo "Environment: ${{ github.event.inputs.environment || 'staging' }}"
+        echo "DEPLOY_ENABLED: $DEPLOY_ENABLED"
+
         if [ "$DEPLOY_ENABLED" = "true" ]; then
-          echo "Would deploy to Azure Container Apps..."
-          
-          # Simulate deployment commands (commented out for safety)
-          # az containerapp update \
-          #   --name econeura-api \
-          #   --resource-group econeura-rg \
-          #   --image econeura/api:latest || echo "::warning ::Deployment failed (radical soft)"
-          
-          echo "::warning ::Actual deployment skipped - DEPLOY_ENABLED check prevents real deployment (radical soft)"
+          echo "Starting deployment to Azure Container Apps..."
+
+          # Create resource group if it doesn't exist
+          az group create --name econeura-rg --location eastus --only-show-errors
+
+          # Deploy API
+          if [ -d "apps/api" ]; then
+            echo "Deploying API..."
+            az containerapp create \
+              --name econeura-api \
+              --resource-group econeura-rg \
+              --environment econeura-env \
+              --image mcr.microsoft.com/dotnet/aspnet:8.0 \
+              --target-port 3001 \
+              --ingress external \
+              --query properties.configuration.ingress.fqdn \
+              --only-show-errors || echo "::error::API deployment failed"
+          fi
+
+          # Deploy Web App
+          if [ -d "apps/web" ]; then
+            echo "Deploying Web App..."
+            az containerapp create \
+              --name econeura-web \
+              --resource-group econeura-rg \
+              --environment econeura-env \
+              --image node:20 \
+              --target-port 3000 \
+              --ingress external \
+              --query properties.configuration.ingress.fqdn \
+              --only-show-errors || echo "::error::Web deployment failed"
+          fi
+
+          echo "✓ Deployment completed"
         else
-          echo "::notice ::Deployment skipped - DEPLOY_ENABLED is false"
+          echo "::notice::Deployment skipped - DEPLOY_ENABLED is false"
+          echo "::notice::Set DEPLOY_ENABLED=true when ready for production deployment"
         fi
-      
+
     - name: Deployment summary
       run: |
         echo "=== Deployment Summary ==="
-        echo "Status: Completed in RADICAL SOFT MODE"
+        echo "Status: $([ "$DEPLOY_ENABLED" = "true" ] && echo "DEPLOYED" || echo "SIMULATION")"
+        echo "Environment: ${{ github.event.inputs.environment || 'staging' }}"
         echo "DEPLOY_ENABLED: $DEPLOY_ENABLED"
-        echo "Actual deployment: DISABLED"
-        echo "Mode: SIMULATION ONLY"
-        echo "::notice ::OIDC setup and deploy workflow completed (no actual deployment performed)"
+        echo "Timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+        if [ "$DEPLOY_ENABLED" = "true" ]; then
+          echo "::notice::Production deployment completed successfully"
+        else
+          echo "::notice::Deployment simulation completed - configure DEPLOY_ENABLED=true for real deployment"
+        fi

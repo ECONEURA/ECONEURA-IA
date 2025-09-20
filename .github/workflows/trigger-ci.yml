@@ -1,6 +1,3 @@
-# RADICAL_SOFT_MODE: Este workflow ha sido modificado para NO fallar nunca.
-# Revertir buscando la etiqueta RADICAL_SOFT_MODE y eliminando continue-on-error / restaurando triggers.
-
 name: trigger-ci
 
 on:
@@ -26,23 +23,22 @@ on:
 jobs:
   trigger:
     runs-on: ubuntu-latest
-    continue-on-error: true  # RADICAL_SOFT_MODE: Never fail
-    
+    timeout-minutes: 10
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      
+
     - name: Trigger selected workflow
       uses: actions/github-script@v7
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          // RADICAL_SOFT_MODE: Trigger workflow but never fail
           const workflow = '${{ inputs.workflow }}';
           const branch = '${{ inputs.branch }}' || 'main';
-          
+
           console.log(`Triggering workflow: ${workflow} on branch: ${branch}`);
-          
+
           try {
             const response = await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
@@ -50,42 +46,36 @@ jobs:
               workflow_id: `${workflow}.yml`,
               ref: branch
             });
-            
+
             console.log('✅ Workflow triggered successfully');
             console.log(`Status: ${response.status}`);
-            
+
             // Set output for potential use in other steps
             core.setOutput('triggered', 'true');
             core.setOutput('workflow', workflow);
             core.setOutput('branch', branch);
-            
+
           } catch (error) {
-            // RADICAL_SOFT_MODE: Log error but don't fail
-            console.log(`::warning ::Failed to trigger workflow ${workflow}: ${error.message} (radical soft)`);
-            core.setOutput('triggered', 'false');
-            core.setOutput('error', error.message);
+            console.log(`::error ::Failed to trigger workflow ${workflow}: ${error.message}`);
+            core.setFailed(`Workflow trigger failed: ${error.message}`);
           }
-      continue-on-error: true  # RADICAL_SOFT_MODE
-      
+
     - name: Wait for workflow start
       run: |
-        # RADICAL_SOFT_MODE: Wait for workflow but never fail
         echo "Waiting for workflow to start..."
         sleep 10
-        
+
         # Check if workflow started (optional, informational only)
         echo "Workflow trigger request completed"
         echo "Check the Actions tab to see if the workflow started successfully"
-        echo "::notice ::Workflow trigger completed (radical soft mode)"
-      continue-on-error: true  # RADICAL_SOFT_MODE
-      
+        echo "::notice ::Workflow trigger completed"
+
     - name: Summary
       run: |
         echo "=== CI Trigger Summary ==="
         echo "Requested workflow: ${{ inputs.workflow }}"
         echo "Target branch: ${{ inputs.branch }}"
-        echo "Status: Completed in RADICAL SOFT MODE"
+        echo "Status: Completed successfully"
         echo ""
         echo "Note: Check the Actions tab to verify the triggered workflow"
-        echo "In RADICAL SOFT MODE, trigger failures are logged as warnings"
         echo "::notice ::CI trigger workflow completed successfully"

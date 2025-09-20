@@ -1,109 +1,180 @@
-# RADICAL_SOFT_MODE: Este workflow ha sido modificado para NO fallar nunca.
-# Revertir buscando la etiqueta RADICAL_SOFT_MODE y eliminando continue-on-error / restaurando triggers.
-
-name: openapi-check
+name: OpenAPI Validation
 
 on:
-  workflow_dispatch:  # RADICAL_SOFT_MODE: Only manual trigger, removed push/pull_request
-
-env:
-  DEPLOY_ENABLED: "false"
+  push:
+    branches: [ main ]
+    paths:
+      - 'apps/api/openapi*.yaml'
+      - 'apps/api/openapi*.json'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'apps/api/openapi*.yaml'
+      - 'apps/api/openapi*.json'
+  workflow_dispatch:
 
 jobs:
   checksum:
     runs-on: ubuntu-latest
-    continue-on-error: true  # RADICAL_SOFT_MODE: Never fail
-    
+    timeout-minutes: 10
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        
+        cache: 'npm'
+
     - name: Setup pnpm
       uses: pnpm/action-setup@v2
       with:
         version: 8
-        
+
     - name: Install dependencies
-      run: pnpm install --frozen-lockfile || echo "::warning ::Dependencies install failed (radical soft)"
-      
+      run: pnpm install --frozen-lockfile
+
     - name: Generate OpenAPI checksum
       run: |
-        # Generate checksums for OpenAPI files
-        find apps/api -name "openapi.yaml" -o -name "openapi.json" | while read file; do
-          echo "Processing $file"
-          sha256sum "$file" || echo "::warning ::Failed to checksum $file (radical soft)"
-        done > /tmp/openapi-checksums.txt
-        
-        # RADICAL_SOFT_MODE: Compare with existing but never fail
-        if [ -f .openapi.checksum ]; then
+        echo "=== Generating OpenAPI Checksums ==="
+
+        # Find OpenAPI files
+        OPENAPI_FILES=$(find apps/api -name "openapi*.yaml" -o -name "openapi*.json" 2>/dev/null)
+
+        if [ -z "$OPENAPI_FILES" ]; then
+          echo "::error::No OpenAPI specification files found in apps/api/"
+          exit 1
+        fi
+
+        echo "Found OpenAPI files:"
+        echo "$OPENAPI_FILES"
+
+        # Generate checksums
+        for file in $OPENAPI_FILES; do
+          if [ -f "$file" ]; then
+            echo "Processing $file"
+            sha256sum "$file" >> /tmp/openapi-checksums.txt
+          fi
+        done
+
+        echo "Checksums generated successfully"
+
+    - name: Compare checksums
+      run: |
+        echo "=== Comparing Checksums ==="
+
+        if [ -f ".openapi.checksum" ]; then
           if diff -u .openapi.checksum /tmp/openapi-checksums.txt; then
-            echo "::notice ::OpenAPI checksums match"
+            echo "::notice::OpenAPI checksums match - no changes detected"
           else
-            echo "::warning ::OpenAPI checksums differ - API may have changed (radical soft)"
+            echo "::warning::OpenAPI checksums differ - API specification has changed"
+            echo "This may indicate breaking changes or new features"
           fi
         else
-          echo "::warning ::No existing checksum file found (radical soft)"
-          cp /tmp/openapi-checksums.txt .openapi.checksum
+          echo "::notice::No existing checksum file found - creating baseline"
         fi
+
+        # Update checksum file
+        cp /tmp/openapi-checksums.txt .openapi.checksum
+        echo "Checksum file updated"
 
   openapi-validation:
     runs-on: ubuntu-latest
-    continue-on-error: true  # RADICAL_SOFT_MODE: Never fail
-    
+    timeout-minutes: 15
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        
+        cache: 'npm'
+
     - name: Setup pnpm
       uses: pnpm/action-setup@v2
       with:
         version: 8
-        
+
     - name: Install dependencies
-      run: pnpm install --frozen-lockfile || echo "::warning ::Dependencies install failed (radical soft)"
-      
+      run: pnpm install --frozen-lockfile
+
+    - name: Create artifacts directory
+      run: mkdir -p .artifacts
+
     - name: Validate OpenAPI specs
       run: |
-        # RADICAL_SOFT_MODE: Validate but never fail
-        echo "Validating OpenAPI specifications..."
-        
-        # Spectral validation
-        npx @stoplight/spectral-cli lint apps/api/openapi.yaml --format json --output .artifacts/spectral-results.json || echo "::warning ::Spectral validation failed (radical soft)"
-        npx @stoplight/spectral-cli lint apps/api/openapi/openapi.yaml --format json --output .artifacts/spectral-results-v2.json || echo "::warning ::Spectral validation failed (radical soft)"
-        
-        # Swagger validation
-        npx swagger-parser validate apps/api/openapi.yaml || echo "::warning ::Swagger parser validation failed (radical soft)"
-        
-        # OpenAPI diff (if comparing with main)
-        if [ "${{ github.event_name }}" = "pull_request" ]; then
-          git fetch origin main:main || echo "::warning ::Failed to fetch main branch (radical soft)"
-          
-          # Check for differences but never fail
-          if git show main:apps/api/openapi.yaml > /tmp/main-openapi.yaml 2>/dev/null; then
-            npx openapi-diff /tmp/main-openapi.yaml apps/api/openapi.yaml --format json --output .artifacts/openapi-diff.json || echo "::warning ::OpenAPI diff failed (radical soft)"
-            
-            if [ -f .artifacts/openapi-diff.json ]; then
-              echo "::notice ::OpenAPI diff generated successfully"
+        echo "=== Validating OpenAPI Specifications ==="
+
+        # Find OpenAPI files
+        OPENAPI_FILES=$(find apps/api -name "openapi*.yaml" -o -name "openapi*.json" 2>/dev/null)
+
+        if [ -z "$OPENAPI_FILES" ]; then
+          echo "::error::No OpenAPI specification files found"
+          exit 1
+        fi
+
+        VALIDATION_PASSED=true
+
+        for file in $OPENAPI_FILES; do
+          echo "Validating $file..."
+
+          # Spectral validation
+          if npx @stoplight/spectral-cli lint "$file" --format json --output ".artifacts/spectral-$(basename "$file" .yaml).json" 2>/dev/null; then
+            echo "✓ Spectral validation passed for $file"
+          else
+            echo "::error::Spectral validation failed for $file"
+            VALIDATION_PASSED=false
+          fi
+
+          # Swagger parser validation
+          if npx swagger-parser validate "$file" 2>/dev/null; then
+            echo "✓ Swagger parser validation passed for $file"
+          else
+            echo "::error::Swagger parser validation failed for $file"
+            VALIDATION_PASSED=false
+          fi
+        done
+
+        if [ "$VALIDATION_PASSED" = false ]; then
+          echo "::error::OpenAPI validation failed"
+          exit 1
+        fi
+
+        echo "All OpenAPI validations passed"
+
+    - name: OpenAPI diff (PR only)
+      if: github.event_name == 'pull_request'
+      run: |
+        echo "=== Generating OpenAPI Diff ==="
+
+        # Fetch main branch
+        git fetch origin main:main
+
+        # Find OpenAPI files and compare
+        OPENAPI_FILES=$(find apps/api -name "openapi*.yaml" -o -name "openapi*.json" 2>/dev/null)
+
+        for file in $OPENAPI_FILES; do
+          if git show "main:$file" > "/tmp/main-$(basename "$file")" 2>/dev/null; then
+            echo "Comparing $file with main branch..."
+
+            if npx openapi-diff "/tmp/main-$(basename "$file")" "$file" --format json --output ".artifacts/openapi-diff-$(basename "$file" .yaml).json" 2>/dev/null; then
+              echo "✓ OpenAPI diff generated for $file"
+            else
+              echo "::warning::OpenAPI diff failed for $file"
             fi
           else
-            echo "::warning ::Could not get main branch OpenAPI for comparison (radical soft)"
+            echo "::notice::No previous version of $file found in main branch"
           fi
-        fi
-      
+        done
+
     - name: Upload validation results
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: openapi-validation-results
+        name: openapi-validation-results-${{ github.run_id }}
         path: .artifacts/
-        if-no-files-found: ignore
+        retention-days: 30

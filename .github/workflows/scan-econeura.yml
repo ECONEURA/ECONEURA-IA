@@ -19,6 +19,7 @@ env:
 jobs:
   security-scan:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     outputs:
       high-risk-count: ${{ steps.classification.outputs.high_risk_count }}
       scan-status: ${{ steps.gate-decision.outputs.status }}

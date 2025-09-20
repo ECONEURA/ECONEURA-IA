@@ -1,11 +1,8 @@
-# RADICAL_SOFT_MODE: Este workflow ha sido modificado para NO fallar nunca.
-# Revertir buscando la etiqueta RADICAL_SOFT_MODE y eliminando continue-on-error / restaurando triggers.
-
 name: integrations-health
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # Every 6 hours (optional for logs)
+    - cron: '0 */6 * * *'  # Every 6 hours
   workflow_dispatch:
 
 env:
@@ -14,39 +11,38 @@ env:
 jobs:
   health:
     runs-on: ubuntu-latest
-    continue-on-error: true  # RADICAL_SOFT_MODE: Never fail
-    
+    timeout-minutes: 15
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        
+
     - name: Setup pnpm
       uses: pnpm/action-setup@v2
       with:
         version: 8
-        
+
     - name: Install dependencies
-      run: pnpm install --frozen-lockfile || echo "::warning ::Dependencies install failed (radical soft)"
-      
+      run: pnpm install --frozen-lockfile
+
     - name: Check integrations health
       run: |
-        # RADICAL_SOFT_MODE: Run health checks but never fail
         echo "Checking integrations health..."
-        
+
         # Run the health check script
-        node scripts/ci/check-integrations-health.mjs || echo "::warning ::Integrations health check failed (radical soft)"
-        
+        node scripts/ci/check-integrations-health.mjs
+
         # Check if health results exist
         if [ -f .artifacts/health-check.json ]; then
           echo "Health check results:"
           cat .artifacts/health-check.json
-          
-          # Parse results but only warn
+
+          # Parse results and fail if unhealthy
           FAILED_SERVICES=$(node -e "
             const fs = require('fs');
             try {
@@ -57,21 +53,22 @@ jobs:
               console.log('0');
             }
           ")
-          
+
           if [ "$FAILED_SERVICES" -gt "0" ]; then
-            echo "::warning ::$FAILED_SERVICES integrations are unhealthy (radical soft)"
+            echo "::error ::$FAILED_SERVICES integrations are unhealthy"
+            exit 1
           else
             echo "::notice ::All integrations are healthy"
           fi
         else
-          echo "::warning ::No health check results found (radical soft)"
+          echo "::error ::No health check results found"
+          exit 1
         fi
-      
+
     - name: Test external dependencies
       run: |
-        # RADICAL_SOFT_MODE: Test external services but never fail
         echo "Testing external dependencies..."
-        
+
         # Test database connectivity
         if [ -n "$DATABASE_URL" ]; then
           node -e "
@@ -79,12 +76,12 @@ jobs:
             const client = new Client(process.env.DATABASE_URL);
             client.connect()
               .then(() => { console.log('Database: Connected'); client.end(); })
-              .catch(err => console.log('Database: Failed -', err.message));
-          " || echo "::warning ::Database connectivity test failed (radical soft)"
+              .catch(err => { console.log('Database: Failed -', err.message); process.exit(1); });
+          "
         else
-          echo "::warning ::No DATABASE_URL configured (radical soft)"
+          echo "::warning ::No DATABASE_URL configured"
         fi
-        
+
         # Test Redis connectivity (if configured)
         if [ -n "$REDIS_URL" ]; then
           node -e "
@@ -92,12 +89,12 @@ jobs:
             const client = redis.createClient(process.env.REDIS_URL);
             client.ping()
               .then(() => { console.log('Redis: Connected'); client.quit(); })
-              .catch(err => console.log('Redis: Failed -', err.message));
-          " || echo "::warning ::Redis connectivity test failed (radical soft)"
+              .catch(err => { console.log('Redis: Failed -', err.message); process.exit(1); });
+          "
         else
           echo "::notice ::No REDIS_URL configured, skipping Redis test"
         fi
-      
+
     - name: Upload health results
       uses: actions/upload-artifact@v4
       if: always()
@@ -105,11 +102,9 @@ jobs:
         name: health-check-results
         path: .artifacts/
         if-no-files-found: ignore
-      
+
     - name: Summary
       run: |
-        # RADICAL_SOFT_MODE: Final summary with warning instead of exit 1
         echo "=== Integration Health Summary ==="
-        echo "This check completed successfully (radical soft mode)"
-        echo "Check warnings above for any issues that would normally cause failures"
-        echo "::notice ::Integration health check completed in radical soft mode"
+        echo "All health checks completed successfully"
+        echo "::notice ::Integration health check completed"

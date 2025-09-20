@@ -3,24 +3,65 @@ on: [pull_request]
 jobs:
   audit-matrix:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       matrix:
         task: [hmac, sbom, evidence]
+      fail-fast: false
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
+
+      - name: Install syft for SBOM
+        if: matrix.task == 'sbom'
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+
       - name: Run audit task ${{ matrix.task }}
         run: |
+          set -e
+
           case "${{ matrix.task }}" in
-            hmac) ./scripts/validate_with_cache.sh audit/approval_signed.json ;;
-            sbom) command -v syft >/dev/null 2>&1 && syft dir:. -o json > audit/sbom_local.json || echo "syft not installed";;
-            evidence) ./scripts/automated_audit_pipeline.sh --non-destructive --type evidence || true ;;
+            hmac)
+              if [ ! -f "scripts/validate_with_cache.sh" ]; then
+                echo "::error::Script scripts/validate_with_cache.sh not found"
+                exit 1
+              fi
+              if [ ! -f "audit/approval_signed.json" ]; then
+                echo "::error::File audit/approval_signed.json not found"
+                exit 1
+              fi
+              chmod +x scripts/validate_with_cache.sh
+              ./scripts/validate_with_cache.sh audit/approval_signed.json
+              ;;
+
+            sbom)
+              if ! command -v syft >/dev/null 2>&1; then
+                echo "::error::Syft not installed"
+                exit 1
+              fi
+              syft dir:. -o json > audit/sbom_local.json
+              echo "SBOM generated successfully"
+              ;;
+
+            evidence)
+              if [ ! -f "scripts/automated_audit_pipeline.sh" ]; then
+                echo "::error::Script scripts/automated_audit_pipeline.sh not found"
+                exit 1
+              fi
+              chmod +x scripts/automated_audit_pipeline.sh
+              ./scripts/automated_audit_pipeline.sh --non-destructive --type evidence
+              ;;
           esac
+
       - name: Upload artifacts
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: audit-${{ matrix.task }}
-          path: audit/*
+          name: audit-${{ matrix.task }}-${{ github.run_id }}
+          path: audit/
+          retention-days: 30

@@ -19,6 +19,7 @@ env:
 jobs:
   validate-approval:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     outputs:
       approval_valid: ${{ steps.validate.outputs.valid }}
       actor: ${{ steps.validate.outputs.actor }}
