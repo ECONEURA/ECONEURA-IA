@@ -1,5 +1,5 @@
 // Rule Engine Service for PR-42
-import { MatchingRule, MatchingCondition, MatchingAction } from './sepa-types';
+import { MatchingRule, MatchingCondition, MatchingAction } from './sepa-types.js';
 
 export class RuleEngineService {
   private rules: MatchingRule[] = [];

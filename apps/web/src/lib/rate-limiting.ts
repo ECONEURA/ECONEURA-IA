@@ -103,7 +103,7 @@ export class WebRateLimiter {
     this.states.delete(organizationId);
     
     if (removed) {
-      console.log('Web organization rate limit removed', { organizationId });
+      
     }
     
     return removed;
@@ -282,7 +282,7 @@ export class WebRateLimiter {
       windowStart: Date.now()
     });
 
-    console.log('Web organization rate limit reset', { organizationId });
+    
     return true;
   }
 

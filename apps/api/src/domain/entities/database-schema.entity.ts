@@ -249,7 +249,7 @@ export class DatabaseSchema extends BaseEntity {
     const now = new Date();
     return new DatabaseSchema({
       ...props,
-      id: { value: crypto.randomUUID() },
+      id: crypto.randomUUID(),
       createdAt: now,
       updatedAt: now,
     });
@@ -626,21 +626,21 @@ export class DatabaseSchema extends BaseEntity {
   static createPostgreSQLSchema(props: Omit<DatabaseSchemaProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): DatabaseSchema {
     return DatabaseSchema.create({
       ...props,
-      type: { value: 'postgresql' },
+      type: 'postgresql',
     });
   }
 
   static createMySQLSchema(props: Omit<DatabaseSchemaProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): DatabaseSchema {
     return DatabaseSchema.create({
       ...props,
-      type: { value: 'mysql' },
+      type: 'mysql',
     });
   }
 
   static createMongoDBSchema(props: Omit<DatabaseSchemaProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): DatabaseSchema {
     return DatabaseSchema.create({
       ...props,
-      type: { value: 'mongodb' },
+      type: 'mongodb',
     });
   }
 }

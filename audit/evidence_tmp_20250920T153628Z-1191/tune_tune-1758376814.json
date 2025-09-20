@@ -1,0 +1,16 @@
+{
+  "trace_id": "tune-1758376814",
+  "status": "tuning_completed",
+  "timestamp": "2025-09-20T14:00:14+00:00",
+  "datasets": [
+    "tests/econeura-test/noisy",
+    "tests/econeura-test/real-like",
+    "tests/econeura-test/critical"
+  ],
+  "note": "<REDACTED>",
+  "recommendations": [
+    "Run actual security scanners on test datasets",
+    "Adjust scoring thresholds based on false positive rates",
+    "Validate classification accuracy"
+  ]
+}

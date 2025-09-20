@@ -91,11 +91,11 @@ export class WebCache {
   async clear(): Promise<void> {
     const size = this.memoryCache.size;
     this.memoryCache.clear();
-    console.log('Web cache cleared', { previousSize: size });
+    
   }
 
   async warmup(patterns: Array<{ key: string; value: any; ttl?: number }>): Promise<void> {
-    console.log('Starting web cache warmup', { patternsCount: patterns.length });
+    
     
     for (const pattern of patterns) {
       await this.set(pattern.key, pattern.value, pattern.ttl);
@@ -279,7 +279,7 @@ export class WebCacheManager {
       maxSize: 50,
     });
 
-    console.log('Web cache manager initialized');
+    
   }
 
   getAICache(): WebAICache {
@@ -291,14 +291,14 @@ export class WebCacheManager {
   }
 
   async warmupAll(): Promise<void> {
-    console.log('Starting comprehensive web cache warmup');
+    
     
     await Promise.all([
       this.aiCache.warmupAI(),
       this.searchCache.warmupSearch(),
     ]);
 
-    console.log('Comprehensive web cache warmup completed');
+    
   }
 
   startPeriodicWarmup(intervalMinutes: number = 60): void {
@@ -307,18 +307,18 @@ export class WebCacheManager {
     }
 
     this.warmupInterval = setInterval(async () => {
-      console.log('Running periodic web cache warmup');
+      
       await this.warmupAll();
     }, intervalMinutes * 60 * 1000);
 
-    console.log('Periodic web cache warmup started', { intervalMinutes });
+    
   }
 
   stopPeriodicWarmup(): void {
     if (this.warmupInterval) {
       clearInterval(this.warmupInterval);
       this.warmupInterval = null;
-      console.log('Periodic web cache warmup stopped');
+      
     }
   }
 

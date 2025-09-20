@@ -16,7 +16,7 @@ import {
   UpdateEscalationRuleRequest,
   TriggerEscalationRequest,
   EscalationStats
-} from './quiet-hours-types';
+} from './quiet-hours-types.js';
 
 export class EscalationService {
   private rules: Map<string, EscalationRule> = new Map();
@@ -289,7 +289,7 @@ export class EscalationService {
     });
 
     // In production, actually send notifications, make calls, etc.
-    console.log(`Executing escalation action: ${action.type} for target: ${action.target}`);
+    
   }
 
   /**

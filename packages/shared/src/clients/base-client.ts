@@ -1,136 +1,99 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+/**
+ * Cliente base con métodos HTTP y manejo de errores
+ */
 
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  timestamp: string;
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  pagination: {
-    page: number;
-    pageSize: number;
-    total: number;
-    totalPages: number;
-  };
-}
-
-export interface BaseClientConfig {
-  baseURL: string;
-  timeout?: number;
+export interface RequestOptions {
   headers?: Record<string, string>;
-  apiKey?: string;
-  organizationId?: string;
+  params?: Record<string, string | number>;
+  body?: unknown;
+}
+
+export interface ErrorResponse {
+  type: string;
+  title: string;
+  status: number;
+  detail: string;
+  instance: string;
+  traceId?: string;
+}
+
+export class APIError extends Error {
+  readonly type: string;
+  readonly status: number;
+  readonly detail: string;
+  readonly instance: string;
+  readonly traceId?: string;
+
+  constructor(response: ErrorResponse) {
+    super(response.title);
+    this.type = response.type;
+    this.status = response.status;
+    this.detail = response.detail;
+    this.instance = response.instance;
+    this.traceId = response.traceId;
+    this.name = 'APIError';
+  }
 }
 
 export class BaseClient {
-  protected client: AxiosInstance;
-  protected config: BaseClientConfig;
+  protected baseURL: string;
+  protected headers: Record<string, string>;
 
-  constructor(config: BaseClientConfig) {
-    this.config = config;
+  constructor(baseURL: string, headers: Record<string, string> = {}) {
+    this.baseURL = baseURL.endsWith('/') ? baseURL.slice(0, -1) : baseURL;
+    this.headers = {
+      'Content-Type': 'application/json',
+      ...headers
+    };
+  }
+
+  protected async request<T>(
+    method: string,
+    path: string,
+    options: RequestOptions = {}
+  ): Promise<T> {
+    const url = new URL(path.startsWith('/') ? path.slice(1) : path, this.baseURL);
     
-    this.client = axios.create({
-      baseURL: config.baseURL,
-      timeout: config.timeout || 30000,
+    if (options.params) {
+      Object.entries(options.params).forEach(([key, value]) => {
+        url.searchParams.append(key, String(value));
+      });
+    }
+
+    const response = await fetch(url.toString(), {
+      method,
       headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'ECONEURA-SDK/1.0.0',
-        ...config.headers,
+        ...this.headers,
+        ...options.headers
       },
+      body: method !== 'GET' && options.body ? JSON.stringify(options.body) : undefined
     });
 
-    // Add request interceptor for authentication and organization context
-    this.client.interceptors.request.use(
-      (config) => {
-        if (this.config.apiKey) {
-          config.headers.Authorization = `Bearer ${this.config.apiKey}`;
-        }
-        
-        if (this.config.organizationId) {
-          config.headers['X-Org'] = this.config.organizationId;
-        }
-
-        // Add correlation ID for tracing
-        config.headers['X-Correlation-Id'] = this.generateCorrelationId();
-        
-        return config;
-      },
-      (error) => Promise.reject(error)
-    );
-
-    // Add response interceptor for error handling
-    this.client.interceptors.response.use(
-      (response: AxiosResponse) => response,
-      (error) => {
-        if (error.response?.status === 401) {
-          throw new Error('Authentication required. Please provide a valid API key.');
-        }
-        if (error.response?.status === 403) {
-          throw new Error('Access forbidden. Check your permissions.');
-        }
-        if (error.response?.status === 429) {
-          throw new Error('Rate limit exceeded. Please try again later.');
-        }
-        if (error.response?.status >= 500) {
-          throw new Error('Server error. Please try again later.');
-        }
-        throw error;
-      }
-    );
-  }
-
-  protected async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.get<ApiResponse<T>>(url, config);
-    return this.handleResponse(response);
-  }
-
-  protected async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.post<ApiResponse<T>>(url, data, config);
-    return this.handleResponse(response);
-  }
-
-  protected async patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.patch<ApiResponse<T>>(url, data, config);
-    return this.handleResponse(response);
-  }
-
-  protected async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.put<ApiResponse<T>>(url, data, config);
-    return this.handleResponse(response);
-  }
-
-  protected async delete<T>(url: string, config?: AxiosRequestConfig): Promise<void> {
-    const response = await this.client.delete<ApiResponse<T>>(url, config);
-    this.handleResponse(response);
-  }
-
-  private handleResponse<T>(response: AxiosResponse<ApiResponse<T>>): T {
-    const { data } = response.data;
-    
-    if (!response.data.success) {
-      throw new Error(response.data.error || 'Unknown error occurred');
+    if (!response.ok) {
+      const error = await response.json();
+      throw new APIError(error);
     }
-    
-    return data as T;
+
+    return method === 'DELETE' ? undefined as T : response.json();
   }
 
-  private generateCorrelationId(): string {
-    return `corr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  protected async get<T>(path: string, options?: RequestOptions): Promise<T> {
+    return this.request<T>('GET', path, options);
   }
 
-  // Utility methods
-  public setApiKey(apiKey: string): void {
-    this.config.apiKey = apiKey;
+  protected async post<T>(path: string, data: unknown, options?: RequestOptions): Promise<T> {
+    return this.request<T>('POST', path, { ...options, body: data });
   }
 
-  public setOrganizationId(organizationId: string): void {
-    this.config.organizationId = organizationId;
+  protected async put<T>(path: string, data: unknown, options?: RequestOptions): Promise<T> {
+    return this.request<T>('PUT', path, { ...options, body: data });
   }
 
-  public getConfig(): BaseClientConfig {
-    return { ...this.config };
+  protected async patch<T>(path: string, data: unknown, options?: RequestOptions): Promise<T> {
+    return this.request<T>('PATCH', path, { ...options, body: data });
+  }
+
+  protected async delete<T>(path: string, options?: RequestOptions): Promise<T> {
+    return this.request<T>('DELETE', path, options);
   }
 }

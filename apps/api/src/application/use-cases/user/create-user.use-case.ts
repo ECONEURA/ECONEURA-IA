@@ -62,13 +62,13 @@ export class CreateUserUseCase {
 
       // Create user entity
       const user = User.create({
-        organizationId: { value: request.organizationId },
+        organizationId: request.organizationId,
         email,
-        passwordHash: { value: passwordHash },
+        passwordHash: passwordHash,
         firstName: request.firstName,
         lastName: request.lastName,
-        role: { value: request.role },
-        status: { value: 'active' },
+        role: request.role,
+        status: 'active',
         isEmailVerified: false,
         mfaEnabled: false
       });

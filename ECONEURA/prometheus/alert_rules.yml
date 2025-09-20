@@ -1,0 +1,68 @@
+groups:
+  - name: econeura_security_alerts
+    rules:
+      - alert: HighRiskFindingsDetected
+        expr: econeura_findings_high > 0
+        for: 5m
+        labels:
+          severity: critical
+          team: security
+        annotations:
+          summary: "High risk security findings detected"
+          description: "Found {{ $value }} high risk security findings that require immediate attention"
+          runbook_url: "https://github.com/ECONEURA-IA/security/blob/main/playbooks/high-risk-response.md"
+
+      - alert: SecurityScanFailed
+        expr: up{job="econeura-security"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          team: security
+        annotations:
+          summary: "Security scan service is down"
+          description: "Security scan service has been down for 5 minutes"
+          runbook_url: "https://github.com/ECONEURA-IA/security/blob/main/playbooks/service-recovery.md"
+
+      - alert: LowMitigationSuccessRate
+        expr: rate(econeura_mitigations_executed[1h]) / (rate(econeura_mitigations_executed[1h]) + rate(econeura_mitigations_blocked[1h])) < 0.8
+        for: 15m
+        labels:
+          severity: warning
+          team: security
+        annotations:
+          summary: "Low mitigation success rate detected"
+          description: "Mitigation success rate has dropped below 80% for the last 15 minutes"
+          runbook_url: "https://github.com/ECONEURA-IA/security/blob/main/playbooks/mitigation-review.md"
+
+      - alert: HighApprovalRejectionRate
+        expr: rate(econeura_approvals_rejected[1h]) / rate(econeura_approvals_total[1h]) > 0.3
+        for: 10m
+        labels:
+          severity: warning
+          team: security
+        annotations:
+          summary: "High approval rejection rate"
+          description: "More than 30% of approval requests are being rejected"
+          runbook_url: "https://github.com/ECONEURA-IA/security/blob/main/playbooks/approval-review.md"
+
+      - alert: SlowSecurityScans
+        expr: histogram_quantile(0.95, rate(econeura_scan_duration_seconds_bucket[5m])) > 300
+        for: 10m
+        labels:
+          severity: info
+          team: security
+        annotations:
+          summary: "Security scans are running slowly"
+          description: "95th percentile of scan duration exceeds 5 minutes"
+          runbook_url: "https://github.com/ECONEURA-IA/security/blob/main/playbooks/performance-tuning.md"
+
+      - alert: SystemHealthDegraded
+        expr: econeura_up == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "ECONEURA system health degraded"
+          description: "ECONEURA security system is reporting unhealthy status"
+          runbook_url: "https://github.com/ECONEURA-IA/security/blob/main/playbooks/health-check.md"

@@ -1,0 +1,160 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Modelo base para el tenant y auditoría
+model Organization {
+  id            String   @id @default(cuid())
+  name          String
+  slug          String   @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  taxId         String?
+  address       String?
+  // Relaciones
+  companies     Company[]
+  contacts      Contact[]
+  products      Product[]
+  invoices      Invoice[]
+  suppliers     Supplier[]
+}
+
+// CRM Models
+model Company {
+  id            String   @id @default(cuid())
+  orgId         String
+  name          String
+  taxId         String?
+  email         String?
+  phone         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  organization  Organization @relation(fields: [orgId], references: [id])
+  contacts      Contact[]
+  interactions  Interaction[]
+  deals         Deal[]
+
+  @@index([orgId])
+}
+
+model Contact {
+  id            String   @id @default(cuid())
+  orgId         String
+  companyId     String?
+  firstName     String
+  lastName      String?
+  email         String?
+  phone         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  organization  Organization @relation(fields: [orgId], references: [id])
+  company       Company? @relation(fields: [companyId], references: [id])
+  interactions  Interaction[]
+
+  @@index([orgId])
+  @@index([companyId])
+}
+
+// ERP Models
+model Product {
+  id            String   @id @default(cuid())
+  orgId         String
+  name          String
+  sku           String
+  price         Decimal
+  stock         Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  organization  Organization @relation(fields: [orgId], references: [id])
+  invoiceItems  InvoiceItem[]
+
+  @@index([orgId])
+  @@unique([orgId, sku])
+}
+
+model Invoice {
+  id            String   @id @default(cuid())
+  orgId         String
+  number        String
+  date          DateTime
+  dueDate       DateTime
+  status        String   // draft, sent, paid, overdue, cancelled
+  total         Decimal
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  organization  Organization @relation(fields: [orgId], references: [id])
+  items         InvoiceItem[]
+
+  @@index([orgId])
+  @@unique([orgId, number])
+}
+
+model InvoiceItem {
+  id            String   @id @default(cuid())
+  invoiceId     String
+  productId     String
+  quantity      Int
+  price         Decimal
+  total         Decimal
+  invoice       Invoice  @relation(fields: [invoiceId], references: [id])
+  product       Product  @relation(fields: [productId], references: [id])
+
+  @@index([invoiceId])
+  @@index([productId])
+}
+
+// Interacciones y Ofertas
+model Interaction {
+  id            String   @id @default(cuid())
+  orgId         String
+  companyId     String
+  contactId     String?
+  type          String   // email, call, meeting, note
+  subject       String
+  content       String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  company       Company  @relation(fields: [companyId], references: [id])
+  contact       Contact? @relation(fields: [contactId], references: [id])
+
+  @@index([orgId])
+  @@index([companyId])
+  @@index([contactId])
+}
+
+model Deal {
+  id            String   @id @default(cuid())
+  orgId         String
+  companyId     String
+  name          String
+  value         Decimal
+  stage         String   // lead, qualified, proposal, negotiation, closed-won, closed-lost
+  probability   Int
+  expectedClose DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  company       Company  @relation(fields: [companyId], references: [id])
+
+  @@index([orgId])
+  @@index([companyId])
+}
+
+// Proveedores
+model Supplier {
+  id            String   @id @default(cuid())
+  orgId         String
+  name          String
+  taxId         String?
+  email         String?
+  phone         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  organization  Organization @relation(fields: [orgId], references: [id])
+
+  @@index([orgId])
+}

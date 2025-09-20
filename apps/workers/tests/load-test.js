@@ -1,6 +1,6 @@
-import http from 'k6/http';
+import http from 'k6/http.js';
 import { check, sleep } from 'k6';
-import { Rate, Trend } from 'k6/metrics';
+import { Rate, Trend } from 'k6/metrics.js';
 
 // Custom metrics
 const errorRate = new Rate('errors');

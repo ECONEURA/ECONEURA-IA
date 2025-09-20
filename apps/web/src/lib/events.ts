@@ -61,13 +61,13 @@ export class WebEventSourcingSystem {
   private queryHandlers: Map<string, any> = new Map();
 
   constructor() {
-    console.log('Web Event Sourcing System initialized');
+    
   }
 
   // Command handling
   registerCommandHandler(commandType: string, handler: any): void {
     this.commandHandlers.set(commandType, handler);
-    console.log('Command handler registered', { commandType });
+    
   }
 
   async executeCommand(command: Command): Promise<void> {
@@ -85,7 +85,7 @@ export class WebEventSourcingSystem {
 
     try {
       await handler(command);
-      console.log('Command executed successfully', { commandId: command.id });
+      
     } catch (error) {
       console.error('Command execution failed', {
         commandId: command.id,
@@ -99,7 +99,7 @@ export class WebEventSourcingSystem {
   // Query handling
   registerQueryHandler(queryType: string, handler: any): void {
     this.queryHandlers.set(queryType, handler);
-    console.log('Query handler registered', { queryType });
+    
   }
 
   async executeQuery<T>(query: Query): Promise<T> {
@@ -116,7 +116,7 @@ export class WebEventSourcingSystem {
 
     try {
       const result = await handler(query);
-      console.log('Query executed successfully', { queryId: query.id });
+      
       return result;
     } catch (error) {
       console.error('Query execution failed', {

@@ -1,346 +1,344 @@
 import { Request, Response, NextFunction } from 'express';
-import { ZodError } from 'zod';
-import { errorManagerService, ErrorCode, ErrorSeverity } from '../lib/error-manager.service.js';
-import { structuredLogger } from '../lib/structured-logger.js';
+import { z } from 'zod';
+import {
+  AppError,
+  ValidationError,
+  AuthenticationError,
+  AuthorizationError,
+  DatabaseError,
+  ExternalServiceError,
+  BusinessLogicError,
+  ResourceNotFoundError,
+  RateLimitError,
+  generateTraceId,
+  isAppError,
+  isZodError,
+  isDatabaseError,
+  isExternalServiceError,
+  mapZodErrorToAppError,
+  mapDatabaseErrorToAppError,
+  mapExternalServiceErrorToAppError,
+  ERROR_CODES,
+  ERROR_STATUS_MAPPING,
+  ErrorResponse,
+} from '@econeura/shared/errors';
 
-// Error Handler Middleware - MEJORA 2
-// Middleware centralizado para manejo de errores con códigos estandarizados
+// ============================================================================
+// ERROR HANDLER MIDDLEWARE
+// ============================================================================
 
-interface ErrorResponse {
-  success: false;
-  error: {
-    code: ErrorCode;
-    message: string;
-    severity: ErrorSeverity;
-    category: string;
-    retryable: boolean;
-    retryAfter?: number;
-    suggestions?: string[];
-    documentation?: string;
-    requestId?: string;
-    timestamp: string;
-  };
-  details?: any;
+export interface ErrorHandlerConfig {
+  includeStack: boolean;
+  logErrors: boolean;
+  logLevel: 'error' | 'warn' | 'info';
+  sanitizeErrors: boolean;
+  rateLimitWindow: number;
+  rateLimitMax: number;
 }
 
-export class AppError extends Error {
-  public readonly code: ErrorCode;
-  public readonly severity: ErrorSeverity;
-  public readonly retryable: boolean;
-  public readonly retryAfter?: number;
-  public readonly suggestions?: string[];
-  public readonly documentation?: string;
-
-  constructor(
-    code: ErrorCode,
-    message: string,
-    retryable: boolean = false,
-    retryAfter?: number,
-    suggestions?: string[],
-    documentation?: string
-  ) {
-    super(message);
-    this.name = 'AppError';
-    this.code = code;
-    this.severity = errorManagerService['getSeverityForCode'](code);
-    this.retryable = retryable;
-    this.retryAfter = retryAfter;
-    this.suggestions = suggestions;
-    this.documentation = documentation;
-  }
-}
-
-export const errorHandler = (
-  error: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
-  const requestId = req.headers['x-request-id'] as string || 
-                   req.headers['x-correlation-id'] as string ||
-                   `req_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-
-  const context = {
-    requestId,
-    userId: req.headers['x-user-id'] as string,
-    organizationId: req.headers['x-org'] as string,
-    sessionId: req.headers['x-session-id'] as string,
-    endpoint: req.path,
-    method: req.method,
-    userAgent: req.headers['user-agent'],
-    ip: req.ip || req.connection.remoteAddress,
-    service: 'api-express'
-  };
-
-  let errorDetails;
-  let statusCode = 500;
-
-  // Manejo de diferentes tipos de errores
-  if (error instanceof AppError) {
-    // Error de aplicación
-    errorDetails = errorManagerService.createError(
-      error.code,
-      error.message,
-      context,
-      error
-    );
-    statusCode = getStatusCodeForErrorCode(error.code);
-  } else if (error instanceof ZodError) {
-    // Error de validación Zod
-    errorDetails = errorManagerService.createError(
-      ErrorCode.VALIDATION_ERROR,
-      'Validation failed',
-      context,
-      error
-    );
-    statusCode = 400;
-  } else if (error.name === 'CastError') {
-    // Error de casting (MongoDB/Prisma)
-    errorDetails = errorManagerService.createError(
-      ErrorCode.INVALID_INPUT,
-      'Invalid data format',
-      context,
-      error
-    );
-    statusCode = 400;
-  } else if (error.name === 'ValidationError') {
-    // Error de validación de base de datos
-    errorDetails = errorManagerService.createError(
-      ErrorCode.VALIDATION_ERROR,
-      'Database validation failed',
-      context,
-      error
-    );
-    statusCode = 400;
-  } else if (error.name === 'UnauthorizedError') {
-    // Error de autenticación
-    errorDetails = errorManagerService.createError(
-      ErrorCode.UNAUTHORIZED,
-      'Authentication required',
-      context,
-      error
-    );
-    statusCode = 401;
-  } else if (error.name === 'ForbiddenError') {
-    // Error de autorización
-    errorDetails = errorManagerService.createError(
-      ErrorCode.FORBIDDEN,
-      'Access denied',
-      context,
-      error
-    );
-    statusCode = 403;
-  } else if (error.name === 'NotFoundError') {
-    // Error de recurso no encontrado
-    errorDetails = errorManagerService.createError(
-      ErrorCode.NOT_FOUND,
-      'Resource not found',
-      context,
-      error
-    );
-    statusCode = 404;
-  } else if (error.name === 'ConflictError') {
-    // Error de conflicto
-    errorDetails = errorManagerService.createError(
-      ErrorCode.CONFLICT,
-      'Resource conflict',
-      context,
-      error
-    );
-    statusCode = 409;
-  } else if (error.name === 'RateLimitError') {
-    // Error de rate limiting
-    errorDetails = errorManagerService.createError(
-      ErrorCode.RATE_LIMIT_EXCEEDED,
-      'Rate limit exceeded',
-      context,
-      error
-    );
-    statusCode = 429;
-  } else if (error.name === 'TimeoutError') {
-    // Error de timeout
-    errorDetails = errorManagerService.createError(
-      ErrorCode.TIMEOUT_ERROR,
-      'Request timeout',
-      context,
-      error
-    );
-    statusCode = 408;
-  } else {
-    // Error interno del servidor
-    errorDetails = errorManagerService.createError(
-      ErrorCode.INTERNAL_ERROR,
-      'Internal server error',
-      context,
-      error
-    );
-    statusCode = 500;
-  }
-
-  // Crear respuesta de error
-  const errorResponse: ErrorResponse = {
-    success: false,
-    error: {
-      code: errorDetails.code,
-      message: errorDetails.message,
-      severity: errorDetails.severity,
-      category: errorDetails.category,
-      retryable: errorDetails.retryable,
-      retryAfter: errorDetails.retryAfter,
-      suggestions: errorDetails.suggestions,
-      documentation: errorDetails.documentation,
-      requestId,
-      timestamp: new Date().toISOString()
-    }
-  };
-
-  // Añadir detalles adicionales para errores de validación
-  if (error instanceof ZodError) {
-    errorResponse.details = {
-      validationErrors: error.errors.map(err => ({
-        field: err.path.join('.'),
-        message: err.message,
-        code: err.code
-      }))
-    };
-  }
-
-  // Log del error
-  const logLevel = getLogLevelForSeverity(errorDetails.severity);
-  structuredLogger[logLevel]('Request error', {
-    ...context,
-    error: {
-      code: errorDetails.code,
-      message: errorDetails.message,
-      severity: errorDetails.severity,
-      category: errorDetails.category,
-      retryable: errorDetails.retryable
-    },
-    statusCode
-  });
-
-  // Enviar respuesta
-  res.status(statusCode).json(errorResponse);
+const defaultConfig: ErrorHandlerConfig = {
+  includeStack: process.env.NODE_ENV !== 'production',
+  logErrors: true,
+  logLevel: 'error',
+  sanitizeErrors: process.env.NODE_ENV === 'production',
+  rateLimitWindow: 60000, // 1 minute
+  rateLimitMax: 100,
 };
 
-// Middleware para manejar rutas no encontradas
-export const notFoundHandler = (req: Request, res: Response, next: NextFunction): void => {
-  const requestId = req.headers['x-request-id'] as string || 
-                   req.headers['x-correlation-id'] as string ||
-                   `req_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+export function createErrorHandler(config: Partial<ErrorHandlerConfig> = {}) {
+  const finalConfig = { ...defaultConfig, ...config };
 
-  const context = {
-    requestId,
-    endpoint: req.path,
+  return (error: unknown, req: Request, res: Response, next: NextFunction): void => {
+    try {
+      // Generate trace ID if not present
+      const traceId = req.headers['x-correlation-id'] as string || generateTraceId();
+      
+      // Add trace ID to response headers
+      res.setHeader('X-Correlation-ID', traceId);
+
+      // Map error to AppError
+      const appError = mapErrorToAppError(error, traceId, req);
+
+      // Log error if configured
+      if (finalConfig.logErrors) {
+        logError(appError, req, finalConfig.logLevel);
+      }
+
+      // Sanitize error for production
+      const sanitizedError = finalConfig.sanitizeErrors 
+        ? sanitizeError(appError, finalConfig.includeStack)
+        : appError;
+
+      // Create error response
+      const errorResponse: ErrorResponse = {
+        success: false,
+        error: sanitizedError.toJSON(),
+        requestId: req.headers['x-request-id'] as string,
+        correlationId: traceId,
+      };
+
+      // Add path and method to error details
+      errorResponse.error.path = req.path;
+      errorResponse.error.method = req.method;
+
+      // Send error response
+      res.status(appError.statusCode).json(errorResponse);
+
+    } catch (handlerError) {
+      // Fallback error handler
+      console.error('Error handler failed:', handlerError);
+      
+      res.status(500).json({
+        success: false,
+  error: {
+          code: ERROR_CODES.INTERNAL_SERVER_ERROR,
+          message: 'Internal server error',
+          timestamp: new Date().toISOString(),
+          statusCode: 500,
+          path: req.path,
+          method: req.method,
+        },
+        correlationId: req.headers['x-correlation-id'] as string || generateTraceId(),
+      });
+    }
+  };
+}
+
+// ============================================================================
+// ERROR MAPPING
+// ============================================================================
+
+function mapErrorToAppError(error: unknown, traceId: string, req: Request): AppError {
+  // Already an AppError
+  if (isAppError(error)) {
+    return error;
+  }
+
+  // Zod validation error
+  if (isZodError(error)) {
+    return mapZodErrorToAppError(error, traceId);
+  }
+
+  // Database error
+  if (isDatabaseError(error)) {
+    return mapDatabaseErrorToAppError(error, req.method, traceId);
+  }
+
+  // External service error
+  if (isExternalServiceError(error)) {
+    return mapExternalServiceErrorToAppError(error, 'unknown', traceId);
+  }
+
+  // Express error with status
+  if (error && typeof error === 'object' && 'status' in error) {
+    const status = (error as any).status;
+    if (status === 401) {
+      return new AuthenticationError(ERROR_CODES.AUTH_REQUIRED, undefined, traceId);
+    }
+    if (status === 403) {
+      return new AuthorizationError(undefined, traceId);
+    }
+    if (status === 404) {
+      return new ResourceNotFoundError('Resource', traceId);
+    }
+    if (status === 429) {
+      return new RateLimitError(undefined, undefined, traceId);
+    }
+  }
+
+  // Generic error
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  return new AppError(
+    ERROR_CODES.INTERNAL_SERVER_ERROR,
+    errorMessage,
+    { originalError: errorMessage },
+    traceId
+  );
+}
+
+// ============================================================================
+// ERROR LOGGING
+// ============================================================================
+
+function logError(error: AppError, req: Request, logLevel: 'error' | 'warn' | 'info'): void {
+  const logData = {
+    timestamp: new Date().toISOString(),
+    level: logLevel,
+    error: {
+      code: error.code,
+      message: error.message,
+      statusCode: error.statusCode,
+      traceId: error.traceId,
+    },
+    request: {
     method: req.method,
+      path: req.path,
     userAgent: req.headers['user-agent'],
-    ip: req.ip || req.connection.remoteAddress,
-    service: 'api-express'
+      ip: req.ip,
+      correlationId: req.headers['x-correlation-id'],
+    },
+    details: error.details,
   };
 
-  const errorDetails = errorManagerService.createError(
-    ErrorCode.NOT_FOUND,
-    `Route ${req.method} ${req.path} not found`,
-    context
+  // Use appropriate logging method based on level
+  switch (logLevel) {
+    case 'error':
+      console.error('Error occurred:', logData);
+      break;
+    case 'warn':
+      console.warn('Warning occurred:', logData);
+      break;
+    case 'info':
+      console.info('Info occurred:', logData);
+      break;
+  }
+}
+
+// ============================================================================
+// ERROR SANITIZATION
+// ============================================================================
+
+function sanitizeError(error: AppError, includeStack: boolean): AppError {
+  const sanitizedError = new AppError(
+    error.code,
+    error.message,
+    error.details,
+    error.traceId
   );
+
+  // Remove stack trace in production
+  if (!includeStack) {
+    delete (sanitizedError as any).stack;
+  }
+
+  // Sanitize sensitive details
+  if (sanitizedError.details) {
+    sanitizedError.details = sanitizeDetails(sanitizedError.details);
+  }
+
+  return sanitizedError;
+}
+
+function sanitizeDetails(details: Record<string, unknown>): Record<string, unknown> {
+  const sanitized: Record<string, unknown> = {};
+  const sensitiveKeys = ['password', 'token', 'secret', 'key', 'auth', 'credential'];
+
+  for (const [key, value] of Object.entries(details)) {
+    const isSensitive = sensitiveKeys.some(sensitiveKey => 
+      key.toLowerCase().includes(sensitiveKey)
+    );
+
+    if (isSensitive) {
+      sanitized[key] = '[REDACTED]';
+    } else if (typeof value === 'object' && value !== null) {
+      sanitized[key] = sanitizeDetails(value as Record<string, unknown>);
+    } else {
+      sanitized[key] = value;
+    }
+  }
+
+  return sanitized;
+}
+
+// ============================================================================
+// NOT FOUND HANDLER
+// ============================================================================
+
+export function createNotFoundHandler() {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const traceId = req.headers['x-correlation-id'] as string || generateTraceId();
+    
+    res.setHeader('X-Correlation-ID', traceId);
+    
+    const error = new ResourceNotFoundError(`Route ${req.path}`, traceId);
 
   const errorResponse: ErrorResponse = {
     success: false,
-    error: {
-      code: errorDetails.code,
-      message: errorDetails.message,
-      severity: errorDetails.severity,
-      category: errorDetails.category,
-      retryable: errorDetails.retryable,
-      requestId,
-      timestamp: new Date().toISOString()
-    }
-  };
+      error: error.toJSON(),
+      requestId: req.headers['x-request-id'] as string,
+      correlationId: traceId,
+    };
 
-  structuredLogger.warn('Route not found', {
-    ...context,
-    error: {
-      code: errorDetails.code,
-      message: errorDetails.message
-    }
-  });
+    errorResponse.error.path = req.path;
+    errorResponse.error.method = req.method;
 
   res.status(404).json(errorResponse);
 };
+}
 
-// Middleware para manejar errores de async/await
-export const asyncHandler = (fn: Function) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
+// ============================================================================
+// ASYNC ERROR WRAPPER
+// ============================================================================
+
+export function asyncHandler<T extends any[], R>(
+  fn: (...args: T) => Promise<R>
+): (...args: T) => Promise<R> {
+  return async (...args: T): Promise<R> => {
+    try {
+      return await fn(...args);
+    } catch (error) {
+      // Re-throw the error to be caught by the error handler middleware
+      throw error;
+    }
   };
-};
-
-// Función para obtener código de estado HTTP basado en el código de error
-function getStatusCodeForErrorCode(code: ErrorCode): number {
-  if (code >= 1000 && code < 2000) return 400; // Validation errors
-  if (code >= 2000 && code < 3000) return 401; // Authentication errors
-  if (code >= 3000 && code < 4000) return 403; // Authorization errors
-  if (code >= 4000 && code < 5000) return 404; // Resource errors
-  if (code >= 5000 && code < 6000) return 409; // Conflict errors
-  if (code >= 6000 && code < 7000) return 500; // Server errors
-  if (code >= 7000 && code < 8000) return 422; // Business rule violations
-  if (code >= 8000 && code < 9000) return 502; // Integration errors
-  
-  // Casos especiales
-  if (code === ErrorCode.RATE_LIMIT_EXCEEDED) return 429;
-  if (code === ErrorCode.TIMEOUT_ERROR) return 408;
-  if (code === ErrorCode.SERVICE_UNAVAILABLE) return 503;
-  
-  return 500;
 }
 
-// Función para obtener nivel de log basado en severidad
-function getLogLevelForSeverity(severity: ErrorSeverity): 'error' | 'warn' | 'info' {
-  switch (severity) {
-    case ErrorSeverity.CRITICAL:
-    case ErrorSeverity.HIGH:
-      return 'error';
-    case ErrorSeverity.MEDIUM:
-      return 'warn';
-    case ErrorSeverity.LOW:
-      return 'info';
-    default:
-      return 'warn';
-  }
+// ============================================================================
+// ERROR BOUNDARY FOR EXPRESS ROUTES
+// ============================================================================
+
+export function errorBoundary<T extends any[], R>(
+  fn: (...args: T) => Promise<R>
+) {
+  return async (...args: T): Promise<R> => {
+    try {
+      return await fn(...args);
+    } catch (error) {
+      // Log the error
+      console.error('Error in route handler:', error);
+      
+      // Re-throw to be handled by error middleware
+      throw error;
+    }
+  };
 }
 
-// Función para crear errores de aplicación de forma conveniente
-export const createAppError = {
-  validation: (message: string, details?: any) => 
-    new AppError(ErrorCode.VALIDATION_ERROR, message, false, undefined, ['Check input format'], '/docs/validation'),
-  
-  unauthorized: (message: string = 'Authentication required') => 
-    new AppError(ErrorCode.UNAUTHORIZED, message, false, undefined, ['Check authentication token'], '/docs/authentication'),
-  
-  forbidden: (message: string = 'Access denied') => 
-    new AppError(ErrorCode.FORBIDDEN, message, false, undefined, ['Check user permissions'], '/docs/authorization'),
-  
-  notFound: (message: string = 'Resource not found') => 
-    new AppError(ErrorCode.NOT_FOUND, message, false, undefined, ['Verify resource exists'], '/docs/resources'),
-  
-  conflict: (message: string = 'Resource conflict') => 
-    new AppError(ErrorCode.CONFLICT, message, false, undefined, ['Check for duplicates'], '/docs/conflicts'),
-  
-  internal: (message: string = 'Internal server error') => 
-    new AppError(ErrorCode.INTERNAL_ERROR, message, true, 30, ['Contact support', 'Try again later'], '/docs/server-errors'),
-  
-  database: (message: string = 'Database error') => 
-    new AppError(ErrorCode.DATABASE_ERROR, message, true, 10, ['Check database connection'], '/docs/database'),
-  
-  external: (message: string = 'External service error') => 
-    new AppError(ErrorCode.EXTERNAL_SERVICE_ERROR, message, true, 60, ['Check external service status'], '/docs/integrations'),
-  
-  rateLimit: (message: string = 'Rate limit exceeded') => 
-    new AppError(ErrorCode.RATE_LIMIT_EXCEEDED, message, true, 60, ['Wait before retrying'], '/docs/rate-limiting'),
-  
-  timeout: (message: string = 'Request timeout') => 
-    new AppError(ErrorCode.TIMEOUT_ERROR, message, true, 10, ['Try again with shorter timeout'], '/docs/timeouts'),
-  
-  business: (message: string = 'Business rule violation') => 
-    new AppError(ErrorCode.BUSINESS_RULE_VIOLATION, message, false, undefined, ['Review business rules'], '/docs/business-rules')
+// ============================================================================
+// HEALTH CHECK ERROR HANDLER
+// ============================================================================
+
+export function createHealthCheckErrorHandler() {
+  return (error: unknown, req: Request, res: Response, next: NextFunction): void => {
+    // For health check endpoints, always return 503 for errors
+    if (req.path.includes('/health')) {
+      res.status(503).json({
+        success: false,
+        error: {
+          code: ERROR_CODES.SERVICE_UNAVAILABLE,
+          message: 'Service unavailable',
+          timestamp: new Date().toISOString(),
+          statusCode: 503,
+          path: req.path,
+          method: req.method,
+        },
+        correlationId: req.headers['x-correlation-id'] as string || generateTraceId(),
+      });
+      return;
+    }
+
+    // For other endpoints, use the regular error handler
+    next(error);
+  };
+}
+
+// ============================================================================
+// EXPORTS
+// ============================================================================
+
+export default {
+  createErrorHandler,
+  createNotFoundHandler,
+  createHealthCheckErrorHandler,
+  asyncHandler,
+  errorBoundary,
 };

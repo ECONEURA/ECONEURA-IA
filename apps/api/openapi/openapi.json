@@ -1,0 +1,48 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "ECONEURA API", "version": "1.0.0" },
+  "paths": {
+    "/v1/agents/{agent_key}/trigger": {
+      "post": {
+        "summary": "Trigger agent run",
+        "parameters": [
+          { "name": "agent_key", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type":"object",
+                "required":["request_id","org_id","actor","payload","dryRun"],
+                "properties":{
+                  "request_id":{"type":"string","format":"uuid"},
+                  "org_id":{"type":"string"},
+                  "actor":{"type":"string","enum":["cockpit"]},
+                  "payload":{"type":"object"},
+                  "dryRun":{"type":"boolean"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description":"OK", "headers":{
+            "X-Est-Cost-EUR":{"schema":{"type":"number"}},
+            "X-Latency-ms":{"schema":{"type":"integer"}},
+            "X-Budget-Pct":{"schema":{"type":"string"}},
+            "X-Budget-Dept":{"schema":{"type":"string"}},
+            "X-SLO-Latency-P95-Target":{"schema":{"type":"string"}}
+          }, "content":{"application/json":{"schema":{"type":"object","properties":{"status":{"type":"string"},"run_id":{"type":"string"},"preview":{"type":"string"}}}}}},
+          "202": { "description":"Queued" },
+          "4XX": { "description":"Client error" },
+          "5XX": { "description":"Server error" }
+        },
+        "security":[{"oauth2":[]}]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": { "oauth2": { "type": "http", "scheme":"bearer", "bearerFormat":"JWT" } }
+  }
+}

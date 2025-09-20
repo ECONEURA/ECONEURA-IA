@@ -27,6 +27,9 @@ export { GeneratePredictionUseCase } from './use-cases/predictive-analytics/gene
 export { TrainModelUseCase } from './use-cases/predictive-analytics/train-model.use-case.js';
 export { CreateArchitectureUseCase } from './use-cases/architecture/create-architecture.use-case.js';
 export { AnalyzeArchitectureUseCase } from './use-cases/architecture/analyze-architecture.use-case.js';
+export { IntelligentSearchUseCase } from './use-cases/search/intelligent-search.use-case.js';
+export { GetSuggestionsUseCase } from './use-cases/search/get-suggestions.use-case.js';
+export { IndexEntityUseCase } from './use-cases/search/index-entity.use-case.js';
 
 // Application Services
 export { UserApplicationService } from './services/user.application.service.js';
@@ -52,6 +55,9 @@ export type { GeneratePredictionRequest, GeneratePredictionResponse } from './us
 export type { TrainModelRequest, TrainModelResponse } from './use-cases/predictive-analytics/train-model.use-case.js';
 export type { CreateArchitectureRequest, CreateArchitectureResponse } from './use-cases/architecture/create-architecture.use-case.js';
 export type { AnalyzeArchitectureRequest, AnalyzeArchitectureResponse } from './use-cases/architecture/analyze-architecture.use-case.js';
+export type { IntelligentSearchRequest, IntelligentSearchResponse } from './use-cases/search/intelligent-search.use-case.js';
+export type { GetSuggestionsRequest, GetSuggestionsResponse } from './use-cases/search/get-suggestions.use-case.js';
+export type { IndexEntityRequest, IndexEntityResponse } from './use-cases/search/index-entity.use-case.js';
 export type { UserSearchOptions, UserListResponse, UserStatsResponse } from './services/user.application.service.js';
 
 // Re-export shared utilities for convenience

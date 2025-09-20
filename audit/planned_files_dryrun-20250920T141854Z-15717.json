@@ -1,0 +1,26 @@
+[
+  {
+    "action": "create_crontab_automation",
+    "description": "Configurar escaneos automáticos programados",
+    "priority": "high",
+    "estimated_time": "30min"
+  },
+  {
+    "action": "add_safety_defaults",
+    "description": "Implementar valores por defecto seguros",
+    "priority": "medium",
+    "estimated_time": "20min"
+  },
+  {
+    "action": "generate_json_manifests",
+    "description": "Crear manifiestos JSON para todos los archivos",
+    "priority": "low",
+    "estimated_time": "15min"
+  },
+  {
+    "action": "create_bootstrap_script",
+    "description": "Script de bootstrap completo de un comando",
+    "priority": "medium",
+    "estimated_time": "25min"
+  }
+]

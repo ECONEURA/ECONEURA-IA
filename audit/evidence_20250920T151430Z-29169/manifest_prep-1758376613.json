@@ -1,0 +1,45 @@
+{
+  "trace_id": "prep-1758376613",
+  "files": [
+    {
+      "path": "tests/econeura-test",
+      "description": "Test dataset (noisy, real-like, critical)",
+      "preconditions": "Used for tuning and CI matrix",
+      "sample_command": "Run integration tests in tests/econeura-test/"
+    },
+    {
+      "path": "scripts/tune_thresholds.sh",
+      "description": "Tuning thresholds script",
+      "preconditions": "Run against tests/econeura-test to gather stats",
+      "sample_command": "bash scripts/tune_thresholds.sh"
+    },
+    {
+      "path": "monitoring/dashboard_security_stub.json",
+      "description": "Grafana dashboard stub",
+      "preconditions": "Import in Grafana and point to Prometheus metrics",
+      "sample_command": "Import via Grafana UI"
+    },
+    {
+      "path": ".github/workflows/econeura-test.yml",
+      "description": "Test CI workflow for staging",
+      "preconditions": "Runs tests/econeura-test/test_integration.sh",
+      "sample_command": "Review and push"
+    },
+    {
+      "path": ".github/workflows/security-approval.yml",
+      "description": "Manual approval workflow for override",
+      "preconditions": "Run via Actions UI with payload/signature",
+      "sample_command": "Use workflow_dispatch to create approval artifact for CI to consume"
+    },
+    {
+      "path": "tests/econeura-test/test_integration.sh",
+      "description": "Test integration script",
+      "preconditions": "Runs comprehensive tests on security system",
+      "sample_command": "bash tests/econeura-test/test_integration.sh"
+    }
+  ],
+  "meta": {
+    "trace": "prep-1758376613",
+    "time": "2025-09-20T13:57:39+00:00"
+  }
+}

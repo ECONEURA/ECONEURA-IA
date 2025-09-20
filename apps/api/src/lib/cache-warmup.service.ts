@@ -16,8 +16,13 @@ export interface WarmupResult {
   error?: string;
 }
 
+export interface CacheItem {
+  value: any;
+  expires: number;
+}
+
 export class CacheWarmupService {
-  private cache: Map<string, { value: any; expires: number }> = new Map();
+  private cache: Map<string, CacheItem> = new Map();
   private stats = { hits: 0, misses: 0 };
   private isWarmingUp = false;
 
@@ -28,308 +33,255 @@ export class CacheWarmupService {
   private startCleanupInterval(): void {
     setInterval(() => {
       this.cleanupExpired();
-    }, 60000); // Cleanup every minute
+    }, 300000); // Clean every 5 minutes
   }
 
   private cleanupExpired(): void {
     const now = Date.now();
-    let cleaned = 0;
-    
+    const expiredKeys: string[] = [];
+
     for (const [key, item] of this.cache.entries()) {
       if (item.expires < now) {
-        this.cache.delete(key);
-        cleaned++;
+        expiredKeys.push(key);
       }
     }
+
+    expiredKeys.forEach(key => this.cache.delete(key));
     
-    if (cleaned > 0) {
-      structuredLogger.debug('Cache cleanup completed', { cleaned });
+    if (expiredKeys.length > 0) {
+      structuredLogger.debug('Cache cleanup completed', {
+        expiredItems: expiredKeys.length,
+        remainingItems: this.cache.size
+      });
     }
   }
 
-  async get<T>(key: string): Promise<T | null> {
-    const item = this.cache.get(key);
-    
-    if (!item) {
-      this.stats.misses++;
-      return null;
-    }
-    
-    if (item.expires < Date.now()) {
-      this.cache.delete(key);
-      this.stats.misses++;
-      return null;
-    }
-    
-    this.stats.hits++;
-    return item.value as T;
-  }
-
-  async set<T>(key: string, value: T, ttlMs: number = 300000): Promise<void> {
-    const expires = Date.now() + ttlMs;
-    this.cache.set(key, { value, expires });
-  }
-
-  async delete(key: string): Promise<void> {
-    this.cache.delete(key);
-  }
-
-  async clear(): Promise<void> {
-    this.cache.clear();
-    this.stats = { hits: 0, misses: 0 };
-  }
-
-  getStats(): CacheStats {
-    const total = this.stats.hits + this.stats.misses;
-    const hitRate = total > 0 ? this.stats.hits / total : 0;
-    
-    return {
-      hits: this.stats.hits,
-      misses: this.stats.misses,
-      hitRate,
-      size: this.cache.size,
-      ttl: 300000 // 5 minutes default
-    };
-  }
-
-  async warmup(): Promise<WarmupResult[]> {
+  async warmupAll(): Promise<WarmupResult[]> {
     if (this.isWarmingUp) {
-      throw new Error('Warmup already in progress');
+      throw new Error('Cache warmup already in progress');
     }
 
     this.isWarmingUp = true;
     const results: WarmupResult[] = [];
 
     try {
-      // Warm up AI responses
-      const aiResult = await this.warmupAI();
-      results.push(aiResult);
+      // Warmup critical data
+      results.push(await this.warmupUserSessions());
+      results.push(await this.warmupFinancialData());
+      results.push(await this.warmupSystemMetrics());
+      results.push(await this.warmupApiEndpoints());
 
-      // Warm up search results
-      const searchResult = await this.warmupSearch();
-      results.push(searchResult);
+      structuredLogger.info('Cache warmup completed', {
+        totalServices: results.length,
+        successfulServices: results.filter(r => r.success).length,
+        totalDuration: results.reduce((sum, r) => sum + r.duration, 0)
+      });
 
-      // Warm up analytics
-      const analyticsResult = await this.warmupAnalytics();
-      results.push(analyticsResult);
-
-      // Warm up business data
-      const businessResult = await this.warmupBusinessData();
-      results.push(businessResult);
-
-      structuredLogger.info('Cache warmup completed', { results });
+      return results;
     } finally {
       this.isWarmingUp = false;
     }
-
-    return results;
   }
 
-  private async warmupAI(): Promise<WarmupResult> {
-    const start = Date.now();
-    let itemsWarmed = 0;
-
-    try {
-      // Warm up common AI prompts
-      const commonPrompts = [
-        'sales-email',
-        'customer-support',
-        'product-description',
-        'meeting-summary',
-        'deal-analysis',
-        'inventory-optimization'
-      ];
-
-      for (const prompt of commonPrompts) {
-        const key = `ai:${prompt}`;
-        const cached = await this.get(key);
-        if (!cached) {
-          // Simulate AI response
-          await this.set(key, { 
-            response: `Cached response for ${prompt}`,
-            timestamp: Date.now(),
-            model: 'gpt-4'
-          }, 600000); // 10 minutes
-          itemsWarmed++;
-        }
-      }
-
-      return {
-        service: 'ai',
-        success: true,
-        duration: Date.now() - start,
-        itemsWarmed
-      };
-    } catch (error) {
-      return {
-        service: 'ai',
-        success: false,
-        duration: Date.now() - start,
-        itemsWarmed: 0,
-        error: (error as Error).message
-      };
-    }
-  }
-
-  private async warmupSearch(): Promise<WarmupResult> {
-    const start = Date.now();
-    let itemsWarmed = 0;
-
-    try {
-      // Warm up common search queries
-      const commonQueries = [
-        'companies',
-        'contacts',
-        'deals',
-        'products',
-        'invoices',
-        'suppliers'
-      ];
-
-      for (const query of commonQueries) {
-        const key = `search:${query}`;
-        const cached = await this.get(key);
-        if (!cached) {
-          // Simulate search results
-          await this.set(key, { 
-            results: [], 
-            total: 0,
-            query,
-            timestamp: Date.now()
-          }, 300000); // 5 minutes
-          itemsWarmed++;
-        }
-      }
-
-      return {
-        service: 'search',
-        success: true,
-        duration: Date.now() - start,
-        itemsWarmed
-      };
-    } catch (error) {
-      return {
-        service: 'search',
-        success: false,
-        duration: Date.now() - start,
-        itemsWarmed: 0,
-        error: (error as Error).message
-      };
-    }
-  }
-
-  private async warmupAnalytics(): Promise<WarmupResult> {
-    const start = Date.now();
-    let itemsWarmed = 0;
-
-    try {
-      // Warm up analytics data
-      const analyticsKeys = [
-        'metrics:dashboard',
-        'metrics:performance',
-        'metrics:usage',
-        'metrics:revenue',
-        'metrics:inventory',
-        'metrics:customers'
-      ];
-
-      for (const key of analyticsKeys) {
-        const cached = await this.get(key);
-        if (!cached) {
-          // Simulate analytics data
-          await this.set(key, { 
-            data: [], 
-            timestamp: Date.now(),
-            period: 'daily'
-          }, 600000); // 10 minutes
-          itemsWarmed++;
-        }
-      }
-
-      return {
-        service: 'analytics',
-        success: true,
-        duration: Date.now() - start,
-        itemsWarmed
-      };
-    } catch (error) {
-      return {
-        service: 'analytics',
-        success: false,
-        duration: Date.now() - start,
-        itemsWarmed: 0,
-        error: (error as Error).message
-      };
-    }
-  }
-
-  private async warmupBusinessData(): Promise<WarmupResult> {
-    const start = Date.now();
-    let itemsWarmed = 0;
-
-    try {
-      // Warm up business data
-      const businessKeys = [
-        'business:companies',
-        'business:contacts',
-        'business:deals',
-        'business:products',
-        'business:invoices',
-        'business:suppliers'
-      ];
-
-      for (const key of businessKeys) {
-        const cached = await this.get(key);
-        if (!cached) {
-          // Simulate business data
-          await this.set(key, { 
-            data: [], 
-            count: 0,
-            timestamp: Date.now()
-          }, 180000); // 3 minutes
-          itemsWarmed++;
-        }
-      }
-
-      return {
-        service: 'business',
-        success: true,
-        duration: Date.now() - start,
-        itemsWarmed
-      };
-    } catch (error) {
-      return {
-        service: 'business',
-        success: false,
-        duration: Date.now() - start,
-        itemsWarmed: 0,
-        error: (error as Error).message
-      };
-    }
-  }
-
-  async getCacheKey(key: string): Promise<any> {
-    return this.cache.get(key);
-  }
-
-  async setCacheKey(key: string, value: any, ttlMs: number = 300000): Promise<void> {
-    await this.set(key, value, ttlMs);
-  }
-
-  async invalidatePattern(pattern: string): Promise<number> {
-    let invalidated = 0;
-    const regex = new RegExp(pattern);
+  private async warmupUserSessions(): Promise<WarmupResult> {
+    const startTime = Date.now();
     
-    for (const key of this.cache.keys()) {
-      if (regex.test(key)) {
-        this.cache.delete(key);
-        invalidated++;
+    try {
+      // Simulate warming up user session data
+      const sessionKeys = ['active_users', 'user_permissions', 'user_preferences'];
+      let itemsWarmed = 0;
+
+      for (const key of sessionKeys) {
+        const mockData = {
+          timestamp: Date.now(),
+          data: `cached_${key}_data`
+        };
+        
+        this.set(key, mockData, 3600); // 1 hour TTL
+        itemsWarmed++;
       }
+
+      return {
+        service: 'UserSessions',
+        success: true,
+        duration: Date.now() - startTime,
+        itemsWarmed
+      };
+    } catch (error) {
+      return {
+        service: 'UserSessions',
+        success: false,
+        duration: Date.now() - startTime,
+        itemsWarmed: 0,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  private async warmupFinancialData(): Promise<WarmupResult> {
+    const startTime = Date.now();
+    
+    try {
+      const financialKeys = ['exchange_rates', 'market_data', 'portfolio_summary'];
+      let itemsWarmed = 0;
+
+      for (const key of financialKeys) {
+        const mockData = {
+          timestamp: Date.now(),
+          rates: { EUR: 1, USD: 1.1, GBP: 0.85 },
+          lastUpdate: new Date().toISOString()
+        };
+        
+        this.set(key, mockData, 1800); // 30 minutes TTL
+        itemsWarmed++;
+      }
+
+      return {
+        service: 'FinancialData',
+        success: true,
+        duration: Date.now() - startTime,
+        itemsWarmed
+      };
+    } catch (error) {
+      return {
+        service: 'FinancialData',
+        success: false,
+        duration: Date.now() - startTime,
+        itemsWarmed: 0,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  private async warmupSystemMetrics(): Promise<WarmupResult> {
+    const startTime = Date.now();
+    
+    try {
+      const metricsKeys = ['cpu_usage', 'memory_usage', 'disk_usage', 'network_stats'];
+      let itemsWarmed = 0;
+
+      for (const key of metricsKeys) {
+        const mockData = {
+          timestamp: Date.now(),
+          value: Math.random() * 100,
+          unit: 'percent'
+        };
+        
+        this.set(key, mockData, 300); // 5 minutes TTL
+        itemsWarmed++;
+      }
+
+      return {
+        service: 'SystemMetrics',
+        success: true,
+        duration: Date.now() - startTime,
+        itemsWarmed
+      };
+    } catch (error) {
+      return {
+        service: 'SystemMetrics',
+        success: false,
+        duration: Date.now() - startTime,
+        itemsWarmed: 0,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  private async warmupApiEndpoints(): Promise<WarmupResult> {
+    const startTime = Date.now();
+    
+    try {
+      const endpoints = ['/api/health', '/api/metrics', '/api/status'];
+      let itemsWarmed = 0;
+
+      for (const endpoint of endpoints) {
+        const mockResponse = {
+          timestamp: Date.now(),
+          status: 'healthy',
+          responseTime: Math.random() * 100
+        };
+        
+        this.set(`endpoint_${endpoint}`, mockResponse, 600); // 10 minutes TTL
+        itemsWarmed++;
+      }
+
+      return {
+        service: 'ApiEndpoints',
+        success: true,
+        duration: Date.now() - startTime,
+        itemsWarmed
+      };
+    } catch (error) {
+      return {
+        service: 'ApiEndpoints',
+        success: false,
+        duration: Date.now() - startTime,
+        itemsWarmed: 0,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  set(key: string, value: any, ttlSeconds: number): void {
+    const expires = Date.now() + (ttlSeconds * 1000);
+    this.cache.set(key, { value, expires });
+  }
+
+  get(key: string): any | undefined {
+    const item = this.cache.get(key);
+    
+    if (!item) {
+      this.stats.misses++;
+      return undefined;
+    }
+
+    if (item.expires < Date.now()) {
+      this.cache.delete(key);
+      this.stats.misses++;
+      return undefined;
+    }
+
+    this.stats.hits++;
+    return item.value;
+  }
+
+  has(key: string): boolean {
+    const item = this.cache.get(key);
+    if (!item) return false;
+    
+    if (item.expires < Date.now()) {
+      this.cache.delete(key);
+      return false;
     }
     
-    structuredLogger.info('Cache pattern invalidated', { pattern, invalidated });
-    return invalidated;
+    return true;
+  }
+
+  delete(key: string): boolean {
+    return this.cache.delete(key);
+  }
+
+  clear(): void {
+    this.cache.clear();
+    this.stats = { hits: 0, misses: 0 };
+  }
+
+  getStats(): CacheStats {
+    const total = this.stats.hits + this.stats.misses;
+    return {
+      hits: this.stats.hits,
+      misses: this.stats.misses,
+      hitRate: total > 0 ? this.stats.hits / total : 0,
+      size: this.cache.size,
+      ttl: 0 // Average TTL calculation would be more complex
+    };
+  }
+
+  isWarmingUpStatus(): boolean {
+    return this.isWarmingUp;
   }
 }
 
-export const cacheWarmup = new CacheWarmupService();
+// Export singleton instance
+export const cacheWarmupService = new CacheWarmupService();

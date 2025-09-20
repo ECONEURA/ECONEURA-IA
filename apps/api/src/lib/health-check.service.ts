@@ -15,7 +15,7 @@ export interface HealthCheckResult {
   name: string;
   status: 'healthy' | 'unhealthy' | 'degraded';
   message: string;
-  timestamp: new Date().toISOString(),
+  timestamp: string;
   duration: number;
   metadata?: Record<string, any>;
   dependencies?: HealthCheckResult[];
@@ -24,7 +24,7 @@ export interface HealthCheckResult {
 export interface SystemHealth {
   overall: 'healthy' | 'unhealthy' | 'degraded';
   checks: HealthCheckResult[];
-  timestamp: new Date().toISOString(),
+  timestamp: string;
   uptime: number;
   version: string;
   environment: string;
@@ -94,7 +94,7 @@ export class HealthCheckService extends EventEmitter {
       this.startCheck(name);
     }
 
-    console.log('🏥 Health Check Service started');
+    
   }
 
   /**
@@ -109,7 +109,7 @@ export class HealthCheckService extends EventEmitter {
     }
     this.timers.clear();
 
-    console.log('🏥 Health Check Service stopped');
+    
   }
 
   private startCheck(name: string): void {

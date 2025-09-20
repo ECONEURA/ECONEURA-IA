@@ -1,0 +1,1 @@
+{"version":3,"file":"business-intelligence.js","sourceRoot":"","sources":["../../src/routes/business-intelligence.ts"],"names":[],"mappings":"AACA,OAAO,OAAO,MAAM,SAAS,CAAC;AAC9B,MAAM,MAAM,GAAG,OAAO,CAAC,MAAM,EAAE,CAAC;AAChC,MAAM,CAAC,GAAG,CAAC,GAAG,EAAE,CAAC,GAAG,EAAC,GAAG,EAAE,EAAE,CAAC,GAAG,CAAC,IAAI,CAAC,EAAE,OAAO,EAAE,mCAAmC,EAAE,CAAC,CAAC,CAAC;AACzF,eAAe,MAAM,CAAC"}

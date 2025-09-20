@@ -1,0 +1,22 @@
+<BkToCstmrStmt>
+  <Stmt>
+    <Ntry>
+      <Amt Ccy="EUR">100.00</Amt>
+      <BookgDt>
+        <Dt>2025-09-01</Dt>
+      </BookgDt>
+      <RmtInf>
+        <Ustrd>INV-1 payment</Ustrd>
+      </RmtInf>
+    </Ntry>
+    <Ntry>
+      <Amt Ccy="EUR">50.00</Amt>
+      <BookgDt>
+        <Dt>2025-09-02</Dt>
+      </BookgDt>
+      <RmtInf>
+        <Ustrd>INV-2</Ustrd>
+      </RmtInf>
+    </Ntry>
+  </Stmt>
+</BkToCstmrStmt>

@@ -1,0 +1,3 @@
+REVIEW_OK_REQUIRED
+Security policy: Manual sign-off required before any remote push or destructive action.
+Inspect audit/* and confirm approvals in audit/approvals.json before creating REVIEW_OK.

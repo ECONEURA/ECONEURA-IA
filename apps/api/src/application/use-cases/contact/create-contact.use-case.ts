@@ -137,17 +137,17 @@ export class CreateContactUseCase {
 
       // Create contact entity
       const contact = Contact.create({
-        organizationId: { value: request.organizationId },
-        companyId: request.companyId ? { value: request.companyId } : undefined,
+        organizationId: request.organizationId,
+        companyId: request.companyId ? request.companyId : undefined,
         firstName: request.firstName,
         lastName: request.lastName,
         middleName: request.middleName,
         title: request.title,
         department: request.department,
-        type: { value: request.type },
-        status: { value: request.status },
-        source: { value: request.source },
-        priority: { value: request.priority },
+        type: request.type,
+        status: request.status,
+        source: request.source,
+        priority: request.priority,
         email: request.email,
         phone: request.phone,
         mobile: request.mobile,

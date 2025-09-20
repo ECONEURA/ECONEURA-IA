@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { 
-  BarChart3, 
-  PieChart, 
-  TrendingUp, 
+import {
+  BarChart3,
+  PieChart,
+  TrendingUp,
   Activity,
   Download,
   Filter,
@@ -49,6 +49,7 @@ interface ChartConfig {
     scales?: {
       y?: {
         beginAtZero?: boolean;
+  max?: number;
         grid?: {
           display?: boolean;
         };
@@ -63,7 +64,7 @@ interface ChartConfig {
 }
 
 interface InteractiveChartsProps {
-  data?: any;
+  data: any;
   className?: string;
   onChartClick?: (chartId: string, dataPoint: any) => void;
 }
@@ -188,6 +189,7 @@ export default function InteractiveCharts({
           scales: {
             y: {
               beginAtZero: true,
+              max: 100,
               grid: {
                 display: true
               }
@@ -231,6 +233,7 @@ export default function InteractiveCharts({
           scales: {
             y: {
               beginAtZero: true,
+              max: 100,
               grid: {
                 display: true
               }
@@ -279,12 +282,12 @@ export default function InteractiveCharts({
               {config.type === 'bar' && <BarChart3 className="w-16 h-16 text-sand-400 mx-auto mb-4" />}
               {config.type === 'line' && <TrendingUp className="w-16 h-16 text-sand-400 mx-auto mb-4" />}
               {config.type === 'area' && <Activity className="w-16 h-16 text-sand-400 mx-auto mb-4" />}
-              
+
               <p className="text-sand-600 font-medium">{config.title}</p>
               <p className="text-sm text-sand-500 mt-2">
                 {config.data.labels.length} categorías
               </p>
-              
+
               {/* Data Preview */}
               <div className="mt-4 space-y-2">
                 {config.data.labels.map((label, index) => (

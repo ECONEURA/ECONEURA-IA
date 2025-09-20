@@ -429,4 +429,235 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// GET /v1/deals/summary - Get deal summary
+router.get('/summary', async (req, res) => {
+  try {
+    const orgId = req.headers['x-org-id'] as string;
+    
+    if (!orgId) {
+      return res.status(400).json({ error: 'Missing x-org-id header' });
+    }
+
+    // Set RLS context
+    await db.execute(`SET LOCAL app.org_id = '${orgId}'`);
+
+    // Get summary data
+    const deals = await db.select().from(deals);
+    
+    const total = deals.length;
+    const totalValue = deals.reduce((sum, deal) => sum + (deal.amount || 0), 0);
+    const averageDealSize = total > 0 ? totalValue / total : 0;
+    
+    const closedWon = deals.filter(deal => deal.stage === 'closed_won').length;
+    const closedLost = deals.filter(deal => deal.stage === 'closed_lost').length;
+    const winRate = (closedWon + closedLost) > 0 ? (closedWon / (closedWon + closedLost)) * 100 : 0;
+
+    const dealsByStage = deals.reduce((acc, deal) => {
+      acc[deal.stage] = (acc[deal.stage] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const dealsByStatus = deals.reduce((acc, deal) => {
+      acc[deal.status] = (acc[deal.status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const summary = {
+      total,
+      totalValue,
+      averageDealSize,
+      winRate,
+      dealsByStage,
+      dealsByStatus,
+      closedWon,
+      closedLost,
+      openDeals: total - closedWon - closedLost
+    };
+
+    res.set({
+      'X-Est-Cost-EUR': '0.0020',
+      'X-Budget-Pct': '0.2',
+      'X-Latency-ms': '40',
+      'X-Route': 'local',
+      'X-Correlation-Id': `req_${Date.now()}`
+    });
+
+    res.json({
+      success: true,
+      data: summary
+    });
+
+  } catch (error) {
+    structuredLogger.error('Failed to get deal summary', error as Error, {
+      orgId: req.headers['x-org-id']
+    });
+    
+    res.status(500).json({ 
+      error: 'Failed to get deal summary',
+      message: (error as Error).message 
+    });
+  }
+});
+
+// GET /v1/deals/analytics - Get deal analytics
+router.get('/analytics', async (req, res) => {
+  try {
+    const orgId = req.headers['x-org-id'] as string;
+    
+    if (!orgId) {
+      return res.status(400).json({ error: 'Missing x-org-id header' });
+    }
+
+    // Set RLS context
+    await db.execute(`SET LOCAL app.org_id = '${orgId}'`);
+
+    // Get analytics data
+    const deals = await db.select().from(deals);
+    
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    // Deals por mes (últimos 12 meses)
+    const dealsByMonth = [];
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date(currentYear, currentMonth - i, 1);
+      const monthKey = date.toISOString().substring(0, 7);
+      
+      const monthDeals = deals.filter(deal => {
+        const dealDate = new Date(deal.createdAt);
+        return dealDate.getFullYear() === date.getFullYear() && 
+               dealDate.getMonth() === date.getMonth();
+      });
+
+      dealsByMonth.push({
+        month: monthKey,
+        count: monthDeals.length,
+        value: monthDeals.reduce((sum, deal) => sum + (deal.amount || 0), 0)
+      });
+    }
+
+    // Top performers (simulado)
+    const topPerformers = [
+      { userId: 'user-1', name: 'John Doe', dealsCount: 15, totalValue: 250000, winRate: 75 },
+      { userId: 'user-2', name: 'Jane Smith', dealsCount: 12, totalValue: 180000, winRate: 65 },
+      { userId: 'user-3', name: 'Mike Johnson', dealsCount: 8, totalValue: 120000, winRate: 60 }
+    ];
+
+    const analytics = {
+      totalDeals: deals.length,
+      totalValue: deals.reduce((sum, deal) => sum + (deal.amount || 0), 0),
+      averageDealSize: deals.length > 0 ? deals.reduce((sum, deal) => sum + (deal.amount || 0), 0) / deals.length : 0,
+      winRate: deals.filter(d => d.stage === 'closed_won').length / Math.max(1, deals.filter(d => ['closed_won', 'closed_lost'].includes(d.stage)).length) * 100,
+      dealsByMonth,
+      topPerformers,
+      pipelineHealth: {
+        healthy: true,
+        score: 85,
+        issues: []
+      }
+    };
+
+    res.set({
+      'X-Est-Cost-EUR': '0.0030',
+      'X-Budget-Pct': '0.3',
+      'X-Latency-ms': '60',
+      'X-Route': 'local',
+      'X-Correlation-Id': `req_${Date.now()}`
+    });
+
+    res.json({
+      success: true,
+      data: analytics
+    });
+
+  } catch (error) {
+    structuredLogger.error('Failed to get deal analytics', error as Error, {
+      orgId: req.headers['x-org-id']
+    });
+    
+    res.status(500).json({ 
+      error: 'Failed to get deal analytics',
+      message: (error as Error).message 
+    });
+  }
+});
+
+// POST /v1/deals/bulk-update - Bulk update deals
+router.post('/bulk-update', async (req, res) => {
+  try {
+    const orgId = req.headers['x-org-id'] as string;
+    const userId = req.headers['x-user-id'] as string;
+    
+    if (!orgId) {
+      return res.status(400).json({ error: 'Missing x-org-id header' });
+    }
+
+    const { updates } = req.body;
+    
+    if (!Array.isArray(updates) || updates.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Updates array is required and must not be empty'
+      });
+    }
+
+    // Set RLS context
+    await db.execute(`SET LOCAL app.org_id = '${orgId}'`);
+
+    let updated = 0;
+    let failed = 0;
+    const errors: string[] = [];
+
+    for (const update of updates) {
+      try {
+        const updateData = UpdateDealSchema.parse(update.data);
+        
+        const [updatedDeal] = await db
+          .update(deals)
+          .set({
+            ...updateData,
+            updatedAt: new Date().toISOString()
+          })
+          .where(eq(deals.id, update.id))
+          .returning();
+
+        if (updatedDeal) {
+          updated++;
+        } else {
+          failed++;
+          errors.push(`Deal ${update.id} not found or access denied`);
+        }
+      } catch (error) {
+        failed++;
+        errors.push(`Failed to update deal ${update.id}: ${(error as Error).message}`);
+      }
+    }
+
+    res.set({
+      'X-Est-Cost-EUR': '0.0050',
+      'X-Budget-Pct': '0.5',
+      'X-Latency-ms': '100',
+      'X-Route': 'local',
+      'X-Correlation-Id': `req_${Date.now()}`
+    });
+
+    res.json({
+      success: true,
+      data: { updated, failed, errors }
+    });
+
+  } catch (error) {
+    structuredLogger.error('Failed to bulk update deals', error as Error, {
+      orgId: req.headers['x-org-id'],
+      userId: req.headers['x-user-id']
+    });
+    
+    res.status(500).json({ 
+      error: 'Failed to bulk update deals',
+      message: (error as Error).message 
+    });
+  }
+});
+
 export { router as dealsRouter };

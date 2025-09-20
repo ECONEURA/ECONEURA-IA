@@ -214,13 +214,13 @@ export class CreateDatabaseSchemaUseCase extends BaseUseCase<CreateDatabaseSchem
     // ========================================================================
 
     const databaseSchema = DatabaseSchema.create({
-      organizationId: { value: request.organizationId },
+      organizationId: request.organizationId,
       name: request.name,
-      type: { value: request.type },
-      status: { value: 'design' },
+      type: request.type,
+      status: 'design',
       description: request.description,
       settings: {
-        type: { value: request.type },
+        type: request.type,
         version: request.settings.version,
         encoding: request.settings.encoding,
         collation: request.settings.collation,
@@ -238,13 +238,13 @@ export class CreateDatabaseSchemaUseCase extends BaseUseCase<CreateDatabaseSchem
       tables: request.tables ? request.tables.map(table => ({
         id: table.id,
         name: table.name,
-        type: { value: table.type },
+        type: table.type,
         schema: table.schema,
         description: table.description,
         columns: table.columns.map(column => ({
           id: column.id,
           name: column.name,
-          type: { value: column.type },
+          type: column.type,
           length: column.length,
           precision: column.precision,
           scale: column.scale,
@@ -253,7 +253,7 @@ export class CreateDatabaseSchemaUseCase extends BaseUseCase<CreateDatabaseSchem
           constraints: column.constraints.map(constraint => ({
             id: constraint.id,
             name: constraint.name,
-            type: { value: constraint.type },
+            type: constraint.type,
             columns: constraint.columns,
             referencedTable: constraint.referencedTable,
             referencedColumns: constraint.referencedColumns,
@@ -278,7 +278,7 @@ export class CreateDatabaseSchemaUseCase extends BaseUseCase<CreateDatabaseSchem
         constraints: table.constraints.map(constraint => ({
           id: constraint.id,
           name: constraint.name,
-          type: { value: constraint.type },
+          type: constraint.type,
           columns: constraint.columns,
           referencedTable: constraint.referencedTable,
           referencedColumns: constraint.referencedColumns,

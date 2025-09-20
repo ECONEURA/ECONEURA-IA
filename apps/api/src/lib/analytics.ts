@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { z } from "zod";
-import { logger } from "./logger.js";
+import { logger } from './logger.js';
 
 // ============================================================================
 // SCHEMAS
@@ -177,14 +177,14 @@ export interface IAnalyticsSystem {
   // Métricas y consultas
   getMetrics(query: AnalyticsQuery): Promise<AnalyticsResult>;
   getRealTimeMetrics(metrics: string[]): Promise<Record<string, number>>;
-  
+
   // Dashboards
   createDashboard(dashboard: Omit<Dashboard, 'id' | 'createdAt' | 'updatedAt'>): Promise<Dashboard>;
   getDashboard(id: string): Promise<Dashboard | null>;
   listDashboards(userId: string, orgId: string): Promise<Dashboard[]>;
   updateDashboard(id: string, updates: Partial<Dashboard>): Promise<Dashboard>;
   deleteDashboard(id: string): Promise<void>;
-  
+
   // Reportes
   createReport(report: Omit<Report, 'id' | 'createdAt' | 'updatedAt'>): Promise<Report>;
   getReport(id: string): Promise<Report | null>;
@@ -192,7 +192,7 @@ export interface IAnalyticsSystem {
   updateReport(id: string, updates: Partial<Report>): Promise<Report>;
   deleteReport(id: string): Promise<void>;
   generateReport(id: string): Promise<AnalyticsResult>;
-  
+
   // Datos de ejemplo
   getSampleData(): Promise<Record<string, any>>;
   getAvailableMetrics(): Promise<string[]>;
@@ -210,10 +210,10 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
 
   constructor() {
     this.initializeSampleData();
-    logger.info('Analytics system initialized', { 
+    logger.info('Analytics system initialized', {
       system: 'analytics',
       dashboardsCount: 0,
-      reportsCount: 0 
+      reportsCount: 0
     });
   }
 
@@ -223,7 +223,7 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
 
   async getMetrics(query: AnalyticsQuery): Promise<AnalyticsResult> {
     try {
-      logger.info('Processing analytics query', { 
+      logger.info('Processing analytics query', {
         system: 'analytics',
         metrics: query.metrics,
         timeRange: query.timeRange,
@@ -269,19 +269,19 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
 
       result.summary.totalRecords = this.calculateTotalRecords(result);
 
-      logger.info('Analytics query completed', { 
+      logger.info('Analytics query completed', {
         system: 'analytics',
-        metricsCount: Object.keys(result.metrics).length,
-        dimensionsCount: Object.keys(result.dimensions).length,
-        totalRecords: result.summary?.totalRecords || 0
+        metricsCount: Number(Object.keys(result.metrics).length),
+        dimensionsCount: Number(Object.keys(result.dimensions).length),
+        totalRecords: Number(result.summary?.totalRecords || 0)
       });
 
       return result;
     } catch (error) {
-      logger.error('Failed to get metrics', { 
+      logger.error('Failed to get metrics', {
         system: 'analytics',
         error: (error as Error).message,
-        query: JSON.stringify(query) 
+        queryJson: JSON.stringify(query)
       });
       throw error;
     }
@@ -289,27 +289,27 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
 
   async getRealTimeMetrics(metrics: string[]): Promise<Record<string, number>> {
     try {
-      logger.info('Getting real-time metrics', { 
+      logger.info('Getting real-time metrics', {
         system: 'analytics',
-        metrics 
+        metrics
       });
 
       const result: Record<string, number> = {};
-      
+
       for (const metric of metrics) {
         result[metric] = this.generateRealTimeValue(metric);
       }
 
-      logger.info('Real-time metrics retrieved', { 
+      logger.info('Real-time metrics retrieved', {
         system: 'analytics',
         metricsCount: Object.keys(result).length
       });
 
       return result;
     } catch (error) {
-      logger.error('Failed to get real-time metrics', { 
+      logger.error('Failed to get real-time metrics', {
         system: 'analytics',
-        error: (error as Error).message 
+        error: (error as Error).message
       });
       throw error;
     }
@@ -323,7 +323,7 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
     try {
       const id = `dashboard_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const now = new Date();
-      
+
       const newDashboard: Dashboard = {
         ...dashboard,
         id,
@@ -333,7 +333,7 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
 
       this.dashboards.set(id, newDashboard);
 
-      logger.info('Dashboard created', { 
+      logger.info('Dashboard created', {
         system: 'analytics',
         dashboardId: id,
         name: dashboard.name,
@@ -342,9 +342,9 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
 
       return newDashboard;
     } catch (error) {
-      logger.error('Failed to create dashboard', { 
+      logger.error('Failed to create dashboard', {
         system: 'analytics',
-        error: (error as Error).message 
+        error: (error as Error).message
       });
       throw error;
     }
@@ -353,20 +353,20 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
   async getDashboard(id: string): Promise<Dashboard | null> {
     try {
       const dashboard = this.dashboards.get(id);
-      
+
       if (dashboard) {
-        logger.info('Dashboard retrieved', { 
+        logger.info('Dashboard retrieved', {
           system: 'analytics',
-          dashboardId: id 
+          dashboardId: id
         });
       }
 
       return dashboard || null;
     } catch (error) {
-      logger.error('Failed to get dashboard', { 
+      logger.error('Failed to get dashboard', {
         system: 'analytics',
         error: (error as Error).message,
-        dashboardId: id 
+        dashboardId: id
       });
       throw error;
     }
@@ -377,7 +377,7 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
       const dashboards = Array.from(this.dashboards.values())
         .filter(d => d.userId === userId && d.orgId === orgId);
 
-      logger.info('Dashboards listed', { 
+      logger.info('Dashboards listed', {
         system: 'analytics',
         userId,
         orgId,
@@ -386,9 +386,9 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
 
       return dashboards;
     } catch (error) {
-      logger.error('Failed to list dashboards', { 
+      logger.error('Failed to list dashboards', {
         system: 'analytics',
-        error: (error as Error).message 
+        error: (error as Error).message
       });
       throw error;
     }
@@ -410,17 +410,17 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
 
       this.dashboards.set(id, updatedDashboard);
 
-      logger.info('Dashboard updated', { 
+      logger.info('Dashboard updated', {
         system: 'analytics',
-        dashboardId: id 
+        dashboardId: id
       });
 
       return updatedDashboard;
     } catch (error) {
-      logger.error('Failed to update dashboard', { 
+      logger.error('Failed to update dashboard', {
         system: 'analytics',
         error: (error as Error).message,
-        dashboardId: id 
+        dashboardId: id
       });
       throw error;
     }
@@ -429,20 +429,20 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
   async deleteDashboard(id: string): Promise<void> {
     try {
       const deleted = this.dashboards.delete(id);
-      
+
       if (deleted) {
-        logger.info('Dashboard deleted', { 
+        logger.info('Dashboard deleted', {
           system: 'analytics',
-          dashboardId: id 
+          dashboardId: id
         });
       } else {
         throw new Error('Dashboard not found');
       }
     } catch (error) {
-      logger.error('Failed to delete dashboard', { 
+      logger.error('Failed to delete dashboard', {
         system: 'analytics',
         error: (error as Error).message,
-        dashboardId: id 
+        dashboardId: id
       });
       throw error;
     }
@@ -456,7 +456,7 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
     try {
       const id = `report_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const now = new Date();
-      
+
       const newReport: Report = {
         ...report,
         id,
@@ -466,7 +466,7 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
 
       this.reports.set(id, newReport);
 
-      logger.info('Report created', { 
+      logger.info('Report created', {
         system: 'analytics',
         reportId: id,
         name: report.name
@@ -474,9 +474,9 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
 
       return newReport;
     } catch (error) {
-      logger.error('Failed to create report', { 
+      logger.error('Failed to create report', {
         system: 'analytics',
-        error: (error as Error).message 
+        error: (error as Error).message
       });
       throw error;
     }
@@ -485,20 +485,20 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
   async getReport(id: string): Promise<Report | null> {
     try {
       const report = this.reports.get(id);
-      
+
       if (report) {
-        logger.info('Report retrieved', { 
+        logger.info('Report retrieved', {
           system: 'analytics',
-          reportId: id 
+          reportId: id
         });
       }
 
       return report || null;
     } catch (error) {
-      logger.error('Failed to get report', { 
+      logger.error('Failed to get report', {
         system: 'analytics',
         error: (error as Error).message,
-        reportId: id 
+        reportId: id
       });
       throw error;
     }
@@ -509,7 +509,7 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
       const reports = Array.from(this.reports.values())
         .filter(r => r.userId === userId && r.orgId === orgId);
 
-      logger.info('Reports listed', { 
+      logger.info('Reports listed', {
         system: 'analytics',
         userId,
         orgId,
@@ -518,9 +518,9 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
 
       return reports;
     } catch (error) {
-      logger.error('Failed to list reports', { 
+      logger.error('Failed to list reports', {
         system: 'analytics',
-        error: (error as Error).message 
+        error: (error as Error).message
       });
       throw error;
     }
@@ -542,17 +542,17 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
 
       this.reports.set(id, updatedReport);
 
-      logger.info('Report updated', { 
+      logger.info('Report updated', {
         system: 'analytics',
-        reportId: id 
+        reportId: id
       });
 
       return updatedReport;
     } catch (error) {
-      logger.error('Failed to update report', { 
+      logger.error('Failed to update report', {
         system: 'analytics',
         error: (error as Error).message,
-        reportId: id 
+        reportId: id
       });
       throw error;
     }
@@ -561,20 +561,20 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
   async deleteReport(id: string): Promise<void> {
     try {
       const deleted = this.reports.delete(id);
-      
+
       if (deleted) {
-        logger.info('Report deleted', { 
+        logger.info('Report deleted', {
           system: 'analytics',
-          reportId: id 
+          reportId: id
         });
       } else {
         throw new Error('Report not found');
       }
     } catch (error) {
-      logger.error('Failed to delete report', { 
+      logger.error('Failed to delete report', {
         system: 'analytics',
         error: (error as Error).message,
-        reportId: id 
+        reportId: id
       });
       throw error;
     }
@@ -589,7 +589,7 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
 
       const result = await this.getMetrics(report.query);
 
-      logger.info('Report generated', { 
+      logger.info('Report generated', {
         system: 'analytics',
         reportId: id,
         metricsCount: Object.keys(result.metrics).length
@@ -597,10 +597,10 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
 
       return result;
     } catch (error) {
-      logger.error('Failed to generate report', { 
+      logger.error('Failed to generate report', {
         system: 'analytics',
         error: (error as Error).message,
-        reportId: id 
+        reportId: id
       });
       throw error;
     }
@@ -842,41 +842,41 @@ export class AnalyticsSystemImpl implements IAnalyticsSystem {
 
   private applyFilters(result: AnalyticsResult, filters: Filter[]): void {
     // Implementación simplificada de filtros
-    logger.info('Applying filters to analytics result', { 
+    logger.info('Applying filters to analytics result', {
       system: 'analytics',
-      filtersCount: filters.length 
+      filtersCount: filters.length
     });
   }
 
   private applyOrdering(result: AnalyticsResult, orderBy: Array<{ field: string; direction: 'asc' | 'desc' }>): void {
     // Implementación simplificada de ordenamiento
-    logger.info('Applying ordering to analytics result', { 
+    logger.info('Applying ordering to analytics result', {
       system: 'analytics',
-      orderByCount: orderBy.length 
+      orderByCount: orderBy.length
     });
   }
 
   private applyLimit(result: AnalyticsResult, limit: number): void {
     // Implementación simplificada de límite
-    logger.info('Applying limit to analytics result', { 
+    logger.info('Applying limit to analytics result', {
       system: 'analytics',
-      limit 
+      limit
     });
   }
 
   private calculateTotalRecords(result: AnalyticsResult): number {
     let total = 0;
-    
+
     // Sumar registros de métricas
     for (const metricData of Object.values(result.metrics)) {
       total += metricData.length;
     }
-    
+
     // Sumar registros de dimensiones
     for (const dimensionData of Object.values(result.dimensions)) {
       total += dimensionData.length;
     }
-    
+
     return total;
   }
 }

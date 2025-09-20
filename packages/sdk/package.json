@@ -1,48 +1,36 @@
 {
   "name": "@econeura/sdk",
   "version": "1.0.0",
-  "description": "SDK for ECONEURA API integration",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.js"
-    },
-    "./api": {
-      "types": "./dist/api/index.d.ts",
-      "import": "./dist/api/index.js",
-      "require": "./dist/api/index.js"
-    },
-    "./types": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/types/index.js",
-      "require": "./dist/types/index.js"
-    },
-    "./utils": {
-      "types": "./dist/utils/index.d.ts",
-      "import": "./dist/utils/index.js",
-      "require": "./dist/utils/index.js"
-    }
+    ".": "./src/index.ts"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.json",
     "dev": "tsc --watch",
-    "clean": "rm -rf dist",
+    "generate": "npm run generate:types && npm run generate:client",
+    "generate:types": "npx openapi-typescript ../../apps/api/openapi.json -o src/types.ts",
+    "generate:client": "node scripts/generate-client.js",
+    "lint": "eslint src/**/*.ts",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src --ext .ts,.tsx",
-    "lint:fix": "eslint src --ext .ts,.tsx --fix"
+    "test": "vitest --run",
+    "test:unit": "vitest --run --reporter verbose",
+    "test:watch": "vitest",
+    "test:coverage": "vitest --run --coverage"
   },
   "dependencies": {
-    "axios": "^1.6.0",
-    "zod": "^3.22.4"
+  "@econeura/shared": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^20.19.11",
-    "typescript": "^5.3.0"
-  },
-  "publishConfig": {
-    "access": "restricted"
+    "@types/node": "^24.5.2",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "openapi-typescript": "^7.9.1",
+    "typescript": "^5.3.0",
+    "vitest": "^3.2.4",
+    "@vitest/coverage-v8": "^3.2.4"
   }
 }

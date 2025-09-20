@@ -12,37 +12,37 @@ interface ServiceClient {
 
 const createServiceClient = (): ServiceClient => ({
   post: async (url: string, data: any) => {
-    console.log(`Mock POST to ${url}:`, data);
+    
     return { success: true, data };
   },
   get: async (url: string) => {
-    console.log(`Mock GET to ${url}`);
+    
     return { success: true, data: {} };
   }
 });
 
 const webhookManager = {
   subscribe: (topic: string, callback: Function) => {
-    console.log(`Mock webhook subscription to ${topic}`);
+    
   },
   publish: (topic: string, data: any) => {
-    console.log(`Mock webhook publish to ${topic}:`, data);
+    
   }
 };
 
 const serviceDiscovery = {
   register: (service: any) => {
-    console.log('Mock service registration:', service);
+    
   },
   registerService: (service: any) => {
-    console.log('Mock service registration:', service);
+    
   },
   discover: (serviceName: string) => {
-    console.log(`Mock service discovery for ${serviceName}`);
+    
     return { url: 'http://localhost:3001', healthy: true };
   },
   discoverService: (serviceName: string) => {
-    console.log(`Mock service discovery for ${serviceName}`);
+    
     return { url: 'http://localhost:3001', healthy: true };
   }
 };

@@ -116,7 +116,7 @@ export class Product {
     const now = new Date();
     return new Product({
       ...props,
-      id: { value: crypto.randomUUID() },
+      id: crypto.randomUUID(),
       createdAt: now,
       updatedAt: now,
     });
@@ -326,35 +326,35 @@ export class Product {
   static createPhysicalProduct(props: Omit<ProductProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): Product {
     return Product.create({
       ...props,
-      type: { value: 'physical' },
+      type: 'physical',
     });
   }
 
   static createDigitalProduct(props: Omit<ProductProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): Product {
     return Product.create({
       ...props,
-      type: { value: 'digital' },
+      type: 'digital',
     });
   }
 
   static createServiceProduct(props: Omit<ProductProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): Product {
     return Product.create({
       ...props,
-      type: { value: 'service' },
+      type: 'service',
     });
   }
 
   static createSubscriptionProduct(props: Omit<ProductProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): Product {
     return Product.create({
       ...props,
-      type: { value: 'subscription' },
+      type: 'subscription',
     });
   }
 
   static createBundleProduct(props: Omit<ProductProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): Product {
     return Product.create({
       ...props,
-      type: { value: 'bundle' },
+      type: 'bundle',
     });
   }
 }

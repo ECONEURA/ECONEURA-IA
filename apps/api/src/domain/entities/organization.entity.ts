@@ -74,7 +74,7 @@ export class Organization {
     const now = new Date();
     return new Organization({
       ...props,
-      id: { value: crypto.randomUUID() },
+      id: crypto.randomUUID(),
       createdAt: now,
       updatedAt: now
     });
@@ -82,15 +82,15 @@ export class Organization {
 
   static fromPersistence(data: any): Organization {
     return new Organization({
-      id: { value: data.id },
+      id: data.id,
       name: data.name,
-      slug: { value: data.slug },
+      slug: data.slug,
       description: data.description,
       website: data.website,
       logo: data.logo,
       settings: data.settings || this.getDefaultSettings(),
-      subscriptionTier: { value: data.subscriptionTier },
-      status: { value: data.status },
+      subscriptionTier: data.subscriptionTier,
+      status: data.status,
       trialEndsAt: data.trialEndsAt ? new Date(data.trialEndsAt) : undefined,
       billingEmail: data.billingEmail,
       isActive: data.isActive,
@@ -217,12 +217,12 @@ export class Organization {
   }
 
   upgradeSubscription(tier: SubscriptionTier['value']): void {
-    this.props.subscriptionTier = { value: tier };
+    this.props.subscriptionTier = tier;
     this.props.updatedAt = new Date();
   }
 
   updateStatus(status: OrganizationStatus['value']): void {
-    this.props.status = { value: status };
+    this.props.status = status;
     this.props.updatedAt = new Date();
   }
 

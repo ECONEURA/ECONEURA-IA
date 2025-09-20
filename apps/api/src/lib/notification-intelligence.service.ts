@@ -19,7 +19,7 @@ import {
   UpdateNotificationPreferencesRequest,
   SendNotificationRequest,
   NotificationStats
-} from './quiet-hours-types';
+} from './quiet-hours-types.js';
 
 export class NotificationIntelligenceService {
   private preferences: Map<string, NotificationPreferences> = new Map();
@@ -328,7 +328,7 @@ export class NotificationIntelligenceService {
 
   private evaluateFilter(filter: NotificationFilter, request: SendNotificationRequest): boolean {
     switch (filter.type) {
-      case 'severity':
+      case 'severity': {
         const severityLevels = { low: 1, medium: 2, high: 3, critical: 4 };
         const requestLevel = severityLevels[request.severity] || 0;
         const filterLevel = severityLevels[filter.value as keyof typeof severityLevels] || 0;
@@ -339,6 +339,7 @@ export class NotificationIntelligenceService {
           case 'less_than': return requestLevel < filterLevel;
           default: return false;
         }
+      }
       
       case 'service':
         if (!request.metadata?.service) return false;
@@ -426,7 +427,7 @@ export class NotificationIntelligenceService {
       throw new Error(`Delivery failed to ${channel.type}`);
     }
     
-    console.log(`Notification ${notification.id} delivered to ${channel.type}: ${channel.address}`);
+    
   }
 
   private calculateAverageDeliveryTime(notifications: Notification[]): number {

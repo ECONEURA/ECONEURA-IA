@@ -1,0 +1,10 @@
+{
+  "timestamp": "2025-09-20T14:25:28+00:00",
+  "scan_type": "critical_files_monitoring",
+  "project_root": "/workspaces/ECONEURA-IA",
+  "changes_file": "/workspaces/ECONEURA-IA/audit/monitoring/changes_20250920_142528.json",
+  "results": {
+permissions_issues: ["package.json es world-writable (permisos: 666)","pnpm-lock.yaml es world-writable (permisos: 666)","tsconfig.base.json es world-writable (permisos: 666)","apps/api/src/db/schema.prisma es world-writable (permisos: 666)","scripts/validate_env.sh es world-writable (permisos: 777)","dry-run-executor.sh es world-writable (permisos: 755)",".github/copilot-instructions.md es world-writable (permisos: 666)","README.md es world-writable (permisos: 666)","README.dev.md es world-writable (permisos: 666)",]
+  },
+  "state_file": "/workspaces/ECONEURA-IA/audit/monitoring/monitor_state.json"
+}

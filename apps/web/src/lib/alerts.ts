@@ -378,7 +378,7 @@ class WebAlertSystem {
                    `Time: ${alert.timestamp}\n` +
                    `Description: ${alert.description}`;
 
-    console.log(`📢 Web notification sent:\n${message}`);
+    
     
     // Simular delay de red
     await new Promise(resolve => setTimeout(resolve, 100));

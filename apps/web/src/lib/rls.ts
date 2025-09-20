@@ -31,7 +31,7 @@ export class WebRowLevelSecurity {
   private context: RLSContext | null = null;
 
   constructor() {
-    console.log('Web Row Level Security system initialized');
+    
     this.initializeDefaultRules();
   }
 
@@ -54,7 +54,7 @@ export class WebRowLevelSecurity {
   // Limpiar contexto
   clearContext(): void {
     this.context = null;
-    console.log('RLS context cleared');
+    
   }
 
   // Crear regla RLS
@@ -89,7 +89,7 @@ export class WebRowLevelSecurity {
     };
 
     this.rules.set(ruleId, updatedRule);
-    console.log('RLS rule updated', { ruleId, updates });
+    
     return true;
   }
 
@@ -97,7 +97,7 @@ export class WebRowLevelSecurity {
   deleteRule(ruleId: string): boolean {
     const deleted = this.rules.delete(ruleId);
     if (deleted) {
-      console.log('RLS rule deleted', { ruleId });
+      
     }
     return deleted;
   }

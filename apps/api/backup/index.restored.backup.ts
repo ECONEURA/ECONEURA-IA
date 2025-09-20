@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { structuredLogger } from "./lib/structured-logger.js";
+import { structuredLogger } from './lib/structured-logger.js';
 
 // Import health modes (PR-22)
 import { healthModeManager } from './lib/health-modes.js';

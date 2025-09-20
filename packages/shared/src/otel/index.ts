@@ -1,16 +1,20 @@
-import { env } from '../env'
+import { env } from '../env.js'
 
 // Temporary mock implementations for build
 export const tracer = {
   startSpan: (name: string) => ({
-    setAttribute: () => {},
-    setStatus: () => {},
+    setAttribute: (_k?: string, _v?: any) => {},
+    setAttributes: (_attrs?: Record<string, any>) => {},
+    recordException: (_err?: any) => {},
+    setStatus: (_s?: any) => {},
     end: () => {},
   }),
   getTracer: (name: string) => ({
     startSpan: (name: string) => ({
-      setAttribute: () => {},
-      setStatus: () => {},
+      setAttribute: (_k?: string, _v?: any) => {},
+      setAttributes: (_attrs?: Record<string, any>) => {},
+      recordException: (_err?: any) => {},
+      setStatus: (_s?: any) => {},
       end: () => {},
     }),
   }),
@@ -18,80 +22,62 @@ export const tracer = {
 
 export const meter = {
   createCounter: (name: string, options?: any) => ({
-    add: (value: number, attributes?: Record<string, any>) => {},
+    add: (_value: number = 1, _labels?: Record<string, any>) => {},
   }),
   createHistogram: (name: string, options?: any) => ({
-    record: (value: number, attributes?: Record<string, any>) => {},
+    record: (_value: number, _labels?: Record<string, any>) => {},
   }),
   createUpDownCounter: (name: string, options?: any) => ({
-    add: (value: number, attributes?: Record<string, any>) => {},
+    add: (_value: number, _labels?: Record<string, any>) => {},
   }),
   getMeter: (name: string) => ({
     createCounter: (name: string, options?: any) => ({
-      add: () => {},
+      add: (_value: number = 1, _labels?: Record<string, any>) => {},
     }),
     createHistogram: (name: string, options?: any) => ({
-      record: () => {},
+      record: (_value: number, _labels?: Record<string, any>) => {},
     }),
     createUpDownCounter: (name: string, options?: any) => ({
-      add: () => {},
+      add: (_value: number, _labels?: Record<string, any>) => {},
     }),
   }),
 }
 
 // Mock metrics
 export const customMetrics = {
-  aiRequestsTotal: { add: (value: number, attributes?: Record<string, any>) => {} },
-  aiCostEUR: { record: (value: number, attributes?: Record<string, any>) => {} },
-  aiLatencyMs: { record: (value: number, attributes?: Record<string, any>) => {} },
-  aiTokensTotal: { add: (value: number, attributes?: Record<string, any>) => {} },
-  httpRequestsTotal: { add: (value: number, attributes?: Record<string, any>) => {} },
-  httpLatencyMs: { record: (value: number, attributes?: Record<string, any>) => {} },
-  webhookReceived: { add: (value: number, attributes?: Record<string, any>) => {} },
-  webhookHmacFailures: { add: (value: number, attributes?: Record<string, any>) => {} },
-  flowExecutionsTotal: { add: (value: number, attributes?: Record<string, any>) => {} },
-  flowLatencyMs: { record: (value: number, attributes?: Record<string, any>) => {} },
-  dbConnectionsActive: { add: (value: number, attributes?: Record<string, any>) => {} },
-  dbQueryLatencyMs: { record: (value: number, attributes?: Record<string, any>) => {} },
-  idempotencyReplaysTotal: { add: (value: number, attributes?: Record<string, any>) => {} },
-  idempotencyConflictsTotal: { add: (value: number, attributes?: Record<string, any>) => {} },
-  rateLimitExceeded: { add: (value: number, attributes?: Record<string, any>) => {} },
-  orgMonthlyCost: { record: (value: number, attributes?: Record<string, any>) => {} },
-  orgCostBudget: { add: (value: number, attributes?: Record<string, any>) => {} },
+  aiRequestsTotal: { add: () => {} },
+  aiCostEUR: { record: () => {} },
+  aiLatencyMs: { record: () => {} },
+  aiTokensTotal: { add: () => {} },
+  httpRequestsTotal: { add: () => {} },
+  httpLatencyMs: { record: () => {} },
+  webhookReceived: { add: () => {} },
+  webhookHmacFailures: { add: () => {} },
+  flowExecutionsTotal: { add: () => {} },
+  flowLatencyMs: { record: () => {} },
+  dbConnectionsActive: { add: () => {} },
+  dbQueryLatencyMs: { record: () => {} },
+  idempotencyReplaysTotal: { add: () => {} },
+  idempotencyConflictsTotal: { add: () => {} },
+  rateLimitExceeded: { add: () => {} },
+  orgMonthlyCost: { record: () => {} },
+  orgCostBudget: { add: () => {} },
 }
 
 // Mock utility functions
 export function createSpan(name: string, attributes?: Record<string, any>) {
   return {
-    setAttribute: (key: string, value: any) => {},
-    setStatus: (status: any) => {},
+    setAttribute: (_k?: string, _v?: any) => {},
+    setAttributes: (_attrs?: Record<string, any>) => {},
+    recordException: (_err?: any) => {},
+    setStatus: (_s?: any) => {},
     end: () => {},
   }
 }
 
-export function createTracer(name: string) {
+export function createTracer(name?: string) {
   return {
-    startSpan: (spanName: string, options?: any) => ({
-      setAttribute: (key: string, value: any) => {},
-      setAttributes: (attributes: Record<string, any>) => {},
-      setStatus: (status: any) => {},
-      recordException: (error: Error) => {},
-      end: () => {},
-    }),
-  }
-}
-
-export function createMeter(name: string) {
-  return {
-    createCounter: (counterName: string, options?: any) => ({
-      add: (value: number, attributes?: Record<string, any>) => {},
-    }),
-    createHistogram: (histogramName: string, options?: any) => ({
-      record: (value: number, attributes?: Record<string, any>) => {},
-    }),
-    createGauge: (gaugeName: string, options?: any) => ({
-      record: (value: number, attributes?: Record<string, any>) => {},
-    }),
+    startSpan: (spanName: string) => createSpan(spanName)
   }
 }
 
@@ -103,7 +89,12 @@ export function getTraceId() { return 'mock-trace-id' }
 export function getSpanId() { return 'mock-span-id' }
 
 // Mock metric recording functions
-// All recording functions are exported from ./metrics/index to avoid conflicts
+export function recordAIRequest(provider: string, model: string, status: string, costEUR: number, latencyMs: number, tokensInput: number, tokensOutput: number, orgId?: string) {}
+export function recordHTTPRequest(method: string, route: string, statusCode: number, latencyMs: number, orgId?: string) {}
+export function recordWebhook(source: string, eventType: string, processingMs: number, hmacValid: boolean = true) {}
+export function recordFlowExecution(flowType: string, status: string, latencyMs: number, orgId?: string) {}
+export function recordDatabaseQuery(operation: string, table: string, latencyMs: number, orgId?: string) {}
+export function recordIdempotencyReplay(key: string, orgId?: string) {}
 export function recordIdempotencyConflict(key: string, orgId?: string) {}
 export function recordRateLimitExceeded(route: string, orgId?: string) {}
 export function recordOrgCost(orgId: string, costEUR: number, budgetEUR: number) {}

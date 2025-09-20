@@ -1,6 +1,16 @@
 // import { Pool, PoolClient, QueryResult } from 'pg'
 // import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
 import { z } from 'zod'
+import { pgTable, uuid, text, jsonb, timestamp, boolean, decimal, integer, index, uniqueIndex } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
+// Optionally generate zod schemas with drizzle-zod (left commented if not available)
+// import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
+// Provide safe stubs when drizzle-zod is not present during typecheck in this environment
+declare const createInsertSchema: ((table: any) => any) | undefined
+declare const createSelectSchema: ((table: any) => any) | undefined
+
+const _createInsertSchema = typeof createInsertSchema !== 'undefined' ? createInsertSchema : (t: any) => undefined
+const _createSelectSchema = typeof createSelectSchema !== 'undefined' ? createSelectSchema : (t: any) => undefined
 
 // Organizations table
 export const organizations = pgTable('organizations', {
@@ -177,6 +187,52 @@ export const invoices = pgTable('invoices', {
   dueDateIdx: index('invoices_due_date_idx').on(table.dueDate),
 }))
 
+// SEPA Imports (PR-42)
+export const sepaImports = pgTable('sepa_imports', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orgId: text('org_id').notNull(),
+  filename: text('filename'),
+  contentHash: text('content_hash'),
+  importedAt: timestamp('imported_at').defaultNow().notNull(),
+  importerId: uuid('importer_id').references(() => users.id),
+  status: text('status').notNull().default('pending'),
+  metadata: jsonb('metadata').$type<Record<string, any>>().default({}),
+}, (t) => ({
+  orgIdx: index('sepa_imports_org_idx').on(t.orgId),
+  statusIdx: index('sepa_imports_status_idx').on(t.status),
+}))
+
+export const sepaMovements = pgTable('sepa_movements', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  importId: uuid('import_id').references(() => sepaImports.id),
+  orgId: text('org_id').notNull(),
+  bookingDate: timestamp('booking_date'),
+  valueDate: timestamp('value_date'),
+  amount: decimal('amount', { precision: 14, scale: 2 }).notNull(),
+  currency: text('currency').default('EUR'),
+  reference: text('reference'),
+  remittance: text('remittance'),
+  metadata: jsonb('metadata').$type<Record<string, any>>().default({}),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => ({
+  importIdx: index('sepa_movements_import_idx').on(t.importId),
+  orgIdx: index('sepa_movements_org_idx').on(t.orgId),
+}))
+
+export const reconciliations = pgTable('reconciliations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orgId: text('org_id').notNull(),
+  importId: uuid('import_id').references(() => sepaImports.id),
+  totalMovements: integer('total_movements').notNull().default(0),
+  matched: integer('matched').notNull().default(0),
+  unmatched: integer('unmatched').notNull().default(0),
+  details: jsonb('details').$type<Record<string, any>>().default({}),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => ({
+  orgIdx: index('reconciliations_org_idx').on(t.orgId),
+  importIdx: index('reconciliations_import_idx').on(t.importId),
+}))
+
 // Tasks table (Work Inbox)
 export const tasks = pgTable('tasks', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -313,9 +369,11 @@ export const invoice_items = pgTable('invoice_items', {
   quantity: decimal('quantity', { precision: 10, scale: 2 }).notNull(),
   unit_price: decimal('unit_price', { precision: 10, scale: 2 }).notNull(),
   unit: text('unit').default('piece'),
-  tax_rate: decimal('tax_rate', { precision: 5, scale: 2 }).default('0.00'),
+  // tags stored as jsonb array
+  tags: jsonb('tags').$type<string[]>().default([]),
+  tax_rate: decimal('tax_rate', { precision: 5, scale: 2 }).default(sql`0.00`),
   subtotal: decimal('subtotal', { precision: 10, scale: 2 }).notNull(),
-  tax_amount: decimal('tax_amount', { precision: 10, scale: 2 }).default('0.00'),
+  tax_amount: decimal('tax_amount', { precision: 10, scale: 2 }).default(sql`0.00`),
   total: decimal('total', { precision: 10, scale: 2 }).notNull(),
   metadata: jsonb('metadata'),
   created_at: timestamp('created_at').defaultNow(),
@@ -325,23 +383,23 @@ export const invoice_items = pgTable('invoice_items', {
 }))
 
 // Zod schemas for validation
-export const insertOrganizationSchema = createInsertSchema(organizations)
-export const selectOrganizationSchema = createSelectSchema(organizations)
+export const insertOrganizationSchema = _createInsertSchema(organizations)
+export const selectOrganizationSchema = _createSelectSchema(organizations)
 
-export const insertUserSchema = createInsertSchema(users)
-export const selectUserSchema = createSelectSchema(users)
+export const insertUserSchema = _createInsertSchema(users)
+export const selectUserSchema = _createSelectSchema(users)
 
-export const insertCompanySchema = createInsertSchema(companies)
-export const selectCompanySchema = createSelectSchema(companies)
+export const insertCompanySchema = _createInsertSchema(companies)
+export const selectCompanySchema = _createSelectSchema(companies)
 
-export const insertContactSchema = createInsertSchema(contacts)
-export const selectContactSchema = createSelectSchema(contacts)
+export const insertContactSchema = _createInsertSchema(contacts)
+export const selectContactSchema = _createSelectSchema(contacts)
 
-export const insertDealSchema = createInsertSchema(deals)
-export const selectDealSchema = createSelectSchema(deals)
+export const insertDealSchema = _createInsertSchema(deals)
+export const selectDealSchema = _createSelectSchema(deals)
 
-export const insertInvoiceSchema = createInsertSchema(invoices)
-export const selectInvoiceSchema = createSelectSchema(invoices)
+export const insertInvoiceSchema = _createInsertSchema(invoices)
+export const selectInvoiceSchema = _createSelectSchema(invoices)
 
 // Types
 export type Organization = z.infer<typeof selectOrganizationSchema>

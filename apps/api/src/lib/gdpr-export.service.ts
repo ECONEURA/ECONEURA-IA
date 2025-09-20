@@ -1,5 +1,5 @@
 // GDPR Export Service for PR-43
-import { GDPRRequest, DataExport, DataCategory } from './gdpr-types';
+import { GDPRRequest, DataExport, DataCategory } from './gdpr-types.js';
 import { logger } from './logger.js';
 import { SEPATransaction } from './sepa-types.js';
 

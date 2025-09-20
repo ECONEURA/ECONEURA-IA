@@ -29,11 +29,11 @@ export async function erpExamples() {
       tags: ['laptop', 'business', 'premium']
     });
 
-    console.log('Created product:', product);
+    
 
     // List all products
     const products = await client.erp.listProducts(1, 20);
-    console.log('Products:', products);
+    
 
     // Create inventory movement
     const movement = await client.erp.createInventoryMovement({
@@ -44,11 +44,11 @@ export async function erpExamples() {
       reference: 'PO-2024-001'
     });
 
-    console.log('Created inventory movement:', movement);
+    
 
     // Get inventory report
     const report = await client.erp.getInventoryReport();
-    console.log('Inventory report:', report);
+    
 
   } catch (error) {
     console.error('ERP Error:', error);
@@ -71,7 +71,7 @@ export async function crmExamples() {
       tags: ['prospect', 'enterprise']
     });
 
-    console.log('Created company:', company);
+    
 
     // Create a contact
     const contact = await client.crm.createContact({
@@ -85,7 +85,7 @@ export async function crmExamples() {
       tags: ['decision-maker', 'hot-lead']
     });
 
-    console.log('Created contact:', contact);
+    
 
     // Create a deal
     const deal = await client.crm.createDeal({
@@ -102,11 +102,11 @@ export async function crmExamples() {
       tags: ['enterprise', 'software']
     });
 
-    console.log('Created deal:', deal);
+    
 
     // Get pipeline report
     const pipeline = await client.crm.getPipelineReport();
-    console.log('Pipeline report:', pipeline);
+    
 
   } catch (error) {
     console.error('CRM Error:', error);
@@ -126,7 +126,7 @@ export async function financeExamples() {
       is_active: true
     });
 
-    console.log('Created account:', account);
+    
 
     // Create a transaction
     const transaction = await client.finance.createTransaction({
@@ -138,7 +138,7 @@ export async function financeExamples() {
       category: 'deposit'
     });
 
-    console.log('Created transaction:', transaction);
+    
 
     // Create a budget
     const budget = await client.finance.createBudget({
@@ -151,11 +151,11 @@ export async function financeExamples() {
       end_date: '2024-12-31'
     });
 
-    console.log('Created budget:', budget);
+    
 
     // Get financial summary
     const summary = await client.finance.getFinancialSummary();
-    console.log('Financial summary:', summary);
+    
 
   } catch (error) {
     console.error('Finance Error:', error);
@@ -165,10 +165,10 @@ export async function financeExamples() {
 // Example: Complete workflow
 export async function completeWorkflowExample() {
   try {
-    console.log('🚀 Starting ECONEURA SDK Complete Workflow Example...\n');
+    
 
     // 1. Create a company and contact
-    console.log('1. Creating company and contact...');
+    
     const company = await client.crm.createCompany({
       name: 'TechStart Solutions',
       industry: 'Software',
@@ -185,7 +185,7 @@ export async function completeWorkflowExample() {
     });
 
     // 2. Create a product
-    console.log('2. Creating product...');
+    
     const product = await client.erp.createProduct({
       name: 'Cloud Storage Service',
       sku: 'CLOUD-STORAGE-001',
@@ -196,7 +196,7 @@ export async function completeWorkflowExample() {
     });
 
     // 3. Create a deal
-    console.log('3. Creating deal...');
+    
     const deal = await client.crm.createDeal({
       title: 'Cloud Storage Annual License',
       value: 359.88,
@@ -210,7 +210,7 @@ export async function completeWorkflowExample() {
     });
 
     // 4. Create financial account and transaction
-    console.log('4. Setting up finance...');
+    
     const account = await client.finance.createAccount({
       name: 'Revenue Account',
       type: 'revenue',
@@ -220,17 +220,17 @@ export async function completeWorkflowExample() {
     });
 
     // 5. Generate reports
-    console.log('5. Generating reports...');
+    
     const [pipeline, inventory, financial] = await Promise.all([
       client.crm.getPipelineReport(),
       client.erp.getInventoryReport(),
       client.finance.getFinancialSummary()
     ]);
 
-    console.log('\n✅ Workflow completed successfully!');
-    console.log('📊 Pipeline Report:', pipeline);
-    console.log('📦 Inventory Report:', inventory);
-    console.log('💰 Financial Summary:', financial);
+    
+    
+    
+    
 
   } catch (error) {
     console.error('❌ Workflow Error:', error);

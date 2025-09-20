@@ -96,7 +96,7 @@ export class Company {
     const now = new Date();
     return new Company({
       ...props,
-      id: { value: crypto.randomUUID() },
+      id: crypto.randomUUID(),
       createdAt: now,
       updatedAt: now
     });
@@ -104,15 +104,15 @@ export class Company {
 
   static fromPersistence(data: any): Company {
     return new Company({
-      id: { value: data.id },
-      organizationId: { value: data.organizationId },
+      id: data.id,
+      organizationId: data.organizationId,
       name: data.name,
       legalName: data.legalName,
-      type: { value: data.type },
-      status: { value: data.status },
-      size: { value: data.size },
-      industry: { value: data.industry },
-      source: { value: data.source },
+      type: data.type,
+      status: data.status,
+      size: data.size,
+      industry: data.industry,
+      source: data.source,
       website: data.website,
       email: data.email,
       phone: data.phone,
@@ -127,7 +127,7 @@ export class Company {
       annualRevenue: data.annualRevenue ? Money.create(data.annualRevenue.amount, data.annualRevenue.currency) : undefined,
       employeeCount: data.employeeCount,
       foundedYear: data.foundedYear,
-      parentCompanyId: data.parentCompanyId ? { value: data.parentCompanyId } : undefined,
+      parentCompanyId: data.parentCompanyId ? data.parentCompanyId : undefined,
       assignedUserId: data.assignedUserId,
       lastContactDate: data.lastContactDate ? new Date(data.lastContactDate) : undefined,
       nextFollowUpDate: data.nextFollowUpDate ? new Date(data.nextFollowUpDate) : undefined,
@@ -300,27 +300,27 @@ export class Company {
   }
 
   updateType(type: CompanyType['value']): void {
-    this.props.type = { value: type };
+    this.props.type = type;
     this.props.updatedAt = new Date();
   }
 
   updateStatus(status: CompanyStatus['value']): void {
-    this.props.status = { value: status };
+    this.props.status = status;
     this.props.updatedAt = new Date();
   }
 
   updateSize(size: CompanySize['value']): void {
-    this.props.size = { value: size };
+    this.props.size = size;
     this.props.updatedAt = new Date();
   }
 
   updateIndustry(industry: string): void {
-    this.props.industry = { value: industry };
+    this.props.industry = industry;
     this.props.updatedAt = new Date();
   }
 
   updateSource(source: CompanySource['value']): void {
-    this.props.source = { value: source };
+    this.props.source = source;
     this.props.updatedAt = new Date();
   }
 

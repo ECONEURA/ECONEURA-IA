@@ -2,29 +2,44 @@ import { Request, Response, NextFunction } from 'express';
 import { rateLimiter } from '../lib/rate-limiting.js';
 import { logger } from '../lib/logger.js';
 
+// composite key rate limiting: org:agent and ip
+
 export interface RateLimitRequest extends Request {
   organizationId?: string;
   requestId?: string;
 }
 
 export function rateLimitMiddleware(req: RateLimitRequest, res: Response, next: NextFunction): void {
+  // Disable rate limiting in tests or when explicitly disabled
+  if (process.env.NODE_ENV === 'test' || process.env.RATE_LIMIT_DISABLED === 'true') {
+    return next();
+  }
+  // Bypass for health/metrics endpoints
+  if (req.path === '/health' || req.path.startsWith('/v1/health') || req.path.startsWith('/metrics')) {
+    return next();
+  }
   // Extract organization ID from headers or query params
-  const organizationId = req.headers['x-organization-id'] as string || 
-                        req.query.organizationId as string || 
+  const organizationId = req.headers['x-organization-id'] as string ||
+                        req.query.organizationId as string ||
                         'default-org';
 
   // Use existing request ID or generate one
   const requestId = req.requestId || `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+  // Ensure there is a config for this org (auto-provision ephemeral state if missing)
+  if (!rateLimiter.hasOrganization(organizationId)) {
+    rateLimiter.addOrganization(organizationId, {});
+  }
   // Check rate limit
   const result = rateLimiter.isAllowed(organizationId, requestId);
 
   // Add rate limit headers
+  const cfg = rateLimiter.getEffectiveConfig(organizationId);
   res.set({
-    'X-RateLimit-Limit': '100', // This would come from the organization config
+    'X-RateLimit-Limit': String(cfg.maxRequests),
     'X-RateLimit-Remaining': result.remaining.toString(),
     'X-RateLimit-Reset': new Date(result.resetTime).toISOString(),
-    'X-RateLimit-Strategy': 'sliding-window' // This would come from the organization config
+    'X-RateLimit-Strategy': cfg.strategy
   });
 
   if (result.retryAfter) {
@@ -74,16 +89,19 @@ export function rateLimitByEndpoint(req: RateLimitRequest, res: Response, next: 
   const organizationId = req.organizationId || 'default-org';
   const endpoint = req.path;
   const method = req.method;
-  
+
   // Create endpoint-specific organization ID
   const endpointOrgId = `${organizationId}:${method}:${endpoint}`;
-  
-  // Apply stricter limits for specific endpoints
+
+  // Apply stricter limits for specific endpoints (auto-provision once)
   const endpointConfig = {
     windowMs: 60000,
-    maxRequests: 50, // Stricter limit for specific endpoints
+    maxRequests: 50,
     strategy: 'sliding-window' as const
   };
+  if (!rateLimiter.hasOrganization(endpointOrgId)) {
+    rateLimiter.addOrganization(endpointOrgId, endpointConfig);
+  }
 
   // Check if this endpoint has a specific rate limit
   const result = rateLimiter.isAllowed(endpointOrgId, req.requestId || 'unknown');
@@ -111,21 +129,24 @@ export function rateLimitByEndpoint(req: RateLimitRequest, res: Response, next: 
 }
 
 export function rateLimitByUser(req: RateLimitRequest, res: Response, next: NextFunction): void {
-  const userId = req.headers['x-user-id'] as string || 
-                 req.query.userId as string || 
+  const userId = req.headers['x-user-id'] as string ||
+                 req.query.userId as string ||
                  req.ip; // Fallback to IP
 
   const organizationId = req.organizationId || 'default-org';
   const userOrgId = `${organizationId}:user:${userId}`;
 
-  // Apply user-specific rate limits
+  // Apply user-specific rate limits (auto-provision once)
   const userConfig = {
     windowMs: 60000,
-    maxRequests: 30, // Stricter limit per user
+    maxRequests: 30,
     strategy: 'token-bucket' as const,
     burstSize: 5,
     refillRate: 1
   };
+  if (!rateLimiter.hasOrganization(userOrgId)) {
+    rateLimiter.addOrganization(userOrgId, userConfig);
+  }
 
   const result = rateLimiter.isAllowed(userOrgId, req.requestId || 'unknown');
 
@@ -152,7 +173,7 @@ export function rateLimitByUser(req: RateLimitRequest, res: Response, next: Next
 
 // Middleware for API key rate limiting
 export function rateLimitByApiKey(req: RateLimitRequest, res: Response, next: NextFunction): void {
-  const apiKey = req.headers.authorization?.replace('Bearer ', '') || 
+  const apiKey = req.headers.authorization?.replace('Bearer ', '') ||
                  req.headers['x-api-key'] as string;
 
   if (!apiKey) {
@@ -164,12 +185,15 @@ export function rateLimitByApiKey(req: RateLimitRequest, res: Response, next: Ne
   const organizationId = req.organizationId || 'default-org';
   const apiKeyOrgId = `${organizationId}:apikey:${apiKey}`;
 
-  // Apply API key specific rate limits
+  // Apply API key specific rate limits (auto-provision once)
   const apiKeyConfig = {
     windowMs: 60000,
-    maxRequests: 200, // Higher limit for API keys
+    maxRequests: 200,
     strategy: 'sliding-window' as const
   };
+  if (!rateLimiter.hasOrganization(apiKeyOrgId)) {
+    rateLimiter.addOrganization(apiKeyOrgId, apiKeyConfig);
+  }
 
   const result = rateLimiter.isAllowed(apiKeyOrgId, req.requestId || 'unknown');
 

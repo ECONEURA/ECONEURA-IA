@@ -4,7 +4,7 @@ import {
   PolicyValidationResult, 
   ValidationIssue,
   ValidationConfig 
-} from './rls-types';
+} from './rls-types.js';
 import { logger } from './logger.js';
 
 export class RLSPolicyValidatorService {

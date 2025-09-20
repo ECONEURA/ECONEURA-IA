@@ -1,0 +1,2 @@
+# Sat Sep 20 20:18:25 UTC 2025 - Test file for PR visibility
+Este es un archivo de prueba para verificar visibilidad en PR

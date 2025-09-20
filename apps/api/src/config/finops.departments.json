@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "currency": "EUR",
+  "departments": {
+    "cfo":   { "monthly_budget": 100.0, "warn80": true, "warn90": true },
+    "coo":   { "monthly_budget": 80.0,  "warn80": true, "warn90": true },
+    "ciso":  { "monthly_budget": 50.0,  "warn80": true, "warn90": true },
+    "chro":  { "monthly_budget": 40.0,  "warn80": true, "warn90": true },
+    "cmo":   { "monthly_budget": 60.0,  "warn80": true, "warn90": true },
+    "cto":   { "monthly_budget": 70.0,  "warn80": true, "warn90": true },
+    "sales": { "monthly_budget": 55.0,  "warn80": true, "warn90": true },
+    "cs":    { "monthly_budget": 45.0,  "warn80": true, "warn90": true },
+    "proc":  { "monthly_budget": 35.0,  "warn80": true, "warn90": true },
+    "legal": { "monthly_budget": 25.0,  "warn80": true, "warn90": true }
+  }
+}

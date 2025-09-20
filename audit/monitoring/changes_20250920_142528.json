@@ -1,0 +1,14 @@
+{
+  "timestamp": "2025-09-20T14:25:28+00:00",
+  "changes": {
+    "scripts/ai.sh": {
+      "change_type": "deleted",
+      "previous_hash": "FILE_NOT_FOUND",
+      "current_hash": "FILE_NOT_FOUND",
+      "previous_size": "0",
+      "current_size": "0",
+      "previous_mtime": "FILE_NOT_FOUND",
+      "current_mtime": "FILE_NOT_FOUND"
+    }
+  }
+}

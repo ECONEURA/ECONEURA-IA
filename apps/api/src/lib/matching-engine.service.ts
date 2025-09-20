@@ -1,5 +1,5 @@
 // Matching Engine Service for PR-42
-import { SEPATransaction, MatchingRule, ReconciliationResult } from './sepa-types';
+import { SEPATransaction, MatchingRule, ReconciliationResult } from './sepa-types.js';
 
 export class MatchingEngineService {
   private rules: MatchingRule[] = [];
