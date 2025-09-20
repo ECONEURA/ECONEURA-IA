@@ -1,0 +1,27 @@
+# agents.connections.yaml (idempotent, do NOT store secrets here)
+default_retry: 3
+timeout_seconds: 30
+
+make:
+  enabled: true
+  type: webhook
+  webhook_base: "https://hook.make.com"
+  webhook_path_template: "/trigger/{agent_id}/with/key/{webhook_key}"
+  auth:
+    type: api_key
+    header: "X-Make-Key"
+    env_secret: "MAKE_API_KEY_SECRET_NAME" # name of secret in Key Vault (placeholder)
+
+neura:
+  enabled: true
+  type: routing
+  local_backend:
+    enabled: true
+    base_url_env: "NEURA_LOCAL_URL" # e.g. http://127.0.0.1:8080
+  azure_backend:
+    enabled: true
+    base_url_env: "NEURA_AZURE_URL" # e.g. https://econeura-ia.<region>.azurecontainer.io
+    auth:
+      type: managed_identity_or_client_credentials
+      client_id_env: "NEURA_AZURE_CLIENT_ID"
+      secret_env: "NEURA_AZURE_CLIENT_SECRET"

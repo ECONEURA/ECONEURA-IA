@@ -28,7 +28,7 @@ export class GracefulShutdownService extends EventEmitter {
     if (this.isShuttingDown) return;
     this.isShuttingDown = true;
 
-    console.log(`🔄 Received ${signal}, starting graceful shutdown...`);
+    
     
     try {
       // Execute cleanup tasks
@@ -41,7 +41,7 @@ export class GracefulShutdownService extends EventEmitter {
         ]);
       }
       
-      console.log('✅ Graceful shutdown completed');
+      
       process.exit(0);
     } catch (error) {
       console.error('❌ Error during shutdown:', error);

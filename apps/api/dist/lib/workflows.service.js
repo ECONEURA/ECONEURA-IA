@@ -1,0 +1,548 @@
+import { z } from 'zod';
+export const WorkflowElementSchema = z.object({
+    id: z.string().min(1),
+    type: z.enum(['startEvent', 'endEvent', 'task', 'gateway', 'intermediateEvent']),
+    name: z.string().min(1),
+    x: z.number().optional(),
+    y: z.number().optional(),
+    actions: z.array(z.string()).optional()
+});
+export const WorkflowFlowSchema = z.object({
+    id: z.string().min(1),
+    source: z.string().min(1),
+    target: z.string().min(1),
+    condition: z.string().optional()
+});
+export const BPMNDefinitionSchema = z.object({
+    elements: z.array(WorkflowElementSchema),
+    flows: z.array(WorkflowFlowSchema),
+    startElement: z.string().min(1),
+    endElements: z.array(z.string())
+});
+export const StateMachineStateSchema = z.object({
+    id: z.string().min(1),
+    name: z.string().min(1),
+    type: z.enum(['initial', 'intermediate', 'final']),
+    actions: z.array(z.string()).optional()
+});
+export const StateMachineTransitionSchema = z.object({
+    id: z.string().min(1),
+    from: z.string().min(1),
+    to: z.string().min(1),
+    event: z.string().min(1),
+    condition: z.string().optional()
+});
+export const StateMachineDefinitionSchema = z.object({
+    states: z.array(StateMachineStateSchema),
+    transitions: z.array(StateMachineTransitionSchema),
+    initialState: z.string().min(1),
+    finalStates: z.array(z.string())
+});
+export const WorkflowActionSchema = z.object({
+    id: z.string().min(1),
+    name: z.string().min(1),
+    type: z.enum(['function', 'http', 'notification', 'delay', 'condition']),
+    config: z.record(z.any()),
+    order: z.number().min(1)
+});
+export const WorkflowMetadataSchema = z.object({
+    author: z.string().min(1),
+    category: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+    priority: z.number().min(1).max(5).optional(),
+    timeout: z.number().min(1).optional(),
+    description: z.string().optional()
+});
+export const WorkflowSchema = z.object({
+    id: z.string().uuid().optional(),
+    name: z.string().min(1).max(100),
+    type: z.enum(['bpmn', 'state_machine']),
+    status: z.enum(['active', 'inactive', 'draft']),
+    version: z.number().min(1),
+    definition: z.union([BPMNDefinitionSchema, StateMachineDefinitionSchema]),
+    actions: z.array(WorkflowActionSchema),
+    metadata: WorkflowMetadataSchema,
+    createdAt: z.date().optional(),
+    updatedAt: z.date().optional()
+});
+export const WorkflowInstanceSchema = z.object({
+    id: z.string().uuid().optional(),
+    workflowId: z.string().uuid(),
+    status: z.enum(['running', 'paused', 'completed', 'failed', 'cancelled']),
+    currentElement: z.string().optional(),
+    currentState: z.string().optional(),
+    context: z.record(z.any()),
+    metadata: z.record(z.any()),
+    startedAt: z.date().optional(),
+    completedAt: z.date().optional(),
+    executionHistory: z.array(z.object({
+        timestamp: z.date(),
+        action: z.string(),
+        status: z.enum(['success', 'failed', 'skipped']),
+        details: z.record(z.any()).optional()
+    })).optional()
+});
+export class WorkflowsService {
+    workflows = new Map();
+    instances = new Map();
+    executionQueue = new Map();
+    constructor() {
+        this.initializeDefaultWorkflows();
+    }
+    initializeDefaultWorkflows() {
+        const defaultBPMNWorkflow = {
+            id: 'workflow_bpmn_1',
+            name: 'User Onboarding Process',
+            type: 'bpmn',
+            status: 'active',
+            version: 1,
+            definition: {
+                elements: [
+                    { id: 'start', type: 'startEvent', name: 'Start', x: 100, y: 100 },
+                    { id: 'validate', type: 'task', name: 'Validate User', x: 300, y: 100, actions: ['validate_user'] },
+                    { id: 'approve', type: 'task', name: 'Approve', x: 500, y: 100, actions: ['send_approval_email'] },
+                    { id: 'complete', type: 'endEvent', name: 'Complete', x: 700, y: 100 }
+                ],
+                flows: [
+                    { id: 'f1', source: 'start', target: 'validate' },
+                    { id: 'f2', source: 'validate', target: 'approve' },
+                    { id: 'f3', source: 'approve', target: 'complete' }
+                ],
+                startElement: 'start',
+                endElements: ['complete']
+            },
+            actions: [
+                {
+                    id: 'validate_user',
+                    name: 'Validate User',
+                    type: 'function',
+                    config: { functionName: 'validateUser', parameters: { userId: '{{userId}}' } },
+                    order: 1
+                },
+                {
+                    id: 'send_approval_email',
+                    name: 'Send Approval Email',
+                    type: 'notification',
+                    config: { type: 'email', recipient: '{{userEmail}}', message: 'Welcome!' },
+                    order: 2
+                }
+            ],
+            metadata: {
+                author: 'System',
+                category: 'User Management',
+                tags: ['onboarding', 'user'],
+                priority: 1,
+                timeout: 300,
+                description: 'User onboarding process'
+            },
+            createdAt: new Date(),
+            updatedAt: new Date()
+        };
+        const defaultStateMachineWorkflow = {
+            id: 'workflow_state_1',
+            name: 'Order Processing',
+            type: 'state_machine',
+            status: 'active',
+            version: 1,
+            definition: {
+                states: [
+                    { id: 'pending', name: 'Pending', type: 'initial', actions: ['validate_order'] },
+                    { id: 'processing', name: 'Processing', type: 'intermediate', actions: ['process_payment'] },
+                    { id: 'completed', name: 'Completed', type: 'final', actions: ['send_confirmation'] }
+                ],
+                transitions: [
+                    { id: 't1', from: 'pending', to: 'processing', event: 'order_validated' },
+                    { id: 't2', from: 'processing', to: 'completed', event: 'payment_processed' }
+                ],
+                initialState: 'pending',
+                finalStates: ['completed']
+            },
+            actions: [
+                {
+                    id: 'validate_order',
+                    name: 'Validate Order',
+                    type: 'function',
+                    config: { functionName: 'validateOrder', parameters: { orderId: '{{orderId}}' } },
+                    order: 1
+                },
+                {
+                    id: 'process_payment',
+                    name: 'Process Payment',
+                    type: 'http',
+                    config: { url: '/api/payments/process', method: 'POST', body: { orderId: '{{orderId}}' } },
+                    order: 1
+                },
+                {
+                    id: 'send_confirmation',
+                    name: 'Send Confirmation',
+                    type: 'notification',
+                    config: { type: 'email', recipient: '{{customerEmail}}', message: 'Order confirmed!' },
+                    order: 1
+                }
+            ],
+            metadata: {
+                author: 'System',
+                category: 'Order Management',
+                tags: ['order', 'processing'],
+                priority: 2,
+                timeout: 3600,
+                description: 'Order processing workflow'
+            },
+            createdAt: new Date(),
+            updatedAt: new Date()
+        };
+        this.workflows.set(defaultBPMNWorkflow.id, defaultBPMNWorkflow);
+        this.workflows.set(defaultStateMachineWorkflow.id, defaultStateMachineWorkflow);
+    }
+    async getWorkflows(filters) {
+        let workflows = Array.from(this.workflows.values());
+        if (filters?.type) {
+            workflows = workflows.filter(w => w.type === filters.type);
+        }
+        if (filters?.status) {
+            workflows = workflows.filter(w => w.status === filters.status);
+        }
+        return workflows;
+    }
+    async getWorkflow(id) {
+        return this.workflows.get(id) || null;
+    }
+    async createWorkflow(workflow) {
+        const newWorkflow = {
+            ...workflow,
+            id: `workflow_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        };
+        this.workflows.set(newWorkflow.id, newWorkflow);
+        return newWorkflow;
+    }
+    async updateWorkflow(id, updates) {
+        const existing = this.workflows.get(id);
+        if (!existing)
+            return null;
+        const updated = {
+            ...existing,
+            ...updates,
+            updatedAt: new Date()
+        };
+        this.workflows.set(id, updated);
+        return updated;
+    }
+    async deleteWorkflow(id) {
+        return this.workflows.delete(id);
+    }
+    async getInstances(filters) {
+        let instances = Array.from(this.instances.values());
+        if (filters?.status) {
+            instances = instances.filter(i => i.status === filters.status);
+        }
+        if (filters?.workflowId) {
+            instances = instances.filter(i => i.workflowId === filters.workflowId);
+        }
+        return instances;
+    }
+    async getInstance(id) {
+        return this.instances.get(id) || null;
+    }
+    async startWorkflow(workflowId, context, metadata) {
+        const workflow = await this.getWorkflow(workflowId);
+        if (!workflow) {
+            throw new Error('Workflow not found');
+        }
+        const instance = {
+            id: `instance_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            workflowId,
+            status: 'running',
+            context,
+            metadata,
+            startedAt: new Date(),
+            executionHistory: []
+        };
+        if (workflow.type === 'bpmn') {
+            const bpmnDef = workflow.definition;
+            instance.currentElement = bpmnDef.startElement;
+        }
+        else if (workflow.type === 'state_machine') {
+            const stateDef = workflow.definition;
+            instance.currentState = stateDef.initialState;
+        }
+        this.instances.set(instance.id, instance);
+        this.executionQueue.set(instance.id, instance);
+        await this.executeInitialActions(instance, workflow);
+        return instance;
+    }
+    async pauseInstance(instanceId) {
+        const instance = this.instances.get(instanceId);
+        if (!instance)
+            return null;
+        instance.status = 'paused';
+        this.executionQueue.delete(instanceId);
+        return instance;
+    }
+    async resumeInstance(instanceId) {
+        const instance = this.instances.get(instanceId);
+        if (!instance)
+            return null;
+        instance.status = 'running';
+        this.executionQueue.set(instanceId, instance);
+        return instance;
+    }
+    async cancelInstance(instanceId) {
+        const instance = this.instances.get(instanceId);
+        if (!instance)
+            return null;
+        instance.status = 'cancelled';
+        instance.completedAt = new Date();
+        this.executionQueue.delete(instanceId);
+        return instance;
+    }
+    async executeAction(instanceId, actionId) {
+        const instance = this.instances.get(instanceId);
+        if (!instance) {
+            return { success: false, error: 'Instance not found' };
+        }
+        const workflow = await this.getWorkflow(instance.workflowId);
+        if (!workflow) {
+            return { success: false, error: 'Workflow not found' };
+        }
+        const action = workflow.actions.find(a => a.id === actionId);
+        if (!action) {
+            return { success: false, error: 'Action not found' };
+        }
+        try {
+            const result = await this.executeActionLogic(action, instance.context);
+            instance.executionHistory = instance.executionHistory || [];
+            instance.executionHistory.push({
+                timestamp: new Date(),
+                action: actionId,
+                status: 'success',
+                details: { result }
+            });
+            return { success: true, result };
+        }
+        catch (error) {
+            instance.executionHistory = instance.executionHistory || [];
+            instance.executionHistory.push({
+                timestamp: new Date(),
+                action: actionId,
+                status: 'failed',
+                details: { error: error instanceof Error ? error.message : 'Unknown error' }
+            });
+            return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+        }
+    }
+    async executeInitialActions(instance, workflow) {
+        const currentElement = instance.currentElement;
+        const currentState = instance.currentState;
+        if (workflow.type === 'bpmn' && currentElement) {
+            const bpmnDef = workflow.definition;
+            const element = bpmnDef.elements.find(e => e.id === currentElement);
+            if (element?.actions) {
+                for (const actionId of element.actions) {
+                    await this.executeAction(instance.id, actionId);
+                }
+            }
+        }
+        else if (workflow.type === 'state_machine' && currentState) {
+            const stateDef = workflow.definition;
+            const state = stateDef.states.find(s => s.id === currentState);
+            if (state?.actions) {
+                for (const actionId of state.actions) {
+                    await this.executeAction(instance.id, actionId);
+                }
+            }
+        }
+    }
+    async executeActionLogic(action, context) {
+        switch (action.type) {
+            case 'function':
+                return await this.executeFunctionAction(action, context);
+            case 'http':
+                return await this.executeHttpAction(action, context);
+            case 'notification':
+                return await this.executeNotificationAction(action, context);
+            case 'delay':
+                return await this.executeDelayAction(action, context);
+            case 'condition':
+                return await this.executeConditionAction(action, context);
+            default:
+                throw new Error(`Unknown action type: ${action.type}`);
+        }
+    }
+    async executeFunctionAction(action, context) {
+        const { functionName, parameters } = action.config;
+        const processedParams = this.processTemplate(parameters, context);
+        return {
+            functionName,
+            parameters: processedParams,
+            result: 'Function executed successfully'
+        };
+    }
+    async executeHttpAction(action, context) {
+        const { url, method, body, headers } = action.config;
+        const processedBody = this.processTemplate(body, context);
+        const processedHeaders = this.processTemplate(headers, context);
+        return {
+            url,
+            method,
+            body: processedBody,
+            headers: processedHeaders,
+            result: 'HTTP request executed successfully'
+        };
+    }
+    async executeNotificationAction(action, context) {
+        const { type, recipient, message, subject } = action.config;
+        const processedRecipient = this.processTemplate(recipient, context);
+        const processedMessage = this.processTemplate(message, context);
+        const processedSubject = this.processTemplate(subject, context);
+        return {
+            type,
+            recipient: processedRecipient,
+            message: processedMessage,
+            subject: processedSubject,
+            result: 'Notification sent successfully'
+        };
+    }
+    async executeDelayAction(action, context) {
+        const { duration } = action.config;
+        await new Promise(resolve => setTimeout(resolve, duration || 1000));
+        return {
+            duration,
+            result: 'Delay completed'
+        };
+    }
+    async executeConditionAction(action, context) {
+        const { condition, trueAction, falseAction } = action.config;
+        const processedCondition = this.processTemplate(condition, context);
+        const result = this.evaluateCondition(processedCondition, context);
+        return {
+            condition: processedCondition,
+            result,
+            nextAction: result ? trueAction : falseAction
+        };
+    }
+    processTemplate(template, context) {
+        if (typeof template === 'string') {
+            return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+                return context[key] || match;
+            });
+        }
+        else if (typeof template === 'object' && template !== null) {
+            const processed = {};
+            for (const [key, value] of Object.entries(template)) {
+                processed[key] = this.processTemplate(value, context);
+            }
+            return processed;
+        }
+        return template;
+    }
+    evaluateCondition(condition, context) {
+        try {
+            const processedCondition = condition.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+                const value = context[key];
+                return typeof value === 'string' ? `"${value}"` : value;
+            });
+            return eval(processedCondition);
+        }
+        catch {
+            return false;
+        }
+    }
+    async getStats() {
+        const workflows = Array.from(this.workflows.values());
+        const instances = Array.from(this.instances.values());
+        const workflowsByType = {};
+        const instancesByStatus = {};
+        for (const workflow of workflows) {
+            workflowsByType[workflow.type] = (workflowsByType[workflow.type] || 0) + 1;
+        }
+        for (const instance of instances) {
+            instancesByStatus[instance.status] = (instancesByStatus[instance.status] || 0) + 1;
+        }
+        const completedInstances = instances.filter(i => i.completedAt && i.startedAt);
+        const averageExecutionTime = completedInstances.length > 0
+            ? completedInstances.reduce((sum, i) => {
+                const duration = i.completedAt.getTime() - i.startedAt.getTime();
+                return sum + duration;
+            }, 0) / completedInstances.length
+            : 0;
+        const successfulInstances = instances.filter(i => i.status === 'completed').length;
+        const successRate = instances.length > 0 ? (successfulInstances / instances.length) * 100 : 0;
+        return {
+            totalWorkflows: workflows.length,
+            totalInstances: instances.length,
+            workflowsByType,
+            instancesByStatus,
+            averageExecutionTime,
+            successRate
+        };
+    }
+    async validateWorkflow(workflow) {
+        const errors = [];
+        const warnings = [];
+        if (!workflow.name || workflow.name.length === 0) {
+            errors.push('Workflow name is required');
+        }
+        if (!['bpmn', 'state_machine'].includes(workflow.type)) {
+            errors.push('Invalid workflow type');
+        }
+        if (workflow.type === 'bpmn') {
+            const bpmnDef = workflow.definition;
+            if (!bpmnDef.startElement) {
+                errors.push('BPMN workflow must have a start element');
+            }
+            if (!bpmnDef.endElements || bpmnDef.endElements.length === 0) {
+                errors.push('BPMN workflow must have at least one end element');
+            }
+            const elementIds = bpmnDef.elements.map(e => e.id);
+            const referencedElements = [
+                bpmnDef.startElement,
+                ...bpmnDef.endElements,
+                ...bpmnDef.flows.map(f => f.source),
+                ...bpmnDef.flows.map(f => f.target)
+            ];
+            for (const ref of referencedElements) {
+                if (!elementIds.includes(ref)) {
+                    errors.push(`Referenced element '${ref}' not found in elements`);
+                }
+            }
+        }
+        else if (workflow.type === 'state_machine') {
+            const stateDef = workflow.definition;
+            if (!stateDef.initialState) {
+                errors.push('State machine must have an initial state');
+            }
+            if (!stateDef.finalStates || stateDef.finalStates.length === 0) {
+                errors.push('State machine must have at least one final state');
+            }
+            const stateIds = stateDef.states.map(s => s.id);
+            const referencedStates = [
+                stateDef.initialState,
+                ...stateDef.finalStates,
+                ...stateDef.transitions.map(t => t.from),
+                ...stateDef.transitions.map(t => t.to)
+            ];
+            for (const ref of referencedStates) {
+                if (!stateIds.includes(ref)) {
+                    errors.push(`Referenced state '${ref}' not found in states`);
+                }
+            }
+        }
+        for (const action of workflow.actions) {
+            if (!action.id || action.id.length === 0) {
+                errors.push('Action ID is required');
+            }
+            if (!['function', 'http', 'notification', 'delay', 'condition'].includes(action.type)) {
+                errors.push(`Invalid action type: ${action.type}`);
+            }
+        }
+        return {
+            isValid: errors.length === 0,
+            errors,
+            warnings
+        };
+    }
+}
+export const workflowsService = new WorkflowsService();
+//# sourceMappingURL=workflows.service.js.map

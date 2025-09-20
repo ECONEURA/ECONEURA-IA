@@ -414,24 +414,30 @@ export class APIGateway {
 
   // Inicialización de servicios por defecto
   private initializeDefaultServices(): void {
-    const defaultServices = [
-      {
-        name: 'API Express',
-        url: 'http://localhost:4000',
-        health: 'healthy',
-        weight: 1,
-        maxConnections: 1000,
-        isActive: true,
-      },
-      {
+    const isCI = process.env.CI === 'true' || process.env.DEPLOY_ENABLED === 'false';
+    const defaultServices = [];
+
+    // Always register the API Express service (current service)
+    defaultServices.push({
+      name: 'API Express',
+      url: 'http://localhost:3001', // Corrected port to match API startup
+      health: 'healthy',
+      weight: 1,
+      maxConnections: 1000,
+      isActive: true,
+    });
+
+    // Only register Web BFF service if not in CI environment
+    if (!isCI) {
+      defaultServices.push({
         name: 'Web BFF',
         url: 'http://localhost:3000',
         health: 'healthy',
         weight: 1,
         maxConnections: 500,
         isActive: true,
-      },
-    ];
+      });
+    }
 
     for (const serviceData of defaultServices) {
       this.addService(serviceData);
@@ -440,35 +446,40 @@ export class APIGateway {
 
   // Inicialización de rutas por defecto
   private initializeDefaultRoutes(): void {
+    // Obtener los IDs reales de los servicios agregados
+    const services = Array.from(this.services.values());
+    const apiExpressService = services.find(s => s.name === 'API Express');
+    const webBffService = services.find(s => s.name === 'Web BFF');
+
+    if (!apiExpressService) {
+      logger.error('API Express service not found during route initialization');
+      return;
+    }
+
     const defaultRoutes = [
-      {
-        name: 'API Health Check',
-        path: '/health',
-        method: 'GET',
-        serviceId: 'service_1', // API Express
-        priority: 100,
-        conditions: [],
-        isActive: true,
-      },
       {
         name: 'API AI Chat',
         path: '/v1/ai/chat',
         method: 'POST',
-        serviceId: 'service_1', // API Express
+        serviceId: apiExpressService.id, // Usar ID real
         priority: 90,
         conditions: [],
         isActive: true,
       },
-      {
+    ];
+
+    // Only add Web BFF routes if the service exists
+    if (webBffService) {
+      defaultRoutes.push({
         name: 'Web Dashboard',
         path: '/dashboard',
         method: 'GET',
-        serviceId: 'service_2', // Web BFF
+        serviceId: webBffService.id,
         priority: 80,
         conditions: [],
         isActive: true,
-      },
-    ];
+      });
+    }
 
     for (const routeData of defaultRoutes) {
       this.addRoute(routeData);

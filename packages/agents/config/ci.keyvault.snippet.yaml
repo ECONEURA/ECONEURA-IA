@@ -1,0 +1,10 @@
+# use azure/get-keyvault-secrets@v1
+- name: Get secrets from Azure KeyVault
+  uses: azure/get-keyvault-secrets@v1
+  with:
+    keyvault: "<KEY_VAULT_NAME>"
+    secrets: "make-api-key,neura-azure-client-secret,agent-test-webhook-key"
+- name: Export secrets to env
+  run: |
+    echo "MAKE_API_KEY=${{ steps.get-secrets.outputs['make-api-key'] }}" >> $GITHUB_ENV
+    echo "NEURA_AZURE_CLIENT_SECRET=${{ steps.get-secrets.outputs['neura-azure-client-secret'] }}" >> $GITHUB_ENV

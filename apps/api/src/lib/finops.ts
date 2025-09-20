@@ -1,4 +1,4 @@
-import { logger } from './logger';
+import { logger } from './logger.js';
 
 export interface CostEntry {
   id: string;
@@ -200,18 +200,23 @@ export class FinOpsSystem {
 
   private getBudgetStartDate(budget: Budget, currentDate: Date): Date {
     switch (budget.period) {
-      case 'daily':
+      case 'daily': {
         return new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
-      case 'weekly':
+      }
+      case 'weekly': {
         const dayOfWeek = currentDate.getDay();
         const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
         return new Date(currentDate.getTime() - daysToSubtract * 24 * 60 * 60 * 1000);
-      case 'monthly':
+      }
+      case 'monthly': {
         return new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      case 'yearly':
+      }
+      case 'yearly': {
         return new Date(currentDate.getFullYear(), 0, 1);
-      default:
+      }
+      default: {
         return budget.startDate;
+      }
     }
   }
 

@@ -110,11 +110,11 @@ export class CreateInvoiceUseCase extends BaseUseCase<CreateInvoiceRequest, Crea
     // ========================================================================
 
     const invoice = Invoice.create({
-      organizationId: { value: request.organizationId },
-      invoiceNumber: { value: request.invoiceNumber },
-      type: { value: request.type },
-      status: { value: request.status },
-      paymentStatus: { value: request.paymentStatus },
+      organizationId: request.organizationId,
+      invoiceNumber: request.invoiceNumber,
+      type: request.type,
+      status: request.status,
+      paymentStatus: request.paymentStatus,
       companyId: request.companyId,
       contactId: request.contactId,
       issueDate: request.issueDate,
@@ -139,7 +139,7 @@ export class CreateInvoiceUseCase extends BaseUseCase<CreateInvoiceRequest, Crea
         discountAmount: item.discountAmount ? Money.create(item.discountAmount.amount, item.discountAmount.currency) : undefined,
         notes: item.notes,
       })),
-      paymentMethod: request.paymentMethod ? { value: request.paymentMethod } : undefined,
+      paymentMethod: request.paymentMethod ? request.paymentMethod : undefined,
       reference: request.reference,
       notes: request.notes,
       settings: {

@@ -68,7 +68,7 @@ export abstract class BaseEntity {
   }
 
   protected static generateId(): BaseEntityId {
-    return { value: crypto.randomUUID() };
+    return crypto.randomUUID();
   }
 
   protected static getCurrentTimestamp(): Date {

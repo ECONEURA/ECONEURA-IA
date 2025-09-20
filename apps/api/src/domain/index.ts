@@ -16,6 +16,8 @@ export { Invoice } from './entities/invoice.entity.js';
 export { InventoryKardex } from './entities/inventory-kardex.entity.js';
 export { PredictiveAnalytics } from './entities/predictive-analytics.entity.js';
 export { Architecture } from './entities/architecture.entity.js';
+export { SearchResult, SearchResultBuilder } from './entities/search-result.entity.js';
+export type { SearchQuery, SearchFilters, SearchSuggestion, SearchAnalytics, SearchResultType, SearchType } from './entities/search-result.entity.js';
 
 // Value Objects
 export { Email } from './value-objects/email.vo.js';
@@ -35,6 +37,8 @@ export { InvoiceRepository } from './repositories/invoice.repository.js';
 export { InventoryKardexRepository } from './repositories/inventory-kardex.repository.js';
 export { PredictiveAnalyticsRepository } from './repositories/predictive-analytics.repository.js';
 export { ArchitectureRepository } from './repositories/architecture.repository.js';
+export { SearchRepository } from './repositories/search.repository.js';
+export type { SearchConfig } from './repositories/search.repository.js';
 
 // Domain Services
 export { UserDomainService } from './services/user.domain.service.js';

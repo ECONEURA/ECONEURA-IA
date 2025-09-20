@@ -72,11 +72,11 @@ export class UpdateUserUseCase {
       }
 
       if (request.role) {
-        user.updateRole({ value: request.role });
+        user.updateRole(request.role);
       }
 
       if (request.status) {
-        user.updateStatus({ value: request.status });
+        user.updateStatus(request.status);
       }
 
       // Save updated user

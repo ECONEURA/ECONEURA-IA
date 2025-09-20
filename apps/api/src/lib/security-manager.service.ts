@@ -394,7 +394,7 @@ class SecurityManagerService {
     }
     
     // Remover caracteres peligrosos
-    let sanitized = input
+    const sanitized = input
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
       .replace(/javascript:/gi, '')
       .replace(/on\w+\s*=/gi, '')

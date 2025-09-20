@@ -55,6 +55,11 @@ const CreateSupplierSchema = z.object({
     communicationScore: z.coerce.number().min(1).max(10),
     innovationScore: z.coerce.number().min(1).max(10),
     sustainabilityScore: z.coerce.number().min(1).max(10),
+    // PR-69: Métricas específicas de vendor scorecard
+    otif: z.coerce.number().min(0).max(100),
+    leadTime: z.coerce.number().positive(),
+    ppv: z.coerce.number(),
+    sl: z.coerce.number().min(0).max(100),
   }),
   riskAssessment: z.object({
     financialRisk: z.enum(['low', 'medium', 'high']),
@@ -133,6 +138,10 @@ const GenerateReportSchema = z.object({
 });
 
 const GetStatsSchema = z.object({
+  organizationId: z.string().min(1),
+});
+
+const GetVendorScorecardAlertsSchema = z.object({
   organizationId: z.string().min(1),
 });
 
@@ -399,6 +408,32 @@ supplierScorecardRouter.get('/stats', async (req, res) => {
     });
   } catch (error) {
     structuredLogger.error('Error getting supplier stats', { error });
+    res.status(400).json({
+      success: false,
+      error: 'Invalid request data',
+      details: error.errors
+    });
+  }
+});
+
+// PR-69: Vendor Scorecard Alerts
+supplierScorecardRouter.get('/alerts', async (req, res) => {
+  try {
+    const { organizationId } = GetVendorScorecardAlertsSchema.parse(req.query);
+    const alerts = await supplierScorecardService.generateVendorScorecardAlerts(organizationId);
+    
+    res.json({
+      success: true,
+      data: {
+        alerts,
+        totalSuppliers: alerts.length,
+        totalAlerts: alerts.reduce((sum, a) => sum + a.alerts.length, 0),
+        organizationId
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    structuredLogger.error('Error getting vendor scorecard alerts', { error });
     res.status(400).json({
       success: false,
       error: 'Invalid request data',

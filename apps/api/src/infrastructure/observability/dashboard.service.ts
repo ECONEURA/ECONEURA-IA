@@ -1,208 +1,100 @@
-import { LoggerService } from './logger.service.js';
-import { MetricsService } from './metrics.service.js';
-import { HealthService } from './health.service.js';
-import { AlertingService } from './alerting.service.js';
-
-// ============================================================================
-// DASHBOARD SERVICE
-// ============================================================================
-
-export interface DashboardConfig {
-  name: string;
-  description: string;
-  refreshInterval: number; // in milliseconds
-  widgets: DashboardWidget[];
-  layout: DashboardLayout;
-  filters: DashboardFilter[];
-  permissions: DashboardPermissions;
-}
+// Dashboard Service for Executive Insights and Monitoring
+import { structuredLogger } from '../../lib/structured-logger.js';
 
 export interface DashboardWidget {
   id: string;
-  type: WidgetType;
   title: string;
-  description: string;
-  position: WidgetPosition;
-  size: WidgetSize;
-  config: WidgetConfig;
-  dataSource: DataSource;
-  refreshInterval: number;
-  enabled: boolean;
+  type: 'chart' | 'metric' | 'table' | 'gauge';
+  position: { x: number; y: number; width: number; height: number };
+  config: {
+    min?: number;
+    max?: number;
+    unit?: string;
+    thresholds?: Array<{ value: number; color: string }>;
+  };
+  dataSource: {
+    type: 'metrics' | 'database' | 'api';
+    query: string;
+    timeRange?: {
+      from: Date;
+      to: Date;
+    };
+  };
 }
 
-export interface WidgetPosition {
-  x: number;
-  y: number;
-  z: number;
-}
-
-export interface WidgetSize {
-  width: number;
-  height: number;
-}
-
-export interface WidgetConfig {
-  [key: string]: any;
-}
-
-export interface DataSource {
-  type: 'metrics' | 'logs' | 'traces' | 'health' | 'alerts';
-  query: string;
-  timeRange: TimeRange;
-  aggregation?: string;
-  groupBy?: string[];
-  filters?: Record<string, any>;
-}
-
-export interface TimeRange {
-  from: Date;
-  to: Date;
-  relative?: string; // e.g., '1h', '24h', '7d'
-}
-
-export interface DashboardLayout {
-  columns: number;
-  rows: number;
-  gap: number;
-  responsive: boolean;
-}
-
-export interface DashboardFilter {
+export interface Dashboard {
   id: string;
   name: string;
-  type: 'select' | 'multiselect' | 'date' | 'text' | 'number';
-  field: string;
-  options?: string[];
-  defaultValue?: any;
-  required: boolean;
+  description: string;
+  widgets: DashboardWidget[];
+  layout: 'grid' | 'flex';
+  refreshInterval: number;
+  permissions: string[];
 }
-
-export interface DashboardPermissions {
-  view: string[];
-  edit: string[];
-  admin: string[];
-}
-
-export type WidgetType = 
-  | 'metric' 
-  | 'chart' 
-  | 'table' 
-  | 'gauge' 
-  | 'heatmap' 
-  | 'log' 
-  | 'alert' 
-  | 'health' 
-  | 'map' 
-  | 'text';
 
 export class DashboardService {
-  private static instance: DashboardService;
-  private dashboards: Map<string, DashboardConfig> = new Map();
-  private logger: LoggerService;
-  private metrics: MetricsService;
-  private health: HealthService;
-  private alerting: AlertingService;
+  private dashboards: Map<string, Dashboard> = new Map();
+  private logger = structuredLogger;
 
-  private constructor() {
-    this.logger = LoggerService.getInstance();
-    this.metrics = MetricsService.getInstance();
-    this.health = HealthService.getInstance();
-    this.alerting = AlertingService.getInstance();
+  constructor() {
     this.initializeDefaultDashboards();
   }
 
-  public static getInstance(): DashboardService {
-    if (!DashboardService.instance) {
-      DashboardService.instance = new DashboardService();
-    }
-    return DashboardService.instance;
-  }
-
-  // ========================================================================
-  // INITIALIZATION
-  // ========================================================================
-
   private initializeDefaultDashboards(): void {
-    // System Overview Dashboard
-    this.addDashboard({
-      name: 'System Overview',
-      description: 'High-level system health and performance metrics',
-      refreshInterval: 30000,
+    // Executive Dashboard
+    const executiveDashboard: Dashboard = {
+      id: 'executive',
+      name: 'Executive Dashboard',
+      description: 'High-level business metrics and KPIs',
+      layout: 'grid',
+      refreshInterval: 30000, // 30 seconds
+      permissions: ['admin', 'executive'],
       widgets: [
         {
-          id: 'system_health',
-          type: 'health',
-          title: 'System Health',
-          description: 'Overall system health status',
-          position: { x: 0, y: 0, z: 0 },
-          size: { width: 4, height: 2 },
-          config: {
-            showDetails: true,
-            showMetrics: true
-          },
-          dataSource: {
-            type: 'health',
-            query: 'system_health',
-            timeRange: {
-              from: new Date(Date.now() - 3600000),
-              to: new Date()
-            }
-          },
-          refreshInterval: 30000,
-          enabled: true
-        },
-        {
-          id: 'request_rate',
-          type: 'metric',
-          title: 'Request Rate',
-          description: 'HTTP requests per second',
-          position: { x: 4, y: 0, z: 0 },
-          size: { width: 4, height: 2 },
-          config: {
-            unit: 'req/s',
-            color: 'blue'
-          },
-          dataSource: {
-            type: 'metrics',
-            query: 'rate(http_requests_total[5m])',
-            timeRange: {
-              from: new Date(Date.now() - 3600000),
-              to: new Date()
-            }
-          },
-          refreshInterval: 30000,
-          enabled: true
-        },
-        {
-          id: 'response_time',
+          id: 'revenue-growth',
+          title: 'Revenue Growth',
           type: 'chart',
-          title: 'Response Time',
-          description: 'Average response time over time',
-          position: { x: 8, y: 0, z: 0 },
-          size: { width: 4, height: 2 },
+          position: { x: 0, y: 0, width: 6, height: 4 },
           config: {
-            chartType: 'line',
-            unit: 'ms',
-            color: 'green'
+            unit: '€',
+            thresholds: [
+              { value: 1000000, color: 'green' },
+              { value: 500000, color: 'yellow' },
+              { value: 100000, color: 'red' }
+            ]
           },
           dataSource: {
-            type: 'metrics',
-            query: 'histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))',
+            type: 'database',
+            query: 'SELECT SUM(amount) as revenue FROM transactions WHERE created_at >= NOW() - INTERVAL 30 DAY',
             timeRange: {
-              from: new Date(Date.now() - 3600000),
+              from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
               to: new Date()
             }
-          },
-          refreshInterval: 30000,
-          enabled: true
+          }
         },
         {
-          id: 'error_rate',
-          type: 'gauge',
+          id: 'active-users',
+          title: 'Active Users',
+          type: 'metric',
+          position: { x: 6, y: 0, width: 3, height: 2 },
+          config: {
+            unit: 'users',
+            thresholds: [
+              { value: 10000, color: 'green' },
+              { value: 5000, color: 'yellow' },
+              { value: 1000, color: 'red' }
+            ]
+          },
+          dataSource: {
+            type: 'database',
+            query: 'SELECT COUNT(DISTINCT user_id) as active_users FROM user_sessions WHERE last_activity >= NOW() - INTERVAL 24 HOUR'
+          }
+        },
+        {
+          id: 'error-rate',
           title: 'Error Rate',
-          description: 'Percentage of failed requests',
-          position: { x: 0, y: 2, z: 0 },
-          size: { width: 4, height: 2 },
+          type: 'gauge',
+          position: { x: 9, y: 0, width: 3, height: 2 },
           config: {
             min: 0,
             max: 100,
@@ -219,234 +111,47 @@ export class DashboardService {
               from: new Date(Date.now() - 3600000),
               to: new Date()
             }
-          },
-          refreshInterval: 30000,
-          enabled: true
-        },
+          }
+        }
+      ]
+    };
+
+    // Technical Dashboard
+    const technicalDashboard: Dashboard = {
+      id: 'technical',
+      name: 'Technical Operations',
+      description: 'System performance and infrastructure metrics',
+      layout: 'grid',
+      refreshInterval: 10000, // 10 seconds
+      permissions: ['admin', 'developer', 'ops'],
+      widgets: [
         {
-          id: 'active_alerts',
-          type: 'alert',
-          title: 'Active Alerts',
-          description: 'Currently firing alerts',
-          position: { x: 4, y: 2, z: 0 },
-          size: { width: 4, height: 2 },
-          config: {
-            showSeverity: true,
-            showAge: true,
-            maxItems: 10
-          },
-          dataSource: {
-            type: 'alerts',
-            query: 'status=firing',
-            timeRange: {
-              from: new Date(Date.now() - 86400000),
-              to: new Date()
-            }
-          },
-          refreshInterval: 30000,
-          enabled: true
-        },
-        {
-          id: 'memory_usage',
+          id: 'response-time',
+          title: 'Average Response Time',
           type: 'chart',
-          title: 'Memory Usage',
-          description: 'Memory consumption over time',
-          position: { x: 8, y: 2, z: 0 },
-          size: { width: 4, height: 2 },
+          position: { x: 0, y: 0, width: 6, height: 3 },
           config: {
-            chartType: 'area',
-            unit: 'MB',
-            color: 'purple'
+            unit: 'ms',
+            thresholds: [
+              { value: 100, color: 'green' },
+              { value: 500, color: 'yellow' },
+              { value: 1000, color: 'red' }
+            ]
           },
           dataSource: {
             type: 'metrics',
-            query: 'memory_usage_bytes / 1024 / 1024',
+            query: 'avg(http_request_duration_ms)',
             timeRange: {
               from: new Date(Date.now() - 3600000),
               to: new Date()
             }
-          },
-          refreshInterval: 30000,
-          enabled: true
-        }
-      ],
-      layout: {
-        columns: 12,
-        rows: 4,
-        gap: 16,
-        responsive: true
-      },
-      filters: [
-        {
-          id: 'time_range',
-          name: 'Time Range',
-          type: 'select',
-          field: 'timeRange',
-          options: ['1h', '6h', '24h', '7d', '30d'],
-          defaultValue: '1h',
-          required: true
+          }
         },
         {
-          id: 'service',
-          name: 'Service',
-          type: 'multiselect',
-          field: 'service',
-          options: ['econeura-api', 'econeura-web', 'econeura-worker'],
-          defaultValue: ['econeura-api'],
-          required: false
-        }
-      ],
-      permissions: {
-        view: ['admin', 'manager', 'viewer'],
-        edit: ['admin', 'manager'],
-        admin: ['admin']
-      }
-    });
-
-    // Business Metrics Dashboard
-    this.addDashboard({
-      name: 'Business Metrics',
-      description: 'Business-specific metrics and KPIs',
-      refreshInterval: 60000,
-      widgets: [
-        {
-          id: 'user_count',
-          type: 'metric',
-          title: 'Total Users',
-          description: 'Total number of registered users',
-          position: { x: 0, y: 0, z: 0 },
-          size: { width: 3, height: 2 },
-          config: {
-            unit: 'users',
-            color: 'blue'
-          },
-          dataSource: {
-            type: 'metrics',
-            query: 'users_total',
-            timeRange: {
-              from: new Date(Date.now() - 86400000),
-              to: new Date()
-            }
-          },
-          refreshInterval: 60000,
-          enabled: true
-        },
-        {
-          id: 'organization_count',
-          type: 'metric',
-          title: 'Total Organizations',
-          description: 'Total number of organizations',
-          position: { x: 3, y: 0, z: 0 },
-          size: { width: 3, height: 2 },
-          config: {
-            unit: 'orgs',
-            color: 'green'
-          },
-          dataSource: {
-            type: 'metrics',
-            query: 'organizations_total',
-            timeRange: {
-              from: new Date(Date.now() - 86400000),
-              to: new Date()
-            }
-          },
-          refreshInterval: 60000,
-          enabled: true
-        },
-        {
-          id: 'user_logins',
-          type: 'chart',
-          title: 'User Logins',
-          description: 'User login activity over time',
-          position: { x: 6, y: 0, z: 0 },
-          size: { width: 6, height: 2 },
-          config: {
-            chartType: 'line',
-            unit: 'logins',
-            color: 'orange'
-          },
-          dataSource: {
-            type: 'metrics',
-            query: 'rate(user_logins_total[1h])',
-            timeRange: {
-              from: new Date(Date.now() - 86400000),
-              to: new Date()
-            }
-          },
-          refreshInterval: 60000,
-          enabled: true
-        },
-        {
-          id: 'business_operations',
-          type: 'table',
-          title: 'Business Operations',
-          description: 'Recent business operations',
-          position: { x: 0, y: 2, z: 0 },
-          size: { width: 12, height: 3 },
-          config: {
-            columns: ['operation', 'organization_id', 'status', 'duration', 'timestamp'],
-            sortBy: 'timestamp',
-            sortOrder: 'desc',
-            maxRows: 20
-          },
-          dataSource: {
-            type: 'metrics',
-            query: 'business_operations_total',
-            timeRange: {
-              from: new Date(Date.now() - 3600000),
-              to: new Date()
-            }
-          },
-          refreshInterval: 60000,
-          enabled: true
-        }
-      ],
-      layout: {
-        columns: 12,
-        rows: 5,
-        gap: 16,
-        responsive: true
-      },
-      filters: [
-        {
-          id: 'time_range',
-          name: 'Time Range',
-          type: 'select',
-          field: 'timeRange',
-          options: ['1h', '6h', '24h', '7d', '30d'],
-          defaultValue: '24h',
-          required: true
-        },
-        {
-          id: 'organization',
-          name: 'Organization',
-          type: 'multiselect',
-          field: 'organization_id',
-          options: [],
-          defaultValue: [],
-          required: false
-        }
-      ],
-      permissions: {
-        view: ['admin', 'manager'],
-        edit: ['admin'],
-        admin: ['admin']
-      }
-    });
-
-    // Performance Dashboard
-    this.addDashboard({
-      name: 'Performance',
-      description: 'System performance and resource utilization',
-      refreshInterval: 15000,
-      widgets: [
-        {
-          id: 'cpu_usage',
-          type: 'gauge',
+          id: 'cpu-usage',
           title: 'CPU Usage',
-          description: 'Current CPU utilization',
-          position: { x: 0, y: 0, z: 0 },
-          size: { width: 3, height: 2 },
+          type: 'gauge',
+          position: { x: 6, y: 0, width: 3, height: 3 },
           config: {
             min: 0,
             max: 100,
@@ -463,17 +168,13 @@ export class DashboardService {
               from: new Date(Date.now() - 300000),
               to: new Date()
             }
-          },
-          refreshInterval: 15000,
-          enabled: true
+          }
         },
         {
-          id: 'memory_usage_gauge',
-          type: 'gauge',
+          id: 'memory-usage',
           title: 'Memory Usage',
-          description: 'Current memory utilization',
-          position: { x: 3, y: 0, z: 0 },
-          size: { width: 3, height: 2 },
+          type: 'gauge',
+          position: { x: 9, y: 0, width: 3, height: 3 },
           config: {
             min: 0,
             max: 100,
@@ -490,300 +191,127 @@ export class DashboardService {
               from: new Date(Date.now() - 300000),
               to: new Date()
             }
-          },
-          refreshInterval: 15000,
-          enabled: true
-        },
-        {
-          id: 'disk_usage',
-          type: 'gauge',
-          title: 'Disk Usage',
-          description: 'Current disk utilization',
-          position: { x: 6, y: 0, z: 0 },
-          size: { width: 3, height: 2 },
-          config: {
-            min: 0,
-            max: 100,
-            unit: '%',
-            thresholds: [
-              { value: 80, color: 'yellow' },
-              { value: 90, color: 'red' }
-            ]
-          },
-          dataSource: {
-            type: 'metrics',
-            query: 'disk_usage_percent',
-            timeRange: {
-              from: new Date(Date.now() - 300000),
-              to: new Date()
-            }
-          },
-          refreshInterval: 15000,
-          enabled: true
-        },
-        {
-          id: 'response_time_percentiles',
-          type: 'chart',
-          title: 'Response Time Percentiles',
-          description: 'Response time distribution',
-          position: { x: 9, y: 0, z: 0 },
-          size: { width: 3, height: 2 },
-          config: {
-            chartType: 'line',
-            unit: 'ms',
-            series: ['p50', 'p95', 'p99']
-          },
-          dataSource: {
-            type: 'metrics',
-            query: 'histogram_quantile(0.50, rate(http_request_duration_seconds_bucket[5m])), histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])), histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))',
-            timeRange: {
-              from: new Date(Date.now() - 3600000),
-              to: new Date()
-            }
-          },
-          refreshInterval: 15000,
-          enabled: true
-        },
-        {
-          id: 'throughput',
-          type: 'chart',
-          title: 'Throughput',
-          description: 'Requests per second over time',
-          position: { x: 0, y: 2, z: 0 },
-          size: { width: 6, height: 3 },
-          config: {
-            chartType: 'line',
-            unit: 'req/s',
-            color: 'blue'
-          },
-          dataSource: {
-            type: 'metrics',
-            query: 'rate(http_requests_total[1m])',
-            timeRange: {
-              from: new Date(Date.now() - 3600000),
-              to: new Date()
-            }
-          },
-          refreshInterval: 15000,
-          enabled: true
-        },
-        {
-          id: 'error_breakdown',
-          type: 'chart',
-          title: 'Error Breakdown',
-          description: 'Error types and frequencies',
-          position: { x: 6, y: 2, z: 0 },
-          size: { width: 6, height: 3 },
-          config: {
-            chartType: 'pie',
-            showLegend: true
-          },
-          dataSource: {
-            type: 'metrics',
-            query: 'errors_total by (error_type)',
-            timeRange: {
-              from: new Date(Date.now() - 3600000),
-              to: new Date()
-            }
-          },
-          refreshInterval: 15000,
-          enabled: true
+          }
         }
-      ],
-      layout: {
-        columns: 12,
-        rows: 5,
-        gap: 16,
-        responsive: true
-      },
-      filters: [
-        {
-          id: 'time_range',
-          name: 'Time Range',
-          type: 'select',
-          field: 'timeRange',
-          options: ['5m', '15m', '1h', '6h', '24h'],
-          defaultValue: '1h',
-          required: true
-        }
-      ],
-      permissions: {
-        view: ['admin', 'manager', 'viewer'],
-        edit: ['admin', 'manager'],
-        admin: ['admin']
-      }
+      ]
+    };
+
+    this.dashboards.set('executive', executiveDashboard);
+    this.dashboards.set('technical', technicalDashboard);
+
+    this.logger.info('Default dashboards initialized', {
+      dashboards: Array.from(this.dashboards.keys())
     });
   }
 
-  // ========================================================================
-  // DASHBOARD MANAGEMENT
-  // ========================================================================
-
-  addDashboard(dashboard: DashboardConfig): void {
-    this.dashboards.set(dashboard.name, dashboard);
-    this.logger.info(`Dashboard added: ${dashboard.name}`, {
-      widgetsCount: dashboard.widgets.length,
-      refreshInterval: dashboard.refreshInterval
-    });
+  async getDashboard(id: string): Promise<Dashboard | null> {
+    return this.dashboards.get(id) || null;
   }
 
-  removeDashboard(name: string): void {
-    const dashboard = this.dashboards.get(name);
-    if (dashboard) {
-      this.dashboards.delete(name);
-      this.logger.info(`Dashboard removed: ${dashboard.name}`);
-    }
-  }
-
-  getDashboard(name: string): DashboardConfig | undefined {
-    return this.dashboards.get(name);
-  }
-
-  getAllDashboards(): DashboardConfig[] {
+  async getDashboards(): Promise<Dashboard[]> {
     return Array.from(this.dashboards.values());
   }
 
-  // ========================================================================
-  // WIDGET DATA
-  // ========================================================================
+  async createDashboard(dashboard: Dashboard): Promise<void> {
+    this.dashboards.set(dashboard.id, dashboard);
+    this.logger.info('Dashboard created', { dashboardId: dashboard.id });
+  }
 
-  async getWidgetData(widget: DashboardWidget, filters: Record<string, any> = {}): Promise<any> {
-    try {
-      switch (widget.dataSource.type) {
-        case 'metrics':
-          return await this.getMetricsData(widget.dataSource, filters);
-        case 'health':
-          return await this.getHealthData(widget.dataSource, filters);
-        case 'alerts':
-          return await this.getAlertsData(widget.dataSource, filters);
-        case 'logs':
-          return await this.getLogsData(widget.dataSource, filters);
-        case 'traces':
-          return await this.getTracesData(widget.dataSource, filters);
-        default:
-          throw new Error(`Unsupported data source type: ${widget.dataSource.type}`);
-      }
-    } catch (error) {
-      this.logger.error(`Failed to get widget data: ${widget.title}`, {
-        widgetId: widget.id,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-      throw error;
+  async updateDashboard(id: string, updates: Partial<Dashboard>): Promise<void> {
+    const dashboard = this.dashboards.get(id);
+    if (!dashboard) {
+      throw new Error(`Dashboard with id ${id} not found`);
+    }
+
+    const updatedDashboard = { ...dashboard, ...updates };
+    this.dashboards.set(id, updatedDashboard);
+    this.logger.info('Dashboard updated', { dashboardId: id });
+  }
+
+  async deleteDashboard(id: string): Promise<void> {
+    const deleted = this.dashboards.delete(id);
+    if (!deleted) {
+      throw new Error(`Dashboard with id ${id} not found`);
+    }
+    this.logger.info('Dashboard deleted', { dashboardId: id });
+  }
+
+  async getWidgetData(dashboardId: string, widgetId: string): Promise<any> {
+    const dashboard = this.dashboards.get(dashboardId);
+    if (!dashboard) {
+      throw new Error(`Dashboard with id ${dashboardId} not found`);
+    }
+
+    const widget = dashboard.widgets.find(w => w.id === widgetId);
+    if (!widget) {
+      throw new Error(`Widget with id ${widgetId} not found`);
+    }
+
+    // Simulate data fetching based on data source type
+    switch (widget.dataSource.type) {
+      case 'metrics':
+        return this.fetchMetricsData(widget.dataSource.query);
+      case 'database':
+        return this.fetchDatabaseData(widget.dataSource.query);
+      case 'api':
+        return this.fetchApiData(widget.dataSource.query);
+      default:
+        throw new Error(`Unsupported data source type: ${widget.dataSource.type}`);
     }
   }
 
-  private async getMetricsData(dataSource: DataSource, filters: Record<string, any>): Promise<any> {
-    // Implement metrics data retrieval
+  private async fetchMetricsData(query: string): Promise<any> {
+    // Simulate metrics data fetching
+    this.logger.debug('Fetching metrics data', { query });
     return {
-      data: [],
-      metadata: {
-        query: dataSource.query,
-        timeRange: dataSource.timeRange,
-        filters
-      }
+      timestamp: new Date(),
+      value: Math.random() * 100,
+      unit: 'percent'
     };
   }
 
-  private async getHealthData(dataSource: DataSource, filters: Record<string, any>): Promise<any> {
-    const healthStatus = await this.health.getHealthStatus();
+  private async fetchDatabaseData(query: string): Promise<any> {
+    // Simulate database query
+    this.logger.debug('Fetching database data', { query });
     return {
-      data: healthStatus,
-      metadata: {
-        query: dataSource.query,
-        timeRange: dataSource.timeRange,
-        filters
-      }
+      timestamp: new Date(),
+      rows: [
+        { date: '2025-01-01', value: 1000000 },
+        { date: '2025-01-02', value: 1100000 },
+        { date: '2025-01-03', value: 1200000 }
+      ]
     };
   }
 
-  private async getAlertsData(dataSource: DataSource, filters: Record<string, any>): Promise<any> {
-    const alerts = this.alerting.getActiveAlerts();
+  private async fetchApiData(url: string): Promise<any> {
+    // Simulate API call
+    this.logger.debug('Fetching API data', { url });
     return {
-      data: alerts,
-      metadata: {
-        query: dataSource.query,
-        timeRange: dataSource.timeRange,
-        filters
-      }
+      timestamp: new Date(),
+      data: { status: 'ok', value: 42 }
     };
   }
 
-  private async getLogsData(dataSource: DataSource, filters: Record<string, any>): Promise<any> {
-    // Implement logs data retrieval
-    return {
-      data: [],
-      metadata: {
-        query: dataSource.query,
-        timeRange: dataSource.timeRange,
-        filters
-      }
-    };
-  }
-
-  private async getTracesData(dataSource: DataSource, filters: Record<string, any>): Promise<any> {
-    // Implement traces data retrieval
-    return {
-      data: [],
-      metadata: {
-        query: dataSource.query,
-        timeRange: dataSource.timeRange,
-        filters
-      }
-    };
-  }
-
-  // ========================================================================
-  // DASHBOARD EXPORT
-  // ========================================================================
-
-  exportDashboard(name: string): string {
-    const dashboard = this.dashboards.get(name);
+  async exportDashboard(id: string): Promise<string> {
+    const dashboard = this.dashboards.get(id);
     if (!dashboard) {
-      throw new Error(`Dashboard not found: ${name}`);
+      throw new Error(`Dashboard with id ${id} not found`);
     }
 
     return JSON.stringify(dashboard, null, 2);
   }
 
-  importDashboard(dashboardJson: string): void {
+  async importDashboard(dashboardJson: string): Promise<void> {
     try {
-      const dashboard = JSON.parse(dashboardJson) as DashboardConfig;
-      this.addDashboard(dashboard);
+      const dashboard: Dashboard = JSON.parse(dashboardJson);
+      this.dashboards.set(dashboard.id, dashboard);
+      this.logger.info('Dashboard imported', { dashboardId: dashboard.id });
     } catch (error) {
-      throw new Error(`Failed to import dashboard: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error('Failed to import dashboard', { error });
+      throw new Error('Invalid dashboard JSON format');
     }
-  }
-
-  // ========================================================================
-  // DASHBOARD STATUS
-  // ========================================================================
-
-  getDashboardStatus(): {
-    totalDashboards: number;
-    totalWidgets: number;
-    enabledWidgets: number;
-    lastUpdated: Date;
-  } {
-    const totalDashboards = this.dashboards.size;
-    let totalWidgets = 0;
-    let enabledWidgets = 0;
-
-    for (const dashboard of this.dashboards.values()) {
-      totalWidgets += dashboard.widgets.length;
-      enabledWidgets += dashboard.widgets.filter(widget => widget.enabled).length;
-    }
-
-    return {
-      totalDashboards,
-      totalWidgets,
-      enabledWidgets,
-      lastUpdated: new Date()
-    };
   }
 }
 
-// ============================================================================
-// SINGLETON INSTANCE
-// ============================================================================
-
-export const dashboardService = DashboardService.getInstance();
+// Export singleton instance
+export const dashboardService = new DashboardService();

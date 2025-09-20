@@ -16,72 +16,85 @@ interface ExtendedRequest extends Request {
 export function observabilityMiddleware(req: ExtendedRequest, res: Response, next: NextFunction): void {
   // Generar request ID único
   req.requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
+
   // Iniciar trace
-  const traceContext = tracing.startSpan(`HTTP ${req.method} ${req.path}`);
-  req.traceContext = traceContext;
-  
+  const path = (req as Request & { path?: string }).path || req.url || '/';
+  const traceContext = tracing.startSpan(`HTTP ${req.method} ${path}`);
+  (req as Request & { traceContext?: unknown }).traceContext = traceContext;
+
   // Registrar tiempo de inicio
   req.startTime = Date.now();
-  
+
   // Agregar headers de trace
-  res.setHeader('X-Request-ID', req.requestId);
+  res.setHeader('X-Request-ID', req.requestId || 'unknown');
   res.setHeader('X-Trace-ID', traceContext.traceId);
   res.setHeader('X-Span-ID', traceContext.spanId);
-  
+
   // Log del request entrante
-  logger.info(`Request started: ${req.method} ${req.path}`, {
+  logger.info(`Request started: ${req.method} ${path}`, {
     requestId: req.requestId,
     traceId: traceContext.traceId,
     spanId: traceContext.spanId,
     method: req.method,
-    path: req.path,
-    userAgent: req.get('User-Agent'),
+    path,
+    userAgent: typeof req.get === 'function' ? req.get('User-Agent') : undefined,
     ip: req.ip,
-    query: JSON.stringify(req.query),
+    query: req.query as Record<string, unknown>,
     body: req.method !== 'GET' ? req.body : undefined
   });
-  
+
   // Agregar tags al trace
   tracing.addTag(traceContext.spanId, 'http.method', req.method);
-  tracing.addTag(traceContext.spanId, 'http.path', req.path);
-  tracing.addTag(traceContext.spanId, 'http.user_agent', req.get('User-Agent') || 'unknown');
-  if (req.ip) {
-    tracing.addTag(traceContext.spanId, 'http.ip', req.ip);
-  }
-  
+  tracing.addTag(traceContext.spanId, 'http.path', path);
+  tracing.addTag(traceContext.spanId, 'http.user_agent', typeof req.get === 'function' ? (req.get('User-Agent') || 'unknown') : 'unknown');
+  if (req.ip) tracing.addTag(traceContext.spanId, 'http.ip', req.ip);
+
   // Interceptar el final de la respuesta
-  const originalSend = res.send;
-  res.send = function(data: any): Response {
-    const duration = Date.now() - (req.startTime || 0);
-    const statusCode = res.statusCode;
-    
-    // Registrar métricas
-    metrics.recordHttpRequest(req.method, req.path, statusCode, duration);
-    
-    // Registrar log del request completado
-    logger.request(req.method, req.path, statusCode, duration, {
-      requestId: req.requestId,
-      traceId: traceContext.traceId,
-      spanId: traceContext.spanId,
-      userAgent: req.get('User-Agent'),
-      ip: req.ip
-    });
-    
-    // Finalizar trace
-    tracing.endSpan(traceContext.spanId, {
-      'http.status_code': statusCode,
-      'duration_ms': duration,
-      'error': statusCode >= 400
-    });
-    
-    // Agregar headers de observabilidad
-    res.setHeader('X-Response-Time', `${duration}ms`);
-    res.setHeader('X-Request-Duration', duration.toString());
-    
-    return originalSend.call(this, data);
+  const originalSend = res.send.bind(res);
+  res.send = function (data?: unknown): Response {
+      try {
+        const duration = Date.now() - (req.startTime || 0);
+        const statusCode = res.statusCode || 200;
+
+        // Registrar métricas (mejor definida)
+        try {
+          const m = metrics as unknown as { recordHttpRequest?: (method: string, route: string, status: number, duration: number) => void };
+          m.recordHttpRequest?.(req.method, path, statusCode, duration);
+        } catch {}
+
+        // Registrar log del request completado
+        try {
+          const rl = logger as unknown as { request?: (method: string, path: string, status: number, duration: number, meta?: Record<string, unknown>) => void };
+          const tc = traceContext as unknown as Record<string, unknown> | null;
+          const traceId = tc && typeof tc['traceId'] === 'string' ? String(tc['traceId']) : undefined;
+          const spanId = tc && typeof tc['spanId'] === 'string' ? String(tc['spanId']) : undefined;
+          rl.request?.(req.method, path, statusCode, duration, {
+            requestId: req.requestId,
+            traceId,
+            spanId,
+            userAgent: typeof req.get === 'function' ? req.get('User-Agent') : undefined,
+            ip: req.ip
+          });
+        } catch {}
+
+        // Finalizar trace (best-effort)
+        try {
+          const tc2 = traceContext as unknown as Record<string, unknown> | null;
+          const spanId2 = tc2 && typeof tc2['spanId'] === 'string' ? String(tc2['spanId']) : undefined;
+          if (spanId2) tracing.endSpan?.(spanId2, { 'http.status_code': statusCode, 'duration_ms': duration, 'error': statusCode >= 400 });
+        } catch {}
+
+        // Agregar headers de observabilidad
+        res.setHeader('X-Response-Time', `${duration}ms`);
+        res.setHeader('X-Request-Duration', String(duration));
+      } catch (e) {
+        // best-effort only
+      }
+  // Ensure send receives string | Buffer | undefined
+  const safeData = (typeof data === 'string' || Buffer.isBuffer(data) || data === undefined) ? data : JSON.stringify(data);
+  return originalSend(safeData as unknown as string | Buffer | undefined);
   };
-  
+
   next();
 }
 
@@ -89,7 +102,7 @@ export function observabilityMiddleware(req: ExtendedRequest, res: Response, nex
 export function errorObservabilityMiddleware(error: any, req: ExtendedRequest, res: Response, next: NextFunction): void {
   const duration = Date.now() - (req.startTime || 0);
   const statusCode = error.status || 500;
-  
+
   // Registrar error en logs
   logger.error(`Request failed: ${req.method} ${req.path}`, {
     requestId: req.requestId,
@@ -104,15 +117,15 @@ export function errorObservabilityMiddleware(error: any, req: ExtendedRequest, r
     userAgent: req.get('User-Agent'),
     ip: req.ip
   });
-  
+
   // Registrar métricas de error
   metrics.recordHttpRequest(req.method, req.path, statusCode, duration);
-  metrics.increment('errors_total', 1, { 
-    type: 'http_error', 
+  metrics.increment('errors_total', 1, {
+    type: 'http_error',
     status: statusCode.toString(),
-    path: req.path 
+    path: req.path
   });
-  
+
   // Finalizar trace con error
   if (req.traceContext) {
     tracing.endSpan(req.traceContext.spanId, {
@@ -122,46 +135,49 @@ export function errorObservabilityMiddleware(error: any, req: ExtendedRequest, r
       'error.message': error.message
     });
   }
-  
+
   // Agregar headers de observabilidad
   res.setHeader('X-Request-ID', req.requestId || 'unknown');
   res.setHeader('X-Response-Time', `${duration}ms`);
   res.setHeader('X-Request-Duration', duration.toString());
-  
+
   next(error);
 }
 
 // Middleware para health checks con observabilidad
 export function healthCheckMiddleware(req: Request, res: Response, next: NextFunction): void {
   if (req.path.startsWith('/health')) {
-    const startTime = Date.now();
-    const traceContext = tracing.startSpan(`Health Check ${req.path}`);
-    
+  const startTime = Date.now();
+  const traceContext = tracing.startSpan(`Health Check ${req.path}`);
+
     // Interceptar respuesta
-    const originalSend = res.send;
-    res.send = function(data: any): Response {
-      const duration = Date.now() - startTime;
-      const statusCode = res.statusCode;
-      
-      // Registrar métricas de health check
-      metrics.recordHealthCheck(req.path, statusCode < 400 ? 'ok' : 'error', duration);
-      
-      // Registrar log
-      logger.healthCheck(req.path, statusCode < 400 ? 'ok' : 'error', duration, {
-        traceId: traceContext.traceId,
-        spanId: traceContext.spanId
-      });
-      
-      // Finalizar trace
-      tracing.endSpan(traceContext.spanId, {
-        'health.status': statusCode < 400 ? 'ok' : 'error',
-        'duration_ms': duration
-      });
-      
-      return originalSend.call(this, data);
+    const originalSendHC = res.send.bind(res);
+    res.send = function (data?: any): Response {
+      try {
+        const duration = Date.now() - startTime;
+        const statusCode = res.statusCode || 200;
+        try {
+          const m = metrics as unknown as {
+            recordHealthCheck?: (path: string, status: string, duration: number) => void;
+            recordHealthCheckDuration?: (path: string, duration: number) => void;
+            incrementHealthCheck?: (path: string) => void;
+          };
+          if (typeof m.recordHealthCheck === 'function') {
+            m.recordHealthCheck(req.path, statusCode < 400 ? 'ok' : 'error', duration);
+          } else if (typeof m.recordHealthCheckDuration === 'function') {
+            m.recordHealthCheckDuration(req.path, duration);
+          } else if (typeof m.incrementHealthCheck === 'function') {
+            m.incrementHealthCheck(req.path);
+          }
+        } catch {}
+
+        try { logger.healthCheck(req.path, statusCode < 400 ? 'ok' : 'error', duration, { traceId: traceContext.traceId, spanId: traceContext.spanId }); } catch {}
+        try { tracing.endSpan(traceContext.spanId, { 'health.status': statusCode < 400 ? 'ok' : 'error', 'duration_ms': duration }); } catch {}
+      } catch {}
+  return originalSendHC(data as unknown as string | Buffer);
     };
   }
-  
+
   next();
 }
 

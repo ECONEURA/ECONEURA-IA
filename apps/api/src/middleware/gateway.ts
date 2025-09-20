@@ -24,24 +24,30 @@ export function gatewayRoutingMiddleware(req: GatewayRequest, res: Response, nex
     const query = req.query as Record<string, string>;
     const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
 
+    // Rutas locales que deben bypass el gateway
+    const localRoutes = ['/health', '/metrics', '/v1/gateway'];
+    const isLocalRoute = localRoutes.some(route => path.startsWith(route));
+
+    if (isLocalRoute) {
+      logger.debug('Gateway: local route, passing through to Express', {
+        path,
+        method,
+        clientIp,
+      });
+      return next();
+    }
+
     // Buscar ruta que coincida
     const route = apiGateway.findRoute(path, method, headers, query);
 
     if (!route) {
-      logger.warn('No route found for request', {
+      // Si no hay regla del gateway, dejamos que Express resuelva la ruta normalmente
+      logger.debug('Gateway: no matching route, passing through to Express', {
         path,
         method,
         clientIp,
-        headersCount: Object.keys(headers).length,
-        queryCount: Object.keys(query).length,
       });
-
-      res.status(404).json({
-        error: 'Route not found',
-        message: `No route found for ${method} ${path}`,
-        code: 'GATEWAY_ROUTE_NOT_FOUND',
-      });
-      return;
+      return next();
     }
 
     // Seleccionar servicio usando load balancing
@@ -238,7 +244,7 @@ export function gatewayMetricsMiddleware(req: GatewayRequest, res: Response, nex
   // Agregar headers de métricas del gateway
   res.setHeader('X-Gateway-Request-Id', req.headers['x-request-id'] || 'unknown');
   res.setHeader('X-Gateway-Timestamp', new Date().toISOString());
-  
+
   if (req.gatewayInfo) {
     res.setHeader('X-Gateway-Route-Id', req.gatewayInfo.routeId || 'unknown');
     res.setHeader('X-Gateway-Service-Id', req.gatewayInfo.serviceId || 'unknown');
@@ -260,7 +266,7 @@ export function gatewayCircuitBreakerMiddleware(req: GatewayRequest, res: Respon
 
   // Verificar si el servicio está en estado de circuit breaker
   const circuitBreakerThreshold = apiGateway['loadBalancerConfig'].circuitBreakerThreshold;
-  
+
   if (service.errorRate > circuitBreakerThreshold) {
     logger.warn('Circuit breaker activated for service', {
       serviceId: service.id,

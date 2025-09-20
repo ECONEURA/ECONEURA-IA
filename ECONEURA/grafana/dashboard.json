@@ -1,0 +1,223 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "ECONEURA Security Dashboard",
+    "tags": ["security", "econeura", "monitoring"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Security Findings Overview",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(econeura_findings_total)",
+            "legendFormat": "Total Findings"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "red", "value": 10}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "High Risk Findings",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "econeura_findings_high",
+            "legendFormat": "High Risk"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "orange", "value": 1},
+                {"color": "red", "value": 5}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Findings by Tool",
+        "type": "bargauge",
+        "targets": [
+          {
+            "expr": "econeura_findings_total",
+            "legendFormat": "{{tool}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 5},
+                {"color": "red", "value": 20}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8}
+      },
+      {
+        "id": 4,
+        "title": "Risk Distribution",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "econeura_findings_high",
+            "legendFormat": "High Risk"
+          },
+          {
+            "expr": "econeura_findings_medium",
+            "legendFormat": "Medium Risk"
+          },
+          {
+            "expr": "econeura_findings_low",
+            "legendFormat": "Low Risk"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}
+      },
+      {
+        "id": 5,
+        "title": "Mitigation Success Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(econeura_mitigations_executed[5m]) / (rate(econeura_mitigations_executed[5m]) + rate(econeura_mitigations_blocked[5m])) * 100",
+            "legendFormat": "Success Rate %"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "yellow", "value": 50},
+                {"color": "green", "value": 80}
+              ]
+            },
+            "unit": "percent"
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}
+      },
+      {
+        "id": 6,
+        "title": "Scan Duration",
+        "type": "histogram",
+        "targets": [
+          {
+            "expr": "econeura_scan_duration_seconds",
+            "legendFormat": "Scan Duration"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "unit": "s"
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24}
+      },
+      {
+        "id": 7,
+        "title": "MTTR (Mean Time To Resolution)",
+        "type": "histogram",
+        "targets": [
+          {
+            "expr": "econeura_mttr_seconds",
+            "legendFormat": "MTTR"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "unit": "s"
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24}
+      },
+      {
+        "id": 8,
+        "title": "Approval Trends",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "increase(econeura_approvals_validated[1h])",
+            "legendFormat": "Approvals Validated"
+          },
+          {
+            "expr": "increase(econeura_approvals_rejected[1h])",
+            "legendFormat": "Approvals Rejected"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 32}
+      },
+      {
+        "id": 9,
+        "title": "System Health",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "econeura_up",
+            "legendFormat": "System Status"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {"options": {"0": {"text": "DOWN", "color": "red"}, "1": {"text": "UP", "color": "green"}}, "type": "value"}
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "green", "value": 1}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 40}
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "timepicker": {},
+    "templating": {
+      "list": []
+    },
+    "annotations": {
+      "list": []
+    },
+    "refresh": "30s",
+    "schemaVersion": 27,
+    "version": 0,
+    "links": []
+  }
+}

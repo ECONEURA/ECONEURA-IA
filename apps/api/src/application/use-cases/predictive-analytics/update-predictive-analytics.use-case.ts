@@ -89,7 +89,7 @@ export class UpdatePredictiveAnalyticsUseCase extends BaseUseCase<UpdatePredicti
     }
 
     if (request.type !== undefined) {
-      existingPredictiveAnalytics.updateType({ value: request.type });
+      existingPredictiveAnalytics.updateType(request.type);
     }
 
     if (request.description !== undefined) {
@@ -104,7 +104,7 @@ export class UpdatePredictiveAnalyticsUseCase extends BaseUseCase<UpdatePredicti
     if (request.settings !== undefined) {
       const currentSettings = existingPredictiveAnalytics.settings;
       const updatedSettings = {
-        modelType: { value: request.settings.modelType || currentSettings.modelType.value },
+        modelType: request.settings.modelType || currentSettings.modelType.value,
         trainingPeriod: request.settings.trainingPeriod !== undefined ? request.settings.trainingPeriod : currentSettings.trainingPeriod,
         predictionHorizon: request.settings.predictionHorizon !== undefined ? request.settings.predictionHorizon : currentSettings.predictionHorizon,
         confidenceThreshold: request.settings.confidenceThreshold !== undefined ? request.settings.confidenceThreshold : currentSettings.confidenceThreshold,

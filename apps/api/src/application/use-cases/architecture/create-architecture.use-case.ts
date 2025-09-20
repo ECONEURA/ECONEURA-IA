@@ -106,23 +106,23 @@ export class CreateArchitectureUseCase extends BaseUseCase<CreateArchitectureReq
     // ========================================================================
 
     const architecture = Architecture.create({
-      organizationId: { value: request.organizationId },
+      organizationId: request.organizationId,
       name: request.name,
-      type: { value: request.type },
-      status: { value: 'design' },
+      type: request.type,
+      status: 'design',
       description: request.description,
       settings: {
-        type: { value: request.type },
+        type: request.type,
         layers: request.settings.layers.map(layer => ({
           id: layer.id,
           name: layer.name,
-          type: { value: layer.type },
+          type: layer.type,
           description: layer.description,
           components: layer.components.map(component => ({
             id: component.id,
             name: component.name,
-            type: { value: component.type },
-            layer: { value: layer.type },
+            type: component.type,
+            layer: layer.type,
             description: component.description,
             dependencies: component.dependencies,
             interfaces: component.interfaces,
@@ -152,8 +152,8 @@ export class CreateArchitectureUseCase extends BaseUseCase<CreateArchitectureReq
         layer.components.map(component => ({
           id: component.id,
           name: component.name,
-          type: { value: component.type },
-          layer: { value: layer.type },
+          type: component.type,
+          layer: layer.type,
           description: component.description,
           dependencies: component.dependencies,
           interfaces: component.interfaces,
@@ -167,13 +167,13 @@ export class CreateArchitectureUseCase extends BaseUseCase<CreateArchitectureReq
       layers: request.settings.layers.map(layer => ({
         id: layer.id,
         name: layer.name,
-        type: { value: layer.type },
+        type: layer.type,
         description: layer.description,
         components: layer.components.map(component => ({
           id: component.id,
           name: component.name,
-          type: { value: component.type },
-          layer: { value: layer.type },
+          type: component.type,
+          layer: layer.type,
           description: component.description,
           dependencies: component.dependencies,
           interfaces: component.interfaces,

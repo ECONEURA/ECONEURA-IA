@@ -115,15 +115,15 @@ export class UpdateInvoiceUseCase extends BaseUseCase<UpdateInvoiceRequest, Upda
     }
 
     if (request.type !== undefined) {
-      existingInvoice.updateType({ value: request.type });
+      existingInvoice.updateType(request.type);
     }
 
     if (request.status !== undefined) {
-      existingInvoice.updateStatus({ value: request.status });
+      existingInvoice.updateStatus(request.status);
     }
 
     if (request.paymentStatus !== undefined) {
-      existingInvoice.updatePaymentStatus({ value: request.paymentStatus });
+      existingInvoice.updatePaymentStatus(request.paymentStatus);
     }
 
     if (request.companyId !== undefined) {
@@ -147,7 +147,7 @@ export class UpdateInvoiceUseCase extends BaseUseCase<UpdateInvoiceRequest, Upda
     }
 
     if (request.paymentMethod !== undefined) {
-      existingInvoice.updatePaymentMethod({ value: request.paymentMethod });
+      existingInvoice.updatePaymentMethod(request.paymentMethod);
     }
 
     if (request.reference !== undefined) {

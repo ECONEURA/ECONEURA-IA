@@ -1,0 +1,111 @@
+import { Cost, Budget, BudgetAlert, CostAllocation, ResourceUtilization, CostAnomaly, OptimizationRecommendation } from './finops-types.js';
+export interface CostEntry {
+    id: string;
+    timestamp: Date;
+    service: string;
+    operation: string;
+    resource: string;
+    amount: number;
+    currency: string;
+    organizationId: string;
+    userId?: string;
+    requestId?: string;
+    metadata?: Record<string, any>;
+}
+export interface CostMetrics {
+    totalCost: number;
+    costByService: Record<string, number>;
+    costByOperation: Record<string, number>;
+    costByOrganization: Record<string, number>;
+    costByPeriod: Record<string, number>;
+    averageCost: number;
+    costTrend: 'increasing' | 'decreasing' | 'stable';
+    topExpenses: CostEntry[];
+}
+export declare class FinOpsConsolidatedService {
+    private costs;
+    private costEntries;
+    private budgets;
+    private budgetAlerts;
+    private costHistory;
+    private costTrends;
+    private costAllocations;
+    private resourceUtilizations;
+    private costAnomalies;
+    private optimizationRecommendations;
+    private finOpsReports;
+    private costCenters;
+    private costOptimizations;
+    private finOpsAlerts;
+    private finOpsDashboards;
+    private finOpsSettings;
+    private finOpsUsers;
+    private alertThresholds;
+    constructor();
+    recordCost(costData: Omit<Cost, 'id' | 'timestamp'>): Promise<Cost>;
+    trackCost(costData: Omit<CostEntry, 'id' | 'timestamp'>): string;
+    getCosts(filters?: {
+        organizationId?: string;
+        service?: string;
+        category?: string;
+        startDate?: Date;
+        endDate?: Date;
+        userId?: string;
+        projectId?: string;
+        departmentId?: string;
+    }): Cost[];
+    getCostById(costId: string): Cost | null;
+    createBudget(budgetData: Omit<Budget, 'id' | 'createdAt' | 'updatedAt' | 'alerts' | 'notifications'>): Promise<Budget>;
+    updateBudget(budgetId: string, updates: Partial<Budget>): boolean;
+    deleteBudget(budgetId: string): boolean;
+    getBudget(budgetId: string): Budget | undefined;
+    getBudgetsByOrganization(organizationId: string): Budget[];
+    private evaluateBudgets;
+    private calculateCurrentBudgetSpend;
+    private getBudgetStartDate;
+    private getBudgetEndDate;
+    private createBudgetAlert;
+    private determineAlertSeverity;
+    private hasActiveAlert;
+    acknowledgeAlert(alertId: string, acknowledgedBy: string): boolean;
+    getActiveAlerts(organizationId?: string): BudgetAlert[];
+    getCostMetrics(organizationId?: string, period?: string): CostMetrics;
+    private groupCostsBy;
+    private groupCostsByPeriod;
+    private getPeriodCutoffDate;
+    private calculateCostTrend;
+    private getTopExpenses;
+    private updateCostTrends;
+    private checkForAnomalies;
+    getCostAnomalies(organizationId?: string): CostAnomaly[];
+    allocateCost(costId: string, allocations: Array<{
+        organizationId: string;
+        departmentId?: string;
+        projectId?: string;
+        userId?: string;
+        percentage: number;
+        method: 'equal' | 'usage_based' | 'custom' | 'tag_based';
+    }>): Promise<CostAllocation[]>;
+    getCostAllocations(costId?: string): CostAllocation[];
+    recordResourceUtilization(utilization: Omit<ResourceUtilization, 'id' | 'timestamp'>): Promise<ResourceUtilization>;
+    getResourceUtilizations(filters?: {
+        organizationId?: string;
+        service?: string;
+        resourceType?: string;
+        startDate?: Date;
+        endDate?: Date;
+    }): ResourceUtilization[];
+    generateOptimizationRecommendations(organizationId: string): Promise<OptimizationRecommendation[]>;
+    getOptimizationRecommendations(organizationId?: string): OptimizationRecommendation[];
+    generateFinOpsHeaders(organizationId: string, operation: string): Record<string, string>;
+    getCurrentBudgetSpend(budgetId: string): number;
+    getBudgetUsagePercentage(budgetId: string): number;
+    private validateBudget;
+    private initializeDefaultData;
+    private startMonitoring;
+    private checkAllBudgets;
+    getStats(): any;
+    clearOldData(daysToKeep?: number): void;
+}
+export declare const finOpsConsolidatedService: FinOpsConsolidatedService;
+//# sourceMappingURL=finops-consolidated.service.d.ts.map

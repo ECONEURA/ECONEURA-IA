@@ -31,7 +31,7 @@ class APITester {
   private startTime = Date.now();
 
   async runAllTests(): Promise<void> {
-    console.log(`${COLORS.BOLD}${COLORS.BLUE}🚀 ECONEURA API - Test Suite Completo${COLORS.RESET}\n`);
+    
     
     // Test Health endpoints (PR-22)
     await this.testCategory('Health & Monitoring (PR-22)', [
@@ -114,12 +114,12 @@ class APITester {
   }
 
   private async testCategory(category: string, tests: Array<{ method: string, endpoint: string, body?: any }>): Promise<void> {
-    console.log(`${COLORS.BOLD}${COLORS.YELLOW}📂 ${category}${COLORS.RESET}`);
+    
     
     for (const test of tests) {
       await this.testEndpoint(test.method, test.endpoint, test.body);
     }
-    console.log('');
+    
   }
 
   private async testEndpoint(method: string, endpoint: string, body?: any): Promise<void> {
@@ -162,10 +162,10 @@ class APITester {
       const statusColor = success ? COLORS.GREEN : COLORS.RED;
       const statusIcon = success ? '✅' : '❌';
       
-      console.log(`  ${statusIcon} ${method} ${endpoint} ${statusColor}${response.status}${COLORS.RESET} (${responseTime}ms)`);
+      
 
       if (!success && result.error) {
-        console.log(`     ${COLORS.RED}Error: ${result.error.substring(0, 100)}...${COLORS.RESET}`);
+        
       }
 
     } catch (error) {
@@ -180,8 +180,8 @@ class APITester {
       };
 
       this.results.push(result);
-      console.log(`  ❌ ${method} ${endpoint} ${COLORS.RED}ERROR${COLORS.RESET} (${responseTime}ms)`);
-      console.log(`     ${COLORS.RED}${(error as Error).message}${COLORS.RESET}`);
+      
+      
     }
   }
 
@@ -191,23 +191,23 @@ class APITester {
     const failed = this.results.length - successful;
     const avgResponseTime = this.results.reduce((sum, r) => sum + r.responseTime, 0) / this.results.length;
 
-    console.log(`${COLORS.BOLD}${COLORS.BLUE}📊 RESUMEN DE PRUEBAS${COLORS.RESET}`);
-    console.log(`${COLORS.GREEN}✅ Exitosos: ${successful}${COLORS.RESET}`);
-    console.log(`${COLORS.RED}❌ Fallidos: ${failed}${COLORS.RESET}`);
-    console.log(`⏱️  Tiempo total: ${totalTime}ms`);
-    console.log(`📈 Tiempo promedio: ${Math.round(avgResponseTime)}ms`);
-    console.log(`🎯 Tasa de éxito: ${Math.round((successful / this.results.length) * 100)}%`);
+    
+    
+    
+    
+    
+    
 
     if (failed > 0) {
-      console.log(`\n${COLORS.RED}❌ ENDPOINTS FALLIDOS:${COLORS.RESET}`);
+      
       this.results
         .filter(r => !r.success)
         .forEach(r => {
-          console.log(`  ${r.method} ${r.endpoint} - Status: ${r.status} - ${r.error?.substring(0, 50)}...`);
+          
         });
     }
 
-    console.log(`\n${COLORS.BOLD}${COLORS.GREEN}🏆 PRUEBAS COMPLETADAS${COLORS.RESET}`);
+    
     
     // Export results for CI
     const resultsFile = {

@@ -94,7 +94,7 @@ export class Invoice extends BaseEntity {
     const now = new Date();
     return new Invoice({
       ...props,
-      id: { value: crypto.randomUUID() },
+      id: crypto.randomUUID(),
       createdAt: now,
       updatedAt: now,
     });
@@ -138,7 +138,7 @@ export class Invoice extends BaseEntity {
     if (!invoiceNumber || invoiceNumber.trim().length === 0) {
       throw new Error('Invoice number cannot be empty');
     }
-    this.props.invoiceNumber = { value: invoiceNumber.trim() };
+    this.props.invoiceNumber = invoiceNumber.trim();
     this.updateTimestamp();
   }
 
@@ -297,12 +297,12 @@ export class Invoice extends BaseEntity {
 
   private updatePaymentStatus(): void {
     if (this.props.paidAmount.amount >= this.props.totalAmount.amount) {
-      this.props.paymentStatus = { value: 'paid' };
-      this.props.status = { value: 'paid' };
+      this.props.paymentStatus = 'paid';
+      this.props.status = 'paid';
     } else if (this.props.paidAmount.amount > 0) {
-      this.props.paymentStatus = { value: 'partial' };
+      this.props.paymentStatus = 'partial';
     } else {
-      this.props.paymentStatus = { value: 'pending' };
+      this.props.paymentStatus = 'pending';
     }
   }
 
@@ -390,42 +390,42 @@ export class Invoice extends BaseEntity {
   static createInvoice(props: Omit<InvoiceProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): Invoice {
     return Invoice.create({
       ...props,
-      type: { value: 'invoice' },
+      type: 'invoice',
     });
   }
 
   static createCreditNote(props: Omit<InvoiceProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): Invoice {
     return Invoice.create({
       ...props,
-      type: { value: 'credit_note' },
+      type: 'credit_note',
     });
   }
 
   static createDebitNote(props: Omit<InvoiceProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): Invoice {
     return Invoice.create({
       ...props,
-      type: { value: 'debit_note' },
+      type: 'debit_note',
     });
   }
 
   static createProforma(props: Omit<InvoiceProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): Invoice {
     return Invoice.create({
       ...props,
-      type: { value: 'proforma' },
+      type: 'proforma',
     });
   }
 
   static createQuote(props: Omit<InvoiceProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): Invoice {
     return Invoice.create({
       ...props,
-      type: { value: 'quote' },
+      type: 'quote',
     });
   }
 
   static createReceipt(props: Omit<InvoiceProps, 'id' | 'type' | 'createdAt' | 'updatedAt'>): Invoice {
     return Invoice.create({
       ...props,
-      type: { value: 'receipt' },
+      type: 'receipt',
     });
   }
 }

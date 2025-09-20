@@ -1,5 +1,5 @@
 // SEPA Parser Service for PR-42
-import { SEPATransaction, SEPAUploadResult } from './sepa-types';
+import { SEPATransaction, SEPAUploadResult } from './sepa-types.js';
 
 export class SEPAParserService {
   private transactions: SEPATransaction[] = [];

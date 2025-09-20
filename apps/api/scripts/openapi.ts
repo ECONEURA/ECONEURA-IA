@@ -636,14 +636,14 @@ const openApiDocument = generator.generateDocument({
 // Write OpenAPI document
 const outputPath = path.resolve(process.cwd(), 'apps/api/openapi.json');
 fs.writeFileSync(outputPath, JSON.stringify(openApiDocument, null, 2));
-console.log(`✅ OpenAPI spec generated at: ${outputPath}`);
+
 
 // Also write a YAML version for human readability
 import('js-yaml').then((yaml) => {
   const yamlStr = yaml.dump(openApiDocument);
   const yamlPath = path.resolve(process.cwd(), 'apps/api/openapi.yaml');
   fs.writeFileSync(yamlPath, yamlStr);
-  console.log(`✅ OpenAPI YAML generated at: ${yamlPath}`);
+  
 }).catch(err => {
   console.error('Failed to generate YAML:', err);
 });

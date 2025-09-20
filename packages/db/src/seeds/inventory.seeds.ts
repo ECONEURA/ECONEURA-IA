@@ -2,7 +2,7 @@ import { db } from '../connection.js';
 import { products, suppliers } from '../schema.js';
 
 export async function seedInventoryData(orgId: string) {
-  console.log('🌱 Seeding inventory data...');
+  
 
   // Create suppliers first
   const suppliersData = [
@@ -113,7 +113,7 @@ export async function seedInventoryData(orgId: string) {
   ];
 
   const createdSuppliers = await db.insert(suppliers).values(suppliersData).returning();
-  console.log(`✅ Created ${createdSuppliers.length} suppliers`);
+  
 
   // Create products
   const productsData = [
@@ -322,9 +322,9 @@ export async function seedInventoryData(orgId: string) {
   ];
 
   const createdProducts = await db.insert(products).values(productsData).returning();
-  console.log(`✅ Created ${createdProducts.length} products`);
+  
 
-  console.log('🎉 Inventory seeding completed!');
+  
   
   return {
     suppliers: createdSuppliers,

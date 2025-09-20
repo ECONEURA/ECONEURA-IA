@@ -950,7 +950,7 @@ class RLSGenerativaService {
     const description = `Política generada automáticamente para ${tableName} con nivel de acceso ${requirements.accessLevel}`;
     
     let expression = '';
-    let parameters: Record<string, any> = {};
+    const parameters: Record<string, any> = {};
 
     switch (requirements.accessLevel) {
       case 'public':

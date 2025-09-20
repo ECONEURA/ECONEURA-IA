@@ -1,0 +1,10 @@
+ECONEURA DRY-RUN SUMMARY
+Trace: dryrun-20250920T141630Z-32520
+Time: 2025-09-20T14:16:30+00:00
+
+Planned files count: 0
+Possible remote actions: false
+Agent output (masked): /workspaces/ECONEURA-IA/audit/ai_run_dry_dryrun-20250920T141630Z-32520_masked.json
+Planned files JSON: /workspaces/ECONEURA-IA/audit/planned_files_dryrun-20250920T141630Z-32520.json
+
+IMPORTANT: Review the masked AI output and planned files. Do NOT create REVIEW_OK or enable pushes until security review is complete.

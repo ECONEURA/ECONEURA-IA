@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { structuredLogger } from './structured-logger.js';
 import { EnhancedAIRouter } from '@econeura/shared/src/ai/enhanced-router.js';
+import { aiRouterClient, AIRequest, AIResponse, AIError } from '@econeura/agents/ai-router.client';
 
 // Agent Definition Schema
 export const AgentDefinitionSchema = z.object({
@@ -811,17 +812,27 @@ export class AIAgentsRegistryService {
       execution.status = 'running';
       this.activeExecutions.set(executionId, execution);
 
-      // Execute the agent using AI router
-      const aiRequest = {
-        org_id: request.context.orgId,
+      // Execute the agent using real AI router client
+      const aiRequest: AIRequest = {
+        orgId: request.context.orgId,
         prompt: this.buildAgentPrompt(agent, request.inputs),
-        tokens_est: this.estimateTokens(agent, request.inputs),
-        budget_cents: (request.context.budget || 1.0) * 100,
-        priority: request.context.priority || agent.priority,
-        providerHint: 'mistral' // Prefer local Mistral
+        maxTokens: this.estimateTokens(agent, request.inputs),
+        temperature: 0.7,
+        provider: 'mistral', // Prefer local Mistral
+        context: {
+          agentId: agent.id,
+          agentName: agent.name,
+          category: agent.category,
+          version: agent.version
+        },
+        metadata: {
+          executionId,
+          priority: request.context.priority || agent.priority,
+          budget: request.context.budget || 1.0
+        }
       };
 
-      const aiResponse = await this.aiRouter.routeRequest(aiRequest);
+      const aiResponse = await aiRouterClient.sendRequest(aiRequest);
       
       // Process the AI response into agent outputs
       const outputs = this.processAgentOutputs(agent, aiResponse, request.inputs);
@@ -832,7 +843,7 @@ export class AIAgentsRegistryService {
       execution.status = 'completed';
       execution.outputs = outputs;
       execution.completedAt = completedAt;
-      execution.costEur = aiResponse.costEur || 0;
+      execution.costEur = aiResponse.cost.actual || 0;
       execution.executionTimeMs = executionTimeMs;
 
       // Update health status

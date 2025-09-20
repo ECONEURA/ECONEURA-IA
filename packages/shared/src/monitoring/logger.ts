@@ -5,7 +5,15 @@
  */
 
 import { createLogger, format, transports, Logger } from 'winston';
-import { ApplicationInsights, TelemetryClient } from 'applicationinsights';
+
+interface LogInfo {
+  timestamp: string;
+  level: string;
+  message: string;
+  [key: string]: any;
+}
+import * as appInsights from 'applicationinsights';
+import { TelemetryClient } from 'applicationinsights';
 
 export interface LogContext {
   userId?: string;
@@ -17,6 +25,12 @@ export interface LogContext {
   ip?: string;
   userAgent?: string;
   metadata?: Record<string, any>;
+  method?: string;
+  statusCode?: number;
+  duration?: number;
+  category?: 'CRM' | 'ERP' | 'AI' | 'AUTH' | 'WEBHOOK' | 'SYSTEM';
+  error?: Error | Record<string, any>;
+  performanceMetric?: string;
 }
 
 export interface BusinessLogEvent {
@@ -28,8 +42,8 @@ export interface BusinessLogEvent {
   error?: Error;
 }
 
-class EconeuraLogger {
-  private logger: Logger;
+export class EconeuraLogger {
+  private logger!: Logger;
   private telemetryClient?: TelemetryClient;
   private environment: string;
 
@@ -44,7 +58,8 @@ class EconeuraLogger {
       format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
       format.errors({ stack: true }),
       format.json(),
-      format.printf(({ timestamp, level, message, ...meta }) => {
+      format.printf((info: any) => {
+        const { timestamp, level, message, ...meta } = info;
         return JSON.stringify({
           '@timestamp': timestamp,
           level: level.toUpperCase(),
@@ -107,18 +122,18 @@ class EconeuraLogger {
     const connectionString = process.env.APPLICATIONINSIGHTS_CONNECTION_STRING;
     
     if (connectionString) {
-      ApplicationInsights.setup(connectionString)
-        .setAutoDependencyCorrelation(true)
-        .setAutoCollectRequests(true)
-        .setAutoCollectPerformance(true, true)
-        .setAutoCollectExceptions(true)
-        .setAutoCollectDependencies(true)
+            appInsights.setup(connectionString)
         .setAutoCollectConsole(true)
-        .setUseDiskRetryCaching(true)
-        .setSendLiveMetrics(true)
+        .setAutoCollectDependencies(true)
+        .setAutoCollectExceptions(true)
+        .setAutoCollectHeartbeat(true)
+        .setAutoCollectPerformance(true, true)
+        .setAutoCollectRequests(true)
+        .setAutoDependencyCorrelation(true)
+        .setDistributedTracingMode(1)
         .start();
 
-      this.telemetryClient = ApplicationInsights.defaultClient;
+      this.telemetryClient = appInsights.defaultClient;
       
       // Add custom properties
       this.telemetryClient.addTelemetryProcessor((envelope) => {
@@ -144,7 +159,7 @@ class EconeuraLogger {
     this.logger.info(message, this.enrichContext(context));
     this.telemetryClient?.trackTrace({
       message,
-      severity: 1,
+      severity: 'INFO',
       properties: context,
     });
   }
@@ -153,7 +168,7 @@ class EconeuraLogger {
     this.logger.warn(message, this.enrichContext(context, error));
     this.telemetryClient?.trackTrace({
       message,
-      severity: 2,
+      severity: 'WARN',
       properties: context,
     });
   }
@@ -170,7 +185,7 @@ class EconeuraLogger {
       } else {
         this.telemetryClient.trackTrace({
           message,
-          severity: 3,
+          severity: 'ERROR',
           properties: context,
         });
       }
@@ -316,7 +331,7 @@ class EconeuraLogger {
       name: error.name,
       message: error.message,
       stack: error.stack,
-      ...(error.cause && { cause: error.cause }),
+      ...(error.cause ? { cause: error.cause } : {}),
     };
   }
 
@@ -336,10 +351,15 @@ class EconeuraLogger {
 
       transports.forEach((transport) => {
         if (transport.close) {
-          transport.close(() => {
+          try {
+            transport.close();
             pending--;
             if (pending === 0) resolve();
-          });
+          } catch (error) {
+            // Handle any errors during transport closure
+            pending--;
+            if (pending === 0) resolve();
+          }
         } else {
           pending--;
           if (pending === 0) resolve();

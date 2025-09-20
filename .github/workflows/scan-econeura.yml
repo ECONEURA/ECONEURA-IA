@@ -1,0 +1,262 @@
+name: ECONEURA Security Scan & CI Gating
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      force_scan:
+        description: 'Force full security scan'
+        required: false
+        default: 'false'
+
+env:
+  TRACE_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+  WORKSPACE: ECONEURA
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      high-risk-count: ${{ steps.classification.outputs.high_risk_count }}
+      scan-status: ${{ steps.gate-decision.outputs.status }}
+      approval-required: ${{ steps.gate-decision.outputs.approval_required }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # Full git history for age analysis
+
+      - name: Setup dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq curl git
+
+      - name: Setup ECONEURA workspace
+        run: |
+          mkdir -p ${{ env.WORKSPACE }}/{scripts,audit,config,playbooks,tests}
+          cp -r ECONEURA/* ${{ env.WORKSPACE }}/ 2>/dev/null || true
+
+      - name: Environment validation
+        id: env-check
+        run: |
+          if [ -x "${{ env.WORKSPACE }}/scripts/validate_env.sh" ]; then
+            ${{ env.WORKSPACE }}/scripts/validate_env.sh
+          else
+            echo "Environment validation script not found, skipping..."
+          fi
+
+      - name: Install TruffleHog
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Install Gitleaks
+        run: |
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64.tar.gz | tar -xz
+          sudo mv gitleaks /usr/local/bin/
+
+      - name: Run multi-tool security scan
+        id: scan
+        run: |
+          echo "🔍 Running comprehensive security scan..."
+
+          # TruffleHog scan
+          trufflehog filesystem --path ./ --json > ${{ env.WORKSPACE }}/audit/trufflehog_${{ env.TRACE_ID }}.json || true
+
+          # Gitleaks scan
+          gitleaks detect --source . --report-format json --report-path ${{ env.WORKSPACE }}/audit/gitleaks_${{ env.TRACE_ID }}.json || true
+
+          # Check if we have findings
+          TRUFFLEHOG_COUNT=$(jq '. | length' ${{ env.WORKSPACE }}/audit/trufflehog_${{ env.TRACE_ID }}.json 2>/dev/null || echo "0")
+          GITLEAKS_COUNT=$(jq '. | length' ${{ env.WORKSPACE }}/audit/gitleaks_${{ env.TRACE_ID }}.json 2>/dev/null || echo "0")
+
+          echo "trufflehog_findings=$TRUFFLEHOG_COUNT" >> $GITHUB_OUTPUT
+          echo "gitleaks_findings=$GITLEAKS_COUNT" >> $GITHUB_OUTPUT
+          echo "📊 Scan complete: TruffleHog=$TRUFFLEHOG_COUNT, Gitleaks=$GITLEAKS_COUNT"
+
+      - name: Cross-validation
+        id: cross-validation
+        if: steps.scan.outputs.trufflehog_findings > 0 || steps.scan.outputs.gitleaks_findings > 0
+        run: |
+          echo "🔗 Running cross-tool validation..."
+
+          if [ -x "${{ env.WORKSPACE }}/scripts/compare-tools.sh" ]; then
+            ${{ env.WORKSPACE }}/scripts/compare-tools.sh \
+              ${{ env.WORKSPACE }}/audit/trufflehog_${{ env.TRACE_ID }}.json \
+              ${{ env.WORKSPACE }}/audit/gitleaks_${{ env.TRACE_ID }}.json \
+              ${{ env.TRACE_ID }}
+          else
+            echo "Cross-validation script not available, creating basic comparison..."
+            # Basic comparison if advanced script not available
+            jq -n \
+              --arg trace "${{ env.TRACE_ID }}" \
+              '{trace_id: $trace, cross_validation: "basic", status: "completed"}' \
+              > ${{ env.WORKSPACE }}/audit/cross_validation_${{ env.TRACE_ID }}.json
+          fi
+
+      - name: Risk classification
+        id: classification
+        if: steps.scan.outputs.trufflehog_findings > 0 || steps.scan.outputs.gitleaks_findings > 0
+        run: |
+          echo "📊 Running risk classification..."
+
+          if [ -x "${{ env.WORKSPACE }}/scripts/classify-risks.sh" ]; then
+            # Use cross-validation results if available, otherwise use individual tool results
+            if [ -f "${{ env.WORKSPACE }}/audit/cross_validation_${{ env.TRACE_ID }}.json" ]; then
+              CLASSIFICATION_INPUT="${{ env.WORKSPACE }}/audit/cross_validation_${{ env.TRACE_ID }}.json"
+            else
+              # Combine tool results for classification
+              jq -n \
+                --argjson trufflehog "$(cat ${{ env.WORKSPACE }}/audit/trufflehog_${{ env.TRACE_ID }}.json 2>/dev/null || echo '[]')" \
+                --argjson gitleaks "$(cat ${{ env.WORKSPACE }}/audit/gitleaks_${{ env.TRACE_ID }}.json 2>/dev/null || echo '[]')" \
+                '($trufflehog + $gitleaks)' \
+                > ${{ env.WORKSPACE }}/audit/combined_findings_${{ env.TRACE_ID }}.json
+              CLASSIFICATION_INPUT="${{ env.WORKSPACE }}/audit/combined_findings_${{ env.TRACE_ID }}.json"
+            fi
+
+            ${{ env.WORKSPACE }}/scripts/classify-risks.sh "$CLASSIFICATION_INPUT" ${{ env.TRACE_ID }}
+          else
+            echo "Classification script not available, creating basic classification..."
+            jq -n \
+              --arg trace "${{ env.TRACE_ID }}" \
+              '{trace_id: $trace, classification: "basic", high_risk_count: 0}' \
+              > ${{ env.WORKSPACE }}/audit/classification_${{ env.TRACE_ID }}.json
+          fi
+
+          # Extract high risk count for CI gating
+          HIGH_RISK_COUNT=$(jq '.summary.risk_breakdown.high // 0' ${{ env.WORKSPACE }}/audit/classification_${{ env.TRACE_ID }}.json 2>/dev/null || echo "0")
+          echo "high_risk_count=$HIGH_RISK_COUNT" >> $GITHUB_OUTPUT
+
+      - name: CI Gate Decision
+        id: gate-decision
+        run: |
+          HIGH_RISK_COUNT=${{ steps.classification.outputs.high_risk_count }}
+          APPROVAL_REQUIRED=false
+          SCAN_STATUS="success"
+
+          if [ "$HIGH_RISK_COUNT" -gt 0 ]; then
+            echo "⚠️  High-risk security findings detected: $HIGH_RISK_COUNT"
+            APPROVAL_REQUIRED=true
+            SCAN_STATUS="needs_approval"
+
+            # Check if this is a PR and if approval workflow exists
+            if [ "${{ github.event_name }}" = "pull_request" ]; then
+              echo "🔍 Checking for security approval in PR..."
+
+              # Look for approval comments or labels
+              APPROVAL_FOUND=$(curl -s \
+                -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                "${{ github.event.pull_request.comments_url }}" | \
+                jq '[.[] | select(.body | contains("SECURITY-APPROVED") or contains("security approved"))] | length')
+
+              if [ "$APPROVAL_FOUND" -gt 0 ]; then
+                echo "✅ Security approval found in PR comments"
+                APPROVAL_REQUIRED=false
+                SCAN_STATUS="approved"
+              fi
+            fi
+          else
+            echo "✅ No high-risk security findings detected"
+          fi
+
+          echo "scan_status=$SCAN_STATUS" >> $GITHUB_OUTPUT
+          echo "approval_required=$APPROVAL_REQUIRED" >> $GITHUB_OUTPUT
+
+      - name: Post PR Comment
+        if: github.event_name == 'pull_request' && steps.gate-decision.outputs.approval_required == 'true'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const highRiskCount = ${{ steps.classification.outputs.high_risk_count }};
+            const traceId = '${{ env.TRACE_ID }}';
+
+            const comment = `## 🚨 Security Scan Results
+
+            **Status:** ⚠️ Requires Security Review
+            **High-Risk Findings:** ${highRiskCount}
+            **Trace ID:** \`${traceId}\`
+
+            ### Next Steps:
+            1. **Review findings** in the security scan artifacts
+            2. **Approve or mitigate** high-risk security issues
+            3. **Add comment** with \`SECURITY-APPROVED\` to bypass this check
+            4. **Contact** security team if needed
+
+            ### Mitigation Options:
+            - Rotate exposed secrets
+            - Move sensitive data to environment variables
+            - Use secret management services
+            - Add files to .gitleaksignore if false positives
+
+            ---
+            *This check will fail until security approval is granted.*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Upload security artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: econeura-security-scan-${{ env.TRACE_ID }}
+          path: |
+            ${{ env.WORKSPACE }}/audit/*.json
+            ${{ env.WORKSPACE }}/metrics/*.txt
+          retention-days: 30
+
+      - name: Generate metrics
+        run: |
+          # Use the metrics library to record scan results
+          source ${{ env.WORKSPACE }}/scripts/metrics_lib.sh
+
+          # Record scan metrics
+          record_scan_metrics "trufflehog" ${{ steps.scan.outputs.trufflehog_findings }} ${{ steps.classification.outputs.high_risk_count }} 0 0
+          record_scan_metrics "gitleaks" ${{ steps.scan.outputs.gitleaks_findings }} ${{ steps.classification.outputs.high_risk_count }} 0 0
+
+          # Record scan duration
+          observe_histogram "econeura_scan_duration_seconds" $SECONDS
+
+          # Set system health
+          set_gauge "econeura_up" 1
+
+          # Copy metrics to artifacts
+          mkdir -p ${{ env.WORKSPACE }}/metrics
+          cp ${{ env.WORKSPACE }}/scripts/../metrics/econeura_metrics.txt ${{ env.WORKSPACE }}/metrics/ 2>/dev/null || echo "No metrics file found"
+
+  gate-check:
+    runs-on: ubuntu-latest
+    needs: security-scan
+    if: always() && needs.security-scan.result == 'success'
+
+    steps:
+      - name: Security Gate Check
+        run: |
+          SCAN_STATUS="${{ needs.security-scan.outputs.scan-status }}"
+          HIGH_RISK_COUNT="${{ needs.security-scan.outputs.high-risk-count }}"
+
+          echo "🔍 Security Gate Check:"
+          echo "  Status: $SCAN_STATUS"
+          echo "  High-risk findings: $HIGH_RISK_COUNT"
+
+          if [ "$SCAN_STATUS" = "needs_approval" ]; then
+            echo "❌ CI blocked: Security approval required for $HIGH_RISK_COUNT high-risk findings"
+            echo ""
+            echo "To approve:"
+            echo "1. Review the security scan artifacts"
+            echo "2. Mitigate or document the findings"
+            echo "3. Add 'SECURITY-APPROVED' comment to PR"
+            echo "4. Or contact security team for approval"
+            exit 1
+          elif [ "$SCAN_STATUS" = "approved" ]; then
+            echo "✅ CI approved: Security requirements met"
+          else
+            echo "✅ CI passed: No security issues detected"
+          fi

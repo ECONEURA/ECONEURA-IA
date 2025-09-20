@@ -13,7 +13,7 @@ import {
   CacheInvalidationRequest,
   CacheCompressionRequest,
   CacheStats
-} from './warmup-types';
+} from './warmup-types.js';
 
 export class SmartCacheService {
   private caches: Map<string, CacheConfig> = new Map();

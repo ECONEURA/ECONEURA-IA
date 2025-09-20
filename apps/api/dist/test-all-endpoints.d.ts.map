@@ -1,0 +1,1 @@
+{"version":3,"file":"test-all-endpoints.d.ts","sourceRoot":"","sources":["../src/test-all-endpoints.ts"],"names":[],"mappings":";AA4BA,cAAM,SAAS;IACb,OAAO,CAAC,OAAO,CAAoB;IACnC,OAAO,CAAC,SAAS,CAAc;IAEzB,WAAW,IAAI,OAAO,CAAC,IAAI,CAAC;YAmFpB,YAAY;YASZ,YAAY;IA+D1B,OAAO,CAAC,YAAY;CAwCrB;AAQD,OAAO,EAAE,SAAS,EAAE,CAAC"}

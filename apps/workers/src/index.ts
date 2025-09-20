@@ -10,7 +10,7 @@ import { EmailProcessor } from './processors/email-processor.js';
 import { JobQueue } from './queues/job-queue.js';
 import { CronService } from './services/cron-service.js';
 import { logger, logApiRequest } from './utils/logger.js';
-import { prometheusMetrics, getMetricsHandler, recordHttpRequest } from './utils/metrics.js';
+import { prometheusMetrics, getMetricsHandler, recordHttpRequest, register } from './utils/metrics.js';
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -25,7 +25,6 @@ const redis = new Redis({
 });
 
 // Use centralized metrics from utils
-const { register } = prometheusMetrics;
 
 // Initialize services
 const graphService = new GraphService();
@@ -72,9 +71,35 @@ app.get('/health', async (req, res) => {
       status: 'healthy',
       service: 'workers',
       version: '1.0.0',
+      timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      redis: redisStatus,
-      jobQueue: jobStats,
+      services: {
+        redis: {
+          status: redisStatus === 'connected' ? 'healthy' : 'unhealthy',
+          responseTime: 0,
+          lastCheck: new Date().toISOString(),
+        },
+        jobQueue: {
+          status: 'healthy',
+          responseTime: 0,
+          lastCheck: new Date().toISOString(),
+        }
+      },
+      metrics: {
+        memory: {
+          used: process.memoryUsage().heapUsed,
+          total: process.memoryUsage().heapTotal,
+          percentage: Math.round((process.memoryUsage().heapUsed / process.memoryUsage().heapTotal) * 100),
+        },
+        cpu: {
+          usage: process.cpuUsage().user / 1000000,
+        },
+        requests: {
+          total: 0,
+          errors: 0,
+          errorRate: 0,
+        },
+      },
       features: ['outlook-integration', 'graph-subscriptions', 'delta-queries', 'job-processing', 'cron-jobs', 'email-processing', 'metrics']
     }));
   } catch (error) {
@@ -116,7 +141,7 @@ app.post('/listen', async (req, res) => {
 
   } catch (error) {
     logger.error('Graph webhook processing error', { error: error instanceof Error ? error.message : 'Unknown error' });
-    prometheusMetrics.errors.inc({ type: 'webhook', source: 'graph' });
+    prometheusMetrics.errorsTotal.inc({ type: 'webhook', component: 'graph', severity: 'medium' });
     res.status(500).json(createApiResponse(false, null, 'Webhook processing error'));
   }
 });
@@ -183,7 +208,7 @@ app.get('/jobs/:jobId', async (req, res) => {
     const { jobId } = req.params;
     const status = await jobQueue.getJobStatus(jobId);
     
-    if (status.status === 'not_found') {
+    if (!status || status.status === 'failed') {
       return res.status(404).json(createApiResponse(false, null, 'Job not found'));
     }
     
@@ -289,7 +314,7 @@ app.post('/delta/:mailbox', async (req, res) => {
 
   } catch (error) {
     logger.error('Delta query failed', { error: error instanceof Error ? error.message : 'Unknown error' });
-    prometheusMetrics.errors.inc({ type: 'delta_query', source: 'graph' });
+    prometheusMetrics.errorsTotal.inc({ type: 'delta_query', component: 'graph', severity: 'medium' });
     res.status(500).json(createApiResponse(false, null, 'Delta query failed'));
   }
 });
@@ -298,8 +323,9 @@ app.post('/delta/:mailbox', async (req, res) => {
 app.get('/metrics', async (req, res) => {
   try {
     const metricsData = await getMetricsHandler();
-    res.set('Content-Type', metricsData.contentType);
-    res.end(metricsData.metrics);
+    res.set('Content-Type', register.contentType);
+    const metrics = await register.metrics();
+    res.end(metrics);
   } catch (error) {
     logger.error('Error getting metrics', { error: error instanceof Error ? error.message : 'Unknown error' });
     res.status(500).end('Error generating metrics');
@@ -345,7 +371,7 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
     url: req.url,
     method: req.method
   });
-  prometheusMetrics.errors.inc({ type: 'api_error', source: 'express' });
+  prometheusMetrics.errorsTotal.inc({ type: 'api_error', component: 'express', severity: 'high' });
   res.status(500).json(createApiResponse(false, null, 'Internal worker service error'));
 });
 
