@@ -1,0 +1,93 @@
+# Reusable workflow for setting up Node.js, PNPM, and dependencies
+# This workflow properly handles errors and provides reliable setup
+
+name: Reusable Setup
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: 'Node.js version to use'
+        required: false
+        default: '20'
+        type: string
+      pnpm-version:
+        description: 'PNPM version to use'
+        required: false
+        default: '8'
+        type: string
+      install-deps:
+        description: 'Whether to install dependencies'
+        required: false
+        default: true
+        type: boolean
+      cache-key:
+        description: 'Additional cache key suffix'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v5
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v5
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'npm'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ inputs.pnpm-version }}
+
+    - name: Get pnpm store directory
+      id: pnpm-cache
+      shell: bash
+      run: |
+        echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+    - name: Setup pnpm cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ inputs.cache-key }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-store-
+
+    - name: Install dependencies
+      if: inputs.install-deps == true
+      run: |
+        pnpm install --frozen-lockfile
+
+    - name: Verify setup
+      run: |
+        echo "=== Setup Verification ==="
+        echo "Node version: $(node --version)"
+        echo "PNPM version: $(pnpm --version)"
+        echo "Dependencies installed: $([ -d node_modules ] && echo 'YES' || echo 'NO')"
+        echo "Setup completed successfully"
+
+        # Verify critical components
+        if ! command -v node >/dev/null 2>&1; then
+          echo "::error::Node.js not found"
+          exit 1
+        fi
+
+        if ! command -v pnpm >/dev/null 2>&1; then
+          echo "::error::PNPM not found"
+          exit 1
+        fi
+
+        if [ ! -d "node_modules" ] && [ "${{ inputs.install-deps }}" == "true" ]; then
+          echo "::error::Dependencies not installed"
+          exit 1
+        fi
+
+        echo "::notice::Reusable setup completed successfully"

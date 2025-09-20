@@ -1,0 +1,18 @@
+{
+  "timestamp": "2025-09-20T14:25:28+00:00",
+  "type": "security_manifest",
+  "critical_files_permissions": {
+  "scripts/validate_env.sh": "777",
+  "dry-run-executor.sh": "755"
+},
+  "recent_audit_files": 82,
+  "recent_log_files": 3,
+  "security_features": [
+    "dry_run_executor",
+    "input_validation",
+    "safety_checks",
+    "audit_trail",
+    "integrity_monitoring",
+    "automated_scanning"
+  ]
+}

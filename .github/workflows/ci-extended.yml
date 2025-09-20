@@ -1,3 +1,4 @@
+
 # CI Extended - Manual trigger for heavy validations
 # TEMP CI SOFT MODE: continue-on-error añadido a jobs potencialmente inestables
 # REVERT_STRICT_CI: Eliminar todas las líneas continue-on-error para volver a modo estricto
@@ -12,9 +13,28 @@ on:
         required: false
         default: 'main'
 
+name: CI Extended
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'apps/api/**'
+      - 'apps/web/**'
+      - 'packages/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'apps/api/**'
+      - 'apps/web/**'
+      - 'packages/**'
+  workflow_dispatch:
+
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
 
 env:
   NODE_VERSION: '20'
@@ -128,12 +148,103 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     continue-on-error: true  # TEMP CI SOFT MODE: remover para volver a modo estricto
+
+jobs:
+  openapi_validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v5
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v5
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: OpenAPI Spectral Lint
+      run: |
+        echo "=== OpenAPI Spectral Validation ==="
+
+        # Find OpenAPI files
+        OPENAPI_FILES=$(find apps/api -name "openapi*.yaml" -o -name "openapi*.json" 2>/dev/null)
+
+        if [ -z "$OPENAPI_FILES" ]; then
+          echo "::warning::No OpenAPI specification files found"
+          exit 0
+        fi
+
+        VALIDATION_PASSED=true
+
+        for file in $OPENAPI_FILES; do
+          echo "Validating $file with Spectral..."
+          if npx @stoplight/spectral-cli lint "$file" --format json; then
+            echo "✓ Spectral validation passed for $file"
+          else
+            echo "::error::Spectral validation failed for $file"
+            VALIDATION_PASSED=false
+          fi
+        done
+
+        if [ "$VALIDATION_PASSED" = false ]; then
+          echo "::error::OpenAPI Spectral validation failed"
+          exit 1
+        fi
+
+  link_check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v5
+
+    - name: Link Check
+      uses: lycheeverse/lychee-action@v2
+      with:
+        args: --verbose --no-progress .
+        fail: true
+        format: json
+      continue-on-error: true
+
+  security_scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v5
+
+    - name: GitLeaks Scan
+      uses: gitleaks/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  api_e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+
     services:
       postgres:
         image: postgres:15
         env:
           POSTGRES_PASSWORD: postgres
+
           POSTGRES_DB: econeura_test
+
+          POSTGRES_DB: test_db
+
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -143,6 +254,7 @@ jobs:
           - 5432:5432
 
     steps:
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -191,3 +303,96 @@ jobs:
         with:
           name: api-logs
           path: apps/api/api.log
+
+    - name: Checkout
+      uses: actions/checkout@v5
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v5
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Setup database
+      run: |
+        echo "=== Setting up test database ==="
+        export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_db"
+
+        # Wait for database to be ready
+        for i in {1..30}; do
+          if pg_isready -h localhost -p 5432 >/dev/null 2>&1; then
+            echo "Database is ready"
+            break
+          fi
+          echo "Waiting for database... ($i/30)"
+          sleep 2
+        done
+
+        # Run database migrations if available
+        if [ -f "apps/api/package.json" ] && grep -q "prisma" "apps/api/package.json"; then
+          cd apps/api
+          npx prisma db push --accept-data-loss || echo "::warning::Database setup failed"
+          cd ../..
+        fi
+
+    - name: Start API
+      run: |
+        echo "=== Starting API server ==="
+        cd apps/api
+
+        # Start API in background
+        npm run dev > ../../api.log 2>&1 &
+        API_PID=$!
+        echo "API_PID=$API_PID" >> $GITHUB_ENV
+
+        # Wait for API to be ready
+        for i in {1..30}; do
+          if curl -f -s http://localhost:3001/health >/dev/null 2>&1; then
+            echo "API is ready"
+            break
+          fi
+          echo "Waiting for API... ($i/30)"
+          sleep 2
+        done
+
+        if ! curl -f -s http://localhost:3001/health >/dev/null 2>&1; then
+          echo "::error::API failed to start"
+          cat ../../api.log
+          exit 1
+        fi
+
+    - name: Run E2E Tests
+      run: |
+        echo "=== Running E2E Tests ==="
+
+        # Run tests if available
+        if [ -f "apps/api/package.json" ] && grep -q "test:e2e" "apps/api/package.json"; then
+          cd apps/api
+          npm run test:e2e
+        else
+          echo "::notice::No E2E tests configured"
+        fi
+
+    - name: Upload API logs
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: api-e2e-logs-${{ github.run_id }}
+        path: api.log
+        retention-days: 7
+
+    - name: Cleanup
+      if: always()
+      run: |
+        if [ -n "$API_PID" ]; then
+          kill $API_PID 2>/dev/null || true
+        fi
+

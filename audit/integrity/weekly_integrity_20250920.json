@@ -1,0 +1,13 @@
+{
+  "timestamp": "2025-09-20T14:25:27+00:00",
+  "scan_type": "weekly_integrity_check",
+  "project_root": "/workspaces/ECONEURA-IA",
+  "results": {
+audit_check:
+  issues: ["No se encontraron ejecuciones de dry-run recientes",]
+backup_check:
+  issues: ["",]
+  },
+  "checksums_file": "/workspaces/ECONEURA-IA/audit/integrity/file_checksums.sha256",
+  "baseline_file": "/workspaces/ECONEURA-IA/audit/integrity/baseline_checksums.sha256"
+}

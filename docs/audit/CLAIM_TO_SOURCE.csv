@@ -1,8 +1,0 @@
-metric,file,json_pointer_or_note
-coverage_lines_pct,reports/coverage.json,["total"]["lines"]["pct"]
-eslint_error_count,reports/eslint.json,["errorCount"]
-jscpd_clone_count,reports/jscpd/jscpd-report.json,version-dependent field for duplicates count
-npm_audit_high,reports/audit.json,["vulnerabilities"]["high"]
-npm_audit_critical,reports/audit.json,["vulnerabilities"]["critical"]
-workflows_guarded,docs/audit/NO_DEPLOY_EVIDENCE.md,Manual count of guard presence
-commit_sha,env,${GITHUB_SHA}

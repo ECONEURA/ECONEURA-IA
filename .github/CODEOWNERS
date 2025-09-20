@@ -1,0 +1,37 @@
+# This file defines the code owners for this repository
+# When a pull request is opened, the users listed here will be automatically
+# requested for review
+
+# Global owners (review all changes)
+* @ECONEURA
+
+# Backend/API specific files
+apps/api/ @ECONEURA
+packages/shared/src/clients/ @ECONEURA
+packages/shared/src/schemas/ @ECONEURA
+
+# Frontend/Web specific files
+apps/web/ @ECONEURA
+packages/shared/src/validation/ @ECONEURA
+
+# CI/CD and DevOps
+.github/ @ECONEURA
+scripts/ci/ @ECONEURA
+scripts/vault/ @ECONEURA
+
+# Database and schemas
+apps/api/src/db/ @ECONEURA
+packages/shared/src/schemas/ @ECONEURA
+
+# Security and audit
+audit/ @ECONEURA
+scripts/vault/ @ECONEURA
+
+# Documentation
+docs/ @ECONEURA
+README.md @ECONEURA
+
+# Dependencies and configuration
+package.json @ECONEURA
+pnpm-lock.yaml @ECONEURA
+tsconfig*.json @ECONEURA

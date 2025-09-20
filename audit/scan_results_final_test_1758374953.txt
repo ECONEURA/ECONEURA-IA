@@ -1,0 +1,17 @@
+=== ECONEURA Security Scan Report ===
+Timestamp: 2025-09-20T13:29:13+00:00
+Trace ID: final_test_1758374953
+
+Found 447 potential password references
+Found 304 potential API key references
+Found 2609 potential token references
+Found 878 potential secret references
+Found 4865 potential key references
+
+=== SUMMARY ===
+Total potential security-sensitive references found: 9103
+
+Note: This is a basic scan. For comprehensive analysis,
+consider installing trufflehog and gitleaks tools.
+
+Scan completed successfully at 2025-09-20T13:29:14+00:00

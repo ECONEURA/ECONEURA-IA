@@ -1,0 +1,191 @@
+export class MatchingEngineService {
+    rules = [];
+    reconciliationResults = [];
+    constructor() {
+        this.initializeDefaultRules();
+    }
+    initializeDefaultRules() {
+        this.rules = [
+            {
+                id: 'exact_reference',
+                name: 'Exact Reference Match',
+                description: 'Match transactions with identical reference numbers',
+                priority: 100,
+                conditions: [
+                    {
+                        field: 'reference',
+                        operator: 'equals',
+                        value: '',
+                        weight: 1.0
+                    }
+                ],
+                actions: [
+                    {
+                        type: 'match',
+                        parameters: { threshold: 1.0 }
+                    }
+                ],
+                enabled: true,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            },
+            {
+                id: 'amount_date_fuzzy',
+                name: 'Amount and Date Fuzzy Match',
+                description: 'Match transactions with similar amount and date within tolerance',
+                priority: 80,
+                conditions: [
+                    {
+                        field: 'amount',
+                        operator: 'range',
+                        value: { tolerance: 0.01 },
+                        weight: 0.7
+                    },
+                    {
+                        field: 'date',
+                        operator: 'range',
+                        value: { tolerance: 1 },
+                        weight: 0.3
+                    }
+                ],
+                actions: [
+                    {
+                        type: 'match',
+                        parameters: { threshold: 0.8 }
+                    }
+                ],
+                enabled: true,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            }
+        ];
+    }
+    async matchTransactions(sepaTransactions, existingTransactions) {
+        const results = [];
+        for (const sepaTransaction of sepaTransactions) {
+            let bestMatch = null;
+            for (const existingTransaction of existingTransactions) {
+                const score = this.calculateMatchingScore(sepaTransaction, existingTransaction);
+                if (score > 0.7 && (!bestMatch || score > bestMatch.score)) {
+                    bestMatch = { transaction: existingTransaction, score };
+                }
+            }
+            if (bestMatch) {
+                const result = {
+                    id: `reconciliation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                    transactionId: sepaTransaction.id,
+                    matchedTransactionId: bestMatch.transaction.id,
+                    score: bestMatch.score,
+                    status: bestMatch.score >= 0.9 ? 'auto' : 'manual',
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                };
+                results.push(result);
+                this.reconciliationResults.push(result);
+                sepaTransaction.status = bestMatch.score >= 0.9 ? 'matched' : 'pending';
+                sepaTransaction.matchingScore = bestMatch.score;
+                sepaTransaction.matchedTransactionId = bestMatch.transaction.id;
+            }
+        }
+        return results;
+    }
+    calculateMatchingScore(sepaTransaction, existingTransaction) {
+        let totalScore = 0;
+        let totalWeight = 0;
+        for (const rule of this.rules) {
+            if (!rule.enabled)
+                continue;
+            for (const condition of rule.conditions) {
+                const conditionScore = this.evaluateCondition(sepaTransaction, existingTransaction, condition);
+                totalScore += conditionScore * condition.weight;
+                totalWeight += condition.weight;
+            }
+        }
+        return totalWeight > 0 ? totalScore / totalWeight : 0;
+    }
+    evaluateCondition(sepaTransaction, existingTransaction, condition) {
+        const sepaValue = this.getFieldValue(sepaTransaction, condition.field);
+        const existingValue = this.getFieldValue(existingTransaction, condition.field);
+        switch (condition.operator) {
+            case 'equals':
+                return sepaValue === existingValue ? 1.0 : 0.0;
+            case 'contains':
+                if (typeof sepaValue === 'string' && typeof existingValue === 'string') {
+                    return sepaValue.toLowerCase().includes(existingValue.toLowerCase()) ? 0.8 : 0.0;
+                }
+                return 0.0;
+            case 'regex':
+                if (typeof sepaValue === 'string' && typeof condition.value === 'string') {
+                    const regex = new RegExp(condition.value);
+                    return regex.test(sepaValue) ? 1.0 : 0.0;
+                }
+                return 0.0;
+            case 'range':
+                if (typeof sepaValue === 'number' && typeof existingValue === 'number') {
+                    const tolerance = condition.value.tolerance || 0.01;
+                    const diff = Math.abs(sepaValue - existingValue);
+                    return diff <= tolerance ? 1.0 : Math.max(0, 1 - (diff / tolerance));
+                }
+                return 0.0;
+            default:
+                return 0.0;
+        }
+    }
+    getFieldValue(transaction, field) {
+        const fieldMap = {
+            'reference': 'reference',
+            'amount': 'amount',
+            'date': 'date',
+            'description': 'description',
+            'counterparty.name': 'counterparty.name',
+            'counterparty.iban': 'counterparty.iban'
+        };
+        const mappedField = fieldMap[field] || field;
+        if (mappedField.includes('.')) {
+            const [parent, child] = mappedField.split('.');
+            return transaction[parent]?.[child];
+        }
+        return transaction[mappedField];
+    }
+    addRule(rule) {
+        this.rules.push(rule);
+        this.rules.sort((a, b) => b.priority - a.priority);
+    }
+    updateRule(ruleId, updates) {
+        const ruleIndex = this.rules.findIndex(rule => rule.id === ruleId);
+        if (ruleIndex === -1)
+            return false;
+        this.rules[ruleIndex] = { ...this.rules[ruleIndex], ...updates, updatedAt: new Date() };
+        return true;
+    }
+    deleteRule(ruleId) {
+        const ruleIndex = this.rules.findIndex(rule => rule.id === ruleId);
+        if (ruleIndex === -1)
+            return false;
+        this.rules.splice(ruleIndex, 1);
+        return true;
+    }
+    getRules() {
+        return this.rules;
+    }
+    getReconciliationResults() {
+        return this.reconciliationResults;
+    }
+    getMatchingStats() {
+        const total = this.reconciliationResults.length;
+        const autoMatched = this.reconciliationResults.filter(r => r.status === 'auto').length;
+        const manualMatched = this.reconciliationResults.filter(r => r.status === 'manual').length;
+        const averageScore = total > 0
+            ? this.reconciliationResults.reduce((sum, r) => sum + r.score, 0) / total
+            : 0;
+        return {
+            totalTransactions: total,
+            matchedTransactions: autoMatched + manualMatched,
+            autoMatched,
+            manualMatched,
+            pendingTransactions: total - autoMatched - manualMatched,
+            averageScore
+        };
+    }
+}
+//# sourceMappingURL=matching-engine.service.js.map

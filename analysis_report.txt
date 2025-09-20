@@ -1,0 +1,522 @@
+=== ANÁLISIS EXHAUSTIVO DE PROBLEMAS ===
+==================================================================================
+=== ANÁLISIS EXHAUSTIVO DEL PROYECTO ECONEURA-IA ===
+==================================================================================
+Fecha: Sat Sep 20 14:31:10 UTC 2025
+Directorio: /workspaces/ECONEURA-IA
+
+==================================================================================
+=== VERIFICACIÓN DE COMANDOS DEL SISTEMA ===
+==================================================================================
+✓ Node.js: node encontrado (/usr/bin/node)
+✓ NPM: npm encontrado (/usr/bin/npm)
+✗ PNPM: pnpm NO encontrado
+✓ Git: git encontrado (/usr/local/bin/git)
+✓ JQ: jq encontrado (/usr/bin/jq)
+✗ Docker: docker NO encontrado
+✓ cURL: curl encontrado (/usr/bin/curl)
+
+==================================================================================
+=== ARCHIVOS DE CONFIGURACIÓN PRINCIPALES ===
+==================================================================================
+✓ Package.json principal: package.json existe (2803 bytes)
+✓ Configuración de workspaces PNPM: pnpm-workspace.yaml existe (40 bytes)
+✓ Configuración TypeScript: tsconfig.json existe (1057 bytes)
+✓ Configuración base TypeScript: tsconfig.base.json existe (0 bytes)
+✓ Versión de Node.js: .nvmrc existe (0 bytes)
+✓ Archivo .gitignore: .gitignore existe (448 bytes)
+✓ Documentación principal: README.md existe (7296 bytes)
+
+==================================================================================
+=== VALIDACIÓN DE ARCHIVOS JSON ===
+==================================================================================
+✓ Package.json: JSON válido
+✓ TypeScript config: JSON válido
+✓ TypeScript base config: JSON válido
+✓ Size limit config: JSON válido
+✗ Spectral config (YAML): JSON inválido
+Verificando JSON en apps/ y packages/...
+
+==================================================================================
+=== VERIFICACIÓN DE SINTAXIS DE SCRIPTS ===
+==================================================================================
+==================================================================================
+=== ANÁLISIS EXHAUSTIVO DEL PROYECTO ECONEURA-IA ===
+==================================================================================
+Fecha: Sat Sep 20 14:31:46 UTC 2025
+Directorio: /workspaces/ECONEURA-IA
+
+==================================================================================
+=== VERIFICACIÓN DE COMANDOS DEL SISTEMA ===
+==================================================================================
+✓ Node.js: node encontrado (/usr/bin/node)
+✓ NPM: npm encontrado (/usr/bin/npm)
+✗ PNPM: pnpm NO encontrado
+✓ Git: git encontrado (/usr/local/bin/git)
+✓ JQ: jq encontrado (/usr/bin/jq)
+✗ Docker: docker NO encontrado
+✓ cURL: curl encontrado (/usr/bin/curl)
+
+==================================================================================
+=== ARCHIVOS DE CONFIGURACIÓN PRINCIPALES ===
+==================================================================================
+✓ Package.json principal: package.json existe (2803 bytes)
+✓ Configuración de workspaces PNPM: pnpm-workspace.yaml existe (40 bytes)
+✓ Configuración TypeScript: tsconfig.json existe (1057 bytes)
+✓ Configuración base TypeScript: tsconfig.base.json existe (0 bytes)
+✓ Versión de Node.js: .nvmrc existe (0 bytes)
+✓ Archivo .gitignore: .gitignore existe (448 bytes)
+✓ Documentación principal: README.md existe (7296 bytes)
+
+==================================================================================
+=== VALIDACIÓN DE ARCHIVOS JSON ===
+==================================================================================
+✓ Package.json: JSON válido
+✓ TypeScript config: JSON válido
+✓ TypeScript base config: JSON válido
+✓ Size limit config: JSON válido
+✗ Spectral config (YAML): JSON inválido
+Verificando JSON en apps/ y packages/...
+
+==================================================================================
+=== VERIFICACIÓN DE SINTAXIS DE SCRIPTS ===
+==================================================================================
+✗ Script con errores: /workspaces/ECONEURA-IA/ai-terminal-pro-backup.sh
+✗ Script con errores: /workspaces/ECONEURA-IA/ai-terminal-pro.sh
+✗ Script con errores: /workspaces/ECONEURA-IA/scan-secrets.sh
+✓ Todos los scripts principales verificados
+
+==================================================================================
+=== VERIFICACIÓN DE DEPENDENCIAS ===
+==================================================================================
+==================================================================================
+=== ANÁLISIS EXHAUSTIVO DEL PROYECTO ECONEURA-IA ===
+==================================================================================
+Fecha: Sat Sep 20 14:32:58 UTC 2025
+Directorio: /workspaces/ECONEURA-IA
+
+==================================================================================
+=== VERIFICACIÓN DE COMANDOS DEL SISTEMA ===
+==================================================================================
+✓ Node.js: node encontrado (/usr/bin/node)
+✓ NPM: npm encontrado (/usr/bin/npm)
+✗ PNPM: pnpm NO encontrado
+✓ Git: git encontrado (/usr/local/bin/git)
+✓ JQ: jq encontrado (/usr/bin/jq)
+✗ Docker: docker NO encontrado
+✓ cURL: curl encontrado (/usr/bin/curl)
+
+==================================================================================
+=== ARCHIVOS DE CONFIGURACIÓN PRINCIPALES ===
+==================================================================================
+✓ Package.json principal: package.json existe (2803 bytes)
+✓ Configuración de workspaces PNPM: pnpm-workspace.yaml existe (40 bytes)
+✓ Configuración TypeScript: tsconfig.json existe (1057 bytes)
+✓ Configuración base TypeScript: tsconfig.base.json existe (0 bytes)
+✓ Versión de Node.js: .nvmrc existe (0 bytes)
+✓ Archivo .gitignore: .gitignore existe (448 bytes)
+✓ Documentación principal: README.md existe (7296 bytes)
+
+==================================================================================
+=== VALIDACIÓN DE ARCHIVOS JSON ===
+==================================================================================
+✓ Package.json: JSON válido
+✓ TypeScript config: JSON válido
+✓ TypeScript base config: JSON válido
+✓ Size limit config: JSON válido
+✗ Spectral config (YAML): JSON inválido
+Verificando JSON en apps/ y packages/...
+
+==================================================================================
+=== VERIFICACIÓN DE SINTAXIS DE SCRIPTS ===
+==================================================================================
+✗ Script con errores: /workspaces/ECONEURA-IA/ai-terminal-pro-backup.sh
+✗ Script con errores: /workspaces/ECONEURA-IA/ai-terminal-pro.sh
+✗ Script con errores: /workspaces/ECONEURA-IA/scan-secrets.sh
+✓ Todos los scripts principales verificados
+
+==================================================================================
+=== VERIFICACIÓN DE DEPENDENCIAS ===
+==================================================================================
+Dependencias de producción: 9
+Dependencias de desarrollo: 40
+Dependencias instaladas: 4
+
+==================================================================================
+=== ESTRUCTURA DE DIRECTORIOS ===
+==================================================================================
+✓ Directorio apps existe (2818 archivos)
+✓ Directorio packages existe (174 archivos)
+✓ Directorio scripts existe (140 archivos)
+✓ Directorio audit existe (141 archivos)
+✓ Directorio logs existe (3 archivos)
+✓ Directorio backups existe (0 archivos)
+
+==================================================================================
+=== ARCHIVOS CRÍTICOS DE SEGURIDAD ===
+==================================================================================
+✓ Archivo de seguridad: scripts/validate_env.sh existe (1040 bytes)
+✗ Archivo de seguridad: scripts/ai.sh NO existe
+✓ Archivo de seguridad: dry-run-executor.sh existe (12326 bytes)
+✓ Archivo de seguridad: bootstrap-security.sh existe (11966 bytes)
+✓ Archivo de seguridad: scripts/safety-checks.sh existe (9675 bytes)
+✓ Archivo de seguridad: scripts/input-validation.sh existe (10334 bytes)
+
+==================================================================================
+=== VERIFICACIÓN DE PERMISOS ===
+==================================================================================
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/az-cli-in-docker.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/fix-lint-critical.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/eliminate-red-actions.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/fix-lock.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/infra-test.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/cleanup-github-actions.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/bootstrap-p0-ultra.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/deploy-azure.sh
+✓ Verificación de permisos completada
+
+==================================================================================
+=== ARCHIVOS DUPLICADOS POTENCIALES ===
+==================================================================================
+==================================================================================
+=== ANÁLISIS EXHAUSTIVO DEL PROYECTO ECONEURA-IA ===
+==================================================================================
+Fecha: Sat Sep 20 14:33:11 UTC 2025
+Directorio: /workspaces/ECONEURA-IA
+
+==================================================================================
+=== VERIFICACIÓN DE COMANDOS DEL SISTEMA ===
+==================================================================================
+✓ Node.js: node encontrado (/usr/bin/node)
+✓ NPM: npm encontrado (/usr/bin/npm)
+✗ PNPM: pnpm NO encontrado
+✓ Git: git encontrado (/usr/local/bin/git)
+✓ JQ: jq encontrado (/usr/bin/jq)
+✗ Docker: docker NO encontrado
+✓ cURL: curl encontrado (/usr/bin/curl)
+
+==================================================================================
+=== ARCHIVOS DE CONFIGURACIÓN PRINCIPALES ===
+==================================================================================
+✓ Package.json principal: package.json existe (2803 bytes)
+✓ Configuración de workspaces PNPM: pnpm-workspace.yaml existe (40 bytes)
+✓ Configuración TypeScript: tsconfig.json existe (1057 bytes)
+✓ Configuración base TypeScript: tsconfig.base.json existe (0 bytes)
+✓ Versión de Node.js: .nvmrc existe (0 bytes)
+✓ Archivo .gitignore: .gitignore existe (448 bytes)
+✓ Documentación principal: README.md existe (7296 bytes)
+
+==================================================================================
+=== VALIDACIÓN DE ARCHIVOS JSON ===
+==================================================================================
+✓ Package.json: JSON válido
+✓ TypeScript config: JSON válido
+✓ TypeScript base config: JSON válido
+✓ Size limit config: JSON válido
+✗ Spectral config (YAML): JSON inválido
+Verificando JSON en apps/ y packages/...
+
+==================================================================================
+=== VERIFICACIÓN DE SINTAXIS DE SCRIPTS ===
+==================================================================================
+✗ Script con errores: /workspaces/ECONEURA-IA/ai-terminal-pro-backup.sh
+✗ Script con errores: /workspaces/ECONEURA-IA/ai-terminal-pro.sh
+✗ Script con errores: /workspaces/ECONEURA-IA/scan-secrets.sh
+✓ Todos los scripts principales verificados
+
+==================================================================================
+=== VERIFICACIÓN DE DEPENDENCIAS ===
+==================================================================================
+Dependencias de producción: 9
+Dependencias de desarrollo: 40
+Dependencias instaladas: 4
+
+==================================================================================
+=== ESTRUCTURA DE DIRECTORIOS ===
+==================================================================================
+✓ Directorio apps existe (2818 archivos)
+✓ Directorio packages existe (174 archivos)
+✓ Directorio scripts existe (140 archivos)
+✓ Directorio audit existe (141 archivos)
+✓ Directorio logs existe (3 archivos)
+✓ Directorio backups existe (0 archivos)
+
+==================================================================================
+=== ARCHIVOS CRÍTICOS DE SEGURIDAD ===
+==================================================================================
+✓ Archivo de seguridad: scripts/validate_env.sh existe (1040 bytes)
+✗ Archivo de seguridad: scripts/ai.sh NO existe
+✓ Archivo de seguridad: dry-run-executor.sh existe (12326 bytes)
+✓ Archivo de seguridad: bootstrap-security.sh existe (11966 bytes)
+✓ Archivo de seguridad: scripts/safety-checks.sh existe (9675 bytes)
+✓ Archivo de seguridad: scripts/input-validation.sh existe (10334 bytes)
+
+==================================================================================
+=== VERIFICACIÓN DE PERMISOS ===
+==================================================================================
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/az-cli-in-docker.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/fix-lint-critical.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/eliminate-red-actions.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/fix-lock.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/infra-test.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/cleanup-github-actions.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/bootstrap-p0-ultra.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/deploy-azure.sh
+✓ Verificación de permisos completada
+
+==================================================================================
+=== ARCHIVOS DUPLICADOS POTENCIALES ===
+==================================================================================
+⚠ Archivos similares encontrados: bootstrap-security.sh y bootstrap_security.sh
+⚠ Archivos similares encontrados: ai.sh y ai-run.sh
+
+==================================================================================
+=== ARCHIVOS VACÍOS PROBLEMÁTICOS ===
+==================================================================================
+⚠ Archivo JSON vacío: /workspaces/ECONEURA-IA/.devcontainer/devcontainer.json
+⚠ Archivo JSON vacío: /workspaces/ECONEURA-IA/tsconfig.base.json
+⚠ Archivo JSON vacío: /workspaces/ECONEURA-IA/apps/web/tsconfig.json
+
+==================================================================================
+=== RESUMEN DEL ANÁLISIS ===
+==================================================================================
+Análisis completado: Sat Sep 20 14:33:12 UTC 2025
+Reporte guardado en: /workspaces/ECONEURA-IA/analysis_report.txt
+
+PRÓXIMOS PASOS RECOMENDADOS:
+1. Instalar pnpm para manejar workspaces correctamente
+2. Corregir archivos JSON vacíos o inválidos
+3. Verificar y corregir permisos de archivos
+4. Limpiar archivos duplicados
+5. Configurar .nvmrc con la versión correcta de Node.js
+6. Ejecutar instalación completa de dependencias
+
+==================================================================================
+==================================================================================
+=== ANÁLISIS EXHAUSTIVO DEL PROYECTO ECONEURA-IA ===
+==================================================================================
+Fecha: Sat Sep 20 14:37:48 UTC 2025
+Directorio: /workspaces/ECONEURA-IA
+
+==================================================================================
+=== VERIFICACIÓN DE COMANDOS DEL SISTEMA ===
+==================================================================================
+✓ Node.js: node encontrado (/usr/bin/node)
+✓ NPM: npm encontrado (/usr/bin/npm)
+✓ PNPM: pnpm encontrado (/workspaces/ECONEURA-IA/node_modules/.bin/pnpm)
+✓ Git: git encontrado (/usr/local/bin/git)
+✓ JQ: jq encontrado (/usr/bin/jq)
+✗ Docker: docker NO encontrado
+✓ cURL: curl encontrado (/usr/bin/curl)
+
+==================================================================================
+=== ARCHIVOS DE CONFIGURACIÓN PRINCIPALES ===
+==================================================================================
+✓ Package.json principal: package.json existe (2803 bytes)
+✓ Configuración de workspaces PNPM: pnpm-workspace.yaml existe (40 bytes)
+✓ Configuración TypeScript: tsconfig.json existe (1057 bytes)
+✓ Configuración base TypeScript: tsconfig.base.json existe (0 bytes)
+✓ Versión de Node.js: .nvmrc existe (0 bytes)
+✓ Archivo .gitignore: .gitignore existe (448 bytes)
+✓ Documentación principal: README.md existe (7296 bytes)
+
+==================================================================================
+=== VALIDACIÓN DE ARCHIVOS JSON ===
+==================================================================================
+✓ Package.json: JSON válido
+✓ TypeScript config: JSON válido
+✓ TypeScript base config: JSON válido
+✓ Size limit config: JSON válido
+✗ Spectral config (YAML): JSON inválido
+Verificando JSON en apps/ y packages/...
+
+==================================================================================
+=== VERIFICACIÓN DE SINTAXIS DE SCRIPTS ===
+==================================================================================
+✗ Script con errores: /workspaces/ECONEURA-IA/ai-terminal-pro-backup.sh
+✗ Script con errores: /workspaces/ECONEURA-IA/ai-terminal-pro.sh
+✗ Script con errores: /workspaces/ECONEURA-IA/scan-secrets.sh
+✓ Todos los scripts principales verificados
+
+==================================================================================
+=== VERIFICACIÓN DE DEPENDENCIAS ===
+==================================================================================
+Dependencias de producción: 9
+Dependencias de desarrollo: 40
+Dependencias instaladas: 4
+
+==================================================================================
+=== ESTRUCTURA DE DIRECTORIOS ===
+==================================================================================
+✓ Directorio apps existe (2818 archivos)
+✓ Directorio packages existe (174 archivos)
+✓ Directorio scripts existe (140 archivos)
+✓ Directorio audit existe (141 archivos)
+✓ Directorio logs existe (3 archivos)
+✓ Directorio backups existe (0 archivos)
+
+==================================================================================
+=== ARCHIVOS CRÍTICOS DE SEGURIDAD ===
+==================================================================================
+✓ Archivo de seguridad: scripts/validate_env.sh existe (1040 bytes)
+✗ Archivo de seguridad: scripts/ai.sh NO existe
+✓ Archivo de seguridad: dry-run-executor.sh existe (12326 bytes)
+✓ Archivo de seguridad: bootstrap-security.sh existe (11966 bytes)
+✓ Archivo de seguridad: scripts/safety-checks.sh existe (9675 bytes)
+✓ Archivo de seguridad: scripts/input-validation.sh existe (10334 bytes)
+
+==================================================================================
+=== VERIFICACIÓN DE PERMISOS ===
+==================================================================================
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/az-cli-in-docker.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/fix-lint-critical.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/eliminate-red-actions.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/fix-lock.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/infra-test.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/cleanup-github-actions.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/bootstrap-p0-ultra.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/deploy-azure.sh
+✓ Verificación de permisos completada
+
+==================================================================================
+=== ARCHIVOS DUPLICADOS POTENCIALES ===
+==================================================================================
+⚠ Archivos similares encontrados: bootstrap-security.sh y bootstrap_security.sh
+⚠ Archivos similares encontrados: ai.sh y ai-run.sh
+
+==================================================================================
+=== ARCHIVOS VACÍOS PROBLEMÁTICOS ===
+==================================================================================
+⚠ Archivo JSON vacío: /workspaces/ECONEURA-IA/.devcontainer/devcontainer.json
+⚠ Archivo JSON vacío: /workspaces/ECONEURA-IA/tsconfig.base.json
+⚠ Archivo JSON vacío: /workspaces/ECONEURA-IA/apps/web/tsconfig.json
+
+==================================================================================
+=== RESUMEN DEL ANÁLISIS ===
+==================================================================================
+Análisis completado: Sat Sep 20 14:37:49 UTC 2025
+Reporte guardado en: /workspaces/ECONEURA-IA/analysis_report.txt
+
+PRÓXIMOS PASOS RECOMENDADOS:
+1. Instalar pnpm para manejar workspaces correctamente
+2. Corregir archivos JSON vacíos o inválidos
+3. Verificar y corregir permisos de archivos
+4. Limpiar archivos duplicados
+5. Configurar .nvmrc con la versión correcta de Node.js
+6. Ejecutar instalación completa de dependencias
+
+==================================================================================
+==================================================================================
+=== ANÁLISIS EXHAUSTIVO DEL PROYECTO ECONEURA-IA ===
+==================================================================================
+Fecha: Sat Sep 20 14:44:13 UTC 2025
+Directorio: /workspaces/ECONEURA-IA
+
+==================================================================================
+=== VERIFICACIÓN DE COMANDOS DEL SISTEMA ===
+==================================================================================
+✓ Node.js: node encontrado (/usr/bin/node)
+✓ NPM: npm encontrado (/usr/bin/npm)
+✓ PNPM: pnpm encontrado (/workspaces/ECONEURA-IA/node_modules/.bin/pnpm)
+✓ Git: git encontrado (/usr/local/bin/git)
+✓ JQ: jq encontrado (/usr/bin/jq)
+✗ Docker: docker NO encontrado
+✓ cURL: curl encontrado (/usr/bin/curl)
+
+==================================================================================
+=== ARCHIVOS DE CONFIGURACIÓN PRINCIPALES ===
+==================================================================================
+✓ Package.json principal: package.json existe (2803 bytes)
+✓ Configuración de workspaces PNPM: pnpm-workspace.yaml existe (40 bytes)
+✓ Configuración TypeScript: tsconfig.json existe (1057 bytes)
+✓ Configuración base TypeScript: tsconfig.base.json existe (0 bytes)
+✓ Versión de Node.js: .nvmrc existe (0 bytes)
+✓ Archivo .gitignore: .gitignore existe (448 bytes)
+✓ Documentación principal: README.md existe (7296 bytes)
+
+==================================================================================
+=== VALIDACIÓN DE ARCHIVOS JSON ===
+==================================================================================
+✓ Package.json: JSON válido
+✓ TypeScript config: JSON válido
+✓ TypeScript base config: JSON válido
+✓ Size limit config: JSON válido
+✗ Spectral config (YAML): JSON inválido
+Verificando JSON en apps/ y packages/...
+
+==================================================================================
+=== VERIFICACIÓN DE SINTAXIS DE SCRIPTS ===
+==================================================================================
+✗ Script con errores: /workspaces/ECONEURA-IA/ai-terminal-pro-backup.sh
+✗ Script con errores: /workspaces/ECONEURA-IA/ai-terminal-pro.sh
+✗ Script con errores: /workspaces/ECONEURA-IA/scan-secrets.sh
+✓ Todos los scripts principales verificados
+
+==================================================================================
+=== VERIFICACIÓN DE DEPENDENCIAS ===
+==================================================================================
+Dependencias de producción: 9
+Dependencias de desarrollo: 40
+Dependencias instaladas: 4
+
+==================================================================================
+=== ESTRUCTURA DE DIRECTORIOS ===
+==================================================================================
+✓ Directorio apps existe (2818 archivos)
+✓ Directorio packages existe (174 archivos)
+✓ Directorio scripts existe (140 archivos)
+✓ Directorio audit existe (141 archivos)
+✓ Directorio logs existe (3 archivos)
+✓ Directorio backups existe (0 archivos)
+
+==================================================================================
+=== ARCHIVOS CRÍTICOS DE SEGURIDAD ===
+==================================================================================
+✓ Archivo de seguridad: scripts/validate_env.sh existe (1040 bytes)
+✗ Archivo de seguridad: scripts/ai.sh NO existe
+✓ Archivo de seguridad: dry-run-executor.sh existe (12326 bytes)
+✓ Archivo de seguridad: bootstrap-security.sh existe (11966 bytes)
+✓ Archivo de seguridad: scripts/safety-checks.sh existe (9675 bytes)
+✓ Archivo de seguridad: scripts/input-validation.sh existe (10334 bytes)
+
+==================================================================================
+=== VERIFICACIÓN DE PERMISOS ===
+==================================================================================
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/az-cli-in-docker.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/fix-lint-critical.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/eliminate-red-actions.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/fix-lock.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/infra-test.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/cleanup-github-actions.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/bootstrap-p0-ultra.sh
+✗ Script sin permisos de ejecución: /workspaces/ECONEURA-IA/scripts/deploy-azure.sh
+✓ Verificación de permisos completada
+
+==================================================================================
+=== ARCHIVOS DUPLICADOS POTENCIALES ===
+==================================================================================
+⚠ Archivos similares encontrados: bootstrap-security.sh y bootstrap_security.sh
+⚠ Archivos similares encontrados: ai.sh y ai-run.sh
+
+==================================================================================
+=== ARCHIVOS VACÍOS PROBLEMÁTICOS ===
+==================================================================================
+⚠ Archivo JSON vacío: /workspaces/ECONEURA-IA/.devcontainer/devcontainer.json
+⚠ Archivo JSON vacío: /workspaces/ECONEURA-IA/tsconfig.base.json
+⚠ Archivo JSON vacío: /workspaces/ECONEURA-IA/apps/web/tsconfig.json
+
+==================================================================================
+=== RESUMEN DEL ANÁLISIS ===
+==================================================================================
+Análisis completado: Sat Sep 20 14:44:14 UTC 2025
+Reporte guardado en: /workspaces/ECONEURA-IA/analysis_report.txt
+
+PRÓXIMOS PASOS RECOMENDADOS:
+1. Instalar pnpm para manejar workspaces correctamente
+2. Corregir archivos JSON vacíos o inválidos
+3. Verificar y corregir permisos de archivos
+4. Limpiar archivos duplicados
+5. Configurar .nvmrc con la versión correcta de Node.js
+6. Ejecutar instalación completa de dependencias
+
+==================================================================================

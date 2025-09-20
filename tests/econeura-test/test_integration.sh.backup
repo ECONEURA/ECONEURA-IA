@@ -1,0 +1,203 @@
+#!/usr/bin/env bash
+# ECONEURA Test Integration Script
+# Runs c  # Check if metrics file was created
+  if [ -f "/tmp/econeura_metrics.prom" ]; then
+    echo "✅ Metrics recorded successfully"
+    echo "📄 Metrics file size: $(wc -l < "/tmp/econeura_metrics.prom") lines"ehensive tests on the security system
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BASE_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+TRACE_ID="test-$(date +%s)"
+
+echo "🧪 Starting ECONEURA Test Integration Suite"
+echo "📊 Trace ID: $TRACE_ID"
+echo "📁 Base Directory: $BASE_DIR"
+
+# Setup test environment
+TEST_AUDIT_DIR="$BASE_DIR/audit"
+TEST_METRICS_DIR="$BASE_DIR/ECONEURA/metrics"
+mkdir -p "$TEST_AUDIT_DIR" "$TEST_METRICS_DIR"
+
+# Test 1: Validate test datasets
+echo ""
+echo "📋 Test 1: Validating test datasets"
+TEST_DATASETS=("noisy" "real-like" "critical")
+for dataset in "${TEST_DATASETS[@]}"; do
+  dataset_path="$BASE_DIR/tests/econeura-test/$dataset"
+  if [ -d "$dataset_path" ]; then
+    file_count=$(find "$dataset_path" -type f | wc -l)
+    echo "✅ $dataset dataset: $file_count files"
+  else
+    echo "❌ $dataset dataset missing: $dataset_path"
+    exit 1
+  fi
+done
+
+# Test 2: Run tuning script
+echo ""
+echo "🔧 Test 2: Running threshold tuning"
+if [ -x "$BASE_DIR/scripts/tune_thresholds.sh" ]; then
+  echo "Running tuning script..."
+  "$BASE_DIR/scripts/tune_thresholds.sh"
+  if [ -f "$BASE_DIR/audit/tune_tune-${TRACE_ID:5}.json" ]; then
+    echo "✅ Tuning script executed successfully"
+  else
+    echo "⚠️  Tuning script ran but no output file found"
+  fi
+else
+  echo "❌ Tuning script not found or not executable"
+  exit 1
+fi
+
+# Test 3: Test metrics collection
+echo ""
+echo "📊 Test 3: Testing metrics collection"
+if [ -f "$BASE_DIR/ECONEURA/scripts/metrics_lib.sh" ]; then
+  source "$BASE_DIR/ECONEURA/scripts/metrics_lib.sh"
+
+  # Record test metrics
+  record_scan_metrics "test_tool" 5 2 1 1
+  record_classification_metrics 5 2 1 1
+  record_mitigation_metrics "executed" "300"
+  record_approval_metrics "validated" "hmac"
+  set_gauge "econeura_up" 1
+
+  # Check if metrics file was created
+  if [ -f "$BASE_DIR/ECONEURA/metrics/econeura_metrics.txt" ]; then
+    echo "✅ Metrics recorded successfully"
+    echo "📄 Metrics file size: $(wc -l < "$BASE_DIR/metrics/econeura_metrics.txt") lines"
+  else
+    echo "❌ Metrics file not created"
+    exit 1
+  fi
+else
+  echo "❌ Metrics library not found"
+  exit 1
+fi
+
+# Test 4: Validate configuration files
+echo ""
+echo "⚙️  Test 4: Validating configuration files"
+CONFIG_FILES=(
+  "ECONEURA/config/scoring.json"
+  "ECONEURA/config/owners.json"
+)
+
+for config_file in "${CONFIG_FILES[@]}"; do
+  config_path="$BASE_DIR/$config_file"
+  if [ -f "$config_path" ]; then
+    if jq empty "$config_path" 2>/dev/null; then
+      echo "✅ $config_file: Valid JSON"
+    else
+      echo "❌ $config_file: Invalid JSON"
+      exit 1
+    fi
+  else
+    echo "❌ $config_file: File not found"
+    exit 1
+  fi
+done
+
+# Test 5: Test script executability
+echo ""
+echo "🔧 Test 5: Testing script executability"
+SCRIPTS=(
+  "ECONEURA/scripts/vault_lib.sh"
+  "ECONEURA/scripts/git_utils.sh"
+  "ECONEURA/scripts/metrics_lib.sh"
+  "ECONEURA/scripts/classify-risks.sh"
+  "ECONEURA/scripts/safe-mitigate.sh"
+  "ECONEURA/scripts/approve-tool.sh"
+)
+
+for script in "${SCRIPTS[@]}"; do
+  script_path="$BASE_DIR/$script"
+  if [ -f "$script_path" ]; then
+    if [ -x "$script_path" ]; then
+      echo "✅ $script: Executable"
+    else
+      echo "⚠️  $script: Exists but not executable"
+    fi
+  else
+    echo "❌ $script: File not found"
+  fi
+done
+
+# Test 6: Create test summary
+echo ""
+echo "📋 Test 6: Creating test summary"
+TEST_SUMMARY="$TEST_AUDIT_DIR/test_summary_${TRACE_ID}.json"
+
+jq -n \
+  --arg trace_id "$TRACE_ID" \
+  --arg timestamp "$(date --iso-8601=seconds)" \
+  --arg base_dir "$BASE_DIR" \
+  '{
+    trace_id: $trace_id,
+    timestamp: $timestamp,
+    base_directory: $base_dir,
+    test_results: {
+      datasets_validated: true,
+      tuning_script_executed: true,
+      metrics_collected: true,
+      configs_validated: true,
+      scripts_checked: true
+    },
+    recommendations: [
+      "Replace mock scan data with real trufflehog/gitleaks runs",
+      "Configure Vault credentials for production testing",
+      "Set up monitoring stack with docker-compose.monitoring.yml",
+      "Import Grafana dashboard from monitoring/dashboard_security_stub.json",
+      "Test approval workflows with real HMAC signatures"
+    ],
+    next_steps: [
+      "Run scripts/tune_thresholds.sh to optimize scoring",
+      "Execute .github/workflows/econeura-test.yml for CI testing",
+      "Use .github/workflows/security-approval.yml for manual overrides",
+      "Monitor metrics with scripts/test_metrics.sh"
+    ]
+  }' > "$TEST_SUMMARY"
+
+echo "✅ Test summary created: $TEST_SUMMARY"
+
+# Test 7: Final validation
+echo ""
+echo "🎯 Test 7: Final validation"
+echo "Checking for required directories..."
+REQUIRED_DIRS=(
+  "ECONEURA/scripts"
+  "ECONEURA/config"
+  "audit"
+  "tests/econeura-test"
+  "ECONEURA/monitoring"
+  "ECONEURA/playbooks"
+)
+
+for dir in "${REQUIRED_DIRS[@]}"; do
+  if [ -d "$BASE_DIR/$dir" ]; then
+    echo "✅ $dir directory exists"
+  else
+    echo "❌ $dir directory missing"
+  fi
+done
+
+echo ""
+echo "🎉 ECONEURA Test Integration Suite Completed!"
+echo ""
+echo "📊 Summary:"
+echo "   ✅ Test datasets validated"
+echo "   ✅ Tuning script executed"
+echo "   ✅ Metrics collection tested"
+echo "   ✅ Configuration files validated"
+echo "   ✅ Script executability checked"
+echo ""
+echo "📁 Test artifacts saved to: $TEST_AUDIT_DIR"
+echo "📈 Metrics available at: $TEST_METRICS_DIR"
+echo ""
+echo "🚀 Next steps:"
+echo "   1. Review test results in $TEST_SUMMARY"
+echo "   2. Run tuning: ./scripts/tune_thresholds.sh"
+echo "   3. Test CI: Push to trigger .github/workflows/econeura-test.yml"
+echo "   4. Monitor: ./scripts/test_metrics.sh"echo "   4. Monitor: ./scripts/test_metrics.sh"

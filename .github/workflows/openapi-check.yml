@@ -1,3 +1,4 @@
+
 # OpenAPI Validation
 # TEMP CI SOFT MODE: continue-on-error añadido al job
 # REVERT_STRICT_CI: Eliminar continue-on-error para volver a modo estricto
@@ -86,3 +87,185 @@ jobs:
             apps/api/openapi.yaml
             reports/openapi-*
           retention-days: 7
+
+name: OpenAPI Validation
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'apps/api/openapi*.yaml'
+      - 'apps/api/openapi*.json'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'apps/api/openapi*.yaml'
+      - 'apps/api/openapi*.json'
+  workflow_dispatch:
+
+jobs:
+  checksum:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v5
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v5
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Generate OpenAPI checksum
+      run: |
+        echo "=== Generating OpenAPI Checksums ==="
+
+        # Find OpenAPI files
+        OPENAPI_FILES=$(find apps/api -name "openapi*.yaml" -o -name "openapi*.json" 2>/dev/null)
+
+        if [ -z "$OPENAPI_FILES" ]; then
+          echo "::error::No OpenAPI specification files found in apps/api/"
+          exit 1
+        fi
+
+        echo "Found OpenAPI files:"
+        echo "$OPENAPI_FILES"
+
+        # Generate checksums
+        for file in $OPENAPI_FILES; do
+          if [ -f "$file" ]; then
+            echo "Processing $file"
+            sha256sum "$file" >> /tmp/openapi-checksums.txt
+          fi
+        done
+
+        echo "Checksums generated successfully"
+
+    - name: Compare checksums
+      run: |
+        echo "=== Comparing Checksums ==="
+
+        if [ -f ".openapi.checksum" ]; then
+          if diff -u .openapi.checksum /tmp/openapi-checksums.txt; then
+            echo "::notice::OpenAPI checksums match - no changes detected"
+          else
+            echo "::warning::OpenAPI checksums differ - API specification has changed"
+            echo "This may indicate breaking changes or new features"
+          fi
+        else
+          echo "::notice::No existing checksum file found - creating baseline"
+        fi
+
+        # Update checksum file
+        cp /tmp/openapi-checksums.txt .openapi.checksum
+        echo "Checksum file updated"
+
+  openapi-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v5
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v5
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Create artifacts directory
+      run: mkdir -p .artifacts
+
+    - name: Validate OpenAPI specs
+      run: |
+        echo "=== Validating OpenAPI Specifications ==="
+
+        # Find OpenAPI files
+        OPENAPI_FILES=$(find apps/api -name "openapi*.yaml" -o -name "openapi*.json" 2>/dev/null)
+
+        if [ -z "$OPENAPI_FILES" ]; then
+          echo "::error::No OpenAPI specification files found"
+          exit 1
+        fi
+
+        VALIDATION_PASSED=true
+
+        for file in $OPENAPI_FILES; do
+          echo "Validating $file..."
+
+          # Spectral validation
+          if npx @stoplight/spectral-cli lint "$file" --format json --output ".artifacts/spectral-$(basename "$file" .yaml).json" 2>/dev/null; then
+            echo "✓ Spectral validation passed for $file"
+          else
+            echo "::error::Spectral validation failed for $file"
+            VALIDATION_PASSED=false
+          fi
+
+          # Swagger parser validation
+          if npx swagger-parser validate "$file" 2>/dev/null; then
+            echo "✓ Swagger parser validation passed for $file"
+          else
+            echo "::error::Swagger parser validation failed for $file"
+            VALIDATION_PASSED=false
+          fi
+        done
+
+        if [ "$VALIDATION_PASSED" = false ]; then
+          echo "::error::OpenAPI validation failed"
+          exit 1
+        fi
+
+        echo "All OpenAPI validations passed"
+
+    - name: OpenAPI diff (PR only)
+      if: github.event_name == 'pull_request'
+      run: |
+        echo "=== Generating OpenAPI Diff ==="
+
+        # Fetch main branch
+        git fetch origin main:main
+
+        # Find OpenAPI files and compare
+        OPENAPI_FILES=$(find apps/api -name "openapi*.yaml" -o -name "openapi*.json" 2>/dev/null)
+
+        for file in $OPENAPI_FILES; do
+          if git show "main:$file" > "/tmp/main-$(basename "$file")" 2>/dev/null; then
+            echo "Comparing $file with main branch..."
+
+            if npx openapi-diff "/tmp/main-$(basename "$file")" "$file" --format json --output ".artifacts/openapi-diff-$(basename "$file" .yaml).json" 2>/dev/null; then
+              echo "✓ OpenAPI diff generated for $file"
+            else
+              echo "::warning::OpenAPI diff failed for $file"
+            fi
+          else
+            echo "::notice::No previous version of $file found in main branch"
+          fi
+        done
+
+    - name: Upload validation results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: openapi-validation-results-${{ github.run_id }}
+        path: .artifacts/
+        retention-days: 30
+

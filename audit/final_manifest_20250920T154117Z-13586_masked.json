@@ -1,0 +1,7 @@
+{
+  "trace_id": "20250920T154117Z-13586",
+  "branch": "econeura/audit/hmac-canary/20250920T154117Z-13586",
+  "patch": "/workspaces/ECONEURA-IA/patches_20250920T154117Z-13586/0001-chore-sec-HMAC-approval-canary-stubs-FinOps-guard-20.patch",
+  "evidence_meta": "/workspaces/ECONEURA-IA/audit/evidence_20250920T154117Z-13586.meta.json",
+  "note": "Review approval_request_* and final_manifest before any push/apply."
+}

@@ -1,3 +1,4 @@
+
 # K6 Smoke Tests - Performance Testing
 # TEMP CI SOFT MODE: push trigger eliminado, solo workflow_dispatch
 # REVERT_STRICT_CI: Restaurar trigger push y descomentar job close-pr-on-fail
@@ -84,3 +85,110 @@ jobs:
   #             repo: context.repo.repo,
   #             body: '⚠️ Performance tests failed. Please review and fix before merging.'
   #           })
+
+name: k6-smoke
+
+on:
+  pull_request:
+    paths:
+      - 'apps/api/**'
+      - 'apps/web/**'
+      - 'packages/**'
+      - 'tests/performance/**'
+  workflow_dispatch:
+
+env:
+  DEPLOY_ENABLED: "false"
+
+jobs:
+  perf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v5
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v5
+      with:
+        node-version: '20'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Start API
+      run: |
+        node scripts/ci/api-start.mjs
+
+    - name: Wait for API
+      run: |
+        npx wait-on http://localhost:3001/health -t 180000
+
+    - name: Run k6 smoke tests
+      run: |
+        # Install k6
+        sudo gpg -k
+        sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+        echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+        sudo apt-get update
+        sudo apt-get install k6
+
+        # Run k6 smoke tests
+        k6 run tests/performance/smoke.js --summary-export=.artifacts/k6-summary.json
+
+        # Check p95 threshold
+        if [ -f .artifacts/k6-summary.json ]; then
+          P95=$(node -e "
+            const fs = require('fs');
+            try {
+              const summary = JSON.parse(fs.readFileSync('.artifacts/k6-summary.json', 'utf8'));
+              const p95 = summary.metrics.http_req_duration?.values?.['p(95)'] || 9999;
+              console.log(p95);
+            } catch(e) {
+              console.log('9999');
+            }
+          ")
+
+          echo "P95 latency: ${P95}ms"
+
+          if (( $(echo "$P95 > 2000" | bc -l) )); then
+            echo "::error ::P95 ${P95}ms exceeds 2000ms threshold"
+            exit 1
+          else
+            echo "::notice ::P95 ${P95}ms meets threshold"
+          fi
+        else
+          echo "::error ::No k6 summary file found"
+          exit 1
+        fi
+
+    - name: Upload k6 results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: k6-results
+        path: .artifacts/
+        if-no-files-found: ignore
+
+  close-pr-on-fail:
+    runs-on: ubuntu-latest
+    needs: perf
+    if: failure() && github.event_name == 'pull_request'
+    steps:
+    - name: Close PR on performance failure
+      uses: actions/github-script@v8
+      with:
+        script: |
+          github.rest.pulls.update({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number,
+            state: 'closed'
+          })
+
