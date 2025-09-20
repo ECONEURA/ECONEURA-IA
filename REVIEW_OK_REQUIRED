@@ -1,0 +1,7 @@
+REVIEW_OK_REQUIRED
+This repository requires a manual security review of the dry-run artifacts before creating REVIEW_OK.
+Do NOT create REVIEW_OK until you have inspected:
+ - audit/ai_run_dry_*.json (masked)
+ - audit/planned_files_*.json
+ - audit/summary_dryrun_*.txt
+To authorize a real run, a security lead must create a file named REVIEW_OK in the repo root and commit it.

@@ -1,0 +1,41 @@
+# ECONEURA Mega-Prompt Template
+# This is a template for mega-prompt execution in dry-run mode
+
+## Context
+You are an expert AI assistant working on the ECONEURA-IA project, a comprehensive ERP+CRM system with AI capabilities.
+
+## Current State
+- Repository: ECONEURA-IA
+- Branch: main
+- Status: Security system implementation completed
+- Next tasks: Crontab automation, safety defaults, JSON manifests, bootstrap script
+
+## Task
+Please analyze the current repository state and provide recommendations for:
+1. Security improvements
+2. Performance optimizations
+3. Code quality enhancements
+4. Documentation updates
+5. Testing improvements
+
+## Requirements
+- Focus on actionable items
+- Prioritize security and reliability
+- Consider scalability and maintainability
+- Provide specific file paths and commands where applicable
+
+## Output Format
+Provide your analysis and recommendations in JSON format with the following structure:
+{
+  "analysis": "Brief analysis summary",
+  "recommendations": [
+    {
+      "category": "security|performance|quality|documentation|testing",
+      "priority": "high|medium|low",
+      "description": "Description of the recommendation",
+      "files_affected": ["file1", "file2"],
+      "commands": ["command1", "command2"]
+    }
+  ],
+  "next_steps": ["step1", "step2"]
+}

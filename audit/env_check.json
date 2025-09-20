@@ -1,6 +1,6 @@
 {
   "status": "ok_with_limitations",
-  "time": "2025-09-20T13:24:22+00:00",
+  "time": "2025-09-20T14:25:29+00:00",
   "optional_missing": [
     "trufflehog",
     "gitleaks"
