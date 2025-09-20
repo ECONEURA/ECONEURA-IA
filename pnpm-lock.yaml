@@ -21,8 +21,13 @@ importers:
         specifier: ^1.2.1
         version: 1.2.1
       express-rate-limit:
+
+        specifier: ^8.1.0
+        version: 8.1.0(express@4.21.2)
+
         specifier: ^7.1.5
         version: 7.5.1(express@4.21.2)
+
       pm2:
         specifier: ^6.0.8
         version: 6.0.11
@@ -113,11 +118,16 @@ importers:
         version: 8.0.3
       jose:
 
+        specifier: ^5.3.0
+        version: 5.10.0
+
+
         specifier: ^6.1.0
         version: 6.1.0
 
         specifier: ^5.3.0
         version: 5.10.0
+
 
       lint-staged:
         specifier: ^15.2.0
@@ -202,11 +212,16 @@ importers:
         version: 5.7.0
       jose:
 
+        specifier: ^5.3.0
+        version: 5.10.0
+
+
         specifier: ^6.1.0
         version: 6.1.0
 
         specifier: ^5.3.0
         version: 5.10.0
+
 
       jsonwebtoken:
         specifier: ^9.0.2
@@ -9947,13 +9962,22 @@ packages:
       basic-auth: 2.0.1
     dev: false
 
+
+  /express-rate-limit@8.1.0(express@4.21.2):
+    resolution: {integrity: sha512-4nLnATuKupnmwqiJc27b4dCFmB/T60ExgmtDD7waf4LdrbJ8CPZzZRHYErDYNhoz+ql8fUdYwM/opf90PoPAQA==}
+
   /express-rate-limit@7.5.1(express@4.21.2):
     resolution: {integrity: sha512-7iN8iPMDzOMHPUYllBEsQdWVB6fPDMPqwjBaFrgr4Jgr/+okjvzAy+UHlYYL/Vs0OsOrMkwS6PJDkFlJwoxUnw==}
+
     engines: {node: '>= 16'}
     peerDependencies:
       express: '>= 4.11'
     dependencies:
       express: 4.21.2
+
+      ip-address: 10.0.1
+
+
     dev: false
 
   /express@4.21.2:
@@ -11819,11 +11843,17 @@ packages:
       '@sideway/pinpoint': 2.0.0
     dev: false
 
+
+  /jose@5.10.0:
+    resolution: {integrity: sha512-s+3Al/p9g32Iq+oqXxkW//7jk2Vig6FF1CFqzVXoTUXt2qz89YWbL+OwS17NFYEvxC35n0FKeGO2LGYSxeM2Gg==}
+
+
   /jose@6.1.0:
     resolution: {integrity: sha512-TTQJyoEoKcC1lscpVDCSsVgYzUDg/0Bt3WE//WiTPK6uOCQC2KZS4MpugbMWt/zyjkopgZoXhZuCi00gLudfUA==}
 
   /jose@5.10.0:
     resolution: {integrity: sha512-s+3Al/p9g32Iq+oqXxkW//7jk2Vig6FF1CFqzVXoTUXt2qz89YWbL+OwS17NFYEvxC35n0FKeGO2LGYSxeM2Gg==}
+
 
 
   /joycon@3.1.1:
