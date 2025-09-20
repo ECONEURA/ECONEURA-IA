@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🚀 ECONEURA — ERP/CRM + IA (Guía Completa · PR‑0 → PR‑85)
 
 > **Estado actual del desarrollo**: avanzando por **PR‑23 / 85**. Este documento explica el proyecto de extremo a extremo y lista **todas** las PR previstas con el objetivo y la definición de hecho (DoD) resumida.

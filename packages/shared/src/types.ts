@@ -1,138 +1,77 @@
-// Tipos base
-export interface BaseEntity {
-  id: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { z } from 'zod';
+import {
+  CompanySchema,
+  ContactSchema,
+  DealSchema,
+  ActivitySchema,
+  ProductSchema,
+  InventoryMovementSchema,
+  SupplierSchema,
+  InvoiceSchema,
+  PaymentSchema,
+  ExpenseSchema,
+  CreateCompanySchema,
+  UpdateCompanySchema,
+  CreateContactSchema,
+  UpdateContactSchema,
+  CreateDealSchema,
+  UpdateDealSchema,
+  CreateActivitySchema,
+  UpdateActivitySchema,
+  CreateProductSchema,
+  UpdateProductSchema,
+  CreateInventoryMovementSchema,
+  CreateSupplierSchema,
+  UpdateSupplierSchema,
+  CreateInvoiceSchema,
+  UpdateInvoiceSchema,
+  CreatePaymentSchema,
+  CreateExpenseSchema,
+  UpdateExpenseSchema,
+  PaginationSchema
+} from './schemas';
 
-export interface TenantEntity extends BaseEntity {
-  orgId: string;
-}
+// CRM Types
+export type Company = z.infer<typeof CompanySchema>;
+export type Contact = z.infer<typeof ContactSchema>;
+export type Deal = z.infer<typeof DealSchema>;
+export type Activity = z.infer<typeof ActivitySchema>;
 
-// Tipos de autenticación y autorización
-export interface TokenPayload {
-  userId: string;
-  orgId: string;
-  roles: string[];
-  permissions: string[];
-  exp: number;
-}
+export type CreateCompanyInput = z.infer<typeof CreateCompanySchema>;
+export type UpdateCompanyInput = z.infer<typeof UpdateCompanySchema>;
+export type CreateContactInput = z.infer<typeof CreateContactSchema>;
+export type UpdateContactInput = z.infer<typeof UpdateContactSchema>;
+export type CreateDealInput = z.infer<typeof CreateDealSchema>;
+export type UpdateDealInput = z.infer<typeof UpdateDealSchema>;
+export type CreateActivityInput = z.infer<typeof CreateActivitySchema>;
+export type UpdateActivityInput = z.infer<typeof UpdateActivitySchema>;
 
-export interface AuthenticatedRequest {
-  user: TokenPayload;
-}
+// ERP Types
+export type Product = z.infer<typeof ProductSchema>;
+export type InventoryMovement = z.infer<typeof InventoryMovementSchema>;
+export type Supplier = z.infer<typeof SupplierSchema>;
 
-// Tipos de métricas y observabilidad
-export interface MetricValue {
-  value: number;
-  timestamp: number;
-  labels?: Record<string, string>;
-}
+export type CreateProductInput = z.infer<typeof CreateProductSchema>;
+export type UpdateProductInput = z.infer<typeof UpdateProductSchema>;
+export type CreateInventoryMovementInput = z.infer<typeof CreateInventoryMovementSchema>;
+export type CreateSupplierInput = z.infer<typeof CreateSupplierSchema>;
+export type UpdateSupplierInput = z.infer<typeof UpdateSupplierSchema>;
 
-export interface Metric {
-  name: string;
-  type: 'counter' | 'gauge' | 'histogram';
-  description: string;
-  values: MetricValue[];
-  maxValues: number;
-  alerts?: {
-    warning?: number;
-    critical?: number;
-  };
-}
+// Finance Types
+export type Invoice = z.infer<typeof InvoiceSchema>;
+export type Payment = z.infer<typeof PaymentSchema>;
+export type Expense = z.infer<typeof ExpenseSchema>;
 
-export interface AIMetrics {
-  tokens: number;
-  cost: number;
-  latency: number;
-  model: string;
-  success: boolean;
-}
+export type CreateInvoiceInput = z.infer<typeof CreateInvoiceSchema>;
+export type UpdateInvoiceInput = z.infer<typeof UpdateInvoiceSchema>;
+export type CreatePaymentInput = z.infer<typeof CreatePaymentSchema>;
+export type CreateExpenseInput = z.infer<typeof CreateExpenseSchema>;
+export type UpdateExpenseInput = z.infer<typeof UpdateExpenseSchema>;
 
-// Tipos de logging
-export interface LogContext {
-  // Contexto organizacional
-  org?: string;
-  orgTier?: string;
-  orgFeatures?: string[];
-  
-  // Contexto de usuario
-  userId?: string;
-  userRole?: string;
-  userPermissions?: string[];
-  
-  // Contexto de request
-  requestId?: string;
-  correlationId?: string;
-  traceId?: string;
-  spanId?: string;
-  parentSpanId?: string;
-  endpoint?: string;
-  method?: string;
-  path?: string;
-  query?: Record<string, unknown>;
-  
-  // Métricas de rendimiento
-  duration?: number;
-  startTime?: number;
-  endTime?: number;
-  
-  // Métricas de IA
-  tokens?: number;
-  cost?: number;
-  aiModel?: string;
-  aiProvider?: string;
-  promptTokens?: number;
-  completionTokens?: number;
-  
-  // Contexto técnico
-  userAgent?: string;
-  ip?: string;
-  statusCode?: number;
-  error?: string;
-  stack?: string;
-  port?: number;
-  environment?: string;
-  version?: string;
-}
+// Common Types
+export type Pagination = z.infer<typeof PaginationSchema>;
 
-// Tipos de caché
-export interface CacheConfig {
-  ttl?: number;
-  prefix?: string;
-}
-
-export interface CacheMetrics {
-  hits: number;
-  misses: number;
-  errors: number;
-}
-
-// Tipos de IA
-export interface AIServiceConfig {
-  endpoint?: string;
-  apiKey?: string;
-  apiVersion?: string;
-  defaultModel?: string;
-}
-
-export interface CompletionRequest {
-  prompt: string;
-  maxTokens?: number;
-  temperature?: number;
-  model?: string;
-  orgId: string;
-}
-
-// Tipos de health check
-export interface HealthCheck {
-  status: 'ok' | 'error' | 'degraded';
-  checks: {
-    [key: string]: {
-      status: 'ok' | 'error';
-      message?: string;
-      latency?: number;
-    };
-  };
-  timestamp: string;
+export interface PaginatedResponse<T> {
+  items: T[];
+  pagination: Pagination;
 }
