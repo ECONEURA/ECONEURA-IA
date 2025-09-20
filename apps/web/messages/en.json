@@ -1,0 +1,58 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "companies": "Companies",
+    "contacts": "Contacts",
+    "deals": "Deals",
+    "meetings": "Meetings",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome to ECONEURA-IA",
+    "subtitle": "Your AI-powered ERP+CRM"
+  },
+  "companies": {
+    "title": "Companies",
+    "add": "Add Company",
+    "name": "Name",
+    "industry": "Industry",
+    "website": "Website",
+    "phone": "Phone",
+    "address": "Address"
+  },
+  "contacts": {
+    "title": "Contacts",
+    "add": "Add Contact",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "phone": "Phone",
+    "company": "Company",
+    "position": "Position"
+  },
+  "deals": {
+    "title": "Deals",
+    "add": "Add Deal",
+    "name": "Name",
+    "value": "Value",
+    "stage": "Stage",
+    "expectedClose": "Expected Close",
+    "probability": "Probability"
+  }
+}

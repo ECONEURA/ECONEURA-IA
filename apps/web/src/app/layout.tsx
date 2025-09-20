@@ -6,6 +6,9 @@ import { AuthProvider } from '@/lib/auth-context'
 import { Navigation } from '@/components/layout/Navigation'
 import { cn } from '@/lib/utils'
 import SystemStatus from '@/components/SystemStatus';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
+import { notFound } from 'next/navigation';
 
 const inter = Inter({ 
   subsets: ['latin'],

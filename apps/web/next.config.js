@@ -7,6 +7,12 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Configuración de internacionalización
+  i18n: {
+    locales: ['es', 'en'],
+    defaultLocale: 'es',
+    localeDetection: true,
+  },
   // Configuración para Azure App Service
   assetPrefix: process.env.NODE_ENV === 'production' ? undefined : undefined,
   images: {

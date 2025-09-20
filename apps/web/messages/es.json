@@ -1,0 +1,58 @@
+{
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "search": "Buscar",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "confirm": "Confirmar",
+    "back": "Volver",
+    "next": "Siguiente",
+    "previous": "Anterior"
+  },
+  "navigation": {
+    "dashboard": "Panel de Control",
+    "companies": "Empresas",
+    "contacts": "Contactos",
+    "deals": "Oportunidades",
+    "meetings": "Reuniones",
+    "settings": "Configuración"
+  },
+  "dashboard": {
+    "title": "Panel de Control",
+    "welcome": "Bienvenido a ECONEURA-IA",
+    "subtitle": "Tu ERP+CRM impulsado por IA"
+  },
+  "companies": {
+    "title": "Empresas",
+    "add": "Agregar Empresa",
+    "name": "Nombre",
+    "industry": "Industria",
+    "website": "Sitio Web",
+    "phone": "Teléfono",
+    "address": "Dirección"
+  },
+  "contacts": {
+    "title": "Contactos",
+    "add": "Agregar Contacto",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "email": "Correo Electrónico",
+    "phone": "Teléfono",
+    "company": "Empresa",
+    "position": "Cargo"
+  },
+  "deals": {
+    "title": "Oportunidades",
+    "add": "Agregar Oportunidad",
+    "name": "Nombre",
+    "value": "Valor",
+    "stage": "Etapa",
+    "expectedClose": "Cierre Esperado",
+    "probability": "Probabilidad"
+  }
+}
