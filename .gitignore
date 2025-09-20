@@ -1,25 +1,109 @@
+# ===========================================
+# ECONEURA-IA .gitignore - Optimizado
+# ===========================================
+
 # Dependencies
 node_modules/
 node_modules/.pnpm/
 .pnpm-store/
+.pnpm-debug.log*
 
-# Build
+# Build outputs
 dist/
 build/
 .next/
+out/
+.nuxt/
+.parcel-cache/
+.vite/
+.turbo/
 
-# Logs
+# Logs - Expansive patterns
 *.log
+logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
-# Environment
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+.nyc_output/
+coverage-final.json
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Gatsby files
+.cache/
+public
+
+# Storybook build outputs
+.out
+.storybook-out
+
+# Temporary folders
+tmp/
+temp/
+.tmp/
+.temp/
+cache/
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
 
 # IDEs and editors
 .idea/
@@ -27,19 +111,124 @@ yarn-error.log*
 *.swp
 *.swo
 *~
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+*.tmproj
+*.tmproject
+tmtags
+.vscode/
+.history/
+.ionide/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
 
 # Testing
 coverage/
+.nyc_output/
+test-results/
+playwright-report/
+playwright/.cache/
 
-# Misc
-.DS_Store
-Thumbs.db
+# Audit and security files
+audit/evidence_tmp_*
+audit/parallel_logs/
+patches_approval/
+*.secrets.baseline
+.gitleaks.toml
 
-# Next.js
-.next/
-out/
-node_modules/@next/
-@next/swc-*/
+# CI/CD artifacts
+.github/audit_artifacts/
+.github/parallel_logs/
+ci_activation_*/
+ci_runs_*/
+patches_*/
+
+# Python (if used)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+*.mo
+*.pot
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+instance/
+.webassets-cache
+.scrapy
+docs/_build/
+target/
+.ipynb_checkpoints
+profile_default/
+ipython_config.py
+.python-version
+__pypackages__/
+celerybeat-schedule
+celerybeat.pid
+*.sage.py
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.spyderproject
+.spyproject
+.ropeproject
+/site
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
 
 # Binary files
 *.node
@@ -47,6 +236,58 @@ node_modules/@next/
 *.dll
 *.so
 *.dylib
+
+# Certificates
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+
+# Checksum files
+*.checksum
+*.md5
+*.sha1
+*.sha256
+
+# Performance results
+performance-results/
+k6-results/
+
+# AI Terminal files
+.ai_*
+.ai/
+*.ai_sessions
+*.ai_terminal_*
+
+# Activation logs and checkpoints
+checklist_*.log
+resumen_*.log
+ejecucion_*.log
+*.checkpoint
+
+# Emergency files
+emergency_*.sh
+emergency_*.log
+
+# Manifest files
+*.manifest
+manifests/
+
+# Docker
+.dockerignore
+
+# Local development
+.local
+*.local.*
 
 # Python
 __pycache__/

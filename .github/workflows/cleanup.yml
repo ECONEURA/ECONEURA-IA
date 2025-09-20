@@ -1,0 +1,64 @@
+name: Cleanup
+
+on:
+  schedule:
+    # Ejecutar limpieza todos los días a las 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    # Permitir ejecución manual
+  push:
+    branches: [main]
+    paths:
+      - '*.log'
+      - '*.tmp'
+      - 'checklist_*.log'
+      - 'resumen_*.log'
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run cleanup script
+        run: |
+          chmod +x scripts/maintenance/cleanup.sh
+          ./scripts/maintenance/cleanup.sh
+
+      - name: Check for changes
+        id: verify-changed-files
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create cleanup PR
+        if: steps.verify-changed-files.outputs.changes == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "🧹 Automated cleanup - Remove temporary files"
+          title: "🧹 Automated Cleanup"
+          body: |
+            ## 🧹 Automated Cleanup
+
+            This PR removes temporary files and maintains repository cleanliness.
+
+            ### Changes
+            - Removed log files
+            - Cleaned temporary files
+            - Maintained .gitignore patterns
+
+            ### Verification
+            - ✅ Repository structure maintained
+            - ✅ No source code changes
+            - ✅ .gitignore patterns respected
+
+            ---
+            🤖 This PR was automatically created by the cleanup workflow.
+          branch: automated/cleanup
+          delete-branch: true
