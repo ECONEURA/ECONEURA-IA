@@ -1,28 +1,67 @@
-#!/bin/bash#!/bin/bash
+#!/bin/bash
 
+# Script de resolución agresiva de conflictos en dependencias
+# Estrategia: Preferir la versión más reciente de las dependencias
 
+set -e
 
-# Script de resolución agresiva de conflictos en dependencias# Script para resolver conflictos automáticamente en PRs
-
-# Estrategia: Preferir la versión más reciente de las dependencias# Solo resuelve conflictos simples y seguros
-
-
-
-set -eset -e
-
-
-
-LOG_FILE="/workspaces/ECONEURA-IA/scripts/maintenance/conflict-resolution-aggressive-$(date +%Y%m%d-%H%M%S).log"SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_FILE="$SCRIPT_DIR/conflict-resolution-$(date +%Y%m%d-%H%M%S).log"
 
 # Función de logging
+log() {
+    echo "[$(date +'%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE"
+}
 
-log() {# Función de logging
+log "🔧 INICIANDO RESOLUCIÓN AGRESIVA DE CONFLICTOS"
+log "==============================================="
 
-    echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"log() {
+# Verificar que estamos en un repositorio git
+if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    log "❌ Error: No es un repositorio git"
+    exit 1
+fi
 
-}    echo "[$(date +'%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE"
+# Verificar que estamos en un estado de merge
+if ! git diff --name-only --diff-filter=U | grep -q .; then
+    log "ℹ️  No hay conflictos activos para resolver"
+    exit 0
+fi
+
+log "📋 Archivos con conflictos:"
+git diff --name-only --diff-filter=U | tee -a "$LOG_FILE"
+
+# Estrategia agresiva: preferir la versión entrante (THEIRS) para archivos de dependencias
+for file in $(git diff --name-only --diff-filter=U); do
+    if [[ "$file" == *"package.json" ]] || [[ "$file" == *"pnpm-lock.yaml" ]] || [[ "$file" == *"yarn.lock" ]] || [[ "$file" == *"package-lock.json" ]]; then
+        log "🔧 Resolviendo conflicto en $file (estrategia: preferir THEIRS)"
+        git checkout --theirs "$file"
+        git add "$file"
+    else
+        log "⚠️  Archivo $file requiere resolución manual"
+    fi
+done
+
+# Verificar si quedan conflictos
+if git diff --name-only --diff-filter=U | grep -q .; then
+    log "⚠️  Quedan conflictos en archivos no relacionados con dependencias:"
+    git diff --name-only --diff-filter=U | tee -a "$LOG_FILE"
+    log "🔧 Abortando merge - requiere resolución manual"
+    git merge --abort
+    exit 1
+else
+    log "✅ Todos los conflictos resueltos automáticamente"
+    log "📝 Creando commit de resolución"
+    git commit -m "fix: resolver conflictos de dependencias automáticamente
+
+- Resolución agresiva de conflictos en package.json y pnpm-lock.yaml
+- Estrategia: preferir versión más reciente (THEIRS)
+- Commit automático generado por script de resolución"
+
+    log "🎉 Resolución completada exitosamente"
+fi
+
+log "📄 Log completo: $LOG_FILE"
 
 }
 
