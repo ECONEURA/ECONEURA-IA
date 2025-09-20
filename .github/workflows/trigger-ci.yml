@@ -1,12 +1,72 @@
 name: trigger-ci
+
 on:
-  push:
-    branches: [ "pr/bootstrapping/local-setup" ]
-concurrency:
-  group: trigger-ci-bootstrap
-  cancel-in-progress: false
+  workflow_dispatch:
+    inputs:
+      workflow:
+        description: 'Which workflow to trigger'
+        required: true
+        default: 'ci-extended'
+        type: choice
+        options:
+        - ci-extended
+        - k6-smoke
+        - openapi-check
+        - integrations-health
+        - supervisor-nightly
+      branch:
+        description: 'Branch to run on'
+        required: false
+        default: 'main'
+        type: string
+
 jobs:
   trigger:
     runs-on: ubuntu-latest
+
     steps:
-      - run: echo "CI triggered for pr/bootstrapping/local-setup at $(date)"
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Trigger selected workflow
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const workflow = '${{ inputs.workflow }}';
+          const branch = '${{ inputs.branch }}' || 'main';
+
+          console.log(`Triggering workflow: ${workflow} on branch: ${branch}`);
+
+          const response = await github.rest.actions.createWorkflowDispatch({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            workflow_id: `${workflow}.yml`,
+            ref: branch
+          });
+
+          console.log('✅ Workflow triggered successfully');
+          console.log(`Status: ${response.status}`);
+
+          // Set output for potential use in other steps
+          core.setOutput('triggered', 'true');
+          core.setOutput('workflow', workflow);
+          core.setOutput('branch', branch);
+      
+    - name: Wait for workflow start
+      run: |
+        echo "Waiting for workflow to start..."
+        sleep 10
+
+        # Check if workflow started (optional, informational only)
+        echo "Workflow trigger request completed"
+        echo "Check the Actions tab to see if the workflow started successfully"
+
+    - name: Summary
+      run: |
+        echo "=== CI Trigger Summary ==="
+        echo "Requested workflow: ${{ inputs.workflow }}"
+        echo "Target branch: ${{ inputs.branch }}"
+        echo "Status: Completed successfully"
+        echo ""
+        echo "Note: Check the Actions tab to verify the triggered workflow"

@@ -1,91 +1,121 @@
-name: CI Extended (manual)
+name: CI Extended
+
 on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
-env:
-  DEPLOY_ENABLED: "false"
-permissions:
-  contents: read
-  security-events: write
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  DEPLOY_ENABLED: "false"
+
 jobs:
   openapi_validate:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Enable corepack & pin pnpm
-        run: |
-          set -euo pipefail
-          corepack enable
-          corepack prepare pnpm@8.15.6 --activate
-        with: { version: 8 }
-      - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: 'pnpm' }
-      - run: pnpm -w install
-      - name: Spectral
-        run: npx @stoplight/spectral lint apps/api/openapi/openapi.yaml
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: OpenAPI Spectral Lint
+      run: |
+        npx @stoplight/spectral-cli lint apps/api/openapi.yaml
+        npx @stoplight/spectral-cli lint apps/api/openapi/openapi.yaml
 
   link_check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Lychee (action oficial)
-        uses: lycheeverse/lychee-action@v2
-        with:
-          args: --config .lychee.toml --no-progress ./docs
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Link Check
+      uses: lycheeverse/lychee-action@v2
+      with:
+        args: docs --verbose
+        fail: true
 
   security_scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
-      - name: Gitleaks (action oficial)
-        uses: gitleaks/gitleaks-action@v2
-        with:
-          args: detect --report-format=json --report-path=reports/gitleaks.json
-      - uses: actions/upload-artifact@v4
-        with:
-          name: gitleaks-report
-          path: reports/gitleaks.json
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: GitLeaks Scan
+      uses: gitleaks/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   api_e2e:
     runs-on: ubuntu-latest
+
     services:
       postgres:
-        image: postgres:15-alpine
-        env: { POSTGRES_USER: ci, POSTGRES_PASSWORD: ci, POSTGRES_DB: econeura_ci }
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd="pg_isready -U ci -d econeura_ci"
-          --health-interval=5s --health-timeout=5s --health-retries=30
-    steps:
-      - uses: actions/checkout@v4
-      - name: Enable corepack & pin pnpm
-        run: |
-          set -euo pipefail
-          corepack enable
-          corepack prepare pnpm@8.15.6 --activate
-        with: { version: 8 }
-      - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: 'pnpm' }
-      - run: pnpm -w install
-      - run: pnpm -w -r build
-      - name: Start API (fallback robusto)
-        run: node scripts/ci/api-start.mjs &
+        image: postgres:15
         env:
-          NODE_ENV: test
-          PORT: 3001
-          HEALTH_PATH: /health
-          DATABASE_URL: postgres://ci:ci@localhost:5432/econeura_ci
-      - name: Esperar API
-        run: npx wait-on -t 180000 http://127.0.0.1:3001/health && curl -fsS http://127.0.0.1:3001/health
-      - name: API tests
-        run: pnpm --filter "./apps/api" test -- --reporter=default
-      - uses: actions/upload-artifact@v4
-        with:
-          name: api-logs
-          path: .artifacts/api.log
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Setup database
+      run: |
+        export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_db"
+        pnpm --filter "@econeura/db" db:push
+
+    - name: Start API
+      run: |
+        node scripts/ci/api-start.mjs
+
+    - name: Wait for API
+      run: |
+        npx wait-on http://localhost:3001/health -t 180000
+
+    - name: Run E2E Tests
+      run: |
+        pnpm --filter "./apps/api" test:e2e
+
+    - name: Upload API logs
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: api-logs
+        path: .artifacts/
+        if-no-files-found: ignore

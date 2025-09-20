@@ -1,4 +1,4 @@
-import express from "express";
+import express, { type Express } from "express";
 import cors from "cors";
 import { structuredLogger } from './lib/structured-logger.js';
 import { ErrorHandler } from './lib/error-handler.js';
@@ -17,7 +17,7 @@ import { analyticsRouter } from './routes/analytics.js';
 import { eventsRouter } from './routes/events.js';
 import { cockpitRouter } from './routes/cockpit.js';
 
-const app = express();
+const app: Express = express();
 const PORT = process.env.PORT || 3001;
 
 // Initialize error handler

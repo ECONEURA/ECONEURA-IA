@@ -1,102 +1,135 @@
-name: OIDC Setup + Deploy
+name: oidc-setup-and-deploy
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main ]
-  workflow_dispatch:
-    inputs:
-      run_setup:
-        description: 'Run the Azure App Registration setup job (requires AZURE_CREDENTIALS secret)'
-        required: false
-        default: 'false'
+  pull_request:
+    branches: [ main ]
 
-permissions:
-  id-token: write
-  contents: read
 env:
-  DEPLOY_ENABLED: "false"
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  DEPLOY_ENABLED: "false"  # Always false to prevent actual deployment
 
 jobs:
   setup:
-    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_setup == 'true' }}
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
+
+    outputs:
+      can-deploy: ${{ steps.check-deploy.outputs.can-deploy }}
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      - name: Azure login (Service Principal credentials)
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: Check deployment prerequisites
+      id: check-deploy
+      run: |
+        echo "Checking deployment prerequisites..."
 
-      - name: Install tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y jq
+        CAN_DEPLOY="false"
 
-      - name: Create App Registration + Federated Credential (interactive via inputs)
-        env:
-          APP_NAME: "ec-action-oidc"
-          REPO_OWNER: ${{ github.repository_owner }}
-          REPO_NAME: ${{ github.event.repository.name }}
-          BRANCH_PATTERN: "refs/heads/main"
-          SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        run: |
-          set -euo pipefail
-          TMP_JSON="/tmp/${APP_NAME}-app.json"
-          echo "Creating App Registration $APP_NAME..."
-          az ad app create --display-name "$APP_NAME" --available-to-other-tenants false --query "{appId:appId,objectId:id}" -o json > "$TMP_JSON"
-          CLIENT_ID=$(jq -r .appId "$TMP_JSON")
-          APP_OBJECT_ID=$(jq -r .objectId "$TMP_JSON")
-          echo "CLIENT_ID=$CLIENT_ID"
-          echo "APP_OBJECT_ID=$APP_OBJECT_ID"
+        # Check if deployment is enabled
+        if [ "$DEPLOY_ENABLED" = "true" ]; then
+          echo "DEPLOY_ENABLED is true"
 
-          SUBJECT="repo:${REPO_OWNER}/${REPO_NAME}:ref:${BRANCH_PATTERN}"
-          echo "Adding federated credential for: $SUBJECT"
-          az ad app federated-credential create --id "$APP_OBJECT_ID" --parameters "{\"name\": \"github-actions-${REPO_OWNER}-${REPO_NAME}\", \"issuer\": \"https://token.actions.githubusercontent.com\", \"subject\": \"${SUBJECT}\", \"description\": \"Federated credential for GitHub Actions\" }"
+          # Check for required secrets
+          if [ -n "${{ secrets.AZURE_CLIENT_ID }}" ] && [ -n "${{ secrets.AZURE_TENANT_ID }}" ] && [ -n "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]; then
+            echo "Azure OIDC secrets are configured"
+            CAN_DEPLOY="true"
+          else
+            echo "Azure OIDC secrets are missing"
+            exit 1
+          fi
+        else
+          echo "Deployment disabled by DEPLOY_ENABLED=false"
+        fi
 
-          az ad sp create --id "$CLIENT_ID" || true
-          SCOPE="/subscriptions/${SUBSCRIPTION_ID}"
-          az role assignment create --assignee "$CLIENT_ID" --role "Contributor" --scope "$SCOPE" || echo "Role assignment may have failed"
+        echo "can-deploy=$CAN_DEPLOY" >> $GITHUB_OUTPUT
+        echo "Deployment check: $CAN_DEPLOY"
+    
+    - name: Setup Azure CLI
+      if: steps.check-deploy.outputs.can-deploy == 'true'
+      run: |
+        curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
-          TENANT_ID=$(az account show --query tenantId -o tsv)
-          echo "Setup complete. Save these values as repo secrets: AZURE_CLIENT_ID=$CLIENT_ID, AZURE_TENANT_ID=$TENANT_ID, AZURE_SUBSCRIPTION_ID=${SUBSCRIPTION_ID}"
+        # Verify installation
+        az version
+
+    - name: Azure Login via OIDC
+      if: steps.check-deploy.outputs.can-deploy == 'true'
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Verify Azure access
+      if: steps.check-deploy.outputs.can-deploy == 'true'
+      run: |
+        az account show
+        az group list --query "[0].name" -o tsv
 
   deploy:
     needs: setup
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && env.DEPLOY_ENABLED == 'true' }}
+    if: needs.setup.outputs.can-deploy == 'true'
+
+    environment: production
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node + pnpm
-        uses: ./.github/actions/setup-node-pnpm
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      - name: Azure Login (OIDC)
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
 
-      - name: Install dependencies
-        run: pnpm install -w
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
 
-      - name: Build API
-        run: pnpm -w run build:api
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
 
-      - name: Deploy (placeholder)
-        env:
-          AZURE_WEBAPP_NAME: ${{ secrets.AZURE_WEBAPP_NAME }}
-        run: |
-          if [ -n "$AZURE_WEBAPP_NAME" ]; then
-            echo "Deploying to $AZURE_WEBAPP_NAME"
-            # cd apps/api && zip -r ../api.zip .
-            # az webapp deployment source config-zip --resource-group <RG> --name "$AZURE_WEBAPP_NAME" --src ../api.zip
-          else
-            echo "AZURE_WEBAPP_NAME not set; skipping deploy"
-          fi
+    - name: Build for production
+      run: |
+        pnpm build
+
+        # Verify build artifacts
+        if [ -d "dist/" ] || [ -d ".next/" ]; then
+          echo "Build artifacts found"
+        else
+          echo "No build artifacts found"
+          exit 1
+        fi
+
+    - name: Azure Login via OIDC
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Deploy to Azure
+      run: |
+        echo "Starting deployment to Azure Container Apps..."
+
+        if [ "$DEPLOY_ENABLED" = "true" ]; then
+          # Deploy to Azure Container Apps
+          az containerapp update \
+            --name econeura-api \
+            --resource-group econeura-rg \
+            --image econeura/api:latest
+        else
+          echo "Deployment skipped - DEPLOY_ENABLED is false"
+          exit 1
+        fi
+
+    - name: Deployment summary
+      run: |
+        echo "=== Deployment Summary ==="
+        echo "Status: Completed successfully"
+        echo "DEPLOY_ENABLED: $DEPLOY_ENABLED"
+        echo "Environment: production"

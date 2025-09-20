@@ -1,0 +1,34 @@
+import { Request, Response, NextFunction } from 'express';
+import { PredefinedMetrics } from '@econeura/shared/metrics';
+declare const metricsService: any;
+export declare function metricsMiddleware(req: Request, res: Response, next: NextFunction): void;
+export declare function trackAuthMetrics(req: Request, res: Response, next: NextFunction): void;
+export declare function trackDatabaseMetrics(query: string, duration: number, success: boolean): void;
+export declare function trackUserMetrics(action: string, organizationId?: string): void;
+export declare function trackContactMetrics(action: string, organizationId?: string): void;
+export declare function trackDealMetrics(action: string, organizationId?: string): void;
+export declare function trackOrderMetrics(action: string, organizationId?: string): void;
+export declare function trackAIMetrics(action: string, tokens?: number, cost?: number): void;
+export declare function trackSystemMetrics(): void;
+export declare function getMetricsData(req: Request, res: Response): Promise<void>;
+export declare function clearMetrics(req: Request, res: Response): Promise<void>;
+export declare function startSystemMetricsCollection(intervalMs?: number): void;
+export declare function stopSystemMetricsCollection(): void;
+export { metricsService, PredefinedMetrics };
+declare const _default: {
+    metricsMiddleware: typeof metricsMiddleware;
+    trackAuthMetrics: typeof trackAuthMetrics;
+    trackDatabaseMetrics: typeof trackDatabaseMetrics;
+    trackUserMetrics: typeof trackUserMetrics;
+    trackContactMetrics: typeof trackContactMetrics;
+    trackDealMetrics: typeof trackDealMetrics;
+    trackOrderMetrics: typeof trackOrderMetrics;
+    trackAIMetrics: typeof trackAIMetrics;
+    trackSystemMetrics: typeof trackSystemMetrics;
+    getMetricsData: typeof getMetricsData;
+    clearMetrics: typeof clearMetrics;
+    startSystemMetricsCollection: typeof startSystemMetricsCollection;
+    stopSystemMetricsCollection: typeof stopSystemMetricsCollection;
+};
+export default _default;
+//# sourceMappingURL=metrics.d.ts.map

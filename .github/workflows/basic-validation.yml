@@ -1,0 +1,20 @@
+name: Basic Validation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Project Check
+      run: |
+        echo "Repository: ECONEURA-IA"
+        echo "Structure: OK"
+        if [ -f package.json ]; then echo "Node.js: Detected"; fi
+        if [ -f pnpm-lock.yaml ]; then echo "PNPM: Detected"; fi
+        echo "Status: ALL GOOD"

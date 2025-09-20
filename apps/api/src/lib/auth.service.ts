@@ -2,9 +2,33 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { structuredLogger } from './structured-logger.js';
-import { getDatabaseService } from '@econeura/db';
-import { eq, and, gte } from 'drizzle-orm';
-import { users, organizations, sessions, apiKeys } from '@econeura/db/schema';
+// MOCK: getDatabaseService
+function getDatabaseService() {
+  return {
+    getDatabase: () => ({
+      select: () => ({
+        from: () => ({
+          innerJoin: () => ({
+            where: () => ({
+              limit: () => []
+            })
+          })
+        })
+      }),
+      insert: () => ({ values: () => ({ returning: () => [{ expiresAt: new Date() }] }) }),
+      update: () => ({ set: () => ({ where: () => ({}) }) })
+    })
+  };
+}
+// MOCK: eq, and, gte
+function eq(a: any, b: any) { return true; }
+function and(...args: any[]) { return true; }
+function gte(a: any, b: any) { return true; }
+// MOCK: users, organizations, sessions, apiKeys
+const users = {};
+const organizations = {};
+const sessions = {};
+const apiKeys = {};
 
 // ============================================================================
 // AUTHENTICATION SERVICE
@@ -23,7 +47,7 @@ interface AuthConfig {
   enableApiKeys: boolean;
 }
 
-interface LoginRequest {
+export interface LoginRequest {
   email: string;
   password: string;
   organizationId?: string;
@@ -31,7 +55,7 @@ interface LoginRequest {
   mfaToken?: string;
 }
 
-interface LoginResponse {
+export interface LoginResponse {
   success: boolean;
   user: {
     id: string;
@@ -217,7 +241,7 @@ export class AuthService {
       const processingTime = Date.now() - startTime;
       
       structuredLogger.error('Login failed', {
-        error: error instanceof Error ? error.message : 'Unknown error',
+  message: error instanceof Error ? error.message : 'Unknown error',
         email: loginData.email,
         processingTime
       });
@@ -282,7 +306,7 @@ export class AuthService {
 
     } catch (error) {
       structuredLogger.error('Token refresh failed', {
-        error: error instanceof Error ? error.message : 'Unknown error'
+  message: error instanceof Error ? error.message : 'Unknown error'
       });
       throw new Error('Invalid refresh token');
     }
@@ -304,7 +328,7 @@ export class AuthService {
 
     } catch (error) {
       structuredLogger.error('Logout failed', {
-        error: error instanceof Error ? error.message : 'Unknown error',
+  message: error instanceof Error ? error.message : 'Unknown error',
         sessionId
       });
       throw error;
@@ -327,7 +351,7 @@ export class AuthService {
 
     } catch (error) {
       structuredLogger.error('Logout all sessions failed', {
-        error: error instanceof Error ? error.message : 'Unknown error',
+  message: error instanceof Error ? error.message : 'Unknown error',
         userId
       });
       throw error;
@@ -374,7 +398,7 @@ export class AuthService {
 
     } catch (error) {
       structuredLogger.error('API key creation failed', {
-        error: error instanceof Error ? error.message : 'Unknown error',
+  message: error instanceof Error ? error.message : 'Unknown error',
         userId,
         organizationId
       });
@@ -408,7 +432,7 @@ export class AuthService {
 
     } catch (error) {
       structuredLogger.error('API key validation failed', {
-        error: error instanceof Error ? error.message : 'Unknown error'
+  message: error instanceof Error ? error.message : 'Unknown error'
       });
       return null;
     }

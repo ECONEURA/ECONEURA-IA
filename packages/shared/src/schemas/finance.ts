@@ -1,146 +1,66 @@
 import { z } from 'zod';
+import { TimestampSchema, UUIDSchema } from './base';
 
-// Invoice schemas
 export const InvoiceSchema = z.object({
-  id: z.string().uuid().optional(),
-  invoiceNumber: z.string().min(1),
-  type: z.enum(['invoice', 'credit_note', 'debit_note']).default('invoice'),
-  status: z.enum(['draft', 'sent', 'viewed', 'paid', 'overdue', 'cancelled']).default('draft'),
-  entityType: z.enum(['company', 'contact']),
-  entityId: z.string().uuid(),
-  issueDate: z.string().datetime(),
-  dueDate: z.string().datetime(),
-  currency: z.string().default('EUR'),
-  subtotal: z.number().min(0),
-  taxAmount: z.number().min(0).default(0),
-  totalAmount: z.number().min(0),
-  paidAmount: z.number().min(0).default(0),
-  balanceDue: z.number().min(0),
-  taxRate: z.number().min(0).max(100).default(21),
-  notes: z.string().optional(),
-  terms: z.string().optional(),
-  lineItems: z.array(z.object({
-    id: z.string().uuid().optional(),
-    description: z.string().min(1),
-    quantity: z.number().positive(),
-    unitPrice: z.number().min(0),
-  total: z.number().min(0),
-    taxRate: z.number().min(0).max(100).default(21)
-  })),
-  orgId: z.string(),
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional()
+  id: UUIDSchema,
+  number: z.string().min(1).max(50),
+  date: TimestampSchema,
+  due_date: TimestampSchema,
+  company_id: UUIDSchema,
+  deal_id: UUIDSchema.optional(),
+  status: z.enum(['draft', 'sent', 'paid', 'overdue', 'cancelled']),
+  currency: z.string().length(3),
+  subtotal: z.number().positive(),
+  tax: z.number().nonnegative(),
+  total: z.number().positive(),
+  notes: z.string().max(1000).optional(),
+  created_at: TimestampSchema,
+  updated_at: TimestampSchema
 });
 
-export const CreateInvoiceSchema = InvoiceSchema.omit({ id: true, createdAt: true, updatedAt: true });
-export const UpdateInvoiceSchema = InvoiceSchema.partial().omit({ id: true, orgId: true });
-
-// Payment schemas
 export const PaymentSchema = z.object({
-  id: z.string().uuid().optional(),
-  invoiceId: z.string().uuid(),
+  id: UUIDSchema,
+  invoice_id: UUIDSchema,
   amount: z.number().positive(),
-  currency: z.string().default('EUR'),
-  method: z.enum(['cash', 'bank_transfer', 'credit_card', 'paypal', 'stripe', 'sepa']),
-  reference: z.string().optional(),
-  transactionId: z.string().optional(),
-  status: z.enum(['pending', 'completed', 'failed', 'cancelled']).default('pending'),
-  processedAt: z.string().datetime().optional(),
-  metadata: z.record(z.any()).optional(),
-  orgId: z.string(),
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional()
+  currency: z.string().length(3),
+  date: TimestampSchema,
+  method: z.enum(['bank_transfer', 'credit_card', 'cash', 'other']),
+  reference: z.string().max(100).optional(),
+  notes: z.string().max(500).optional(),
+  created_at: TimestampSchema
 });
 
-export const CreatePaymentSchema = PaymentSchema.omit({ id: true, createdAt: true, updatedAt: true });
-
-// SEPA schemas
-export const SEPATransactionSchema = z.object({
-  id: z.string().optional(),
-  messageId: z.string().optional(),
-  accountId: z.string(),
-  amount: z.number(),
-  currency: z.string().default('EUR'),
-  valueDate: z.string().datetime(),
-  bookingDate: z.string().datetime().optional(),
-  creditorName: z.string().optional(),
-  creditorIBAN: z.string().optional(),
-  debtorName: z.string().optional(),
-  debtorIBAN: z.string().optional(),
-  remittanceInfo: z.string().optional(),
-  endToEndId: z.string().optional(),
-  mandateId: z.string().optional(),
-  creditorId: z.string().optional(),
-  reasonCode: z.string().optional(),
-  status: z.enum(['pending', 'processed', 'rejected', 'returned']).default('pending'),
-  orgId: z.string(),
-  createdAt: z.string().datetime().optional()
-});
-
-export const SEPAUploadResultSchema = z.object({
-  fileId: z.string(),
-  fileName: z.string(),
-  format: z.enum(['CAMT', 'MT940']),
-  transactionsCount: z.number().min(0),
-  processedCount: z.number().min(0),
-  errorsCount: z.number().min(0),
-  status: z.enum(['processing', 'completed', 'failed']),
-  errors: z.array(z.string()).default([]),
-  createdAt: z.string().datetime(),
-  transactions: z.array(SEPATransactionSchema).optional()
-});
-
-// Budget schemas (enhanced)
-export const BudgetSchema = z.object({
-  id: z.string().uuid().optional(),
-  organizationId: z.string(),
-  name: z.string().min(1),
-  description: z.string().optional(),
+export const ExpenseSchema = z.object({
+  id: UUIDSchema,
+  date: TimestampSchema,
+  category: z.string().max(100),
+  description: z.string().max(500),
   amount: z.number().positive(),
-  currency: z.string().default('EUR'),
-  period: z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'yearly']).default('monthly'),
-  startDate: z.string().datetime(),
-  endDate: z.string().datetime().optional(),
-  categories: z.array(z.string()).default([]),
-  alertThreshold: z.number().min(0).max(100).default(80),
-  criticalThreshold: z.number().min(0).max(100).default(95),
-  isActive: z.boolean().default(true),
-  notifications: z.object({
-    email: z.boolean().default(true),
-    sms: z.boolean().default(false),
-    teams: z.boolean().default(true),
-    slack: z.boolean().default(false)
-  }).default({}),
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional()
+  currency: z.string().length(3),
+  supplier_id: UUIDSchema.optional(),
+  reference: z.string().max(100).optional(),
+  created_at: TimestampSchema,
+  updated_at: TimestampSchema
 });
 
-export const CreateBudgetSchema = BudgetSchema.omit({ id: true, createdAt: true, updatedAt: true });
-export const UpdateBudgetSchema = BudgetSchema.partial().omit({ id: true, organizationId: true });
+// Input schemas
+export const CreateInvoiceSchema = InvoiceSchema.omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
 
-// Export types
-export type Company = z.infer<typeof CompanySchema>;
-export type CreateCompany = z.infer<typeof CreateCompanySchema>;
-export type UpdateCompany = z.infer<typeof UpdateCompanySchema>;
+export const UpdateInvoiceSchema = CreateInvoiceSchema.partial();
 
-export type Contact = z.infer<typeof ContactSchema>;
-export type CreateContact = z.infer<typeof CreateContactSchema>;
-export type UpdateContact = z.infer<typeof UpdateContactSchema>;
+export const CreatePaymentSchema = PaymentSchema.omit({
+  id: true,
+  created_at: true
+});
 
-export type Deal = z.infer<typeof DealSchema>;
-export type CreateDeal = z.infer<typeof CreateDealSchema>;
-export type UpdateDeal = z.infer<typeof UpdateDealSchema>;
+export const CreateExpenseSchema = ExpenseSchema.omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
 
-export type Invoice = z.infer<typeof InvoiceSchema>;
-export type CreateInvoice = z.infer<typeof CreateInvoiceSchema>;
-export type UpdateInvoice = z.infer<typeof UpdateInvoiceSchema>;
-
-export type Payment = z.infer<typeof PaymentSchema>;
-export type CreatePayment = z.infer<typeof CreatePaymentSchema>;
-
-export type SEPATransaction = z.infer<typeof SEPATransactionSchema>;
-export type SEPAUploadResult = z.infer<typeof SEPAUploadResultSchema>;
-
-export type Budget = z.infer<typeof BudgetSchema>;
-export type CreateBudget = z.infer<typeof CreateBudgetSchema>;
-export type UpdateBudget = z.infer<typeof UpdateBudgetSchema>;
+export const UpdateExpenseSchema = CreateExpenseSchema.partial();

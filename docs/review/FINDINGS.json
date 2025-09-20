@@ -1,9 +1,0 @@
-{
-  "coverage": "No disponible",
-  "eslint": {"errors": 61, "warnings": 117},
-  "dup_clusters": "No disponible",
-  "dup_loc": "No disponible",
-  "workflows_sin_gating": [".github/workflows/ci-cd-advanced.yml", ".github/workflows/ci.yml", ".github/workflows/deploy.yml", ".github/workflows/workers-ci.yml"],
-  "secrets_ref": "No disponible",
-  "audit_alerts": "No disponible"
-}

@@ -7,15 +7,15 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
-    "lint": "eslint src/**/*.ts",
+    "lint": "eslint \"src/**/*.ts\"",
     "typecheck": "tsc --noEmit",
     "test": "vitest --run",
     "test:unit": "vitest --run --reporter verbose",
+    "test:e2e": "vitest --run --config vitest.e2e.config.ts",
     "test:watch": "vitest",
     "test:coverage": "vitest --run --coverage",
     "start": "node dist/index.js",
-    "clean": "rm -rf dist",
-    "lint": "eslint \"src/**/*.ts\""
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@azure/openai": "^2.0.0",

@@ -3178,41 +3178,30 @@ app.use("*", (req, res) => {
 });
 
 // Iniciar servidor (evitar durante tests)
-if (process.env.NODE_ENV !== 'test') app.listen(PORT, async () => {
-  logger.info(`API Express server running on port ${PORT}`);
-  console.log(`🚀 API Express server running on port ${PORT}`);
-  console.log(`📊 Metrics available at http://localhost:${PORT}/metrics`);
-  console.log(`🔍 Health check at http://localhost:${PORT}/health/live`);
-  console.log(`⚡ Rate limiting enabled with intelligent strategies`);
-  console.log(`🚨 Alert system integrated and monitoring`);
-  console.log(`💾 Cache system initialized with AI and Search caches`);
-  console.log(`💰 FinOps system enabled with cost tracking and budget management`);
-  console.log(`🔒 Row Level Security (RLS) enabled with multi-tenant isolation`);
-  console.log(`🌐 API Gateway enabled with intelligent routing and load balancing`);
-  console.log(`📊 Event Sourcing and CQRS system enabled with aggregates and projections`);
-  console.log(`🔗 Microservices system enabled with service mesh and discovery`);
-  console.log(`⚙️ Configuration system enabled with feature flags and environment management`);
-  console.log(`🔄 Workflow system enabled with BPMN and state machines`);
-  console.log(`🔐 Advanced Security system enabled with MFA, RBAC, and threat detection`);
-
-  // Inicializar warmup del caché
-  try {
-    await cacheManager.warmupAll();
-    console.log(`🔥 Cache warmup completed successfully`);
-  } catch (error) {
-    console.log(`⚠️ Cache warmup failed: ${error}`);
-  }
-});
-
-// Manejo de señales de terminación
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM received, shutting down gracefully');
-  process.exit(0);
-});
-
-process.on('SIGINT', () => {
-  logger.info('SIGINT received, shutting down gracefully');
-  process.exit(0);
-});
+if (process.env.NODE_ENV !== 'test') {
+  const server = app.listen(PORT, () => {
+    logger.info(`API Express server running on port ${PORT}`);
+    console.log(`🚀 API Express server running on port ${PORT}`);
+    console.log(`📊 Metrics available at http://localhost:${PORT}/metrics`);
+    console.log(`🔍 Health check at http://localhost:${PORT}/health/live`);
+    console.log(`⚡ Rate limiting enabled with intelligent strategies`);
+    console.log(`🚨 Alert system integrated and monitoring`);
+    console.log(`💾 Cache system initialized with AI and Search caches`);
+    console.log(`💰 FinOps system enabled with cost tracking and budget management`);
+    console.log(`🔒 Row Level Security (RLS) enabled with multi-tenant isolation`);
+    console.log(`🌐 API Gateway enabled with intelligent routing and load balancing`);
+    console.log(`📊 Event Sourcing and CQRS system enabled with aggregates and projections`);
+    console.log(`🔗 Microservices system enabled with service mesh and discovery`);
+    console.log(`⚙️ Configuration system enabled with feature flags and environment management`);
+    console.log(`🔄 Workflow system enabled with BPMN and state machines`);
+    console.log(`🔐 Advanced Security system enabled with MFA, RBAC, and threat detection`);
+    console.log(`🔥 Server ready and listening on port ${PORT}`);
+  });
+  
+  server.on('error', (err) => {
+    console.error('❌ Server error:', err);
+    process.exit(1);
+  });
+}
 
 export default app;

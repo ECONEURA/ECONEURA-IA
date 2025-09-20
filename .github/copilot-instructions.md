@@ -1,54 +1,177 @@
-# Copilot instructions for ECONEURA-IA
+# ECONEURA-IA: Instrucciones para Agentes de IA
 
-Short goal: help AI coding agents make small, safe, and high-value changes in this monorepo without breaking builds or releases.
+## Arquitectura General
 
-1) Big picture
-- Monorepo layout: top-level `apps/` (api, web, workers), `packages/` (db, shared, sdk, etc.). Root orchestrates builds via `pnpm` workspaces. See `package.json` scripts.
-- `apps/api` is a lightweight TypeScript Express server (see `apps/api/src/index.ts` and `apps/api/src/routes/`). `packages/shared` contains shared types and monitoring utilities (`packages/shared/src/monitoring/*`).
-- Dataflow: API uses `@econeura/shared` types + `packages/db` Prisma client for DB access; AI calls go through `apps/api/src/services/ai/*` to Azure OpenAI.
+**ECONEURA-IA** es un ERP+CRM de nueva generación impulsado por agentes de IA. Convierte el organigrama en un centro de mando vivo que orquesta ventas, finanzas, operaciones y datos.
 
-2) Build/test/deploy workflows (how developers run things locally)
-- Install and bootstrap: `pnpm install` at repo root (uses pnpm v8+ workspaces).
-- Build everything: `pnpm build` (runs root scripts which call package builds).
-- Build only API: `pnpm build:api` or `pnpm --filter @econeura/api build`.
-- Dev: `pnpm dev` runs web+api concurrently (see `package.json` scripts). Use `pnpm dev:api` to run only API.
-- Tests: `pnpm test` (vitest) and typecheck via `pnpm typecheck`.
-- Lint: `pnpm lint` (root eslint config). Many packages rely on TypeScript path aliases; when editing, run typecheck after changes.
+### Estructura del Proyecto
+- **Monorepo con pnpm**: Gestión centralizada de dependencias
+- **apps/api**: Backend Express.js con TypeScript
+- **apps/web**: Frontend Next.js con TypeScript
+- **packages/shared**: Librerías compartidas y utilidades
 
-3) Project-specific conventions
-- TypeScript: strict configs across packages. Prefer existing shared `types` in `packages/shared/src/types/*` over ad-hoc interfaces.
-- Logging/monitoring: prefer `packages/shared/src/monitoring/logger.ts`, `metrics.ts`, `tracing.ts`. When adding metrics, follow `prom-client` conventions used in `apps/api/src/lib/metrics.ts`.
-- Services: `apps/*/src/services` hold external integrations. For AI, use `apps/api/src/services/ai/azure-openai.service.ts`.
-- Error handling: use `asyncHandler` wrappers in `apps/api/src/lib/errors.ts` and centralized error types in `packages/shared/src/core/errors`.
-- Do not create new top-level packages without updating `pnpm-workspace.yaml` and root `package.json` scripts.
+### Tecnologías Clave
+- **Backend**: Express.js + TypeScript + OpenAPI 3.0
+- **Frontend**: Next.js + TypeScript + Tailwind CSS
+- **Base de datos**: Prisma ORM
+- **Validación**: Zod schemas
+- **Autenticación**: JWT Bearer tokens
+- **Monitoreo**: Prometheus metrics + health checks
+- **Seguridad**: Helmet + rate limiting
 
-4) Integration points & external dependencies
-- Database: Prisma in `packages/db`; migrations via `pnpm db:migrate` (see root scripts).
-- Redis: configured via `config.REDIS_URL` from `packages/shared/src/config.ts`.
-- Azure OpenAI SDK: `@azure/openai` used in `apps/api`.
-- Observability: Application Insights may be referenced; prefer `packages/shared/src/monitoring` abstractions.
+## Patrones de Desarrollo
 
-5) Safety rules for agents
-- Always run TypeScript typecheck and the package build for the affected package(s) before committing.
-- Small PRs: change one package at a time when possible (API, shared, or web). Use `pnpm --filter <pkg> build` for fast feedback.
-- When updating shared types, search usages across the monorepo (`rg "<TypeName>"`) and update dependent packages.
-- Do not remove or rename public exports from `packages/shared` without coordinating with consumers (update imports accordingly).
-- For dependency changes, update root `pnpm-lock.yaml` by running `pnpm install` and commit the lockfile.
+### 1. Validación con Zod
+```typescript
+// En packages/shared/src/types.ts
+export type Company = z.infer<typeof CompanySchema>;
+export type CreateCompanyInput = z.infer<typeof CreateCompanySchema>;
+```
 
-6) Examples of code patterns
-- Health route: `apps/api/src/routes/health.ts` uses `asyncHandler` and `MetricsService` to record metrics.
-- Metrics service pattern: `apps/api/src/lib/metrics.ts` exposes `getMetrics()` returning `prom-client` output; follow this when adding endpoints.
-- Logger: `packages/shared/src/monitoring/logger.ts` implements a class `EconeuraLogger`—construct and call `logger.error('msg', { error })`.
+### 2. Clientes HTTP Estructurados
+```typescript
+// En packages/shared/src/clients/base-client.ts
+export class BaseClient {
+  protected async request<T>(
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+    path: string,
+    options: RequestOptions = {}
+  ): Promise<T> {
+    // Implementación con manejo de errores estructurado
+  }
+}
+```
 
-7) Files to inspect first for any change
-- `package.json` (root) — scripts & workspace setup
-- `pnpm-workspace.yaml` — monorepo filtering
-- `tsconfig.json` (root) and package-level tsconfigs
-- `apps/api/src/index.ts` and `apps/api/src/routes/**`
-- `packages/shared/src/monitoring/*` and `packages/shared/src/types/*`
+### 3. Manejo de Errores
+```typescript
+export interface ErrorResponse {
+  type: string;
+  title: string;
+  status: number;
+  detail: string;
+  instance: string;
+  traceId?: string;
+}
+```
 
-8) If uncertain, ask the developer
-- Which package to target for this change? (api, web, workers, shared)
-- Do you want a small single-package PR, or a coordinated multi-package refactor?
+### 4. Arquitectura de Rutas
+```
+apps/api/src/routes/
+├── ai.ts              # Endpoints de IA
+└── crm/
+    ├── companies.ts   # Gestión de empresas
+    ├── contacts.ts    # Gestión de contactos
+    ├── deals.ts       # Gestión de oportunidades
+    └── activities.ts  # Gestión de actividades
+```
 
-If this file is missing or incomplete, ask for feedback. Create PRs small and include `pnpm -w typecheck` results in the PR description.
+## Flujos de Trabajo
+
+### Desarrollo Local
+```bash
+# Verificar estado del proyecto
+pnpm typecheck
+pnpm test --run
+
+# Ejecutar API en desarrollo
+pnpm dev:api
+
+# Ejecutar web en desarrollo
+pnpm dev:web
+```
+
+### Commits y Git
+```bash
+# Patrón de commits
+git commit -m "feat: agregar funcionalidad X
+
+- Descripción detallada del cambio
+- Impacto en otros módulos
+- Verificaciones realizadas"
+```
+
+### Integración con Servicios Externos
+- **Microsoft 365**: Integración con Office 365
+- **Make**: Automatización de flujos
+- **WhatsApp**: Comunicación con clientes
+- **Modelos de IA**: Mistral/OpenAI locales y en nube
+
+## Convenciones del Proyecto
+
+### Nombres de Archivos
+- `*.service.ts`: Servicios de negocio
+- `*.client.ts`: Clientes HTTP
+- `*.schema.ts`: Esquemas Zod
+- `*.types.ts`: Definiciones de tipos TypeScript
+
+### Estructura de Paquetes
+```
+packages/shared/src/
+├── clients/           # Clientes HTTP
+├── schemas/           # Esquemas de validación
+├── validation/        # Utilidades de validación
+├── ai/               # Utilidades de IA
+├── metrics/          # Métricas y monitoreo
+└── types.ts          # Tipos principales
+```
+
+### Seguridad y Rendimiento
+- Rate limiting en todas las rutas públicas
+- Validación de entrada con Zod
+- Manejo de errores consistente
+- Métricas de rendimiento con Prometheus
+- Health checks para monitoreo
+
+## Áreas de Enfoque
+
+### 1. Integración con IA
+- Modelos locales vs nube
+- Costos de uso de IA
+- Análisis de sentimientos y voz
+- Insights automáticos
+
+### 2. CRM/ERP
+- Gestión de compañías y contactos
+- Pipeline de ventas (deals)
+- Actividades y seguimiento
+- Inventario y proveedores
+
+### 3. Métricas y KPIs
+- Monitoreo en tiempo real
+- Dashboards ejecutivos
+- Alertas automáticas
+
+## Comandos Útiles
+
+```bash
+# Verificar tipos
+pnpm typecheck
+
+# Ejecutar tests
+pnpm test --run
+
+# Generar documentación OpenAPI
+pnpm openapi:generate
+
+# Verificar linting
+pnpm lint
+
+# Build de producción
+pnpm build
+```
+
+## Consideraciones para Desarrollo
+
+- **TypeScript estricto**: Aprovechar tipos para prevenir errores
+- **Validación temprana**: Usar Zod en boundaries de entrada
+- **Manejo de errores consistente**: Seguir patrón ErrorResponse
+- **Monitoreo integrado**: Incluir métricas en nuevos endpoints
+- **Documentación OpenAPI**: Mantener specs actualizadas
+
+## Integraciones Externas
+
+- **Microsoft 365**: Sincronización de datos
+- **Make**: Automatización de procesos
+- **WhatsApp Business**: Comunicación con clientes
+- **Modelos de IA**: Mistral/OpenAI para análisis inteligente</content>
+<parameter name="filePath">/workspaces/ECONEURA-IA/.github/copilot-instructions.md
