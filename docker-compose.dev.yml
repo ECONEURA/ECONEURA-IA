@@ -24,15 +24,46 @@ services:
   redis:
     image: redis:7-alpine
     container_name: econeura-redis
+    command: redis-server --appendonly yes --requirepass econeura123
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # Redis Commander (Redis Web UI)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: econeura-redis-commander
+    environment:
+      REDIS_HOSTS: local:redis:6379:econeura123
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    profiles:
+      - tools
+
+  # pgAdmin (PostgreSQL Web UI)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: econeura-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@econeura.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    profiles:
+      - tools
 
   # API Service
   api:
@@ -45,7 +76,7 @@ services:
     environment:
       - NODE_ENV=development
       - DATABASE_URL=postgresql://econeura:econeura123@postgres:5432/econeura_dev
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://:econeura123@redis:6379
     depends_on:
       postgres:
         condition: service_healthy
@@ -75,3 +106,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  pgadmin_data:

@@ -1,4 +1,18 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-pnpm lint && pnpm typecheck && pnpm test
+echo "🚀 Running pre-push checks..."
+
+# Run linting
+echo "📝 Running ESLint..."
+pnpm lint
+
+# Run type checking
+echo "🔧 Running TypeScript type check..."
+pnpm typecheck
+
+# Run tests
+echo "🧪 Running tests..."
+pnpm test
+
+echo "✅ All pre-push checks passed! Ready to push."
