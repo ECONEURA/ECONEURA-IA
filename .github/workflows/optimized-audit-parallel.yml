@@ -1,0 +1,26 @@
+name: Optimized Audit Parallel
+on: [pull_request]
+jobs:
+  audit-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        task: [hmac, sbom, evidence]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Run audit task ${{ matrix.task }}
+        run: |
+          case "${{ matrix.task }}" in
+            hmac) ./scripts/validate_with_cache.sh audit/approval_signed.json ;;
+            sbom) command -v syft >/dev/null 2>&1 && syft dir:. -o json > audit/sbom_local.json || echo "syft not installed";;
+            evidence) ./scripts/automated_audit_pipeline.sh --non-destructive --type evidence || true ;;
+          esac
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-${{ matrix.task }}
+          path: audit/*

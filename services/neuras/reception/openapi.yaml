@@ -1,0 +1,22 @@
+openapi: "3.0.0"
+info:
+  title: "Neura reception API"
+  version: "0.1.0"
+paths:
+  /v1/task:
+    post:
+      summary: "Submit task to neura-reception"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                task_id: { type: string }
+                tenant_id: { type: string }
+                input: { type: object }
+              required: [task_id, tenant_id, input]
+      responses:
+        "200":
+          description: "accepted"

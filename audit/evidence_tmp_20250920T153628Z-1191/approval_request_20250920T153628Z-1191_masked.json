@@ -1,0 +1,7 @@
+{
+  "trace":"20250920T153628Z-1191",
+  "action":"promote_models_and_apply_infra",
+  "required":"HMAC or GPG signature by Security Lead",
+  "details":"Review audit/final_manifest_20250920T153628Z-1191_masked.json and evidence",
+  "timestamp":"2025-09-20T15:36:28+00:00"
+}

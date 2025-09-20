@@ -1,0 +1,7 @@
+{
+  "trace_id": "20250920T153706Z-5110",
+  "branch": "econeura/section1-implement/20250920T153706Z-5110",
+  "patch": "/workspaces/ECONEURA-IA/patches_20250920T153706Z-5110/0001-feat-section1-neuras-make-adapter-approval-artifact-.patch",
+  "evidence_meta": "/workspaces/ECONEURA-IA/audit/evidence_20250920T153706Z-5110.meta.json",
+  "note": "Review required: Security Lead must sign approval artifact (audit/approval_request_*.json) before any push/apply."
+}

@@ -1,0 +1,1 @@
+{"scenario_id":"scenario_3","make_webhook":"https://hook.make.example/scenario_3","description":"Template scenario 3","auth":"vault:make_token_3"}

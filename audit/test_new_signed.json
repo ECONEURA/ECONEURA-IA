@@ -1,0 +1,9 @@
+{
+  "trace_id": "20250920T154117Z-13586",
+  "action": "promote_models_and_apply_infra",
+  "created_at": "2025-09-20T15:41:17+00:00",
+  "note": "Security lead must sign HMAC/GPG",
+  "hmac": "4f27646369d133b734e732b66ad15c646ad2c0af48ad269c35ceeec3b80d8136",
+  "payload_b64": "ewogICJ0cmFjZV9pZCI6ICIyMDI1MDkyMFQxNTQxMTdaLTEzNTg2IiwKICAiYWN0aW9uIjogInByb21vdGVfbW9kZWxzX2FuZF9hcHBseV9pbmZyYSIsCiAgImNyZWF0ZWRfYXQiOiAiMjAyNS0wOS0yMFQxNTo0MToxNyswMDowMCIsCiAgIm5vdGUiOiAiU2VjdXJpdHkgbGVhZCBtdXN0IHNpZ24gSE1BQy9HUEciCn0K",
+  "signed_at": "2025-09-20T16:50:20Z"
+}

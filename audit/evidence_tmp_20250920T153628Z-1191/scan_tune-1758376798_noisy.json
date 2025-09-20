@@ -1,0 +1,14 @@
+{
+  "trace_id": "tune-1758376798",
+  "folder": "tests/econeura-test/noisy",
+  "findings": [
+    {
+      "file": "test.txt",
+      "type": "generic",
+      "confidence": "medium",
+      "line": 1,
+      "secret": "dummy_secret_123"
+    }
+  ],
+  "scan_time": "2025-09-20T13:59:58Z"
+}
