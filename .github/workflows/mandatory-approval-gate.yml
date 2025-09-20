@@ -1,0 +1,37 @@
+name: Mandatory Approval Gate
+on: [pull_request]
+permissions:
+  contents: read
+  actions: read
+  checks: write
+jobs:
+  check_artifact_and_validate:
+    runs-on: ubuntu-latest
+    outputs:
+      approval_valid: ${{ steps.validate.outputs.valid }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure audit artifact exists
+        id: ensure
+        run: |
+          if [ -f audit/approval_signed.json ]; then echo "found=true" > /tmp/artifact.txt; else echo "found=false" > /tmp/artifact.txt; fi
+          cat /tmp/artifact.txt
+      - name: Validate HMAC approval (fast)
+        id: validate
+        run: |
+          if [ "$(cat /tmp/artifact.txt | cut -d'=' -f2)" != "true" ]; then echo "::error::Missing audit/approval_signed.json"; echo "::set-output name=valid::false"; exit 1; fi
+          chmod +x scripts/vault/validate_hmac_approval.sh
+          ./scripts/vault/validate_hmac_approval.sh audit/approval_signed.json
+          echo "::set-output name=valid::true"
+        env:
+          VAULT_ADDR: ${{ secrets.VAULT_ADDR || '' }}
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN || '' }}
+  block_merge_if_invalid:
+    needs: check_artifact_and_validate
+    runs-on: ubuntu-latest
+    if: needs.check_artifact_and_validate.outputs.approval_valid != 'true'
+    steps:
+      - name: Fail protectively
+        run: |
+          echo "::error::Approval not valid; blocking PR."
+          exit 1

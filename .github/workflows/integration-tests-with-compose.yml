@@ -1,0 +1,26 @@
+name: Integration Tests with Compose
+on: [pull_request]
+jobs:
+  compose-tests:
+    runs-on: ubuntu-latest
+    services:
+      reception:
+        image: python:3.11-slim
+        ports:
+          - 8000:8000
+        options: >-
+          --health-cmd "curl -f http://localhost:8000/health || exit 1"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start minimal reception service
+        run: |
+          docker run -d --name reception -p 8000:8000 python:3.11-slim bash -lc "\
+            pip install fastapi uvicorn && \
+            python -c \"from fastapi import FastAPI; app=FastAPI(); @app.get('/health')\ndef h(): return {'ok':1}; import uvicorn; uvicorn.run(app, host='0.0.0.0', port=8000)\" &"
+      - name: Wait for health
+        run: |
+          for i in {1..20}; do curl -sSf http://localhost:8000/health && break || sleep 3; done
+      - name: Run tests
+        run: |
+          if [ -f pytest.ini ] || [ -d tests ]; then pytest -q; else echo "No pytest config found; skipping tests"; fi
