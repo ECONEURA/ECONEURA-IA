@@ -94,7 +94,7 @@ jobs:
     if: failure() && github.event_name == 'pull_request'
     steps:
     - name: Close PR on performance failure
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       with:
         script: |
           github.rest.pulls.update({
