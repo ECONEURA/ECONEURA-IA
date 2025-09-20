@@ -23,7 +23,19 @@
     "clean": "pwsh -File ./scripts/clean.ps1",
     "clean:all": "pnpm -r exec rm -rf dist node_modules/.cache",
     "install:all": "pnpm install --frozen-lockfile",
-    "bootstrap": "pwsh -File ./scripts/bootstrap-p0-ultra.ps1"
+    "bootstrap": "pwsh -File ./scripts/bootstrap-p0-ultra.ps1",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "vitest run -c tests/configs/vitest.integration.config.ts",
+    "test:performance": "vitest run -c vitest.performance.config.ts",
+    "test:ui": "vitest --ui",
+    "coverage:report": "open coverage/lcov-report/index.html",
+    "test:unit": "vitest run -c tests/configs/vitest.unit.config.ts",
+    "test:e2e": "vitest run -c tests/configs/vitest.e2e.config.ts",
+    "test:unit:coverage": "vitest run -c tests/configs/vitest.unit.config.ts --coverage",
+    "test:integration:coverage": "vitest run -c tests/configs/vitest.integration.config.ts --coverage",
+    "test:e2e:coverage": "vitest run -c tests/configs/vitest.e2e.config.ts --coverage"
   },
   "devDependencies": {
     "@apidevtools/swagger-parser": "^12.0.0",
