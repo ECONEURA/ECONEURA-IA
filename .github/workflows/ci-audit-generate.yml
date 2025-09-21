@@ -1,0 +1,38 @@
+name: CI Audit & Generate Score
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - main
+
+jobs:
+  audit:
+    name: Run audit and generate score
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Enable corepack (pnpm)
+        run: |
+corepack enable
+          corepack prepare pnpm@8.7.0 --activate
+
+      - name: Run CI audit script
+        run: |
+chmod +x ./scripts/ci_generate_score.sh
+          ./scripts/ci_generate_score.sh
+
+      - name: Upload audit artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-artifacts
+          path: |
+            artifacts/pnpm-audit.json
+            artifacts/score.json
