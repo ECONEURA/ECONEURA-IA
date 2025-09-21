@@ -75,10 +75,10 @@ jobs:
         ENVIRONMENT="${{ github.event.inputs.environment || 'staging' }}"
         SCENARIO="${{ github.event.inputs.test_scenario || 'smoke' }}"
         CUSTOM_URL="${{ github.event.inputs.custom_target_url }}"
-        
+
         echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
         echo "test_scenario=$SCENARIO" >> $GITHUB_OUTPUT
-        
+
         # Configure target URLs based on environment
         if [ -n "$CUSTOM_URL" ]; then
           echo "target_url=$CUSTOM_URL" >> $GITHUB_OUTPUT
@@ -93,7 +93,7 @@ jobs:
           echo "api_url=${{ secrets.STAGING_API_URL }}" >> $GITHUB_OUTPUT
           echo "web_url=${{ secrets.STAGING_WEB_URL }}" >> $GITHUB_OUTPUT
         fi
-        
+
         echo "🔧 Test Configuration:"
         echo "  Environment: $ENVIRONMENT"
         echo "  Scenario: $SCENARIO"
@@ -135,7 +135,7 @@ jobs:
         if: env.DEPLOY_ENABLED == 'true' || github.event.inputs.environment != 'production'
       run: |
         mkdir -p tests/load/k6-scripts
-        
+
         # Generate smoke test script
         cat > tests/load/k6-scripts/smoke-test.js << 'EOF'
 import http from 'k6/http';

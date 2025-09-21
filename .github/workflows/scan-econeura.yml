@@ -72,15 +72,15 @@ jobs:
       id: change-analysis
       run: |
         echo "📊 Analyzing file changes..."
-        
+
         CHANGED_FILES="${{ steps.file-changes.outputs.all_changed_files }}"
         CHANGED_COUNT=$(echo "$CHANGED_FILES" | wc -w)
-        
+
         # Calculate change complexity
         CRITICAL_FILES=$(echo "$CHANGED_FILES" | grep -c "\.env\|config\|security\|auth\|database" || echo "0")
         API_FILES=$(echo "$CHANGED_FILES" | grep -c "routes\|api\|controllers" || echo "0")
         BUSINESS_LOGIC=$(echo "$CHANGED_FILES" | grep -c "services\|business\|core" || echo "0")
-        
+
         echo "changed-count=$CHANGED_COUNT" >> $GITHUB_OUTPUT
         echo "critical-files=$CRITICAL_FILES" >> $GITHUB_OUTPUT
         echo "api-files=$API_FILES" >> $GITHUB_OUTPUT
@@ -90,26 +90,26 @@ jobs:
       id: risk-assessment
       run: |
         echo "🎯 Calculating risk score..."
-        
+
         CHANGED_COUNT=${{ steps.change-analysis.outputs.changed-count }}
         CRITICAL_FILES=${{ steps.change-analysis.outputs.critical-files }}
         API_FILES=${{ steps.change-analysis.outputs.api-files }}
         BUSINESS_LOGIC=${{ steps.change-analysis.outputs.business-logic }}
-        
+
         # Risk calculation algorithm
         BASE_RISK=1
         VOLUME_RISK=$((CHANGED_COUNT / 10))
         CRITICAL_RISK=$((CRITICAL_FILES * 3))
         API_RISK=$((API_FILES * 2))
         BUSINESS_RISK=$((BUSINESS_LOGIC * 1))
-        
+
         TOTAL_RISK=$((BASE_RISK + VOLUME_RISK + CRITICAL_RISK + API_RISK + BUSINESS_RISK))
-        
+
         # Cap at 10
         if [ $TOTAL_RISK -gt 10 ]; then
           TOTAL_RISK=10
         fi
-        
+
         echo "risk-score=$TOTAL_RISK" >> $GITHUB_OUTPUT
         echo "Risk assessment complete: $TOTAL_RISK/10"
 
@@ -117,11 +117,11 @@ jobs:
       id: target-selection
       run: |
         echo "🎯 Selecting scan targets..."
-        
+
         RISK_SCORE=${{ steps.risk-assessment.outputs.score }}
         SCAN_TYPE="${{ github.event.inputs.scan_type || 'full' }}"
         TARGET_PATHS="${{ github.event.inputs.target_paths }}"
-        
+
         if [ "$SCAN_TYPE" = "quick" ]; then
           TARGETS="apps/api/src,packages/shared/src"
         elif [ "$SCAN_TYPE" = "targeted" ] && [ -n "$TARGET_PATHS" ]; then
@@ -133,7 +133,7 @@ jobs:
         else
           TARGETS="apps/api/src/routes,packages/shared/src"
         fi
-        
+
         echo "targets=$TARGETS" >> $GITHUB_OUTPUT
         echo "Selected targets: $TARGETS"
 
@@ -194,10 +194,10 @@ jobs:
         if [ -f semgrep-results.json ]; then
           CRITICAL=$(jq '.results | map(select(.extra.severity == "ERROR")) | length' semgrep-results.json)
           HIGH=$(jq '.results | map(select(.extra.severity == "WARNING")) | length' semgrep-results.json)
-          
+
           echo "sast-critical=$CRITICAL" >> $GITHUB_OUTPUT
           echo "sast-high=$HIGH" >> $GITHUB_OUTPUT
-          
+
           if [ "$CRITICAL" -gt 0 ]; then
             echo "🚨 Critical SAST issues found: $CRITICAL"
             exit 1
@@ -225,18 +225,18 @@ jobs:
       if: matrix.scan-type == 'dependency'
       run: |
         echo "🔍 Scanning dependencies..."
-        
+
         # Run npm audit with detailed output
         pnpm audit --audit-level moderate --json > dependency-scan.json || true
-        
+
         if [ -f dependency-scan.json ]; then
           VULNERABILITIES=$(jq '.metadata.vulnerabilities // {}' dependency-scan.json)
           CRITICAL=$(echo "$VULNERABILITIES" | jq '.critical // 0')
           HIGH=$(echo "$VULNERABILITIES" | jq '.high // 0')
-          
+
           echo "dep-critical=$CRITICAL" >> $GITHUB_OUTPUT
           echo "dep-high=$HIGH" >> $GITHUB_OUTPUT
-          
+
           if [ "$CRITICAL" -gt 0 ]; then
             echo "🚨 Critical dependency vulnerabilities: $CRITICAL"
             exit 1
@@ -258,7 +258,7 @@ jobs:
       run: |
         SCAN_TYPE="${{ matrix.scan-type }}"
         echo "## 🔍 $SCAN_TYPE Scan Results" >> $GITHUB_STEP_SUMMARY
-        
+
         case $SCAN_TYPE in
           "sast")
             echo "- Critical Issues: ${{ steps.sast.outputs.sast-critical || 0 }}" >> $GITHUB_STEP_SUMMARY
@@ -275,7 +275,7 @@ jobs:
             echo "- Secrets scan completed" >> $GITHUB_STEP_SUMMARY
             ;;
         esac
-        
+
         echo "" >> $GITHUB_STEP_SUMMARY
 
   risk-analysis:
@@ -293,21 +293,21 @@ jobs:
       id: aggregate
       run: |
         echo "📊 Aggregating scan results..."
-        
+
         # This would aggregate results from all scan jobs
         # For now, we'll simulate with basic logic
         RISK_SCORE=${{ needs.intelligence-gathering.outputs.risk-score }}
-        
+
         # Calculate overall security score based on scan results
         # This is a simplified version - in production you'd aggregate actual results
         OVERALL_SCORE=$((100 - (RISK_SCORE * 10)))
-        
+
         if [ $OVERALL_SCORE -lt 0 ]; then
           OVERALL_SCORE=0
         fi
-        
+
         echo "overall-score=$OVERALL_SCORE" >> $GITHUB_OUTPUT
-        
+
         # Determine risk level
         if [ $OVERALL_SCORE -ge 90 ]; then
           RISK_LEVEL="LOW"
@@ -319,7 +319,7 @@ jobs:
           RISK_LEVEL="HIGH"
           STATUS="🚨"
         fi
-        
+
         echo "risk-level=$RISK_LEVEL" >> $GITHUB_OUTPUT
         echo "status=$STATUS" >> $GITHUB_OUTPUT
 
@@ -342,7 +342,7 @@ jobs:
         echo "- ✅ Secrets Detection" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Recommendations:" >> $GITHUB_STEP_SUMMARY
-        
+
         if [ "${{ steps.aggregate.outputs.risk-level }}" = "HIGH" ]; then
           echo "- 🚨 **URGENT:** Address critical security issues immediately" >> $GITHUB_STEP_SUMMARY
           echo "- 🔒 Implement additional security controls" >> $GITHUB_STEP_SUMMARY
@@ -364,7 +364,7 @@ jobs:
         script: |
           const riskScore = ${{ needs.intelligence-gathering.outputs.risk-score }};
           const securityScore = ${{ steps.aggregate.outputs.overall-score }};
-          
+
           await github.rest.issues.create({
             owner: context.repo.owner,
             repo: context.repo.repo,

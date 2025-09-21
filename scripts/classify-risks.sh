@@ -31,7 +31,7 @@ jq -c '.[]' "$IN" | nl -ba | while read -r n line; do
   if [ "$score" -ge 45 ] && [ "$score" -lt 80 ]; then severity="medium"; fi
   id="${n}-${file}"
   jq -n --arg id "$id" --arg file "$file" --arg raw "$raw" --arg type "$typ" --argjson score "$score" --arg severity "$severity" \
-    '{id:$id, file:$file, raw:$raw, score:$score, severity:$severity}' 
+    '{id:$id, file:$file, raw:$raw, score:$score, severity:$severity}'
 done | jq -s '.' > "$OUT"
 jq -n --arg time "$(date --iso-8601=seconds)" --arg out "$OUT" '{status:"ok", out:$out, time:$time}' > "${OUT}.meta"
 echo "$OUT"

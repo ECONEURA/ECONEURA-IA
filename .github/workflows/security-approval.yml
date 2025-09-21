@@ -66,19 +66,19 @@ jobs:
       run: |
         echo "🔍 Running security audit..."
         pnpm audit --audit-level moderate --json > audit-results.json || true
-        
+
         # Parse audit results
         if [ -f audit-results.json ]; then
           CRITICAL=$(jq '.metadata.vulnerabilities.critical // 0' audit-results.json)
           HIGH=$(jq '.metadata.vulnerabilities.high // 0' audit-results.json)
           MODERATE=$(jq '.metadata.vulnerabilities.moderate // 0' audit-results.json)
-          
+
           echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
           echo "high=$HIGH" >> $GITHUB_OUTPUT
           echo "moderate=$MODERATE" >> $GITHUB_OUTPUT
-          
+
           TOTAL_VULN=$((CRITICAL + HIGH + MODERATE))
-          
+
           if [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 2 ]; then
             echo "🚨 Critical security issues found!"
             echo "security-status=fail" >> $GITHUB_OUTPUT
@@ -135,11 +135,11 @@ jobs:
       run: |
         echo "🔍 Running ESLint..."
         pnpm lint --format json > lint-results.json || true
-        
+
         if [ -f lint-results.json ]; then
           ERROR_COUNT=$(jq '. | length' lint-results.json)
           echo "lint-errors=$ERROR_COUNT" >> $GITHUB_OUTPUT
-          
+
           if [ "$ERROR_COUNT" -gt 10 ]; then
             echo "🚨 Too many linting errors ($ERROR_COUNT)"
             echo "lint-status=fail" >> $GITHUB_OUTPUT
@@ -175,18 +175,18 @@ jobs:
       run: |
         echo "🧪 Running tests..."
         pnpm test --run --coverage --coverageReporters=json-summary || true
-        
+
         if [ -f coverage/coverage-summary.json ]; then
           LINES=$(jq '.total.lines.pct' coverage/coverage-summary.json)
           FUNCTIONS=$(jq '.total.functions.pct' coverage/coverage-summary.json)
           BRANCHES=$(jq '.total.branches.pct' coverage/coverage-summary.json)
-          
+
           echo "coverage-lines=$LINES" >> $GITHUB_OUTPUT
           echo "coverage-functions=$FUNCTIONS" >> $GITHUB_OUTPUT
           echo "coverage-branches=$BRANCHES" >> $GITHUB_OUTPUT
-          
+
           AVG_COVERAGE=$(echo "scale=2; ($LINES + $FUNCTIONS + $BRANCHES) / 3" | bc)
-          
+
           if (( $(echo "$AVG_COVERAGE < 80" | bc -l) )); then
             echo "🚨 Test coverage too low: $AVG_COVERAGE%"
             echo "test-status=fail" >> $GITHUB_OUTPUT
@@ -207,9 +207,9 @@ jobs:
         LINT_SCORE=$((steps.lint.outputs.lint-status == 'pass' ? 100 : steps.lint.outputs.lint-status == 'warning' ? 75 : 0))
         TYPE_SCORE=$((steps.typecheck.outputs.type-status == 'pass' ? 100 : 0))
         TEST_SCORE=$((steps.test.outputs.test-status == 'pass' ? 100 : 0))
-        
+
         TOTAL_SCORE=$(( (LINT_SCORE + TYPE_SCORE + TEST_SCORE) / 3 ))
-        
+
         echo "score=$TOTAL_SCORE" >> $GITHUB_OUTPUT
         echo "coverage=${{ steps.test.outputs.coverage-lines }}" >> $GITHUB_OUTPUT
         echo "lint=${{ steps.lint.outputs.lint-errors }}" >> $GITHUB_OUTPUT
@@ -230,23 +230,23 @@ jobs:
       id: hmac-check
       run: |
         echo "🔐 Validating webhook signature..."
-        
+
         # Get the webhook secret from repository secrets
         WEBHOOK_SECRET="${{ secrets.WEBHOOK_SECRET }}"
-        
+
         if [ -z "$WEBHOOK_SECRET" ]; then
           echo "⚠️ No webhook secret configured, skipping HMAC validation"
           echo "valid=true" >> $GITHUB_OUTPUT
           exit 0
         fi
-        
+
         # Calculate expected signature
         PAYLOAD=$(cat $GITHUB_EVENT_PATH)
         EXPECTED_SIGNATURE=$(echo -n "$PAYLOAD" | openssl sha256 -hmac "$WEBHOOK_SECRET" -binary | base64)
-        
+
         # Get actual signature from headers
         ACTUAL_SIGNATURE="${{ github.event.pull_request.head.sha }}"
-        
+
         if [ "$EXPECTED_SIGNATURE" = "$ACTUAL_SIGNATURE" ]; then
           echo "✅ HMAC signature valid"
           echo "valid=true" >> $GITHUB_OUTPUT
@@ -275,15 +275,15 @@ jobs:
         SECURITY_SCORE=${{ needs.security-scan.outputs.security-score }}
         QUALITY_SCORE=${{ needs.code-quality-gate.outputs.quality-score }}
         HMAC_VALID=${{ needs.hmac-validation.outputs.signature-valid }}
-        
+
         # Calculate weighted score
         OVERALL_SCORE=$(( (SECURITY_SCORE * 40 + QUALITY_SCORE * 60) / 100 ))
-        
+
         echo "security-score=$SECURITY_SCORE" >> $GITHUB_OUTPUT
         echo "quality-score=$QUALITY_SCORE" >> $GITHUB_OUTPUT
         echo "overall-score=$OVERALL_SCORE" >> $GITHUB_OUTPUT
         echo "hmac-valid=$HMAC_VALID" >> $GITHUB_OUTPUT
-        
+
         # Determine approval status
         if [ "$OVERALL_SCORE" -ge 90 ] && [ "$HMAC_VALID" = "true" ]; then
           echo "✅ All checks passed - Auto-approved"
@@ -302,19 +302,19 @@ jobs:
         script: |
           const status = '${{ steps.scoring.outputs.status }}';
           const score = '${{ steps.scoring.outputs.overall-score }}';
-          
+
           const statusMap = {
             'approved': 'success',
             'needs-review': 'failure',
             'blocked': 'failure'
           };
-          
+
           const descriptionMap = {
             'approved': `✅ Approved (Score: ${score}/100)`,
             'needs-review': `⚠️ Manual Review Required (Score: ${score}/100)`,
             'blocked': `🚨 Blocked (Score: ${score}/100)`
           };
-          
+
           await github.rest.repos.createCommitStatus({
             owner: context.repo.owner,
             repo: context.repo.repo,

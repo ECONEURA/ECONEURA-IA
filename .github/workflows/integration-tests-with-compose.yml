@@ -76,7 +76,7 @@ jobs:
       id: matrix
       run: |
         TEST_SUITE="${{ github.event.inputs.test_suite || 'all' }}"
-        
+
         case $TEST_SUITE in
           "all")
             TESTS='["api", "web", "e2e"]'
@@ -94,7 +94,7 @@ jobs:
             TESTS='["api", "web"]'
             ;;
         esac
-        
+
         echo "tests=$TESTS" >> $GITHUB_OUTPUT
         echo "Selected test suites: $TESTS"
 
@@ -102,7 +102,7 @@ jobs:
       id: config
       run: |
         ENVIRONMENT="${{ github.event.inputs.environment || 'test' }}"
-        
+
         case $ENVIRONMENT in
           "test")
             DB_URL="postgresql://test:test@localhost:5432/test_db"
@@ -123,7 +123,7 @@ jobs:
             WEB_PORT="3000"
             ;;
         esac
-        
+
         echo "db-url=$DB_URL" >> $GITHUB_OUTPUT
         echo "redis-url=$REDIS_URL" >> $GITHUB_OUTPUT
         echo "api-port=$API_PORT" >> $GITHUB_OUTPUT
@@ -227,7 +227,7 @@ jobs:
     - name: Setup Test Environment
       run: |
         echo "🔧 Setting up test environment..."
-        
+
         # Create test environment file
         cat > .env.test << EOF
         NODE_ENV=test
@@ -255,7 +255,7 @@ jobs:
         echo "🚀 Starting test services..."
 
         echo "🚀 Starting test services..."
-        
+
         # Start database migrations
         if [ "${{ env.DEPLOY_ENABLED }}" = "true" ]; then
           echo "⚠️ DEPLOY_ENABLED=true - running migrations against target environment"
@@ -268,7 +268,7 @@ jobs:
           echo "ℹ️ DEPLOY_ENABLED != true - skipping potentially destructive migrations in CI"
         fi
 
-        
+
         # Start API service in background
         docker run -d \
           --name econeura-api-test \
@@ -276,7 +276,7 @@ jobs:
           --env-file .env.test \
           econeura-api:test \
           pnpm start:test
-        
+
         # Wait for API to be ready
         echo "⏳ Waiting for API to be ready..."
         for i in {1..30}; do
@@ -286,7 +286,7 @@ jobs:
           fi
           sleep 2
         done
-        
+
         if [ $i -eq 30 ]; then
           echo "🚨 API failed to start"
           docker logs econeura-api-test
@@ -297,7 +297,7 @@ jobs:
       if: matrix.test-suite == 'api'
       run: |
         echo "🧪 Running API integration tests..."
-        
+
         # Run API tests against running service
         docker run --rm \
           --network host \
@@ -305,7 +305,7 @@ jobs:
           -e API_BASE_URL=http://localhost:${{ needs.setup-test-environment.outputs.api-port }} \
           econeura-api:test \
           pnpm test:integration
-        
+
         # Store test results
         mkdir -p test-results/api
         docker cp econeura-api-test:/app/test-results/. test-results/api/ || true
@@ -314,7 +314,7 @@ jobs:
       if: matrix.test-suite == 'web' || matrix.test-suite == 'e2e'
       run: |
         echo "🚀 Starting web service..."
-        
+
         # Start web service in background
         docker run -d \
           --name econeura-web-test \
@@ -323,7 +323,7 @@ jobs:
           -e API_URL=http://localhost:${{ needs.setup-test-environment.outputs.api-port }} \
           econeura-web:test \
           pnpm start:test
-        
+
         # Wait for web to be ready
         echo "⏳ Waiting for web to be ready..."
         for i in {1..30}; do
@@ -333,7 +333,7 @@ jobs:
           fi
           sleep 2
         done
-        
+
         if [ $i -eq 30 ]; then
           echo "🚨 Web failed to start"
           docker logs econeura-web-test
@@ -344,7 +344,7 @@ jobs:
       if: matrix.test-suite == 'web'
       run: |
         echo "🧪 Running web integration tests..."
-        
+
         # Run web tests
         docker run --rm \
           --network host \
@@ -352,7 +352,7 @@ jobs:
           -e CYPRESS_BASE_URL=http://localhost:${{ needs.setup-test-environment.outputs.web-port }} \
           econeura-web:test \
           pnpm test:integration
-        
+
         # Store test results
         mkdir -p test-results/web
         docker cp econeura-web-test:/app/test-results/. test-results/web/ || true
@@ -361,7 +361,7 @@ jobs:
       if: matrix.test-suite == 'e2e'
       run: |
         echo "🧪 Running end-to-end tests..."
-        
+
         # Run E2E tests with Cypress/Playwright
         docker run --rm \
           --network host \
@@ -370,7 +370,7 @@ jobs:
           -e API_BASE_URL=http://localhost:${{ needs.setup-test-environment.outputs.api-port }} \
           econeura-web:test \
           pnpm test:e2e
-        
+
         # Store test results
         mkdir -p test-results/e2e
         docker cp econeura-web-test:/app/test-results/. test-results/e2e/ || true
@@ -379,14 +379,14 @@ jobs:
       if: always()
       run: |
         echo "📊 Collecting test results..."
-        
+
         # Create test results summary
         mkdir -p test-results
-        
+
         # Collect logs from containers
         docker logs econeura-api-test > test-results/api.log 2>&1 || true
         docker logs econeura-web-test > test-results/web.log 2>&1 || true
-        
+
         # Generate test summary
         echo "## 🧪 Integration Test Results - ${{ matrix.test-suite }}" >> test-results/summary.md
         echo "" >> test-results/summary.md
@@ -394,7 +394,7 @@ jobs:
         echo "### Environment: ${{ needs.setup-test-environment.outputs.environment-config }}" >> test-results/summary.md
         echo "### Timestamp: $(date)" >> test-results/summary.md
         echo "" >> test-results/summary.md
-        
+
         # Check for test result files and summarize
         if [ -d "test-results/${{ matrix.test-suite }}" ]; then
           echo "### Test Files Generated:" >> test-results/summary.md
@@ -437,23 +437,23 @@ jobs:
       run: |
         echo "## 🔬 Integration Tests Summary" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        
+
         # Overall status
         if [ "${{ needs.run-integration-tests.result }}" = "success" ]; then
           echo "### Status: ✅ **ALL TESTS PASSED**" >> $GITHUB_STEP_SUMMARY
         else
           echo "### Status: 🚨 **SOME TESTS FAILED**" >> $GITHUB_STEP_SUMMARY
         fi
-        
+
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Test Suites Executed:" >> $GITHUB_STEP_SUMMARY
-        
+
         # List executed test suites
         TEST_SUITES="${{ needs.setup-test-environment.outputs.test-matrix }}"
         echo "$TEST_SUITES" | jq -r '.[]' | while read suite; do
           echo "- $suite" >> $GITHUB_STEP_SUMMARY
         done
-        
+
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Environment Configuration:" >> $GITHUB_STEP_SUMMARY
         echo "- **Database:** ${{ needs.setup-test-environment.outputs.db-url != '' && '✅ Configured' || '❌ Not configured' }}" >> $GITHUB_STEP_SUMMARY
@@ -466,7 +466,7 @@ jobs:
         echo "- Individual test suite results are available for download" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
-        
+
         if [ "${{ needs.run-integration-tests.result }}" = "success" ]; then
           echo "- ✅ **Integration tests passed** - Ready for next deployment stage" >> $GITHUB_STEP_SUMMARY
           echo "- Consider running performance tests for production readiness" >> $GITHUB_STEP_SUMMARY
