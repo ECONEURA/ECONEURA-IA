@@ -1,0 +1,189 @@
+name: OpenAPI Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'apps/api/src/openapi.ts'
+      - 'apps/api/openapi/**'
+      - 'packages/shared/src/schemas/**'
+      - 'docs/api/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'apps/api/src/openapi.ts'
+      - 'apps/api/openapi/**'
+      - 'packages/shared/src/schemas/**'
+      - 'docs/api/**'
+  workflow_dispatch:
+    inputs:
+      validation_level:
+        description: 'Validation strictness level'
+        required: false
+        default: 'strict'
+        type: choice
+        options:
+          - lenient
+          - standard
+          - strict
+      generate_docs:
+        description: 'Generate API documentation'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8'
+  OPENAPI_VERSION: '3.0.3'
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  validate-openapi-spec:
+    name: Validate OpenAPI Specification
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      spec-valid: ${{ steps.validate.outputs.valid }}
+      spec-version: ${{ steps.validate.outputs.version }}
+      endpoints-count: ${{ steps.validate.outputs.endpoints }}
+      schemas-count: ${{ steps.validate.outputs.schemas }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Generate OpenAPI Spec
+      id: generate
+      run: |
+        echo "📄 Generating OpenAPI specification..."
+        
+        # Generate the OpenAPI spec from the TypeScript definitions
+        pnpm openapi:generate
+        
+        # Check if spec was generated
+        if [ -f "apps/api/openapi.json" ]; then
+          echo "✅ OpenAPI spec generated successfully"
+          SPEC_FILE="apps/api/openapi.json"
+        elif [ -f "apps/api/openapi.yaml" ]; then
+          echo "✅ OpenAPI spec generated successfully (YAML)"
+          SPEC_FILE="apps/api/openapi.yaml"
+        else
+          echo "❌ OpenAPI spec generation failed"
+          exit 1
+        fi
+        
+        echo "spec-file=$SPEC_FILE" >> $GITHUB_OUTPUT
+
+    - name: Validate OpenAPI Spec Structure
+      id: validate
+      run: |
+        echo "🔍 Validating OpenAPI specification structure..."
+        
+        SPEC_FILE="${{ steps.generate.outputs.spec-file }}"
+        VALIDATION_LEVEL="${{ github.event.inputs.validation_level || 'strict' }}"
+        
+        # Install OpenAPI validator
+        npm install -g @apidevtools/swagger-parser
+        
+        # Basic structure validation
+        if [ ! -f "$SPEC_FILE" ]; then
+          echo "❌ OpenAPI spec file not found"
+          echo "valid=false" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+        
+        # Parse and validate the spec
+        if swagger-parser validate "$SPEC_FILE" --resolve; then
+          echo "✅ OpenAPI spec is structurally valid"
+          
+          # Extract metadata
+          VERSION=$(jq -r '.info.version // "unknown"' "$SPEC_FILE" 2>/dev/null || echo "unknown")
+          TITLE=$(jq -r '.info.title // "unknown"' "$SPEC_FILE" 2>/dev/null || echo "unknown")
+          ENDPOINTS=$(jq '.paths | length' "$SPEC_FILE" 2>/dev/null || echo "0")
+          SCHEMAS=$(jq '.components.schemas | length' "$SPEC_FILE" 2>/dev/null || echo "0")
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "title=$TITLE" >> $GITHUB_OUTPUT
+          echo "endpoints=$ENDPOINTS" >> $GITHUB_OUTPUT
+          echo "schemas=$SCHEMAS" >> $GITHUB_OUTPUT
+          echo "valid=true" >> $GITHUB_OUTPUT
+          
+          echo "📊 Spec Details:"
+          echo "  - Version: $VERSION"
+          echo "  - Title: $TITLE"
+          echo "  - Endpoints: $ENDPOINTS"
+          echo "  - Schemas: $SCHEMAS"
+          
+        else
+          echo "❌ OpenAPI spec validation failed"
+          echo "valid=false" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+
+    - name: Advanced OpenAPI Validation
+      if: steps.validate.outputs.spec-valid == 'true'
+      run: |
+        echo "🔬 Running advanced OpenAPI validation..."
+        
+        SPEC_FILE="${{ steps.generate.outputs.spec-file }}"
+        VALIDATION_LEVEL="${{ github.event.inputs.validation_level || 'strict' }}"
+        
+        # Install additional validation tools
+        npm install -g @stoplight/spectral
+        
+        # Create Spectral rules configuration
+        cat > .spectral.yml << EOF
+extends: ["spectral:oas", "spectral:asyncapi"]
+rules:
+  # Custom rules for ECONEURA-IA
+  operation-description:
+    description: "Operations must have a description"
+    given: "$.paths[*][*]"
+    then:
+      field: "description"
+      function: "truthy"
+  
+  schema-description:
+    description: "Schemas must have descriptions"
+    given: "$.components.schemas[*]"
+    then:
+      field: "description"
+      function: "truthy"
+  
+  security-schemes:
+    description: "API must define security schemes"
+    given: "$"
+    then:
+      field: "components.securitySchemes"
+      function: "truthy"
+  
+  consistent-response-codes:
+    description: "Operations should have consistent success/error response codes"
+    given: "$.paths[*][get,post,put,patch,delete]"
+    then:
+      field: "responses"
+      function: "schema"
+      functionOptions:
+        schema:
+          type: object
+          required: ["200", "400", "500"]

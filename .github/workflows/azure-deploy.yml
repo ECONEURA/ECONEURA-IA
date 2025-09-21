@@ -16,7 +16,8 @@ env:
 jobs:
   build-and-deploy-api:
     runs-on: ubuntu-latest
-    environment: production
+  environment: production
+  if: ${{ env.DEPLOY_ENABLED == 'true' }}
 
     steps:
     - name: Checkout code
@@ -58,8 +59,9 @@ jobs:
 
   build-and-deploy-web:
     runs-on: ubuntu-latest
-    environment: production
-    needs: build-and-deploy-api
+  environment: production
+  needs: build-and-deploy-api
+  if: ${{ env.DEPLOY_ENABLED == 'true' }}
 
     steps:
     - name: Checkout code

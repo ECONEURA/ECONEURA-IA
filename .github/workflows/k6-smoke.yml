@@ -1,194 +1,492 @@
-
-# K6 Smoke Tests - Performance Testing
-# TEMP CI SOFT MODE: push trigger eliminado, solo workflow_dispatch
-# REVERT_STRICT_CI: Restaurar trigger push y descomentar job close-pr-on-fail
-
-name: K6 Smoke Tests
+name: K6 Performance Testing
 
 on:
-  # push:  # TEMP CI SOFT MODE: comentado para no marcar rojo en cada commit
-  #   branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'k6/**'
+      - 'performance-tests/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'k6/**'
+      - 'performance-tests/**'
+  schedule:
+    - cron: '0 4 * * *'  # Daily at 4 AM UTC
   workflow_dispatch:
     inputs:
-      target_url:
-        description: 'Target URL for testing'
+      test_type:
+        description: 'Type of performance test'
         required: false
-        default: 'https://econeura-api-dev.azurewebsites.net'
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+        default: 'smoke'
+        type: choice
+        options:
+          - smoke
+          - load
+          - stress
+          - spike
+          - volume
+      environment:
+        description: 'Target environment'
+        required: false
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      duration:
+        description: 'Test duration in minutes'
+        required: false
+        default: '5'
+        type: string
 
 env:
   NODE_VERSION: '20'
+  PNPM_VERSION: '8'
+  K6_VERSION: '0.48.0'
+  TEST_TIMEOUT: 1800000  # 30 minutes
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+  issues: write
 
 jobs:
-  preflight:
+  setup-performance-environment:
+    name: Setup Performance Environment
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
-      should_run: ${{ steps.check.outputs.should_run }}
-    steps:
-      - name: Preflight check
-        id: check
-        run: |
-          echo "should_run=true" >> $GITHUB_OUTPUT
-          echo "Preflight checks passed"
+      test-config: ${{ steps.config.outputs.test }}
+      environment-url: ${{ steps.config.outputs.url }}
+      thresholds: ${{ steps.config.outputs.thresholds }}
 
-  k6_smoke:
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Configure Test Parameters
+      id: config
+      run: |
+        TEST_TYPE="${{ github.event.inputs.test_type || 'smoke' }}"
+        ENVIRONMENT="${{ github.event.inputs.environment || 'staging' }}"
+        DURATION="${{ github.event.inputs.duration || '5' }}"
+        
+        # Configure environment URLs
+        case $ENVIRONMENT in
+          "staging")
+            BASE_URL="${{ secrets.STAGING_API_URL }}"
+            WEB_URL="${{ secrets.STAGING_WEB_URL }}"
+            ;;
+          "production")
+            BASE_URL="${{ secrets.PROD_API_URL }}"
+            WEB_URL="${{ secrets.PROD_WEB_URL }}"
+            ;;
+          *)
+            BASE_URL="http://localhost:3001"
+            WEB_URL="http://localhost:3000"
+            ;;
+        esac
+        
+        # Configure test parameters based on type
+        case $TEST_TYPE in
+          "smoke")
+            VUS=1
+            DURATION="${DURATION}m"
+            THRESHOLDS='{"http_req_duration": "5000", "http_req_failed": "0.1"}'
+            ;;
+          "load")
+            VUS=10
+            DURATION="${DURATION}m"
+            THRESHOLDS='{"http_req_duration": "3000", "http_req_failed": "0.05"}'
+            ;;
+          "stress")
+            VUS=50
+            DURATION="${DURATION}m"
+            THRESHOLDS='{"http_req_duration": "5000", "http_req_failed": "0.1"}'
+            ;;
+          "spike")
+            VUS=100
+            DURATION="1m"
+            THRESHOLDS='{"http_req_duration": "10000", "http_req_failed": "0.2"}'
+            ;;
+          "volume")
+            VUS=20
+            DURATION="${DURATION}m"
+            THRESHOLDS='{"http_req_duration": "2000", "http_req_failed": "0.02"}'
+            ;;
+        esac
+        
+        echo "test={\"type\":\"$TEST_TYPE\",\"vus\":$VUS,\"duration\":\"$DURATION\",\"thresholds\":$THRESHOLDS}" >> $GITHUB_OUTPUT
+        echo "url={\"api\":\"$BASE_URL\",\"web\":\"$WEB_URL\"}" >> $GITHUB_OUTPUT
+        echo "thresholds=$THRESHOLDS" >> $GITHUB_OUTPUT
+
+  run-performance-tests:
+    name: Run ${{ fromJson(needs.setup-performance-environment.outputs.test-config).type }} Tests
     runs-on: ubuntu-latest
-    needs: preflight
-    if: needs.preflight.outputs.should_run == 'true'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Install k6
-        run: |
-          sudo gpg -k
-          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
-          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-          sudo apt-get update
-          sudo apt-get install k6
-
-      - name: Run K6 smoke tests
-        run: |
-          TARGET_URL="${{ github.event.inputs.target_url || 'https://econeura-api-dev.azurewebsites.net' }}"
-          echo "Testing: $TARGET_URL"
-          k6 run tests/k6/smoke.js --env TARGET_URL="$TARGET_URL"
-        continue-on-error: true  # TEMP CI SOFT MODE: toleramos fallos de performance
-
-      - name: Upload K6 results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: k6-results
-          path: .artifacts/
-          retention-days: 7
-
-  # close-pr-on-fail:  # TEMP CI SOFT MODE: job comentado
-  #   runs-on: ubuntu-latest
-  #   needs: k6_smoke
-  #   if: failure() && github.event_name == 'pull_request'
-  #   steps:
-  #     - name: Comment PR on performance failure
-  #       uses: actions/github-script@v7
-  #       with:
-  #         script: |
-  #           github.rest.issues.createComment({
-  #             issue_number: context.issue.number,
-  #             owner: context.repo.owner,
-  #             repo: context.repo.repo,
-  #             body: '⚠️ Performance tests failed. Please review and fix before merging.'
-  #           })
-
-name: k6-smoke
-
-on:
-  pull_request:
-    paths:
-      - 'apps/api/**'
-      - 'apps/web/**'
-      - 'packages/**'
-      - 'tests/performance/**'
-  workflow_dispatch:
-
-env:
-  DEPLOY_ENABLED: "false"
-
-jobs:
-  perf:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
+    needs: setup-performance-environment
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [api, web]
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v5
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup K6
+      run: |
+        echo "📦 Installing K6..."
+        curl -sSL https://github.com/grafana/k6/releases/download/v${{ env.K6_VERSION }}/k6-v${{ env.K6_VERSION }}-linux-amd64.tar.gz | tar -xz
+        sudo mv k6-v${{ env.K6_VERSION }}-linux-amd64/k6 /usr/local/bin/k6
+        k6 version
 
     - name: Setup Node.js
-      uses: actions/setup-node@v5
+      uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
 
     - name: Setup pnpm
       uses: pnpm/action-setup@v2
       with:
-        version: 8
+        version: ${{ env.PNPM_VERSION }}
 
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
 
-    - name: Start API
+    - name: Generate Test Data
       run: |
-        node scripts/ci/api-start.mjs
+        echo "📊 Generating test data..."
+        
+        # Create test data for performance tests
+        mkdir -p performance-tests/data
+        
+        # Generate sample users, companies, deals
+        node scripts/generate-test-data.js \
+          --users 100 \
+          --companies 50 \
+          --deals 200 \
+          --output performance-tests/data/test-data.json
 
-    - name: Wait for API
+    - name: Prepare K6 Test Scripts
       run: |
-        npx wait-on http://localhost:3001/health -t 180000
+        echo "🔧 Preparing K6 test scripts..."
+        
+        TEST_TYPE="${{ fromJson(needs.setup-performance-environment.outputs.test-config).type }}"
+        SERVICE="${{ matrix.service }}"
+        BASE_URL="${{ fromJson(needs.setup-performance-environment.outputs.environment-url)[SERVICE] }}"
+        VUS="${{ fromJson(needs.setup-performance-environment.outputs.test-config).vus }}"
+        DURATION="${{ fromJson(needs.setup-performance-environment.outputs.test-config).duration }}"
+        
+        # Create environment-specific test script
+        cat > performance-tests/${SERVICE}-${TEST_TYPE}.js << EOF
+        import http from 'k6/http';
+        import { check, sleep } from 'k6';
+        import { Rate, Trend } from 'k6/metrics';
+        
+        // Custom metrics
+        const errorRate = new Rate('errors');
+        const responseTime = new Trend('response_time');
+        
+        // Test configuration
+        export const options = {
+          vus: ${VUS},
+          duration: '${DURATION}',
+          
+          thresholds: {
+            http_req_duration: ['p(95)<${{ fromJson(needs.setup-performance-environment.outputs.test-config).thresholds.http_req_duration }}'],
+            http_req_failed: ['rate<${{ fromJson(needs.setup-performance-environment.outputs.test-config).thresholds.http_req_failed }}'],
+            errors: ['rate<0.1'],
+          },
+          
+          stages: [
+            { duration: '30s', target: Math.floor(${VUS} * 0.2) }, // Ramp up
+            { duration: '1m', target: ${VUS} }, // Sustained load
+            { duration: '30s', target: 0 }, // Ramp down
+          ],
+        };
+        
+        const BASE_URL = '${BASE_URL}';
+        
+        export default function () {
+          const params = {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer test-token',
+            },
+          };
+        
+          // API-specific tests
+          if ('${SERVICE}' === 'api') {
+            // Test health endpoint
+            const healthResponse = http.get(\`\${BASE_URL}/health\`, params);
+            check(healthResponse, {
+              'health status is 200': (r) => r.status === 200,
+              'health response time < 500ms': (r) => r.timings.duration < 500,
+            }) || errorRate.add(1);
+            responseTime.add(healthResponse.timings.duration);
+        
+            // Test companies endpoint
+            const companiesResponse = http.get(\`\${BASE_URL}/api/crm/companies\`, params);
+            check(companiesResponse, {
+              'companies status is 200': (r) => r.status === 200,
+              'companies response time < 1000ms': (r) => r.timings.duration < 1000,
+            }) || errorRate.add(1);
+            responseTime.add(companiesResponse.timings.duration);
+        
+            // Test deals endpoint
+            const dealsResponse = http.get(\`\${BASE_URL}/api/crm/deals\`, params);
+            check(dealsResponse, {
+              'deals status is 200': (r) => r.status === 200,
+              'deals response time < 1000ms': (r) => r.timings.duration < 1000,
+            }) || errorRate.add(1);
+            responseTime.add(dealsResponse.timings.duration);
+          }
+          
+          // Web-specific tests
+          if ('${SERVICE}' === 'web') {
+            // Test homepage
+            const homeResponse = http.get(BASE_URL, params);
+            check(homeResponse, {
+              'home status is 200': (r) => r.status === 200,
+              'home response time < 2000ms': (r) => r.timings.duration < 2000,
+            }) || errorRate.add(1);
+            responseTime.add(homeResponse.timings.duration);
+        
+            // Test dashboard (requires auth)
+            const dashboardResponse = http.get(\`\${BASE_URL}/dashboard\`, params);
+            check(dashboardResponse, {
+              'dashboard status is 200 or 302': (r) => [200, 302].includes(r.status),
+              'dashboard response time < 3000ms': (r) => r.timings.duration < 3000,
+            }) || errorRate.add(1);
+            responseTime.add(dashboardResponse.timings.duration);
+          }
+        
+          sleep(Math.random() * 2 + 1); // Random sleep between 1-3 seconds
+        }
+        
+        export function handleSummary(data) {
+          return {
+            'stdout': textSummary(data, { indent: ' ', enableColors: true }),
+            'performance-tests/results/${SERVICE}-${TEST_TYPE}.json': JSON.stringify(data, null, 2),
+          };
+        }
+        EOF
 
-    - name: Run k6 smoke tests
+    - name: Run K6 Performance Test
       run: |
-        # Install k6
-        sudo gpg -k
-        sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
-        echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-        sudo apt-get update
-        sudo apt-get install k6
-
-        # Run k6 smoke tests
-        k6 run tests/performance/smoke.js --summary-export=.artifacts/k6-summary.json
-
-        # Check p95 threshold
-        if [ -f .artifacts/k6-summary.json ]; then
-          P95=$(node -e "
-            const fs = require('fs');
-            try {
-              const summary = JSON.parse(fs.readFileSync('.artifacts/k6-summary.json', 'utf8'));
-              const p95 = summary.metrics.http_req_duration?.values?.['p(95)'] || 9999;
-              console.log(p95);
-            } catch(e) {
-              console.log('9999');
-            }
-          ")
-
-          echo "P95 latency: ${P95}ms"
-
-          if (( $(echo "$P95 > 2000" | bc -l) )); then
-            echo "::error ::P95 ${P95}ms exceeds 2000ms threshold"
-            exit 1
-          else
-            echo "::notice ::P95 ${P95}ms meets threshold"
-          fi
+        echo "🚀 Running K6 performance test..."
+        
+        TEST_TYPE="${{ fromJson(needs.setup-performance-environment.outputs.test-config).type }}"
+        SERVICE="${{ matrix.service }}"
+        
+        # Run the test with output to file
+        k6 run \
+          --out json=performance-tests/results/${SERVICE}-${TEST_TYPE}-detailed.json \
+          performance-tests/${SERVICE}-${TEST_TYPE}.js \
+          2>&1 | tee performance-tests/results/${SERVICE}-${TEST_TYPE}.log
+        
+        # Check exit code
+        if [ $? -eq 0 ]; then
+          echo "✅ Performance test passed"
+          echo "PASSED=true" >> $GITHUB_OUTPUT
         else
-          echo "::error ::No k6 summary file found"
-          exit 1
+          echo "🚨 Performance test failed"
+          echo "PASSED=false" >> $GITHUB_OUTPUT
         fi
 
-    - name: Upload k6 results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: k6-results
-        path: .artifacts/
-        if-no-files-found: ignore
+    - name: Analyze Performance Results
+      id: analysis
+      run: |
+        echo "📊 Analyzing performance results..."
+        
+        TEST_TYPE="${{ fromJson(needs.setup-performance-environment.outputs.test-config).type }}"
+        SERVICE="${{ matrix.service }}"
+        
+        RESULTS_FILE="performance-tests/results/${SERVICE}-${TEST_TYPE}.json"
+        
+        if [ -f "$RESULTS_FILE" ]; then
+          # Extract key metrics
+          AVG_RESPONSE_TIME=$(jq '.metrics.http_req_duration.avg // 0' "$RESULTS_FILE")
+          P95_RESPONSE_TIME=$(jq '.metrics.http_req_duration."p(95)" // 0' "$RESULTS_FILE")
+          ERROR_RATE=$(jq '.metrics.http_req_failed.rate // 0' "$RESULTS_FILE")
+          REQUESTS_COUNT=$(jq '.metrics.http_reqs.count // 0' "$RESULTS_FILE")
+          
+          echo "avg-response-time=$AVG_RESPONSE_TIME" >> $GITHUB_OUTPUT
+          echo "p95-response-time=$P95_RESPONSE_TIME" >> $GITHUB_OUTPUT
+          echo "error-rate=$ERROR_RATE" >> $GITHUB_OUTPUT
+          echo "requests-count=$REQUESTS_COUNT" >> $GITHUB_OUTPUT
+          
+          # Determine performance grade
+          if (( $(echo "$P95_RESPONSE_TIME < 1000" | bc -l) )) && (( $(echo "$ERROR_RATE < 0.05" | bc -l) )); then
+            PERFORMANCE_GRADE="A"
+          elif (( $(echo "$P95_RESPONSE_TIME < 3000" | bc -l) )) && (( $(echo "$ERROR_RATE < 0.1" | bc -l) )); then
+            PERFORMANCE_GRADE="B"
+          elif (( $(echo "$P95_RESPONSE_TIME < 5000" | bc -l) )) && (( $(echo "$ERROR_RATE < 0.2" | bc -l) )); then
+            PERFORMANCE_GRADE="C"
+          else
+            PERFORMANCE_GRADE="F"
+          fi
+          
+          echo "performance-grade=$PERFORMANCE_GRADE" >> $GITHUB_OUTPUT
+        else
+          echo "❌ No results file found"
+          echo "avg-response-time=0" >> $GITHUB_OUTPUT
+          echo "p95-response-time=0" >> $GITHUB_OUTPUT
+          echo "error-rate=1" >> $GITHUB_OUTPUT
+          echo "requests-count=0" >> $GITHUB_OUTPUT
+          echo "performance-grade=F" >> $GITHUB_OUTPUT
+        fi
 
-  close-pr-on-fail:
+    - name: Upload Performance Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: k6-results-${{ matrix.service }}-${{ fromJson(needs.setup-performance-environment.outputs.test-config).type }}
+        path: |
+          performance-tests/results/
+          performance-tests/${{ matrix.service }}-${{ fromJson(needs.setup-performance-environment.outputs.test-config).type }}.js
+        retention-days: 30
+
+  performance-report:
+    name: Performance Report
     runs-on: ubuntu-latest
-    needs: perf
-    if: failure() && github.event_name == 'pull_request'
+    timeout-minutes: 10
+    needs: [setup-performance-environment, run-performance-tests]
+    if: always() && !cancelled()
+
     steps:
-    - name: Close PR on performance failure
-      uses: actions/github-script@v8
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Download All Performance Results
+      uses: actions/download-artifact@v4
+      with:
+        path: all-performance-results
+
+    - name: Generate Performance Report
+      run: |
+        echo "## ⚡ K6 Performance Test Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        TEST_TYPE="${{ fromJson(needs.setup-performance-environment.outputs.test-config).type }}"
+        ENVIRONMENT="${{ github.event.inputs.environment || 'staging' }}"
+        
+        # Overall status
+        if [ "${{ needs.run-performance-tests.result }}" = "success" ]; then
+          echo "### Status: ✅ **PERFORMANCE TESTS PASSED**" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### Status: 🚨 **PERFORMANCE ISSUES DETECTED**" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Test Configuration:" >> $GITHUB_STEP_SUMMARY
+        echo "- **Test Type:** $TEST_TYPE" >> $GITHUB_STEP_SUMMARY
+        echo "- **Environment:** $ENVIRONMENT" >> $GITHUB_STEP_SUMMARY
+        echo "- **Virtual Users:** ${{ fromJson(needs.setup-performance-environment.outputs.test-config).vus }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Duration:** ${{ fromJson(needs.setup-performance-environment.outputs.test-config).duration }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "### Performance Results:" >> $GITHUB_STEP_SUMMARY
+        echo "| Service | Avg Response (ms) | P95 Response (ms) | Error Rate | Requests | Grade |" >> $GITHUB_STEP_SUMMARY
+        echo "|---------|-------------------|-------------------|------------|----------|--------|" >> $GITHUB_STEP_SUMMARY
+        
+        # API Results
+        if [ -d "all-performance-results/k6-results-api-$TEST_TYPE" ]; then
+          API_RESULTS="all-performance-results/k6-results-api-$TEST_TYPE/performance-tests/results/api-$TEST_TYPE.json"
+          if [ -f "$API_RESULTS" ]; then
+            API_AVG=$(jq '.metrics.http_req_duration.avg // 0' "$API_RESULTS" | xargs printf "%.0f")
+            API_P95=$(jq '.metrics.http_req_duration."p(95)" // 0' "$API_RESULTS" | xargs printf "%.0f")
+            API_ERRORS=$(jq '.metrics.http_req_failed.rate // 0' "$API_RESULTS" | xargs printf "%.3f")
+            API_REQUESTS=$(jq '.metrics.http_reqs.count // 0' "$API_RESULTS")
+            API_GRADE=$(jq -r '.metrics.http_req_duration."p(95)" // 10000' "$API_RESULTS" | awk '{if($1<1000){print"A"}else if($1<3000){print"B"}else if($1<5000){print"C"}else{print"F"}}')
+            echo "| API | $API_AVG | $API_P95 | $API_ERRORS | $API_REQUESTS | $API_GRADE |" >> $GITHUB_STEP_SUMMARY
+          fi
+        fi
+        
+        # Web Results
+        if [ -d "all-performance-results/k6-results-web-$TEST_TYPE" ]; then
+          WEB_RESULTS="all-performance-results/k6-results-web-$TEST_TYPE/performance-tests/results/web-$TEST_TYPE.json"
+          if [ -f "$WEB_RESULTS" ]; then
+            WEB_AVG=$(jq '.metrics.http_req_duration.avg // 0' "$WEB_RESULTS" | xargs printf "%.0f")
+            WEB_P95=$(jq '.metrics.http_req_duration."p(95)" // 0' "$WEB_RESULTS" | xargs printf "%.0f")
+            WEB_ERRORS=$(jq '.metrics.http_req_failed.rate // 0' "$WEB_RESULTS" | xargs printf "%.3f")
+            WEB_REQUESTS=$(jq '.metrics.http_reqs.count // 0' "$WEB_RESULTS")
+            WEB_GRADE=$(jq -r '.metrics.http_req_duration."p(95)" // 10000' "$WEB_RESULTS" | awk '{if($1<1000){print"A"}else if($1<3000){print"B"}else if($1<5000){print"C"}else{print"F"}}')
+            echo "| Web | $WEB_AVG | $WEB_P95 | $WEB_ERRORS | $WEB_REQUESTS | $WEB_GRADE |" >> $GITHUB_STEP_SUMMARY
+          fi
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Performance Thresholds:" >> $GITHUB_STEP_SUMMARY
+        THRESHOLDS="${{ needs.setup-performance-environment.outputs.thresholds }}"
+        echo "- **Response Time (P95):** < $(echo "$THRESHOLDS" | jq -r '.http_req_duration // "N/A"')ms" >> $GITHUB_STEP_SUMMARY
+        echo "- **Error Rate:** < $(echo "$THRESHOLDS" | jq -r '.http_req_failed // "N/A"')%" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "### Recommendations:" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ needs.run-performance-tests.result }}" = "success" ]; then
+          echo "- ✅ **Performance meets requirements**" >> $GITHUB_STEP_SUMMARY
+          echo "- Consider running stress tests for peak load scenarios" >> $GITHUB_STEP_SUMMARY
+          echo "- Monitor performance in production environment" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- 🚨 **Performance issues detected** - Review and optimize" >> $GITHUB_STEP_SUMMARY
+          echo "- Check server resources and database performance" >> $GITHUB_STEP_SUMMARY
+          echo "- Consider implementing caching or optimization strategies" >> $GITHUB_STEP_SUMMARY
+          echo "- Review error logs for specific failure points" >> $GITHUB_STEP_SUMMARY
+        fi
+
+    - name: Create Performance Issue
+      if: needs.run-performance-tests.result == 'failure'
+      uses: actions/github-script@v7
       with:
         script: |
-          github.rest.pulls.update({
+          const testType = '${{ fromJson(needs.setup-performance-environment.outputs.test-config).type }}';
+          const environment = '${{ github.event.inputs.environment || "staging" }}';
+          
+          await github.rest.issues.create({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            pull_number: context.issue.number,
-            state: 'closed'
-          })
+            title: `🚨 Performance Issues Detected - ${testType} test on ${environment}`,
+            body: `
+## Performance Test Failure Alert
 
+**Test Type:** ${testType}
+**Environment:** ${environment}
+**Virtual Users:** ${{ fromJson(needs.setup-performance-environment.outputs.test-config).vus }}
+**Duration:** ${{ fromJson(needs.setup-performance-environment.outputs.test-config).duration }}
+
+### Details
+- **Workflow Run:** ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}
+- **Triggered by:** ${context.eventName}
+- **Branch:** ${context.ref}
+
+### Immediate Actions Required
+- [ ] Review performance test results in workflow artifacts
+- [ ] Analyze bottleneck causes (database, API, frontend)
+- [ ] Implement performance optimizations
+- [ ] Re-run performance tests after fixes
+- [ ] Consider scaling infrastructure if needed
+
+### Performance Thresholds Exceeded
+- Response time P95 > ${{ fromJson(needs.setup-performance-environment.outputs.test-config).thresholds.http_req_duration }}ms
+- Error rate > ${{ fromJson(needs.setup-performance-environment.outputs.test-config).thresholds.http_req_failed }}%
+
+*This issue was automatically created by K6 Performance Testing*
+            `,
+            labels: ['performance', 'high-priority', 'auto-generated']
+          });
+
+    - name: Fail Pipeline on Performance Issues
+      if: needs.run-performance-tests.result == 'failure'
+      run: |
+        echo "🚨 Performance tests failed - blocking pipeline"
+        exit 1

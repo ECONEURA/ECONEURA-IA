@@ -1,0 +1,153 @@
+name: Code Coverage Analysis
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'tests/**'
+      - 'scripts/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'tests/**'
+      - 'scripts/**'
+  workflow_dispatch:
+    inputs:
+      minimum_coverage:
+        description: 'Minimum coverage percentage required'
+        required: false
+        default: '80'
+        type: string
+      fail_on_decline:
+        description: 'Fail if coverage decreases'
+        required: false
+        default: true
+        type: boolean
+      include_branches:
+        description: 'Include branch coverage analysis'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8'
+  COVERAGE_THRESHOLD: 80
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  setup-coverage-tools:
+    name: Setup Coverage Tools
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      min_coverage: ${{ steps.config.outputs.min_coverage }}
+      fail_on_decline: ${{ steps.config.outputs.fail_on_decline }}
+      include_branches: ${{ steps.config.outputs.include_branches }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Configure coverage settings
+      id: config
+      run: |
+MIN_COVERAGE="${{ github.event.inputs.minimum_coverage || env.COVERAGE_THRESHOLD }}"
+        FAIL_ON_DECLINE="${{ github.event.inputs.fail_on_decline }}"
+        INCLUDE_BRANCHES="${{ github.event.inputs.include_branches }}"
+        
+        echo "min_coverage=$MIN_COVERAGE" >> $GITHUB_OUTPUT
+        echo "fail_on_decline=$FAIL_ON_DECLINE" >> $GITHUB_OUTPUT
+        echo "include_branches=$INCLUDE_BRANCHES" >> $GITHUB_OUTPUT
+        
+        echo "📊 Coverage Configuration:"
+        echo "  Minimum Coverage: $MIN_COVERAGE%"
+        echo "  Fail on Decline: $FAIL_ON_DECLINE"
+        echo "  Include Branches: $INCLUDE_BRANCHES"
+
+  run-coverage-tests:
+    name: Run Coverage Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: setup-coverage-tools
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [api, web, shared]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Configure coverage tools
+      run: |
+# Create coverage configuration
+        mkdir -p coverage-config
+        
+        # Jest configuration for coverage
+        cat > coverage-config/jest.config.js << 'EOF'
+module.exports = {
+  collectCoverage: true,
+  collectCoverageFrom: [
+    'src/**/*.{ts,tsx,js,jsx}',
+    '!src/**/*.d.ts',
+    '!src/**/index.ts',
+    '!src/**/*.config.{ts,js}',
+    '!src/**/types.ts',
+    '!src/**/*.stories.{ts,tsx}',
+  ],
+  coverageDirectory: 'coverage',
+  coverageReporters: [
+    'text',
+    'lcov',
+    'json',
+    'html',
+    'cobertura'
+  ],
+  coverageThreshold: {
+    global: {
+      branches: ${{ needs.setup-coverage-tools.outputs.include_branches == 'true' && '80' || '0' }},
+      functions: 80,
+      lines: 80,
+      statements: 80
+    }
+  },
+  testEnvironment: 'node',
+  testMatch: [
+    '<rootDir>/src/**/__tests__/**/*.{ts,tsx,js,jsx}',
+    '<rootDir>/src/**/*.{test,spec}.{ts,tsx,js,jsx}'
+  ],
+  transform: {
+    '^.+\\.(ts|tsx)$': 'ts-jest',
+    '^.+\\.(js|jsx)$': 'babel-jest'
+  },
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
+  setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts']
+};

@@ -1,0 +1,485 @@
+name: License Compliance Check
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'apps/*/package.json'
+      - 'packages/*/package.json'
+      - 'LICENSE'
+  pull_request:
+    branches: [ main, develop ]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      strict_mode:
+        description: 'Enable strict license checking'
+        required: false
+        default: false
+        type: boolean
+      allowed_licenses:
+        description: 'Comma-separated list of allowed licenses'
+        required: false
+        default: 'MIT,ISC,BSD-2-Clause,BSD-3-Clause,Apache-2.0'
+        type: string
+      blocked_licenses:
+        description: 'Comma-separated list of blocked licenses'
+        required: false
+        default: 'GPL-2.0,GPL-3.0,LGPL-2.1,LGPL-3.0,MS-PL'
+        type: string
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8'
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  checks: write
+
+jobs:
+  license-scan:
+    name: License Compliance Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      compliance-passed: ${{ steps.compliance.outputs.passed }}
+      violations-found: ${{ steps.compliance.outputs.violations }}
+      allowed-count: ${{ steps.compliance.outputs.allowed }}
+      blocked-count: ${{ steps.compliance.outputs.blocked }}
+      unknown-count: ${{ steps.compliance.outputs.unknown }}
+      report-path: ${{ steps.compliance.outputs.report }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Install license checking tools
+      run: |
+        echo "📦 Installing license compliance tools..."
+        
+        npm install -g license-checker
+        npm install -g licensee
+        
+        # Install Python tools for additional license checking
+        pip install pip-licenses
+
+    - name: Scan project licenses
+      run: |
+        echo "🔍 Scanning project licenses..."
+        
+        mkdir -p license-reports
+        
+        # Configure license lists
+        ALLOWED_LICENSES="${{ github.event.inputs.allowed_licenses || 'MIT,ISC,BSD-2-Clause,BSD-3-Clause,Apache-2.0' }}"
+        BLOCKED_LICENSES="${{ github.event.inputs.blocked_licenses || 'GPL-2.0,GPL-3.0,LGPL-2.1,LGPL-3.0,MS-PL' }}"
+        STRICT_MODE="${{ github.event.inputs.strict_mode }}"
+        
+        echo "Allowed licenses: $ALLOWED_LICENSES"
+        echo "Blocked licenses: $BLOCKED_LICENSES"
+        echo "Strict mode: $STRICT_MODE"
+        
+        # Convert comma-separated lists to arrays
+        ALLOWED_ARRAY=$(echo "$ALLOWED_LICENSES" | tr ',' '\n' | jq -R . | jq -s .)
+        BLOCKED_ARRAY=$(echo "$BLOCKED_LICENSES" | tr ',' '\n' | jq -R . | jq -s .)
+        
+        # Scan licenses using license-checker
+        echo "📋 Running license-checker..."
+        license-checker --json --production --excludePrivatePackages > license-reports/license-checker.json
+        
+        # Scan licenses using pip-licenses for Python dependencies (if any)
+        if command -v pip-licenses > /dev/null 2>&1; then
+          pip-licenses --format=json > license-reports/pip-licenses.json 2>/dev/null || true
+        fi
+        
+        # Process license data
+        if [ -f "license-reports/license-checker.json" ]; then
+          echo "📊 Processing license data..."
+          
+          # Extract license information
+          LICENSE_DATA=$(jq 'to_entries | map({
+            name: .key,
+            version: .value.licenses,
+            license: (.value.licenses | if type == "string" then . else (. | join(", ")) end),
+            repository: .value.repository,
+            publisher: .value.publisher,
+            path: .value.path
+          })' license-reports/license-checker.json)
+          
+          # Categorize licenses
+          ALLOWED_COUNT=0
+          BLOCKED_COUNT=0
+          UNKNOWN_COUNT=0
+          VIOLATIONS=""
+          
+          # Process each dependency
+          echo "$LICENSE_DATA" | jq -c '.[]' | while read -r dep; do
+            NAME=$(echo "$dep" | jq -r '.name')
+            LICENSE=$(echo "$dep" | jq -r '.license')
+            VERSION=$(echo "$dep" | jq -r '.version')
+            
+            # Check if license is in allowed list
+            LICENSE_ALLOWED=false
+            for allowed in $(echo "$ALLOWED_LICENSES" | tr ',' ' '); do
+              if echo "$LICENSE" | grep -qi "$allowed"; then
+                LICENSE_ALLOWED=true
+                break
+              fi
+            done
+            
+            # Check if license is in blocked list
+            LICENSE_BLOCKED=false
+            for blocked in $(echo "$BLOCKED_LICENSES" | tr ',' ' '); do
+              if echo "$LICENSE" | grep -qi "$blocked"; then
+                LICENSE_BLOCKED=true
+                break
+              fi
+            done
+            
+            if [ "$LICENSE_BLOCKED" = true ]; then
+              BLOCKED_COUNT=$((BLOCKED_COUNT + 1))
+              VIOLATIONS="${VIOLATIONS}\n- 🚫 **BLOCKED**: $NAME@$VERSION - $LICENSE"
+            elif [ "$LICENSE_ALLOWED" = true ]; then
+              ALLOWED_COUNT=$((ALLOWED_COUNT + 1))
+            else
+              UNKNOWN_COUNT=$((UNKNOWN_COUNT + 1))
+              if [ "$STRICT_MODE" = "true" ]; then
+                VIOLATIONS="${VIOLATIONS}\n- ⚠️ **UNKNOWN**: $NAME@$VERSION - $LICENSE (strict mode)"
+              fi
+            fi
+          done
+          
+          # Determine compliance status
+          COMPLIANCE_PASSED=true
+          if [ "$BLOCKED_COUNT" -gt 0 ]; then
+            COMPLIANCE_PASSED=false
+          fi
+          
+          if [ "$STRICT_MODE" = "true" ] && [ "$UNKNOWN_COUNT" -gt 0 ]; then
+            COMPLIANCE_PASSED=false
+          fi
+          
+          # Create compliance report
+          cat > license-reports/compliance-report.json << EOF
+          {
+            "timestamp": "$(date -Iseconds)",
+            "commit": "${{ github.sha }}",
+            "branch": "${{ github.ref_name }}",
+            "strict_mode": $STRICT_MODE,
+            "allowed_licenses": $ALLOWED_ARRAY,
+            "blocked_licenses": $BLOCKED_ARRAY,
+            "summary": {
+              "total_dependencies": $(echo "$LICENSE_DATA" | jq length),
+              "allowed_count": $ALLOWED_COUNT,
+              "blocked_count": $BLOCKED_COUNT,
+              "unknown_count": $UNKNOWN_COUNT,
+              "compliance_passed": $COMPLIANCE_PASSED
+            },
+            "violations": $(echo -e "$VIOLATIONS" | jq -R -s 'split("\n") | map(select(. != ""))'),
+            "dependencies": $LICENSE_DATA
+          }
+          EOF
+          
+          echo "passed=$COMPLIANCE_PASSED" >> $GITHUB_OUTPUT
+          echo "violations=$VIOLATIONS" >> $GITHUB_OUTPUT
+          echo "allowed=$ALLOWED_COUNT" >> $GITHUB_OUTPUT
+          echo "blocked=$BLOCKED_COUNT" >> $GITHUB_OUTPUT
+          echo "unknown=$UNKNOWN_COUNT" >> $GITHUB_OUTPUT
+          echo "report=license-reports/compliance-report.json" >> $GITHUB_OUTPUT
+          
+          echo "📈 License Scan Results:"
+          echo "  Total dependencies: $(echo "$LICENSE_DATA" | jq length)"
+          echo "  Allowed: $ALLOWED_COUNT"
+          echo "  Blocked: $BLOCKED_COUNT"
+          echo "  Unknown: $UNKNOWN_COUNT"
+          echo "  Compliance passed: $COMPLIANCE_PASSED"
+          
+        else
+          echo "❌ License scan failed - no license data found"
+          echo "passed=false" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+
+    - name: Check project license
+      run: |
+        echo "📜 Checking project license..."
+        
+        if [ -f "LICENSE" ]; then
+          # Try to identify license type
+          LICENSE_TYPE=$(licensee detect LICENSE --json | jq -r '.licenses[0].spdx_id // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
+          
+          if [ "$LICENSE_TYPE" != "UNKNOWN" ]; then
+            echo "✅ Project license identified: $LICENSE_TYPE"
+            echo "project_license=$LICENSE_TYPE" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️  Could not identify project license type"
+            echo "project_license=UNKNOWN" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "⚠️  No LICENSE file found in project root"
+          echo "project_license=MISSING" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Upload license reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: license-compliance-reports
+        path: license-reports/
+        retention-days: 30
+
+  analyze-violations:
+    name: Analyze License Violations
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: license-scan
+    if: needs.license-scan.outputs.violations-found == 'true'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Download license reports
+      uses: actions/download-artifact@v4
+      with:
+        name: license-compliance-reports
+
+    - name: Analyze license violations
+      run: |
+        echo "🔍 Analyzing license violations..."
+        
+        REPORT_FILE="compliance-report.json"
+        
+        if [ -f "$REPORT_FILE" ]; then
+          VIOLATIONS=$(jq -r '.violations | length' "$REPORT_FILE")
+          BLOCKED_COUNT=$(jq -r '.summary.blocked_count' "$REPORT_FILE")
+          UNKNOWN_COUNT=$(jq -r '.summary.unknown_count' "$REPORT_FILE")
+          STRICT_MODE=$(jq -r '.strict_mode' "$REPORT_FILE")
+          
+          echo "violations_count=$VIOLATIONS" >> $GITHUB_OUTPUT
+          echo "blocked_count=$BLOCKED_COUNT" >> $GITHUB_OUTPUT
+          echo "unknown_count=$UNKNOWN_COUNT" >> $GITHUB_OUTPUT
+          
+          # Determine severity
+          if [ "$BLOCKED_COUNT" -gt 0 ]; then
+            echo "severity=critical" >> $GITHUB_OUTPUT
+          elif [ "$STRICT_MODE" = "true" ] && [ "$UNKNOWN_COUNT" -gt 0 ]; then
+            echo "severity=high" >> $GITHUB_OUTPUT
+          else
+            echo "severity=medium" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "📊 Violation Analysis:"
+          echo "  Total violations: $VIOLATIONS"
+          echo "  Blocked licenses: $BLOCKED_COUNT"
+          echo "  Unknown licenses: $UNKNOWN_COUNT"
+          echo "  Strict mode: $STRICT_MODE"
+        fi
+
+  generate-report:
+    name: Generate Compliance Report
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [license-scan, analyze-violations]
+    if: always()
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Download license reports
+      uses: actions/download-artifact@v4
+      with:
+        name: license-compliance-reports
+
+    - name: Generate compliance summary
+      run: |
+        echo "## 📜 License Compliance Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        COMPLIANCE_PASSED="${{ needs.license-scan.outputs.compliance-passed }}"
+        ALLOWED_COUNT="${{ needs.license-scan.outputs.allowed-count }}"
+        BLOCKED_COUNT="${{ needs.license-scan.outputs.blocked-count }}"
+        UNKNOWN_COUNT="${{ needs.license-scan.outputs.unknown-count }}"
+        
+        echo "### Compliance Status" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "$COMPLIANCE_PASSED" = "true" ]; then
+          echo "### ✅ License Compliance Passed" >> $GITHUB_STEP_SUMMARY
+          echo "All license checks have passed successfully." >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### ❌ License Compliance Failed" >> $GITHUB_STEP_SUMMARY
+          echo "License violations detected that require attention." >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### License Summary" >> $GITHUB_STEP_SUMMARY
+        echo "| Category | Count | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|----------|-------|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| ✅ Allowed | $ALLOWED_COUNT | OK |" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "$BLOCKED_COUNT" -gt 0 ]; then
+          echo "| 🚫 Blocked | $BLOCKED_COUNT | **VIOLATION** |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "| 🚫 Blocked | $BLOCKED_COUNT | OK |" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [ "$UNKNOWN_COUNT" -gt 0 ]; then
+          echo "| ⚠️ Unknown | $UNKNOWN_COUNT | **REVIEW NEEDED** |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "| ⚠️ Unknown | $UNKNOWN_COUNT | OK |" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Scan Details" >> $GITHUB_STEP_SUMMARY
+        echo "- **Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Strict Mode:** ${{ github.event.inputs.strict_mode || 'false' }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Allowed Licenses:** ${{ github.event.inputs.allowed_licenses || 'MIT,ISC,BSD-2-Clause,BSD-3-Clause,Apache-2.0' }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Blocked Licenses:** ${{ github.event.inputs.blocked_licenses || 'GPL-2.0,GPL-3.0,LGPL-2.1,LGPL-3.0,MS-PL' }}" >> $GITHUB_STEP_SUMMARY
+        
+        # Add violations details if any
+        if [ -f "compliance-report.json" ]; then
+          VIOLATIONS=$(jq -r '.violations | join("\n")' compliance-report.json 2>/dev/null || echo "")
+          
+          if [ -n "$VIOLATIONS" ] && [ "$VIOLATIONS" != "null" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### License Violations" >> $GITHUB_STEP_SUMMARY
+            echo "$VIOLATIONS" >> $GITHUB_STEP_SUMMARY
+          fi
+        fi
+        
+        if [ "$COMPLIANCE_PASSED" = "false" ]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Recommended Actions" >> $GITHUB_STEP_SUMMARY
+          echo "- Review blocked license dependencies and find alternatives" >> $GITHUB_STEP_SUMMARY
+          echo "- Contact legal team for unknown license clarifications" >> $GITHUB_STEP_SUMMARY
+          echo "- Update dependency versions to compliant alternatives" >> $GITHUB_STEP_SUMMARY
+          echo "- Consider forking dependencies if necessary" >> $GITHUB_STEP_SUMMARY
+          echo "- Update license allow/block lists if policies change" >> $GITHUB_STEP_SUMMARY
+        fi
+
+  create-compliance-issue:
+    name: Create Compliance Issue
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [license-scan, analyze-violations]
+    if: needs.license-scan.outputs.compliance-passed == 'false' && github.event_name != 'schedule'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Download license reports
+      uses: actions/download-artifact@v4
+      with:
+        name: license-compliance-reports
+
+    - name: Create license compliance issue
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          
+          // Read compliance report
+          const reportFile = 'compliance-report.json';
+          let report = {};
+          
+          if (fs.existsSync(reportFile)) {
+            report = JSON.parse(fs.readFileSync(reportFile, 'utf8'));
+          }
+          
+          const { summary, violations, allowed_licenses, blocked_licenses } = report;
+          const severity = '${{ needs.analyze-violations.outputs.severity }}';
+          
+          const title = `🚫 License Compliance Violation - ${summary.blocked_count} blocked, ${summary.unknown_count} unknown licenses`;
+          
+          const body = `
+## License Compliance Violation
+
+**Commit:** \`${context.sha.substring(0, 7)}\`
+**Branch:** \`${context.ref.replace('refs/heads/', '')}\`
+**Workflow Run:** ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}
+**Timestamp:** ${new Date().toISOString()}
+
+### Compliance Summary
+| Category | Count | Status |
+|----------|-------|--------|
+| ✅ Allowed Licenses | ${summary.allowed_count} | OK |
+| 🚫 Blocked Licenses | ${summary.blocked_count} | **VIOLATION** |
+| ⚠️ Unknown Licenses | ${summary.unknown_count} | **REVIEW NEEDED** |
+| **Total Dependencies** | **${summary.total_dependencies}** | - |
+
+### License Policy
+- **Allowed:** ${allowed_licenses.join(', ')}
+- **Blocked:** ${blocked_licenses.join(', ')}
+- **Strict Mode:** ${report.strict_mode}
+
+### Violations Detected
+${violations.map(v => `${v}`).join('\n')}
+
+### Required Actions
+- [ ] **URGENT:** Replace dependencies with blocked licenses
+- [ ] Review unknown licenses with legal team
+- [ ] Update dependencies to compliant versions
+- [ ] Test application after dependency changes
+- [ ] Update CI/CD pipeline if license policies change
+
+### Compliance Report
+The detailed license compliance report is available in the workflow artifacts, including:
+- Full dependency license breakdown
+- Repository URLs for each dependency
+- Publisher information
+- Installation paths
+
+---
+*This issue was automatically created by license compliance workflow*
+          `;
+          
+          await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title,
+            body,
+            labels: ['license', 'compliance', 'legal', 'urgent', severity]
+          });
+          
+          console.log('Created license compliance issue');
+
+  compliance-check:
+    name: Compliance Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: license-scan
+    if: always()
+
+    steps:
+    - name: Final compliance check
+      run: |
+        COMPLIANCE_PASSED="${{ needs.license-scan.outputs.compliance-passed }}"
+        
+        if [ "$COMPLIANCE_PASSED" = "true" ]; then
+          echo "✅ License compliance check passed"
+        else
+          echo "❌ License compliance check failed"
+          echo "   Review the compliance report for details"
+          exit 1
+        fi
