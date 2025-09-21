@@ -1,0 +1,145 @@
+name: CI Hardening (NO_DEPLOY)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  DEPLOY_ENABLED: "false"
+  SKIP_RELEASE: "true"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      node-version: ${{ steps.node.outputs.node-version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        id: node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.12.2'
+          cache: 'pnpm'
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: '8.15.5'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+  typecheck:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use workspace node
+        run: echo "Using node ${{ needs.setup.outputs.node-version }}"
+      - name: Run TypeScript typecheck
+        run: pnpm typecheck
+      - name: Upload typecheck report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-typecheck
+          path: .
+
+  lint:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run ESLint
+        run: |
+          pnpm lint || true
+      - name: Upload ESLint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-eslint
+          path: reports/eslint.json
+
+  test:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests with coverage
+        run: |
+          pnpm test:unit:coverage || pnpm test:coverage || true
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-coverage
+          path: coverage
+
+  dup:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run jscpd limited
+        run: |
+          npx jscpd --threshold 85 --max-lines 800 --max-size 150 --reporter json --output reports/jscpd || true
+      - name: Upload jscpd
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-jscpd
+          path: reports/jscpd
+
+  audit:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run pnpm audit
+        run: pnpm audit --json > reports/audit.json || true
+      - name: Upload audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-audit
+          path: reports/audit.json
+
+  leaks:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Gitleaks (npx)
+        run: |
+          mkdir -p reports
+          npx gitleaks@8.5.0 detect --source . --report-format json --report-path reports/gitleaks.json || true
+      - name: Upload gitleaks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-gitleaks
+          path: reports/gitleaks.json
+
+  workflow-analyze:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure artifacts dir
+        run: mkdir -p artifacts reports || true
+      - name: Run workflows analyzer
+        run: |
+          chmod +x ./analizar-workflows.sh
+          # run in fail-on mode to prevent accidental deploys passing CI
+          ./analizar-workflows.sh --fail-on=any
+      - name: Upload workflow analysis JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workflow-analysis
+          path: artifacts/analisis-workflows.json

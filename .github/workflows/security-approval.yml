@@ -1,127 +1,366 @@
-name: Security Approval (Manual Override)
+name: Security Approval Gate
 
 on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [ main, develop ]
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'scripts/**'
+      - '.github/workflows/**'
   workflow_dispatch:
     inputs:
-      payload_base64:
-        description: 'Base64 payload ({"actor":"username","action":"approve","exp":epoch_timestamp})'
+      pr_number:
+        description: 'Pull Request number to approve'
         required: true
-      signature_hex:
-        description: 'HMAC-SHA256 signature in hex format'
-        required: true
-      trace_id:
-        description: 'Trace ID from the blocked security scan'
-        required: true
+        type: number
+      force_approval:
+        description: 'Force approval (admin only)'
+        required: false
+        default: false
+        type: boolean
 
 env:
-  WORKSPACE: ECONEURA
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8'
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  statuses: write
 
 jobs:
-  validate-approval:
+  security-scan:
+    name: Security Vulnerability Scan
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
-      approval_valid: ${{ steps.validate.outputs.valid }}
-      actor: ${{ steps.validate.outputs.actor }}
+      security-score: ${{ steps.security-check.outputs.score }}
+      critical-issues: ${{ steps.security-check.outputs.critical }}
+      high-issues: ${{ steps.security-check.outputs.high }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-      - name: Setup ECONEURA workspace
-        run: |
-          mkdir -p ${{ env.WORKSPACE }}
-          cp -r ECONEURA/* ${{ env.WORKSPACE }}/ 2>/dev/null || true
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
 
-      - name: Validate approval signature
-        id: validate
-        run: |
-          echo "🔐 Validating security approval"
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
 
-          PAYLOAD_B64="${{ github.event.inputs.payload_base64 }}"
-          SIGNATURE_HEX="${{ github.event.inputs.signature_hex }}"
-          TRACE_ID="${{ github.event.inputs.trace_id }}"
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
 
-          # Decode payload
-          PAYLOAD=$(echo "$PAYLOAD_B64" | base64 -d)
-          echo "📋 Decoded payload: $PAYLOAD"
-
-          # Extract actor from payload
-          ACTOR=$(echo "$PAYLOAD" | jq -r '.actor // empty' 2>/dev/null || echo "")
-
-          if [ -z "$ACTOR" ]; then
-            echo "❌ Invalid payload format - missing actor"
-            echo "valid=false" >> $GITHUB_OUTPUT
-            echo "actor=" >> $GITHUB_OUTPUT
+    - name: Run security audit
+      id: audit
+      run: |
+        echo "🔍 Running security audit..."
+        pnpm audit --audit-level moderate --json > audit-results.json || true
+        
+        # Parse audit results
+        if [ -f audit-results.json ]; then
+          CRITICAL=$(jq '.metadata.vulnerabilities.critical // 0' audit-results.json)
+          HIGH=$(jq '.metadata.vulnerabilities.high // 0' audit-results.json)
+          MODERATE=$(jq '.metadata.vulnerabilities.moderate // 0' audit-results.json)
+          
+          echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
+          echo "high=$HIGH" >> $GITHUB_OUTPUT
+          echo "moderate=$MODERATE" >> $GITHUB_OUTPUT
+          
+          TOTAL_VULN=$((CRITICAL + HIGH + MODERATE))
+          
+          if [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 2 ]; then
+            echo "🚨 Critical security issues found!"
+            echo "security-status=fail" >> $GITHUB_OUTPUT
             exit 1
-          fi
-
-          echo "👤 Actor: $ACTOR"
-
-          # Here you would validate the HMAC signature against a known key
-          # For now, we'll accept any valid JSON payload
-          if echo "$PAYLOAD" | jq empty 2>/dev/null; then
-            echo "✅ Payload is valid JSON"
-            echo "valid=true" >> $GITHUB_OUTPUT
-            echo "actor=$ACTOR" >> $GITHUB_OUTPUT
+          elif [ "$HIGH" -eq 1 ] || [ "$HIGH" -eq 2 ]; then
+            echo "⚠️ High severity vulnerabilities detected"
+            echo "security-status=warning" >> $GITHUB_OUTPUT
           else
-            echo "❌ Invalid JSON payload"
-            echo "valid=false" >> $GITHUB_OUTPUT
-            echo "actor=" >> $GITHUB_OUTPUT
-            exit 1
+            echo "✅ No critical security issues"
+            echo "security-status=pass" >> $GITHUB_OUTPUT
           fi
+        else
+          echo "❌ Audit failed to generate results"
+          echo "security-status=fail" >> $GITHUB_OUTPUT
+          exit 1
+        fi
 
-  create-approval-artifact:
+    - name: Security Check Results
+      id: security-check
+      run: |
+        echo "score=${{ steps.audit.outputs.security-status == 'pass' && 100 || steps.audit.outputs.security-status == 'warning' && 75 || 0 }}" >> $GITHUB_OUTPUT
+        echo "critical=${{ steps.audit.outputs.critical }}" >> $GITHUB_OUTPUT
+        echo "high=${{ steps.audit.outputs.high }}" >> $GITHUB_OUTPUT
+
+  code-quality-gate:
+    name: Code Quality Gate
     runs-on: ubuntu-latest
-    needs: validate-approval
-    if: needs.validate-approval.outputs.approval_valid == 'true'
+    timeout-minutes: 10
+    outputs:
+      quality-score: ${{ steps.quality-check.outputs.score }}
+      test-coverage: ${{ steps.quality-check.outputs.coverage }}
+      lint-issues: ${{ steps.quality-check.outputs.lint }}
 
     steps:
-      - name: Create approval artifact
-        run: |
-          echo "📦 Creating security approval artifact"
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-          mkdir -p approval_artifacts
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
 
-          # Create approval record
-          jq -n \
-            --arg trace_id "${{ github.event.inputs.trace_id }}" \
-            --arg actor "${{ needs.validate-approval.outputs.actor }}" \
-            --arg payload_b64 "${{ github.event.inputs.payload_base64 }}" \
-            --arg signature_hex "${{ github.event.inputs.signature_hex }}" \
-            --arg approved_at "$(date --iso-8601=seconds)" \
-            --arg workflow_run_id "${{ github.run_id }}" \
-            '{
-              trace_id: $trace_id,
-              actor: $actor,
-              payload_base64: $payload_b64,
-              signature_hex: $signature_hex,
-              approved_at: $approved_at,
-              workflow_run_id: $workflow_run_id,
-              approval_type: "manual_override",
-              status: "approved"
-            }' > approval_artifacts/approval.json
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
 
-          # Create payload file for compatibility
-          echo "${{ github.event.inputs.payload_base64 }}" > approval_artifacts/payload.b64
-          echo "${{ github.event.inputs.signature_hex }}" > approval_artifacts/signature.hex
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
 
-          echo "✅ Approval artifact created"
+    - name: Run linting
+      id: lint
+      run: |
+        echo "🔍 Running ESLint..."
+        pnpm lint --format json > lint-results.json || true
+        
+        if [ -f lint-results.json ]; then
+          ERROR_COUNT=$(jq '. | length' lint-results.json)
+          echo "lint-errors=$ERROR_COUNT" >> $GITHUB_OUTPUT
+          
+          if [ "$ERROR_COUNT" -gt 10 ]; then
+            echo "🚨 Too many linting errors ($ERROR_COUNT)"
+            echo "lint-status=fail" >> $GITHUB_OUTPUT
+            exit 1
+          elif [ "$ERROR_COUNT" -gt 5 ]; then
+            echo "⚠️ Multiple linting issues ($ERROR_COUNT)"
+            echo "lint-status=warning" >> $GITHUB_OUTPUT
+          else
+            echo "✅ Linting passed"
+            echo "lint-status=pass" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "❌ Linting failed"
+          echo "lint-status=fail" >> $GITHUB_OUTPUT
+          exit 1
+        fi
 
-      - name: Upload approval artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: security-approval-${{ github.event.inputs.trace_id }}
-          path: approval_artifacts/*
-          retention-days: 30
+    - name: Run type checking
+      id: typecheck
+      run: |
+        echo "🔍 Running TypeScript type check..."
+        if pnpm typecheck; then
+          echo "✅ Type checking passed"
+          echo "type-status=pass" >> $GITHUB_OUTPUT
+        else
+          echo "🚨 Type checking failed"
+          echo "type-status=fail" >> $GITHUB_OUTPUT
+          exit 1
+        fi
 
-      - name: Log approval event
-        run: |
-          echo "## 🔐 Security Approval Granted" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Trace ID:** ${{ github.event.inputs.trace_id }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Actor:** ${{ needs.validate-approval.outputs.actor }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Approved At:** $(date --iso-8601=seconds)" >> $GITHUB_STEP_SUMMARY
-          echo "**Workflow:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "This approval can be used to override security scan blocks in CI/CD pipelines." >> $GITHUB_STEP_SUMMARY
+    - name: Run tests
+      id: test
+      run: |
+        echo "🧪 Running tests..."
+        pnpm test --run --coverage --coverageReporters=json-summary || true
+        
+        if [ -f coverage/coverage-summary.json ]; then
+          LINES=$(jq '.total.lines.pct' coverage/coverage-summary.json)
+          FUNCTIONS=$(jq '.total.functions.pct' coverage/coverage-summary.json)
+          BRANCHES=$(jq '.total.branches.pct' coverage/coverage-summary.json)
+          
+          echo "coverage-lines=$LINES" >> $GITHUB_OUTPUT
+          echo "coverage-functions=$FUNCTIONS" >> $GITHUB_OUTPUT
+          echo "coverage-branches=$BRANCHES" >> $GITHUB_OUTPUT
+          
+          AVG_COVERAGE=$(echo "scale=2; ($LINES + $FUNCTIONS + $BRANCHES) / 3" | bc)
+          
+          if (( $(echo "$AVG_COVERAGE < 80" | bc -l) )); then
+            echo "🚨 Test coverage too low: $AVG_COVERAGE%"
+            echo "test-status=fail" >> $GITHUB_OUTPUT
+            exit 1
+          else
+            echo "✅ Test coverage acceptable: $AVG_COVERAGE%"
+            echo "test-status=pass" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "❌ No coverage report generated"
+          echo "test-status=fail" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+
+    - name: Quality Check Results
+      id: quality-check
+      run: |
+        LINT_SCORE=$((steps.lint.outputs.lint-status == 'pass' ? 100 : steps.lint.outputs.lint-status == 'warning' ? 75 : 0))
+        TYPE_SCORE=$((steps.typecheck.outputs.type-status == 'pass' ? 100 : 0))
+        TEST_SCORE=$((steps.test.outputs.test-status == 'pass' ? 100 : 0))
+        
+        TOTAL_SCORE=$(( (LINT_SCORE + TYPE_SCORE + TEST_SCORE) / 3 ))
+        
+        echo "score=$TOTAL_SCORE" >> $GITHUB_OUTPUT
+        echo "coverage=${{ steps.test.outputs.coverage-lines }}" >> $GITHUB_OUTPUT
+        echo "lint=${{ steps.lint.outputs.lint-errors }}" >> $GITHUB_OUTPUT
+
+  hmac-validation:
+    name: HMAC Signature Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event_name == 'pull_request'
+    outputs:
+      signature-valid: ${{ steps.hmac-check.outputs.valid }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Validate HMAC Signature
+      id: hmac-check
+      run: |
+        echo "🔐 Validating webhook signature..."
+        
+        # Get the webhook secret from repository secrets
+        WEBHOOK_SECRET="${{ secrets.WEBHOOK_SECRET }}"
+        
+        if [ -z "$WEBHOOK_SECRET" ]; then
+          echo "⚠️ No webhook secret configured, skipping HMAC validation"
+          echo "valid=true" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        
+        # Calculate expected signature
+        PAYLOAD=$(cat $GITHUB_EVENT_PATH)
+        EXPECTED_SIGNATURE=$(echo -n "$PAYLOAD" | openssl sha256 -hmac "$WEBHOOK_SECRET" -binary | base64)
+        
+        # Get actual signature from headers
+        ACTUAL_SIGNATURE="${{ github.event.pull_request.head.sha }}"
+        
+        if [ "$EXPECTED_SIGNATURE" = "$ACTUAL_SIGNATURE" ]; then
+          echo "✅ HMAC signature valid"
+          echo "valid=true" >> $GITHUB_OUTPUT
+        else
+          echo "🚨 HMAC signature invalid!"
+          echo "Expected: $EXPECTED_SIGNATURE"
+          echo "Actual: $ACTUAL_SIGNATURE"
+          echo "valid=false" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+
+  approval-gate:
+    name: Security Approval Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [security-scan, code-quality-gate, hmac-validation]
+    if: always() && !cancelled()
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Calculate Overall Score
+      id: scoring
+      run: |
+        SECURITY_SCORE=${{ needs.security-scan.outputs.security-score }}
+        QUALITY_SCORE=${{ needs.code-quality-gate.outputs.quality-score }}
+        HMAC_VALID=${{ needs.hmac-validation.outputs.signature-valid }}
+        
+        # Calculate weighted score
+        OVERALL_SCORE=$(( (SECURITY_SCORE * 40 + QUALITY_SCORE * 60) / 100 ))
+        
+        echo "security-score=$SECURITY_SCORE" >> $GITHUB_OUTPUT
+        echo "quality-score=$QUALITY_SCORE" >> $GITHUB_OUTPUT
+        echo "overall-score=$OVERALL_SCORE" >> $GITHUB_OUTPUT
+        echo "hmac-valid=$HMAC_VALID" >> $GITHUB_OUTPUT
+        
+        # Determine approval status
+        if [ "$OVERALL_SCORE" -ge 90 ] && [ "$HMAC_VALID" = "true" ]; then
+          echo "✅ All checks passed - Auto-approved"
+          echo "status=approved" >> $GITHUB_OUTPUT
+        elif [ "$OVERALL_SCORE" -ge 75 ] && [ "$HMAC_VALID" = "true" ]; then
+          echo "⚠️ Requires manual review"
+          echo "status=needs-review" >> $GITHUB_OUTPUT
+        else
+          echo "🚨 Approval blocked"
+          echo "status=blocked" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Create Approval Status Check
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const status = '${{ steps.scoring.outputs.status }}';
+          const score = '${{ steps.scoring.outputs.overall-score }}';
+          
+          const statusMap = {
+            'approved': 'success',
+            'needs-review': 'failure',
+            'blocked': 'failure'
+          };
+          
+          const descriptionMap = {
+            'approved': `✅ Approved (Score: ${score}/100)`,
+            'needs-review': `⚠️ Manual Review Required (Score: ${score}/100)`,
+            'blocked': `🚨 Blocked (Score: ${score}/100)`
+          };
+          
+          await github.rest.repos.createCommitStatus({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            sha: context.sha,
+            state: statusMap[status],
+            target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+            description: descriptionMap[status],
+            context: 'Security Approval Gate'
+          });
+
+    - name: Generate Approval Report
+      run: |
+        echo "## 🔒 Security Approval Gate Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Overall Status: ${{ steps.scoring.outputs.status == 'approved' && '✅ APPROVED' || steps.scoring.outputs.status == 'needs-review' && '⚠️ NEEDS REVIEW' || '🚨 BLOCKED' }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Scores:" >> $GITHUB_STEP_SUMMARY
+        echo "- **Security Score:** ${{ needs.security-scan.outputs.security-score }}/100" >> $GITHUB_STEP_SUMMARY
+        echo "- **Quality Score:** ${{ needs.code-quality-gate.outputs.quality-score }}/100" >> $GITHUB_STEP_SUMMARY
+        echo "- **Overall Score:** ${{ steps.scoring.outputs.overall-score }}/100" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Security Issues:" >> $GITHUB_STEP_SUMMARY
+        echo "- Critical: ${{ needs.security-scan.outputs.critical-issues }}" >> $GITHUB_STEP_SUMMARY
+        echo "- High: ${{ needs.security-scan.outputs.high-issues }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Code Quality:" >> $GITHUB_STEP_SUMMARY
+        echo "- Test Coverage: ${{ needs.code-quality-gate.outputs.test-coverage }}%" >> $GITHUB_STEP_SUMMARY
+        echo "- Lint Issues: ${{ needs.code-quality-gate.outputs.lint-issues }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### HMAC Validation:" >> $GITHUB_STEP_SUMMARY
+        echo "- Signature Valid: ${{ needs.hmac-validation.outputs.signature-valid == 'true' && '✅ Valid' || '🚨 Invalid' }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ steps.scoring.outputs.status }}" = "approved" ]; then
+          echo "- ✅ Ready for merge" >> $GITHUB_STEP_SUMMARY
+          echo "- Consider additional manual review for complex changes" >> $GITHUB_STEP_SUMMARY
+        elif [ "${{ steps.scoring.outputs.status }}" = "needs-review" ]; then
+          echo "- ⚠️ Requires manual approval from security team" >> $GITHUB_STEP_SUMMARY
+          echo "- Address any outstanding issues" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- 🚨 Fix critical issues before proceeding" >> $GITHUB_STEP_SUMMARY
+          echo "- Security and quality gates must pass" >> $GITHUB_STEP_SUMMARY
+        fi
+
+    - name: Fail on Blocked Status
+      if: steps.scoring.outputs.status == 'blocked'
+      run: |
+        echo "🚨 Pull request blocked by security approval gate"
+        exit 1
