@@ -136,7 +136,7 @@ mkdir -p reports
         run: |
 chmod +x ./analizar-workflows.sh
           # run in fail-on mode to prevent accidental deploys passing CI
-          ./analizar-workflows.sh --fail-on=any || true
+          ./analizar-workflows.sh --fail-on=any
       - name: Upload workflow analysis JSON
         if: always()
         uses: actions/upload-artifact@v4

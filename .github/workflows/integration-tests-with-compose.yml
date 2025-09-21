@@ -242,6 +242,7 @@ jobs:
     - name: Run database migrations (only non-production)
       if: ${{ github.event.inputs.environment != 'production' }}
       run: |
+
         echo "Running test database migrations (non-production)"
         docker run --rm \
           --network host \
@@ -252,6 +253,21 @@ jobs:
     - name: Start Test Services
       run: |
         echo "🚀 Starting test services..."
+
+        echo "🚀 Starting test services..."
+        
+        # Start database migrations
+        if [ "${{ env.DEPLOY_ENABLED }}" = "true" ]; then
+          echo "⚠️ DEPLOY_ENABLED=true - running migrations against target environment"
+          docker run --rm \
+            --network host \
+            -e DATABASE_URL=postgresql://test:test@localhost:5432/test_db \
+            econeura-api:test \
+            pnpm db:migrate:test
+        else
+          echo "ℹ️ DEPLOY_ENABLED != true - skipping potentially destructive migrations in CI"
+        fi
+
         
         # Start API service in background
         docker run -d \

@@ -16,10 +16,11 @@
     ],
     "meta": {
       "pyyaml": true,
-      "jobs_count": 5,
+      "jobs_count": 10,
       "node_versions": "${{ env.NODE_VERSION }}",
       "secrets": "AZURE_API_PUBLISH_PROFILE\nAZURE_WEB_PUBLISH_PROFILE",
       "no_deploy_guard": true
+
     }
   },
   {
@@ -31,6 +32,7 @@
       "pyyaml": true,
       "jobs_count": 3,
       "node_versions": "'20'"
+
     }
   },
   {
