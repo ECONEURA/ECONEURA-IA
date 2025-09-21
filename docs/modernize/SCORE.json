@@ -1,0 +1,9 @@
+{
+  "coverage_lines_pct": null,
+  "eslint_errors": null,
+  "jscpd_clones": null,
+  "cve_high": null,
+  "cve_critical": null,
+  "workflows_guarded": null,
+  "notes": "Run full audit (pnpm install, eslint, vitest --coverage, jscpd, pnpm audit) to populate metrics. See docs/audit/ASKS.md for required tools."
+}
