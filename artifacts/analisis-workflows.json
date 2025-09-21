@@ -1,5 +1,14 @@
 [
   {
+    "file": "auto-fix-workflows.yml",
+    "issues": [],
+    "meta": {
+      "pyyaml": true,
+      "jobs_count": 6,
+      "secrets": "GITHUB_TOKEN"
+    }
+  },
+  {
     "file": "azure-deploy.yml",
     "issues": [
       "missing_permissions",
@@ -11,6 +20,19 @@
       "node_versions": "${{ env.NODE_VERSION }}",
       "secrets": "AZURE_API_PUBLISH_PROFILE\nAZURE_WEB_PUBLISH_PROFILE",
       "no_deploy_guard": true
+
+    }
+  },
+  {
+    "file": "ci-audit-generate.yml",
+    "issues": [
+      "missing_permissions"
+    ],
+    "meta": {
+      "pyyaml": true,
+      "jobs_count": 3,
+      "node_versions": "'20'"
+
     }
   },
   {

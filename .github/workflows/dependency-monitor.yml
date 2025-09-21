@@ -75,7 +75,7 @@ jobs:
     - name: Run pnpm audit
       id: audit
       run: |
-        echo "🔍 Running pnpm audit..."
+echo "🔍 Running pnpm audit..."
         
         # Run audit and capture output
         pnpm audit --audit-level low --json > audit-results.json || true
@@ -123,12 +123,12 @@ jobs:
     - name: Run npm audit (fallback)
       if: steps.audit.outcome == 'failure'
       run: |
-        echo "⚠️  pnpm audit failed, trying npm audit..."
+echo "⚠️  pnpm audit failed, trying npm audit..."
         npm audit --audit-level=low --json > npm-audit-results.json || true
 
     - name: Check for outdated dependencies
       run: |
-        echo "📅 Checking for outdated dependencies..."
+echo "📅 Checking for outdated dependencies..."
         
         pnpm outdated --json > outdated.json || true
         
@@ -153,7 +153,7 @@ jobs:
 
     - name: Check license compliance
       run: |
-        echo "📋 Checking license compliance..."
+echo "📋 Checking license compliance..."
         
         # Use a license checker tool if available
         if command -v license-checker > /dev/null 2>&1; then
@@ -177,7 +177,7 @@ jobs:
     - name: Generate security report
       id: scan
       run: |
-        echo "📝 Generating security report..."
+echo "📝 Generating security report..."
         
         mkdir -p artifacts/security
         
@@ -243,7 +243,7 @@ jobs:
 
     - name: Analyze vulnerability details
       run: |
-        echo "🔍 Analyzing vulnerability details..."
+echo "🔍 Analyzing vulnerability details..."
         
         REPORT_FILE=$(find . -name "dependency-report-*.json" | head -1)
         
@@ -409,7 +409,7 @@ jobs:
 
     - name: Generate summary report
       run: |
-        echo "## 🔒 Dependency Security Monitor Report" >> $GITHUB_STEP_SUMMARY
+echo "## 🔒 Dependency Security Monitor Report" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
         VULN_FOUND="${{ needs.dependency-scan.outputs.vulnerabilities-found }}"
@@ -451,7 +451,7 @@ jobs:
     - name: Send Slack notification (if configured)
       if: env.SLACK_WEBHOOK_URL && needs.dependency-scan.outputs.vulnerabilities-found == 'true'
       run: |
-        # Send Slack notification for security issues
+# Send Slack notification for security issues
         curl -X POST -H 'Content-type: application/json' \
           --data "{
             \"text\": \"🚨 Dependency Security Alert in ${GITHUB_REPOSITORY}\",
@@ -482,7 +482,7 @@ jobs:
 
     - name: Final status
       run: |
-        if [ "${{ needs.dependency-scan.result }}" = "success" ]; then
+if [ "${{ needs.dependency-scan.result }}" = "success" ]; then
           echo "✅ Dependency security monitoring completed successfully"
         else
           echo "❌ Dependency security monitoring failed"
