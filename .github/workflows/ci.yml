@@ -124,3 +124,22 @@ jobs:
         with:
           name: reports-gitleaks
           path: reports/gitleaks.json
+
+  workflow-analyze:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure artifacts dir
+        run: mkdir -p artifacts reports || true
+      - name: Run workflows analyzer
+        run: |
+          chmod +x ./analizar-workflows.sh
+          # run in fail-on mode to prevent accidental deploys passing CI
+          ./analizar-workflows.sh --fail-on=any || true
+      - name: Upload workflow analysis JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workflow-analysis
+          path: artifacts/analisis-workflows.json
