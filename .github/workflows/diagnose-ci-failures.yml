@@ -1,0 +1,81 @@
+name: Diagnose CI Failures
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  diagnose:
+    name: Analyze recent workflow runs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install @octokit/rest
+
+      - name: Diagnose CI failures
+        run: |
+          node -e "
+          const { Octokit } = require('@octokit/rest');
+          const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+
+          async function diagnose() {
+            try {
+              const { data: runs } = await octokit.actions.listWorkflowRunsForRepo({
+                owner: process.env.GITHUB_REPOSITORY.split('/')[0],
+                repo: process.env.GITHUB_REPOSITORY.split('/')[1],
+                per_page: 100,
+                status: 'failure'
+              });
+
+              console.log('=== RECENT FAILED RUNS ===');
+              const failedRuns = runs.workflow_runs.filter(run => run.conclusion === 'failure');
+              failedRuns.slice(0, 20).forEach(run => {
+                console.log(\`🔴 \${run.name} (\${run.id}) - \${run.created_at}\`);
+                console.log(\`   URL: \${run.html_url}\`);
+                console.log(\`   Branch: \${run.head_branch}\`);
+                console.log('');
+              });
+
+              console.log(\`Total failed runs in last 100: \${failedRuns.length}\`);
+
+              // Group by workflow
+              const byWorkflow = {};
+              failedRuns.forEach(run => {
+                byWorkflow[run.name] = (byWorkflow[run.name] || 0) + 1;
+              });
+
+              console.log('=== FAILURES BY WORKFLOW ===');
+              Object.entries(byWorkflow)
+                .sort(([,a], [,b]) => b - a)
+                .forEach(([name, count]) => {
+                  console.log(\`\${name}: \${count} failures\`);
+                });
+
+            } catch (error) {
+              console.error('Error diagnosing:', error.message);
+            }
+          }
+
+          diagnose();
+          "
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+
+      - name: Upload diagnosis
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-diagnosis
+          path: |
+            diagnosis.log
