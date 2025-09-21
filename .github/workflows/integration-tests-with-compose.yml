@@ -1,89 +1,463 @@
-name: Integration Tests with Compose
-on: [pull_request]
+name: Integration Tests with Docker Compose
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'docker-compose*.yml'
+      - 'scripts/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'docker-compose*.yml'
+      - 'scripts/**'
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test suite to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - api-only
+          - web-only
+          - e2e
+      environment:
+        description: 'Test environment'
+        required: false
+        default: 'test'
+        type: choice
+        options:
+          - test
+          - staging
+          - production
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8'
+  COMPOSE_FILE: docker-compose.test.yml
+  TEST_TIMEOUT: 600000  # 10 minutes
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
 jobs:
-  compose-tests:
+  setup-test-environment:
+    name: Setup Test Environment
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
+    outputs:
+      test-matrix: ${{ steps.matrix.outputs.tests }}
+      environment-config: ${{ steps.config.outputs.env }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+
+    - name: Determine Test Matrix
+      id: matrix
+      run: |
+        TEST_SUITE="${{ github.event.inputs.test_suite || 'all' }}"
+        
+        case $TEST_SUITE in
+          "all")
+            TESTS='["api", "web", "e2e"]'
+            ;;
+          "api-only")
+            TESTS='["api"]'
+            ;;
+          "web-only")
+            TESTS='["web"]'
+            ;;
+          "e2e")
+            TESTS='["e2e"]'
+            ;;
+          *)
+            TESTS='["api", "web"]'
+            ;;
+        esac
+        
+        echo "tests=$TESTS" >> $GITHUB_OUTPUT
+        echo "Selected test suites: $TESTS"
+
+    - name: Configure Test Environment
+      id: config
+      run: |
+        ENVIRONMENT="${{ github.event.inputs.environment || 'test' }}"
+        
+        case $ENVIRONMENT in
+          "test")
+            DB_URL="postgresql://test:test@localhost:5432/test_db"
+            REDIS_URL="redis://localhost:6379"
+            API_PORT="3001"
+            WEB_PORT="3000"
+            ;;
+          "staging")
+            DB_URL="${{ secrets.STAGING_DB_URL }}"
+            REDIS_URL="${{ secrets.STAGING_REDIS_URL }}"
+            API_PORT="3001"
+            WEB_PORT="3000"
+            ;;
+          "production")
+            DB_URL="${{ secrets.PROD_DB_URL }}"
+            REDIS_URL="${{ secrets.PROD_REDIS_URL }}"
+            API_PORT="3001"
+            WEB_PORT="3000"
+            ;;
+        esac
+        
+        echo "db-url=$DB_URL" >> $GITHUB_OUTPUT
+        echo "redis-url=$REDIS_URL" >> $GITHUB_OUTPUT
+        echo "api-port=$API_PORT" >> $GITHUB_OUTPUT
+        echo "web-port=$WEB_PORT" >> $GITHUB_OUTPUT
+        echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+
+  build-test-images:
+    name: Build Test Images
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: setup-test-environment
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build API Test Image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./apps/api/Dockerfile.test
+        push: false
+        tags: econeura-api:test
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          NODE_ENV=test
+          PNPM_VERSION=${{ env.PNPM_VERSION }}
+
+    - name: Build Web Test Image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./apps/web/Dockerfile.test
+        push: false
+        tags: econeura-web:test
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          NODE_ENV=test
+          PNPM_VERSION=${{ env.PNPM_VERSION }}
+
+    - name: Build Test Database Image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./docker/test-db.Dockerfile
+        push: false
+        tags: econeura-test-db:test
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  run-integration-tests:
+    name: Run ${{ matrix.test-suite }} Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [setup-test-environment, build-test-images]
+    strategy:
+      fail-fast: false
+      matrix:
+        test-suite: ${{ fromJson(needs.setup-test-environment.outputs.test-matrix) }}
+
     services:
-      reception:
-        image: python:3.11-slim
-        ports:
-          - 8000:8000
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test_db
         options: >-
-          --health-cmd "python -c \"import socket; s=socket.socket(); s.connect(('localhost', 8000))\" || exit 1"
+          --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-          --health-start-period 10s
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
     steps:
-      - uses: actions/checkout@v5
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.11'
+    - name: Load Test Images
+      run: |
+        docker load < econeura-api-test.tar || echo "API image not found, will build"
+        docker load < econeura-web-test.tar || echo "Web image not found, will build"
 
-      - name: Create health check script
-        run: |
-          cat > health_check.py << 'EOF'
-          from fastapi import FastAPI
-          import uvicorn
-          import socket
+    - name: Setup Test Environment
+      run: |
+        echo "🔧 Setting up test environment..."
+        
+        # Create test environment file
+        cat > .env.test << EOF
+        NODE_ENV=test
+        DATABASE_URL=postgresql://test:test@localhost:5432/test_db
+        REDIS_URL=redis://localhost:6379
+        API_PORT=${{ needs.setup-test-environment.outputs.api-port }}
+        WEB_PORT=${{ needs.setup-test-environment.outputs.web-port }}
+        JWT_SECRET=test-jwt-secret-for-testing-only
+        ENCRYPTION_KEY=test-encryption-key-32-chars-exactly
+        EOF
 
-          app = FastAPI()
-
-          @app.get('/health')
-          def health():
-              return {'status': 'healthy', 'service': 'reception'}
-
-          if __name__ == "__main__":
-              uvicorn.run(app, host="0.0.0.0", port=8000)
-          EOF
-
-      - name: Start reception service
-        run: |
-          python health_check.py &
-          SERVICE_PID=$!
-          echo "SERVICE_PID=$SERVICE_PID" >> $GITHUB_ENV
-
-      - name: Wait for service health
-        run: |
-          echo "Waiting for service to be healthy..."
-          for i in {1..30}; do
-            if curl -f -s http://localhost:8000/health > /dev/null 2>&1; then
-              echo "Service is healthy"
-              break
-            fi
-            echo "Attempt $i: Service not ready yet..."
-            sleep 2
-          done
-
-          # Final health check
-          if ! curl -f -s http://localhost:8000/health > /dev/null 2>&1; then
-            echo "::error::Service failed to start properly"
-            exit 1
+    - name: Start Test Services
+      run: |
+        echo "🚀 Starting test services..."
+        
+        # Start database migrations
+        docker run --rm \
+          --network host \
+          -e DATABASE_URL=postgresql://test:test@localhost:5432/test_db \
+          econeura-api:test \
+          pnpm db:migrate:test
+        
+        # Start API service in background
+        docker run -d \
+          --name econeura-api-test \
+          --network host \
+          --env-file .env.test \
+          econeura-api:test \
+          pnpm start:test
+        
+        # Wait for API to be ready
+        echo "⏳ Waiting for API to be ready..."
+        for i in {1..30}; do
+          if curl -f http://localhost:${{ needs.setup-test-environment.outputs.api-port }}/health 2>/dev/null; then
+            echo "✅ API is ready"
+            break
           fi
+          sleep 2
+        done
+        
+        if [ $i -eq 30 ]; then
+          echo "🚨 API failed to start"
+          docker logs econeura-api-test
+          exit 1
+        fi
 
-      - name: Run integration tests
-        run: |
-          echo "Running integration tests..."
+    - name: Run API Integration Tests
+      if: matrix.test-suite == 'api'
+      run: |
+        echo "🧪 Running API integration tests..."
+        
+        # Run API tests against running service
+        docker run --rm \
+          --network host \
+          --env-file .env.test \
+          -e API_BASE_URL=http://localhost:${{ needs.setup-test-environment.outputs.api-port }} \
+          econeura-api:test \
+          pnpm test:integration
+        
+        # Store test results
+        mkdir -p test-results/api
+        docker cp econeura-api-test:/app/test-results/. test-results/api/ || true
 
-          # Check if pytest is available
-          if command -v pytest >/dev/null 2>&1; then
-            if [ -f "pytest.ini" ] || [ -d "tests" ]; then
-              pytest -v --tb=short
-            else
-              echo "No pytest configuration found, running basic health check"
-              curl -s http://localhost:8000/health | jq '.status' || echo "Health check passed"
-            fi
-          else
-            echo "Pytest not available, running basic health check"
-            curl -s http://localhost:8000/health | jq '.status' || echo "Health check passed"
+    - name: Start Web Service
+      if: matrix.test-suite == 'web' || matrix.test-suite == 'e2e'
+      run: |
+        echo "🚀 Starting web service..."
+        
+        # Start web service in background
+        docker run -d \
+          --name econeura-web-test \
+          --network host \
+          --env-file .env.test \
+          -e API_URL=http://localhost:${{ needs.setup-test-environment.outputs.api-port }} \
+          econeura-web:test \
+          pnpm start:test
+        
+        # Wait for web to be ready
+        echo "⏳ Waiting for web to be ready..."
+        for i in {1..30}; do
+          if curl -f http://localhost:${{ needs.setup-test-environment.outputs.web-port }} 2>/dev/null; then
+            echo "✅ Web is ready"
+            break
           fi
+          sleep 2
+        done
+        
+        if [ $i -eq 30 ]; then
+          echo "🚨 Web failed to start"
+          docker logs econeura-web-test
+          exit 1
+        fi
 
-      - name: Cleanup
-        if: always()
-        run: |
-          if [ -n "$SERVICE_PID" ]; then
-            kill $SERVICE_PID 2>/dev/null || true
-          fi
+    - name: Run Web Integration Tests
+      if: matrix.test-suite == 'web'
+      run: |
+        echo "🧪 Running web integration tests..."
+        
+        # Run web tests
+        docker run --rm \
+          --network host \
+          --env-file .env.test \
+          -e CYPRESS_BASE_URL=http://localhost:${{ needs.setup-test-environment.outputs.web-port }} \
+          econeura-web:test \
+          pnpm test:integration
+        
+        # Store test results
+        mkdir -p test-results/web
+        docker cp econeura-web-test:/app/test-results/. test-results/web/ || true
+
+    - name: Run E2E Tests
+      if: matrix.test-suite == 'e2e'
+      run: |
+        echo "🧪 Running end-to-end tests..."
+        
+        # Run E2E tests with Cypress/Playwright
+        docker run --rm \
+          --network host \
+          --env-file .env.test \
+          -e CYPRESS_BASE_URL=http://localhost:${{ needs.setup-test-environment.outputs.web-port }} \
+          -e API_BASE_URL=http://localhost:${{ needs.setup-test-environment.outputs.api-port }} \
+          econeura-web:test \
+          pnpm test:e2e
+        
+        # Store test results
+        mkdir -p test-results/e2e
+        docker cp econeura-web-test:/app/test-results/. test-results/e2e/ || true
+
+    - name: Collect Test Results
+      if: always()
+      run: |
+        echo "📊 Collecting test results..."
+        
+        # Create test results summary
+        mkdir -p test-results
+        
+        # Collect logs from containers
+        docker logs econeura-api-test > test-results/api.log 2>&1 || true
+        docker logs econeura-web-test > test-results/web.log 2>&1 || true
+        
+        # Generate test summary
+        echo "## 🧪 Integration Test Results - ${{ matrix.test-suite }}" >> test-results/summary.md
+        echo "" >> test-results/summary.md
+        echo "### Test Suite: ${{ matrix.test-suite }}" >> test-results/summary.md
+        echo "### Environment: ${{ needs.setup-test-environment.outputs.environment-config }}" >> test-results/summary.md
+        echo "### Timestamp: $(date)" >> test-results/summary.md
+        echo "" >> test-results/summary.md
+        
+        # Check for test result files and summarize
+        if [ -d "test-results/${{ matrix.test-suite }}" ]; then
+          echo "### Test Files Generated:" >> test-results/summary.md
+          ls -la test-results/${{ matrix.test-suite }}/ >> test-results/summary.md 2>/dev/null || echo "No test files found" >> test-results/summary.md
+        fi
+
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: integration-test-results-${{ matrix.test-suite }}
+        path: test-results/
+        retention-days: 30
+
+    - name: Cleanup Test Environment
+      if: always()
+      run: |
+        echo "🧹 Cleaning up test environment..."
+        docker stop econeura-api-test econeura-web-test || true
+        docker rm econeura-api-test econeura-web-test || true
+        docker system prune -f
+
+  test-results-summary:
+    name: Test Results Summary
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: run-integration-tests
+    if: always() && !cancelled()
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Download All Test Results
+      uses: actions/download-artifact@v4
+      with:
+        path: all-test-results
+
+    - name: Generate Comprehensive Report
+      run: |
+        echo "## 🔬 Integration Tests Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Overall status
+        if [ "${{ needs.run-integration-tests.result }}" = "success" ]; then
+          echo "### Status: ✅ **ALL TESTS PASSED**" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### Status: 🚨 **SOME TESTS FAILED**" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Test Suites Executed:" >> $GITHUB_STEP_SUMMARY
+        
+        # List executed test suites
+        TEST_SUITES="${{ needs.setup-test-environment.outputs.test-matrix }}"
+        echo "$TEST_SUITES" | jq -r '.[]' | while read suite; do
+          echo "- $suite" >> $GITHUB_STEP_SUMMARY
+        done
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Environment Configuration:" >> $GITHUB_STEP_SUMMARY
+        echo "- **Database:** ${{ needs.setup-test-environment.outputs.db-url != '' && '✅ Configured' || '❌ Not configured' }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Redis:** ${{ needs.setup-test-environment.outputs.redis-url != '' && '✅ Configured' || '❌ Not configured' }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **API Port:** ${{ needs.setup-test-environment.outputs.api-port }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Web Port:** ${{ needs.setup-test-environment.outputs.web-port }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Test Artifacts:" >> $GITHUB_STEP_SUMMARY
+        echo "- Test results and logs have been uploaded as workflow artifacts" >> $GITHUB_STEP_SUMMARY
+        echo "- Individual test suite results are available for download" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ needs.run-integration-tests.result }}" = "success" ]; then
+          echo "- ✅ **Integration tests passed** - Ready for next deployment stage" >> $GITHUB_STEP_SUMMARY
+          echo "- Consider running performance tests for production readiness" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- 🚨 **Fix failing integration tests** before proceeding" >> $GITHUB_STEP_SUMMARY
+          echo "- Review test logs and error messages in artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- Check service logs for startup or runtime issues" >> $GITHUB_STEP_SUMMARY
+        fi
+
+    - name: Fail Pipeline on Test Failures
+      if: needs.run-integration-tests.result == 'failure'
+      run: |
+        echo "🚨 Integration tests failed - blocking pipeline"
+        exit 1

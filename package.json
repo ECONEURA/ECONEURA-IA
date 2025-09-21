@@ -8,7 +8,7 @@
     "apps/*",
     "packages/*"
   ],
-  "packageManager": "pnpm@8.15.0",
+  "packageManager": "pnpm@8.15.5",
   "scripts": {
     "build": "pnpm -r --filter './packages/*' --if-present build && pnpm -r --filter './apps/*' --if-present build",
     "build:all": "pnpm -r --if-present build",
@@ -81,8 +81,9 @@
     "swagger-ui-express": "^5.0.1",
     "@types/swagger-ui-express": "^4.1.8"
   },
+  "license": "MIT",
   "engines": {
-    "node": ">=20.0.0",
+    "node": ">=20 <21",
     "pnpm": ">=8.0.0"
   },
   "dependencies": {

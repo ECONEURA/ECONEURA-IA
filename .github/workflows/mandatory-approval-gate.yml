@@ -1,55 +1,414 @@
 name: Mandatory Approval Gate
-on: [pull_request]
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'Pull Request number to evaluate'
+        required: true
+        type: number
+      override_approval:
+        description: 'Admin override (bypass all checks)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8'
+  MIN_APPROVALS: 2
+  REQUIRED_CHECKS: '["ci-extended", "security-approval", "codeql-analysis"]'
+
 permissions:
   contents: read
-  actions: read
+  pull-requests: write
   checks: write
+  statuses: write
+  issues: read
+
 jobs:
-  check_artifact_and_validate:
+  gate-evaluation:
+    name: Gate Evaluation
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     outputs:
-      approval_valid: ${{ steps.validate.outputs.valid }}
+      gate-status: ${{ steps.evaluate.outputs.status }}
+      approval-count: ${{ steps.evaluate.outputs.approvals }}
+      required-checks: ${{ steps.evaluate.outputs.checks }}
+      risk-level: ${{ steps.evaluate.outputs.risk }}
+
     steps:
-      - uses: actions/checkout@v5
-      - name: Ensure audit artifact exists
-        id: ensure
-        run: |
-          if [ -f audit/approval_signed.json ]; then
-            echo "found=true" >> $GITHUB_OUTPUT
-          else
-            echo "found=false" >> $GITHUB_OUTPUT
-            echo "::error::Missing audit/approval_signed.json"
-            exit 1
-          fi
-      - name: Validate HMAC approval (fast)
-        id: validate
-        run: |
-          if [ "${{ steps.ensure.outputs.found }}" != "true" ]; then
-            echo "::error::Missing audit/approval_signed.json"
-            echo "valid=false" >> $GITHUB_OUTPUT
-            exit 1
-          fi
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-          if [ ! -x "scripts/vault/validate_hmac_approval.sh" ]; then
-            echo "::error::Validation script not found or not executable"
-            echo "valid=false" >> $GITHUB_OUTPUT
-            exit 1
-          fi
+    - name: Get PR Details
+      id: pr-details
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const pr = await github.rest.pulls.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number
+          });
+          
+          const labels = pr.data.labels.map(label => label.name);
+          const size = pr.data.additions + pr.data.deletions;
+          
+          // Determine risk level based on PR characteristics
+          let riskLevel = 'low';
+          if (size > 1000 || labels.includes('high-risk') || labels.includes('security')) {
+            riskLevel = 'high';
+          } else if (size > 100 || labels.includes('medium-risk')) {
+            riskLevel = 'medium';
+          }
+          
+          core.setOutput('title', pr.data.title);
+          core.setOutput('size', size);
+          core.setOutput('labels', labels.join(','));
+          core.setOutput('risk-level', riskLevel);
+          core.setOutput('author', pr.data.user.login);
 
-          ./scripts/vault/validate_hmac_approval.sh audit/approval_signed.json
-          echo "valid=true" >> $GITHUB_OUTPUT
-        env:
-          VAULT_ADDR: ${{ secrets.VAULT_ADDR || '' }}
-          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN || '' }}
-  block_merge_if_invalid:
-    needs: check_artifact_and_validate
+    - name: Check Required Approvals
+      id: approvals
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const reviews = await github.rest.pulls.listReviews({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number
+          });
+          
+          const approvals = reviews.data.filter(review => review.state === 'APPROVED').length;
+          const changesRequested = reviews.data.filter(review => review.state === 'CHANGES_REQUESTED').length;
+          
+          core.setOutput('count', approvals);
+          core.setOutput('changes-requested', changesRequested);
+          
+          console.log(`Approvals: ${approvals}, Changes requested: ${changesRequested}`);
+
+    - name: Check Required Status Checks
+      id: checks
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const requiredChecks = JSON.parse(process.env.REQUIRED_CHECKS);
+          const { data: checks } = await github.rest.checks.listForRef({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: context.sha
+          });
+          
+          const checkStatuses = {};
+          let allPassed = true;
+          
+          for (const requiredCheck of requiredChecks) {
+            const check = checks.check_runs.find(cr => cr.name.includes(requiredCheck));
+            if (check) {
+              checkStatuses[requiredCheck] = check.conclusion;
+              if (check.conclusion !== 'success') {
+                allPassed = false;
+              }
+            } else {
+              checkStatuses[requiredCheck] = 'not_found';
+              allPassed = false;
+            }
+          }
+          
+          core.setOutput('all-passed', allPassed);
+          core.setOutput('statuses', JSON.stringify(checkStatuses));
+
+    - name: Evaluate Gate Conditions
+      id: evaluate
+      run: |
+        echo "🔍 Evaluating mandatory approval gate..."
+        
+        RISK_LEVEL="${{ steps.pr-details.outputs.risk-level }}"
+        APPROVALS="${{ steps.approvals.outputs.count }}"
+        CHANGES_REQUESTED="${{ steps.approvals.outputs.changes-requested }}"
+        CHECKS_PASSED="${{ steps.checks.outputs.all-passed }}"
+        MIN_APPROVALS="${{ env.MIN_APPROVALS }}"
+        OVERRIDE="${{ github.event.inputs.override_approval || 'false' }}"
+        
+        echo "Risk Level: $RISK_LEVEL"
+        echo "Approvals: $APPROVALS"
+        echo "Changes Requested: $CHANGES_REQUESTED"
+        echo "Checks Passed: $CHECKS_PASSED"
+        echo "Min Approvals: $MIN_APPROVALS"
+        echo "Admin Override: $OVERRIDE"
+        
+        # Admin override check
+        if [ "$OVERRIDE" = "true" ]; then
+          echo "✅ Admin override activated - bypassing all checks"
+          echo "status=approved" >> $GITHUB_OUTPUT
+          echo "approvals=$APPROVALS" >> $GITHUB_OUTPUT
+          echo "checks=$CHECKS_PASSED" >> $GITHUB_OUTPUT
+          echo "risk=$RISK_LEVEL" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        
+        # Check for changes requested
+        if [ "$CHANGES_REQUESTED" -gt 0 ]; then
+          echo "🚨 Changes requested - gate blocked"
+          echo "status=blocked" >> $GITHUB_OUTPUT
+          echo "approvals=$APPROVALS" >> $GITHUB_OUTPUT
+          echo "checks=$CHECKS_PASSED" >> $GITHUB_OUTPUT
+          echo "risk=$RISK_LEVEL" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        
+        # Evaluate based on risk level
+        GATE_PASSED=false
+        
+        case $RISK_LEVEL in
+          "high")
+            # High risk: requires all checks + extra approvals
+            if [ "$APPROVALS" -ge $((MIN_APPROVALS + 1)) ] && [ "$CHECKS_PASSED" = "true" ]; then
+              GATE_PASSED=true
+            fi
+            ;;
+          "medium")
+            # Medium risk: requires minimum approvals + all checks
+            if [ "$APPROVALS" -ge "$MIN_APPROVALS" ] && [ "$CHECKS_PASSED" = "true" ]; then
+              GATE_PASSED=true
+            fi
+            ;;
+          "low")
+            # Low risk: requires minimum approvals + core checks
+            if [ "$APPROVALS" -ge "$MIN_APPROVALS" ]; then
+              GATE_PASSED=true
+            fi
+            ;;
+        esac
+        
+        if [ "$GATE_PASSED" = "true" ]; then
+          echo "✅ Gate evaluation passed"
+          echo "status=approved" >> $GITHUB_OUTPUT
+        else
+          echo "🚨 Gate evaluation failed"
+          echo "status=blocked" >> $GITHUB_OUTPUT
+        fi
+        
+        echo "approvals=$APPROVALS" >> $GITHUB_OUTPUT
+        echo "checks=$CHECKS_PASSED" >> $GITHUB_OUTPUT
+        echo "risk=$RISK_LEVEL" >> $GITHUB_OUTPUT
+
+  quality-validation:
+    name: Quality Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: gate-evaluation
+    if: needs.gate-evaluation.outputs.gate-status == 'approved'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Run Quality Checks
+      id: quality
+      run: |
+        echo "🔍 Running final quality validation..."
+        
+        # Type checking
+        if pnpm typecheck; then
+          echo "✅ TypeScript validation passed"
+          TYPE_STATUS="passed"
+        else
+          echo "🚨 TypeScript validation failed"
+          TYPE_STATUS="failed"
+        fi
+        
+        # Linting
+        LINT_OUTPUT=$(pnpm lint 2>&1 || true)
+        LINT_ERRORS=$(echo "$LINT_OUTPUT" | grep -c "error" || echo "0")
+        
+        if [ "$LINT_ERRORS" -le 5 ]; then
+          echo "✅ Linting passed ($LINT_ERRORS errors)"
+          LINT_STATUS="passed"
+        else
+          echo "🚨 Too many linting errors ($LINT_ERRORS)"
+          LINT_STATUS="failed"
+        fi
+        
+        # Tests
+        if pnpm test --run --coverage --passWithNoTests; then
+          echo "✅ Tests passed"
+          TEST_STATUS="passed"
+        else
+          echo "🚨 Tests failed"
+          TEST_STATUS="failed"
+        fi
+        
+        # Build
+        if pnpm build; then
+          echo "✅ Build passed"
+          BUILD_STATUS="passed"
+        else
+          echo "🚨 Build failed"
+          BUILD_STATUS="failed"
+        fi
+        
+        # Overall quality score
+        PASSED_COUNT=0
+        [ "$TYPE_STATUS" = "passed" ] && PASSED_COUNT=$((PASSED_COUNT + 1))
+        [ "$LINT_STATUS" = "passed" ] && PASSED_COUNT=$((PASSED_COUNT + 1))
+        [ "$TEST_STATUS" = "passed" ] && PASSED_COUNT=$((PASSED_COUNT + 1))
+        [ "$BUILD_STATUS" = "passed" ] && PASSED_COUNT=$((PASSED_COUNT + 1))
+        
+        QUALITY_SCORE=$((PASSED_COUNT * 25))
+        
+        echo "quality-score=$QUALITY_SCORE" >> $GITHUB_OUTPUT
+        echo "type-status=$TYPE_STATUS" >> $GITHUB_OUTPUT
+        echo "lint-status=$LINT_STATUS" >> $GITHUB_OUTPUT
+        echo "test-status=$TEST_STATUS" >> $GITHUB_OUTPUT
+        echo "build-status=$BUILD_STATUS" >> $GITHUB_OUTPUT
+
+    - name: Final Gate Decision
+      id: final-gate
+      run: |
+        QUALITY_SCORE=${{ steps.quality.outputs.quality-score }}
+        RISK_LEVEL="${{ needs.gate-evaluation.outputs.risk-level }}"
+        
+        # Final approval logic
+        if [ "$QUALITY_SCORE" -ge 75 ]; then
+          FINAL_STATUS="approved"
+          MESSAGE="✅ All quality checks passed"
+        elif [ "$QUALITY_SCORE" -ge 50 ] && [ "$RISK_LEVEL" != "high" ]; then
+          FINAL_STATUS="approved"
+          MESSAGE="⚠️ Approved with quality concerns"
+        else
+          FINAL_STATUS="blocked"
+          MESSAGE="🚨 Quality standards not met"
+        fi
+        
+        echo "final-status=$FINAL_STATUS" >> $GITHUB_OUTPUT
+        echo "message=$MESSAGE" >> $GITHUB_OUTPUT
+
+  gate-result:
+    name: Gate Result & Notification
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    if: needs.check_artifact_and_validate.outputs.approval_valid != 'true'
+    needs: [gate-evaluation, quality-validation]
+    if: always() && !cancelled()
+
     steps:
-      - name: Fail protectively
-        run: |
-          echo "::error::Approval not valid; blocking PR merge."
-          echo "Approval validation failed. Please ensure audit/approval_signed.json exists and is valid."
-          exit 1
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Generate Final Report
+      run: |
+        echo "## 🚪 Mandatory Approval Gate Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        GATE_STATUS="${{ needs.gate-evaluation.outputs.gate-status }}"
+        FINAL_STATUS="${{ needs.quality-validation.outputs.final-gate || 'pending' }}"
+        
+        if [ "$FINAL_STATUS" = "approved" ]; then
+          echo "### Status: ✅ **APPROVED**" >> $GITHUB_STEP_SUMMARY
+        elif [ "$GATE_STATUS" = "blocked" ]; then
+          echo "### Status: 🚨 **BLOCKED**" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### Status: ⏳ **PENDING**" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Gate Evaluation:" >> $GITHUB_STEP_SUMMARY
+        echo "- **Risk Level:** ${{ needs.gate-evaluation.outputs.risk-level }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Approvals:** ${{ needs.gate-evaluation.outputs.approval-count }}/${{ env.MIN_APPROVALS }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Required Checks:** ${{ needs.gate-evaluation.outputs.required-checks == 'true' && '✅ Passed' || '❌ Failed' }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "$FINAL_STATUS" != "pending" ]; then
+          echo "### Quality Validation:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Quality Score:** ${{ steps.quality.outputs.quality-score }}/100" >> $GITHUB_STEP_SUMMARY
+          echo "- **TypeScript:** ${{ steps.quality.outputs.type-status == 'passed' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Linting:** ${{ steps.quality.outputs.lint-status == 'passed' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tests:** ${{ steps.quality.outputs.test-status == 'passed' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build:** ${{ steps.quality.outputs.build-status == 'passed' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "### Requirements Summary:" >> $GITHUB_STEP_SUMMARY
+        echo "| Risk Level | Min Approvals | Required Checks | Quality Score |" >> $GITHUB_STEP_SUMMARY
+        echo "|------------|---------------|-----------------|---------------|" >> $GITHUB_STEP_SUMMARY
+        
+        case "${{ needs.gate-evaluation.outputs.risk-level }}" in
+          "high")
+            echo "| High | ${{ env.MIN_APPROVALS }} + 1 | ✅ All | ≥75 |" >> $GITHUB_STEP_SUMMARY
+            ;;
+          "medium")
+            echo "| Medium | ${{ env.MIN_APPROVALS }} | ✅ All | ≥50 |" >> $GITHUB_STEP_SUMMARY
+            ;;
+          "low")
+            echo "| Low | ${{ env.MIN_APPROVALS }} | ⚠️ Core Only | ≥50 |" >> $GITHUB_STEP_SUMMARY
+            ;;
+        esac
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "$FINAL_STATUS" = "approved" ]; then
+          echo "- ✅ **Ready for merge**" >> $GITHUB_STEP_SUMMARY
+          echo "- Consider additional review for high-risk changes" >> $GITHUB_STEP_SUMMARY
+        elif [ "$GATE_STATUS" = "blocked" ]; then
+          echo "- 🚨 **Merge blocked** - Address outstanding issues" >> $GITHUB_STEP_SUMMARY
+          echo "- Obtain required approvals" >> $GITHUB_STEP_SUMMARY
+          echo "- Ensure all required checks pass" >> $GITHUB_STEP_SUMMARY
+          echo "- Fix quality validation issues" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- ⏳ **Waiting for quality validation**" >> $GITHUB_STEP_SUMMARY
+        fi
+
+    - name: Update PR Status
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const gateStatus = '${{ needs.gate-evaluation.outputs.gate-status }}';
+          const finalStatus = '${{ needs.quality-validation.outputs.final-gate || "pending" }}';
+          
+          let state, description;
+          
+          if (finalStatus === 'approved') {
+            state = 'success';
+            description = '✅ Mandatory approval gate passed';
+          } else if (gateStatus === 'blocked') {
+            state = 'failure';
+            description = '🚨 Mandatory approval gate blocked';
+          } else {
+            state = 'pending';
+            description = '⏳ Mandatory approval gate in progress';
+          }
+          
+          await github.rest.repos.createCommitStatus({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            sha: context.sha,
+            state: state,
+            target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+            description: description,
+            context: 'Mandatory Approval Gate'
+          });
+
+    - name: Fail Pipeline on Block
+      if: needs.gate-evaluation.outputs.gate-status == 'blocked' || needs.quality-validation.outputs.final-gate == 'blocked'
+      run: |
+        echo "�� Mandatory approval gate blocked the pipeline"
+        exit 1

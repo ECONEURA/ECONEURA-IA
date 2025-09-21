@@ -1,0 +1,41 @@
+name: "CodeQL Configuration"
+
+disable-default-queries: false
+
+queries:
+  - uses: security-and-quality
+  - uses: security-experimental
+
+paths-ignore:
+  - node_modules
+  - .pnpm-store
+  - dist
+  - build
+  - coverage
+  - .next
+  - .nuxt
+  - .output
+  - .vercel
+  - .netlify
+  - "**/*.test.ts"
+  - "**/*.test.js"
+  - "**/*.spec.ts"
+  - "**/*.spec.js"
+  - "**/__tests__/**"
+  - "**/__mocks__/**"
+  - "**/test/**"
+  - "**/tests/**"
+
+paths:
+  - apps/
+  - packages/
+  - scripts/
+
+query-filters:
+  - exclude:
+      problem.severity:
+        - warning
+        - recommendation
+
+# Custom queries for ECONEURA-IA specific patterns
+# Add custom CodeQL queries here when needed

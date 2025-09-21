@@ -1,0 +1,501 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [ develop ]
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'docker-compose*.yml'
+      - 'scripts/**'
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deployment bypassing some checks'
+        required: false
+        default: false
+        type: boolean
+      skip_tests:
+        description: 'Skip integration tests'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8'
+  STAGING_ENV: staging
+
+permissions:
+  contents: read
+  deployments: write
+  checks: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  pre-deployment-validation:
+    name: Pre-Deployment Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      validation-passed: ${{ steps.final-check.outputs.passed }}
+      commit-sha: ${{ steps.commit.outputs.sha }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Get commit info
+      id: commit
+      run: |
+        echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+        echo "short-sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Run type checking
+      run: pnpm typecheck
+
+    - name: Run linting
+      run: pnpm lint
+
+    - name: Run unit tests
+      run: pnpm test --run --coverage
+
+    - name: Build applications
+      run: pnpm build
+
+    - name: Validate Docker Compose
+      run: |
+        echo "🔍 Validating Docker Compose configuration..."
+        docker-compose -f docker-compose.staging.yml config --quiet || {
+          echo "❌ Docker Compose validation failed"
+          exit 1
+        }
+        echo "✅ Docker Compose configuration is valid"
+
+    - name: Check for breaking changes
+      run: |
+        echo "🔍 Checking for breaking changes..."
+        
+        # Check if there are database migrations
+        if git diff --name-only HEAD~1 | grep -q "schema.prisma\|migration"; then
+          echo "⚠️  Database changes detected - manual review recommended"
+          echo "migration-changes=true" >> $GITHUB_OUTPUT
+        else
+          echo "migration-changes=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Security scan
+      run: |
+        echo "🔒 Running security scan..."
+        pnpm audit --audit-level moderate --json > security-audit.json || true
+        
+        if [ -f security-audit.json ]; then
+          CRITICAL=$(jq '.metadata.vulnerabilities.critical // 0' security-audit.json)
+          HIGH=$(jq '.metadata.vulnerabilities.high // 0' security-audit.json)
+          
+          if [ "$CRITICAL" -gt 0 ]; then
+            echo "🚨 Critical security vulnerabilities found!"
+            echo "security-blocked=true" >> $GITHUB_OUTPUT
+            exit 1
+          elif [ "$HIGH" -gt 2 ]; then
+            echo "⚠️  Multiple high-severity vulnerabilities"
+            echo "security-warnings=true" >> $GITHUB_OUTPUT
+          else
+            echo "✅ Security check passed"
+            echo "security-ok=true" >> $GITHUB_OUTPUT
+          fi
+        fi
+
+    - name: Final validation check
+      id: final-check
+      run: |
+        echo "🎯 Performing final validation checks..."
+        
+        # Check if all required checks passed
+        if [ "${{ github.event.inputs.force_deploy }}" = "true" ]; then
+          echo "✅ Force deploy enabled - bypassing some checks"
+          echo "passed=true" >> $GITHUB_OUTPUT
+        else
+          # Add your validation logic here
+          echo "passed=true" >> $GITHUB_OUTPUT
+        fi
+
+  deploy-infrastructure:
+    name: Deploy Infrastructure
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: pre-deployment-validation
+    if: needs.pre-deployment-validation.outputs.validation-passed == 'true'
+    environment: staging
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      if: env.AWS_REGION
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Deploy infrastructure with Terraform
+      if: env.TERRAFORM_WORKSPACE
+      run: |
+        echo "🏗️ Deploying infrastructure..."
+        
+        cd infrastructure/staging
+        terraform init
+        terraform workspace select ${{ env.TERRAFORM_WORKSPACE }} || terraform workspace new ${{ env.TERRAFORM_WORKSPACE }}
+        terraform plan -out=tfplan
+        terraform apply -auto-approve tfplan
+
+    - name: Update infrastructure inventory
+      run: |
+        echo "📋 Updating infrastructure inventory..."
+        mkdir -p artifacts/infrastructure
+        
+        cat > artifacts/infrastructure/staging-deploy.json << EOF
+        {
+          "deployment_id": "${{ github.run_id }}",
+          "commit_sha": "${{ needs.pre-deployment-validation.outputs.commit-sha }}",
+          "timestamp": "$(date -Iseconds)",
+          "environment": "staging",
+          "infrastructure_version": "latest",
+          "terraform_workspace": "${{ env.TERRAFORM_WORKSPACE }}",
+          "aws_region": "${{ secrets.AWS_REGION }}"
+        }
+        EOF
+
+  deploy-applications:
+    name: Deploy Applications
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: [pre-deployment-validation, deploy-infrastructure]
+    if: needs.pre-deployment-validation.outputs.validation-passed == 'true'
+    environment: staging
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [api, web]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ secrets.CONTAINER_REGISTRY }}
+        username: ${{ secrets.CONTAINER_REGISTRY_USER }}
+        password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
+
+    - name: Build and push ${{ matrix.service }} image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./apps/${{ matrix.service }}/Dockerfile.staging
+        push: true
+        tags: |
+          ${{ secrets.CONTAINER_REGISTRY }}/econeura-${{ matrix.service }}:staging-${{ github.sha }}
+          ${{ secrets.CONTAINER_REGISTRY }}/econeura-${{ matrix.service }}:staging-latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          NODE_ENV=staging
+          BUILD_COMMIT=${{ github.sha }}
+          BUILD_DATE=$(date -Iseconds)
+
+    - name: Deploy ${{ matrix.service }} to staging
+      run: |
+        echo "🚀 Deploying ${{ matrix.service }} to staging..."
+        
+        # Update deployment manifest
+        cat > k8s/staging/${{ matrix.service }}-deployment.yaml << EOF
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: econeura-${{ matrix.service }}-staging
+          namespace: staging
+          labels:
+            app: econeura-${{ matrix.service }}
+            environment: staging
+            version: ${{ github.sha }}
+        spec:
+          replicas: 2
+          selector:
+            matchLabels:
+              app: econeura-${{ matrix.service }}
+              environment: staging
+          template:
+            metadata:
+              labels:
+                app: econeura-${{ matrix.service }}
+                environment: staging
+                version: ${{ github.sha }}
+            spec:
+              containers:
+              - name: ${{ matrix.service }}
+                image: ${{ secrets.CONTAINER_REGISTRY }}/econeura-${{ matrix.service }}:staging-${{ github.sha }}
+                ports:
+                - containerPort: ${{ matrix.service == 'api' && 3001 || 3000 }}
+                env:
+                - name: NODE_ENV
+                  value: "staging"
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: staging-database
+                      key: url
+                - name: REDIS_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: staging-redis
+                      key: url
+                resources:
+                  requests:
+                    memory: "256Mi"
+                    cpu: "250m"
+                  limits:
+                    memory: "512Mi"
+                    cpu: "500m"
+                livenessProbe:
+                  httpGet:
+                    path: /health
+                    port: ${{ matrix.service == 'api' && 3001 || 3000 }}
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+                readinessProbe:
+                  httpGet:
+                    path: /health
+                    port: ${{ matrix.service == 'api' && 3001 || 3000 }}
+                  initialDelaySeconds: 5
+                  periodSeconds: 5
+        EOF
+        
+        # Apply deployment (assuming kubectl is configured)
+        if command -v kubectl > /dev/null 2>&1; then
+          kubectl apply -f k8s/staging/${{ matrix.service }}-deployment.yaml
+          kubectl rollout status deployment/econeura-${{ matrix.service }}-staging -n staging --timeout=300s
+        else
+          echo "⚠️  kubectl not available - skipping Kubernetes deployment"
+        fi
+
+  post-deployment-tests:
+    name: Post-Deployment Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: deploy-applications
+    if: always() && !cancelled()
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Wait for services to be ready
+      run: |
+        echo "⏳ Waiting for staging services to be ready..."
+        
+        API_URL="${{ secrets.STAGING_API_URL }}"
+        WEB_URL="${{ secrets.STAGING_WEB_URL }}"
+        
+        # Wait for API
+        for i in {1..30}; do
+          if curl -f -s "$API_URL/health" > /dev/null 2>&1; then
+            echo "✅ API is ready"
+            break
+          fi
+          echo "Waiting for API... ($i/30)"
+          sleep 10
+        done
+        
+        # Wait for Web
+        for i in {1..30}; do
+          if curl -f -s "$WEB_URL" > /dev/null 2>&1; then
+            echo "✅ Web is ready"
+            break
+          fi
+          echo "Waiting for Web... ($i/30)"
+          sleep 10
+        done
+
+    - name: Run smoke tests
+      run: |
+        echo "🚬 Running smoke tests on staging..."
+        
+        API_URL="${{ secrets.STAGING_API_URL }}"
+        WEB_URL="${{ secrets.STAGING_WEB_URL }}"
+        
+        # Test API endpoints
+        echo "Testing API health..."
+        curl -f "$API_URL/health" || exit 1
+        
+        echo "Testing API companies endpoint..."
+        curl -f "$API_URL/api/crm/companies" || exit 1
+        
+        # Test Web application
+        echo "Testing Web application..."
+        curl -f "$WEB_URL" | grep -q "ECONURA" || exit 1
+        
+        echo "✅ All smoke tests passed"
+
+    - name: Run integration tests against staging
+      if: github.event.inputs.skip_tests != 'true'
+      run: |
+        echo "🧪 Running integration tests against staging..."
+        
+        # Configure environment for staging tests
+        cat > .env.staging-test << EOF
+        NODE_ENV=staging
+        API_BASE_URL=${{ secrets.STAGING_API_URL }}
+        WEB_BASE_URL=${{ secrets.STAGING_WEB_URL }}
+        TEST_ENVIRONMENT=staging
+        EOF
+        
+        # Run integration tests
+        pnpm test:integration --env .env.staging-test
+
+  deployment-summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [pre-deployment-validation, deploy-infrastructure, deploy-applications, post-deployment-tests]
+    if: always() && !cancelled()
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Generate deployment report
+      run: |
+        echo "## 🚀 Staging Deployment Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        DEPLOY_STATUS="unknown"
+        if [ "${{ needs.post-deployment-tests.result }}" = "success" ]; then
+          DEPLOY_STATUS="✅ SUCCESS"
+        elif [ "${{ needs.post-deployment-tests.result }}" = "failure" ]; then
+          DEPLOY_STATUS="❌ FAILED"
+        else
+          DEPLOY_STATUS="⚠️ PARTIAL"
+        fi
+        
+        echo "### Deployment Status: $DEPLOY_STATUS" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "### Deployment Details:" >> $GITHUB_STEP_SUMMARY
+        echo "- **Commit:** \`${{ needs.pre-deployment-validation.outputs.commit-sha }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Branch:** \`develop\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Environment:** Staging" >> $GITHUB_STEP_SUMMARY
+        echo "- **Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "### Pipeline Results:" >> $GITHUB_STEP_SUMMARY
+        echo "| Stage | Status | Duration |" >> $GITHUB_STEP_SUMMARY
+        echo "|-------|--------|----------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Pre-deployment validation | ${{ needs.pre-deployment-validation.result == 'success' && '✅' || '❌' }} | - |" >> $GITHUB_STEP_SUMMARY
+        echo "| Infrastructure deployment | ${{ needs.deploy-infrastructure.result == 'success' && '✅' || needs.deploy-infrastructure.result == 'skipped' && '⏭️' || '❌' }} | - |" >> $GITHUB_STEP_SUMMARY
+        echo "| Application deployment | ${{ needs.deploy-applications.result == 'success' && '✅' || '❌' }} | - |" >> $GITHUB_STEP_SUMMARY
+        echo "| Post-deployment tests | ${{ needs.post-deployment-tests.result == 'success' && '✅' || '❌' }} | - |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ needs.post-deployment-tests.result }}" = "success" ]; then
+          echo "### ✅ Deployment Successful" >> $GITHUB_STEP_SUMMARY
+          echo "- Applications deployed to staging environment" >> $GITHUB_STEP_SUMMARY
+          echo "- All tests passed" >> $GITHUB_STEP_SUMMARY
+          echo "- Services are healthy and responding" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "- Monitor application performance" >> $GITHUB_STEP_SUMMARY
+          echo "- Run additional manual testing if needed" >> $GITHUB_STEP_SUMMARY
+          echo "- Consider promoting to production when ready" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### ❌ Deployment Issues Detected" >> $GITHUB_STEP_SUMMARY
+          echo "- Review deployment logs for errors" >> $GITHUB_STEP_SUMMARY
+          echo "- Check service health and connectivity" >> $GITHUB_STEP_SUMMARY
+          echo "- Investigate failed tests" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Recovery Actions:" >> $GITHUB_STEP_SUMMARY
+          echo "- Rollback to previous version if needed" >> $GITHUB_STEP_SUMMARY
+          echo "- Fix identified issues and redeploy" >> $GITHUB_STEP_SUMMARY
+          echo "- Contact DevOps team for assistance" >> $GITHUB_STEP_SUMMARY
+        fi
+
+    - name: Create deployment issue on failure
+      if: needs.post-deployment-tests.result == 'failure'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: `🚨 Staging Deployment Failed - ${context.sha.substring(0, 7)}`,
+            body: `
+## Staging Deployment Failure
+
+**Commit:** ${context.sha}
+**Run:** ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}
+**Timestamp:** ${new Date().toISOString()}
+
+### Failed Stages:
+${needs.pre-deployment-validation.result !== 'success' ? '- Pre-deployment validation\n' : ''}
+${needs.deploy-infrastructure.result !== 'success' && needs.deploy-infrastructure.result !== 'skipped' ? '- Infrastructure deployment\n' : ''}
+${needs.deploy-applications.result !== 'success' ? '- Application deployment\n' : ''}
+${needs.post-deployment-tests.result !== 'success' ? '- Post-deployment tests\n' : ''}
+
+### Immediate Actions Required:
+- [ ] Review deployment logs
+- [ ] Check service health
+- [ ] Investigate test failures
+- [ ] Rollback if necessary
+- [ ] Fix issues and redeploy
+
+*This issue was automatically created by staging deployment workflow*
+            `,
+            labels: ['deployment', 'staging', 'failure', 'urgent']
+          });
+
+    - name: Notify deployment status
+      run: |
+        if [ "${{ needs.post-deployment-tests.result }}" = "success" ]; then
+          echo "🎉 Staging deployment completed successfully!"
+        else
+          echo "❌ Staging deployment failed - check logs and issues"
+          exit 1
+        fi

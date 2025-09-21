@@ -3,16 +3,6 @@
 # TEMP CI SOFT MODE: continue-on-error añadido a jobs potencialmente inestables
 # REVERT_STRICT_CI: Eliminar todas las líneas continue-on-error para volver a modo estricto
 
-name: CI Extended (manual)
-
-on:
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to test'
-        required: false
-        default: 'main'
-
 name: CI Extended
 
 on:
@@ -29,6 +19,11 @@ on:
       - 'apps/web/**'
       - 'packages/**'
   workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to test'
+        required: false
+        default: 'main'
 
 
 concurrency:
