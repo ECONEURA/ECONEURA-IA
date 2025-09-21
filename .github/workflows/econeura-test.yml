@@ -38,19 +38,19 @@ jobs:
 
       - name: Setup dependencies
         run: |
-          sudo apt-get update
+sudo apt-get update
           sudo apt-get install -y jq curl git
 
       - name: Setup ECONEURA workspace
         run: |
-          mkdir -p ${{ env.WORKSPACE }}/{scripts,audit,config,tests}
+mkdir -p ${{ env.WORKSPACE }}/{scripts,audit,config,tests}
           cp -r ECONEURA/* ${{ env.WORKSPACE }}/ 2>/dev/null || true
           cp -r tests ${{ env.WORKSPACE }}/ 2>/dev/null || true
 
       - name: Run test scan on ${{ matrix.test_type }} dataset
         id: test-scan
         run: |
-          echo "🧪 Running test scan on ${{ matrix.test_type }} dataset"
+echo "🧪 Running test scan on ${{ matrix.test_type }} dataset"
 
           # Create test scan results
           TEST_DATASET="${{ env.WORKSPACE }}/tests/econeura-test/${{ matrix.test_type }}"
@@ -104,7 +104,7 @@ jobs:
 
       - name: Validate test results
         run: |
-          EXPECTED="${{ matrix.expected_findings }}"
+EXPECTED="${{ matrix.expected_findings }}"
           ACTUAL="${{ steps.test-scan.outputs.findings_count }}"
 
           echo "📊 Test validation for ${{ matrix.test_type }}:"
@@ -119,7 +119,7 @@ jobs:
 
       - name: Run risk classification test
         run: |
-          echo "📊 Testing risk classification on ${{ matrix.test_type }} dataset"
+echo "📊 Testing risk classification on ${{ matrix.test_type }} dataset"
 
           SCAN_FILE="${{ env.WORKSPACE }}/audit/test_scan_${{ matrix.test_type }}_${{ env.TRACE_ID }}.json"
           CLASSIFICATION_FILE="${{ env.WORKSPACE }}/audit/test_classification_${{ matrix.test_type }}_${{ env.TRACE_ID }}.json"
@@ -136,7 +136,7 @@ jobs:
 
       - name: Test metrics collection
         run: |
-          echo "📊 Testing metrics collection"
+echo "📊 Testing metrics collection"
 
           if [ -f "${{ env.WORKSPACE }}/scripts/metrics_lib.sh" ]; then
             source ${{ env.WORKSPACE }}/scripts/metrics_lib.sh
@@ -171,12 +171,12 @@ jobs:
 
       - name: Setup ECONEURA workspace
         run: |
-          mkdir -p ${{ env.WORKSPACE }}
+mkdir -p ${{ env.WORKSPACE }}
           cp -r ECONEURA/* ${{ env.WORKSPACE }}/ 2>/dev/null || true
 
       - name: Run integration validation
         run: |
-          echo "🔗 Running integration tests"
+echo "🔗 Running integration tests"
 
           # Check if all test datasets exist
           for dataset in noisy real-like critical; do
@@ -206,7 +206,7 @@ jobs:
 
       - name: Generate test summary
         run: |
-          echo "## 🧪 ECONEURA Test Suite Summary" >> $GITHUB_STEP_SUMMARY
+echo "## 🧪 ECONEURA Test Suite Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Test Results:" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Test datasets created and validated" >> $GITHUB_STEP_SUMMARY
