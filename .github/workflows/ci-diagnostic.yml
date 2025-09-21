@@ -1,0 +1,74 @@
+name: CI Diagnostic & Recovery
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'analyze'
+        type: choice
+        options:
+        - analyze
+        - test-minimal
+        - restore-workflows
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  analyze:
+    if: inputs.action == 'analyze'
+    name: Analyze CI Issues
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Workflow Analyzer
+        run: |
+          chmod +x analizar-workflows.sh
+          ./analizar-workflows.sh --json --fail-on=any
+
+      - name: Upload Analysis
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-analysis
+          path: artifacts/
+
+  test-minimal:
+    if: inputs.action == 'test-minimal'
+    name: Test Minimal CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Test Basic Functionality
+        run: |
+          echo "✅ CI infrastructure working"
+          ls -la
+
+  restore-workflows:
+    if: inputs.action == 'restore-workflows'
+    name: Restore Workflows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Restore Workflows
+        run: |
+          if [ -d ".github/workflows.paused" ]; then
+            mv .github/workflows.paused .github/workflows
+            echo "✅ Workflows restored"
+          else
+            echo "❌ No paused workflows found"
+            exit 1
+          fi
+
+      - name: Validate Restored Workflows
+        run: |
+          chmod +x analizar-workflows.sh
+          ./analizar-workflows.sh --json
