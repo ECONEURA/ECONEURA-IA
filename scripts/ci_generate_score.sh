@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ARTIFACTS_DIR="$ROOT_DIR/artifacts"
+mkdir -p "$ARTIFACTS_DIR"
+
+echo "[ci_generate_score] Starting audit generation"
+
+# Try enabling corepack and preparing pnpm (harmless if already active)
+if command -v corepack >/dev/null 2>&1; then
+  echo "[ci_generate_score] Enabling corepack and preparing pnpm"
+  corepack enable || true
+  corepack prepare pnpm@8.7.0 --activate || true
+else
+  echo "[ci_generate_score] corepack not available in PATH"
+fi
+
+if command -v pnpm >/dev/null 2>&1; then
+  echo "[ci_generate_score] pnpm detected: $(pnpm --version)"
+  # Install dependencies if lockfile present (best-effort)
+  if [ -f "$ROOT_DIR/pnpm-lock.yaml" ] || [ -f "$ROOT_DIR/shrinkwrap.yaml" ]; then
+    echo "[ci_generate_score] Installing dependencies (frozen-lockfile)"
+    (cd "$ROOT_DIR" && pnpm install --frozen-lockfile --silent) || echo "[ci_generate_score] pnpm install failed, continuing"
+  fi
+
+  echo "[ci_generate_score] Running pnpm audit --json"
+  (cd "$ROOT_DIR" && pnpm audit --json > "$ARTIFACTS_DIR/pnpm-audit.json") || true
+
+  # Compute a simple score based on vulnerabilities found (heuristic)
+  if [ -s "$ARTIFACTS_DIR/pnpm-audit.json" ]; then
+    node -e '
+const fs=require("fs");
+let j={};
+try{j=JSON.parse(fs.readFileSync(process.argv[1],"utf8"))}catch(e){}
+let count=0;
+if(j.metadata && j.metadata.vulnerabilities){
+  count=Object.values(j.metadata.vulnerabilities).reduce((a,b)=>a+b,0);
+} else if(Array.isArray(j.advisories)){
+  count=j.advisories.length;
+} else if(j.advisories && typeof j.advisories==="object"){
+  count=Object.keys(j.advisories).length;
+}
+const score = Math.max(0, 100 - Math.min(100, count*5));
+const out={generated_by:"ci_generate_score.sh", vulnerabilities:count, score:score};
+fs.writeFileSync(process.argv[2], JSON.stringify(out,null,2));
+' "$ARTIFACTS_DIR/pnpm-audit.json" "$ARTIFACTS_DIR/score.json"
+  else
+    echo "[ci_generate_score] pnpm-audit.json missing or empty; writing placeholder score"
+    cat > "$ARTIFACTS_DIR/score.json" <<'JSON'
+{
+  "generated_by": "ci_generate_score.sh",
+  "pnpm_audit": false,
+  "message": "pnpm audit did not produce output or pnpm is unavailable"
+}
+JSON
+  fi
+
+else
+  echo "[ci_generate_score] pnpm not found; writing placeholder artifacts"
+  cat > "$ARTIFACTS_DIR/pnpm-audit.json" <<'JSON'
+{}
+JSON
+  cat > "$ARTIFACTS_DIR/score.json" <<'JSON'
+{
+  "generated_by": "ci_generate_score.sh",
+  "pnpm_audit": false,
+  "message": "pnpm not installed on runner"
+}
+JSON
+fi
+
+echo "[ci_generate_score] Artifacts written to $ARTIFACTS_DIR"
+ls -la "$ARTIFACTS_DIR" || true
+
+echo "[ci_generate_score] Done"
