@@ -143,7 +143,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: pre-deployment-validation
-    if: needs.pre-deployment-validation.outputs.validation-passed == 'true'
     environment: staging
 
     steps:
@@ -159,7 +158,7 @@ jobs:
         aws-region: ${{ secrets.AWS_REGION }}
 
     - name: Deploy infrastructure with Terraform
-      if: env.TERRAFORM_WORKSPACE
+      if: ${{ env.DEPLOY_ENABLED == 'true' && env.TERRAFORM_WORKSPACE }}
       run: |
         echo "🏗️ Deploying infrastructure..."
         
@@ -191,7 +190,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     needs: [pre-deployment-validation, deploy-infrastructure]
-    if: needs.pre-deployment-validation.outputs.validation-passed == 'true'
     environment: staging
     strategy:
       fail-fast: false
@@ -229,6 +227,7 @@ jobs:
           BUILD_DATE=$(date -Iseconds)
 
     - name: Deploy ${{ matrix.service }} to staging
+      if: ${{ env.DEPLOY_ENABLED == 'true' }}
       run: |
         echo "🚀 Deploying ${{ matrix.service }} to staging..."
         
