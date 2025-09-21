@@ -41,9 +41,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Use workspace node
         run: echo "Using node ${{ needs.setup.outputs.node-version }}"
-      - name: Run TypeScript typecheck
+- name: Run TypeScript typecheck
         run: pnpm typecheck
-      - name: Upload typecheck report
+- name: Upload typecheck report
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -57,7 +57,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run ESLint
         run: |
-          pnpm lint || true
+pnpm lint || true
       - name: Upload ESLint report
         if: always()
         uses: actions/upload-artifact@v4
@@ -72,7 +72,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run tests with coverage
         run: |
-          pnpm test:unit:coverage || pnpm test:coverage || true
+pnpm test:unit:coverage || pnpm test:coverage || true
       - name: Upload coverage
         if: always()
         uses: actions/upload-artifact@v4
@@ -87,7 +87,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run jscpd limited
         run: |
-          npx jscpd --threshold 85 --max-lines 800 --max-size 150 --reporter json --output reports/jscpd || true
+npx jscpd --threshold 85 --max-lines 800 --max-size 150 --reporter json --output reports/jscpd || true
       - name: Upload jscpd
         if: always()
         uses: actions/upload-artifact@v4
@@ -102,7 +102,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run pnpm audit
         run: pnpm audit --json > reports/audit.json || true
-      - name: Upload audit
+- name: Upload audit
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -116,7 +116,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run Gitleaks (npx)
         run: |
-          mkdir -p reports
+mkdir -p reports
           npx gitleaks@8.5.0 detect --source . --report-format json --report-path reports/gitleaks.json || true
       - name: Upload gitleaks
         if: always()
@@ -132,9 +132,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Ensure artifacts dir
         run: mkdir -p artifacts reports || true
-      - name: Run workflows analyzer
+- name: Run workflows analyzer
         run: |
-          chmod +x ./analizar-workflows.sh
+chmod +x ./analizar-workflows.sh
           # run in fail-on mode to prevent accidental deploys passing CI
           ./analizar-workflows.sh --fail-on=any || true
       - name: Upload workflow analysis JSON
