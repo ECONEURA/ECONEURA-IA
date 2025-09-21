@@ -1,0 +1,42 @@
+name: Auto-fix Workflows
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: '0 2 * * 1' # weekly on Monday at 02:00 UTC
+
+permissions:
+  contents: write # allow pushing branches
+  pull-requests: write
+  issues: write
+
+jobs:
+  run-auto-fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install ruamel.yaml and jq
+        run: |
+python -m pip install --upgrade pip
+          pip install ruamel.yaml
+          sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Run analyzer
+        run: |
+bash ./analizar-workflows.sh --fail-on=any --output-json artifacts/analisis-workflows.json || true
+
+      - name: Auto-fix workflows and create PRs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+chmod +x ./scripts/apply_workflow_fixes_and_create_prs.sh
+          ./scripts/apply_workflow_fixes_and_create_prs.sh
