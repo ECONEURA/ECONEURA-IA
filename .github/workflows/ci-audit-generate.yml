@@ -6,8 +6,12 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  actions: write
+
 jobs:
-  audit:
+  generate-score:
     name: Run audit and generate score
     runs-on: ubuntu-latest
     steps:
@@ -19,14 +23,14 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Enable corepack (pnpm)
+      - name: Enable corepack and prepare pnpm
         run: |
-corepack enable
-          corepack prepare pnpm@8.7.0 --activate
+          corepack enable || true
+          corepack prepare pnpm@8.7.0 --activate || true
 
       - name: Run CI audit script
         run: |
-chmod +x ./scripts/ci_generate_score.sh
+          chmod +x ./scripts/ci_generate_score.sh
           ./scripts/ci_generate_score.sh
 
       - name: Upload audit artifacts
