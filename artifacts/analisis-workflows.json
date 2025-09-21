@@ -153,18 +153,6 @@
     }
   },
   {
-    "file": "scan-econeura.yml",
-    "issues": [
-      "possible_deploy_step",
-      "no_deploy_guard_missing"
-    ],
-    "meta": {
-      "pyyaml": true,
-      "jobs_count": 15,
-      "node_versions": "${{ env.NODE_VERSION }}"
-    }
-  },
-  {
     "file": "security-approval.yml",
     "issues": [],
     "meta": {
