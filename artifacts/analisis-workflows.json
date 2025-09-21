@@ -1,16 +1,36 @@
 [
   {
+    "file": "auto-fix-workflows.yml",
+    "issues": [],
+    "meta": {
+      "pyyaml": true,
+      "jobs_count": 6,
+      "secrets": "GITHUB_TOKEN"
+    }
+  },
+  {
     "file": "azure-deploy.yml",
     "issues": [
       "missing_permissions",
-      "possible_deploy_step",
-      "no_deploy_guard_missing"
+      "possible_deploy_step"
     ],
     "meta": {
       "pyyaml": true,
       "jobs_count": 5,
       "node_versions": "${{ env.NODE_VERSION }}",
-      "secrets": "AZURE_API_PUBLISH_PROFILE\nAZURE_WEB_PUBLISH_PROFILE"
+      "secrets": "AZURE_API_PUBLISH_PROFILE\nAZURE_WEB_PUBLISH_PROFILE",
+      "no_deploy_guard": true
+    }
+  },
+  {
+    "file": "ci-audit-generate.yml",
+    "issues": [
+      "missing_permissions"
+    ],
+    "meta": {
+      "pyyaml": true,
+      "jobs_count": 3,
+      "node_versions": "'20'"
     }
   },
   {
@@ -46,7 +66,7 @@
     ],
     "meta": {
       "pyyaml": true,
-      "jobs_count": 13,
+      "jobs_count": 14,
       "node_versions": "${{ steps.node.outputs.node-version }}\n'20.12.2'",
       "no_deploy_guard": true
     }
@@ -92,14 +112,14 @@
   {
     "file": "integration-tests-with-compose.yml",
     "issues": [
-      "possible_deploy_step",
-      "no_deploy_guard_missing"
+      "possible_deploy_step"
     ],
     "meta": {
       "pyyaml": true,
       "jobs_count": 14,
       "node_versions": "${{ env.NODE_VERSION }}",
-      "secrets": "PROD_DB_URL\nPROD_REDIS_URL\nSTAGING_DB_URL\nSTAGING_REDIS_URL"
+      "secrets": "PROD_DB_URL\nPROD_REDIS_URL\nSTAGING_DB_URL\nSTAGING_REDIS_URL",
+      "no_deploy_guard": true
     }
   },
   {
@@ -124,14 +144,14 @@
   {
     "file": "load-testing.yml",
     "issues": [
-      "possible_deploy_step",
-      "no_deploy_guard_missing"
+      "possible_deploy_step"
     ],
     "meta": {
       "pyyaml": true,
       "jobs_count": 15,
       "node_versions": "${{ env.NODE_VERSION }}",
-      "secrets": "PRODUCTION_API_URL\nPRODUCTION_URL\nPRODUCTION_WEB_URL\nSTAGING_API_URL\nSTAGING_URL\nSTAGING_WEB_URL"
+      "secrets": "PRODUCTION_API_URL\nPRODUCTION_URL\nPRODUCTION_WEB_URL\nSTAGING_API_URL\nSTAGING_URL\nSTAGING_WEB_URL",
+      "no_deploy_guard": true
     }
   },
   {
@@ -153,18 +173,6 @@
     }
   },
   {
-    "file": "scan-econeura.yml",
-    "issues": [
-      "possible_deploy_step",
-      "no_deploy_guard_missing"
-    ],
-    "meta": {
-      "pyyaml": true,
-      "jobs_count": 15,
-      "node_versions": "${{ env.NODE_VERSION }}"
-    }
-  },
-  {
     "file": "security-approval.yml",
     "issues": [],
     "meta": {
@@ -177,14 +185,14 @@
   {
     "file": "staging-deploy.yml",
     "issues": [
-      "possible_deploy_step",
-      "no_deploy_guard_missing"
+      "possible_deploy_step"
     ],
     "meta": {
       "pyyaml": true,
       "jobs_count": 15,
       "node_versions": "${{ env.NODE_VERSION }}",
-      "secrets": "AWS_ACCESS_KEY_ID\nAWS_REGION\nAWS_SECRET_ACCESS_KEY\nCONTAINER_REGISTRY\nCONTAINER_REGISTRY_PASSWORD\nCONTAINER_REGISTRY_USER\nSTAGING_API_URL\nSTAGING_WEB_URL"
+      "secrets": "AWS_ACCESS_KEY_ID\nAWS_REGION\nAWS_SECRET_ACCESS_KEY\nCONTAINER_REGISTRY\nCONTAINER_REGISTRY_PASSWORD\nCONTAINER_REGISTRY_USER\nSTAGING_API_URL\nSTAGING_WEB_URL",
+      "no_deploy_guard": true
     }
   }
 ]

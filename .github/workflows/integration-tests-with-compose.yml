@@ -182,6 +182,7 @@ jobs:
   run-integration-tests:
     name: Run ${{ matrix.test-suite }} Tests
     runs-on: ubuntu-latest
+    if: ${{ env.DEPLOY_ENABLED == 'true' || (github.event.inputs.environment != 'production') }}
     timeout-minutes: 30
     needs: [setup-test-environment, build-test-images]
     strategy:
@@ -238,16 +239,19 @@ jobs:
         ENCRYPTION_KEY=test-encryption-key-32-chars-exactly
         EOF
 
-    - name: Start Test Services
+    - name: Run database migrations (only non-production)
+      if: ${{ github.event.inputs.environment != 'production' }}
       run: |
-        echo "🚀 Starting test services..."
-        
-        # Start database migrations
+        echo "Running test database migrations (non-production)"
         docker run --rm \
           --network host \
           -e DATABASE_URL=postgresql://test:test@localhost:5432/test_db \
           econeura-api:test \
           pnpm db:migrate:test
+
+    - name: Start Test Services
+      run: |
+        echo "🚀 Starting test services..."
         
         # Start API service in background
         docker run -d \

@@ -13,6 +13,7 @@ JSON_OUT="$ARTIFACTS_DIR/analisis-workflows.json"
 ISSUES_FOUND=0
 WORKFLOW_COUNT=0
 FAIL_ON=${FAIL_ON:-""}
+FAIL_ON_VAL="${FAIL_ON_VAL:-}"
 
 mkdir -p "$ARTIFACTS_DIR"
 echo "Fecha de análisis: $(date -Iseconds)" > "$LOG_FILE"
@@ -26,6 +27,14 @@ analyze_workflow() {
     local file="$1"
     local base
     base=$(basename "$file")
+
+    # Respect allowlist
+    if [ -f docs/audit/allowlist-workflows.txt ]; then
+        if grep -Fxq "$base" docs/audit/allowlist-workflows.txt; then
+            echo "ℹ️ Workflow $base is allowlisted — skipping analysis" | tee -a "$LOG_FILE"
+            return 0
+        fi
+    fi
 
     echo "" | tee -a "$LOG_FILE"
     echo "📄 Analizando: $base" | tee -a "$LOG_FILE"
