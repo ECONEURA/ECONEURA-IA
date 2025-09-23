@@ -35,7 +35,8 @@
     "test:e2e": "vitest run -c tests/configs/vitest.e2e.config.ts",
     "test:unit:coverage": "vitest run -c tests/configs/vitest.unit.config.ts --coverage",
     "test:integration:coverage": "vitest run -c tests/configs/vitest.integration.config.ts --coverage",
-    "test:e2e:coverage": "vitest run -c tests/configs/vitest.e2e.config.ts --coverage"
+    "test:e2e:coverage": "vitest run -c tests/configs/vitest.e2e.config.ts --coverage",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@apidevtools/swagger-parser": "^12.0.0",
@@ -83,7 +84,7 @@
   },
   "license": "MIT",
   "engines": {
-    "node": ">=20 <21",
+    "node": ">=20",
     "pnpm": ">=8.0.0"
   },
   "dependencies": {

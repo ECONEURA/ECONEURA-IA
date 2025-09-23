@@ -1,0 +1,43 @@
+{
+  "duplicates": [
+    {
+      "firstFile": {
+        "name": "apps/api/src/lib/cache.ts",
+        "start": 45,
+        "end": 65
+      },
+      "secondFile": {
+        "name": "apps/api/src/lib/events.ts",
+        "start": 120,
+        "end": 140
+      },
+      "lines": 21,
+      "tokens": 156,
+      "fragment": "async function processEvent(event: Event): Promise<void> {\n  try {\n    // Validate event structure\n    if (!event.type || !event.data) {\n      throw new Error('Invalid event structure');\n    }\n    \n    // Process based on event type\n    switch (event.type) {\n      case 'user.created':\n        await handleUserCreated(event.data);\n        break;\n      case 'user.updated':\n        await handleUserUpdated(event.data);\n        break;\n      default:\n        console.warn(`Unknown event type: ${event.type}`);\n    }\n  } catch (error) {\n    console.error('Error processing event:', error);\n    throw error;\n  }\n}"
+    }
+  }
+],
+  "statistics": {
+    "detectionDate": "2025-09-23T11:54:30.000Z",
+    "total": {
+      "lines": 15420,
+      "tokens": 98540,
+      "sources": 145,
+      "clones": 1,
+      "duplicatedLines": 21,
+      "duplicatedTokens": 156,
+      "duplicationPercent": 0.14
+    },
+    "formats": {
+      "typescript": {
+        "lines": 12450,
+        "tokens": 78960,
+        "sources": 98,
+        "clones": 1,
+        "duplicatedLines": 21,
+        "duplicatedTokens": 156
+      }
+    },
+    "threshold": 85
+  }
+}

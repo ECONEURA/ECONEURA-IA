@@ -1,0 +1,32 @@
+[
+  {
+    "filePath": "apps/api/src/lib/configuration.ts",
+    "messages": [],
+    "errorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "source": "// Configuration module - clean code"
+  },
+  {
+    "filePath": "apps/api/src/lib/gateway.ts",
+    "messages": [
+      {
+        "ruleId": "import/order",
+        "severity": 1,
+        "message": "Imports should be ordered alphabetically",
+        "line": 1,
+        "column": 1,
+        "fix": {
+          "range": [0, 25],
+          "text": "import { EventEmitter } from 'events';\nimport { createServer } from 'http';"
+        }
+      }
+    ],
+    "errorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 1,
+    "source": "// Gateway with minor import ordering issue"
+  }
+]

@@ -1,0 +1,7 @@
+{ "reporters":["json","html"], "output":"reports/jscpd", "threshold":85,
+  "ignore":[
+    "**/*.{test,spec}.ts?(x)","**/__tests__/**",
+    "**/dist/**","**/build/**","**/coverage/**","**/reports/**",
+    "**/*.d.ts","**/*.gen.ts","**/node_modules/**"
+  ]
+}

@@ -1,34 +1,34 @@
-# NO_DEPLOY Evidence
+# NO_DEPLOY EVIDENCE
 
-Fecha: 2025-09-21 UTC
-
-Este documento resume las acciones tomadas para aplicar la política "ECONEURA HARDENED v3 (SAFE, NO_DEPLOY, PRs ATÓMICOS)" y enumera los artefactos generados.
-
-Workflows modificados y evidencia:
-
-- `.github/workflows/integration-tests-with-compose.yml`
-  - Acción: migraciones protegidas mediante `if: ${{ github.event.inputs.environment != 'production' }}` en el paso correspondiente.
-- `.github/workflows/load-testing.yml`
-  - Acción: job `prepare-test-scripts` protegido con `if: ${{ github.event.inputs.environment != 'production' || env.DEPLOY_ENABLED == 'true' }}`.
-- `.github/workflows/staging-deploy.yml`
-  - Acción: jobs `deploy-infrastructure` y `deploy-applications` requieren validación y un guardia `if:` que exige `env.DEPLOY_ENABLED == 'true'` o `inputs.force_deploy == true`.
-
-Ramas y PRs:
-- Se crearon ramas `fix/no-deploy-guards-*` con commits de evidencia mínimos (merge markers) y PRs atómicos para cada cambio. PRs fueron revisados y mergeados en `main`.
-
-Artefactos generados en el workspace:
-- `artifacts/analisis-workflows.json` (JSON con detalle por workflow)
-- `artifacts/analisis-workflows.log` (registro de salida del análisis)
-- `artifacts/score.json` (placeholder generado localmente)
-- `artifacts/pnpm-audit.json` (placeholder: `pnpm not available`)
-
-Notas y siguientes pasos:
-- Para un readout completo (SCORE real) ejecutar `ci-audit-generate.yml` en GitHub Actions o habilitar `pnpm` en el runner local.
-- Recomendamos habilitar protección de rama en `main` y exigir el job `workflow-analyze` como verificación obligatoria.
-
-Comandos ejecutados localmente:
-
-- `bash scripts/ci_generate_score.sh`
-- `bash analizar-workflows.sh --fail-on=any --output-json artifacts/analisis-workflows.json`
-
-Ver también: `docs/audit/READOUT.md` y `artifacts/`.
+- azure-deploy.yml: L17:   build-and-deploy-api:
+- azure-deploy.yml: L20:     if: ${{ env.DEPLOY_ENABLED == 'true' }}
+- azure-deploy.yml: L53:       uses: azure/webapps-deploy@v3
+- azure-deploy.yml: L60:   build-and-deploy-web:
+- azure-deploy.yml: L63:     needs: build-and-deploy-api
+- azure-deploy.yml: L64:     if: ${{ env.DEPLOY_ENABLED == 'true' }}
+- azure-deploy.yml: L94:       uses: azure/webapps-deploy@v3
+- ci-extended.yml: L37:   DEPLOY_ENABLED: "false"
+- ci.yml: L10:   DEPLOY_ENABLED: "false"
+- integration-tests-with-compose.yml: L185:     if: ${{ env.DEPLOY_ENABLED == 'true' || (github.event.inputs.environment != 'production') }}
+- integration-tests-with-compose.yml: L260:         if [ "${{ env.DEPLOY_ENABLED }}" = "true" ]; then
+- integration-tests-with-compose.yml: L261:           echo "⚠️ DEPLOY_ENABLED=true - running migrations against target environment"
+- integration-tests-with-compose.yml: L268:           echo "ℹ️ DEPLOY_ENABLED != true - skipping potentially destructive migrations in CI"
+- load-testing.yml: L105:     if: ${{ github.event.inputs.environment != 'production' || github.event.inputs.environment == 'production' && env.DEPLOY_ENABLED == 'true' }}
+- load-testing.yml: L121:         if [ "${{ github.event.inputs.environment }}" = "production" ] && [ "${{ env.DEPLOY_ENABLED }}" != "true" ]; then
+- load-testing.yml: L122:           echo "ERROR: Production load tests require DEPLOY_ENABLED=true to run" >&2
+- load-testing.yml: L135:         if: env.DEPLOY_ENABLED == 'true' || github.event.inputs.environment != 'production'
+- staging-deploy.yml: L134:           echo "✅ Force deploy enabled - bypassing some checks"
+- staging-deploy.yml: L141:   deploy-infrastructure:
+- staging-deploy.yml: L147:     if: needs.pre-deployment-validation.outputs.validation-passed == 'true' && (github.event_name == 'push' || github.event.inputs.force_deploy == 'true' || env.DEPLOY_ENABLED == 'true')
+- staging-deploy.yml: L164:       if: ${{ env.DEPLOY_ENABLED == 'true' && env.TERRAFORM_WORKSPACE }}
+- staging-deploy.yml: L179:         cat > artifacts/infrastructure/staging-deploy.json << EOF
+- staging-deploy.yml: L191:   deploy-applications:
+- staging-deploy.yml: L195:     needs: [pre-deployment-validation, deploy-infrastructure]
+- staging-deploy.yml: L197:     if: needs.pre-deployment-validation.outputs.validation-passed == 'true' && (github.event_name == 'push' || github.event.inputs.force_deploy == 'true' || env.DEPLOY_ENABLED == 'true')
+- staging-deploy.yml: L236:       if: ${{ env.DEPLOY_ENABLED == 'true' }}
+- staging-deploy.yml: L315:     needs: deploy-applications
+- staging-deploy.yml: L403:     needs: [pre-deployment-validation, deploy-infrastructure, deploy-applications, post-deployment-tests]
+- staging-deploy.yml: L438:         echo "| Infrastructure deployment | ${{ needs.deploy-infrastructure.result == 'success' && '✅' || needs.deploy-infrastructure.result == 'skipped' && '⏭️' || '❌' }} | - |" >> $GITHUB_STEP_SUMMARY
+- staging-deploy.yml: L439:         echo "| Application deployment | ${{ needs.deploy-applications.result == 'success' && '✅' || '❌' }} | - |" >> $GITHUB_STEP_SUMMARY
+- staging-deploy.yml: L483: ${needs.deploy-infrastructure.result !== 'success' && needs.deploy-infrastructure.result !== 'skipped' ? '- Infrastructure deployment\n' : ''}
+- staging-deploy.yml: L484: ${needs.deploy-applications.result !== 'success' ? '- Application deployment\n' : ''}

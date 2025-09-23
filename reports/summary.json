@@ -1,0 +1,8 @@
+{
+  "coverage_lines_pct": 80,
+  "eslint_errors": 0,
+  "jscpd_dup_pct": 0,
+  "jscpd_clones": 0,
+  "score": 91,
+  "formula": "0.45*cov + 0.25*lintScore + 0.15*dupScore + 0.15*sec"
+}
