@@ -1,1 +1,1908 @@
-{"numTotalTestSuites":116,"numPassedTestSuites":109,"numFailedTestSuites":7,"numPendingTestSuites":0,"numTotalTests":195,"numPassedTests":195,"numFailedTests":0,"numPendingTests":0,"numTodoTests":0,"snapshot":{"added":0,"failure":false,"filesAdded":0,"filesRemoved":0,"filesRemovedList":[],"filesUnmatched":0,"filesUpdated":0,"matched":0,"total":0,"unchecked":0,"uncheckedKeysByFile":[],"unmatched":0,"updated":0,"didUpdate":false},"startTime":1758628443048,"success":false,"testResults":[{"assertionResults":[{"ancestorTitles":["IntelligentCache","Basic Operations"],"fullName":"IntelligentCache Basic Operations should set and get a value","status":"passed","title":"should set and get a value","duration":3.114900000000034,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentCache","Basic Operations"],"fullName":"IntelligentCache Basic Operations should return null for non-existent key","status":"passed","title":"should return null for non-existent key","duration":0.4623999999998887,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentCache","Basic Operations"],"fullName":"IntelligentCache Basic Operations should delete a value","status":"passed","title":"should delete a value","duration":0.689200000000028,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentCache","Basic Operations"],"fullName":"IntelligentCache Basic Operations should clear all values","status":"passed","title":"should clear all values","duration":0.4916000000000622,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentCache","TTL and Expiration"],"fullName":"IntelligentCache TTL and Expiration should expire items after TTL","status":"passed","title":"should expire items after TTL","duration":1107.9567999999997,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentCache","TTL and Expiration"],"fullName":"IntelligentCache TTL and Expiration should use default TTL when not specified","status":"passed","title":"should use default TTL when not specified","duration":0.7433000000000902,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentCache","Statistics"],"fullName":"IntelligentCache Statistics should track cache hits and misses","status":"passed","title":"should track cache hits and misses","duration":0.7510000000002037,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentCache","Statistics"],"fullName":"IntelligentCache Statistics should track access count and last accessed","status":"passed","title":"should track access count and last accessed","duration":0.33750000000009095,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentCache","Memory Limits"],"fullName":"IntelligentCache Memory Limits should evict least used items when max size is reached","status":"passed","title":"should evict least used items when max size is reached","duration":0.6493999999997868,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentCache","Warmup"],"fullName":"IntelligentCache Warmup should warmup cache with provided patterns","status":"passed","title":"should warmup cache with provided patterns","duration":0.5518999999999323,"failureMessages":[],"meta":{}},{"ancestorTitles":["AICache"],"fullName":"AICache should cache AI responses with hashed prompts","status":"passed","title":"should cache AI responses with hashed prompts","duration":0.5698999999999614,"failureMessages":[],"meta":{}},{"ancestorTitles":["AICache"],"fullName":"AICache should return null for uncached AI responses","status":"passed","title":"should return null for uncached AI responses","duration":0.1792000000000371,"failureMessages":[],"meta":{}},{"ancestorTitles":["AICache"],"fullName":"AICache should warmup AI cache with common prompts","status":"passed","title":"should warmup AI cache with common prompts","duration":0.42379999999957363,"failureMessages":[],"meta":{}},{"ancestorTitles":["SearchCache"],"fullName":"SearchCache should cache search results with hashed queries","status":"passed","title":"should cache search results with hashed queries","duration":0.5010999999999513,"failureMessages":[],"meta":{}},{"ancestorTitles":["SearchCache"],"fullName":"SearchCache should return null for uncached search results","status":"passed","title":"should return null for uncached search results","duration":0.1793999999999869,"failureMessages":[],"meta":{}},{"ancestorTitles":["SearchCache"],"fullName":"SearchCache should warmup search cache with common queries","status":"passed","title":"should warmup search cache with common queries","duration":0.3668999999999869,"failureMessages":[],"meta":{}},{"ancestorTitles":["CacheManager"],"fullName":"CacheManager should provide access to AI and search caches","status":"passed","title":"should provide access to AI and search caches","duration":0.44270000000005894,"failureMessages":[],"meta":{}},{"ancestorTitles":["CacheManager"],"fullName":"CacheManager should warmup all caches","status":"passed","title":"should warmup all caches","duration":0.3981999999996333,"failureMessages":[],"meta":{}},{"ancestorTitles":["CacheManager"],"fullName":"CacheManager should start and stop periodic warmup","status":"passed","title":"should start and stop periodic warmup","duration":140.71049999999968,"failureMessages":[],"meta":{}},{"ancestorTitles":["CacheManager"],"fullName":"CacheManager should get combined stats from all caches","status":"passed","title":"should get combined stats from all caches","duration":0.6201999999998407,"failureMessages":[],"meta":{}}],"startTime":1758628447777,"endTime":1758628449038.62,"status":"passed","message":"","name":"C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/lib/cache.test.ts"},{"assertionResults":[{"ancestorTitles":["InMemoryConfigurationManager","Feature Flag Management"],"fullName":"InMemoryConfigurationManager Feature Flag Management should get feature flag by id","status":"passed","title":"should get feature flag by id","duration":3.1848999999999705,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Feature Flag Management"],"fullName":"InMemoryConfigurationManager Feature Flag Management should return undefined for non-existent feature flag","status":"passed","title":"should return undefined for non-existent feature flag","duration":0.43450000000007094,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Feature Flag Management"],"fullName":"InMemoryConfigurationManager Feature Flag Management should check if feature is enabled","status":"passed","title":"should check if feature is enabled","duration":0.37210000000004584,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Feature Flag Management"],"fullName":"InMemoryConfigurationManager Feature Flag Management should return false for disabled feature flag","status":"passed","title":"should return false for disabled feature flag","duration":0.27939999999989595,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Feature Flag Management"],"fullName":"InMemoryConfigurationManager Feature Flag Management should check feature flag with rollout percentage","status":"passed","title":"should check feature flag with rollout percentage","duration":0.33740000000011605,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Feature Flag Management"],"fullName":"InMemoryConfigurationManager Feature Flag Management should check feature flag with target users","status":"passed","title":"should check feature flag with target users","duration":0.3061999999999898,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Feature Flag Management"],"fullName":"InMemoryConfigurationManager Feature Flag Management should check feature flag with conditions","status":"passed","title":"should check feature flag with conditions","duration":0.3849999999999909,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Feature Flag Management"],"fullName":"InMemoryConfigurationManager Feature Flag Management should get all feature flags","status":"passed","title":"should get all feature flags","duration":0.4136000000000877,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Feature Flag Management"],"fullName":"InMemoryConfigurationManager Feature Flag Management should get feature flags by environment","status":"passed","title":"should get feature flags by environment","duration":0.38799999999991996,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Feature Flag Management"],"fullName":"InMemoryConfigurationManager Feature Flag Management should create feature flag","status":"passed","title":"should create feature flag","duration":0.6399999999998727,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Feature Flag Management"],"fullName":"InMemoryConfigurationManager Feature Flag Management should update feature flag","status":"passed","title":"should update feature flag","duration":0.3975000000000364,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Feature Flag Management"],"fullName":"InMemoryConfigurationManager Feature Flag Management should return false when updating non-existent feature flag","status":"passed","title":"should return false when updating non-existent feature flag","duration":0.21129999999993743,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Feature Flag Management"],"fullName":"InMemoryConfigurationManager Feature Flag Management should delete feature flag","status":"passed","title":"should delete feature flag","duration":0.2578999999998359,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Feature Flag Management"],"fullName":"InMemoryConfigurationManager Feature Flag Management should return false when deleting non-existent feature flag","status":"passed","title":"should return false when deleting non-existent feature flag","duration":0.2157999999999447,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Environment Configuration"],"fullName":"InMemoryConfigurationManager Environment Configuration should get environment config","status":"passed","title":"should get environment config","duration":0.3423999999999978,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Environment Configuration"],"fullName":"InMemoryConfigurationManager Environment Configuration should return undefined for non-existent environment","status":"passed","title":"should return undefined for non-existent environment","duration":0.1960999999998876,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Environment Configuration"],"fullName":"InMemoryConfigurationManager Environment Configuration should set environment config","status":"passed","title":"should set environment config","duration":0.8740999999999985,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Configuration Values"],"fullName":"InMemoryConfigurationManager Configuration Values should get config value with default","status":"passed","title":"should get config value with default","duration":0.3511000000000877,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Configuration Values"],"fullName":"InMemoryConfigurationManager Configuration Values should get config value from environment config","status":"passed","title":"should get config value from environment config","duration":0.2514000000001033,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Configuration Values"],"fullName":"InMemoryConfigurationManager Configuration Values should get config value from overrides","status":"passed","title":"should get config value from overrides","duration":0.22670000000016444,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Configuration Values"],"fullName":"InMemoryConfigurationManager Configuration Values should set config value","status":"passed","title":"should set config value","duration":0.29769999999984975,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Configuration Values"],"fullName":"InMemoryConfigurationManager Configuration Values should fallback to default environment","status":"passed","title":"should fallback to default environment","duration":0.19970000000012078,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Secrets Management"],"fullName":"InMemoryConfigurationManager Secrets Management should get secret","status":"passed","title":"should get secret","duration":0.2460000000000946,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Secrets Management"],"fullName":"InMemoryConfigurationManager Secrets Management should return undefined for non-existent secret","status":"passed","title":"should return undefined for non-existent secret","duration":0.15380000000004657,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Secrets Management"],"fullName":"InMemoryConfigurationManager Secrets Management should set secret","status":"passed","title":"should set secret","duration":0.23730000000000473,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Secrets Management"],"fullName":"InMemoryConfigurationManager Secrets Management should fallback to default environment for secrets","status":"passed","title":"should fallback to default environment for secrets","duration":0.19139999999993051,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Configuration Validation"],"fullName":"InMemoryConfigurationManager Configuration Validation should validate valid configuration","status":"passed","title":"should validate valid configuration","duration":0.5021999999999025,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Configuration Validation"],"fullName":"InMemoryConfigurationManager Configuration Validation should invalidate configuration with invalid feature flag","status":"passed","title":"should invalidate configuration with invalid feature flag","duration":0.23849999999993088,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Configuration Stats"],"fullName":"InMemoryConfigurationManager Configuration Stats should get configuration statistics","status":"passed","title":"should get configuration statistics","duration":2.2456999999999425,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Condition Evaluation","evaluateCondition"],"fullName":"InMemoryConfigurationManager Condition Evaluation evaluateCondition should evaluate equals condition","status":"passed","title":"should evaluate equals condition","duration":0.2986000000000786,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Condition Evaluation","evaluateCondition"],"fullName":"InMemoryConfigurationManager Condition Evaluation evaluateCondition should evaluate contains condition","status":"passed","title":"should evaluate contains condition","duration":0.2262999999998101,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Condition Evaluation","evaluateCondition"],"fullName":"InMemoryConfigurationManager Condition Evaluation evaluateCondition should evaluate greater_than condition","status":"passed","title":"should evaluate greater_than condition","duration":0.19910000000004402,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Condition Evaluation","evaluateCondition"],"fullName":"InMemoryConfigurationManager Condition Evaluation evaluateCondition should evaluate in condition","status":"passed","title":"should evaluate in condition","duration":0.18869999999992615,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Condition Evaluation","evaluateCondition"],"fullName":"InMemoryConfigurationManager Condition Evaluation evaluateCondition should evaluate not_in condition","status":"passed","title":"should evaluate not_in condition","duration":0.17390000000000327,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Condition Evaluation","evaluateTimeWindow"],"fullName":"InMemoryConfigurationManager Condition Evaluation evaluateTimeWindow should evaluate time window condition","status":"passed","title":"should evaluate time window condition","duration":0.24459999999999127,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Condition Evaluation","evaluateCustomCondition"],"fullName":"InMemoryConfigurationManager Condition Evaluation evaluateCustomCondition should evaluate custom condition","status":"passed","title":"should evaluate custom condition","duration":0.21149999999988722,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Default Initialization"],"fullName":"InMemoryConfigurationManager Default Initialization should initialize with default environments","status":"passed","title":"should initialize with default environments","duration":0.25090000000000146,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Default Initialization"],"fullName":"InMemoryConfigurationManager Default Initialization should initialize with default feature flags","status":"passed","title":"should initialize with default feature flags","duration":0.24540000000001783,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryConfigurationManager","Reload Configuration"],"fullName":"InMemoryConfigurationManager Reload Configuration should reload configuration","status":"passed","title":"should reload configuration","duration":1.1920000000000073,"failureMessages":[],"meta":{}},{"ancestorTitles":["Global Instance"],"fullName":"Global Instance should export global configurationManager instance","status":"passed","title":"should export global configurationManager instance","duration":0.26909999999998035,"failureMessages":[],"meta":{}}],"startTime":1758628445041,"endTime":1758628445060.269,"status":"passed","message":"","name":"C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/lib/configuration.test.ts"},{"assertionResults":[{"ancestorTitles":["Custom Error Classes","AppError"],"fullName":"Custom Error Classes AppError should create an AppError with correct properties","status":"passed","title":"should create an AppError with correct properties","duration":1.9214999999999236,"failureMessages":[],"meta":{}},{"ancestorTitles":["Custom Error Classes","AppError"],"fullName":"Custom Error Classes AppError should default isOperational to true","status":"passed","title":"should default isOperational to true","duration":0.2158999999999196,"failureMessages":[],"meta":{}},{"ancestorTitles":["Custom Error Classes","ValidationError"],"fullName":"Custom Error Classes ValidationError should create a ValidationError with correct status and code","status":"passed","title":"should create a ValidationError with correct status and code","duration":0.32189999999991414,"failureMessages":[],"meta":{}},{"ancestorTitles":["Custom Error Classes","AuthenticationError"],"fullName":"Custom Error Classes AuthenticationError should create an AuthenticationError with correct status and code","status":"passed","title":"should create an AuthenticationError with correct status and code","duration":0.2989000000000033,"failureMessages":[],"meta":{}},{"ancestorTitles":["Custom Error Classes","AuthorizationError"],"fullName":"Custom Error Classes AuthorizationError should create an AuthorizationError with correct status and code","status":"passed","title":"should create an AuthorizationError with correct status and code","duration":0.46420000000011896,"failureMessages":[],"meta":{}},{"ancestorTitles":["errorHandler middleware"],"fullName":"errorHandler middleware should handle ZodError with validation details","status":"passed","title":"should handle ZodError with validation details","duration":4.607999999999947,"failureMessages":[],"meta":{}},{"ancestorTitles":["errorHandler middleware"],"fullName":"errorHandler middleware should handle AppError instances","status":"passed","title":"should handle AppError instances","duration":0.9949999999998909,"failureMessages":[],"meta":{}},{"ancestorTitles":["errorHandler middleware"],"fullName":"errorHandler middleware should handle generic errors in development","status":"passed","title":"should handle generic errors in development","duration":6.313200000000052,"failureMessages":[],"meta":{}},{"ancestorTitles":["errorHandler middleware"],"fullName":"errorHandler middleware should handle generic errors in production","status":"passed","title":"should handle generic errors in production","duration":0.7624999999998181,"failureMessages":[],"meta":{}},{"ancestorTitles":["errorHandler middleware"],"fullName":"errorHandler middleware should log errors appropriately","status":"passed","title":"should log errors appropriately","duration":0.6399999999998727,"failureMessages":[],"meta":{}},{"ancestorTitles":["notFoundHandler middleware"],"fullName":"notFoundHandler middleware should create and pass AppError for not found routes","status":"passed","title":"should create and pass AppError for not found routes","duration":0.9776999999999134,"failureMessages":[],"meta":{}},{"ancestorTitles":["asyncHandler"],"fullName":"asyncHandler should execute successful async functions","status":"passed","title":"should execute successful async functions","duration":1.2269999999998618,"failureMessages":[],"meta":{}},{"ancestorTitles":["asyncHandler"],"fullName":"asyncHandler should catch and pass errors to next middleware","status":"passed","title":"should catch and pass errors to next middleware","duration":1.236599999999953,"failureMessages":[],"meta":{}}],"startTime":1758628449470,"endTime":1758628449491.2366,"status":"passed","message":"","name":"C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/lib/errors.test.ts"},{"assertionResults":[{"ancestorTitles":["InMemoryEventStore","saveEvents"],"fullName":"InMemoryEventStore saveEvents should save events successfully","status":"passed","title":"should save events successfully","duration":2.8197000000000116,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryEventStore","saveEvents"],"fullName":"InMemoryEventStore saveEvents should throw concurrency conflict on version mismatch","status":"passed","title":"should throw concurrency conflict on version mismatch","duration":1.444300000000112,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryEventStore","saveEvents"],"fullName":"InMemoryEventStore saveEvents should throw error on invalid event version sequence","status":"passed","title":"should throw error on invalid event version sequence","duration":0.3852999999999156,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryEventStore","getEvents"],"fullName":"InMemoryEventStore getEvents should return events for aggregate","status":"passed","title":"should return events for aggregate","duration":1.2984999999998763,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryEventStore","getEvents"],"fullName":"InMemoryEventStore getEvents should return events from specific version","status":"passed","title":"should return events from specific version","duration":0.416700000000219,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryEventStore","getAllEvents"],"fullName":"InMemoryEventStore getAllEvents should return all events","status":"passed","title":"should return all events","duration":0.5761999999999716,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryEventStore","getAllEvents"],"fullName":"InMemoryEventStore getAllEvents should filter events by timestamp","status":"passed","title":"should filter events by timestamp","duration":0.45959999999968204,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryEventStore","getEventsByType"],"fullName":"InMemoryEventStore getEventsByType should return events filtered by type","status":"passed","title":"should return events filtered by type","duration":0.5650999999998021,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryEventStore","getEventsByType"],"fullName":"InMemoryEventStore getEventsByType should filter events by type and timestamp","status":"passed","title":"should filter events by type and timestamp","duration":0.40419999999994616,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryEventBus","publish"],"fullName":"InMemoryEventBus publish should publish event to subscribed handlers","status":"passed","title":"should publish event to subscribed handlers","duration":2.400800000000345,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryEventBus","publish"],"fullName":"InMemoryEventBus publish should handle handler errors gracefully","status":"passed","title":"should handle handler errors gracefully","duration":0.8850999999999658,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryEventBus","publish"],"fullName":"InMemoryEventBus publish should handle events with no subscribers","status":"passed","title":"should handle events with no subscribers","duration":0.3006000000000313,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryEventBus","subscribe and unsubscribe"],"fullName":"InMemoryEventBus subscribe and unsubscribe should subscribe and unsubscribe handlers","status":"passed","title":"should subscribe and unsubscribe handlers","duration":0.8155000000001564,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryEventBus","subscribe and unsubscribe"],"fullName":"InMemoryEventBus subscribe and unsubscribe should handle unsubscribe for non-existent handler","status":"passed","title":"should handle unsubscribe for non-existent handler","duration":0.3043000000002394,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryReadModelStore","save and get"],"fullName":"InMemoryReadModelStore save and get should save and retrieve read models","status":"passed","title":"should save and retrieve read models","duration":0.3454999999999018,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryReadModelStore","save and get"],"fullName":"InMemoryReadModelStore save and get should return null for non-existent read model","status":"passed","title":"should return null for non-existent read model","duration":0.15209999999979118,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryReadModelStore","query"],"fullName":"InMemoryReadModelStore query should query read models by type","status":"passed","title":"should query read models by type","duration":0.42470000000002983,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryReadModelStore","query"],"fullName":"InMemoryReadModelStore query should filter read models by data properties","status":"passed","title":"should filter read models by data properties","duration":0.6109999999998763,"failureMessages":[],"meta":{}},{"ancestorTitles":["InMemoryReadModelStore","delete"],"fullName":"InMemoryReadModelStore delete should delete read models","status":"passed","title":"should delete read models","duration":0.3386000000000422,"failureMessages":[],"meta":{}},{"ancestorTitles":["EventSourcingSystem","command handling"],"fullName":"EventSourcingSystem command handling should register and execute commands","status":"passed","title":"should register and execute commands","duration":0.9570000000003347,"failureMessages":[],"meta":{}},{"ancestorTitles":["EventSourcingSystem","command handling"],"fullName":"EventSourcingSystem command handling should throw error for unregistered command type","status":"passed","title":"should throw error for unregistered command type","duration":0.3846000000003187,"failureMessages":[],"meta":{}},{"ancestorTitles":["EventSourcingSystem","query handling"],"fullName":"EventSourcingSystem query handling should register and execute queries","status":"passed","title":"should register and execute queries","duration":1.294800000000123,"failureMessages":[],"meta":{}},{"ancestorTitles":["EventSourcingSystem","query handling"],"fullName":"EventSourcingSystem query handling should throw error for unregistered query type","status":"passed","title":"should throw error for unregistered query type","duration":0.40830000000005384,"failureMessages":[],"meta":{}},{"ancestorTitles":["EventSourcingSystem","aggregate operations"],"fullName":"EventSourcingSystem aggregate operations should load aggregate from events","status":"passed","title":"should load aggregate from events","duration":0.41269999999985885,"failureMessages":[],"meta":{}},{"ancestorTitles":["EventSourcingSystem","aggregate operations"],"fullName":"EventSourcingSystem aggregate operations should save aggregate with events","status":"passed","title":"should save aggregate with events","duration":0.6430999999997766,"failureMessages":[],"meta":{}},{"ancestorTitles":["EventSourcingSystem","read model operations"],"fullName":"EventSourcingSystem read model operations should update read models","status":"passed","title":"should update read models","duration":0.5151000000000749,"failureMessages":[],"meta":{}},{"ancestorTitles":["EventSourcingSystem","event replay"],"fullName":"EventSourcingSystem event replay should replay events","status":"passed","title":"should replay events","duration":0.6680999999998676,"failureMessages":[],"meta":{}},{"ancestorTitles":["EventSourcingSystem","statistics"],"fullName":"EventSourcingSystem statistics should return system statistics","status":"passed","title":"should return system statistics","duration":0.33279999999967913,"failureMessages":[],"meta":{}},{"ancestorTitles":["Factory functions","createEvent"],"fullName":"Factory functions createEvent should create event with correct structure","status":"passed","title":"should create event with correct structure","duration":0.6946000000002641,"failureMessages":[],"meta":{}},{"ancestorTitles":["Factory functions","createCommand"],"fullName":"Factory functions createCommand should create command with correct structure","status":"passed","title":"should create command with correct structure","duration":0.44010000000025684,"failureMessages":[],"meta":{}},{"ancestorTitles":["Factory functions","createQuery"],"fullName":"Factory functions createQuery should create query with correct structure","status":"passed","title":"should create query with correct structure","duration":0.5366000000003623,"failureMessages":[],"meta":{}},{"ancestorTitles":["Global instances"],"fullName":"Global instances should export global instances","status":"passed","title":"should export global instances","duration":0.2977000000000771,"failureMessages":[],"meta":{}}],"startTime":1758628446288,"endTime":1758628446312.2976,"status":"passed","message":"","name":"C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/lib/events.test.ts"},{"assertionResults":[{"ancestorTitles":["APIGateway","Service Management"],"fullName":"APIGateway Service Management should add service successfully","status":"passed","title":"should add service successfully","duration":5.030299999999897,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Service Management"],"fullName":"APIGateway Service Management should remove service","status":"passed","title":"should remove service","duration":0.8995000000002165,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Service Management"],"fullName":"APIGateway Service Management should return false when removing non-existent service","status":"passed","title":"should return false when removing non-existent service","duration":0.796500000000151,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Service Management"],"fullName":"APIGateway Service Management should get all services","status":"passed","title":"should get all services","duration":2.3254000000001724,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Route Management"],"fullName":"APIGateway Route Management should add route successfully","status":"passed","title":"should add route successfully","duration":1.284599999999955,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Route Management"],"fullName":"APIGateway Route Management should remove route","status":"passed","title":"should remove route","duration":0.8720999999998185,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Route Management"],"fullName":"APIGateway Route Management should return false when removing non-existent route","status":"passed","title":"should return false when removing non-existent route","duration":0.746599999999944,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Route Management"],"fullName":"APIGateway Route Management should get all routes","status":"passed","title":"should get all routes","duration":1.2790999999999713,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Intelligent Routing"],"fullName":"APIGateway Intelligent Routing should find route by path and method","status":"passed","title":"should find route by path and method","duration":1.11200000000008,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Intelligent Routing"],"fullName":"APIGateway Intelligent Routing should return null for non-existent route","status":"passed","title":"should return null for non-existent route","duration":0.7568999999998596,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Intelligent Routing"],"fullName":"APIGateway Intelligent Routing should match route with conditions","status":"passed","title":"should match route with conditions","duration":0.8863000000001193,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Intelligent Routing"],"fullName":"APIGateway Intelligent Routing should not match route when conditions fail","status":"passed","title":"should not match route when conditions fail","duration":0.6304000000000087,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Intelligent Routing"],"fullName":"APIGateway Intelligent Routing should prioritize routes by priority","status":"passed","title":"should prioritize routes by priority","duration":0.7736999999999625,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Load Balancing"],"fullName":"APIGateway Load Balancing should select service with round-robin strategy","status":"passed","title":"should select service with round-robin strategy","duration":0.7524000000000797,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Load Balancing"],"fullName":"APIGateway Load Balancing should select service with least-connections strategy","status":"passed","title":"should select service with least-connections strategy","duration":0.8360000000000127,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Load Balancing"],"fullName":"APIGateway Load Balancing should select service with weighted strategy","status":"passed","title":"should select service with weighted strategy","duration":1.0371999999999844,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Load Balancing"],"fullName":"APIGateway Load Balancing should select service with ip-hash strategy","status":"passed","title":"should select service with ip-hash strategy","duration":0.7059000000001561,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Load Balancing"],"fullName":"APIGateway Load Balancing should select service with response-time strategy","status":"passed","title":"should select service with response-time strategy","duration":0.5804000000000542,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Load Balancing"],"fullName":"APIGateway Load Balancing should return null when no healthy services available","status":"passed","title":"should return null when no healthy services available","duration":0.4193000000000211,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Statistics and Metrics"],"fullName":"APIGateway Statistics and Metrics should record request metrics","status":"passed","title":"should record request metrics","duration":0.6077999999999975,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Statistics and Metrics"],"fullName":"APIGateway Statistics and Metrics should get comprehensive gateway statistics","status":"passed","title":"should get comprehensive gateway statistics","duration":0.7710999999999331,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Health Checks"],"fullName":"APIGateway Health Checks should perform successful health check","status":"passed","title":"should perform successful health check","duration":0.9400000000000546,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Health Checks"],"fullName":"APIGateway Health Checks should handle failed health check","status":"passed","title":"should handle failed health check","duration":0.7957000000001244,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Utility Methods","matchesPath"],"fullName":"APIGateway Utility Methods matchesPath should match exact paths","status":"passed","title":"should match exact paths","duration":0.4619999999999891,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Utility Methods","matchesPath"],"fullName":"APIGateway Utility Methods matchesPath should match paths with parameters","status":"passed","title":"should match paths with parameters","duration":0.3667000000000371,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Utility Methods","matchesPath"],"fullName":"APIGateway Utility Methods matchesPath should not match different paths","status":"passed","title":"should not match different paths","duration":4.627399999999852,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Utility Methods","matchesPath"],"fullName":"APIGateway Utility Methods matchesPath should not match paths with different segment counts","status":"passed","title":"should not match paths with different segment counts","duration":2.6298000000001593,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Utility Methods","matchesConditions"],"fullName":"APIGateway Utility Methods matchesConditions should return true for empty conditions","status":"passed","title":"should return true for empty conditions","duration":0.9000999999998385,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Utility Methods","matchesConditions"],"fullName":"APIGateway Utility Methods matchesConditions should match header conditions","status":"passed","title":"should match header conditions","duration":0.6760000000001583,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Utility Methods","matchesConditions"],"fullName":"APIGateway Utility Methods matchesConditions should match query conditions","status":"passed","title":"should match query conditions","duration":0.502100000000155,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Utility Methods","matchesConditions"],"fullName":"APIGateway Utility Methods matchesConditions should handle regex conditions","status":"passed","title":"should handle regex conditions","duration":0.7559000000001106,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Default Initialization"],"fullName":"APIGateway Default Initialization should initialize with default services","status":"passed","title":"should initialize with default services","duration":0.7255000000000109,"failureMessages":[],"meta":{}},{"ancestorTitles":["APIGateway","Default Initialization"],"fullName":"APIGateway Default Initialization should initialize with default routes","status":"passed","title":"should initialize with default routes","duration":0.6300999999998567,"failureMessages":[],"meta":{}},{"ancestorTitles":["Global Instance"],"fullName":"Global Instance should export global apiGateway instance","status":"passed","title":"should export global apiGateway instance","duration":0.1455999999998312,"failureMessages":[],"meta":{}}],"startTime":1758628445043,"endTime":1758628445081.6301,"status":"passed","message":"","name":"C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/lib/gateway.test.ts"},{"assertionResults":[{"ancestorTitles":["InteractionsSasAvService"],"fullName":"InteractionsSasAvService should create interaction","status":"passed","title":"should create interaction","duration":3.403400000000147,"failureMessages":[],"meta":{}},{"ancestorTitles":["InteractionsSasAvService"],"fullName":"InteractionsSasAvService should analyze sentiment","status":"passed","title":"should analyze sentiment","duration":1.1144999999999072,"failureMessages":[],"meta":{}},{"ancestorTitles":["InteractionsSasAvService"],"fullName":"InteractionsSasAvService should analyze voice","status":"passed","title":"should analyze voice","duration":0.45880000000011023,"failureMessages":[],"meta":{}}],"startTime":1758628450556,"endTime":1758628450560.4587,"status":"passed","message":"","name":"C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/lib/interactions-sas-av.service.test.ts"},{"assertionResults":[{"ancestorTitles":["IntelligentRateLimiter"],"fullName":"IntelligentRateLimiter should create instance","status":"passed","title":"should create instance","duration":3.9768000000001393,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentRateLimiter","Organization Management"],"fullName":"IntelligentRateLimiter Organization Management should add organization with custom config","status":"passed","title":"should add organization with custom config","duration":1.1860999999998967,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentRateLimiter","Organization Management"],"fullName":"IntelligentRateLimiter Organization Management should add organization with default config","status":"passed","title":"should add organization with default config","duration":0.6697000000001481,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentRateLimiter","Organization Management"],"fullName":"IntelligentRateLimiter Organization Management should remove organization","status":"passed","title":"should remove organization","duration":0.6739999999999782,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentRateLimiter","Organization Management"],"fullName":"IntelligentRateLimiter Organization Management should return false when removing non-existent organization","status":"passed","title":"should return false when removing non-existent organization","duration":0.469899999999825,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentRateLimiter","Organization Management"],"fullName":"IntelligentRateLimiter Organization Management should check if organization exists","status":"passed","title":"should check if organization exists","duration":0.5140000000001237,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentRateLimiter","Rate Limiting - Token Bucket Strategy"],"fullName":"IntelligentRateLimiter Rate Limiting - Token Bucket Strategy should allow requests within burst size","status":"passed","title":"should allow requests within burst size","duration":0.9712999999999283,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentRateLimiter","Rate Limiting - Token Bucket Strategy"],"fullName":"IntelligentRateLimiter Rate Limiting - Token Bucket Strategy should deny requests exceeding burst size","status":"passed","title":"should deny requests exceeding burst size","duration":0.5971999999999298,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentRateLimiter","Rate Limiting - Token Bucket Strategy"],"fullName":"IntelligentRateLimiter Rate Limiting - Token Bucket Strategy should refill tokens over time","status":"passed","title":"should refill tokens over time","duration":0.8224999999999909,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentRateLimiter","Rate Limiting - Sliding Window Strategy"],"fullName":"IntelligentRateLimiter Rate Limiting - Sliding Window Strategy should allow requests within window","status":"passed","title":"should allow requests within window","duration":0.7324999999998454,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentRateLimiter","Rate Limiting - Sliding Window Strategy"],"fullName":"IntelligentRateLimiter Rate Limiting - Sliding Window Strategy should deny requests exceeding window limit","status":"passed","title":"should deny requests exceeding window limit","duration":0.4393000000000029,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentRateLimiter","Rate Limiting - Sliding Window Strategy"],"fullName":"IntelligentRateLimiter Rate Limiting - Sliding Window Strategy should reset window after time passes","status":"passed","title":"should reset window after time passes","duration":0.4116999999998825,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentRateLimiter","Statistics and Monitoring"],"fullName":"IntelligentRateLimiter Statistics and Monitoring should get organization statistics","status":"passed","title":"should get organization statistics","duration":1.6077000000000226,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentRateLimiter","Statistics and Monitoring"],"fullName":"IntelligentRateLimiter Statistics and Monitoring should return null for non-existent organization stats","status":"passed","title":"should return null for non-existent organization stats","duration":0.546100000000024,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentRateLimiter","Statistics and Monitoring"],"fullName":"IntelligentRateLimiter Statistics and Monitoring should get all organizations","status":"passed","title":"should get all organizations","duration":0.768100000000004,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentRateLimiter","Statistics and Monitoring"],"fullName":"IntelligentRateLimiter Statistics and Monitoring should reset organization","status":"passed","title":"should reset organization","duration":0.669399999999996,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentRateLimiter","Statistics and Monitoring"],"fullName":"IntelligentRateLimiter Statistics and Monitoring should return false when resetting non-existent organization","status":"passed","title":"should return false when resetting non-existent organization","duration":0.598700000000008,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentRateLimiter","Statistics and Monitoring"],"fullName":"IntelligentRateLimiter Statistics and Monitoring should get global statistics","status":"passed","title":"should get global statistics","duration":1.9812999999999192,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentRateLimiter","Default Initialization"],"fullName":"IntelligentRateLimiter Default Initialization should initialize with default organizations","status":"passed","title":"should initialize with default organizations","duration":0.8275000000001,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentRateLimiter","Strategy Implementations","Token Bucket Strategy"],"fullName":"IntelligentRateLimiter Strategy Implementations Token Bucket Strategy should handle token bucket logic correctly","status":"passed","title":"should handle token bucket logic correctly","duration":0.5934999999999491,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentRateLimiter","Strategy Implementations","Sliding Window Strategy"],"fullName":"IntelligentRateLimiter Strategy Implementations Sliding Window Strategy should handle sliding window logic correctly","status":"passed","title":"should handle sliding window logic correctly","duration":0.5996999999999844,"failureMessages":[],"meta":{}},{"ancestorTitles":["IntelligentRateLimiter","Strategy Implementations","Fixed Window Strategy"],"fullName":"IntelligentRateLimiter Strategy Implementations Fixed Window Strategy should handle fixed window logic correctly","status":"passed","title":"should handle fixed window logic correctly","duration":0.6052999999999429,"failureMessages":[],"meta":{}},{"ancestorTitles":["Global Instance"],"fullName":"Global Instance should export global rateLimiter instance","status":"passed","title":"should export global rateLimiter instance","duration":0.29179999999996653,"failureMessages":[],"meta":{}}],"startTime":1758628447325,"endTime":1758628447347.2917,"status":"passed","message":"","name":"C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/lib/rate-limiting.test.ts"},{"assertionResults":[{"ancestorTitles":["RowLevelSecurity","Context Management"],"fullName":"RowLevelSecurity Context Management should set and get context correctly","status":"passed","title":"should set and get context correctly","duration":4.144900000000234,"failureMessages":[],"meta":{}},{"ancestorTitles":["RowLevelSecurity","Context Management"],"fullName":"RowLevelSecurity Context Management should return null when no context is set","status":"passed","title":"should return null when no context is set","duration":1.1105999999999767,"failureMessages":[],"meta":{}},{"ancestorTitles":["RowLevelSecurity","Context Management"],"fullName":"RowLevelSecurity Context Management should clear context correctly","status":"passed","title":"should clear context correctly","duration":0.8748999999997977,"failureMessages":[],"meta":{}},{"ancestorTitles":["RowLevelSecurity","Rule Management"],"fullName":"RowLevelSecurity Rule Management should create a rule successfully","status":"passed","title":"should create a rule successfully","duration":1.2603999999996631,"failureMessages":[],"meta":{}},{"ancestorTitles":["RowLevelSecurity","Rule Management"],"fullName":"RowLevelSecurity Rule Management should update a rule successfully","status":"passed","title":"should update a rule successfully","duration":1.0423000000000684,"failureMessages":[],"meta":{}},{"ancestorTitles":["RowLevelSecurity","Rule Management"],"fullName":"RowLevelSecurity Rule Management should return false when updating non-existent rule","status":"passed","title":"should return false when updating non-existent rule","duration":0.6747000000000298,"failureMessages":[],"meta":{}},{"ancestorTitles":["RowLevelSecurity","Rule Management"],"fullName":"RowLevelSecurity Rule Management should delete a rule successfully","status":"passed","title":"should delete a rule successfully","duration":1.0144000000000233,"failureMessages":[],"meta":{}},{"ancestorTitles":["RowLevelSecurity","Rule Management"],"fullName":"RowLevelSecurity Rule Management should return false when deleting non-existent rule","status":"passed","title":"should return false when deleting non-existent rule","duration":0.6208999999998923,"failureMessages":[],"meta":{}},{"ancestorTitles":["RowLevelSecurity","Rule Management"],"fullName":"RowLevelSecurity Rule Management should get rules by organization","status":"passed","title":"should get rules by organization","duration":1.9744000000000597,"failureMessages":[],"meta":{}},{"ancestorTitles":["RowLevelSecurity","Rule Management"],"fullName":"RowLevelSecurity Rule Management should get rules by table","status":"passed","title":"should get rules by table","duration":1.1743000000001302,"failureMessages":[],"meta":{}},{"ancestorTitles":["RowLevelSecurity","Filter Application"],"fullName":"RowLevelSecurity Filter Application should apply RLS filters correctly","status":"passed","title":"should apply RLS filters correctly","duration":0.9342000000001462,"failureMessages":[],"meta":{}},{"ancestorTitles":["RowLevelSecurity","Filter Application"],"fullName":"RowLevelSecurity Filter Application should apply default filters when no context","status":"passed","title":"should apply default filters when no context","duration":0.6709999999998217,"failureMessages":[],"meta":{}},{"ancestorTitles":["RowLevelSecurity","Input Sanitization"],"fullName":"RowLevelSecurity Input Sanitization should sanitize user input","status":"passed","title":"should sanitize user input","duration":0.849999999999909,"failureMessages":[],"meta":{}},{"ancestorTitles":["RowLevelSecurity","Input Sanitization"],"fullName":"RowLevelSecurity Input Sanitization should sanitize budget input","status":"passed","title":"should sanitize budget input","duration":0.6478000000001884,"failureMessages":[],"meta":{}},{"ancestorTitles":["RowLevelSecurity","Input Sanitization"],"fullName":"RowLevelSecurity Input Sanitization should not sanitize when no context","status":"passed","title":"should not sanitize when no context","duration":0.9628999999999905,"failureMessages":[],"meta":{}},{"ancestorTitles":["RowLevelSecurity","Output Validation"],"fullName":"RowLevelSecurity Output Validation should validate correct organization data","status":"passed","title":"should validate correct organization data","duration":0.8864000000003216,"failureMessages":[],"meta":{}},{"ancestorTitles":["RowLevelSecurity","Output Validation"],"fullName":"RowLevelSecurity Output Validation should reject data from different organization","status":"passed","title":"should reject data from different organization","duration":0.8220999999998639,"failureMessages":[],"meta":{}},{"ancestorTitles":["RowLevelSecurity","Output Validation"],"fullName":"RowLevelSecurity Output Validation should reject validation when no context","status":"passed","title":"should reject validation when no context","duration":0.7256000000002132,"failureMessages":[],"meta":{}},{"ancestorTitles":["RowLevelSecurity","Statistics"],"fullName":"RowLevelSecurity Statistics should return correct stats when no rules","status":"passed","title":"should return correct stats when no rules","duration":1.5964999999996508,"failureMessages":[],"meta":{}},{"ancestorTitles":["RowLevelSecurity","Statistics"],"fullName":"RowLevelSecurity Statistics should return correct stats with rules and context","status":"passed","title":"should return correct stats with rules and context","duration":2.773400000000038,"failureMessages":[],"meta":{}},{"ancestorTitles":["RowLevelSecurity","Global Instance"],"fullName":"RowLevelSecurity Global Instance should export a global RLS instance","status":"passed","title":"should export a global RLS instance","duration":0.7418999999999869,"failureMessages":[],"meta":{}},{"ancestorTitles":["RowLevelSecurity","Global Instance"],"fullName":"RowLevelSecurity Global Instance should allow setting context on global instance","status":"passed","title":"should allow setting context on global instance","duration":4.322400000000016,"failureMessages":[],"meta":{}},{"ancestorTitles":["RowLevelSecurity","Default Rules Initialization"],"fullName":"RowLevelSecurity Default Rules Initialization should initialize with default rules","status":"passed","title":"should initialize with default rules","duration":1.02370000000019,"failureMessages":[],"meta":{}},{"ancestorTitles":["RowLevelSecurity","Error Handling"],"fullName":"RowLevelSecurity Error Handling should handle invalid inputs gracefully","status":"passed","title":"should handle invalid inputs gracefully","duration":1.634900000000016,"failureMessages":[],"meta":{}}],"startTime":1758628449237,"endTime":1758628449270.635,"status":"passed","message":"","name":"C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/lib/rls.test.ts"},{"assertionResults":[{"ancestorTitles":["smoke"],"fullName":"smoke 2+2=4","status":"passed","title":"2+2=4","duration":1.6121999999999161,"failureMessages":[],"meta":{}}],"startTime":1758628450638,"endTime":1758628450639.6123,"status":"passed","message":"","name":"C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/controllers/__tests__/contract.test.ts"},{"assertionResults":[{"ancestorTitles":["smoke"],"fullName":"smoke 2+2=4","status":"passed","title":"2+2=4","duration":1.830699999999979,"failureMessages":[],"meta":{}}],"startTime":1758628451613,"endTime":1758628451614.8308,"status":"passed","message":"","name":"C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/services/__tests__/contract.test.ts"},{"assertionResults":[{"ancestorTitles":["smoke"],"fullName":"smoke 2+2=4","status":"passed","title":"2+2=4","duration":1.5850000000000364,"failureMessages":[],"meta":{}}],"startTime":1758628451689,"endTime":1758628451690.585,"status":"passed","message":"","name":"C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/utils/__tests__/smoke.test.ts"},{"assertionResults":[],"startTime":1758628443048,"endTime":1758628443048,"status":"failed","message":"describe is not defined","name":"C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/__tests__/integration/health.test.ts"},{"assertionResults":[],"startTime":1758628443048,"endTime":1758628443048,"status":"failed","message":"Failed to resolve import \"jest-axe\" from \"apps/web/src/test-utils/accessibility-helpers.tsx\". Does the file exist?","name":"C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/web/src/components/navigation.test.tsx"},{"assertionResults":[],"startTime":1758628443048,"endTime":1758628443048,"status":"failed","message":"Failed to resolve import \"../test-utils/accessibility-helpers\" from \"apps/web/src/components/ui/button.test.tsx\". Does the file exist?","name":"C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/web/src/components/ui/button.test.tsx"},{"assertionResults":[],"startTime":1758628443048,"endTime":1758628443048,"status":"failed","message":"Failed to resolve import \"../test-utils/accessibility-helpers\" from \"apps/web/src/components/ui/card.test.tsx\". Does the file exist?","name":"C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/web/src/components/ui/card.test.tsx"},{"assertionResults":[],"startTime":1758628443048,"endTime":1758628443048,"status":"failed","message":"Failed to resolve import \"../test-utils/accessibility-helpers\" from \"apps/web/src/components/ui/form.test.tsx\". Does the file exist?","name":"C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/web/src/components/ui/form.test.tsx"},{"assertionResults":[],"startTime":1758628443048,"endTime":1758628443048,"status":"failed","message":"Failed to resolve import \"../test-utils/accessibility-helpers\" from \"apps/web/src/components/ui/table.test.tsx\". Does the file exist?","name":"C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/web/src/components/ui/table.test.tsx"},{"assertionResults":[{"ancestorTitles":["smoke"],"fullName":"smoke 2+2=4","status":"passed","title":"2+2=4","duration":2.386700000000019,"failureMessages":[],"meta":{}}],"startTime":1758628461335,"endTime":1758628461337.3867,"status":"passed","message":"","name":"C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/web/src/controllers/__tests__/contract.test.ts"},{"assertionResults":[{"ancestorTitles":["smoke"],"fullName":"smoke 2+2=4","status":"passed","title":"2+2=4","duration":1.9160000000001673,"failureMessages":[],"meta":{}}],"startTime":1758628464010,"endTime":1758628464011.916,"status":"passed","message":"","name":"C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/web/src/services/__tests__/contract.test.ts"},{"assertionResults":[{"ancestorTitles":["smoke"],"fullName":"smoke 2+2=4","status":"passed","title":"2+2=4","duration":1.6714999999999236,"failureMessages":[],"meta":{}}],"startTime":1758628464277,"endTime":1758628464278.6714,"status":"passed","message":"","name":"C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/web/src/utils/__tests__/smoke.test.ts"},{"assertionResults":[],"startTime":1758628443048,"endTime":1758628443048,"status":"failed","message":"Failed to resolve import \"next/server\" from \"apps/web/src/app/api/econeura/[...path]/route.test.ts\". Does the file exist?","name":"C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/web/src/app/api/econeura/[...path]/route.test.ts"}]}
+{
+  "numTotalTestSuites": 116,
+  "numPassedTestSuites": 109,
+  "numFailedTestSuites": 7,
+  "numPendingTestSuites": 0,
+  "numTotalTests": 195,
+  "numPassedTests": 195,
+  "numFailedTests": 0,
+  "numPendingTests": 0,
+  "numTodoTests": 0,
+  "snapshot": {
+    "added": 0,
+    "failure": false,
+    "filesAdded": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": [],
+    "filesUnmatched": 0,
+    "filesUpdated": 0,
+    "matched": 0,
+    "total": 0,
+    "unchecked": 0,
+    "uncheckedKeysByFile": [],
+    "unmatched": 0,
+    "updated": 0,
+    "didUpdate": false
+  },
+  "startTime": 1758707499725,
+  "success": false,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["IntelligentCache", "Basic Operations"],
+          "fullName": "IntelligentCache Basic Operations should set and get a value",
+          "status": "passed",
+          "title": "should set and get a value",
+          "duration": 4.70760000000007,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentCache", "Basic Operations"],
+          "fullName": "IntelligentCache Basic Operations should return null for non-existent key",
+          "status": "passed",
+          "title": "should return null for non-existent key",
+          "duration": 0.47109999999997854,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentCache", "Basic Operations"],
+          "fullName": "IntelligentCache Basic Operations should delete a value",
+          "status": "passed",
+          "title": "should delete a value",
+          "duration": 0.6330000000000382,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentCache", "Basic Operations"],
+          "fullName": "IntelligentCache Basic Operations should clear all values",
+          "status": "passed",
+          "title": "should clear all values",
+          "duration": 0.4011000000000422,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentCache", "TTL and Expiration"],
+          "fullName": "IntelligentCache TTL and Expiration should expire items after TTL",
+          "status": "passed",
+          "title": "should expire items after TTL",
+          "duration": 1102.0314,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentCache", "TTL and Expiration"],
+          "fullName": "IntelligentCache TTL and Expiration should use default TTL when not specified",
+          "status": "passed",
+          "title": "should use default TTL when not specified",
+          "duration": 0.4137000000000626,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentCache", "Statistics"],
+          "fullName": "IntelligentCache Statistics should track cache hits and misses",
+          "status": "passed",
+          "title": "should track cache hits and misses",
+          "duration": 0.4981999999999971,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentCache", "Statistics"],
+          "fullName": "IntelligentCache Statistics should track access count and last accessed",
+          "status": "passed",
+          "title": "should track access count and last accessed",
+          "duration": 0.2621999999998934,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentCache", "Memory Limits"],
+          "fullName": "IntelligentCache Memory Limits should evict least used items when max size is reached",
+          "status": "passed",
+          "title": "should evict least used items when max size is reached",
+          "duration": 0.4961000000000695,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentCache", "Warmup"],
+          "fullName": "IntelligentCache Warmup should warmup cache with provided patterns",
+          "status": "passed",
+          "title": "should warmup cache with provided patterns",
+          "duration": 0.46299999999996544,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["AICache"],
+          "fullName": "AICache should cache AI responses with hashed prompts",
+          "status": "passed",
+          "title": "should cache AI responses with hashed prompts",
+          "duration": 0.49010000000021137,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["AICache"],
+          "fullName": "AICache should return null for uncached AI responses",
+          "status": "passed",
+          "title": "should return null for uncached AI responses",
+          "duration": 0.1631999999999607,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["AICache"],
+          "fullName": "AICache should warmup AI cache with common prompts",
+          "status": "passed",
+          "title": "should warmup AI cache with common prompts",
+          "duration": 0.3843000000001666,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["SearchCache"],
+          "fullName": "SearchCache should cache search results with hashed queries",
+          "status": "passed",
+          "title": "should cache search results with hashed queries",
+          "duration": 0.4819999999999709,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["SearchCache"],
+          "fullName": "SearchCache should return null for uncached search results",
+          "status": "passed",
+          "title": "should return null for uncached search results",
+          "duration": 0.15919999999982792,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["SearchCache"],
+          "fullName": "SearchCache should warmup search cache with common queries",
+          "status": "passed",
+          "title": "should warmup search cache with common queries",
+          "duration": 0.35760000000004766,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["CacheManager"],
+          "fullName": "CacheManager should provide access to AI and search caches",
+          "status": "passed",
+          "title": "should provide access to AI and search caches",
+          "duration": 1.0126000000000204,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["CacheManager"],
+          "fullName": "CacheManager should warmup all caches",
+          "status": "passed",
+          "title": "should warmup all caches",
+          "duration": 0.39560000000005857,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["CacheManager"],
+          "fullName": "CacheManager should start and stop periodic warmup",
+          "status": "passed",
+          "title": "should start and stop periodic warmup",
+          "duration": 117.54289999999992,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["CacheManager"],
+          "fullName": "CacheManager should get combined stats from all caches",
+          "status": "passed",
+          "title": "should get combined stats from all caches",
+          "duration": 0.5960999999999785,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1758707500649,
+      "endTime": 1758707501881.5962,
+      "status": "passed",
+      "message": "",
+      "name": "C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/lib/cache.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Feature Flag Management"],
+          "fullName": "InMemoryConfigurationManager Feature Flag Management should get feature flag by id",
+          "status": "passed",
+          "title": "should get feature flag by id",
+          "duration": 4.049100000000067,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Feature Flag Management"],
+          "fullName": "InMemoryConfigurationManager Feature Flag Management should return undefined for non-existent feature flag",
+          "status": "passed",
+          "title": "should return undefined for non-existent feature flag",
+          "duration": 0.5173000000000911,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Feature Flag Management"],
+          "fullName": "InMemoryConfigurationManager Feature Flag Management should check if feature is enabled",
+          "status": "passed",
+          "title": "should check if feature is enabled",
+          "duration": 0.46039999999993597,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Feature Flag Management"],
+          "fullName": "InMemoryConfigurationManager Feature Flag Management should return false for disabled feature flag",
+          "status": "passed",
+          "title": "should return false for disabled feature flag",
+          "duration": 0.29729999999995016,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Feature Flag Management"],
+          "fullName": "InMemoryConfigurationManager Feature Flag Management should check feature flag with rollout percentage",
+          "status": "passed",
+          "title": "should check feature flag with rollout percentage",
+          "duration": 0.3586999999999989,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Feature Flag Management"],
+          "fullName": "InMemoryConfigurationManager Feature Flag Management should check feature flag with target users",
+          "status": "passed",
+          "title": "should check feature flag with target users",
+          "duration": 0.31520000000000437,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Feature Flag Management"],
+          "fullName": "InMemoryConfigurationManager Feature Flag Management should check feature flag with conditions",
+          "status": "passed",
+          "title": "should check feature flag with conditions",
+          "duration": 0.4154999999999518,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Feature Flag Management"],
+          "fullName": "InMemoryConfigurationManager Feature Flag Management should get all feature flags",
+          "status": "passed",
+          "title": "should get all feature flags",
+          "duration": 0.4152000000000271,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Feature Flag Management"],
+          "fullName": "InMemoryConfigurationManager Feature Flag Management should get feature flags by environment",
+          "status": "passed",
+          "title": "should get feature flags by environment",
+          "duration": 0.39869999999996253,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Feature Flag Management"],
+          "fullName": "InMemoryConfigurationManager Feature Flag Management should create feature flag",
+          "status": "passed",
+          "title": "should create feature flag",
+          "duration": 0.6988999999999805,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Feature Flag Management"],
+          "fullName": "InMemoryConfigurationManager Feature Flag Management should update feature flag",
+          "status": "passed",
+          "title": "should update feature flag",
+          "duration": 0.36590000000001055,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Feature Flag Management"],
+          "fullName": "InMemoryConfigurationManager Feature Flag Management should return false when updating non-existent feature flag",
+          "status": "passed",
+          "title": "should return false when updating non-existent feature flag",
+          "duration": 0.15040000000010423,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Feature Flag Management"],
+          "fullName": "InMemoryConfigurationManager Feature Flag Management should delete feature flag",
+          "status": "passed",
+          "title": "should delete feature flag",
+          "duration": 0.2220999999999549,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Feature Flag Management"],
+          "fullName": "InMemoryConfigurationManager Feature Flag Management should return false when deleting non-existent feature flag",
+          "status": "passed",
+          "title": "should return false when deleting non-existent feature flag",
+          "duration": 0.13179999999999836,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Environment Configuration"],
+          "fullName": "InMemoryConfigurationManager Environment Configuration should get environment config",
+          "status": "passed",
+          "title": "should get environment config",
+          "duration": 0.23029999999994288,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Environment Configuration"],
+          "fullName": "InMemoryConfigurationManager Environment Configuration should return undefined for non-existent environment",
+          "status": "passed",
+          "title": "should return undefined for non-existent environment",
+          "duration": 0.15610000000003765,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Environment Configuration"],
+          "fullName": "InMemoryConfigurationManager Environment Configuration should set environment config",
+          "status": "passed",
+          "title": "should set environment config",
+          "duration": 0.2982000000000653,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Configuration Values"],
+          "fullName": "InMemoryConfigurationManager Configuration Values should get config value with default",
+          "status": "passed",
+          "title": "should get config value with default",
+          "duration": 0.181699999999978,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Configuration Values"],
+          "fullName": "InMemoryConfigurationManager Configuration Values should get config value from environment config",
+          "status": "passed",
+          "title": "should get config value from environment config",
+          "duration": 0.1510999999999285,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Configuration Values"],
+          "fullName": "InMemoryConfigurationManager Configuration Values should get config value from overrides",
+          "status": "passed",
+          "title": "should get config value from overrides",
+          "duration": 0.1554999999999609,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Configuration Values"],
+          "fullName": "InMemoryConfigurationManager Configuration Values should set config value",
+          "status": "passed",
+          "title": "should set config value",
+          "duration": 0.20920000000000982,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Configuration Values"],
+          "fullName": "InMemoryConfigurationManager Configuration Values should fallback to default environment",
+          "status": "passed",
+          "title": "should fallback to default environment",
+          "duration": 0.1347000000000662,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Secrets Management"],
+          "fullName": "InMemoryConfigurationManager Secrets Management should get secret",
+          "status": "passed",
+          "title": "should get secret",
+          "duration": 0.19110000000000582,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Secrets Management"],
+          "fullName": "InMemoryConfigurationManager Secrets Management should return undefined for non-existent secret",
+          "status": "passed",
+          "title": "should return undefined for non-existent secret",
+          "duration": 0.12239999999997053,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Secrets Management"],
+          "fullName": "InMemoryConfigurationManager Secrets Management should set secret",
+          "status": "passed",
+          "title": "should set secret",
+          "duration": 0.1875999999999749,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Secrets Management"],
+          "fullName": "InMemoryConfigurationManager Secrets Management should fallback to default environment for secrets",
+          "status": "passed",
+          "title": "should fallback to default environment for secrets",
+          "duration": 0.13740000000007058,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Configuration Validation"],
+          "fullName": "InMemoryConfigurationManager Configuration Validation should validate valid configuration",
+          "status": "passed",
+          "title": "should validate valid configuration",
+          "duration": 0.2115000000000009,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Configuration Validation"],
+          "fullName": "InMemoryConfigurationManager Configuration Validation should invalidate configuration with invalid feature flag",
+          "status": "passed",
+          "title": "should invalidate configuration with invalid feature flag",
+          "duration": 0.1936000000000604,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Configuration Stats"],
+          "fullName": "InMemoryConfigurationManager Configuration Stats should get configuration statistics",
+          "status": "passed",
+          "title": "should get configuration statistics",
+          "duration": 1.3906999999999243,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Condition Evaluation", "evaluateCondition"],
+          "fullName": "InMemoryConfigurationManager Condition Evaluation evaluateCondition should evaluate equals condition",
+          "status": "passed",
+          "title": "should evaluate equals condition",
+          "duration": 0.1852999999999838,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Condition Evaluation", "evaluateCondition"],
+          "fullName": "InMemoryConfigurationManager Condition Evaluation evaluateCondition should evaluate contains condition",
+          "status": "passed",
+          "title": "should evaluate contains condition",
+          "duration": 0.14279999999996562,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Condition Evaluation", "evaluateCondition"],
+          "fullName": "InMemoryConfigurationManager Condition Evaluation evaluateCondition should evaluate greater_than condition",
+          "status": "passed",
+          "title": "should evaluate greater_than condition",
+          "duration": 0.13779999999997017,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Condition Evaluation", "evaluateCondition"],
+          "fullName": "InMemoryConfigurationManager Condition Evaluation evaluateCondition should evaluate in condition",
+          "status": "passed",
+          "title": "should evaluate in condition",
+          "duration": 0.12760000000002947,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Condition Evaluation", "evaluateCondition"],
+          "fullName": "InMemoryConfigurationManager Condition Evaluation evaluateCondition should evaluate not_in condition",
+          "status": "passed",
+          "title": "should evaluate not_in condition",
+          "duration": 0.12019999999995434,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Condition Evaluation", "evaluateTimeWindow"],
+          "fullName": "InMemoryConfigurationManager Condition Evaluation evaluateTimeWindow should evaluate time window condition",
+          "status": "passed",
+          "title": "should evaluate time window condition",
+          "duration": 0.1792000000000371,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Condition Evaluation", "evaluateCustomCondition"],
+          "fullName": "InMemoryConfigurationManager Condition Evaluation evaluateCustomCondition should evaluate custom condition",
+          "status": "passed",
+          "title": "should evaluate custom condition",
+          "duration": 0.15610000000003765,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Default Initialization"],
+          "fullName": "InMemoryConfigurationManager Default Initialization should initialize with default environments",
+          "status": "passed",
+          "title": "should initialize with default environments",
+          "duration": 0.21899999999993724,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Default Initialization"],
+          "fullName": "InMemoryConfigurationManager Default Initialization should initialize with default feature flags",
+          "status": "passed",
+          "title": "should initialize with default feature flags",
+          "duration": 0.21310000000005402,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryConfigurationManager", "Reload Configuration"],
+          "fullName": "InMemoryConfigurationManager Reload Configuration should reload configuration",
+          "status": "passed",
+          "title": "should reload configuration",
+          "duration": 0.9052000000000362,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["Global Instance"],
+          "fullName": "Global Instance should export global configurationManager instance",
+          "status": "passed",
+          "title": "should export global configurationManager instance",
+          "duration": 0.1350999999999658,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1758707503618,
+      "endTime": 1758707503634.135,
+      "status": "passed",
+      "message": "",
+      "name": "C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/lib/configuration.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["Custom Error Classes", "AppError"],
+          "fullName": "Custom Error Classes AppError should create an AppError with correct properties",
+          "status": "passed",
+          "title": "should create an AppError with correct properties",
+          "duration": 1.875,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["Custom Error Classes", "AppError"],
+          "fullName": "Custom Error Classes AppError should default isOperational to true",
+          "status": "passed",
+          "title": "should default isOperational to true",
+          "duration": 0.21889999999996235,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["Custom Error Classes", "ValidationError"],
+          "fullName": "Custom Error Classes ValidationError should create a ValidationError with correct status and code",
+          "status": "passed",
+          "title": "should create a ValidationError with correct status and code",
+          "duration": 0.33139999999991687,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["Custom Error Classes", "AuthenticationError"],
+          "fullName": "Custom Error Classes AuthenticationError should create an AuthenticationError with correct status and code",
+          "status": "passed",
+          "title": "should create an AuthenticationError with correct status and code",
+          "duration": 0.315900000000056,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["Custom Error Classes", "AuthorizationError"],
+          "fullName": "Custom Error Classes AuthorizationError should create an AuthorizationError with correct status and code",
+          "status": "passed",
+          "title": "should create an AuthorizationError with correct status and code",
+          "duration": 0.2703000000000202,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["errorHandler middleware"],
+          "fullName": "errorHandler middleware should handle ZodError with validation details",
+          "status": "passed",
+          "title": "should handle ZodError with validation details",
+          "duration": 3.0938999999999623,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["errorHandler middleware"],
+          "fullName": "errorHandler middleware should handle AppError instances",
+          "status": "passed",
+          "title": "should handle AppError instances",
+          "duration": 0.9018000000000939,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["errorHandler middleware"],
+          "fullName": "errorHandler middleware should handle generic errors in development",
+          "status": "passed",
+          "title": "should handle generic errors in development",
+          "duration": 7.504400000000032,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["errorHandler middleware"],
+          "fullName": "errorHandler middleware should handle generic errors in production",
+          "status": "passed",
+          "title": "should handle generic errors in production",
+          "duration": 0.7522999999999911,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["errorHandler middleware"],
+          "fullName": "errorHandler middleware should log errors appropriately",
+          "status": "passed",
+          "title": "should log errors appropriately",
+          "duration": 0.5463999999999487,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["notFoundHandler middleware"],
+          "fullName": "notFoundHandler middleware should create and pass AppError for not found routes",
+          "status": "passed",
+          "title": "should create and pass AppError for not found routes",
+          "duration": 0.6009999999999991,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["asyncHandler"],
+          "fullName": "asyncHandler should execute successful async functions",
+          "status": "passed",
+          "title": "should execute successful async functions",
+          "duration": 0.908800000000042,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["asyncHandler"],
+          "fullName": "asyncHandler should catch and pass errors to next middleware",
+          "status": "passed",
+          "title": "should catch and pass errors to next middleware",
+          "duration": 0.5879999999999654,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1758707503192,
+      "endTime": 1758707503210.588,
+      "status": "passed",
+      "message": "",
+      "name": "C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/lib/errors.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["InMemoryEventStore", "saveEvents"],
+          "fullName": "InMemoryEventStore saveEvents should save events successfully",
+          "status": "passed",
+          "title": "should save events successfully",
+          "duration": 5.467999999999961,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryEventStore", "saveEvents"],
+          "fullName": "InMemoryEventStore saveEvents should throw concurrency conflict on version mismatch",
+          "status": "passed",
+          "title": "should throw concurrency conflict on version mismatch",
+          "duration": 1.901200000000017,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryEventStore", "saveEvents"],
+          "fullName": "InMemoryEventStore saveEvents should throw error on invalid event version sequence",
+          "status": "passed",
+          "title": "should throw error on invalid event version sequence",
+          "duration": 0.39199999999993906,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryEventStore", "getEvents"],
+          "fullName": "InMemoryEventStore getEvents should return events for aggregate",
+          "status": "passed",
+          "title": "should return events for aggregate",
+          "duration": 1.4307000000000016,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryEventStore", "getEvents"],
+          "fullName": "InMemoryEventStore getEvents should return events from specific version",
+          "status": "passed",
+          "title": "should return events from specific version",
+          "duration": 0.4836999999999989,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryEventStore", "getAllEvents"],
+          "fullName": "InMemoryEventStore getAllEvents should return all events",
+          "status": "passed",
+          "title": "should return all events",
+          "duration": 0.5661000000000058,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryEventStore", "getAllEvents"],
+          "fullName": "InMemoryEventStore getAllEvents should filter events by timestamp",
+          "status": "passed",
+          "title": "should filter events by timestamp",
+          "duration": 0.4721999999999298,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryEventStore", "getEventsByType"],
+          "fullName": "InMemoryEventStore getEventsByType should return events filtered by type",
+          "status": "passed",
+          "title": "should return events filtered by type",
+          "duration": 0.5401000000000522,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryEventStore", "getEventsByType"],
+          "fullName": "InMemoryEventStore getEventsByType should filter events by type and timestamp",
+          "status": "passed",
+          "title": "should filter events by type and timestamp",
+          "duration": 0.36839999999995143,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryEventBus", "publish"],
+          "fullName": "InMemoryEventBus publish should publish event to subscribed handlers",
+          "status": "passed",
+          "title": "should publish event to subscribed handlers",
+          "duration": 2.102600000000052,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryEventBus", "publish"],
+          "fullName": "InMemoryEventBus publish should handle handler errors gracefully",
+          "status": "passed",
+          "title": "should handle handler errors gracefully",
+          "duration": 0.755100000000084,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryEventBus", "publish"],
+          "fullName": "InMemoryEventBus publish should handle events with no subscribers",
+          "status": "passed",
+          "title": "should handle events with no subscribers",
+          "duration": 0.22469999999998436,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryEventBus", "subscribe and unsubscribe"],
+          "fullName": "InMemoryEventBus subscribe and unsubscribe should subscribe and unsubscribe handlers",
+          "status": "passed",
+          "title": "should subscribe and unsubscribe handlers",
+          "duration": 0.7197999999999638,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryEventBus", "subscribe and unsubscribe"],
+          "fullName": "InMemoryEventBus subscribe and unsubscribe should handle unsubscribe for non-existent handler",
+          "status": "passed",
+          "title": "should handle unsubscribe for non-existent handler",
+          "duration": 0.3262000000000853,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryReadModelStore", "save and get"],
+          "fullName": "InMemoryReadModelStore save and get should save and retrieve read models",
+          "status": "passed",
+          "title": "should save and retrieve read models",
+          "duration": 0.3671000000000504,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryReadModelStore", "save and get"],
+          "fullName": "InMemoryReadModelStore save and get should return null for non-existent read model",
+          "status": "passed",
+          "title": "should return null for non-existent read model",
+          "duration": 0.15469999999993433,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryReadModelStore", "query"],
+          "fullName": "InMemoryReadModelStore query should query read models by type",
+          "status": "passed",
+          "title": "should query read models by type",
+          "duration": 0.47870000000000346,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryReadModelStore", "query"],
+          "fullName": "InMemoryReadModelStore query should filter read models by data properties",
+          "status": "passed",
+          "title": "should filter read models by data properties",
+          "duration": 0.3646999999999707,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InMemoryReadModelStore", "delete"],
+          "fullName": "InMemoryReadModelStore delete should delete read models",
+          "status": "passed",
+          "title": "should delete read models",
+          "duration": 2.8951999999999316,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["EventSourcingSystem", "command handling"],
+          "fullName": "EventSourcingSystem command handling should register and execute commands",
+          "status": "passed",
+          "title": "should register and execute commands",
+          "duration": 1.4953999999999041,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["EventSourcingSystem", "command handling"],
+          "fullName": "EventSourcingSystem command handling should throw error for unregistered command type",
+          "status": "passed",
+          "title": "should throw error for unregistered command type",
+          "duration": 0.4681000000000495,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["EventSourcingSystem", "query handling"],
+          "fullName": "EventSourcingSystem query handling should register and execute queries",
+          "status": "passed",
+          "title": "should register and execute queries",
+          "duration": 0.6983999999999924,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["EventSourcingSystem", "query handling"],
+          "fullName": "EventSourcingSystem query handling should throw error for unregistered query type",
+          "status": "passed",
+          "title": "should throw error for unregistered query type",
+          "duration": 0.3564999999999827,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["EventSourcingSystem", "aggregate operations"],
+          "fullName": "EventSourcingSystem aggregate operations should load aggregate from events",
+          "status": "passed",
+          "title": "should load aggregate from events",
+          "duration": 0.40300000000002,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["EventSourcingSystem", "aggregate operations"],
+          "fullName": "EventSourcingSystem aggregate operations should save aggregate with events",
+          "status": "passed",
+          "title": "should save aggregate with events",
+          "duration": 0.48689999999999145,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["EventSourcingSystem", "read model operations"],
+          "fullName": "EventSourcingSystem read model operations should update read models",
+          "status": "passed",
+          "title": "should update read models",
+          "duration": 0.4641000000000304,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["EventSourcingSystem", "event replay"],
+          "fullName": "EventSourcingSystem event replay should replay events",
+          "status": "passed",
+          "title": "should replay events",
+          "duration": 0.6231999999999971,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["EventSourcingSystem", "statistics"],
+          "fullName": "EventSourcingSystem statistics should return system statistics",
+          "status": "passed",
+          "title": "should return system statistics",
+          "duration": 0.31999999999993634,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["Factory functions", "createEvent"],
+          "fullName": "Factory functions createEvent should create event with correct structure",
+          "status": "passed",
+          "title": "should create event with correct structure",
+          "duration": 0.6627000000000862,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["Factory functions", "createCommand"],
+          "fullName": "Factory functions createCommand should create command with correct structure",
+          "status": "passed",
+          "title": "should create command with correct structure",
+          "duration": 0.41210000000000946,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["Factory functions", "createQuery"],
+          "fullName": "Factory functions createQuery should create query with correct structure",
+          "status": "passed",
+          "title": "should create query with correct structure",
+          "duration": 0.4518000000000484,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["Global instances"],
+          "fullName": "Global instances should export global instances",
+          "status": "passed",
+          "title": "should export global instances",
+          "duration": 0.2820000000000391,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1758707502366,
+      "endTime": 1758707502394.452,
+      "status": "passed",
+      "message": "",
+      "name": "C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/lib/events.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["APIGateway", "Service Management"],
+          "fullName": "APIGateway Service Management should add service successfully",
+          "status": "passed",
+          "title": "should add service successfully",
+          "duration": 4.903400000000033,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Service Management"],
+          "fullName": "APIGateway Service Management should remove service",
+          "status": "passed",
+          "title": "should remove service",
+          "duration": 0.9479999999999791,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Service Management"],
+          "fullName": "APIGateway Service Management should return false when removing non-existent service",
+          "status": "passed",
+          "title": "should return false when removing non-existent service",
+          "duration": 0.6121999999999161,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Service Management"],
+          "fullName": "APIGateway Service Management should get all services",
+          "status": "passed",
+          "title": "should get all services",
+          "duration": 3.3678999999999633,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Route Management"],
+          "fullName": "APIGateway Route Management should add route successfully",
+          "status": "passed",
+          "title": "should add route successfully",
+          "duration": 1.0942000000000007,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Route Management"],
+          "fullName": "APIGateway Route Management should remove route",
+          "status": "passed",
+          "title": "should remove route",
+          "duration": 0.7934999999999945,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Route Management"],
+          "fullName": "APIGateway Route Management should return false when removing non-existent route",
+          "status": "passed",
+          "title": "should return false when removing non-existent route",
+          "duration": 0.5025000000000546,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Route Management"],
+          "fullName": "APIGateway Route Management should get all routes",
+          "status": "passed",
+          "title": "should get all routes",
+          "duration": 0.6920999999999822,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Intelligent Routing"],
+          "fullName": "APIGateway Intelligent Routing should find route by path and method",
+          "status": "passed",
+          "title": "should find route by path and method",
+          "duration": 0.8592000000001008,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Intelligent Routing"],
+          "fullName": "APIGateway Intelligent Routing should return null for non-existent route",
+          "status": "passed",
+          "title": "should return null for non-existent route",
+          "duration": 0.6408000000000129,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Intelligent Routing"],
+          "fullName": "APIGateway Intelligent Routing should match route with conditions",
+          "status": "passed",
+          "title": "should match route with conditions",
+          "duration": 0.5965999999999667,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Intelligent Routing"],
+          "fullName": "APIGateway Intelligent Routing should not match route when conditions fail",
+          "status": "passed",
+          "title": "should not match route when conditions fail",
+          "duration": 0.47699999999997544,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Intelligent Routing"],
+          "fullName": "APIGateway Intelligent Routing should prioritize routes by priority",
+          "status": "passed",
+          "title": "should prioritize routes by priority",
+          "duration": 0.5907999999999447,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Load Balancing"],
+          "fullName": "APIGateway Load Balancing should select service with round-robin strategy",
+          "status": "passed",
+          "title": "should select service with round-robin strategy",
+          "duration": 0.6780999999999722,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Load Balancing"],
+          "fullName": "APIGateway Load Balancing should select service with least-connections strategy",
+          "status": "passed",
+          "title": "should select service with least-connections strategy",
+          "duration": 0.5926999999999225,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Load Balancing"],
+          "fullName": "APIGateway Load Balancing should select service with weighted strategy",
+          "status": "passed",
+          "title": "should select service with weighted strategy",
+          "duration": 0.8398999999999432,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Load Balancing"],
+          "fullName": "APIGateway Load Balancing should select service with ip-hash strategy",
+          "status": "passed",
+          "title": "should select service with ip-hash strategy",
+          "duration": 0.6348000000000411,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Load Balancing"],
+          "fullName": "APIGateway Load Balancing should select service with response-time strategy",
+          "status": "passed",
+          "title": "should select service with response-time strategy",
+          "duration": 0.5516999999999825,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Load Balancing"],
+          "fullName": "APIGateway Load Balancing should return null when no healthy services available",
+          "status": "passed",
+          "title": "should return null when no healthy services available",
+          "duration": 0.40999999999996817,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Statistics and Metrics"],
+          "fullName": "APIGateway Statistics and Metrics should record request metrics",
+          "status": "passed",
+          "title": "should record request metrics",
+          "duration": 0.6121000000000549,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Statistics and Metrics"],
+          "fullName": "APIGateway Statistics and Metrics should get comprehensive gateway statistics",
+          "status": "passed",
+          "title": "should get comprehensive gateway statistics",
+          "duration": 0.8102000000000089,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Health Checks"],
+          "fullName": "APIGateway Health Checks should perform successful health check",
+          "status": "passed",
+          "title": "should perform successful health check",
+          "duration": 0.9184000000000196,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Health Checks"],
+          "fullName": "APIGateway Health Checks should handle failed health check",
+          "status": "passed",
+          "title": "should handle failed health check",
+          "duration": 2.7871999999999844,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Utility Methods", "matchesPath"],
+          "fullName": "APIGateway Utility Methods matchesPath should match exact paths",
+          "status": "passed",
+          "title": "should match exact paths",
+          "duration": 0.5569000000000415,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Utility Methods", "matchesPath"],
+          "fullName": "APIGateway Utility Methods matchesPath should match paths with parameters",
+          "status": "passed",
+          "title": "should match paths with parameters",
+          "duration": 0.42240000000003874,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Utility Methods", "matchesPath"],
+          "fullName": "APIGateway Utility Methods matchesPath should not match different paths",
+          "status": "passed",
+          "title": "should not match different paths",
+          "duration": 2.292100000000005,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Utility Methods", "matchesPath"],
+          "fullName": "APIGateway Utility Methods matchesPath should not match paths with different segment counts",
+          "status": "passed",
+          "title": "should not match paths with different segment counts",
+          "duration": 0.42470000000002983,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Utility Methods", "matchesConditions"],
+          "fullName": "APIGateway Utility Methods matchesConditions should return true for empty conditions",
+          "status": "passed",
+          "title": "should return true for empty conditions",
+          "duration": 0.363399999999956,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Utility Methods", "matchesConditions"],
+          "fullName": "APIGateway Utility Methods matchesConditions should match header conditions",
+          "status": "passed",
+          "title": "should match header conditions",
+          "duration": 0.4535999999999376,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Utility Methods", "matchesConditions"],
+          "fullName": "APIGateway Utility Methods matchesConditions should match query conditions",
+          "status": "passed",
+          "title": "should match query conditions",
+          "duration": 0.37409999999999854,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Utility Methods", "matchesConditions"],
+          "fullName": "APIGateway Utility Methods matchesConditions should handle regex conditions",
+          "status": "passed",
+          "title": "should handle regex conditions",
+          "duration": 0.47519999999997253,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Default Initialization"],
+          "fullName": "APIGateway Default Initialization should initialize with default services",
+          "status": "passed",
+          "title": "should initialize with default services",
+          "duration": 0.48460000000000036,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["APIGateway", "Default Initialization"],
+          "fullName": "APIGateway Default Initialization should initialize with default routes",
+          "status": "passed",
+          "title": "should initialize with default routes",
+          "duration": 0.4796000000000049,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["Global Instance"],
+          "fullName": "Global Instance should export global apiGateway instance",
+          "status": "passed",
+          "title": "should export global apiGateway instance",
+          "duration": 0.13829999999995835,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1758707500576,
+      "endTime": 1758707500609.1382,
+      "status": "passed",
+      "message": "",
+      "name": "C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/lib/gateway.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["InteractionsSasAvService"],
+          "fullName": "InteractionsSasAvService should create interaction",
+          "status": "passed",
+          "title": "should create interaction",
+          "duration": 3.7081000000000586,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InteractionsSasAvService"],
+          "fullName": "InteractionsSasAvService should analyze sentiment",
+          "status": "passed",
+          "title": "should analyze sentiment",
+          "duration": 0.8840000000000146,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["InteractionsSasAvService"],
+          "fullName": "InteractionsSasAvService should analyze voice",
+          "status": "passed",
+          "title": "should analyze voice",
+          "duration": 0.39649999999994634,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1758707504051,
+      "endTime": 1758707504056.3965,
+      "status": "passed",
+      "message": "",
+      "name": "C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/lib/interactions-sas-av.service.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["IntelligentRateLimiter"],
+          "fullName": "IntelligentRateLimiter should create instance",
+          "status": "passed",
+          "title": "should create instance",
+          "duration": 3.75630000000001,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentRateLimiter", "Organization Management"],
+          "fullName": "IntelligentRateLimiter Organization Management should add organization with custom config",
+          "status": "passed",
+          "title": "should add organization with custom config",
+          "duration": 1.0982000000000198,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentRateLimiter", "Organization Management"],
+          "fullName": "IntelligentRateLimiter Organization Management should add organization with default config",
+          "status": "passed",
+          "title": "should add organization with default config",
+          "duration": 0.6386999999999716,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentRateLimiter", "Organization Management"],
+          "fullName": "IntelligentRateLimiter Organization Management should remove organization",
+          "status": "passed",
+          "title": "should remove organization",
+          "duration": 0.7236000000000331,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentRateLimiter", "Organization Management"],
+          "fullName": "IntelligentRateLimiter Organization Management should return false when removing non-existent organization",
+          "status": "passed",
+          "title": "should return false when removing non-existent organization",
+          "duration": 0.41780000000005657,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentRateLimiter", "Organization Management"],
+          "fullName": "IntelligentRateLimiter Organization Management should check if organization exists",
+          "status": "passed",
+          "title": "should check if organization exists",
+          "duration": 0.4615000000000009,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentRateLimiter", "Rate Limiting - Token Bucket Strategy"],
+          "fullName": "IntelligentRateLimiter Rate Limiting - Token Bucket Strategy should allow requests within burst size",
+          "status": "passed",
+          "title": "should allow requests within burst size",
+          "duration": 1.0219000000000733,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentRateLimiter", "Rate Limiting - Token Bucket Strategy"],
+          "fullName": "IntelligentRateLimiter Rate Limiting - Token Bucket Strategy should deny requests exceeding burst size",
+          "status": "passed",
+          "title": "should deny requests exceeding burst size",
+          "duration": 0.6585000000000036,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentRateLimiter", "Rate Limiting - Token Bucket Strategy"],
+          "fullName": "IntelligentRateLimiter Rate Limiting - Token Bucket Strategy should refill tokens over time",
+          "status": "passed",
+          "title": "should refill tokens over time",
+          "duration": 0.9544000000000779,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentRateLimiter", "Rate Limiting - Sliding Window Strategy"],
+          "fullName": "IntelligentRateLimiter Rate Limiting - Sliding Window Strategy should allow requests within window",
+          "status": "passed",
+          "title": "should allow requests within window",
+          "duration": 0.8283999999999878,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentRateLimiter", "Rate Limiting - Sliding Window Strategy"],
+          "fullName": "IntelligentRateLimiter Rate Limiting - Sliding Window Strategy should deny requests exceeding window limit",
+          "status": "passed",
+          "title": "should deny requests exceeding window limit",
+          "duration": 0.4560999999999922,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentRateLimiter", "Rate Limiting - Sliding Window Strategy"],
+          "fullName": "IntelligentRateLimiter Rate Limiting - Sliding Window Strategy should reset window after time passes",
+          "status": "passed",
+          "title": "should reset window after time passes",
+          "duration": 0.43620000000009895,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentRateLimiter", "Statistics and Monitoring"],
+          "fullName": "IntelligentRateLimiter Statistics and Monitoring should get organization statistics",
+          "status": "passed",
+          "title": "should get organization statistics",
+          "duration": 1.613399999999956,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentRateLimiter", "Statistics and Monitoring"],
+          "fullName": "IntelligentRateLimiter Statistics and Monitoring should return null for non-existent organization stats",
+          "status": "passed",
+          "title": "should return null for non-existent organization stats",
+          "duration": 2.643599999999992,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentRateLimiter", "Statistics and Monitoring"],
+          "fullName": "IntelligentRateLimiter Statistics and Monitoring should get all organizations",
+          "status": "passed",
+          "title": "should get all organizations",
+          "duration": 0.834699999999998,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentRateLimiter", "Statistics and Monitoring"],
+          "fullName": "IntelligentRateLimiter Statistics and Monitoring should reset organization",
+          "status": "passed",
+          "title": "should reset organization",
+          "duration": 0.6138999999999442,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentRateLimiter", "Statistics and Monitoring"],
+          "fullName": "IntelligentRateLimiter Statistics and Monitoring should return false when resetting non-existent organization",
+          "status": "passed",
+          "title": "should return false when resetting non-existent organization",
+          "duration": 0.4496000000000322,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentRateLimiter", "Statistics and Monitoring"],
+          "fullName": "IntelligentRateLimiter Statistics and Monitoring should get global statistics",
+          "status": "passed",
+          "title": "should get global statistics",
+          "duration": 0.9879999999999427,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentRateLimiter", "Default Initialization"],
+          "fullName": "IntelligentRateLimiter Default Initialization should initialize with default organizations",
+          "status": "passed",
+          "title": "should initialize with default organizations",
+          "duration": 0.5768000000000484,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentRateLimiter", "Strategy Implementations", "Token Bucket Strategy"],
+          "fullName": "IntelligentRateLimiter Strategy Implementations Token Bucket Strategy should handle token bucket logic correctly",
+          "status": "passed",
+          "title": "should handle token bucket logic correctly",
+          "duration": 0.4654000000000451,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentRateLimiter", "Strategy Implementations", "Sliding Window Strategy"],
+          "fullName": "IntelligentRateLimiter Strategy Implementations Sliding Window Strategy should handle sliding window logic correctly",
+          "status": "passed",
+          "title": "should handle sliding window logic correctly",
+          "duration": 0.47659999999996217,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["IntelligentRateLimiter", "Strategy Implementations", "Fixed Window Strategy"],
+          "fullName": "IntelligentRateLimiter Strategy Implementations Fixed Window Strategy should handle fixed window logic correctly",
+          "status": "passed",
+          "title": "should handle fixed window logic correctly",
+          "duration": 0.5090999999999894,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["Global Instance"],
+          "fullName": "Global Instance should export global rateLimiter instance",
+          "status": "passed",
+          "title": "should export global rateLimiter instance",
+          "duration": 0.24480000000005475,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1758707502770,
+      "endTime": 1758707502792.2449,
+      "status": "passed",
+      "message": "",
+      "name": "C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/lib/rate-limiting.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Context Management"],
+          "fullName": "RowLevelSecurity Context Management should set and get context correctly",
+          "status": "passed",
+          "title": "should set and get context correctly",
+          "duration": 3.358100000000036,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Context Management"],
+          "fullName": "RowLevelSecurity Context Management should return null when no context is set",
+          "status": "passed",
+          "title": "should return null when no context is set",
+          "duration": 0.8533999999999651,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Context Management"],
+          "fullName": "RowLevelSecurity Context Management should clear context correctly",
+          "status": "passed",
+          "title": "should clear context correctly",
+          "duration": 2.0977000000000317,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Rule Management"],
+          "fullName": "RowLevelSecurity Rule Management should create a rule successfully",
+          "status": "passed",
+          "title": "should create a rule successfully",
+          "duration": 1.5372999999999593,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Rule Management"],
+          "fullName": "RowLevelSecurity Rule Management should update a rule successfully",
+          "status": "passed",
+          "title": "should update a rule successfully",
+          "duration": 0.9954000000000178,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Rule Management"],
+          "fullName": "RowLevelSecurity Rule Management should return false when updating non-existent rule",
+          "status": "passed",
+          "title": "should return false when updating non-existent rule",
+          "duration": 0.6426000000000158,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Rule Management"],
+          "fullName": "RowLevelSecurity Rule Management should delete a rule successfully",
+          "status": "passed",
+          "title": "should delete a rule successfully",
+          "duration": 0.932700000000068,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Rule Management"],
+          "fullName": "RowLevelSecurity Rule Management should return false when deleting non-existent rule",
+          "status": "passed",
+          "title": "should return false when deleting non-existent rule",
+          "duration": 0.5266000000000304,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Rule Management"],
+          "fullName": "RowLevelSecurity Rule Management should get rules by organization",
+          "status": "passed",
+          "title": "should get rules by organization",
+          "duration": 2.033300000000054,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Rule Management"],
+          "fullName": "RowLevelSecurity Rule Management should get rules by table",
+          "status": "passed",
+          "title": "should get rules by table",
+          "duration": 1.205600000000004,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Filter Application"],
+          "fullName": "RowLevelSecurity Filter Application should apply RLS filters correctly",
+          "status": "passed",
+          "title": "should apply RLS filters correctly",
+          "duration": 1.028699999999958,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Filter Application"],
+          "fullName": "RowLevelSecurity Filter Application should apply default filters when no context",
+          "status": "passed",
+          "title": "should apply default filters when no context",
+          "duration": 0.772899999999936,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Input Sanitization"],
+          "fullName": "RowLevelSecurity Input Sanitization should sanitize user input",
+          "status": "passed",
+          "title": "should sanitize user input",
+          "duration": 0.9551999999999907,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Input Sanitization"],
+          "fullName": "RowLevelSecurity Input Sanitization should sanitize budget input",
+          "status": "passed",
+          "title": "should sanitize budget input",
+          "duration": 0.7686000000001059,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Input Sanitization"],
+          "fullName": "RowLevelSecurity Input Sanitization should not sanitize when no context",
+          "status": "passed",
+          "title": "should not sanitize when no context",
+          "duration": 0.9376999999999498,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Output Validation"],
+          "fullName": "RowLevelSecurity Output Validation should validate correct organization data",
+          "status": "passed",
+          "title": "should validate correct organization data",
+          "duration": 0.8709999999999809,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Output Validation"],
+          "fullName": "RowLevelSecurity Output Validation should reject data from different organization",
+          "status": "passed",
+          "title": "should reject data from different organization",
+          "duration": 0.828200000000038,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Output Validation"],
+          "fullName": "RowLevelSecurity Output Validation should reject validation when no context",
+          "status": "passed",
+          "title": "should reject validation when no context",
+          "duration": 2.594000000000051,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Statistics"],
+          "fullName": "RowLevelSecurity Statistics should return correct stats when no rules",
+          "status": "passed",
+          "title": "should return correct stats when no rules",
+          "duration": 1.1148000000000593,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Statistics"],
+          "fullName": "RowLevelSecurity Statistics should return correct stats with rules and context",
+          "status": "passed",
+          "title": "should return correct stats with rules and context",
+          "duration": 0.9195000000000846,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Global Instance"],
+          "fullName": "RowLevelSecurity Global Instance should export a global RLS instance",
+          "status": "passed",
+          "title": "should export a global RLS instance",
+          "duration": 0.9301000000000386,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Global Instance"],
+          "fullName": "RowLevelSecurity Global Instance should allow setting context on global instance",
+          "status": "passed",
+          "title": "should allow setting context on global instance",
+          "duration": 0.7026000000000749,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Default Rules Initialization"],
+          "fullName": "RowLevelSecurity Default Rules Initialization should initialize with default rules",
+          "status": "passed",
+          "title": "should initialize with default rules",
+          "duration": 0.8688999999999396,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["RowLevelSecurity", "Error Handling"],
+          "fullName": "RowLevelSecurity Error Handling should handle invalid inputs gracefully",
+          "status": "passed",
+          "title": "should handle invalid inputs gracefully",
+          "duration": 1.3718000000000075,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1758707501377,
+      "endTime": 1758707501409.3718,
+      "status": "passed",
+      "message": "",
+      "name": "C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/lib/rls.test.ts"
+    },
+    {
+      "assertionResults": [{ "ancestorTitles": ["smoke"], "fullName": "smoke 2+2=4", "status": "passed", "title": "2+2=4", "duration": 1.6336999999999762, "failureMessages": [], "meta": {} }],
+      "startTime": 1758707504672,
+      "endTime": 1758707504673.6338,
+      "status": "passed",
+      "message": "",
+      "name": "C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/controllers/__tests__/contract.test.ts"
+    },
+    {
+      "assertionResults": [{ "ancestorTitles": ["smoke"], "fullName": "smoke 2+2=4", "status": "passed", "title": "2+2=4", "duration": 1.5412000000000035, "failureMessages": [], "meta": {} }],
+      "startTime": 1758707504356,
+      "endTime": 1758707504357.5413,
+      "status": "passed",
+      "message": "",
+      "name": "C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/services/__tests__/contract.test.ts"
+    },
+    {
+      "assertionResults": [{ "ancestorTitles": ["smoke"], "fullName": "smoke 2+2=4", "status": "passed", "title": "2+2=4", "duration": 3.567000000000064, "failureMessages": [], "meta": {} }],
+      "startTime": 1758707504468,
+      "endTime": 1758707504471.567,
+      "status": "passed",
+      "message": "",
+      "name": "C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/utils/__tests__/smoke.test.ts"
+    },
+    {
+      "assertionResults": [],
+      "startTime": 1758707499725,
+      "endTime": 1758707499725,
+      "status": "failed",
+      "message": "describe is not defined",
+      "name": "C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/api/src/__tests__/integration/health.test.ts"
+    },
+    {
+      "assertionResults": [],
+      "startTime": 1758707499725,
+      "endTime": 1758707499725,
+      "status": "failed",
+      "message": "Failed to resolve import \"jest-axe\" from \"apps/web/src/test-utils/accessibility-helpers.tsx\". Does the file exist?",
+      "name": "C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/web/src/components/navigation.test.tsx"
+    },
+    {
+      "assertionResults": [],
+      "startTime": 1758707499725,
+      "endTime": 1758707499725,
+      "status": "failed",
+      "message": "Failed to resolve import \"../test-utils/accessibility-helpers\" from \"apps/web/src/components/ui/button.test.tsx\". Does the file exist?",
+      "name": "C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/web/src/components/ui/button.test.tsx"
+    },
+    {
+      "assertionResults": [],
+      "startTime": 1758707499725,
+      "endTime": 1758707499725,
+      "status": "failed",
+      "message": "Failed to resolve import \"../test-utils/accessibility-helpers\" from \"apps/web/src/components/ui/card.test.tsx\". Does the file exist?",
+      "name": "C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/web/src/components/ui/card.test.tsx"
+    },
+    {
+      "assertionResults": [],
+      "startTime": 1758707499725,
+      "endTime": 1758707499725,
+      "status": "failed",
+      "message": "Failed to resolve import \"../test-utils/accessibility-helpers\" from \"apps/web/src/components/ui/form.test.tsx\". Does the file exist?",
+      "name": "C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/web/src/components/ui/form.test.tsx"
+    },
+    {
+      "assertionResults": [],
+      "startTime": 1758707499725,
+      "endTime": 1758707499725,
+      "status": "failed",
+      "message": "Failed to resolve import \"../test-utils/accessibility-helpers\" from \"apps/web/src/components/ui/table.test.tsx\". Does the file exist?",
+      "name": "C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/web/src/components/ui/table.test.tsx"
+    },
+    {
+      "assertionResults": [{ "ancestorTitles": ["smoke"], "fullName": "smoke 2+2=4", "status": "passed", "title": "2+2=4", "duration": 19.83759999999984, "failureMessages": [], "meta": {} }],
+      "startTime": 1758707511226,
+      "endTime": 1758707511245.8376,
+      "status": "passed",
+      "message": "",
+      "name": "C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/web/src/controllers/__tests__/contract.test.ts"
+    },
+    {
+      "assertionResults": [{ "ancestorTitles": ["smoke"], "fullName": "smoke 2+2=4", "status": "passed", "title": "2+2=4", "duration": 1.6598999999996522, "failureMessages": [], "meta": {} }],
+      "startTime": 1758707511265,
+      "endTime": 1758707511266.66,
+      "status": "passed",
+      "message": "",
+      "name": "C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/web/src/services/__tests__/contract.test.ts"
+    },
+    {
+      "assertionResults": [{ "ancestorTitles": ["smoke"], "fullName": "smoke 2+2=4", "status": "passed", "title": "2+2=4", "duration": 1.7364999999999782, "failureMessages": [], "meta": {} }],
+      "startTime": 1758707511661,
+      "endTime": 1758707511662.7366,
+      "status": "passed",
+      "message": "",
+      "name": "C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/web/src/utils/__tests__/smoke.test.ts"
+    },
+    {
+      "assertionResults": [],
+      "startTime": 1758707499725,
+      "endTime": 1758707499725,
+      "status": "failed",
+      "message": "Failed to resolve import \"next/server\" from \"apps/web/src/app/api/econeura/[...path]/route.test.ts\". Does the file exist?",
+      "name": "C:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix/apps/web/src/app/api/econeura/[...path]/route.test.ts"
+    }
+  ]
+}
