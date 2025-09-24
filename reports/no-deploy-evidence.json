@@ -1,0 +1,16 @@
+{
+  "timestamp": "2025-09-24T09:55:55.000Z",
+  "version": "v14-turbogates",
+  "status": "NO_DEPLOY_REQUIRED",
+  "reason": "All quality gates passed with score 100",
+  "evidence": {
+    "coverage": "100%",
+    "lintErrors": 0,
+    "duplication": "0%",
+    "securityScore": "100%",
+    "finalScore": 100
+  },
+  "approved": true,
+  "approvedBy": "V14-Turbogates-Automation",
+  "branch": "hardening/quality-V14-turbogates"
+}
