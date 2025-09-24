@@ -181,7 +181,7 @@ export class InMemoryEventBus implements EventBus {
 
     // Ejecutar handlers de forma asíncrona
     const promises = handlers.map(handler => 
-      handler(event).catch(error => {
+      Promise.resolve(handler(event)).catch(error => {
         logger.error('Event handler failed', {
           eventId: event.id,
           eventType: event.type,

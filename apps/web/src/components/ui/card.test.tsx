@@ -4,8 +4,8 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '../test-utils/accessibility-helpers';
-import { testAccessibility, runAllAccessibilityTests } from '../test-utils/accessibility-helpers';
+import { render, screen } from '../../test-utils/accessibility-helpers';
+import { testAccessibility, runAllAccessibilityTests } from '../../test-utils/accessibility-helpers';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './card';
 
 // Mock Next.js Image component

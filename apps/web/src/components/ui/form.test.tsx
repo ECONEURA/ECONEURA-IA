@@ -4,8 +4,8 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '../test-utils/accessibility-helpers';
-import { testAccessibility, runAllAccessibilityTests } from '../test-utils/accessibility-helpers';
+import { render, screen, fireEvent, waitFor } from '../../test-utils/accessibility-helpers';
+import { testAccessibility, runAllAccessibilityTests } from '../../test-utils/accessibility-helpers';
 import { Button } from './button';
 
 // Mock Next.js Image component

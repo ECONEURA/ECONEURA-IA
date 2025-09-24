@@ -1,5 +1,59 @@
+// MOCKS MUST BE AT THE TOP BEFORE ANY IMPORTS
+// Mock next/server before any imports
+const mockNextRequest = vi.fn().mockImplementation((input, init = {}) => ({
+  url: typeof input === 'string' ? input : input?.href || 'http://localhost:3000',
+  method: init.method || 'GET',
+  headers: new Headers(init.headers || {}),
+  json: vi.fn().mockResolvedValue({}),
+  text: vi.fn().mockResolvedValue(''),
+  clone: vi.fn().mockReturnThis(),
+  arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(0)),
+  blob: vi.fn().mockResolvedValue(new Blob()),
+  formData: vi.fn().mockResolvedValue(new FormData()),
+}));
+
+vi.mock('next/server', () => ({
+  NextRequest: mockNextRequest,
+  NextResponse: {
+    json: vi.fn().mockImplementation((data, options = {}) => ({
+      status: options.status || 200,
+      json: vi.fn().mockResolvedValue(data),
+      headers: new Headers(options.headers || {}),
+      ok: (options.status || 200) < 400,
+      clone: vi.fn().mockReturnThis(),
+      text: vi.fn().mockResolvedValue(JSON.stringify(data)),
+      arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(0)),
+      blob: vi.fn().mockResolvedValue(new Blob()),
+      formData: vi.fn().mockResolvedValue(new FormData()),
+    })),
+    redirect: vi.fn().mockImplementation((url, status = 302) => ({
+      status,
+      headers: new Headers([['Location', url]]),
+      ok: false,
+      clone: vi.fn().mockReturnThis(),
+      text: vi.fn().mockResolvedValue(''),
+      json: vi.fn().mockResolvedValue({}),
+      arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(0)),
+      blob: vi.fn().mockResolvedValue(new Blob()),
+      formData: vi.fn().mockResolvedValue(new FormData()),
+    })),
+    next: vi.fn().mockImplementation((options = {}) => ({
+      status: 200,
+      headers: new Headers(),
+      ok: true,
+      clone: vi.fn().mockReturnThis(),
+      text: vi.fn().mockResolvedValue(''),
+      json: vi.fn().mockResolvedValue({}),
+      arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(0)),
+      blob: vi.fn().mockResolvedValue(new Blob()),
+      formData: vi.fn().mockResolvedValue(new FormData()),
+    })),
+  },
+}));
+
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { NextRequest } from 'next/server'
+
+// Now we can import the route functions
 import { GET, POST, PUT, PATCH, DELETE, OPTIONS } from './route'
 
 // Mock environment
@@ -25,7 +79,7 @@ describe('BFF Proxy Route', () => {
       })
       vi.mocked(fetch).mockResolvedValue(mockResponse)
 
-      const request = new NextRequest('http://localhost:3000/api/econeura/v1/crm/companies', {
+      const request = mockNextRequest('http://localhost:3000/api/econeura/v1/crm/companies', {
         method: 'GET',
         headers: {
           'x-org-id': 'org1',
@@ -58,7 +112,7 @@ describe('BFF Proxy Route', () => {
       })
       vi.mocked(fetch).mockResolvedValue(mockResponse)
 
-      const request = new NextRequest('http://localhost:3000/api/econeura/v1/crm/companies', {
+      const request = mockNextRequest('http://localhost:3000/api/econeura/v1/crm/companies', {
         method: 'GET',
       })
 
@@ -86,7 +140,7 @@ describe('BFF Proxy Route', () => {
       vi.mocked(fetch).mockResolvedValue(mockResponse)
 
       const requestBody = { name: 'Test Company', email: 'test@example.com' }
-      const request = new NextRequest('http://localhost:3000/api/econeura/v1/crm/companies', {
+      const request = mockNextRequest('http://localhost:3000/api/econeura/v1/crm/companies', {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
@@ -121,7 +175,7 @@ describe('BFF Proxy Route', () => {
       vi.mocked(fetch).mockResolvedValue(mockResponse)
 
       const requestBody = { name: 'Updated Company' }
-      const request = new NextRequest('http://localhost:3000/api/econeura/v1/crm/companies/123', {
+      const request = mockNextRequest('http://localhost:3000/api/econeura/v1/crm/companies/123', {
         method: 'PUT',
         headers: {
           'content-type': 'application/json',
@@ -152,7 +206,7 @@ describe('BFF Proxy Route', () => {
       vi.mocked(fetch).mockResolvedValue(mockResponse)
 
       const requestBody = { status: 'active' }
-      const request = new NextRequest('http://localhost:3000/api/econeura/v1/crm/companies/123', {
+      const request = mockNextRequest('http://localhost:3000/api/econeura/v1/crm/companies/123', {
         method: 'PATCH',
         headers: {
           'content-type': 'application/json',
@@ -179,7 +233,7 @@ describe('BFF Proxy Route', () => {
       const mockResponse = new Response(null, { status: 204 })
       vi.mocked(fetch).mockResolvedValue(mockResponse)
 
-      const request = new NextRequest('http://localhost:3000/api/econeura/v1/crm/companies/123', {
+      const request = mockNextRequest('http://localhost:3000/api/econeura/v1/crm/companies/123', {
         method: 'DELETE',
         headers: {
           'x-org-id': 'org1',
@@ -200,7 +254,7 @@ describe('BFF Proxy Route', () => {
 
   describe('OPTIONS requests', () => {
     it('should handle CORS preflight', async () => {
-      const request = new NextRequest('http://localhost:3000/api/econeura/v1/crm/companies', {
+      const request = mockNextRequest('http://localhost:3000/api/econeura/v1/crm/companies', {
         method: 'OPTIONS',
       })
 
@@ -217,7 +271,7 @@ describe('BFF Proxy Route', () => {
     it('should handle fetch errors gracefully', async () => {
       vi.mocked(fetch).mockRejectedValue(new Error('Network error'))
 
-      const request = new NextRequest('http://localhost:3000/api/econeura/v1/crm/companies', {
+      const request = mockNextRequest('http://localhost:3000/api/econeura/v1/crm/companies', {
         method: 'GET',
       })
 
@@ -245,7 +299,7 @@ describe('BFF Proxy Route', () => {
       })
       vi.mocked(fetch).mockResolvedValue(mockResponse)
 
-      const request = new NextRequest('http://localhost:3000/api/econeura/v1/crm/companies', {
+      const request = mockNextRequest('http://localhost:3000/api/econeura/v1/crm/companies', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: 'invalid json',
@@ -269,7 +323,7 @@ describe('BFF Proxy Route', () => {
       const mockResponse = new Response(JSON.stringify({ data: 'test' }), { status: 200 })
       vi.mocked(fetch).mockResolvedValue(mockResponse)
 
-      const request = new NextRequest('http://localhost:3000/api/econeura/v1/crm/companies', {
+      const request = mockNextRequest('http://localhost:3000/api/econeura/v1/crm/companies', {
         method: 'GET',
         headers: {
           'authorization': 'Bearer token123',
@@ -320,7 +374,7 @@ describe('BFF Proxy Route', () => {
       const mockResponse = new Response(JSON.stringify({ data: 'test' }), { status: 200 })
       vi.mocked(fetch).mockResolvedValue(mockResponse)
 
-      const request = new NextRequest('http://localhost:3000/api/econeura/v1/crm/companies', {
+      const request = mockNextRequest('http://localhost:3000/api/econeura/v1/crm/companies', {
         method: 'GET',
         headers: {
           'x-forwarded-for': '192.168.1.1',
@@ -359,7 +413,7 @@ describe('BFF Proxy Route', () => {
       })
       vi.mocked(fetch).mockResolvedValue(mockResponse)
 
-      const request = new NextRequest('http://localhost:3000/api/econeura/v1/crm/companies', {
+      const request = mockNextRequest('http://localhost:3000/api/econeura/v1/crm/companies', {
         method: 'GET',
       })
 
@@ -378,7 +432,7 @@ describe('BFF Proxy Route', () => {
       const mockResponse = new Response(JSON.stringify({ data: 'test' }), { status: 200 })
       vi.mocked(fetch).mockResolvedValue(mockResponse)
 
-      const request = new NextRequest('http://localhost:3000/api/econeura/v1/crm/companies', {
+      const request = mockNextRequest('http://localhost:3000/api/econeura/v1/crm/companies', {
         method: 'GET',
       })
 
