@@ -16,6 +16,9 @@
     "test:coverage": "vitest --run --coverage"
   },
   "dependencies": {
+    "@azure/msal-browser": "^3.26.1",
+    "@azure/msal-react": "^2.1.0",
+    "jsonwebtoken": "^9.0.2",
     "@econeura/shared": "workspace:*",
     "applicationinsights": "^3.9.0",
     "@headlessui/react": "^1.7.18",
@@ -45,7 +48,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@types/node": "^24.5.2",
+    "@types/jsonwebtoken": "^9.0.6",
     "@types/react": "^19.1.1",
     "@types/react-dom": "^19.1.1",
     "@playwright/test": "^1.47.2",

@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useMsal } from '@azure/msal-react';
+import { loginRequest } from './auth';
 // import { EconeuraSDK } from '@econeura/sdk';
 import type {
   User,
@@ -55,6 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [sdk, setSdk] = useState<any | null>(null);
   const router = useRouter();
+  const { instance, accounts, inProgress } = useMsal();
 
   // Initialize SDK
   const initializeSdk = useCallback((accessToken?: string, refreshToken?: string) => {
@@ -197,32 +200,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setPermissions([]);
   };
 
-  // Login function
-  const login = async (credentials: LoginRequest) => {
+    // Login function
+  const login = async (credentials?: LoginRequest) => {
     try {
-  const sdkInstance = sdk || initializeSdk();
-  if (!sdkInstance) throw new Error('SDK not initialized');
-  const response = await sdkInstance.auth.login(credentials);
+      // Use MSAL for authentication
+      const response = await instance.loginPopup(loginRequest);
+      
+      // Get access token
+      const account = response.account;
+      const tokenResponse = await instance.acquireTokenSilent({
+        ...loginRequest,
+        account,
+      });
+
+      const accessToken = tokenResponse.accessToken;
+
+      // Call /me endpoint to get user info
+      const meResponse = await fetch('/api/me', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!meResponse.ok) {
+        throw new Error('Failed to get user info');
+      }
+
+      const meData = await meResponse.json();
 
       // Store tokens
-      localStorage.setItem(TOKEN_KEY, response.tokens.accessToken);
-      localStorage.setItem(REFRESH_TOKEN_KEY, response.tokens.refreshToken);
-
-      // Update SDK with new tokens
-      sdkInstance.client.setAccessToken(response.tokens.accessToken);
-      sdkInstance.client.setRefreshToken(response.tokens.refreshToken);
+      localStorage.setItem(TOKEN_KEY, accessToken);
+      localStorage.setItem(REFRESH_TOKEN_KEY, tokenResponse.idToken || '');
 
       // Update state
-      setUser(response.user as User);
-      setOrganization(response.organization as Organization);
-      setRole(response.role as Role);
-      setPermissions(response.permissions);
+      setUser(meData.user as User);
+      setOrganization(meData.organization as Organization);
+      setRole(meData.role as Role);
+      setPermissions(meData.permissions);
 
       // Store in localStorage for faster next load
-      localStorage.setItem(USER_KEY, JSON.stringify(response.user));
-      localStorage.setItem(ORG_KEY, JSON.stringify(response.organization));
-      localStorage.setItem(ROLE_KEY, JSON.stringify(response.role));
-      localStorage.setItem(PERMISSIONS_KEY, JSON.stringify(response.permissions));
+      localStorage.setItem(USER_KEY, JSON.stringify(meData.user));
+      localStorage.setItem(ORG_KEY, JSON.stringify(meData.organization));
+      localStorage.setItem(ROLE_KEY, JSON.stringify(meData.role));
+      localStorage.setItem(PERMISSIONS_KEY, JSON.stringify(meData.permissions));
 
       // Redirect to dashboard
       router.push('/dashboard');
@@ -235,11 +255,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Logout function
   const logout = async (allDevices = false) => {
     try {
-      if (sdk) {
-        await sdk.auth.logout({ allDevices });
-      }
+      // Use MSAL logout
+      await instance.logoutPopup();
     } catch (error) {
-      console.error('Logout API call failed:', error);
+      console.error('Logout failed:', error);
     } finally {
       // Clear session regardless of API call result
       clearSession();

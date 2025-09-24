@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Inter, Playfair_Display, Montserrat } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
-import { AuthProvider } from '@/lib/auth-context'
+import { AuthProvider } from '@/lib/AuthProvider'
 import { Navigation } from '@/components/layout/Navigation'
 import { cn } from '@/lib/utils'
 import SystemStatus from '@/components/SystemStatus';
