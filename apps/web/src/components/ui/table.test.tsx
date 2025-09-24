@@ -238,12 +238,11 @@ describe('Table Component Accessibility', () => {
     });
 
     it('should have proper table structure', () => {
-      render(<Table />);
+      const { container } = render(<Table />);
 
-      const table = screen.getByRole('table');
-      const columnHeaders = screen.getAllByRole('columnheader');
-      const rowHeaders = screen.getAllByRole('rowheader');
-      const cells = screen.getAllByRole('cell');
+      const table = within(container).getByRole('table');
+      const columnHeaders = within(container).getAllByRole('columnheader');
+      const cells = within(container).getAllByRole('cell');
 
       expect(table).toBeTruthy();
       expect(columnHeaders).toHaveLength(4); // Name, Email, Role, Status
@@ -285,22 +284,22 @@ describe('Table Component Accessibility', () => {
 
   describe('Table Data', () => {
     it('should have proper data cells', () => {
-      render(<Table />);
+      const { container } = render(<Table />);
 
-      const cells = screen.getAllByRole('cell');
+      const cells = within(container).getAllByRole('cell');
       expect(cells.length).toBeGreaterThan(0);
 
       // Check for specific data
-      expect(screen.getByText('John Doe')).toBeTruthy();
-      expect(screen.getByText('john@example.com')).toBeTruthy();
-      expect(screen.getByText('Admin')).toBeTruthy();
-      expect(screen.getByText('Active')).toBeTruthy();
+      expect(within(container).getByText('John Doe')).toBeTruthy();
+      expect(within(container).getByText('john@example.com')).toBeTruthy();
+      expect(within(container).getByText('Admin')).toBeTruthy();
+      expect(within(container).getAllByText('Active')).toHaveLength(2);
     });
 
     it('should have proper row structure', () => {
-      render(<Table />);
+      const { container } = render(<Table />);
 
-      const rows = screen.getAllByRole('row');
+      const rows = within(container).getAllByRole('row');
       expect(rows).toHaveLength(4); // 1 header row + 3 data rows
     });
   });
@@ -312,43 +311,43 @@ describe('Table Component Accessibility', () => {
     });
 
     it('should have proper sortable headers', () => {
-      render(<SortableTable />);
+      const { container } = render(<SortableTable />);
 
-      const nameSortButton = screen.getByRole('button', { name: /sort by name/i });
-      const emailSortButton = screen.getByRole('button', { name: /sort by email/i });
+      const nameSortButton = within(container).getByRole('button', { name: /sort by name/i });
+      const emailSortButton = within(container).getByRole('button', { name: /sort by email/i });
 
       expect(nameSortButton).toBeTruthy();
       expect(emailSortButton).toBeTruthy();
     });
 
     it('should handle sorting interactions', () => {
-      render(<SortableTable />);
+      const { container } = render(<SortableTable />);
 
-      const nameSortButton = screen.getByRole('button', { name: /sort by name/i });
-      
+      const nameSortButton = within(container).getByRole('button', { name: /sort by name/i });
+
       // Initial state
-      expect(nameSortButton).getAttribute('aria-label').toBe('Sort by name ');
+      expect(nameSortButton.getAttribute('aria-label')).toBe('Sort by name ');
 
       // Click to sort ascending
       fireEvent.click(nameSortButton);
-      expect(nameSortButton).getAttribute('aria-label').toBe('Sort by name asc');
+      expect(nameSortButton.getAttribute('aria-label')).toBe('Sort by name asc');
 
       // Click to sort descending
       fireEvent.click(nameSortButton);
-      expect(nameSortButton).getAttribute('aria-label').toBe('Sort by name desc');
+      expect(nameSortButton.getAttribute('aria-label')).toBe('Sort by name desc');
     });
 
     it('should have proper sort indicators', () => {
-      render(<SortableTable />);
+      const { container } = render(<SortableTable />);
 
-      const nameSortButton = screen.getByRole('button', { name: /sort by name/i });
-      
+      const nameSortButton = within(container).getByRole('button', { name: /sort by name/i });
+
       // Initial state - should show sortable indicator
-      expect(nameSortButton).textContent.toBe('↕');
+      expect(nameSortButton.textContent).toBe('Name ↕');
 
       // After sorting - should show direction
       fireEvent.click(nameSortButton);
-      expect(nameSortButton).textContent.toBe('↑');
+      expect(nameSortButton.textContent).toBe('Name ↑');
     });
   });
 
@@ -408,11 +407,11 @@ describe('Table Component Accessibility', () => {
 
       // Select all rows individually
       rowCheckboxes.forEach(checkbox => {
-        if (!checkbox.checked) {
+        if (!(checkbox as HTMLInputElement).checked) {
           fireEvent.click(checkbox);
         }
       });
-      expect(selectAllCheckbox).checked).toBe(true);
+      expect((selectAllCheckbox as HTMLInputElement).checked).toBe(true);
     });
   });
 

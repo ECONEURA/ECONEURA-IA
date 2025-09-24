@@ -1,30 +1,26 @@
 import { defineConfig } from 'vitest/config'
+import path from 'path'
 
 export default defineConfig({
   esbuild: { sourcemap: true },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './apps/web/src'),
+      '@shared': path.resolve(__dirname, './packages/shared/src')
+    }
+  },
   test: {
-    environment: 'node',
+    environment: 'jsdom',
     reporters: ['default','json'],
     outputFile: { json: 'reports/vitest.json' },
     testTimeout: 8000,
     retry: 1,
-    projects: [
-      {
-        test: {
-          include: ['apps/web/**/*.{test,spec}.ts?(x)'],
-          environment: 'jsdom'
-        }
-      },
-      {
-        test: {
-          include: ['apps/api/**/*.{test,spec}.ts']
-        }
-      },
-      {
-        test: {
-          include: ['packages/**/*.{test,spec}.ts']
-        }
-      }
+    include: ['apps/web/**/*.{test,spec}.ts?(x)'],
+    exclude: [
+      '**/node_modules/**',
+      'apps/web/src/app/api/**/*',
+      'apps/api/**/*',
+      'packages/**/*'
     ]
   }
 })

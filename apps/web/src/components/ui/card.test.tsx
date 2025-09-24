@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '../../test-utils/accessibility-helpers';
+import { render, screen, within } from '../../test-utils/accessibility-helpers';
 import { testAccessibility, runAllAccessibilityTests } from '../../test-utils/accessibility-helpers';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './card';
 
@@ -332,8 +332,8 @@ describe('Card Component Accessibility', () => {
       const card = screen.getByRole('article');
       const title = screen.getByRole('heading', { name: /aria card/i });
       
-      expect(card).toHaveAttribute('aria-labelledby', 'card-title');
-      expect(title).toHaveAttribute('id', 'card-title');
+      expect(card?.getAttribute('aria-labelledby')).toBe('card-title');
+      expect(title?.getAttribute('id')).toBe('card-title');
     });
   });
 
@@ -441,7 +441,7 @@ describe('Card Component Accessibility', () => {
     });
 
     it('should maintain proper heading hierarchy', () => {
-      render(
+      const { container } = render(
         <Card>
           <CardHeader>
             <CardTitle>Complex Card</CardTitle>
@@ -460,9 +460,9 @@ describe('Card Component Accessibility', () => {
         </Card>
       );
 
-      const mainTitle = screen.getByRole('heading', { name: /complex card/i, level: 3 });
-      const section1 = screen.getByRole('heading', { name: /section 1/i, level: 4 });
-      const section2 = screen.getByRole('heading', { name: /section 2/i, level: 4 });
+      const mainTitle = within(container).getByRole('heading', { name: /complex card/i, level: 3 });
+      const section1 = within(container).getByRole('heading', { name: /section 1/i, level: 4 });
+      const section2 = within(container).getByRole('heading', { name: /section 2/i, level: 4 });
       
       expect(mainTitle).toBeInTheDocument();
       expect(section1).toBeInTheDocument();
@@ -472,7 +472,7 @@ describe('Card Component Accessibility', () => {
 
   describe('Card Focus Management', () => {
     it('should be focusable when interactive', () => {
-      render(
+      const { container } = render(
         <Card tabIndex={0} role="button">
           <CardHeader>
             <CardTitle>Focusable Card</CardTitle>
@@ -483,13 +483,13 @@ describe('Card Component Accessibility', () => {
         </Card>
       );
 
-      const card = screen.getByRole('button');
+      const card = within(container).getByRole('button');
       card.focus();
       expect(card).toHaveFocus();
     });
 
     it('should not be focusable by default', () => {
-      render(
+      const { container } = render(
         <Card>
           <CardHeader>
             <CardTitle>Non-focusable Card</CardTitle>
@@ -500,8 +500,8 @@ describe('Card Component Accessibility', () => {
         </Card>
       );
 
-      const card = screen.getByRole('generic');
-      expect(card).not.toHaveAttribute('tabindex');
+      const card = within(container).getByRole('generic');
+      expect(card?.getAttribute('tabindex')).toBeNull();
     });
   });
 });

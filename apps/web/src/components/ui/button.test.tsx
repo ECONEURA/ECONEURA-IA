@@ -121,7 +121,7 @@ describe('Button Component Accessibility', () => {
       render(<Button disabled>Disabled Button</Button>);
       const button = screen.getByRole('button');
       expect(button).toBeDisabled();
-      expect(button).toHaveAttribute('aria-disabled', 'true');
+      expect(button?.getAttribute('aria-disabled')).toBe('true');
     });
 
     it('should be accessible when loading', async () => {
@@ -133,7 +133,7 @@ describe('Button Component Accessibility', () => {
       render(<Button disabled>Loading Button</Button>);
       const button = screen.getByRole('button');
       expect(button).toBeDisabled();
-      expect(button).toHaveAttribute('aria-disabled', 'true');
+      expect(button?.getAttribute('aria-disabled')).toBe('true');
     });
   });
 
