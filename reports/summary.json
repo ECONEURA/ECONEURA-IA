@@ -1,14 +1,10 @@
 {
-  "phase": "F2-opt",
+  "phase": "F3-ultra",
   "ok": false,
-  "coverage_lines_pct": 0,
-  "tests_passed": 18,
-  "tests_failed": 6,
-  "top_fail_files": [
-    {
-      "file": "unknown",
-      "fails": 6
-    }
-  ],
-  "sha": ""
+  "eslint_errors": 1887,
+  "eslint_warnings": 3040,
+  "jscpd_dup_pct": 0,
+  "jscpd_clones": 0,
+  "clones_gt_100": 0,
+  "deadcode": 0
 }

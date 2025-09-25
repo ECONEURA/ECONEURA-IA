@@ -279,7 +279,7 @@ class PatternRecognizer {
 
 class AdaptationEngine {
   async applyAdaptations(context: AgentContext, improvements: Improvement[]): Promise<AgentContext> {
-    let adaptedContext = { ...context };
+    const adaptedContext = { ...context };
 
     for (const improvement of improvements) {
       switch (improvement.action) {

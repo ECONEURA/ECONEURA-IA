@@ -1,7 +1,7 @@
 let Redis: any = null;
 try {
   // try dynamic require to avoid hard dependency during early development
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+   
   Redis = require('ioredis');
 } catch (e) {
   Redis = null;

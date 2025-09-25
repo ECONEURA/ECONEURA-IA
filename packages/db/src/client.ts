@@ -8,7 +8,7 @@ type PrismaNew = new (...args: any[]) => PrismaClient;
 let PrismaCtor: PrismaNew | null = null;
 try {
   // Try to load real Prisma in environments where it's generated
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+   
   const pkg = require('@prisma/client');
   PrismaCtor = (pkg as { PrismaClient?: PrismaNew })?.PrismaClient || null;
 } catch {
@@ -16,7 +16,7 @@ try {
 }
 
 declare global {
-  // eslint-disable-next-line no-var
+   
   var prisma: PrismaClient | undefined;
 }
 

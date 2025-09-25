@@ -1,0 +1,1 @@
+# GAP F3\n- ESLint errores: 1887\n- Dup %: 0\n- Clones >100: 0

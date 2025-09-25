@@ -1,0 +1,9 @@
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Progress: resolved 60, reused 41, downloaded 0, added 0
+Packages: +38
+++++++++++++++++++++++++++++++++++++++
+Progress: resolved 62, reused 44, downloaded 0, added 36
+Progress: resolved 62, reused 44, downloaded 0, added 38, done
+.../node_modules/oxc-resolver postinstall$ napi-postinstall oxc-resolver 11.8.3 check
+.../node_modules/oxc-resolver postinstall: Done
+Unexpected argument 'apps/api'. This command does not take positional arguments

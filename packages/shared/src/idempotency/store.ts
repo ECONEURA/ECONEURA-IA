@@ -25,7 +25,7 @@ export function createIdempotencyStore(): IdempotencyStore {
   const url = process.env.REDIS_URL;
   if (!url) return new MemoryStore();
   // lazy require to avoid optional dep failure in dev
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+   
   const { createClient } = require('redis');
   const client = createClient({ url });
   client.connect().catch(() => {});

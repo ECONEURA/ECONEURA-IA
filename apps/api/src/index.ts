@@ -226,7 +226,7 @@ try {
   if (hasDb) {
     // Lazy getter to avoid importing @econeura/db at module init
     const getPrisma = () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
+       
       const mod = require('@econeura/db');
       return (mod.getPrisma ?? mod.default?.getPrisma)();
     };

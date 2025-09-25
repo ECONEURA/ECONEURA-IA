@@ -1,0 +1,1 @@
+# DEADCODE_REPORT\nTotal aprox: 0\nFuente: reports/knip.json

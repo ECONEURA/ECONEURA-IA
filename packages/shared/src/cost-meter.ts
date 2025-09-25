@@ -237,10 +237,10 @@ class CostMeter {
         }
         // Normalize various DB mock field names and coerce string numbers
         if (process.env.NODE_ENV === 'test') {
-          // eslint-disable-next-line no-console
+           
           try {
             // Provide richer diagnostics for proxy-like rows
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
+             
             const util = require('util')
             console.debug('[cost-meter] plain row:', JSON.stringify(plain, null, 2))
             console.debug('[cost-meter] row keys:', Object.keys(plain))
