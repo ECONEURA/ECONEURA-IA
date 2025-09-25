@@ -1,13 +1,14 @@
 {
-  "phase": "F1-fast",
-  "ok": true,
-  "secret_leaks": 0,
-  "patched": 1,
-  "env_refs_removed": 0,
-  "auth_fixed": 0,
-  "log_noop": 1,
-  "a11y": 0,
-  "count_dyn": 0,
-  "login_wired": 0,
-  "type_ren": 0
+  "phase": "F2-opt",
+  "ok": false,
+  "coverage_lines_pct": 0,
+  "tests_passed": 18,
+  "tests_failed": 6,
+  "top_fail_files": [
+    {
+      "file": "unknown",
+      "fails": 6
+    }
+  ],
+  "sha": ""
 }

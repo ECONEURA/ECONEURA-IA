@@ -53,9 +53,7 @@
       "findings": [
         {
           "version": "8.15.9",
-          "paths": [
-            ". > pnpm@8.15.9"
-          ]
+          "paths": [". > pnpm@8.15.9"]
         }
       ],
       "found_by": null,
@@ -68,9 +66,7 @@
       "reported_by": null,
       "title": "pnpm no-script global cache poisoning via overrides / `ignore-scripts` evasion",
       "metadata": null,
-      "cves": [
-        "CVE-2024-53866"
-      ],
+      "cves": ["CVE-2024-53866"],
       "access": "public",
       "severity": "moderate",
       "module_name": "pnpm",
@@ -83,10 +79,7 @@
         "score": 0,
         "vectorString": null
       },
-      "cwe": [
-        "CWE-346",
-        "CWE-426"
-      ],
+      "cwe": ["CWE-346", "CWE-426"],
       "url": "https://github.com/advisories/GHSA-vm32-9rqf-rh3r"
     },
     "1102341": {
@@ -102,16 +95,11 @@
         },
         {
           "version": "0.18.20",
-          "paths": [
-            "packages\\db > drizzle-kit@0.20.18 > @esbuild-kit/esm-loader@2.6.5 > @esbuild-kit/core-utils@3.3.2 > esbuild@0.18.20"
-          ]
+          "paths": ["packages\\db > drizzle-kit@0.20.18 > @esbuild-kit/esm-loader@2.6.5 > @esbuild-kit/core-utils@3.3.2 > esbuild@0.18.20"]
         },
         {
           "version": "0.19.12",
-          "paths": [
-            "packages\\db > drizzle-kit@0.20.18 > esbuild@0.19.12",
-            "packages\\db > drizzle-kit@0.20.18 > esbuild-register@3.6.0 > esbuild@0.19.12"
-          ]
+          "paths": ["packages\\db > drizzle-kit@0.20.18 > esbuild@0.19.12", "packages\\db > drizzle-kit@0.20.18 > esbuild-register@3.6.0 > esbuild@0.19.12"]
         }
       ],
       "found_by": null,
@@ -137,18 +125,14 @@
         "score": 5.3,
         "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:N"
       },
-      "cwe": [
-        "CWE-346"
-      ],
+      "cwe": ["CWE-346"],
       "url": "https://github.com/advisories/GHSA-67mh-4wv8-2f99"
     },
     "1104027": {
       "findings": [
         {
           "version": "8.15.9",
-          "paths": [
-            ". > pnpm@8.15.9"
-          ]
+          "paths": [". > pnpm@8.15.9"]
         }
       ],
       "found_by": null,
@@ -161,9 +145,7 @@
       "reported_by": null,
       "title": "pnpm uses the md5 path shortening function causes packet paths to coincide, which causes indirect packet overwriting",
       "metadata": null,
-      "cves": [
-        "CVE-2024-47829"
-      ],
+      "cves": ["CVE-2024-47829"],
       "access": "public",
       "severity": "moderate",
       "module_name": "pnpm",
@@ -176,9 +158,7 @@
         "score": 6.5,
         "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:L/I:L/A:L"
       },
-      "cwe": [
-        "CWE-328"
-      ],
+      "cwe": ["CWE-328"],
       "url": "https://github.com/advisories/GHSA-8cc4-rfj6-fhg4"
     }
   },
