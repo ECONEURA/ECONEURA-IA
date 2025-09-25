@@ -1,10 +1,14 @@
 {
-  "coverage_lines_pct": 80,
-  "eslint_errors": 0,
-  "jscpd_dup_pct": 0,
-  "jscpd_clones": 0,
-  "npm_high": 0,
-  "npm_critical": 0,
-  "secret_leaks": 0,
-  "score": 91
+  "phase": "F0-final-hotfix",
+  "files_scanned": 2313,
+  "patched_files": 3,
+  "env_purged": 0,
+  "auth_rewrites": 0,
+  "log_noop": 1,
+  "a11y_inputs": 0,
+  "agents_count_fixed": 0,
+  "login_wired": 0,
+  "type_renamed": 2,
+  "secret_leaks": 3,
+  "ok": false
 }

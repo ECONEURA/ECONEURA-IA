@@ -35,7 +35,7 @@ import {
 export type Company = z.infer<typeof CompanySchema>;
 export type Contact = z.infer<typeof ContactSchema>;
 export type Deal = z.infer<typeof DealSchema>;
-export type Activity = z.infer<typeof ActivitySchema>;
+export type ActivityEvent = z.infer<typeof ActivitySchema>;
 
 export type CreateCompanyInput = z.infer<typeof CreateCompanySchema>;
 export type UpdateCompanyInput = z.infer<typeof UpdateCompanySchema>;
