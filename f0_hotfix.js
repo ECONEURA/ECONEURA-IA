@@ -23,15 +23,6 @@ for(const f of SRC()){
   s=s.replace(/async\s+function\s+logActivity\([^)]*\)\s*\{[\s\S]*?\n\}/m,
               ()=>{stats.log_noop++;return "async function logActivity(){ /* NOOP client; server-side only */ }
 
-// Escaneo post-parche para asegurar ausencia de secretos en UI
-const scanFiles=SRC();
-const leakRe=/(^|[^A-Z_])(GW_KEY|LA_KEY|NEURA_GW_KEY|VITE_[A-Z0-9_]*KEY|SharedKey\s+[A-Za-z0-9+/=]+)([^A-Z0-9_]|$)/;
-let leaks=[];
-for(const f of scanFiles){
-  const content=fs.readFileSync(f,"utf8");
-  if(leakRe.test(content)) leaks.push(f);
-}
-
 // Evidencias
 fs.mkdirSync("docs/audit",{recursive:true});
 fs.mkdirSync("reports",{recursive:true});

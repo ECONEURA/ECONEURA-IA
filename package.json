@@ -96,6 +96,7 @@
     "eventsource-parser": "^3.0.6",
     "express-basic-auth": "^1.2.1",
     "express-rate-limit": "^8.1.0",
+    "glob": "^11.0.3",
     "helmet": "^8.0.0",
     "hpp": "^0.2.3",
     "joi": "^17.13.3",
