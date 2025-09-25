@@ -11,6 +11,8 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./apps/web/src/test-utils/setup.ts'],
     reporters: ['default','json'],
     outputFile: { json: 'reports/vitest.json' },
     testTimeout: 8000,

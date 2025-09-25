@@ -18,6 +18,10 @@ vi.mock('react-dom', () => ({
   S: vi.fn(),
 }));
 
+// Setup testing-library matchers
+import '@testing-library/jest-dom';
+import { expect, vi } from 'vitest';
+
 // Mock react-dom/client with minimal implementation for React 19 compatibility
 vi.mock('react-dom/client', () => ({
   __esModule: true,
@@ -93,7 +97,6 @@ vi.mock('next-themes', () => ({
   }),
 }));
 
-import { expect, vi } from 'vitest';
 import React from 'react';
 import { configure } from '@testing-library/react';
 
@@ -189,4 +192,11 @@ beforeAll(() => {
 afterAll(() => {
   console.error = originalError;
   console.warn = originalWarn;
+});
+
+// Global test cleanup
+import { cleanup } from '@testing-library/react';
+
+afterEach(() => {
+  cleanup();
 });

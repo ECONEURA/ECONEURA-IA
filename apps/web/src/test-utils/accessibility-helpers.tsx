@@ -1,9 +1,12 @@
 import { expect } from 'vitest';
 import React from 'react';
-import { render, RenderOptions } from '@testing-library/react';
+import { render, RenderOptions, cleanup } from '@testing-library/react';
 
 // Mock next-themes for testing
-const ThemeProvider = ({ children, ...props }: any) => <div {...props}>{children}</div>;
+const ThemeProvider = ({ children, attribute, ...props }: any) => {
+  const attrName = attribute === 'class' ? 'className' : attribute || 'className';
+  return <div {...{ [attrName]: 'light' }}>{children}</div>;
+};
 
 // Mock jest-axe for now - will be replaced with proper implementation later
 const axe = async (container?: any, options?: any) => ({ violations: [] });
@@ -45,7 +48,10 @@ const customRender = (
   options: CustomRenderOptions = {}
 ) => {
   const { theme, locale, ...renderOptions } = options;
-  
+
+  // Cleanup before rendering to prevent DOM contamination
+  cleanup();
+
   return render(ui, {
     wrapper: ({ children }) => (
       <AllTheProviders theme={theme} locale={locale}>
