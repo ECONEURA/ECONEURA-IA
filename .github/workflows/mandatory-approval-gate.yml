@@ -1,3 +1,5 @@
+env:
+  DEPLOY_ENABLED: "false"
 name: Mandatory Approval Gate
 
 on:
@@ -412,3 +414,5 @@ jobs:
       run: |
         echo "�� Mandatory approval gate blocked the pipeline"
         exit 1
+
+concurrency: hardening-global

@@ -1,3 +1,5 @@
+env:
+  DEPLOY_ENABLED: "false"
 name: Test Minimal CI
 
 on:
@@ -19,3 +21,4 @@ jobs:
 
       - name: Success
         run: echo "✅ Checkout successful"
+concurrency: hardening-global

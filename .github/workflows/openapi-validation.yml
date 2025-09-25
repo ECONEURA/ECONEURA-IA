@@ -1,3 +1,5 @@
+env:
+  DEPLOY_ENABLED: "false"
 name: OpenAPI Validation
 
 on:
@@ -187,3 +189,5 @@ rules:
         schema:
           type: object
           required: ["200", "400", "500"]
+
+concurrency: hardening-global

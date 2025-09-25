@@ -1,3 +1,5 @@
+env:
+  DEPLOY_ENABLED: "false"
 name: Integration Tests with Docker Compose
 
 on:
@@ -481,3 +483,5 @@ jobs:
       run: |
         echo "🚨 Integration tests failed - blocking pipeline"
         exit 1
+
+concurrency: hardening-global

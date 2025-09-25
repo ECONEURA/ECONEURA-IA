@@ -1,3 +1,5 @@
+env:
+  DEPLOY_ENABLED: "false"
 name: K6 Performance Testing
 
 on:
@@ -490,3 +492,5 @@ jobs:
       run: |
         echo "🚨 Performance tests failed - blocking pipeline"
         exit 1
+
+concurrency: hardening-global

@@ -1,3 +1,5 @@
+env:
+  DEPLOY_ENABLED: "false"
 name: ECONEURA Advanced Scan
 
 on:
@@ -400,3 +402,5 @@ See the [workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo
       run: |
         echo "🚨 High security risk detected. Failing pipeline."
         exit 1
+
+concurrency: hardening-global

@@ -1,3 +1,5 @@
+env:
+  DEPLOY_ENABLED: "false"
 name: ECONEURA Test Suite (Staging)
 
 on:
@@ -218,3 +220,5 @@ echo "## 🧪 ECONEURA Test Suite Summary" >> $GITHUB_STEP_SUMMARY
           echo "1. Replace mock scans with real trufflehog/gitleaks" >> $GITHUB_STEP_SUMMARY
           echo "2. Tune scoring thresholds using \`scripts/tune_thresholds.sh\`" >> $GITHUB_STEP_SUMMARY
           echo "3. Import Grafana dashboard from \`monitoring/dashboard_security_stub.json\`" >> $GITHUB_STEP_SUMMARY
+
+concurrency: hardening-global

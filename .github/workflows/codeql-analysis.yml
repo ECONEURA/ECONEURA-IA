@@ -1,3 +1,5 @@
+env:
+  DEPLOY_ENABLED: "false"
 name: CodeQL Security Analysis
 
 on:
@@ -190,3 +192,5 @@ echo "## 🎯 CodeQL Analysis Complete" >> $GITHUB_STEP_SUMMARY
         echo "- Enable CodeQL Advanced Security in repository settings" >> $GITHUB_STEP_SUMMARY
         echo "- Set up security alerts notifications" >> $GITHUB_STEP_SUMMARY
         echo "- Review and fix security issues regularly" >> $GITHUB_STEP_SUMMARY
+
+concurrency: hardening-global

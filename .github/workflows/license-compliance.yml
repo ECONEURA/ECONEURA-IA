@@ -1,3 +1,5 @@
+env:
+  DEPLOY_ENABLED: "false"
 name: License Compliance Check
 
 on:
@@ -483,3 +485,5 @@ The detailed license compliance report is available in the workflow artifacts, i
           echo "   Review the compliance report for details"
           exit 1
         fi
+
+concurrency: hardening-global

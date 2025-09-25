@@ -1,3 +1,5 @@
+env:
+  DEPLOY_ENABLED: "false"
 name: Deploy to Staging
 
 on:
@@ -504,3 +506,5 @@ ${needs.post-deployment-tests.result !== 'success' ? '- Post-deployment tests\n'
           echo "❌ Staging deployment failed - check logs and issues"
           exit 1
         fi
+
+concurrency: hardening-global

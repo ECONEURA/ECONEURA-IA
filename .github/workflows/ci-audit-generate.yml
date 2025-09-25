@@ -1,3 +1,5 @@
+env:
+  DEPLOY_ENABLED: "false"
 name: CI Audit & Generate Score
 
 on:
@@ -40,3 +42,5 @@ jobs:
           path: |
             artifacts/pnpm-audit.json
             artifacts/score.json
+
+concurrency: hardening-global

@@ -1,0 +1,199 @@
+{
+  "actions": [
+    {
+      "action": "review",
+      "module": "pnpm",
+      "resolves": [
+        {
+          "id": 1101099,
+          "path": ".>pnpm",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1104027,
+          "path": ".>pnpm",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    },
+    {
+      "action": "review",
+      "module": "esbuild",
+      "resolves": [
+        {
+          "id": 1102341,
+          "path": "apps__api-agents-make>vitest>vite>esbuild",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1102341,
+          "path": "packages__db>drizzle-kit>@esbuild-kit/esm-loader>@esbuild-kit/core-utils>esbuild",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1102341,
+          "path": "packages__db>drizzle-kit>esbuild",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    }
+  ],
+  "advisories": {
+    "1101099": {
+      "findings": [
+        {
+          "version": "8.15.9",
+          "paths": [
+            ". > pnpm@8.15.9"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/pnpm/pnpm/security/advisories/GHSA-vm32-9rqf-rh3r\n- https://nvd.nist.gov/vuln/detail/CVE-2024-53866\n- https://github.com/pnpm/pnpm/commit/11afcddea48f25ed5117a87dc1780a55222b9743\n- https://github.com/advisories/GHSA-vm32-9rqf-rh3r",
+      "created": "2024-12-10T22:42:41.000Z",
+      "id": 1101099,
+      "npm_advisory_id": null,
+      "overview": "### Summary\n\npnpm seems to mishandle overrides and global cache:\n1. Overrides from one workspace leak into npm metadata saved in global cache\n2. npm metadata from global cache affects other workspaces\n3. installs by default don't revalidate the data (including on first lockfile generation)\n\nThis can make workspace A (even running with `ignore-scripts=true`) posion global cache and execute scripts in workspace B\n\nUsers generally expect `ignore-scripts` to be sufficient to prevent immediate code execution on install (e.g. when the tree is just repacked/bundled without executing it).\n\nHere, that expectation is broken\n\n### Details\n\nSee PoC.\n\nIn it, overrides from a single run of A get leaked into e.g. `~/Library/Caches/pnpm/metadata/registry.npmjs.org/rimraf.json` and persistently affect all other projects using the cache\n\n### PoC\n\nPostinstall code used in PoC is benign and can be inspected in <https://www.npmjs.com/package/ponyhooves?activeTab=code>, it's just a `console.log`\n\n1. Remove store and cache\n   On mac: `rm -rf ~/Library/Caches/pnpm ~/Library/pnpm/store`\n   This step is not required in general, but we'll be using a popular package for PoC that's likely cached\n2. Create `A/package.json`:\n   ```json\n   {\n     \"name\": \"A\",\n     \"pnpm\": { \"overrides\": { \"rimraf>glob\": \"npm:ponyhooves@1\" } },\n     \"dependencies\": { \"rimraf\": \"6.0.1\" }\n   }\n   ```\n   Install it with `pnpm i --ignore-scripts` (the flag is not required, but the point of the demo is to show that it doesn't help)\n4. Create `B/package.json`:\n   ```json\n   {\n     \"name\": \"B\",\n     \"dependencies\": { \"rimraf\": \"6.0.1\" }\n   }\n   ```\n   Install it with `pnpm i`\n\nResult:\n```console\nPackages: +3\n+++\nProgress: resolved 3, reused 3, downloaded 0, added 3, done\nnode_modules/.pnpm/ponyhooves@1.0.1/node_modules/ponyhooves: Running postinstall script, done in 51ms\n\ndependencies:\n+ rimraf 6.0.1\n\nDone in 1.4s\n```\n\nAlso, that code got leaked into another project and it's lockfile now! \n\n### Impact\n\nGlobal state integrity is lost via operations that one would expect to be secure, enabling subsequently running arbitrary code execution on installs\n\nAs a work-around, use separate cache and store dirs in each workspace\n",
+      "reported_by": null,
+      "title": "pnpm no-script global cache poisoning via overrides / `ignore-scripts` evasion",
+      "metadata": null,
+      "cves": [
+        "CVE-2024-53866"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "pnpm",
+      "vulnerable_versions": "<9.15.0",
+      "github_advisory_id": "GHSA-vm32-9rqf-rh3r",
+      "recommendation": "Upgrade to version 9.15.0 or later",
+      "patched_versions": ">=9.15.0",
+      "updated": "2024-12-10T22:42:44.000Z",
+      "cvss": {
+        "score": 0,
+        "vectorString": null
+      },
+      "cwe": [
+        "CWE-346",
+        "CWE-426"
+      ],
+      "url": "https://github.com/advisories/GHSA-vm32-9rqf-rh3r"
+    },
+    "1102341": {
+      "findings": [
+        {
+          "version": "0.21.5",
+          "paths": [
+            "apps\\api-agents-make > vitest@1.6.1 > vite@5.4.20 > esbuild@0.21.5",
+            "apps\\api-agents-make > vitest@1.6.1 > vite-node@1.6.1 > vite@5.4.20 > esbuild@0.21.5",
+            "apps\\api-neura-comet > vitest@1.6.1 > vite@5.4.20 > esbuild@0.21.5",
+            "apps\\api-neura-comet > vitest@1.6.1 > vite-node@1.6.1 > vite@5.4.20 > esbuild@0.21.5"
+          ]
+        },
+        {
+          "version": "0.18.20",
+          "paths": [
+            "packages\\db > drizzle-kit@0.20.18 > @esbuild-kit/esm-loader@2.6.5 > @esbuild-kit/core-utils@3.3.2 > esbuild@0.18.20"
+          ]
+        },
+        {
+          "version": "0.19.12",
+          "paths": [
+            "packages\\db > drizzle-kit@0.20.18 > esbuild@0.19.12",
+            "packages\\db > drizzle-kit@0.20.18 > esbuild-register@3.6.0 > esbuild@0.19.12"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/evanw/esbuild/security/advisories/GHSA-67mh-4wv8-2f99\n- https://github.com/evanw/esbuild/commit/de85afd65edec9ebc44a11e245fd9e9a2e99760d\n- https://github.com/advisories/GHSA-67mh-4wv8-2f99",
+      "created": "2025-02-10T17:48:07.000Z",
+      "id": 1102341,
+      "npm_advisory_id": null,
+      "overview": "### Summary\n\nesbuild allows any websites to send any request to the development server and read the response due to default CORS settings.\n\n### Details\n\nesbuild sets `Access-Control-Allow-Origin: *` header to all requests, including the SSE connection, which allows any websites to send any request to the development server and read the response.\n\nhttps://github.com/evanw/esbuild/blob/df815ac27b84f8b34374c9182a93c94718f8a630/pkg/api/serve_other.go#L121\nhttps://github.com/evanw/esbuild/blob/df815ac27b84f8b34374c9182a93c94718f8a630/pkg/api/serve_other.go#L363\n\n**Attack scenario**:\n\n1. The attacker serves a malicious web page (`http://malicious.example.com`).\n1. The user accesses the malicious web page.\n1. The attacker sends a `fetch('http://127.0.0.1:8000/main.js')` request by JS in that malicious web page. This request is normally blocked by same-origin policy, but that's not the case for the reasons above.\n1. The attacker gets the content of `http://127.0.0.1:8000/main.js`.\n\nIn this scenario, I assumed that the attacker knows the URL of the bundle output file name. But the attacker can also get that information by\n\n- Fetching `/index.html`: normally you have a script tag here\n- Fetching `/assets`: it's common to have a `assets` directory when you have JS files and CSS files in a different directory and the directory listing feature tells the attacker the list of files\n- Connecting `/esbuild` SSE endpoint: the SSE endpoint sends the URL path of the changed files when the file is changed (`new EventSource('/esbuild').addEventListener('change', e => console.log(e.type, e.data))`)\n- Fetching URLs in the known file: once the attacker knows one file, the attacker can know the URLs imported from that file\n\nThe scenario above fetches the compiled content, but if the victim has the source map option enabled, the attacker can also get the non-compiled content by fetching the source map file.\n\n### PoC\n\n1. Download [reproduction.zip](https://github.com/user-attachments/files/18561484/reproduction.zip)\n2. Extract it and move to that directory\n1. Run `npm i`\n1. Run `npm run watch`\n1. Run `fetch('http://127.0.0.1:8000/app.js').then(r => r.text()).then(content => console.log(content))` in a different website's dev tools.\n\n![image](https://github.com/user-attachments/assets/08fc2e4d-e1ec-44ca-b0ea-78a73c3c40e9)\n\n### Impact\n\nUsers using the serve feature may get the source code stolen by malicious websites.",
+      "reported_by": null,
+      "title": "esbuild enables any website to send any requests to the development server and read the response",
+      "metadata": null,
+      "cves": [],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "esbuild",
+      "vulnerable_versions": "<=0.24.2",
+      "github_advisory_id": "GHSA-67mh-4wv8-2f99",
+      "recommendation": "Upgrade to version 0.25.0 or later",
+      "patched_versions": ">=0.25.0",
+      "updated": "2025-02-10T17:48:08.000Z",
+      "cvss": {
+        "score": 5.3,
+        "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:N"
+      },
+      "cwe": [
+        "CWE-346"
+      ],
+      "url": "https://github.com/advisories/GHSA-67mh-4wv8-2f99"
+    },
+    "1104027": {
+      "findings": [
+        {
+          "version": "8.15.9",
+          "paths": [
+            ". > pnpm@8.15.9"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/pnpm/pnpm/security/advisories/GHSA-8cc4-rfj6-fhg4\n- https://nvd.nist.gov/vuln/detail/CVE-2024-47829\n- https://github.com/advisories/GHSA-8cc4-rfj6-fhg4",
+      "created": "2025-04-23T14:05:47.000Z",
+      "id": 1104027,
+      "npm_advisory_id": null,
+      "overview": "The path shortening function is used in pnpm´╝Ü\n```\nexport function depPathToFilename (depPath: string, maxLengthWithoutHash: number): string {\n  let filename = depPathToFilenameUnescaped(depPath).replace(/[\\\\/:*?\"<>|]/g, '+')\n  if (filename.includes('(')) {\n    filename = filename\n      .replace(/\\)$/, '')\n      .replace(/(\\)\\()|\\(|\\)/g, '_')\n  }\n  if (filename.length > maxLengthWithoutHash || filename !== filename.toLowerCase() && !filename.startsWith('file+')) {\n    return `${filename.substring(0, maxLengthWithoutHash - 27)}_${createBase32Hash(filename)}`\n  }\n  return filename\n}\n```\nHowever, it uses the md5 function as a path shortening compression function, and if a collision occurs, it will result in the same storage path for two different libraries. Although the real names are under the package name /node_modoules/, there are no version numbers for the libraries they refer to.\n![Schematic picture](https://github.com/user-attachments/assets/7b8b87ab-f297-47bd-a9dd-43be86e36ed2)\nIn the diagram, we assume that two packages are called packageA and packageB, and that the first 90 digits of their package names must be the same, and that the hash value of the package names with versions must be the same.  Then C is the package that they both reference, but with a different version number.  (npm allows package names up to 214 bytes, so constructing such a collision package name is obvious.)\n\nThen hash(packageA@1.2.3)=hash(packageB@3.4.5).  This results in the same path for the installation, and thus under the same directory.  Although the package names under node_modoules are the full paths again, they are shared with C.\nWhat is the exact version number of C?\nIn our local tests, it depends on which one is installed later.  If packageB is installed later, the C version number will change to 2.0.0.  At this time, although package A requires the C@1.0.0 version, package. json will only work during installation, and will not affect the actual operation.\nWe did not receive any installation error issues from pnpm during our local testing, nor did we use force, which is clearly a case that can be triggered.\n\nFor a package with a package name + version number longer than 120, another package can be constructed to introduce an indirect reference to a lower version, such as one with some known vulnerability.\nAlternatively, it is possible to construct two packages with more than 120 package names + version numbers.\nThis is clearly an advantage for those intent on carrying out supply chain attacks.\n\n\nThe solution:\nThe repair cost is also very low, just need to upgrade the md5 function to sha256.",
+      "reported_by": null,
+      "title": "pnpm uses the md5 path shortening function causes packet paths to coincide, which causes indirect packet overwriting",
+      "metadata": null,
+      "cves": [
+        "CVE-2024-47829"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "pnpm",
+      "vulnerable_versions": "<10.0.0",
+      "github_advisory_id": "GHSA-8cc4-rfj6-fhg4",
+      "recommendation": "Upgrade to version 10.0.0 or later",
+      "patched_versions": ">=10.0.0",
+      "updated": "2025-04-23T19:16:02.000Z",
+      "cvss": {
+        "score": 6.5,
+        "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:L/I:L/A:L"
+      },
+      "cwe": [
+        "CWE-328"
+      ],
+      "url": "https://github.com/advisories/GHSA-8cc4-rfj6-fhg4"
+    }
+  },
+  "muted": [],
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 5,
+      "high": 0,
+      "critical": 0
+    },
+    "dependencies": 1875,
+    "devDependencies": 0,
+    "optionalDependencies": 0,
+    "totalDependencies": 1875
+  }
+}

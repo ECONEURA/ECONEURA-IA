@@ -1,3 +1,5 @@
+env:
+  DEPLOY_ENABLED: "false"
 name: Auto-fix Workflows
 
 on:
@@ -40,3 +42,5 @@ bash ./analizar-workflows.sh --fail-on=any --output-json artifacts/analisis-work
         run: |
 chmod +x ./scripts/apply_workflow_fixes_and_create_prs.sh
           ./scripts/apply_workflow_fixes_and_create_prs.sh
+
+concurrency: hardening-global

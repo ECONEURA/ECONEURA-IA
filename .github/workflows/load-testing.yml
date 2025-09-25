@@ -1,3 +1,5 @@
+env:
+  DEPLOY_ENABLED: "false"
 name: Load Testing
 
 on:
@@ -179,3 +181,5 @@ export default function () {
 
   sleep(1);
 }
+
+concurrency: hardening-global

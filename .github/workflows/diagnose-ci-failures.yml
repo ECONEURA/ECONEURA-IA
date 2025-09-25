@@ -1,3 +1,5 @@
+env:
+  DEPLOY_ENABLED: "false"
 name: Diagnose CI Failures
 
 on:
@@ -79,3 +81,4 @@ jobs:
           name: ci-diagnosis
           path: |
             diagnosis.log
+concurrency: hardening-global
