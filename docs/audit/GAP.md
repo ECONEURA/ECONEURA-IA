@@ -1,6 +1,1 @@
-# GAP F1
-- Secretos en cliente aún referenciados:
-- purge_secrets.js
-- f1_patch.js
-- f0_hotfix.js
-- evidence_script.js
+# GAP F1\n- Fugas:\n- evidence_script.js\n- f0_hotfix.js\n- f1_fast_patch.js\n- f1_patch.js\n- purge_secrets.js

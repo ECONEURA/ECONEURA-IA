@@ -1,13 +1,13 @@
 {
-  "phase": "F1-opt",
+  "phase": "F1-fast",
   "ok": true,
   "secret_leaks": 0,
   "patched": 1,
-  "purge_env": 0,
-  "auth_fix": 0,
+  "env_refs_removed": 0,
+  "auth_fixed": 0,
   "log_noop": 1,
-  "aria": 0,
-  "count_fix": 0,
-  "login": 0,
+  "a11y": 0,
+  "count_dyn": 0,
+  "login_wired": 0,
   "type_ren": 0
 }
