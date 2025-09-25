@@ -1,6 +1,5 @@
 import { defineConfig } from "vitest/config";
 export default defineConfig({
-  cacheDir: ".cache/vitest",
   test: {
     globals: true,
     bail: 5,
@@ -21,13 +20,13 @@ export default defineConfig({
     pool: "threads",
     maxConcurrency: 8,
     reporters: ["default","json"],
-    outputFile: { json: "reports/vitest.json" }
-  },
-  coverage: {
-    provider: "v8",
-    reporter: ["json","text-summary"],
-    reportsDirectory: "coverage-f2",
-    include: ["apps/**/*.{ts,tsx,js,jsx}","packages/**/*.{ts,tsx,js,jsx}","functions/**/*.{ts,tsx,js,jsx}"],
-    exclude: ["**/*.d.ts","**/{node_modules,dist,build,.next}/**"]
+    outputFile: { json: "reports/vitest.json" },
+    coverage: {
+      provider: "v8",
+      reporter: ["json","text-summary"],
+      reportsDirectory: "coverage-f2",
+      include: ["apps/**/*.{ts,tsx,js,jsx}","packages/**/*.{ts,tsx,js,jsx}","functions/**/*.{ts,tsx,js,jsx}"],
+      exclude: ["**/*.d.ts","**/{node_modules,dist,build,.next}/**","**/*.test.*","**/*.spec.*"]
+    }
   }
 });
