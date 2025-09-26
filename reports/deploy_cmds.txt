@@ -1,0 +1,273 @@
+
+.github\workflows\auto-fix-workflows.yml:2:  DEPLOY_ENABLED: "false"
+.github\workflows\auto-fix-workflows.yml:10:permissions:
+.github\workflows\azure-deploy.yml:2:  DEPLOY_ENABLED: "false"
+.github\workflows\azure-deploy.yml:3:name: Deploy to Azure App Service
+.github\workflows\azure-deploy.yml:19:  build-and-deploy-api:
+.github\workflows\azure-deploy.yml:22:    if: ${{ env.DEPLOY_ENABLED == 'true' }}
+.github\workflows\azure-deploy.yml:54:    - name: Deploy to Azure App Service (API)
+.github\workflows\azure-deploy.yml:55:      uses: azure/webapps-deploy@v3
+.github\workflows\azure-deploy.yml:62:  build-and-deploy-web:
+.github\workflows\azure-deploy.yml:65:    needs: build-and-deploy-api
+.github\workflows\azure-deploy.yml:66:    if: ${{ env.DEPLOY_ENABLED == 'true' }}
+.github\workflows\azure-deploy.yml:95:    - name: Deploy to Azure App Service (Web)
+.github\workflows\azure-deploy.yml:96:      uses: azure/webapps-deploy@v3
+.github\workflows\ci-audit-generate.yml:2:  DEPLOY_ENABLED: "false"
+.github\workflows\ci-audit-generate.yml:11:permissions:
+.github\workflows\ci-basic.yml:2:  DEPLOY_ENABLED: "false"
+.github\workflows\ci-extended.yml:37:  DEPLOY_ENABLED: "false"
+.github\workflows\ci-extended.yml:81:    continue-on-error: true  # TEMP CI SOFT MODE: remover para volver a modo estricto
+.github\workflows\ci-extended.yml:117:    continue-on-error: true  # TEMP CI SOFT MODE: remover para volver a modo estricto
+.github\workflows\ci-extended.yml:130:    continue-on-error: true  # TEMP CI SOFT MODE: remover para volver a modo estricto
+.github\workflows\ci-extended.yml:145:    continue-on-error: true  # TEMP CI SOFT MODE: remover para volver a modo estricto
+.github\workflows\ci-extended.yml:186:          if npx @stoplight/spectral-cli lint "$file" --format json; then
+.github\workflows\ci-extended.yml:212:        format: json
+.github\workflows\ci-extended.yml:391:          kill $API_PID 2>/dev/null || true
+.github\workflows\ci.yml:1:name: CI Hardening (NO_DEPLOY)
+.github\workflows\ci.yml:10:  DEPLOY_ENABLED: "false"
+.github\workflows\ci.yml:120:          npx gitleaks@8.5.0 detect --source . --report-format json --report-path reports/gitleaks.json || true
+.github\workflows\ci.yml:138:          # run in fail-on mode to prevent accidental deploys passing CI
+.github\workflows\codeql-analysis.yml:2:  DEPLOY_ENABLED: "false"
+.github\workflows\codeql-analysis.yml:37:permissions:
+.github\workflows\codeql-analysis.yml:47:    permissions:
+.github\workflows\codeql-analysis.yml:113:    # Perform CodeQL analysis
+.github\workflows\codeql-analysis.yml:114:    - name: Perform CodeQL Analysis
+.github\workflows\coverage-analysis.yml:2:  DEPLOY_ENABLED: "false"
+.github\workflows\coverage-analysis.yml:43:permissions:
+.github\workflows\coverage-analysis.yml:149:  transform: {
+.github\workflows\dependency-monitor.yml:2:  DEPLOY_ENABLED: "false"
+.github\workflows\dependency-monitor.yml:38:permissions:
+.github\workflows\dependency-monitor.yml:263:          # Determine if action is needed based on threshold
+.github\workflows\dependency-monitor.yml:328:          // Determine severity level for issue
+.github\workflows\diagnose-ci-failures.yml:2:  DEPLOY_ENABLED: "false"
+.github\workflows\diagnose-ci-failures.yml:8:permissions:
+.github\workflows\econeura-test.yml:2:  DEPLOY_ENABLED: "false"
+.github\workflows\econeura-test.yml:119:            echo "⚠️  Test result differs from expected (this may be normal for tuning)"
+.github\workflows\integration-tests-with-compose.yml:2:  DEPLOY_ENABLED: "false"
+.github\workflows\integration-tests-with-compose.yml:48:permissions:
+.github\workflows\integration-tests-with-compose.yml:77:    - name: Determine Test Matrix
+.github\workflows\integration-tests-with-compose.yml:187:    if: ${{ env.DEPLOY_ENABLED == 'true' || (github.event.inputs.environment != 'production') }}
+.github\workflows\integration-tests-with-compose.yml:249:        docker run --rm \
+.github\workflows\integration-tests-with-compose.yml:262:        if [ "${{ env.DEPLOY_ENABLED }}" = "true" ]; then
+.github\workflows\integration-tests-with-compose.yml:263:          echo "⚠️ DEPLOY_ENABLED=true - running migrations against target environment"
+.github\workflows\integration-tests-with-compose.yml:264:          docker run --rm \
+.github\workflows\integration-tests-with-compose.yml:270:          echo "ℹ️ DEPLOY_ENABLED != true - skipping potentially destructive migrations in CI"
+.github\workflows\integration-tests-with-compose.yml:304:        docker run --rm \
+.github\workflows\integration-tests-with-compose.yml:351:        docker run --rm \
+.github\workflows\integration-tests-with-compose.yml:368:        docker run --rm \
+.github\workflows\integration-tests-with-compose.yml:418:        docker stop econeura-api-test econeura-web-test || true
+.github\workflows\integration-tests-with-compose.yml:419:        docker rm econeura-api-test econeura-web-test || true
+.github\workflows\integration-tests-with-compose.yml:473:          echo "- ✅ **Integration tests passed** - Ready for next deployment stage" >> $GITHUB_STEP_SUMMARY
+.github\workflows\integration-tests-with-compose.yml:474:          echo "- Consider running performance tests for production readiness" >> $GITHUB_STEP_SUMMARY
+.github\workflows\k6-smoke.yml:2:  DEPLOY_ENABLED: "false"
+.github\workflows\k6-smoke.yml:3:name: K6 Performance Testing
+.github\workflows\k6-smoke.yml:12:      - 'performance-tests/**'
+.github\workflows\k6-smoke.yml:19:      - 'performance-tests/**'
+.github\workflows\k6-smoke.yml:25:        description: 'Type of performance test'
+.github\workflows\k6-smoke.yml:55:permissions:
+.github\workflows\k6-smoke.yml:62:  setup-performance-environment:
+.github\workflows\k6-smoke.yml:63:    name: Setup Performance Environment
+.github\workflows\k6-smoke.yml:131:  run-performance-tests:
+.github\workflows\k6-smoke.yml:132:    name: Run ${{ fromJson(needs.setup-performance-environment.outputs.test-config).type }} Tests
+.github\workflows\k6-smoke.yml:135:    needs: setup-performance-environment
+.github\workflows\k6-smoke.yml:170:        # Create test data for performance tests
+.github\workflows\k6-smoke.yml:171:        mkdir -p performance-tests/data
+.github\workflows\k6-smoke.yml:178:          --output performance-tests/data/test-data.json
+.github\workflows\k6-smoke.yml:184:        TEST_TYPE="${{ fromJson(needs.setup-performance-environment.outputs.test-config).type }}"
+.github\workflows\k6-smoke.yml:186:        BASE_URL="${{ fromJson(needs.setup-performance-environment.outputs.environment-url)[SERVICE] }}"
+.github\workflows\k6-smoke.yml:187:        VUS="${{ fromJson(needs.setup-performance-environment.outputs.test-config).vus }}"
+.github\workflows\k6-smoke.yml:188:        DURATION="${{ fromJson(needs.setup-performance-environment.outputs.test-config).duration }}"
+.github\workflows\k6-smoke.yml:191:        cat > performance-tests/${SERVICE}-${TEST_TYPE}.js << EOF
+.github\workflows\k6-smoke.yml:206:            http_req_duration: ['p(95)<${{ fromJson(needs.setup-performance-environment.outputs.test-config).thresholds.http_req_duration }}'],
+.github\workflows\k6-smoke.yml:207:            http_req_failed: ['rate<${{ fromJson(needs.setup-performance-environment.outputs.test-config).thresholds.http_req_failed }}'],
+.github\workflows\k6-smoke.yml:239:            const companiesResponse = http.get(\`\${BASE_URL}/api/crm/companies\`, params);
+.github\workflows\k6-smoke.yml:247:            const dealsResponse = http.get(\`\${BASE_URL}/api/crm/deals\`, params);
+.github\workflows\k6-smoke.yml:280:            'performance-tests/results/${SERVICE}-${TEST_TYPE}.json': JSON.stringify(data, null, 2),
+.github\workflows\k6-smoke.yml:285:    - name: Run K6 Performance Test
+.github\workflows\k6-smoke.yml:287:        echo "🚀 Running K6 performance test..."
+.github\workflows\k6-smoke.yml:289:        TEST_TYPE="${{ fromJson(needs.setup-performance-environment.outputs.test-config).type }}"
+.github\workflows\k6-smoke.yml:294:          --out json=performance-tests/results/${SERVICE}-${TEST_TYPE}-detailed.json \
+.github\workflows\k6-smoke.yml:295:          performance-tests/${SERVICE}-${TEST_TYPE}.js \
+.github\workflows\k6-smoke.yml:296:          2>&1 | tee performance-tests/results/${SERVICE}-${TEST_TYPE}.log
+.github\workflows\k6-smoke.yml:300:          echo "✅ Performance test passed"
+.github\workflows\k6-smoke.yml:303:          echo "🚨 Performance test failed"
+.github\workflows\k6-smoke.yml:307:    - name: Analyze Performance Results
+.github\workflows\k6-smoke.yml:310:        echo "📊 Analyzing performance results..."
+.github\workflows\k6-smoke.yml:312:        TEST_TYPE="${{ fromJson(needs.setup-performance-environment.outputs.test-config).type }}"
+.github\workflows\k6-smoke.yml:315:        RESULTS_FILE="performance-tests/results/${SERVICE}-${TEST_TYPE}.json"
+.github\workflows\k6-smoke.yml:329:          # Determine performance grade
+.github\workflows\k6-smoke.yml:331:            PERFORMANCE_GRADE="A"
+.github\workflows\k6-smoke.yml:333:            PERFORMANCE_GRADE="B"
+.github\workflows\k6-smoke.yml:335:            PERFORMANCE_GRADE="C"
+.github\workflows\k6-smoke.yml:337:            PERFORMANCE_GRADE="F"
+.github\workflows\k6-smoke.yml:340:          echo "performance-grade=$PERFORMANCE_GRADE" >> $GITHUB_OUTPUT
+.github\workflows\k6-smoke.yml:347:          echo "performance-grade=F" >> $GITHUB_OUTPUT
+.github\workflows\k6-smoke.yml:350:    - name: Upload Performance Results
+.github\workflows\k6-smoke.yml:354:        name: k6-results-${{ matrix.service }}-${{ fromJson(needs.setup-performance-environment.outputs.test-config).type }}
+.github\workflows\k6-smoke.yml:356:          performance-tests/results/
+.github\workflows\k6-smoke.yml:357:          performance-tests/${{ matrix.service }}-${{ fromJson(needs.setup-performance-environment.outputs.test-config).type }}.js
+.github\workflows\k6-smoke.yml:360:  performance-report:
+.github\workflows\k6-smoke.yml:361:    name: Performance Report
+.github\workflows\k6-smoke.yml:364:    needs: [setup-performance-environment, run-performance-tests]
+.github\workflows\k6-smoke.yml:371:    - name: Download All Performance Results
+.github\workflows\k6-smoke.yml:374:        path: all-performance-results
+.github\workflows\k6-smoke.yml:376:    - name: Generate Performance Report
+.github\workflows\k6-smoke.yml:378:        echo "## ⚡ K6 Performance Test Report" >> $GITHUB_STEP_SUMMARY
+.github\workflows\k6-smoke.yml:381:        TEST_TYPE="${{ fromJson(needs.setup-performance-environment.outputs.test-config).type }}"
+.github\workflows\k6-smoke.yml:385:        if [ "${{ needs.run-performance-tests.result }}" = "success" ]; then
+.github\workflows\k6-smoke.yml:386:          echo "### Status: ✅ **PERFORMANCE TESTS PASSED**" >> $GITHUB_STEP_SUMMARY
+.github\workflows\k6-smoke.yml:388:          echo "### Status: 🚨 **PERFORMANCE ISSUES DETECTED**" >> $GITHUB_STEP_SUMMARY
+.github\workflows\k6-smoke.yml:395:        echo "- **Virtual Users:** ${{ fromJson(needs.setup-performance-environment.outputs.test-config).vus }}" >> $GITHUB_STEP_SUMMARY
+.github\workflows\k6-smoke.yml:396:        echo "- **Duration:** ${{ fromJson(needs.setup-performance-environment.outputs.test-config).duration }}" >> $GITHUB_STEP_SUMMARY
+.github\workflows\k6-smoke.yml:399:        echo "### Performance Results:" >> $GITHUB_STEP_SUMMARY
+.github\workflows\k6-smoke.yml:404:        if [ -d "all-performance-results/k6-results-api-$TEST_TYPE" ]; then
+.github\workflows\k6-smoke.yml:405:          API_RESULTS="all-performance-results/k6-results-api-$TEST_TYPE/performance-tests/results/api-$TEST_TYPE.json"
+.github\workflows\k6-smoke.yml:417:        if [ -d "all-performance-results/k6-results-web-$TEST_TYPE" ]; then
+.github\workflows\k6-smoke.yml:418:          WEB_RESULTS="all-performance-results/k6-results-web-$TEST_TYPE/performance-tests/results/web-$TEST_TYPE.json"
+.github\workflows\k6-smoke.yml:430:        echo "### Performance Thresholds:" >> $GITHUB_STEP_SUMMARY
+.github\workflows\k6-smoke.yml:431:        THRESHOLDS="${{ needs.setup-performance-environment.outputs.thresholds }}"
+.github\workflows\k6-smoke.yml:438:        if [ "${{ needs.run-performance-tests.result }}" = "success" ]; then
+.github\workflows\k6-smoke.yml:439:          echo "- ✅ **Performance meets requirements**" >> $GITHUB_STEP_SUMMARY
+.github\workflows\k6-smoke.yml:441:          echo "- Monitor performance in production environment" >> $GITHUB_STEP_SUMMARY
+.github\workflows\k6-smoke.yml:443:          echo "- 🚨 **Performance issues detected** - Review and optimize" >> $GITHUB_STEP_SUMMARY
+.github\workflows\k6-smoke.yml:444:          echo "- Check server resources and database performance" >> $GITHUB_STEP_SUMMARY
+.github\workflows\k6-smoke.yml:449:    - name: Create Performance Issue
+.github\workflows\k6-smoke.yml:450:      if: needs.run-performance-tests.result == 'failure'
+.github\workflows\k6-smoke.yml:454:          const testType = '${{ fromJson(needs.setup-performance-environment.outputs.test-config).type }}';
+.github\workflows\k6-smoke.yml:460:            title: `🚨 Performance Issues Detected - ${testType} test on ${environment}`,
+.github\workflows\k6-smoke.yml:462:## Performance Test Failure Alert
+.github\workflows\k6-smoke.yml:466:**Virtual Users:** ${{ fromJson(needs.setup-performance-environment.outputs.test-config).vus }}
+.github\workflows\k6-smoke.yml:467:**Duration:** ${{ fromJson(needs.setup-performance-environment.outputs.test-config).duration }}
+.github\workflows\k6-smoke.yml:475:- [ ] Review performance test results in workflow artifacts
+.github\workflows\k6-smoke.yml:477:- [ ] Implement performance optimizations
+.github\workflows\k6-smoke.yml:478:- [ ] Re-run performance tests after fixes
+.github\workflows\k6-smoke.yml:481:### Performance Thresholds Exceeded
+.github\workflows\k6-smoke.yml:482:- Response time P95 > ${{ fromJson(needs.setup-performance-environment.outputs.test-config).thresholds.http_req_duration }}ms
+.github\workflows\k6-smoke.yml:483:- Error rate > ${{ fromJson(needs.setup-performance-environment.outputs.test-config).thresholds.http_req_failed }}%
+.github\workflows\k6-smoke.yml:485:*This issue was automatically created by K6 Performance Testing*
+.github\workflows\k6-smoke.yml:487:            labels: ['performance', 'high-priority', 'auto-generated']
+.github\workflows\k6-smoke.yml:490:    - name: Fail Pipeline on Performance Issues
+.github\workflows\k6-smoke.yml:491:      if: needs.run-performance-tests.result == 'failure'
+.github\workflows\k6-smoke.yml:493:        echo "🚨 Performance tests failed - blocking pipeline"
+.github\workflows\license-compliance.yml:2:  DEPLOY_ENABLED: "false"
+.github\workflows\license-compliance.yml:39:permissions:
+.github\workflows\license-compliance.yml:113:          pip-licenses --format=json > license-reports/pip-licenses.json 2>/dev/null || true
+.github\workflows\license-compliance.yml:120:          # Extract license information
+.github\workflows\license-compliance.yml:173:          # Determine compliance status
+.github\workflows\license-compliance.yml:283:          # Determine severity
+.github\workflows\license-compliance.yml:452:- Publisher information
+.github\workflows\load-testing.yml:2:  DEPLOY_ENABLED: "false"
+.github\workflows\load-testing.yml:51:permissions:
+.github\workflows\load-testing.yml:56:  deployments: read
+.github\workflows\load-testing.yml:107:    if: ${{ github.event.inputs.environment != 'production' || github.event.inputs.environment == 'production' && env.DEPLOY_ENABLED == 'true' }}
+.github\workflows\load-testing.yml:121:    - name: Ensure DEPLOY guard for production targets
+.github\workflows\load-testing.yml:123:        if [ "${{ github.event.inputs.environment }}" = "production" ] && [ "${{ env.DEPLOY_ENABLED }}" != "true" ]; then
+.github\workflows\load-testing.yml:124:          echo "ERROR: Production load tests require DEPLOY_ENABLED=true to run" >&2
+.github\workflows\load-testing.yml:137:        if: env.DEPLOY_ENABLED == 'true' || github.event.inputs.environment != 'production'
+.github\workflows\load-testing.yml:168:    response = http.get(`${BASE_URL}/api/crm/companies`);
+.github\workflows\load-testing.yml:175:    response = http.get(`${BASE_URL}/api/crm/contacts`);
+.github\workflows\mandatory-approval-gate.yml:2:  DEPLOY_ENABLED: "false"
+.github\workflows\mandatory-approval-gate.yml:27:permissions:
+.github\workflows\mandatory-approval-gate.yml:63:          // Determine risk level based on PR characteristics
+.github\workflows\openapi-validation.yml:2:  DEPLOY_ENABLED: "false"
+.github\workflows\openapi-validation.yml:42:permissions:
+.github\workflows\openapi-validation.yml:154:        npm install -g @stoplight/spectral
+.github\workflows\openapi-validation.yml:184:    given: "$.paths[*][get,post,put,patch,delete]"
+.github\workflows\scan-econeura.yml:2:  DEPLOY_ENABLED: "false"
+.github\workflows\scan-econeura.yml:23:        description: 'Type of scan to perform'
+.github\workflows\scan-econeura.yml:42:permissions:
+.github\workflows\scan-econeura.yml:313:        # Determine risk level
+.github\workflows\scan-econeura.yml:340:        echo "### Security Scans Performed:" >> $GITHUB_STEP_SUMMARY
+.github\workflows\scan-econeura.yml:390:- [ ] Block deployment until resolved
+.github\workflows\security-approval.yml:2:  DEPLOY_ENABLED: "false"
+.github\workflows\security-approval.yml:30:permissions:
+.github\workflows\security-approval.yml:139:        pnpm lint --format json > lint-results.json || true
+.github\workflows\security-approval.yml:289:        # Determine approval status
+.github\workflows\staging-deploy.yml:2:  DEPLOY_ENABLED: "false"
+.github\workflows\staging-deploy.yml:3:name: Deploy to Staging
+.github\workflows\staging-deploy.yml:15:      force_deploy:
+.github\workflows\staging-deploy.yml:16:        description: 'Force deployment bypassing some checks'
+.github\workflows\staging-deploy.yml:31:permissions:
+.github\workflows\staging-deploy.yml:33:  deployments: write
+.github\workflows\staging-deploy.yml:39:  pre-deployment-validation:
+.github\workflows\staging-deploy.yml:40:    name: Pre-Deployment Validation
+.github\workflows\staging-deploy.yml:132:        echo "🎯 Performing final validation checks..."
+.github\workflows\staging-deploy.yml:135:        if [ "${{ github.event.inputs.force_deploy }}" = "true" ]; then
+.github\workflows\staging-deploy.yml:136:          echo "✅ Force deploy enabled - bypassing some checks"
+.github\workflows\staging-deploy.yml:143:  deploy-infrastructure:
+.github\workflows\staging-deploy.yml:144:    name: Deploy Infrastructure
+.github\workflows\staging-deploy.yml:147:    needs: pre-deployment-validation
+.github\workflows\staging-deploy.yml:149:    if: needs.pre-deployment-validation.outputs.validation-passed == 'true' && (github.event_name == 'push' || github.event.inputs.force_deploy == 'true' || env.DEPLOY_ENABLED == 'true')
+.github\workflows\staging-deploy.yml:165:    - name: Deploy infrastructure with Terraform
+.github\workflows\staging-deploy.yml:166:      if: ${{ env.DEPLOY_ENABLED == 'true' && env.TERRAFORM_WORKSPACE }}
+.github\workflows\staging-deploy.yml:168:        echo "🏗️ Deploying infrastructure..."
+.github\workflows\staging-deploy.yml:171:        terraform init
+.github\workflows\staging-deploy.yml:172:        terraform workspace select ${{ env.TERRAFORM_WORKSPACE }} || terraform workspace new ${{ env.TERRAFORM_WORKSPACE }}
+.github\workflows\staging-deploy.yml:173:        terraform plan -out=tfplan
+.github\workflows\staging-deploy.yml:174:        terraform apply -auto-approve tfplan
+.github\workflows\staging-deploy.yml:181:        cat > artifacts/infrastructure/staging-deploy.json << EOF
+.github\workflows\staging-deploy.yml:183:          "deployment_id": "${{ github.run_id }}",
+.github\workflows\staging-deploy.yml:184:          "commit_sha": "${{ needs.pre-deployment-validation.outputs.commit-sha }}",
+.github\workflows\staging-deploy.yml:188:          "terraform_workspace": "${{ env.TERRAFORM_WORKSPACE }}",
+.github\workflows\staging-deploy.yml:193:  deploy-applications:
+.github\workflows\staging-deploy.yml:194:    name: Deploy Applications
+.github\workflows\staging-deploy.yml:197:    needs: [pre-deployment-validation, deploy-infrastructure]
+.github\workflows\staging-deploy.yml:199:    if: needs.pre-deployment-validation.outputs.validation-passed == 'true' && (github.event_name == 'push' || github.event.inputs.force_deploy == 'true' || env.DEPLOY_ENABLED == 'true')
+.github\workflows\staging-deploy.yml:237:    - name: Deploy ${{ matrix.service }} to staging
+.github\workflows\staging-deploy.yml:238:      if: ${{ env.DEPLOY_ENABLED == 'true' }}
+.github\workflows\staging-deploy.yml:240:        echo "🚀 Deploying ${{ matrix.service }} to staging..."
+.github\workflows\staging-deploy.yml:242:        # Update deployment manifest
+.github\workflows\staging-deploy.yml:243:        cat > k8s/staging/${{ matrix.service }}-deployment.yaml << EOF
+.github\workflows\staging-deploy.yml:245:        kind: Deployment
+.github\workflows\staging-deploy.yml:305:        # Apply deployment (assuming kubectl is configured)
+.github\workflows\staging-deploy.yml:307:          kubectl apply -f k8s/staging/${{ matrix.service }}-deployment.yaml
+.github\workflows\staging-deploy.yml:308:          kubectl rollout status deployment/econeura-${{ matrix.service }}-staging -n staging --timeout=300s
+.github\workflows\staging-deploy.yml:310:          echo "⚠️  kubectl not available - skipping Kubernetes deployment"
+.github\workflows\staging-deploy.yml:313:  post-deployment-tests:
+.github\workflows\staging-deploy.yml:314:    name: Post-Deployment Tests
+.github\workflows\staging-deploy.yml:317:    needs: deploy-applications
+.github\workflows\staging-deploy.yml:377:        curl -f "$API_URL/api/crm/companies" || exit 1
+.github\workflows\staging-deploy.yml:401:  deployment-summary:
+.github\workflows\staging-deploy.yml:402:    name: Deployment Summary
+.github\workflows\staging-deploy.yml:405:    needs: [pre-deployment-validation, deploy-infrastructure, deploy-applications, post-deployment-tests]
+.github\workflows\staging-deploy.yml:412:    - name: Generate deployment report
+.github\workflows\staging-deploy.yml:414:        echo "## 🚀 Staging Deployment Report" >> $GITHUB_STEP_SUMMARY
+.github\workflows\staging-deploy.yml:417:        DEPLOY_STATUS="unknown"
+.github\workflows\staging-deploy.yml:418:        if [ "${{ needs.post-deployment-tests.result }}" = "success" ]; then
+.github\workflows\staging-deploy.yml:419:          DEPLOY_STATUS="✅ SUCCESS"
+.github\workflows\staging-deploy.yml:420:        elif [ "${{ needs.post-deployment-tests.result }}" = "failure" ]; then
+.github\workflows\staging-deploy.yml:421:          DEPLOY_STATUS="❌ FAILED"
+.github\workflows\staging-deploy.yml:423:          DEPLOY_STATUS="⚠️ PARTIAL"
+.github\workflows\staging-deploy.yml:426:        echo "### Deployment Status: $DEPLOY_STATUS" >> $GITHUB_STEP_SUMMARY
+.github\workflows\staging-deploy.yml:429:        echo "### Deployment Details:" >> $GITHUB_STEP_SUMMARY
+.github\workflows\staging-deploy.yml:430:        echo "- **Commit:** \`${{ needs.pre-deployment-validation.outputs.commit-sha }}\`" >> $GITHUB_STEP_SUMMARY
+.github\workflows\staging-deploy.yml:439:        echo "| Pre-deployment validation | ${{ needs.pre-deployment-validation.result == 'success' && '✅' || '❌' }} | - |" >> $GITHUB_STEP_SUMMARY
+.github\workflows\staging-deploy.yml:440:        echo "| Infrastructure deployment | ${{ needs.deploy-infrastructure.result == 'success' && '✅' || needs.deploy-infrastructure.result == 'skipped' && '⏭️' || '❌' }} | - |" >> $GITHUB_STEP_SUMMARY
+.github\workflows\staging-deploy.yml:441:        echo "| Application deployment | ${{ needs.deploy-applications.result == 'success' && '✅' || '❌' }} | - |" >> $GITHUB_STEP_SUMMARY
+.github\workflows\staging-deploy.yml:442:        echo "| Post-deployment tests | ${{ needs.post-deployment-tests.result == 'success' && '✅' || '❌' }} | - |" >> $GITHUB_STEP_SUMMARY
+.github\workflows\staging-deploy.yml:445:        if [ "${{ needs.post-deployment-tests.result }}" = "success" ]; then
+.github\workflows\staging-deploy.yml:446:          echo "### ✅ Deployment Successful" >> $GITHUB_STEP_SUMMARY
+.github\workflows\staging-deploy.yml:447:          echo "- Applications deployed to staging environment" >> $GITHUB_STEP_SUMMARY
+.github\workflows\staging-deploy.yml:452:          echo "- Monitor application performance" >> $GITHUB_STEP_SUMMARY
+.github\workflows\staging-deploy.yml:456:          echo "### ❌ Deployment Issues Detected" >> $GITHUB_STEP_SUMMARY
+.github\workflows\staging-deploy.yml:457:          echo "- Review deployment logs for errors" >> $GITHUB_STEP_SUMMARY
+.github\workflows\staging-deploy.yml:463:          echo "- Fix identified issues and redeploy" >> $GITHUB_STEP_SUMMARY
+.github\workflows\staging-deploy.yml:467:    - name: Create deployment issue on failure
+.github\workflows\staging-deploy.yml:468:      if: needs.post-deployment-tests.result == 'failure'
+.github\workflows\staging-deploy.yml:475:            title: `🚨 Staging Deployment Failed - ${context.sha.substring(0, 7)}`,
+.github\workflows\staging-deploy.yml:477:## Staging Deployment Failure
+.github\workflows\staging-deploy.yml:484:${needs.pre-deployment-validation.result !== 'success' ? '- Pre-deployment validation\n' : ''}
+.github\workflows\staging-deploy.yml:485:${needs.deploy-infrastructure.result !== 'success' && needs.deploy-infrastructure.result !== 'skipped' ? '- Infrastructure deployment\n' : ''}
+.github\workflows\staging-deploy.yml:486:${needs.deploy-applications.result !== 'success' ? '- Application deployment\n' : ''}
+.github\workflows\staging-deploy.yml:487:${needs.post-deployment-tests.result !== 'success' ? '- Post-deployment tests\n' : ''}
+.github\workflows\staging-deploy.yml:490:- [ ] Review deployment logs
+.github\workflows\staging-deploy.yml:494:- [ ] Fix issues and redeploy
+.github\workflows\staging-deploy.yml:496:*This issue was automatically created by staging deployment workflow*
+.github\workflows\staging-deploy.yml:498:            labels: ['deployment', 'staging', 'failure', 'urgent']
+.github\workflows\staging-deploy.yml:501:    - name: Notify deployment status
+.github\workflows\staging-deploy.yml:503:        if [ "${{ needs.post-deployment-tests.result }}" = "success" ]; then
+.github\workflows\staging-deploy.yml:504:          echo "🎉 Staging deployment completed successfully!"
+.github\workflows\staging-deploy.yml:506:          echo "❌ Staging deployment failed - check logs and issues"
+.github\workflows\test-minimal.yml:2:  DEPLOY_ENABLED: "false"
+.github\workflows\test-minimal.yml:8:permissions:
+
