@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { logger } from './logger.js';
 const SearchQuerySchema = z.object({
     query: z.string().min(1),

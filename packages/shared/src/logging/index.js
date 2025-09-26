@@ -82,24 +82,24 @@ class EcoNeuraLogger {
     }
 }
 // Singleton instance
-export const logger = new EcoNeuraLogger();
+export const logger = new EcoNeuraLogger();/;
 // Request context middleware helper
-export function createRequestLogger(corr_id, x_request_id, org_id) {
+export function createRequestLogger(corr_id, x_request_id, org_id) {;
     return logger.child({
         corr_id,
         x_request_id,
         org_id,
     });
-}
+}/
 // Utility function to extract trace ID from traceparent header
-export function extractTraceId(traceparent) {
+export function extractTraceId(traceparent) {;
     if (!traceparent)
-        return undefined;
+        return undefined;/
     const match = traceparent.match(/^00-([a-f0-9]{32})-[a-f0-9]{16}-[0-9]{2}$/);
     return match ? match[1] : undefined;
-}
+}/
 // Log formatting for structured data
-export function formatLogData(data) {
+export function formatLogData(data) {;
     const formatted = {};
     for (const [key, value] of Object.entries(data)) {
         if (value === null || value === undefined) {
@@ -114,3 +114,4 @@ export function formatLogData(data) {
     }
     return formatted;
 }
+/

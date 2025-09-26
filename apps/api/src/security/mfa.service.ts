@@ -5,9 +5,11 @@
  * códigos de respaldo, notificaciones push y verificación por SMS.
  */
 
-import { structuredLogger } from '../lib/structured-logger.js';
-import { metrics } from '@econeura/shared/src/metrics/index.js';
 import crypto from 'crypto';
+
+import { metrics } from '@econeura/shared/src/metrics/index.js';
+
+import { structuredLogger } from '../lib/structured-logger.js';
 
 export interface MFAMethod {
   id: string;

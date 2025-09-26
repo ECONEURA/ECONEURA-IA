@@ -2,8 +2,9 @@ import { CreatePredictiveAnalyticsUseCase } from '../../application/use-cases/pr
 import { UpdatePredictiveAnalyticsUseCase } from '../../application/use-cases/predictive-analytics/update-predictive-analytics.use-case.js';
 import { GeneratePredictionUseCase } from '../../application/use-cases/predictive-analytics/generate-prediction.use-case.js';
 import { TrainModelUseCase } from '../../application/use-cases/predictive-analytics/train-model.use-case.js';
-import { BaseController } from './base.controller.js';
 import { CreatePredictiveAnalyticsRequestSchema, UpdatePredictiveAnalyticsRequestSchema, GeneratePredictionRequestSchema, TrainModelRequestSchema, PredictiveAnalyticsIdParamSchema, PredictiveAnalyticsOrganizationIdParamSchema, PredictiveAnalyticsSearchQuerySchema, PredictiveAnalyticsBulkUpdateSchema, PredictiveAnalyticsBulkDeleteSchema } from '../dto/predictive-analytics.dto.js';
+
+import { BaseController } from './base.controller.js';
 export class PredictiveAnalyticsController extends BaseController {
     predictiveAnalyticsRepository;
     createPredictiveAnalyticsUseCase;

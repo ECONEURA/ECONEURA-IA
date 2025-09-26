@@ -1,5 +1,4 @@
-import { HealthCheck, HealthCheckResult, HealthIndicatorResult } from '@nestjs/terminus';
-import { Injectable } from '@nestjs/common';
+import { HealthIndicatorResult } from '@nestjs/terminus';
 
 // ============================================================================
 // HEALTH SERVICE

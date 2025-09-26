@@ -1,22 +1,18 @@
 import { z } from 'zod';
+
 import {
   UUIDSchema,
   OrganizationIdSchema,
-  NameSchema,
-  DescriptionSchema,
   NotesSchema,
   TagsSchema,
   CustomFieldsSchema,
   BaseSearchQuerySchema,
   IdParamSchema,
   OrganizationIdParamSchema,
-  BaseResponseSchema,
   ListResponseSchema,
   BaseStatsSchema,
-  BulkUpdateSchema,
   BulkDeleteSchema,
-  MoneySchema,
-  DateRangeSchema
+  MoneySchema
 } from './base.dto.js';
 
 // ============================================================================

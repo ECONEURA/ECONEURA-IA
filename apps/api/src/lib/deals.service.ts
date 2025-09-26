@@ -1,15 +1,11 @@
 // Deals Service - PR-9: Deals Management
 // Servicio completo para gestión de deals CRM
 
-import { logger } from './logger.js';
-import { z } from 'zod';
 import { 
-  DealSchema, 
   CreateDealSchema, 
   UpdateDealSchema, 
   DealFilterSchema,
   MoveDealStageSchema,
-  DealAnalyticsSchema,
   type Deal,
   type CreateDeal,
   type UpdateDeal,
@@ -17,6 +13,8 @@ import {
   type MoveDealStage,
   type DealAnalytics
 } from '@econeura/shared/src/schemas/crm';
+
+import { logger } from './logger.js';
 
 export interface DealSummary {
   total: number;

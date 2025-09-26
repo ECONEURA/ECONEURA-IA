@@ -8,7 +8,9 @@ catch (e) {
 }
 import cors from 'cors';
 import { rateLimit } from 'express-rate-limit';
+
 import { authenticateToken, withTenant } from '../middleware/auth.js';
+
 import { organizationRoutes } from './organization.js';
 import { companyRoutes } from './company.js';
 import { contactRoutes } from './contact.js';

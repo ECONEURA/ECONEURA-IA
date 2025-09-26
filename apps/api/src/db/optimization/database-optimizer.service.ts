@@ -5,8 +5,9 @@
  * particionado de tablas, optimización de queries y connection pooling.
  */
 
-import { structuredLogger } from '../../lib/structured-logger.js';
 import { metrics } from '@econeura/shared/src/metrics/index.js';
+
+import { structuredLogger } from '../../lib/structured-logger.js';
 
 export interface IndexDefinition {
   name: string;

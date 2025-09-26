@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
+
 import { PredictiveAnalyticsRepository } from '../../domain/repositories/predictive-analytics.repository.js';
 import { CreatePredictiveAnalyticsUseCase } from '../../application/use-cases/predictive-analytics/create-predictive-analytics.use-case.js';
 import { UpdatePredictiveAnalyticsUseCase } from '../../application/use-cases/predictive-analytics/update-predictive-analytics.use-case.js';
 import { GeneratePredictionUseCase } from '../../application/use-cases/predictive-analytics/generate-prediction.use-case.js';
 import { TrainModelUseCase } from '../../application/use-cases/predictive-analytics/train-model.use-case.js';
-import { BaseController } from './base.controller.js';
 import {
   CreatePredictiveAnalyticsRequestSchema,
   UpdatePredictiveAnalyticsRequestSchema,
@@ -15,19 +15,12 @@ import {
   PredictiveAnalyticsSearchQuerySchema,
   PredictiveAnalyticsBulkUpdateSchema,
   PredictiveAnalyticsBulkDeleteSchema,
-  type CreatePredictiveAnalyticsRequest,
-  type UpdatePredictiveAnalyticsRequest,
-  type GeneratePredictionRequest,
-  type TrainModelRequest,
-  type PredictiveAnalyticsIdParam,
-  type PredictiveAnalyticsOrganizationIdParam,
-  type PredictiveAnalyticsSearchQuery,
-  type PredictiveAnalyticsBulkUpdate,
-  type PredictiveAnalyticsBulkDelete,
   type PredictiveAnalyticsResponse,
   type PredictiveAnalyticsListResponse,
   type PredictiveAnalyticsStatsResponse
 } from '../dto/predictive-analytics.dto.js';
+
+import { BaseController } from './base.controller.js';
 
 // ============================================================================
 // PREDICTIVE ANALYTICS CONTROLLER

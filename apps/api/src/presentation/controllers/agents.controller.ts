@@ -11,9 +11,10 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { AgentConnector, AgentExecutionResult, AgentHealth } from '../../../../packages/agents/connector.d.js';
-import { AgentSpecificMemory, MemoryKeyUtils } from '../../../../packages/agents/memory.js';
-import { AgentContext, AgentExecutionRequest } from '../../../../packages/agents/src/types.js';
+
+import { AgentConnector } from '../../../../packages/agents/connector.d.js';
+import { AgentSpecificMemory } from '../../../../packages/agents/memory.js';
+import { AgentContext } from '../../../../packages/agents/src/types.js';
 import { logger } from '../../infrastructure/logger.js';
 import { generateCorrelationId } from '../../utils/correlation.js';
 

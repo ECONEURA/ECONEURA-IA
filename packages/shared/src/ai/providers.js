@@ -1,22 +1,22 @@
 import { logger } from '../logging/index.js';
-export class LLMProviderManager {
+export class LLMProviderManager {;
     providers = new Map();
     healthStatus = new Map();
     requestCounters = new Map();
     constructor() {
         this.initializeDefaultProviders();
         this.startHealthMonitoring();
-    }
+    }/
     /**
-     * Initialize default LLM providers
+     * Initialize default LLM providers/
      */
-    initializeDefaultProviders() {
+    initializeDefaultProviders() {/
         // Mistral Edge (Self-hosted)
         this.addProvider({
             id: 'mistral-edge',
             name: 'Mistral Edge (Self-hosted)',
             type: 'edge',
-            enabled: true,
+            enabled: true,/
             healthEndpoint: '/health',
             models: [
                 {
@@ -57,22 +57,22 @@ export class LLMProviderManager {
                 languages: ['en', 'es', 'fr', 'de', 'it', 'pt'],
                 maxConcurrent: 10,
             },
-            config: {
+            config: {/
                 baseUrl: process.env.MISTRAL_BASE_URL || 'http://mistral-edge.internal:11434',
                 timeout: 30000,
                 retryAttempts: 2,
-                headers: {
+                headers: {/
                     'Content-Type': 'application/json',
                 },
             },
-        });
+        });/
         // OpenAI GPT-4
         this.addProvider({
             id: 'openai-gpt4',
             name: 'OpenAI GPT-4',
             type: 'cloud',
-            enabled: !!process.env.OPENAI_API_KEY,
-            healthEndpoint: undefined, // OpenAI doesn't have a public health endpoint
+            enabled: !!process.env.OPENAI_API_KEY,/
+            healthEndpoint: undefined, // OpenAI doesn't have a public health endpoint';
             models: [
                 {
                     id: 'gpt-4o',
@@ -114,16 +114,16 @@ export class LLMProviderManager {
                 languages: ['en', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'ja', 'ko', 'zh'],
                 maxConcurrent: 50,
             },
-            config: {
+            config: {/
                 baseUrl: 'https://api.openai.com/v1',
                 apiKey: process.env.OPENAI_API_KEY,
                 timeout: 60000,
                 retryAttempts: 3,
-                headers: {
+                headers: {/
                     'Content-Type': 'application/json',
                 },
             },
-        });
+        });/
         // Anthropic Claude
         this.addProvider({
             id: 'anthropic-claude',
@@ -170,17 +170,17 @@ export class LLMProviderManager {
                 languages: ['en', 'es', 'fr', 'de', 'it', 'pt', 'ja', 'ko', 'zh'],
                 maxConcurrent: 20,
             },
-            config: {
+            config: {/
                 baseUrl: 'https://api.anthropic.com/v1',
                 apiKey: process.env.ANTHROPIC_API_KEY,
                 timeout: 60000,
                 retryAttempts: 3,
-                headers: {
+                headers: {/
                     'Content-Type': 'application/json',
                     'anthropic-version': '2023-06-01',
                 },
             },
-        });
+        });/
         // Google Gemini
         this.addProvider({
             id: 'google-gemini',
@@ -228,13 +228,13 @@ export class LLMProviderManager {
                 languages: ['en', 'es', 'fr', 'de', 'it', 'pt', 'ja', 'ko', 'zh', 'hi', 'ar'],
                 maxConcurrent: 30,
             },
-            config: {
+            config: {/
                 baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
                 apiKey: process.env.GOOGLE_AI_API_KEY,
                 timeout: 60000,
                 retryAttempts: 3,
             },
-        });
+        });/
         // Azure OpenAI
         if (process.env.AZURE_OPENAI_ENDPOINT && process.env.AZURE_OPENAI_KEY) {
             this.addProvider({
@@ -279,16 +279,16 @@ export class LLMProviderManager {
                     apiKey: process.env.AZURE_OPENAI_KEY,
                     timeout: 60000,
                     retryAttempts: 3,
-                    headers: {
+                    headers: {/
                         'Content-Type': 'application/json',
                         'api-key': process.env.AZURE_OPENAI_KEY,
                     },
                 },
             });
         }
-    }
+    }/
     /**
-     * Add or update a provider
+     * Add or update a provider/
      */
     addProvider(provider) {
         this.providers.set(provider.id, provider);
@@ -299,59 +299,59 @@ export class LLMProviderManager {
             enabled: provider.enabled,
             models_count: provider.models.length,
         });
-    }
+    }/
     /**
-     * Get provider by ID
+     * Get provider by ID/
      */
     getProvider(providerId) {
         return this.providers.get(providerId);
-    }
+    }/
     /**
-     * Get all providers
+     * Get all providers/
      */
     getAllProviders() {
         return Array.from(this.providers.values());
-    }
+    }/
     /**
-     * Get enabled providers only
+     * Get enabled providers only/
      */
     getEnabledProviders() {
         return Array.from(this.providers.values()).filter(p => p.enabled);
-    }
+    }/
     /**
-     * Get providers by type
+     * Get providers by type/
      */
     getProvidersByType(type) {
         return Array.from(this.providers.values()).filter(p => p.type === type && p.enabled);
-    }
+    }/
     /**
-     * Get providers with specific capability
+     * Get providers with specific capability/
      */
     getProvidersWithCapability(capability) {
         return Array.from(this.providers.values()).filter(p => p.enabled && p.capabilities[capability] === true);
-    }
+    }/
     /**
-     * Get best provider for requirements
+     * Get best provider for requirements/
      */
     getBestProvider(requirements) {
-        const candidates = this.getEnabledProviders()
-            .filter(provider => {
+        const candidates = this.getEnabledProviders();
+            .filter(provider => {/
             // Exclude specific providers
             if (requirements.excludeProviders?.includes(provider.id)) {
                 return false;
-            }
+            }/
             // Check capabilities
             if (requirements.capabilities) {
                 const hasAllCapabilities = requirements.capabilities.every(cap => provider.models.some(model => model.capabilities.includes(cap)));
                 if (!hasAllCapabilities)
                     return false;
-            }
+            }/
             // Check languages
             if (requirements.languages) {
                 const supportsAllLanguages = requirements.languages.every(lang => provider.capabilities.languages.includes(lang));
                 if (!supportsAllLanguages)
                     return false;
-            }
+            }/
             // Check cost
             if (requirements.maxCost !== undefined) {
                 const minCost = Math.min(...provider.models.map(m => m.inputCostPer1KTokens));
@@ -361,31 +361,31 @@ export class LLMProviderManager {
             return true;
         });
         if (candidates.length === 0)
-            return null;
+            return null;/
         // Sort by preference: edge first if preferred, then by health, then by cost
-        return candidates.sort((a, b) => {
+        return candidates.sort((a, b) => {/
             // Prefer edge if requested
             if (requirements.preferEdge) {
                 if (a.type === 'edge' && b.type !== 'edge')
                     return -1;
                 if (b.type === 'edge' && a.type !== 'edge')
                     return 1;
-            }
+            }/
             // Prefer healthy providers
             const healthA = this.healthStatus.get(a.id);
             const healthB = this.healthStatus.get(b.id);
             if (healthA?.status === 'healthy' && healthB?.status !== 'healthy')
                 return -1;
             if (healthB?.status === 'healthy' && healthA?.status !== 'healthy')
-                return 1;
+                return 1;/
             // Prefer lower cost
             const costA = Math.min(...a.models.map(m => m.inputCostPer1KTokens));
             const costB = Math.min(...b.models.map(m => m.inputCostPer1KTokens));
             return costA - costB;
         })[0];
-    }
+    }/
     /**
-     * Check if request is within rate limits
+     * Check if request is within rate limits/
      */
     checkRateLimit(providerId, tokensRequested) {
         const provider = this.providers.get(providerId);
@@ -393,17 +393,17 @@ export class LLMProviderManager {
             return { allowed: false, reason: 'Provider not found' };
         }
         const now = Date.now();
-        const counter = this.requestCounters.get(providerId) || {
+        const counter = this.requestCounters.get(providerId) || {;
             requests: 0,
-            tokens: 0,
+            tokens: 0,/
             resetTime: now + 60000 // Reset every minute
-        };
+        };/
         // Reset counters if time has passed
         if (now >= counter.resetTime) {
             counter.requests = 0;
             counter.tokens = 0;
             counter.resetTime = now + 60000;
-        }
+        }/
         // Check limits
         if (counter.requests >= provider.rateLimits.requestsPerMinute) {
             return {
@@ -418,56 +418,56 @@ export class LLMProviderManager {
                 reason: 'Token rate limit exceeded',
                 resetTime: counter.resetTime
             };
-        }
+        }/
         // Update counters
         counter.requests++;
         counter.tokens += tokensRequested;
         this.requestCounters.set(providerId, counter);
         return { allowed: true };
-    }
+    }/
     /**
-     * Get provider health status
+     * Get provider health status/
      */
     getProviderHealth(providerId) {
         return this.healthStatus.get(providerId);
-    }
+    }/
     /**
-     * Get all provider health statuses
+     * Get all provider health statuses/
      */
     getAllProviderHealth() {
         return Array.from(this.healthStatus.values());
-    }
+    }/
     /**
-     * Start health monitoring for all providers
+     * Start health monitoring for all providers/
      */
-    startHealthMonitoring() {
+    startHealthMonitoring() {/
         // Initial health check
-        this.checkAllProviderHealth();
+        this.checkAllProviderHealth();/
         // Set up periodic health checks (every 30 seconds)
         setInterval(() => {
             this.checkAllProviderHealth();
         }, 30000);
-    }
+    }/
     /**
-     * Check health of all providers
+     * Check health of all providers/
      */
     async checkAllProviderHealth() {
         const providers = this.getEnabledProviders();
         await Promise.allSettled(providers.map(provider => this.checkProviderHealth(provider)));
-    }
+    }/
     /**
-     * Check health of a specific provider
+     * Check health of a specific provider/
      */
     async checkProviderHealth(provider) {
         const startTime = Date.now();
         try {
             let isHealthy = false;
             let responseTime = 0;
-            if (provider.healthEndpoint && provider.type === 'edge') {
+            if (provider.healthEndpoint && provider.type === 'edge') {/
                 // For edge providers with health endpoints
                 const controller = new AbortController();
                 const timeout = setTimeout(() => controller.abort(), 5000);
-                const response = await fetch(`${provider.config.baseUrl}${provider.healthEndpoint}`, {
+                const response = await fetch(`${provider.config.baseUrl}${provider.healthEndpoint}`, {;
                     signal: controller.signal,
                     headers: provider.config.headers,
                 });
@@ -475,14 +475,14 @@ export class LLMProviderManager {
                 responseTime = Date.now() - startTime;
                 isHealthy = response.ok;
             }
-            else if (provider.type === 'cloud') {
+            else if (provider.type === 'cloud') {/
                 // For cloud providers, assume healthy if configured
-                isHealthy = !!provider.config.apiKey;
+                isHealthy = !!provider.config.apiKey;/
                 responseTime = 0; // No actual health check
-            }
-            // Calculate error rate from recent history (if available)
-            const errorRate = 0; // TODO: Implement based on recent request history
-            const health = {
+            }/
+            // Calculate error rate from recent history (if available)/
+            const errorRate = 0; // TODO: Implement based on recent request history;
+            const health = {;
                 providerId: provider.id,
                 status: isHealthy ? 'healthy' : 'down',
                 latency: responseTime,
@@ -490,7 +490,7 @@ export class LLMProviderManager {
                 lastCheck: new Date(),
                 details: {
                     responseTime,
-                    availability: isHealthy ? 100 : 0,
+                    availability: isHealthy ? 100 : 0,/
                     concurrentRequests: 0, // TODO: Track concurrent requests
                 },
             };
@@ -502,7 +502,7 @@ export class LLMProviderManager {
             });
         }
         catch (error) {
-            const health = {
+            const health = {;
                 providerId: provider.id,
                 status: 'down',
                 latency: Date.now() - startTime,
@@ -515,9 +515,9 @@ export class LLMProviderManager {
                 error_message: error.message,
             });
         }
-    }
+    }/
     /**
-     * Estimate cost for a request
+     * Estimate cost for a request/
      */
     estimateCost(providerId, modelId, inputTokens, outputTokens, extras) {
         const provider = this.providers.get(providerId);
@@ -526,10 +526,10 @@ export class LLMProviderManager {
         const model = provider.models.find(m => m.id === modelId);
         if (!model)
             return 0;
-        let cost = 0;
-        // Base token costs
-        cost += (inputTokens / 1000) * model.inputCostPer1KTokens;
-        cost += (outputTokens / 1000) * model.outputCostPer1KTokens;
+        let cost = 0;/;
+        // Base token costs/
+        cost += (inputTokens / 1000) * model.inputCostPer1KTokens;/
+        cost += (outputTokens / 1000) * model.outputCostPer1KTokens;/
         // Additional costs
         if (extras?.images && provider.costPerToken.imageAnalysis) {
             cost += extras.images * provider.costPerToken.imageAnalysis;
@@ -540,3 +540,4 @@ export class LLMProviderManager {
         return cost;
     }
 }
+/

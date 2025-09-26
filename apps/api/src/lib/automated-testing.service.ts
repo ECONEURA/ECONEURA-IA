@@ -1,5 +1,6 @@
-import { logger } from './logger.js';
 import { z } from 'zod';
+
+import { logger } from './logger.js';
 
 // Mock de Key Vault para testing
 const mockKeyVault = {

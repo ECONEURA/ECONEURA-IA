@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import {
+import {;
   CompanySchema,
   ContactSchema,
   DealSchema,
@@ -30,7 +30,7 @@ import {
   UpdateExpenseSchema,
   PaginationSchema
 } from './schemas';
-
+/
 // CRM Types
 export type Company = z.infer<typeof CompanySchema>;
 export type Contact = z.infer<typeof ContactSchema>;
@@ -45,7 +45,7 @@ export type CreateDealInput = z.infer<typeof CreateDealSchema>;
 export type UpdateDealInput = z.infer<typeof UpdateDealSchema>;
 export type CreateActivityInput = z.infer<typeof CreateActivitySchema>;
 export type UpdateActivityInput = z.infer<typeof UpdateActivitySchema>;
-
+/
 // ERP Types
 export type Product = z.infer<typeof ProductSchema>;
 export type InventoryMovement = z.infer<typeof InventoryMovementSchema>;
@@ -56,7 +56,7 @@ export type UpdateProductInput = z.infer<typeof UpdateProductSchema>;
 export type CreateInventoryMovementInput = z.infer<typeof CreateInventoryMovementSchema>;
 export type CreateSupplierInput = z.infer<typeof CreateSupplierSchema>;
 export type UpdateSupplierInput = z.infer<typeof UpdateSupplierSchema>;
-
+/
 // Finance Types
 export type Invoice = z.infer<typeof InvoiceSchema>;
 export type Payment = z.infer<typeof PaymentSchema>;
@@ -67,11 +67,12 @@ export type UpdateInvoiceInput = z.infer<typeof UpdateInvoiceSchema>;
 export type CreatePaymentInput = z.infer<typeof CreatePaymentSchema>;
 export type CreateExpenseInput = z.infer<typeof CreateExpenseSchema>;
 export type UpdateExpenseInput = z.infer<typeof UpdateExpenseSchema>;
-
+/
 // Common Types
 export type Pagination = z.infer<typeof PaginationSchema>;
 
-export interface PaginatedResponse<T> {
+export interface PaginatedResponse<T> {;
   items: T[];
   pagination: Pagination;
 }
+/

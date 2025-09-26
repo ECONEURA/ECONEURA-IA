@@ -2,9 +2,9 @@ import { register, collectDefaultMetrics, Gauge, Counter, Histogram, Summary } f
 
 // Configurar métricas por defecto
 collectDefaultMetrics({ prefix: 'econeura_' });
-
+/
 // Métricas de aplicación
-export const metrics = {
+export const metrics = {/;
   // Contadores
   requestsTotal: new Counter({
     name: 'econeura_requests_total',
@@ -35,7 +35,7 @@ export const metrics = {
     help: 'Total number of cache misses',
     labelNames: ['cache_type'],
   }),
-
+/
   // Gauges (valores actuales)
   activeConnections: new Gauge({
     name: 'econeura_active_connections',
@@ -59,7 +59,7 @@ export const metrics = {
     help: 'Memory usage in bytes',
     labelNames: ['type'],
   }),
-
+/
   // Histogramas (distribuciones)
   requestDuration: new Histogram({
     name: 'econeura_request_duration_seconds',
@@ -81,7 +81,7 @@ export const metrics = {
     labelNames: ['operation', 'model'],
     buckets: [0.1, 0.5, 1, 2, 5, 10, 30],
   }),
-
+/
   // Summaries (percentiles)
   responseSize: new Summary({
     name: 'econeura_response_size_bytes',
@@ -89,7 +89,7 @@ export const metrics = {
     labelNames: ['method', 'route'],
     percentiles: [0.5, 0.9, 0.95, 0.99],
   }),
-
+/
   // Métricas de negocio
   businessMetrics: {
     dealsCreated: new Counter({
@@ -122,7 +122,7 @@ export const metrics = {
       labelNames: ['funnel_stage'],
     }),
   },
-
+/
   // Métricas de IA
   aiMetrics: {
     agentExecutions: new Counter({
@@ -150,7 +150,7 @@ export const metrics = {
       labelNames: ['model_type'],
     }),
   },
-
+/
   // Métricas de seguridad
   securityMetrics: {
     authAttempts: new Counter({
@@ -177,23 +177,23 @@ export const metrics = {
     }),
   },
 };
-
+/
 // Funciones helper para métricas comunes
-export const recordRequest = (method: string, route: string, statusCode: number, duration: number) => {
+export const recordRequest = (method: string, route: string, statusCode: number, duration: number) => {;
   metrics.requestsTotal.inc({ method, route, status_code: statusCode.toString() });
   metrics.requestDuration.observe({ method, route }, duration);
 };
 
-export const recordError = (type: string, route: string) => {
+export const recordError = (type: string, route: string) => {;
   metrics.errorsTotal.inc({ type, route });
 };
 
-export const recordDatabaseQuery = (operation: string, table: string, duration: number) => {
+export const recordDatabaseQuery = (operation: string, table: string, duration: number) => {;
   metrics.databaseQueriesTotal.inc({ operation, table });
   metrics.databaseQueryDuration.observe({ operation, table }, duration);
 };
 
-export const recordCacheOperation = (cacheType: string, hit: boolean) => {
+export const recordCacheOperation = (cacheType: string, hit: boolean) => {;
   if (hit) {
     metrics.cacheHitsTotal.inc({ cache_type: cacheType });
   } else {
@@ -201,7 +201,7 @@ export const recordCacheOperation = (cacheType: string, hit: boolean) => {
   }
 };
 
-export const recordAIMetrics = (
+export const recordAIMetrics = (;
   operation: string,
   model: string,
   duration: number,
@@ -213,7 +213,7 @@ export const recordAIMetrics = (
   }
 };
 
-export const updateGauges = () => {
+export const updateGauges = () => {/;
   // Actualizar métricas de memoria
   const memUsage = process.memoryUsage();
   metrics.memoryUsage.set({ type: 'rss' }, memUsage.rss);
@@ -221,22 +221,22 @@ export const updateGauges = () => {
   metrics.memoryUsage.set({ type: 'heap_total' }, memUsage.heapTotal);
   metrics.memoryUsage.set({ type: 'external' }, memUsage.external);
 };
-
+/
 // Middleware para métricas HTTP
-export const metricsMiddleware = (req: any, res: any, next: any) => {
+export const metricsMiddleware = (req: any, res: any, next: any) => {;
   const start = Date.now();
   const originalEnd = res.end;
 
-  res.end = function(...args: any[]) {
+  res.end = function(...args: any[]) {/
     const duration = (Date.now() - start) / 1000;
 
     recordRequest(
       req.method,
       req.route?.path || req.path || 'unknown',
       res.statusCode,
-      duration
+      duration);
     );
-
+/
     // Registrar tamaño de respuesta si está disponible
     if (res.getHeader('content-length')) {
       const contentLength = parseInt(res.getHeader('content-length'));
@@ -251,21 +251,21 @@ export const metricsMiddleware = (req: any, res: any, next: any) => {
 
   next();
 };
-
+/
 // Función para obtener todas las métricas en formato Prometheus
-export const getMetrics = async (): Promise<string> => {
+export const getMetrics = async (): Promise<string> => {;
   updateGauges();
   return register.metrics();
 };
-
+/
 // Función para resetear métricas (útil para tests)
-export const resetMetrics = () => {
+export const resetMetrics = () => {;
   register.resetMetrics();
   collectDefaultMetrics({ prefix: 'econeura_' });
 };
-
+/
 // Health check con métricas
-export const getHealthStatus = () => {
+export const getHealthStatus = () => {;
   const uptime = process.uptime();
   const memoryUsage = process.memoryUsage();
 
@@ -287,12 +287,13 @@ export const getHealthStatus = () => {
   };
 };
 
-const calculateCacheHitRate = (): number => {
+const calculateCacheHitRate = (): number => {;
   const hits = metrics.cacheHitsTotal.hashMap?.['cache_type:memory']?.value || 0;
   const misses = metrics.cacheMissesTotal.hashMap?.['cache_type:memory']?.value || 0;
-  const total = hits + misses;
+  const total = hits + misses;/;
   return total > 0 ? hits / total : 0;
 };
-
+/
 // Exportar registro de Prometheus para configuración avanzada
 export { register };
+/

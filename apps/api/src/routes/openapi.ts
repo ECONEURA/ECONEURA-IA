@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { openApiSpec } from '../openapi/spec.js';
 import { structuredLogger } from '../lib/structured-logger.js';
 

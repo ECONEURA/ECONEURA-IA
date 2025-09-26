@@ -1,11 +1,11 @@
-// ============================================================================
-// OPENAPI 3.0 SPECIFICATION - ECONEURA API
+// ============================================================================/
+// OPENAPI 3.0 SPECIFICATION - ECONEURA API/
 // ============================================================================
 
-export const openApiSpec = {
+export const openApiSpec = {;
   openapi: '3.0.3',
   info: {
-    title: 'ECONEURA API',
+    title: 'ECONEURA API',/
     description: 'Enterprise ERP/CRM with AI capabilities',
     version: '1.0.0',
     contact: {
@@ -13,20 +13,20 @@ export const openApiSpec = {
       email: 'support@econeura.com'
     },
     license: {
-      name: 'MIT',
+      name: 'MIT',/
       url: 'https://opensource.org/licenses/MIT'
     }
   },
   servers: [
-    {
+    {/
       url: 'https://api.econeura.com/v1',
       description: 'Production server'
     },
-    {
+    {/
       url: 'https://staging-api.econeura.com/v1',
       description: 'Staging server'
     },
-    {
+    {/
       url: 'http://localhost:3001/api/v1',
       description: 'Development server'
     }
@@ -39,7 +39,7 @@ export const openApiSpec = {
       ApiKeyAuth: []
     }
   ],
-  paths: {
+  paths: {/
     '/auth/login': {
       post: {
         tags: ['Authentication'],
@@ -48,9 +48,9 @@ export const openApiSpec = {
         operationId: 'login',
         requestBody: {
           required: true,
-          content: {
+          content: {/
             'application/json': {
-              schema: {
+              schema: {/
                 $ref: '#/components/schemas/LoginRequest'
               }
             }
@@ -59,9 +59,9 @@ export const openApiSpec = {
         responses: {
           '200': {
             description: 'Login successful',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/LoginResponse'
                 }
               }
@@ -69,9 +69,9 @@ export const openApiSpec = {
           },
           '401': {
             description: 'Invalid credentials',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/ErrorResponse'
                 }
               }
@@ -79,9 +79,9 @@ export const openApiSpec = {
           },
           '400': {
             description: 'Validation error',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/ErrorResponse'
                 }
               }
@@ -89,7 +89,7 @@ export const openApiSpec = {
           }
         }
       }
-    },
+    },/
     '/auth/refresh': {
       post: {
         tags: ['Authentication'],
@@ -98,9 +98,9 @@ export const openApiSpec = {
         operationId: 'refreshToken',
         requestBody: {
           required: true,
-          content: {
+          content: {/
             'application/json': {
-              schema: {
+              schema: {/
                 $ref: '#/components/schemas/RefreshTokenRequest'
               }
             }
@@ -109,9 +109,9 @@ export const openApiSpec = {
         responses: {
           '200': {
             description: 'Token refreshed successfully',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/RefreshTokenResponse'
                 }
               }
@@ -119,9 +119,9 @@ export const openApiSpec = {
           },
           '401': {
             description: 'Invalid refresh token',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/ErrorResponse'
                 }
               }
@@ -129,7 +129,7 @@ export const openApiSpec = {
           }
         }
       }
-    },
+    },/
     '/auth/logout': {
       post: {
         tags: ['Authentication'],
@@ -138,9 +138,9 @@ export const openApiSpec = {
         operationId: 'logout',
         security: [{ BearerAuth: [] }],
         requestBody: {
-          content: {
+          content: {/
             'application/json': {
-              schema: {
+              schema: {/
                 $ref: '#/components/schemas/LogoutRequest'
               }
             }
@@ -149,9 +149,9 @@ export const openApiSpec = {
         responses: {
           '200': {
             description: 'Logout successful',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/BaseResponse'
                 }
               }
@@ -159,7 +159,7 @@ export const openApiSpec = {
           }
         }
       }
-    },
+    },/
     '/auth/me': {
       get: {
         tags: ['Authentication'],
@@ -170,9 +170,9 @@ export const openApiSpec = {
         responses: {
           '200': {
             description: 'User information',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/UserResponse'
                 }
               }
@@ -180,9 +180,9 @@ export const openApiSpec = {
           },
           '401': {
             description: 'Unauthorized',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/ErrorResponse'
                 }
               }
@@ -190,7 +190,7 @@ export const openApiSpec = {
           }
         }
       }
-    },
+    },/
     '/users': {
       get: {
         tags: ['Users'],
@@ -218,9 +218,9 @@ export const openApiSpec = {
         responses: {
           '200': {
             description: 'List of users',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/UserListResponse'
                 }
               }
@@ -236,9 +236,9 @@ export const openApiSpec = {
         security: [{ BearerAuth: [] }],
         requestBody: {
           required: true,
-          content: {
+          content: {/
             'application/json': {
-              schema: {
+              schema: {/
                 $ref: '#/components/schemas/CreateUserRequest'
               }
             }
@@ -247,9 +247,9 @@ export const openApiSpec = {
         responses: {
           '201': {
             description: 'User created successfully',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/UserResponse'
                 }
               }
@@ -257,9 +257,9 @@ export const openApiSpec = {
           },
           '400': {
             description: 'Validation error',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/ErrorResponse'
                 }
               }
@@ -267,7 +267,7 @@ export const openApiSpec = {
           }
         }
       }
-    },
+    },/
     '/users/{id}': {
       get: {
         tags: ['Users'],
@@ -286,9 +286,9 @@ export const openApiSpec = {
         responses: {
           '200': {
             description: 'User information',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/UserResponse'
                 }
               }
@@ -296,9 +296,9 @@ export const openApiSpec = {
           },
           '404': {
             description: 'User not found',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/ErrorResponse'
                 }
               }
@@ -322,9 +322,9 @@ export const openApiSpec = {
         ],
         requestBody: {
           required: true,
-          content: {
+          content: {/
             'application/json': {
-              schema: {
+              schema: {/
                 $ref: '#/components/schemas/UpdateUserRequest'
               }
             }
@@ -333,9 +333,9 @@ export const openApiSpec = {
         responses: {
           '200': {
             description: 'User updated successfully',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/UserResponse'
                 }
               }
@@ -343,9 +343,9 @@ export const openApiSpec = {
           },
           '404': {
             description: 'User not found',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/ErrorResponse'
                 }
               }
@@ -373,9 +373,9 @@ export const openApiSpec = {
           },
           '404': {
             description: 'User not found',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/ErrorResponse'
                 }
               }
@@ -383,7 +383,7 @@ export const openApiSpec = {
           }
         }
       }
-    },
+    },/
     '/contacts': {
       get: {
         tags: ['CRM'],
@@ -411,9 +411,9 @@ export const openApiSpec = {
         responses: {
           '200': {
             description: 'List of contacts',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/ContactListResponse'
                 }
               }
@@ -429,9 +429,9 @@ export const openApiSpec = {
         security: [{ BearerAuth: [] }],
         requestBody: {
           required: true,
-          content: {
+          content: {/
             'application/json': {
-              schema: {
+              schema: {/
                 $ref: '#/components/schemas/CreateContactRequest'
               }
             }
@@ -440,9 +440,9 @@ export const openApiSpec = {
         responses: {
           '201': {
             description: 'Contact created successfully',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/ContactResponse'
                 }
               }
@@ -450,7 +450,7 @@ export const openApiSpec = {
           }
         }
       }
-    },
+    },/
     '/contacts/{id}': {
       get: {
         tags: ['CRM'],
@@ -469,9 +469,9 @@ export const openApiSpec = {
         responses: {
           '200': {
             description: 'Contact information',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/ContactResponse'
                 }
               }
@@ -495,9 +495,9 @@ export const openApiSpec = {
         ],
         requestBody: {
           required: true,
-          content: {
+          content: {/
             'application/json': {
-              schema: {
+              schema: {/
                 $ref: '#/components/schemas/UpdateContactRequest'
               }
             }
@@ -506,9 +506,9 @@ export const openApiSpec = {
         responses: {
           '200': {
             description: 'Contact updated successfully',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/ContactResponse'
                 }
               }
@@ -536,7 +536,7 @@ export const openApiSpec = {
           }
         }
       }
-    },
+    },/
     '/deals': {
       get: {
         tags: ['CRM'],
@@ -564,9 +564,9 @@ export const openApiSpec = {
         responses: {
           '200': {
             description: 'List of deals',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/DealListResponse'
                 }
               }
@@ -582,9 +582,9 @@ export const openApiSpec = {
         security: [{ BearerAuth: [] }],
         requestBody: {
           required: true,
-          content: {
+          content: {/
             'application/json': {
-              schema: {
+              schema: {/
                 $ref: '#/components/schemas/CreateDealRequest'
               }
             }
@@ -593,9 +593,9 @@ export const openApiSpec = {
         responses: {
           '201': {
             description: 'Deal created successfully',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/DealResponse'
                 }
               }
@@ -603,7 +603,7 @@ export const openApiSpec = {
           }
         }
       }
-    },
+    },/
     '/products': {
       get: {
         tags: ['ERP'],
@@ -631,9 +631,9 @@ export const openApiSpec = {
         responses: {
           '200': {
             description: 'List of products',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/ProductListResponse'
                 }
               }
@@ -649,9 +649,9 @@ export const openApiSpec = {
         security: [{ BearerAuth: [] }],
         requestBody: {
           required: true,
-          content: {
+          content: {/
             'application/json': {
-              schema: {
+              schema: {/
                 $ref: '#/components/schemas/CreateProductRequest'
               }
             }
@@ -660,9 +660,9 @@ export const openApiSpec = {
         responses: {
           '201': {
             description: 'Product created successfully',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/ProductResponse'
                 }
               }
@@ -670,7 +670,7 @@ export const openApiSpec = {
           }
         }
       }
-    },
+    },/
     '/orders': {
       get: {
         tags: ['ERP'],
@@ -698,9 +698,9 @@ export const openApiSpec = {
         responses: {
           '200': {
             description: 'List of orders',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/OrderListResponse'
                 }
               }
@@ -716,9 +716,9 @@ export const openApiSpec = {
         security: [{ BearerAuth: [] }],
         requestBody: {
           required: true,
-          content: {
+          content: {/
             'application/json': {
-              schema: {
+              schema: {/
                 $ref: '#/components/schemas/CreateOrderRequest'
               }
             }
@@ -727,9 +727,9 @@ export const openApiSpec = {
         responses: {
           '201': {
             description: 'Order created successfully',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/OrderResponse'
                 }
               }
@@ -737,7 +737,7 @@ export const openApiSpec = {
           }
         }
       }
-    },
+    },/
     '/ai/chat': {
       post: {
         tags: ['AI'],
@@ -747,9 +747,9 @@ export const openApiSpec = {
         security: [{ BearerAuth: [] }],
         requestBody: {
           required: true,
-          content: {
+          content: {/
             'application/json': {
-              schema: {
+              schema: {/
                 $ref: '#/components/schemas/AIRequest'
               }
             }
@@ -758,9 +758,9 @@ export const openApiSpec = {
         responses: {
           '200': {
             description: 'AI response',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/AIResponse'
                 }
               }
@@ -768,7 +768,7 @@ export const openApiSpec = {
           }
         }
       }
-    },
+    },/
     '/webhooks': {
       get: {
         tags: ['Webhooks'],
@@ -791,9 +791,9 @@ export const openApiSpec = {
         responses: {
           '200': {
             description: 'List of webhooks',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/WebhookListResponse'
                 }
               }
@@ -809,9 +809,9 @@ export const openApiSpec = {
         security: [{ BearerAuth: [] }],
         requestBody: {
           required: true,
-          content: {
+          content: {/
             'application/json': {
-              schema: {
+              schema: {/
                 $ref: '#/components/schemas/CreateWebhookRequest'
               }
             }
@@ -820,9 +820,9 @@ export const openApiSpec = {
         responses: {
           '201': {
             description: 'Webhook created successfully',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/WebhookResponse'
                 }
               }
@@ -830,7 +830,7 @@ export const openApiSpec = {
           }
         }
       }
-    },
+    },/
     '/health': {
       get: {
         tags: ['System'],
@@ -840,9 +840,9 @@ export const openApiSpec = {
         responses: {
           '200': {
             description: 'System is healthy',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/HealthResponse'
                 }
               }
@@ -850,7 +850,7 @@ export const openApiSpec = {
           }
         }
       }
-    },
+    },/
     '/metrics': {
       get: {
         tags: ['System'],
@@ -861,9 +861,9 @@ export const openApiSpec = {
         responses: {
           '200': {
             description: 'System metrics',
-            content: {
+            content: {/
               'application/json': {
-                schema: {
+                schema: {/
                   $ref: '#/components/schemas/MetricsResponse'
                 }
               }
@@ -901,7 +901,7 @@ export const openApiSpec = {
         required: ['success', 'requestId', 'timestamp']
       },
       ErrorResponse: {
-        allOf: [
+        allOf: [/
           { $ref: '#/components/schemas/BaseResponse' },
           {
             type: 'object',
@@ -937,14 +937,14 @@ export const openApiSpec = {
         required: ['email', 'password']
       },
       LoginResponse: {
-        allOf: [
+        allOf: [/
           { $ref: '#/components/schemas/BaseResponse' },
           {
             type: 'object',
             properties: {
               data: {
                 type: 'object',
-                properties: {
+                properties: {/
                   user: { $ref: '#/components/schemas/User' },
                   accessToken: { type: 'string' },
                   refreshToken: { type: 'string' },
@@ -964,7 +964,7 @@ export const openApiSpec = {
         required: ['refreshToken']
       },
       RefreshTokenResponse: {
-        allOf: [
+        allOf: [/
           { $ref: '#/components/schemas/BaseResponse' },
           {
             type: 'object',
@@ -1005,23 +1005,23 @@ export const openApiSpec = {
         required: ['id', 'email', 'name', 'organizationId', 'roles', 'permissions', 'isActive', 'createdAt', 'updatedAt']
       },
       UserResponse: {
-        allOf: [
+        allOf: [/
           { $ref: '#/components/schemas/BaseResponse' },
           {
             type: 'object',
-            properties: {
+            properties: {/
               data: { $ref: '#/components/schemas/User' }
             }
           }
         ]
       },
       UserListResponse: {
-        allOf: [
+        allOf: [/
           { $ref: '#/components/schemas/BaseResponse' },
           {
             type: 'object',
-            properties: {
-              data: { type: 'array', items: { $ref: '#/components/schemas/User' } },
+            properties: {/
+              data: { type: 'array', items: { $ref: '#/components/schemas/User' } },/
               pagination: { $ref: '#/components/schemas/Pagination' }
             }
           }
@@ -1066,23 +1066,23 @@ export const openApiSpec = {
         required: ['id', 'firstName', 'lastName', 'organizationId', 'createdAt', 'updatedAt']
       },
       ContactResponse: {
-        allOf: [
+        allOf: [/
           { $ref: '#/components/schemas/BaseResponse' },
           {
             type: 'object',
-            properties: {
+            properties: {/
               data: { $ref: '#/components/schemas/Contact' }
             }
           }
         ]
       },
       ContactListResponse: {
-        allOf: [
+        allOf: [/
           { $ref: '#/components/schemas/BaseResponse' },
           {
             type: 'object',
-            properties: {
-              data: { type: 'array', items: { $ref: '#/components/schemas/Contact' } },
+            properties: {/
+              data: { type: 'array', items: { $ref: '#/components/schemas/Contact' } },/
               pagination: { $ref: '#/components/schemas/Pagination' }
             }
           }
@@ -1135,23 +1135,23 @@ export const openApiSpec = {
         required: ['id', 'title', 'value', 'stage', 'organizationId', 'createdAt', 'updatedAt']
       },
       DealResponse: {
-        allOf: [
+        allOf: [/
           { $ref: '#/components/schemas/BaseResponse' },
           {
             type: 'object',
-            properties: {
+            properties: {/
               data: { $ref: '#/components/schemas/Deal' }
             }
           }
         ]
       },
       DealListResponse: {
-        allOf: [
+        allOf: [/
           { $ref: '#/components/schemas/BaseResponse' },
           {
             type: 'object',
-            properties: {
-              data: { type: 'array', items: { $ref: '#/components/schemas/Deal' } },
+            properties: {/
+              data: { type: 'array', items: { $ref: '#/components/schemas/Deal' } },/
               pagination: { $ref: '#/components/schemas/Pagination' }
             }
           }
@@ -1191,23 +1191,23 @@ export const openApiSpec = {
         required: ['id', 'name', 'sku', 'price', 'organizationId', 'isActive', 'createdAt', 'updatedAt']
       },
       ProductResponse: {
-        allOf: [
+        allOf: [/
           { $ref: '#/components/schemas/BaseResponse' },
           {
             type: 'object',
-            properties: {
+            properties: {/
               data: { $ref: '#/components/schemas/Product' }
             }
           }
         ]
       },
       ProductListResponse: {
-        allOf: [
+        allOf: [/
           { $ref: '#/components/schemas/BaseResponse' },
           {
             type: 'object',
-            properties: {
-              data: { type: 'array', items: { $ref: '#/components/schemas/Product' } },
+            properties: {/
+              data: { type: 'array', items: { $ref: '#/components/schemas/Product' } },/
               pagination: { $ref: '#/components/schemas/Pagination' }
             }
           }
@@ -1265,23 +1265,23 @@ export const openApiSpec = {
         required: ['id', 'orderNumber', 'customerId', 'organizationId', 'status', 'total', 'items', 'createdAt', 'updatedAt']
       },
       OrderResponse: {
-        allOf: [
+        allOf: [/
           { $ref: '#/components/schemas/BaseResponse' },
           {
             type: 'object',
-            properties: {
+            properties: {/
               data: { $ref: '#/components/schemas/Order' }
             }
           }
         ]
       },
       OrderListResponse: {
-        allOf: [
+        allOf: [/
           { $ref: '#/components/schemas/BaseResponse' },
           {
             type: 'object',
-            properties: {
-              data: { type: 'array', items: { $ref: '#/components/schemas/Order' } },
+            properties: {/
+              data: { type: 'array', items: { $ref: '#/components/schemas/Order' } },/
               pagination: { $ref: '#/components/schemas/Pagination' }
             }
           }
@@ -1332,7 +1332,7 @@ export const openApiSpec = {
         required: ['prompt', 'organizationId', 'userId']
       },
       AIResponse: {
-        allOf: [
+        allOf: [/
           { $ref: '#/components/schemas/BaseResponse' },
           {
             type: 'object',
@@ -1378,23 +1378,23 @@ export const openApiSpec = {
         required: ['id', 'name', 'url', 'events', 'organizationId', 'isActive', 'createdAt', 'updatedAt']
       },
       WebhookResponse: {
-        allOf: [
+        allOf: [/
           { $ref: '#/components/schemas/BaseResponse' },
           {
             type: 'object',
-            properties: {
+            properties: {/
               data: { $ref: '#/components/schemas/Webhook' }
             }
           }
         ]
       },
       WebhookListResponse: {
-        allOf: [
+        allOf: [/
           { $ref: '#/components/schemas/BaseResponse' },
           {
             type: 'object',
-            properties: {
-              data: { type: 'array', items: { $ref: '#/components/schemas/Webhook' } },
+            properties: {/
+              data: { type: 'array', items: { $ref: '#/components/schemas/Webhook' } },/
               pagination: { $ref: '#/components/schemas/Pagination' }
             }
           }
@@ -1411,7 +1411,7 @@ export const openApiSpec = {
         required: ['name', 'url', 'events']
       },
       HealthResponse: {
-        allOf: [
+        allOf: [/
           { $ref: '#/components/schemas/BaseResponse' },
           {
             type: 'object',
@@ -1437,7 +1437,7 @@ export const openApiSpec = {
         ]
       },
       MetricsResponse: {
-        allOf: [
+        allOf: [/
           { $ref: '#/components/schemas/BaseResponse' },
           {
             type: 'object',
@@ -1490,3 +1490,4 @@ export const openApiSpec = {
 };
 
 export default openApiSpec;
+/

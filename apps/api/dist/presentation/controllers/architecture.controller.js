@@ -1,7 +1,8 @@
 import { CreateArchitectureUseCase } from '../../application/use-cases/architecture/create-architecture.use-case.js';
 import { AnalyzeArchitectureUseCase } from '../../application/use-cases/architecture/analyze-architecture.use-case.js';
-import { BaseController } from './base.controller.js';
 import { CreateArchitectureRequestSchema, UpdateArchitectureRequestSchema, AnalyzeArchitectureRequestSchema, ArchitectureIdParamSchema, ArchitectureOrganizationIdParamSchema, ArchitectureSearchQuerySchema, ArchitectureBulkUpdateSchema, ArchitectureBulkDeleteSchema } from '../dto/architecture.dto.js';
+
+import { BaseController } from './base.controller.js';
 export class ArchitectureController extends BaseController {
     architectureRepository;
     createArchitectureUseCase;

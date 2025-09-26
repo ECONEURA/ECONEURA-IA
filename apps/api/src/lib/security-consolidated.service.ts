@@ -17,6 +17,8 @@
  * - Auditoría y logging
  */
 
+import crypto from 'crypto';
+
 import {
   SecurityEvent,
   AccessControl,
@@ -28,20 +30,14 @@ import {
   SecurityConfig,
   Vulnerability,
   VulnerabilityScan,
-  VulnerabilityScanSummary,
   ComplianceRequirement,
-  ComplianceEvidence,
-  ComplianceControl,
-  ComplianceTestResult,
   ComplianceAssessment,
   ComplianceFinding,
   CreateComplianceRequirementRequest,
   ComplianceConfig
 } from './security-types.js';
-
 import { structuredLogger } from './structured-logger.js';
 import { getRedisService } from './redis.service.js';
-import crypto from 'crypto';
 
 // Interfaces adicionales para testing
 export interface SecurityTest {

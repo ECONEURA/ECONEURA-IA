@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
+
 import { ArchitectureRepository } from '../../domain/repositories/architecture.repository.js';
 import { CreateArchitectureUseCase } from '../../application/use-cases/architecture/create-architecture.use-case.js';
 import { AnalyzeArchitectureUseCase } from '../../application/use-cases/architecture/analyze-architecture.use-case.js';
-import { BaseController } from './base.controller.js';
 import {
   CreateArchitectureRequestSchema,
   UpdateArchitectureRequestSchema,
@@ -12,18 +12,12 @@ import {
   ArchitectureSearchQuerySchema,
   ArchitectureBulkUpdateSchema,
   ArchitectureBulkDeleteSchema,
-  type CreateArchitectureRequest,
-  type UpdateArchitectureRequest,
-  type AnalyzeArchitectureRequest,
-  type ArchitectureIdParam,
-  type ArchitectureOrganizationIdParam,
-  type ArchitectureSearchQuery,
-  type ArchitectureBulkUpdate,
-  type ArchitectureBulkDelete,
   type ArchitectureResponse,
   type ArchitectureListResponse,
   type ArchitectureStatsResponse
 } from '../dto/architecture.dto.js';
+
+import { BaseController } from './base.controller.js';
 
 // ============================================================================
 // ARCHITECTURE CONTROLLER - PR-0: MONOREPO + HEXAGONAL ARCHITECTURE

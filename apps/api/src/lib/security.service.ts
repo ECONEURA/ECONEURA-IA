@@ -2,9 +2,10 @@
 // SECURITY SERVICE - Servicio de seguridad avanzada
 // ============================================================================
 
+import crypto from 'crypto';
+
 import { structuredLogger } from './structured-logger.js';
 import { getRedisService } from './redis.service.js';
-import crypto from 'crypto';
 
 // ========================================================================
 // INTERFACES

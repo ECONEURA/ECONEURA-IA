@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+
 import { rlsSystem, RLSContext } from '../lib/rls.js';
 import { logger } from '../lib/logger.js';
 

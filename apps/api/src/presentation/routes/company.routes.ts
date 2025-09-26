@@ -1,7 +1,8 @@
 import { Router } from 'express';
+import { z } from 'zod';
+
 import { CompanyController } from '../controllers/company.controller.js';
 import { validateRequest } from '../middleware/validation.middleware.js';
-import { z } from 'zod';
 
 // ============================================================================
 // COMPANY ROUTES

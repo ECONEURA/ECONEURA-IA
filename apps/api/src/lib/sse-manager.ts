@@ -1,6 +1,8 @@
-import { Response } from 'express';
-import { structuredLogger } from './structured-logger.js';
 import { randomUUID } from 'crypto';
+
+import { Response } from 'express';
+
+import { structuredLogger } from './structured-logger.js';
 
 export interface SSEClient {
   id: string;

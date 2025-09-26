@@ -6,12 +6,10 @@
 
 import { 
   WarmupSchedule, 
-  WarmupConfig, 
   WarmupService,
   WarmupStatus,
   ServiceWarmupStatus,
   WarmupMetrics,
-  WarmupError,
   CreateWarmupScheduleRequest,
   UpdateWarmupScheduleRequest,
   TriggerWarmupRequest,

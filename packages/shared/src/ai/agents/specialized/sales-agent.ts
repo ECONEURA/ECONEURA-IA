@@ -1,10 +1,10 @@
-// packages/shared/src/ai/agents/specialized/sales-agent.ts
-import { AutonomousAgent } from '../core/autonomous-agent';
-import { LearningEngine } from '../learning/learning-engine';
-import { WorkflowEngine } from '../orchestrator/workflow-engine';
+// packages/shared/src/ai/agents/specialized/sales-agent.ts/
+import { AutonomousAgent } from '../core/autonomous-agent';/;
+import { LearningEngine } from '../learning/learning-engine';/;
+import { WorkflowEngine } from '../orchestrator/workflow-engine';/;
 import { AgentContext, BusinessAction, ExecutionResult } from '../types';
 
-export class SalesAgent extends AutonomousAgent {
+export class SalesAgent extends AutonomousAgent {;
   constructor(context: AgentContext) {
     const learningModel = new LearningEngine();
     const workflowEngine = new WorkflowEngine();
@@ -22,14 +22,14 @@ export class SalesAgent extends AutonomousAgent {
     }
   }
 
-  private async handleSalesAction(action: BusinessAction): Promise<ExecutionResult> {
+  private async handleSalesAction(action: BusinessAction): Promise<ExecutionResult> {/
     // Lógica específica para acciones de ventas
     const { opportunity, customer } = action.data;
-
+/
     // Simular análisis de oportunidad
     const opportunityScore = await this.analyzeOpportunity(opportunity);
     const customerInsights = await this.analyzeCustomer(customer);
-
+/
     // Generar recomendaciones
     const recommendations = this.generateSalesRecommendations(opportunityScore, customerInsights);
 
@@ -45,16 +45,16 @@ export class SalesAgent extends AutonomousAgent {
         type: 'sales_outcome',
         confidence: opportunityScore,
         value: opportunityScore > 0.7 ? 'high_probability' : 'medium_probability',
-        reasoning: `Basado en análisis de oportunidad y perfil del cliente`,
+        reasoning: `Basado en análisis de oportunidad y perfil del cliente`,/
         timeframe: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 días
       }]
     };
   }
 
-  private async handleCustomerAction(action: BusinessAction): Promise<ExecutionResult> {
+  private async handleCustomerAction(action: BusinessAction): Promise<ExecutionResult> {/
     // Lógica específica para acciones de cliente
     const { customerId, action: customerAction } = action.data;
-
+/
     // Simular análisis del cliente
     const customerProfile = await this.getCustomerProfile(customerId);
     const actionSuccess = await this.evaluateCustomerAction(customerAction, customerProfile);
@@ -69,7 +69,7 @@ export class SalesAgent extends AutonomousAgent {
     };
   }
 
-  private async handleGenericAction(action: BusinessAction): Promise<ExecutionResult> {
+  private async handleGenericAction(action: BusinessAction): Promise<ExecutionResult> {/
     // Lógica genérica para acciones no específicas
     return {
       success: true,
@@ -78,17 +78,17 @@ export class SalesAgent extends AutonomousAgent {
     };
   }
 
-  private async analyzeOpportunity(opportunity: any): Promise<number> {
+  private async analyzeOpportunity(opportunity: any): Promise<number> {/
     // Simular análisis de oportunidad basado en datos históricos
-    const factors = {
-      amount: opportunity.amount / 100000, // Normalizar
+    const factors = {/;
+      amount: opportunity.amount / 100000, // Normalizar/
       probability: opportunity.probability / 100,
       stage: this.getStageScore(opportunity.stage),
       competitorActivity: opportunity.competitorActivity ? 0.3 : 0
     };
-
+/
     // Calcular score ponderado
-    const score = (
+    const score = (;
       factors.amount * 0.3 +
       factors.probability * 0.4 +
       factors.stage * 0.2 +
@@ -98,7 +98,7 @@ export class SalesAgent extends AutonomousAgent {
     return Math.min(score, 1.0);
   }
 
-  private async analyzeCustomer(customer: any): Promise<string[]> {
+  private async analyzeCustomer(customer: any): Promise<string[]> {/
     // Simular análisis de cliente
     const insights = [];
 
@@ -129,7 +129,7 @@ export class SalesAgent extends AutonomousAgent {
     } else {
       recommendations.push('Reevaluar calificación - considerar nurturing a largo plazo');
     }
-
+/
     // Recomendaciones basadas en insights del cliente
     if (customerInsights.some(insight => insight.includes('frecuente'))) {
       recommendations.push('Cliente frecuente - ofrecer programa de lealtad');
@@ -139,7 +139,7 @@ export class SalesAgent extends AutonomousAgent {
   }
 
   private getStageScore(stage: string): number {
-    const stageScores: Record<string, number> = {
+    const stageScores: Record<string, number> = {;
       'prospect': 0.2,
       'qualified': 0.4,
       'proposal': 0.6,
@@ -151,22 +151,22 @@ export class SalesAgent extends AutonomousAgent {
     return stageScores[stage.toLowerCase()] || 0.3;
   }
 
-  private async getCustomerProfile(customerId: string): Promise<any> {
+  private async getCustomerProfile(customerId: string): Promise<any> {/
     // Simular obtención de perfil de cliente
     return {
       id: customerId,
-      loyaltyScore: Math.random(),
+      loyaltyScore: Math.random(),/
       purchaseFrequency: Math.random() * 12, // meses
       supportSatisfaction: Math.random()
     };
   }
 
-  private async evaluateCustomerAction(action: string, profile: any): Promise<number> {
+  private async evaluateCustomerAction(action: string, profile: any): Promise<number> {/
     // Simular evaluación de acción con cliente
     const baseSuccess = Math.random();
-
+/
     // Modificar basado en perfil del cliente
-    const loyaltyBonus = profile.loyaltyScore * 0.2;
+    const loyaltyBonus = profile.loyaltyScore * 0.2;/;
     const frequencyBonus = Math.min(profile.purchaseFrequency / 12, 0.3);
 
     return Math.min(baseSuccess + loyaltyBonus + frequencyBonus, 1.0);
@@ -186,18 +186,18 @@ export class SalesAgent extends AutonomousAgent {
     return lessons;
   }
 
-  protected async adaptCapabilities(): Promise<void> {
+  protected async adaptCapabilities(): Promise<void> {/
     // Adaptar capacidades basadas en rendimiento
     const performance = this.getPerformance();
 
-    if (performance.successRate > 0.8) {
+    if (performance.successRate > 0.8) {/
       // Agregar capacidades avanzadas
       this.context.capabilities.push('advanced_opportunity_scoring');
     }
 
-    if (performance.averageConfidence > 0.7) {
+    if (performance.averageConfidence > 0.7) {/
       // Mejorar predicciones
       this.context.capabilities.push('predictive_customer_insights');
     }
   }
-}
+}/

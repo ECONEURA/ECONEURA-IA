@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { sseManager } from '../lib/sse-manager.js';
 import { structuredLogger } from '../lib/structured-logger.js';
 const router = Router();

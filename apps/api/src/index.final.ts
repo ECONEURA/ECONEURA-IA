@@ -1,16 +1,15 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+
 import { structuredLogger } from './lib/structured-logger.js';
 import { ErrorHandler } from './lib/error-handler.js';
 
 // Import health modes (PR-22)
 import { healthModeManager } from './lib/health-modes.js';
-import { healthMonitor } from './lib/health-monitor.js';
 import { cacheManager } from './lib/advanced-cache.js';
 
 // Import FinOps services (PR-45)
-import { finOpsSystem } from './lib/finops.js';
 import { BudgetManagerService } from './lib/budget-manager.service.js';
 import { CostTrackerService } from './lib/cost-tracker.service.js';
 import { CostOptimizerService } from './lib/cost-optimizer.service.js';

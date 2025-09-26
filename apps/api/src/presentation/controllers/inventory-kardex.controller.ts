@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
+
 import { InventoryKardexRepository } from '../../domain/repositories/inventory-kardex.repository.js';
 import { CreateInventoryKardexUseCase } from '../../application/use-cases/inventory-kardex/create-inventory-kardex.use-case.js';
 import { UpdateInventoryKardexUseCase } from '../../application/use-cases/inventory-kardex/update-inventory-kardex.use-case.js';
 import { RecordMovementUseCase } from '../../application/use-cases/inventory-kardex/record-movement.use-case.js';
-import { BaseController } from './base.controller.js';
 import {
   CreateInventoryKardexRequestSchema,
   UpdateInventoryKardexRequestSchema,
@@ -15,20 +15,12 @@ import {
   InventoryKardexBulkDeleteSchema,
   ReserveQuantityRequestSchema,
   ReleaseReservationRequestSchema,
-  type CreateInventoryKardexRequest,
-  type UpdateInventoryKardexRequest,
-  type RecordMovementRequest,
-  type InventoryKardexIdParam,
-  type InventoryKardexOrganizationIdParam,
-  type InventoryKardexSearchQuery,
-  type InventoryKardexBulkUpdate,
-  type InventoryKardexBulkDelete,
   type InventoryKardexResponse,
   type InventoryKardexListResponse,
-  type InventoryKardexStatsResponse,
-  type ReserveQuantityRequest,
-  type ReleaseReservationRequest
+  type InventoryKardexStatsResponse
 } from '../dto/inventory-kardex.dto.js';
+
+import { BaseController } from './base.controller.js';
 
 // ============================================================================
 // INVENTORY KARDEX CONTROLLER

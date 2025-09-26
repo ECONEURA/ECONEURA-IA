@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+
 import { structuredLogger } from './structured-logger.js';
 
 // Create a global variable to store the Prisma client

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 // Product schemas
-export const ProductSchema = z.object({
+export const ProductSchema = z.object({;
   id: z.string().uuid(),
   org_id: z.string(),
   name: z.string().min(1, 'Product name is required'),
@@ -21,16 +21,16 @@ export const ProductSchema = z.object({
   updated_at: z.date(),
 });
 
-export const CreateProductSchema = ProductSchema.omit({
+export const CreateProductSchema = ProductSchema.omit({;
   id: true,
   created_at: true,
   updated_at: true,
 });
 
 export const UpdateProductSchema = CreateProductSchema.partial();
-
+/
 // Supplier schemas
-export const SupplierSchema = z.object({
+export const SupplierSchema = z.object({;
   id: z.string().uuid(),
   org_id: z.string(),
   name: z.string().min(1, 'Supplier name is required'),
@@ -57,16 +57,16 @@ export const SupplierSchema = z.object({
   updated_at: z.date(),
 });
 
-export const CreateSupplierSchema = SupplierSchema.omit({
+export const CreateSupplierSchema = SupplierSchema.omit({;
   id: true,
   created_at: true,
   updated_at: true,
 });
 
 export const UpdateSupplierSchema = CreateSupplierSchema.partial();
-
+/
 // Invoice schemas
-export const InvoiceSchema = z.object({
+export const InvoiceSchema = z.object({;
   id: z.string().uuid(),
   org_id: z.string(),
   invoice_number: z.string().min(1, 'Invoice number is required'),
@@ -91,16 +91,16 @@ export const InvoiceSchema = z.object({
   updated_at: z.date(),
 });
 
-export const CreateInvoiceSchema = InvoiceSchema.omit({
+export const CreateInvoiceSchema = InvoiceSchema.omit({;
   id: true,
   created_at: true,
   updated_at: true,
 });
 
 export const UpdateInvoiceSchema = CreateInvoiceSchema.partial();
-
+/
 // Invoice Item schemas
-export const InvoiceItemSchema = z.object({
+export const InvoiceItemSchema = z.object({;
   id: z.string().uuid(),
   invoice_id: z.string().uuid(),
   product_id: z.string().uuid().optional(),
@@ -117,13 +117,13 @@ export const InvoiceItemSchema = z.object({
   created_at: z.date(),
 });
 
-export const CreateInvoiceItemSchema = InvoiceItemSchema.omit({
+export const CreateInvoiceItemSchema = InvoiceItemSchema.omit({;
   id: true,
   created_at: true,
 });
 
 export const UpdateInvoiceItemSchema = CreateInvoiceItemSchema.partial();
-
+/
 // Export types
 export type Product = z.infer<typeof ProductSchema>;
 export type CreateProduct = z.infer<typeof CreateProductSchema>;
@@ -140,3 +140,4 @@ export type UpdateInvoice = z.infer<typeof UpdateInvoiceSchema>;
 export type InvoiceItem = z.infer<typeof InvoiceItemSchema>;
 export type CreateInvoiceItem = z.infer<typeof CreateInvoiceItemSchema>;
 export type UpdateInvoiceItem = z.infer<typeof UpdateInvoiceItemSchema>;
+/

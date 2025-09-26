@@ -6,7 +6,8 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { trace, context, Span, SpanKind, SpanStatusCode } from '@opentelemetry/api';
+import { Span, SpanStatusCode } from '@opentelemetry/api';
+
 import { observabilityOTelService } from '../services/observability-otel.service.js';
 import { structuredLogger } from '../lib/structured-logger.js';
 

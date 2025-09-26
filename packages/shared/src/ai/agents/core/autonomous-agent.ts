@@ -1,5 +1,5 @@
 // packages/shared/src/ai/agents/core/autonomous-agent.ts
-import {
+import {;
   AgentContext,
   LearningEvent,
   BusinessAction,
@@ -7,10 +7,10 @@ import {
   AgentMessage,
   LearningModel,
   WorkflowEngine,
-  AgentPerformance
+  AgentPerformance/
 } from '../types';
 
-export abstract class AutonomousAgent {
+export abstract class AutonomousAgent {;
   protected context: AgentContext;
   protected learningModel: LearningModel;
   protected workflowEngine: WorkflowEngine;
@@ -20,7 +20,7 @@ export abstract class AutonomousAgent {
   constructor(
     context: AgentContext,
     learningModel: LearningModel,
-    workflowEngine: WorkflowEngine
+    workflowEngine: WorkflowEngine);
   ) {
     this.context = context;
     this.learningModel = learningModel;
@@ -39,36 +39,36 @@ export abstract class AutonomousAgent {
     await this.saveContext();
   }
 
-  async learnFromInteraction(interaction: LearningEvent): Promise<void> {
+  async learnFromInteraction(interaction: LearningEvent): Promise<void> {/
     // Registrar el evento de aprendizaje
     this.context.learningHistory.push(interaction);
-
+/
     // Limitar el historial a los últimos 1000 eventos
     if (this.context.learningHistory.length > 1000) {
       this.context.learningHistory = this.context.learningHistory.slice(-1000);
     }
-
+/
     // Actualizar el modelo de aprendizaje
     await this.learningModel.train(interaction);
-
+/
     // Adaptar las capacidades del agente
     this.context = await this.learningModel.adapt(this.context);
-
+/
     // Actualizar métricas de rendimiento
     this.updatePerformanceMetrics(interaction);
-
+/
     // Generar lecciones aprendidas
     const lessons = await this.extractLessons(interaction);
     interaction.lessons = lessons;
-
+/
     // Optimizar workflows basados en el aprendizaje
     await this.optimizeWorkflows();
   }
 
-  async predictAndExecute(action: BusinessAction): Promise<ExecutionResult> {
+  async predictAndExecute(action: BusinessAction): Promise<ExecutionResult> {/
     // Obtener confianza del modelo
     const confidence = await this.learningModel.getConfidence(action);
-
+/
     // Si la confianza es baja, requerir aprobación
     if (confidence < 0.7) {
       return {
@@ -79,12 +79,12 @@ export abstract class AutonomousAgent {
         feedback: `Confianza baja (${(confidence * 100).toFixed(1)}%) - requiere aprobación`
       };
     }
-
+/
     // Ejecutar la acción
     const result = await this.executeAction(action);
-
+/
     // Aprender del resultado
-    const learningEvent: LearningEvent = {
+    const learningEvent: LearningEvent = {;
       timestamp: new Date(),
       action: action.type,
       result: result.success ? 'success' : 'failure',
@@ -102,13 +102,13 @@ export abstract class AutonomousAgent {
   protected abstract extractLessons(event: LearningEvent): Promise<string[]>;
   protected abstract adaptCapabilities(): Promise<void>;
 
-  private async loadLearningHistory(): Promise<void> {
-    // Cargar historial de aprendizaje desde persistencia
+  private async loadLearningHistory(): Promise<void> {/
+    // Cargar historial de aprendizaje desde persistencia/
     // Implementación específica por agente
   }
 
-  private async saveContext(): Promise<void> {
-    // Guardar contexto del agente
+  private async saveContext(): Promise<void> {/
+    // Guardar contexto del agente/
     // Implementación específica por agente
   }
 
@@ -119,7 +119,7 @@ export abstract class AutonomousAgent {
         if (message) {
           this.processMessage(message);
         }
-      }
+      }/
     }, 100); // Procesar mensajes cada 100ms
   }
 
@@ -137,11 +137,11 @@ export abstract class AutonomousAgent {
     }
   }
 
-  protected async handleCommand(message: AgentMessage): Promise<void> {
+  protected async handleCommand(message: AgentMessage): Promise<void> {/
     // Implementación por defecto - override en subclases
   }
 
-  protected async handleNotification(message: AgentMessage): Promise<void> {
+  protected async handleNotification(message: AgentMessage): Promise<void> {/
     // Implementación por defecto - override en subclases
   }
 
@@ -154,13 +154,13 @@ export abstract class AutonomousAgent {
   private updatePerformanceMetrics(event: LearningEvent): void {
     this.context.performance.totalActions++;
 
-    if (event.result === 'success') {
+    if (event.result === 'success') {/
       const successRate = (this.context.performance.successRate * (this.context.performance.totalActions - 1) + 1) / this.context.performance.totalActions;
       this.context.performance.successRate = successRate;
     }
-
+/
     // Actualizar confianza promedio
-    this.context.performance.averageConfidence =
+    this.context.performance.averageConfidence =/
       (this.context.performance.averageConfidence * (this.context.performance.totalActions - 1) + event.feedback) / this.context.performance.totalActions;
   }
 
@@ -176,7 +176,7 @@ export abstract class AutonomousAgent {
       }
     }
   }
-
+/
   // API pública
   getContext(): AgentContext {
     return { ...this.context };
@@ -193,4 +193,4 @@ export abstract class AutonomousAgent {
   isAgentActive(): boolean {
     return this.isActive;
   }
-}
+}/

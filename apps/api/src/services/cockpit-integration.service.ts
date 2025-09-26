@@ -1,15 +1,12 @@
 import { z } from 'zod';
+import { eq, desc, gte, and } from 'drizzle-orm';
+
 import { logger } from '../lib/logger.js';
 import { db } from '../lib/db.js';
-import { eq, desc, gte, and } from 'drizzle-orm';
 import { 
   aiCostOptimization, 
-  aiCostPrediction, 
-  aiAnalytics, 
-  aiModelManagement,
-  aiTrainingJobs,
-  aiSecurityCompliance,
-  aiPerformanceOptimization
+  aiCostPrediction,
+  aiSecurityCompliance
 } from '../lib/schema.js';
 
 // Schemas de validación

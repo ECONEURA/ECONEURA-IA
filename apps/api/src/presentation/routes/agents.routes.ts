@@ -10,6 +10,7 @@
  */
 
 import { Router } from 'express';
+
 import { agentsController } from '../controllers/agents.controller.js';
 import { jwtAuthMiddleware } from '../../middleware/auth.js';
 import { rateLimitMiddleware } from '../../middleware/rate-limit-org.js';

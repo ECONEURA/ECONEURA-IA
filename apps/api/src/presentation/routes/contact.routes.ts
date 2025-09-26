@@ -1,7 +1,8 @@
 import { Router } from 'express';
+import { z } from 'zod';
+
 import { ContactController } from '../controllers/contact.controller.js';
 import { validateRequest } from '../middleware/validation.middleware.js';
-import { z } from 'zod';
 
 // ============================================================================
 // CONTACT ROUTES

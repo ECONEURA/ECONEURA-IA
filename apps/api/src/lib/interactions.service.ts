@@ -1,8 +1,9 @@
 // Interactions Service - PR-8: CRM Interactions
 // Servicio completo para gestión de interacciones CRM
 
-import { logger } from './logger.js';
 import { z } from 'zod';
+
+import { logger } from './logger.js';
 
 // Esquemas de validación
 export const InteractionTypeSchema = z.enum(['email', 'call', 'meeting', 'note', 'task']);

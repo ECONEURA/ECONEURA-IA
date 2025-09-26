@@ -1,7 +1,8 @@
 import { Router } from 'express';
+import { z } from 'zod';
+
 import { InvoiceController } from '../controllers/invoice.controller.js';
 import { validateRequest, authenticate, authorize } from '../middleware/base.middleware.js';
-import { z } from 'zod';
 
 // ============================================================================
 // INVOICE ROUTES

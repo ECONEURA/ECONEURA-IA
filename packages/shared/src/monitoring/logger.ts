@@ -1,7 +1,7 @@
 /**
  * ECONEURA Centralized Logging System
  * Mediterranean CRM+ERP+AI System
- * Production-ready logging with Azure Application Insights integration
+ * Production-ready logging with Azure Application Insights integration/
  */
 
 import { createLogger, format, transports, Logger } from 'winston';
@@ -15,7 +15,7 @@ interface LogInfo {
 import * as appInsights from 'applicationinsights';
 import { TelemetryClient } from 'applicationinsights';
 
-export interface LogContext {
+export interface LogContext {;
   userId?: string;
   organizationId?: string;
   requestId?: string;
@@ -33,7 +33,7 @@ export interface LogContext {
   performanceMetric?: string;
 }
 
-export interface BusinessLogEvent {
+export interface BusinessLogEvent {;
   event: string;
   category: 'CRM' | 'ERP' | 'AI' | 'AUTH' | 'WEBHOOK' | 'SYSTEM';
   severity: 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL';
@@ -42,7 +42,7 @@ export interface BusinessLogEvent {
   error?: Error;
 }
 
-export class EconeuraLogger {
+export class EconeuraLogger {;
   private logger!: Logger;
   private telemetryClient?: TelemetryClient;
   private environment: string;
@@ -54,7 +54,7 @@ export class EconeuraLogger {
   }
 
   private setupWinstonLogger(): void {
-    const logFormat = format.combine(
+    const logFormat = format.combine(;
       format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
       format.errors({ stack: true }),
       format.json(),
@@ -79,7 +79,7 @@ export class EconeuraLogger {
         environment: this.environment,
         version: process.env.npm_package_version || '1.0.0',
       },
-      transports: [
+      transports: [/
         // Console transport for development
         new transports.Console({
           format: this.environment === 'development' 
@@ -93,26 +93,26 @@ export class EconeuraLogger {
               )
             : logFormat
         }),
-
+/
         // File transport for production
         ...(this.environment === 'production' ? [
-          new transports.File({
+          new transports.File({/
             filename: '/app/logs/error.log',
-            level: 'error',
+            level: 'error',/
             maxsize: 10 * 1024 * 1024, // 10MB
             maxFiles: 5,
           }),
-          new transports.File({
-            filename: '/app/logs/combined.log',
+          new transports.File({/
+            filename: '/app/logs/combined.log',/
             maxsize: 10 * 1024 * 1024, // 10MB
             maxFiles: 10,
           }),
         ] : []),
       ],
-      exceptionHandlers: [
+      exceptionHandlers: [/
         new transports.File({ filename: '/app/logs/exceptions.log' }),
       ],
-      rejectionHandlers: [
+      rejectionHandlers: [/
         new transports.File({ filename: '/app/logs/rejections.log' }),
       ],
     });
@@ -134,7 +134,7 @@ export class EconeuraLogger {
         .start();
 
       this.telemetryClient = appInsights.defaultClient;
-      
+      /
       // Add custom properties
       this.telemetryClient.addTelemetryProcessor((envelope) => {
         envelope.tags = envelope.tags || {};
@@ -149,7 +149,7 @@ export class EconeuraLogger {
       });
     }
   }
-
+/
   // Core logging methods
   debug(message: string, context?: LogContext): void {
     this.logger.debug(message, this.enrichContext(context));
@@ -202,10 +202,10 @@ export class EconeuraLogger {
       });
     }
   }
-
+/
   // Business event logging
   logBusinessEvent(event: BusinessLogEvent): void {
-    const logData = {
+    const logData = {;
       businessEvent: event.event,
       category: event.category,
       severity: event.severity,
@@ -229,7 +229,7 @@ export class EconeuraLogger {
         this.info(`[${event.category}] ${event.event}`, event.context);
         break;
     }
-
+/
     // Track business metrics
     if (this.telemetryClient) {
       this.telemetryClient.trackEvent({
@@ -238,7 +238,7 @@ export class EconeuraLogger {
       });
     }
   }
-
+/
   // Performance monitoring
   trackPerformance(name: string, duration: number, context?: LogContext): void {
     this.info(`Performance: ${name} completed in ${duration}ms`, {
@@ -254,7 +254,7 @@ export class EconeuraLogger {
       properties: context,
     });
   }
-
+/
   // Dependency tracking
   trackDependency(
     type: string,
@@ -262,7 +262,7 @@ export class EconeuraLogger {
     data: string,
     duration: number,
     success: boolean,
-    context?: LogContext
+    context?: LogContext);
   ): void {
     this.telemetryClient?.trackDependency({
       dependencyTypeName: type,
@@ -273,7 +273,7 @@ export class EconeuraLogger {
       properties: context,
     });
   }
-
+/
   // Custom metrics
   trackMetric(name: string, value: number, properties?: Record<string, any>): void {
     this.telemetryClient?.trackMetric({
@@ -282,7 +282,7 @@ export class EconeuraLogger {
       properties,
     });
   }
-
+/
   // User activity tracking
   trackUserActivity(userId: string, activity: string, properties?: Record<string, any>): void {
     this.logBusinessEvent({
@@ -296,12 +296,12 @@ export class EconeuraLogger {
       },
     });
   }
-
+/
   // Security event logging
   logSecurityEvent(
     event: string,
     severity: 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL',
-    context: LogContext
+    context: LogContext);
   ): void {
     this.logBusinessEvent({
       event: `SECURITY_${event}`,
@@ -310,10 +310,10 @@ export class EconeuraLogger {
       context,
     });
   }
-
+/
   // Private helper methods
   private enrichContext(context?: LogContext, error?: Error): any {
-    const enriched = {
+    const enriched = {;
       ...context,
       timestamp: new Date().toISOString(),
       pid: process.pid,
@@ -334,12 +334,12 @@ export class EconeuraLogger {
       ...(error.cause ? { cause: error.cause } : {}),
     };
   }
-
+/
   // Graceful shutdown
   flush(): Promise<void> {
     return new Promise((resolve) => {
       this.telemetryClient?.flush();
-      
+      /
       // Wait for winston to finish writing
       const transports = this.logger.transports;
       let pending = transports.length;
@@ -355,7 +355,7 @@ export class EconeuraLogger {
             transport.close();
             pending--;
             if (pending === 0) resolve();
-          } catch (error) {
+          } catch (error) {/
             // Handle any errors during transport closure
             pending--;
             if (pending === 0) resolve();
@@ -368,17 +368,17 @@ export class EconeuraLogger {
     });
   }
 }
-
+/
 // Singleton instance
 export const logger = new EconeuraLogger();
-
+/
 // Express middleware for request logging
-export const requestLogger = (req: any, res: any, next: any) => {
+export const requestLogger = (req: any, res: any, next: any) => {;
   const start = Date.now();
   const requestId = req.headers['x-request-id'] || `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   
   req.requestId = requestId;
-  
+  /
   // Log request start
   logger.info('HTTP Request Started', {
     requestId,
@@ -390,7 +390,7 @@ export const requestLogger = (req: any, res: any, next: any) => {
     userId: req.user?.id,
     organizationId: req.user?.organizationId,
   });
-
+/
   // Override res.end to log response
   const originalEnd = res.end;
   res.end = function(this: any, ...args: any[]) {
@@ -420,3 +420,4 @@ export const requestLogger = (req: any, res: any, next: any) => {
 };
 
 export default logger;
+/

@@ -1,10 +1,12 @@
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
-import { structuredLogger } from './structured-logger.js';
+
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import { getDatabaseService } from '@econeura/db';
 import { eq, and, gte } from 'drizzle-orm';
 import { users, organizations, sessions, apiKeys } from '@econeura/db/schema';
+
+import { structuredLogger } from './structured-logger.js';
 export class AuthService {
     config;
     db;

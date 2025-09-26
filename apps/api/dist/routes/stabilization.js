@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { stabilization } from '../services/stabilization.service.js';
 const router = Router();
 router.post('/fix', async (req, res) => {

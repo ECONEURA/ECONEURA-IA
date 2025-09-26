@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { logger } from './logger.js';
 const MetricTypeSchema = z.enum([
     'page_views',

@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+
 import { CreateInteractionUseCase } from '../../application/use-cases/interaction/create-interaction.use-case.js';
 import { UpdateInteractionUseCase } from '../../application/use-cases/interaction/update-interaction.use-case.js';
 import { InteractionRepository } from '../../domain/repositories/interaction.repository.js';
@@ -8,13 +9,10 @@ import {
   UpdateInteractionRequest,
   InteractionSearchQuery,
   InteractionFiltersQuery,
-  InteractionBulkUpdateRequest,
-  InteractionBulkDeleteRequest,
   InteractionResponse,
   InteractionListResponse,
   InteractionStatsResponse,
-  InteractionDashboardResponse,
-  InteractionSummaryResponse
+  InteractionDashboardResponse
 } from '../dto/interaction.dto.js';
 
 // ============================================================================

@@ -1,15 +1,15 @@
-// ============================================================================
-// SMS PROVIDER - TWILIO, AWS SNS, VONAGE
+// ============================================================================/
+// SMS PROVIDER - TWILIO, AWS SNS, VONAGE/
 // ============================================================================
 
-import { z } from 'zod';
+import { z } from 'zod';/;
 import { logger } from '../../../utils/logger.js';
-
+/
+// ============================================================================/
+// SCHEMAS/
 // ============================================================================
-// SCHEMAS
-// ============================================================================
 
-const SMSProviderConfigSchema = z.object({
+const SMSProviderConfigSchema = z.object({;
   provider: z.enum(['twilio', 'aws_sns', 'vonage']),
   accountSid: z.string().optional(),
   authToken: z.string().optional(),
@@ -20,22 +20,22 @@ const SMSProviderConfigSchema = z.object({
   testMode: z.boolean().default(false)
 });
 
-const SMSMessageSchema = z.object({
-  to: z.string(),
+const SMSMessageSchema = z.object({;
+  to: z.string(),/
   message: z.string().max(1600), // SMS character limit
   mediaUrl: z.array(z.string().url()).optional(),
   statusCallback: z.string().url().optional(),
   maxPrice: z.number().optional(),
-  provideFeedback: z.boolean().default(false),
+  provideFeedback: z.boolean().default(false),/
   validityPeriod: z.number().min(1).max(1440).optional(), // minutes
   scheduleTime: z.date().optional()
 });
-
+/
+// ============================================================================/
+// INTERFACES/
 // ============================================================================
-// INTERFACES
-// ============================================================================
 
-export interface SMSProviderConfig {
+export interface SMSProviderConfig {;
   provider: 'twilio' | 'aws_sns' | 'vonage';
   accountSid?: string;
   authToken?: string;
@@ -46,7 +46,7 @@ export interface SMSProviderConfig {
   testMode?: boolean;
 }
 
-export interface SMSMessage {
+export interface SMSMessage {;
   to: string;
   message: string;
   mediaUrl?: string[];
@@ -57,7 +57,7 @@ export interface SMSMessage {
   scheduleTime?: Date;
 }
 
-export interface SMSResult {
+export interface SMSResult {;
   messageId: string;
   success: boolean;
   provider: string;
@@ -71,19 +71,19 @@ export interface SMSResult {
   };
 }
 
-export interface ISMSProvider {
+export interface ISMSProvider {;
   send(message: SMSMessage): Promise<SMSResult>;
   sendBulk(messages: SMSMessage[]): Promise<SMSResult[]>;
   validateConfig(): Promise<boolean>;
   getQuota(): Promise<{ used: number; limit: number; resetAt: Date }>;
   getMessageStatus(messageId: string): Promise<{ status: string; errorCode?: string }>;
 }
-
+/
+// ============================================================================/
+// TWILIO PROVIDER/
 // ============================================================================
-// TWILIO PROVIDER
-// ============================================================================
 
-export class TwilioProvider implements ISMSProvider {
+export class TwilioProvider implements ISMSProvider {;
   private config: SMSProviderConfig;
   private accountSid: string;
   private authToken: string;
@@ -115,9 +115,9 @@ export class TwilioProvider implements ISMSProvider {
           metadata: { testMode: true }
         };
       }
-
+/
       // Simulate Twilio API call
-      const twilioMessage = {
+      const twilioMessage = {;
         To: message.to,
         From: this.config.fromNumber,
         Body: message.message,
@@ -129,7 +129,7 @@ export class TwilioProvider implements ISMSProvider {
         ScheduleType: message.scheduleTime ? 'fixed' : undefined,
         SendAt: message.scheduleTime?.toISOString()
       };
-
+/
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -148,7 +148,7 @@ export class TwilioProvider implements ISMSProvider {
         timestamp: new Date(),
         metadata: {
           price: '0.0075',
-          currency: 'USD',
+          currency: 'USD',/
           segments: Math.ceil(message.message.length / 160),
           status: 'queued'
         }
@@ -172,7 +172,7 @@ export class TwilioProvider implements ISMSProvider {
 
   async sendBulk(messages: SMSMessage[]): Promise<SMSResult[]> {
     const results: SMSResult[] = [];
-    
+    /
     // Process in batches of 10
     const batchSize = 10;
     for (let i = 0; i < messages.length; i += batchSize) {
@@ -193,7 +193,7 @@ export class TwilioProvider implements ISMSProvider {
     }
   }
 
-  async getQuota(): Promise<{ used: number; limit: number; resetAt: Date }> {
+  async getQuota(): Promise<{ used: number; limit: number; resetAt: Date }> {/
     // Simulate quota check
     return {
       used: Math.floor(Math.random() * 100),
@@ -202,7 +202,7 @@ export class TwilioProvider implements ISMSProvider {
     };
   }
 
-  async getMessageStatus(messageId: string): Promise<{ status: string; errorCode?: string }> {
+  async getMessageStatus(messageId: string): Promise<{ status: string; errorCode?: string }> {/
     // Simulate status check
     const statuses = ['queued', 'sent', 'delivered', 'failed', 'undelivered'];
     const status = statuses[Math.floor(Math.random() * statuses.length)];
@@ -213,12 +213,12 @@ export class TwilioProvider implements ISMSProvider {
     };
   }
 }
-
+/
+// ============================================================================/
+// AWS SNS PROVIDER/
 // ============================================================================
-// AWS SNS PROVIDER
-// ============================================================================
 
-export class AWSSNSProvider implements ISMSProvider {
+export class AWSSNSProvider implements ISMSProvider {;
   private config: SMSProviderConfig;
 
   constructor(config: SMSProviderConfig) {
@@ -242,9 +242,9 @@ export class AWSSNSProvider implements ISMSProvider {
           metadata: { testMode: true }
         };
       }
-
+/
       // Simulate AWS SNS API call
-      const snsMessage = {
+      const snsMessage = {;
         PhoneNumber: message.to,
         Message: message.message,
         MessageAttributes: {
@@ -258,7 +258,7 @@ export class AWSSNSProvider implements ISMSProvider {
           } : undefined
         }
       };
-
+/
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 150));
 
@@ -277,7 +277,7 @@ export class AWSSNSProvider implements ISMSProvider {
         timestamp: new Date(),
         metadata: {
           price: '0.00645',
-          currency: 'USD',
+          currency: 'USD',/
           segments: Math.ceil(message.message.length / 160),
           status: 'sent'
         }
@@ -301,7 +301,7 @@ export class AWSSNSProvider implements ISMSProvider {
 
   async sendBulk(messages: SMSMessage[]): Promise<SMSResult[]> {
     const results: SMSResult[] = [];
-    
+    /
     // Process in batches of 20
     const batchSize = 20;
     for (let i = 0; i < messages.length; i += batchSize) {
@@ -322,7 +322,7 @@ export class AWSSNSProvider implements ISMSProvider {
     }
   }
 
-  async getQuota(): Promise<{ used: number; limit: number; resetAt: Date }> {
+  async getQuota(): Promise<{ used: number; limit: number; resetAt: Date }> {/
     // Simulate quota check
     return {
       used: Math.floor(Math.random() * 50),
@@ -331,7 +331,7 @@ export class AWSSNSProvider implements ISMSProvider {
     };
   }
 
-  async getMessageStatus(messageId: string): Promise<{ status: string; errorCode?: string }> {
+  async getMessageStatus(messageId: string): Promise<{ status: string; errorCode?: string }> {/
     // Simulate status check
     const statuses = ['sent', 'delivered', 'failed'];
     const status = statuses[Math.floor(Math.random() * statuses.length)];
@@ -342,12 +342,12 @@ export class AWSSNSProvider implements ISMSProvider {
     };
   }
 }
-
+/
+// ============================================================================/
+// VONAGE PROVIDER/
 // ============================================================================
-// VONAGE PROVIDER
-// ============================================================================
 
-export class VonageProvider implements ISMSProvider {
+export class VonageProvider implements ISMSProvider {;
   private config: SMSProviderConfig;
   private apiKey: string;
   private apiSecret: string;
@@ -379,18 +379,18 @@ export class VonageProvider implements ISMSProvider {
           metadata: { testMode: true }
         };
       }
-
+/
       // Simulate Vonage API call
-      const vonageMessage = {
+      const vonageMessage = {;
         from: this.config.fromNumber,
         to: message.to,
         text: message.message,
         type: 'text',
         status_report_req: message.provideFeedback,
-        callback: message.statusCallback,
+        callback: message.statusCallback,/
         ttl: message.validityPeriod ? message.validityPeriod * 60 : undefined // convert to seconds
       };
-
+/
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 120));
 
@@ -409,7 +409,7 @@ export class VonageProvider implements ISMSProvider {
         timestamp: new Date(),
         metadata: {
           price: '0.045',
-          currency: 'EUR',
+          currency: 'EUR',/
           segments: Math.ceil(message.message.length / 160),
           status: 'accepted'
         }
@@ -433,7 +433,7 @@ export class VonageProvider implements ISMSProvider {
 
   async sendBulk(messages: SMSMessage[]): Promise<SMSResult[]> {
     const results: SMSResult[] = [];
-    
+    /
     // Process in batches of 15
     const batchSize = 15;
     for (let i = 0; i < messages.length; i += batchSize) {
@@ -454,7 +454,7 @@ export class VonageProvider implements ISMSProvider {
     }
   }
 
-  async getQuota(): Promise<{ used: number; limit: number; resetAt: Date }> {
+  async getQuota(): Promise<{ used: number; limit: number; resetAt: Date }> {/
     // Simulate quota check
     return {
       used: Math.floor(Math.random() * 75),
@@ -463,7 +463,7 @@ export class VonageProvider implements ISMSProvider {
     };
   }
 
-  async getMessageStatus(messageId: string): Promise<{ status: string; errorCode?: string }> {
+  async getMessageStatus(messageId: string): Promise<{ status: string; errorCode?: string }> {/
     // Simulate status check
     const statuses = ['accepted', 'delivered', 'failed', 'rejected'];
     const status = statuses[Math.floor(Math.random() * statuses.length)];
@@ -474,12 +474,12 @@ export class VonageProvider implements ISMSProvider {
     };
   }
 }
-
+/
+// ============================================================================/
+// SMS PROVIDER FACTORY/
 // ============================================================================
-// SMS PROVIDER FACTORY
-// ============================================================================
 
-export class SMSProviderFactory {
+export class SMSProviderFactory {;
   static create(config: SMSProviderConfig): ISMSProvider {
     switch (config.provider) {
       case 'twilio':
@@ -493,12 +493,13 @@ export class SMSProviderFactory {
     }
   }
 }
-
+/
+// ============================================================================/
+// EXPORTS/
 // ============================================================================
-// EXPORTS
-// ============================================================================
 
-export {
+export {;
   SMSProviderConfigSchema,
   SMSMessageSchema
 };
+/

@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { prometheus } from '@econeura/shared/src/metrics/index.js';
+
 
 export interface EncryptionConfig {
   algorithm: string;

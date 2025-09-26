@@ -1,9 +1,10 @@
 import rateLimit from 'express-rate-limit';
 import { Request, Response, NextFunction } from 'express';
-import { structuredLogger } from '../lib/structured-logger.js';
 import { getDatabaseService } from '@econeura/db';
-import { eq, and, gte } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { organizations } from '@econeura/db/schema';
+
+import { structuredLogger } from '../lib/structured-logger.js';
 
 // ============================================================================
 // ENHANCED RATE LIMITING MIDDLEWARE

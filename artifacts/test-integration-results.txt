@@ -1,0 +1,9 @@
+
+> econeura@1.0.0 test:integration C:\Users\Usuario\ECONEURA-IA-1.worktrees\fix\ci-generate-score-fix
+> vitest run -c tests/configs/vitest.integration.config.ts "--run" "--coverage" "--coverage.reporter" "json"
+
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90mC:/Users/Usuario/ECONEURA-IA-1.worktrees/fix/ci-generate-score-fix[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+ÔÇëELIFECYCLEÔÇë Command failed with exit code 1.

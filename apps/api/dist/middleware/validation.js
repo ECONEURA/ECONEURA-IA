@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { ValidationError } from '../lib/error-handler.js';
 import { structuredLogger } from '../lib/structured-logger.js';
 export class ValidationMiddleware {

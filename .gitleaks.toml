@@ -7,11 +7,13 @@ useDefault = true
 # Output
 format = "json"
 output = "reports/gitleaks.json"
-  "JWT_SECRET=\\$\\(generate_password",
-  "NEXTAUTH_SECRET=\\$\\(generate_password",
-  "REDIS_PASSWORD=\\$\\(generate_password",
-  "WEBHOOK_SECRET=\\$\\(generate_password"
-]
+
+# Allowlist for generated passwords (not real secrets)
+[[rules]]
+id = "generated-passwords"
+description = "Generated passwords that are not real secrets"
+regex = '''(JWT_SECRET|NEXTAUTH_SECRET|REDIS_PASSWORD|WEBHOOK_SECRET)=\$\(generate_password'''
+tags = ["generated", "not-secret"]
 
 # Rules for detecting real secrets
 [[rules]]

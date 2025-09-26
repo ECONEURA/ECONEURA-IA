@@ -1,9 +1,9 @@
-import { z } from 'zod'
-import * as otel from '../otel/index.js'
-import { logger } from '../logging/index.js'
-
+import { z } from 'zod';
+import * as otel from '../otel/index.js'/;
+import { logger } from '../logging/index.js';
+/
 // Step types
-export const StepTypeSchema = z.enum([
+export const StepTypeSchema = z.enum([;
   'ai_generate',
   'graph_outlook_draft',
   'graph_teams_notify',
@@ -15,10 +15,10 @@ export const StepTypeSchema = z.enum([
   'compensation',
 ])
 
-export type StepType = z.infer<typeof StepTypeSchema>
-
+export type StepType = z.infer<typeof StepTypeSchema>;
+/
 // Step status
-export const StepStatusSchema = z.enum([
+export const StepStatusSchema = z.enum([;
   'pending',
   'running',
   'completed',
@@ -27,19 +27,19 @@ export const StepStatusSchema = z.enum([
   'skipped',
 ])
 
-export type StepStatus = z.infer<typeof StepStatusSchema>
-
+export type StepStatus = z.infer<typeof StepStatusSchema>;
+/
 // Step result
-export interface StepResult {
+export interface StepResult {;
   success: boolean
   data?: any
   error?: string
   compensationRequired?: boolean
   metadata?: Record<string, any>
 }
-
+/
 // Step definition
-export interface StepDefinition {
+export interface StepDefinition {;
   id: string
   type: StepType
   name: string
@@ -51,23 +51,23 @@ export interface StepDefinition {
   retries?: number
   dependsOn?: string[]
 }
-
+/
 // Condition definition
-export interface Condition {
+export interface Condition {;
   field: string
   operator: 'equals' | 'not_equals' | 'greater_than' | 'less_than' | 'contains' | 'exists'
   value: any
 }
-
+/
 // Compensation step
-export interface CompensationStep {
+export interface CompensationStep {;
   type: StepType
   config: Record<string, any>
   description: string
 }
-
+/
 // Playbook definition
-export interface PlaybookDefinition {
+export interface PlaybookDefinition {;
   id: string
   name: string
   description: string
@@ -77,9 +77,9 @@ export interface PlaybookDefinition {
   timeout?: number
   maxRetries?: number
 }
-
+/
 // Playbook execution context
-export interface PlaybookContext {
+export interface PlaybookContext {;
   orgId: string
   userId: string
   requestId: string
@@ -87,9 +87,9 @@ export interface PlaybookContext {
   stepResults: Map<string, StepResult>
   auditTrail: AuditEvent[]
 }
-
+/
 // Audit event
-export interface AuditEvent {
+export interface AuditEvent {;
   timestamp: Date
   stepId: string
   action: string
@@ -98,16 +98,16 @@ export interface AuditEvent {
   error?: string
   metadata?: Record<string, any>
 }
-
+/
 // Playbook executor
-export class PlaybookExecutor {
-  private tracer = { startSpan: (name: string) => {
+export class PlaybookExecutor {;
+  private tracer = { startSpan: (name: string) => {/
     // support different otel module shapes and test mocks
   const ot: unknown = otel as unknown;
   const maybeCreateSpan = (ot as { createSpan?: (n: string) => any }).createSpan;
   if (typeof maybeCreateSpan === 'function') return maybeCreateSpan(name);
   const maybeCreateTracer = (ot as { createTracer?: () => { startSpan: (n: string) => any } }).createTracer;
-  if (typeof maybeCreateTracer === 'function') return maybeCreateTracer().startSpan(name);
+  if (typeof maybeCreateTracer === 'function') return maybeCreateTracer().startSpan(name);/
     // fallback minimal span
     return {
       setAttribute: (_k?: string, _v?: any) => {},
@@ -124,16 +124,16 @@ export class PlaybookExecutor {
     this.definition = definition
     this.context = context
   }
-
+/
   /**
-   * Execute the playbook
+   * Execute the playbook/
    */
   async execute(): Promise<{
     success: boolean
     results: Map<string, StepResult>
     auditTrail: AuditEvent[]
   }> {
-    const span = this.tracer.startSpan('playbook_execute')
+    const span = this.tracer.startSpan('playbook_execute');
 
     try {
       span.setAttributes({
@@ -151,24 +151,24 @@ export class PlaybookExecutor {
   actor: this.context.userId,
   x_request_id: this.context.requestId,
       })
-
+/
       // Execute steps in order
       for (const step of this.definition.steps) {
         await this.executeStep(step)
       }
-
+/
       // Check if any compensation is needed
-      const failedSteps = Array.from(this.context.stepResults.entries())
+      const failedSteps = Array.from(this.context.stepResults.entries());
         .filter(([_, result]) => !result.success && result.compensationRequired)
 
       if (failedSteps.length > 0) {
         await this.executeCompensations(failedSteps)
       }
-
+/
   // Consider a playbook successful only if every defined step has a successful result
-  const success = this.definition.steps.every(step => this.context.stepResults.get(step.id)?.success === true)
-
-  // debug: log final step results and computed success
+  const success = this.definition.steps.every(step => this.context.stepResults.get(step.id)?.success === true);
+/
+  // debug: log final step results and computed success/
   // eslint-disable-next-line no-console
   console.debug('[playbook] final success:', success, 'stepResults:', Array.from(this.context.stepResults.entries()))
 
@@ -194,7 +194,7 @@ export class PlaybookExecutor {
       logger.error('Playbook execution failed', error as Error, {
         playbook_id: this.definition.id,
       })
-
+/
       // Execute all compensations
       await this.executeAllCompensations()
 
@@ -203,12 +203,12 @@ export class PlaybookExecutor {
       span.end()
     }
   }
-
+/
   /**
-   * Execute a single step
+   * Execute a single step/
    */
   private async executeStep(step: StepDefinition): Promise<void> {
-    const span = this.tracer.startSpan('playbook_execute_step')
+    const span = this.tracer.startSpan('playbook_execute_step');
 
     try {
       span.setAttributes({
@@ -216,23 +216,23 @@ export class PlaybookExecutor {
         'step.type': step.type,
         'step.name': step.name,
       })
-
+/
       // Check dependencies
       if (step.dependsOn) {
-        const dependenciesMet = step.dependsOn.every(depId => {
-          const result = this.context.stepResults.get(depId)
+        const dependenciesMet = step.dependsOn.every(depId => {;
+          const result = this.context.stepResults.get(depId);
           return result && result.success
         })
 
-        if (!dependenciesMet) {
-          // debug log for test troubleshooting
+        if (!dependenciesMet) {/
+          // debug log for test troubleshooting/
           // eslint-disable-next-line no-console
           console.debug('[playbook] dependencies not met for', step.id, 'current stepResults:', Array.from(this.context.stepResults.entries()))
           this.recordAuditEvent(step.id, 'dependency_check', 'skipped', undefined, 'Dependencies not met')
           return
         }
       }
-
+/
       // Check conditions (skip only for non-condition steps)
       if (step.type !== 'condition' && step.conditions && !this.evaluateConditions(step.conditions)) {
         this.recordAuditEvent(step.id, 'condition_check', 'skipped', undefined, 'Conditions not met')
@@ -240,13 +240,13 @@ export class PlaybookExecutor {
       }
 
       this.recordAuditEvent(step.id, 'start', 'running')
-
+/
       // Execute step based on type with optional timeout
-      const execWithTimeout = async () => {
-        const execPromise = this.executeStepByType(step)
+      const execWithTimeout = async () => {;
+        const execPromise = this.executeStepByType(step);
         if (step.timeout && typeof step.timeout === 'number') {
-          const timeoutMs = step.timeout
-          const timeoutPromise = new Promise<StepResult>((resolve) => {
+          const timeoutMs = step.timeout;
+          const timeoutPromise = new Promise<StepResult>((resolve) => {;
             setTimeout(() => {
               resolve({ success: false, error: 'Timeout', compensationRequired: true })
             }, timeoutMs)
@@ -256,11 +256,11 @@ export class PlaybookExecutor {
         return await execPromise
       }
 
-      const result = await execWithTimeout()
+      const result = await execWithTimeout();
 
       this.context.stepResults.set(step.id, result)
 
-      const status = result.success ? 'completed' : 'failed'
+      const status = result.success ? 'completed' : 'failed';
       this.recordAuditEvent(step.id, 'complete', status, result.data, result.error)
 
       if (!result.success) {
@@ -273,8 +273,8 @@ export class PlaybookExecutor {
     } catch (error) {
       span.recordException(error as Error)
 
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      const result: StepResult = {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const result: StepResult = {;
         success: false,
         error: errorMessage,
         compensationRequired: true,
@@ -291,9 +291,9 @@ export class PlaybookExecutor {
       span.end()
     }
   }
-
+/
   /**
-   * Execute step based on its type
+   * Execute step based on its type/
    */
   private async executeStepByType(step: StepDefinition): Promise<StepResult> {
     switch (step.type) {
@@ -317,21 +317,21 @@ export class PlaybookExecutor {
         throw new Error(`Unknown step type: ${step.type}`)
     }
   }
-
+/
   /**
-   * Execute AI generation step
+   * Execute AI generation step/
    */
   private async executeAIGenerate(step: StepDefinition): Promise<StepResult> {
-    try {
+    try {/
       // TODO: Integrate with AI router
-      const { prompt, model, maxTokens } = step.config
+      const { prompt, model, maxTokens } = step.config/;
       // Make test-model intentionally fail to exercise compensation paths in tests
       if (model === 'test-model') {
         throw new Error('AI provider error')
       }
-
+/
       // Mock AI generation for now
-      const response = `AI generated content for: ${prompt}`
+      const response = `AI generated content for: ${prompt}`;
 
       return {
         success: true,
@@ -346,17 +346,17 @@ export class PlaybookExecutor {
       }
     }
   }
-
+/
   /**
-   * Execute Graph Outlook draft step
+   * Execute Graph Outlook draft step/
    */
   private async executeGraphOutlookDraft(step: StepDefinition): Promise<StepResult> {
-    try {
+    try {/
       // TODO: Integrate with Graph client
-      const { userId, subject, body, recipients } = step.config
-
+      const { userId, subject, body, recipients } = step.config;
+/
       // Mock draft creation
-      const draftId = `draft_${Date.now()}`
+      const draftId = `draft_${Date.now()}`;
 
       return {
         success: true,
@@ -371,17 +371,17 @@ export class PlaybookExecutor {
       }
     }
   }
-
+/
   /**
-   * Execute Graph Teams notification step
+   * Execute Graph Teams notification step/
    */
   private async executeGraphTeamsNotify(step: StepDefinition): Promise<StepResult> {
-    try {
+    try {/
       // TODO: Integrate with Graph client
-      const { teamId, channelId, message } = step.config
-
+      const { teamId, channelId, message } = step.config;
+/
       // Mock Teams message
-      const messageId = `msg_${Date.now()}`
+      const messageId = `msg_${Date.now()}`;
 
       return {
         success: true,
@@ -396,17 +396,17 @@ export class PlaybookExecutor {
       }
     }
   }
-
+/
   /**
-   * Execute Graph Planner task step
+   * Execute Graph Planner task step/
    */
   private async executeGraphPlannerTask(step: StepDefinition): Promise<StepResult> {
-    try {
+    try {/
       // TODO: Integrate with Graph client
-      const { planId, title, description, dueDateTime } = step.config
-
+      const { planId, title, description, dueDateTime } = step.config;
+/
       // Mock task creation
-      const taskId = `task_${Date.now()}`
+      const taskId = `task_${Date.now()}`;
 
       return {
         success: true,
@@ -421,17 +421,17 @@ export class PlaybookExecutor {
       }
     }
   }
-
+/
   /**
-   * Execute database query step
+   * Execute database query step/
    */
   private async executeDatabaseQuery(step: StepDefinition): Promise<StepResult> {
-    try {
+    try {/
       // TODO: Integrate with database
-      const { query, params } = step.config
-
+      const { query, params } = step.config;
+/
       // Mock database query
-      const results = [{ id: 1, name: 'Test Result' }]
+      const results = [{ id: 1, name: 'Test Result' }];
 
       return {
         success: true,
@@ -446,17 +446,17 @@ export class PlaybookExecutor {
       }
     }
   }
-
+/
   /**
-   * Execute webhook trigger step
+   * Execute webhook trigger step/
    */
   private async executeWebhookTrigger(step: StepDefinition): Promise<StepResult> {
-    try {
+    try {/
       // TODO: Integrate with webhook system
-      const { url, method, payload } = step.config
-
+      const { url, method, payload } = step.config;
+/
       // Mock webhook call
-      const responseId = `webhook_${Date.now()}`
+      const responseId = `webhook_${Date.now()}`;
 
       return {
         success: true,
@@ -471,17 +471,17 @@ export class PlaybookExecutor {
       }
     }
   }
-
+/
   /**
-   * Execute condition step
+   * Execute condition step/
    */
   private async executeCondition(step: StepDefinition): Promise<StepResult> {
     try {
-      const { conditions } = step.config
-      const result = this.evaluateConditions(conditions)
+      const { conditions } = step.config;
+      const result = this.evaluateConditions(conditions);
 
-      if (!result) {
-        // debug
+      if (!result) {/
+        // debug/
         // eslint-disable-next-line no-console
         console.debug('[playbook] condition failed for', step.id, 'conditions:', conditions, 'variables:', this.context.variables)
         return {
@@ -499,18 +499,18 @@ export class PlaybookExecutor {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        compensationRequired: false, // Conditions don't need compensation
+        error: error instanceof Error ? error.message : 'Unknown error',/
+        compensationRequired: false, // Conditions don't need compensation';
       }
     }
   }
-
+/
   /**
-   * Execute delay step
+   * Execute delay step/
    */
   private async executeDelay(step: StepDefinition): Promise<StepResult> {
     try {
-      const { duration } = step.config
+      const { duration } = step.config;
 
       await new Promise(resolve => setTimeout(resolve, duration))
 
@@ -521,18 +521,18 @@ export class PlaybookExecutor {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        compensationRequired: false, // Delays don't need compensation
+        error: error instanceof Error ? error.message : 'Unknown error',/
+        compensationRequired: false, // Delays don't need compensation';
       }
     }
   }
-
+/
   /**
-   * Evaluate conditions
+   * Evaluate conditions/
    */
   private evaluateConditions(conditions: Condition[]): boolean {
     return conditions.every(condition => {
-      const value = this.getVariableValue(condition.field)
+      const value = this.getVariableValue(condition.field);
 
       switch (condition.operator) {
         case 'equals':
@@ -553,19 +553,19 @@ export class PlaybookExecutor {
       }
     })
   }
-
+/
   /**
-   * Get variable value from context
+   * Get variable value from context/
    */
-  private getVariableValue(field: string): any {
+  private getVariableValue(field: string): any {/
     // Check context variables first
     if (this.context.variables[field] !== undefined) {
       return this.context.variables[field]
     }
-
+/
     // Check step results
-    const [stepId, resultField] = field.split('.')
-    const stepResult = this.context.stepResults.get(stepId)
+    const [stepId, resultField] = field.split('.');
+    const stepResult = this.context.stepResults.get(stepId);
 
     if (stepResult && stepResult.data) {
       return resultField ? stepResult.data[resultField] : stepResult.data
@@ -573,38 +573,38 @@ export class PlaybookExecutor {
 
     return undefined
   }
-
+/
   /**
-   * Execute compensations for failed steps
+   * Execute compensations for failed steps/
    */
   private async executeCompensations(failedSteps: [string, StepResult][]): Promise<void> {
     for (const [stepId, result] of failedSteps) {
-      const step = this.definition.steps.find(s => s.id === stepId)
+      const step = this.definition.steps.find(s => s.id === stepId);
       if (step?.compensation) {
         await this.executeCompensation(step, result)
       }
     }
   }
-
+/
   /**
-   * Execute all compensations
+   * Execute all compensations/
    */
   private async executeAllCompensations(): Promise<void> {
     for (const step of this.definition.steps) {
       if (step.compensation) {
-        const result = this.context.stepResults.get(step.id)
+        const result = this.context.stepResults.get(step.id);
         if (result && !result.success) {
           await this.executeCompensation(step, result)
         }
       }
     }
   }
-
+/
   /**
-   * Execute compensation for a step
+   * Execute compensation for a step/
    */
   private async executeCompensation(step: StepDefinition, originalResult: StepResult): Promise<void> {
-    const span = this.tracer.startSpan('playbook_execute_compensation')
+    const span = this.tracer.startSpan('playbook_execute_compensation');
 
     try {
       span.setAttributes({
@@ -613,18 +613,18 @@ export class PlaybookExecutor {
       })
 
       this.recordAuditEvent(step.id, 'compensation_start', 'running', undefined, step.compensation!.description)
-
+/
       // Execute compensation step
-      const compensationStep: StepDefinition = {
+      const compensationStep: StepDefinition = {;
         id: `${step.id}_compensation`,
         type: step.compensation!.type,
         name: `Compensation for ${step.name}`,
         config: step.compensation!.config,
       }
 
-      const result = await this.executeStepByType(compensationStep)
+      const result = await this.executeStepByType(compensationStep);
 
-      const status = result.success ? 'compensated' : 'failed'
+      const status = result.success ? 'compensated' : 'failed';
       this.recordAuditEvent(step.id, 'compensation_complete', status, result.data, result.error)
 
       logger.info('Compensation executed', {
@@ -635,7 +635,7 @@ export class PlaybookExecutor {
     } catch (error) {
       span.recordException(error as Error)
 
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       this.recordAuditEvent(step.id, 'compensation_error', 'failed', undefined, errorMessage)
 
       logger.error('Compensation execution failed', new Error(errorMessage), {
@@ -645,9 +645,9 @@ export class PlaybookExecutor {
       span.end()
     }
   }
-
+/
   /**
-   * Record audit event
+   * Record audit event/
    */
   private recordAuditEvent(
     stepId: string,
@@ -656,7 +656,7 @@ export class PlaybookExecutor {
     data?: any,
     error?: string
   ): void {
-    const event: AuditEvent = {
+    const event: AuditEvent = {;
       timestamp: new Date(),
       stepId,
       action,
@@ -673,13 +673,13 @@ export class PlaybookExecutor {
     this.context.auditTrail.push(event)
   }
 }
-
+/
 // Factory function to create playbook executor
-export function createPlaybookExecutor(
+export function createPlaybookExecutor(;
   definition: PlaybookDefinition,
   context: Omit<PlaybookContext, 'stepResults' | 'auditTrail'>
 ): PlaybookExecutor {
-  const fullContext: PlaybookContext = {
+  const fullContext: PlaybookContext = {;
     ...context,
     stepResults: new Map(),
     auditTrail: [],
@@ -687,3 +687,4 @@ export function createPlaybookExecutor(
 
   return new PlaybookExecutor(definition, fullContext)
 }
+/

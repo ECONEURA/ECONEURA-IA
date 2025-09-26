@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { prometheus } from '@econeura/shared/src/metrics/index.js';
 
 export interface ConfigSchema {
   [key: string]: z.ZodTypeAny;

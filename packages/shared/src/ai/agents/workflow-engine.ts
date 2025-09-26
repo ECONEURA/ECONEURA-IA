@@ -1,11 +1,11 @@
 import { BusinessAction, UserInteraction } from './autonomous-agent';
 
-export interface WorkflowConfig {
+export interface WorkflowConfig {;
   agentId: string;
   capabilities: string[];
 }
 
-export interface WorkflowStep {
+export interface WorkflowStep {;
   id: string;
   name: string;
   type: 'action' | 'decision' | 'parallel' | 'conditional';
@@ -14,14 +14,14 @@ export interface WorkflowStep {
   conditions?: WorkflowCondition[];
 }
 
-export interface WorkflowCondition {
+export interface WorkflowCondition {;
   field: string;
   operator: 'equals' | 'contains' | 'greater' | 'less' | 'regex';
   value: any;
   nextStep: string;
 }
 
-export interface WorkflowExecution {
+export interface WorkflowExecution {;
   id: string;
   workflowId: string;
   status: 'running' | 'completed' | 'failed' | 'paused';
@@ -32,7 +32,7 @@ export interface WorkflowExecution {
   result?: any;
 }
 
-export interface WorkflowStepExecution {
+export interface WorkflowStepExecution {;
   stepId: string;
   startTime: Date;
   endTime?: Date;
@@ -40,12 +40,12 @@ export interface WorkflowStepExecution {
   result?: any;
   error?: string;
 }
-
+/
 /**
  * Motor de Workflows Inteligente para Agentes IA
- * Gestiona la ejecución automática y optimización de procesos de negocio
+ * Gestiona la ejecución automática y optimización de procesos de negocio/
  */
-export class WorkflowEngine {
+export class WorkflowEngine {;
   private config: WorkflowConfig;
   private workflows: Map<string, WorkflowDefinition> = new Map();
   private activeExecutions: Map<string, WorkflowExecution> = new Map();
@@ -55,22 +55,22 @@ export class WorkflowEngine {
     this.config = config;
     this.initializeDefaultWorkflows();
   }
-
+/
   /**
-   * Ejecuta una acción de negocio a través de workflows optimizados
+   * Ejecuta una acción de negocio a través de workflows optimizados/
    */
   async execute(action: BusinessAction): Promise<{ success: boolean; data?: any }> {
     try {
       const workflow = await this.selectOptimalWorkflow(action);
 
-      if (!workflow) {
+      if (!workflow) {/
         // Ejecutar acción directamente si no hay workflow
         return await this.executeDirectAction(action);
       }
 
       const execution = await this.createExecution(workflow, action);
       const result = await this.runExecution(execution);
-
+/
       // Registrar métricas de rendimiento
       this.updatePerformanceMetrics(workflow.id, execution);
 
@@ -84,9 +84,9 @@ export class WorkflowEngine {
       return { success: false };
     }
   }
-
+/
   /**
-   * Optimiza workflows basados en interacciones del usuario
+   * Optimiza workflows basados en interacciones del usuario/
    */
   async optimize(interaction: UserInteraction): Promise<void> {
     const relevantWorkflows = this.findRelevantWorkflows(interaction);
@@ -95,9 +95,9 @@ export class WorkflowEngine {
       await this.optimizeWorkflow(workflow, interaction);
     }
   }
-
+/
   /**
-   * Optimiza workflows basados en patrones detectados
+   * Optimiza workflows basados en patrones detectados/
    */
   async optimizePatterns(patterns: any[]): Promise<void> {
     for (const pattern of patterns) {
@@ -108,20 +108,20 @@ export class WorkflowEngine {
       }
     }
   }
-
+/
   /**
-   * Obtiene métricas de rendimiento de workflows
+   * Obtiene métricas de rendimiento de workflows/
    */
   getMetrics(): Record<string, any> {
     const metrics = Array.from(this.performanceMetrics.values());
     const totalExecutions = metrics.reduce((sum, m) => sum + m.totalExecutions, 0);
-    const successfulExecutions = metrics.reduce((sum, m) => sum + m.successfulExecutions, 0);
+    const successfulExecutions = metrics.reduce((sum, m) => sum + m.successfulExecutions, 0);/;
     const avgExecutionTime = metrics.reduce((sum, m) => sum + m.avgExecutionTime, 0) / metrics.length;
 
     return {
       totalWorkflows: this.workflows.size,
       activeExecutions: this.activeExecutions.size,
-      totalExecutions,
+      totalExecutions,/
       successRate: totalExecutions > 0 ? successfulExecutions / totalExecutions : 0,
       avgExecutionTime: avgExecutionTime || 0,
       workflowMetrics: Object.fromEntries(this.performanceMetrics)
@@ -129,7 +129,7 @@ export class WorkflowEngine {
   }
 
   private async selectOptimalWorkflow(action: BusinessAction): Promise<WorkflowDefinition | null> {
-    const candidates = Array.from(this.workflows.values())
+    const candidates = Array.from(this.workflows.values());
       .filter(workflow => this.canHandleAction(workflow, action))
       .sort((a, b) => this.compareWorkflowPerformance(a, b));
 
@@ -148,22 +148,22 @@ export class WorkflowEngine {
     if (!metricsA && !metricsB) return 0;
     if (!metricsA) return 1;
     if (!metricsB) return -1;
-
-    // Comparar por tasa de éxito y tiempo de ejecución
-    const scoreA = metricsA.successRate * 0.7 + (1 / metricsA.avgExecutionTime) * 0.3;
+/
+    // Comparar por tasa de éxito y tiempo de ejecución/
+    const scoreA = metricsA.successRate * 0.7 + (1 / metricsA.avgExecutionTime) * 0.3;/;
     const scoreB = metricsB.successRate * 0.7 + (1 / metricsB.avgExecutionTime) * 0.3;
-
+/
     return scoreB - scoreA; // Mayor score primero
   }
 
-  private async executeDirectAction(action: BusinessAction): Promise<{ success: boolean; data?: any }> {
+  private async executeDirectAction(action: BusinessAction): Promise<{ success: boolean; data?: any }> {/
     // Implementación básica de ejecución directa
     console.log(`Ejecutando acción directa: ${action.type}`);
-
+/
     // Simular procesamiento
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    return {
+    return {/
       success: Math.random() > 0.1, // 90% de éxito simulado
       data: { action: action.type, processed: true }
     };
@@ -172,7 +172,7 @@ export class WorkflowEngine {
   private async createExecution(workflow: WorkflowDefinition, action: BusinessAction): Promise<WorkflowExecution> {
     const executionId = `exec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    const execution: WorkflowExecution = {
+    const execution: WorkflowExecution = {;
       id: executionId,
       workflowId: workflow.id,
       status: 'running',
@@ -222,13 +222,13 @@ export class WorkflowEngine {
   }
 
   private async executeStep(step: WorkflowStep, execution: WorkflowExecution): Promise<WorkflowStepExecution> {
-    const stepExecution: WorkflowStepExecution = {
+    const stepExecution: WorkflowStepExecution = {;
       stepId: step.id,
       startTime: new Date(),
       status: 'running'
     };
 
-    try {
+    try {/
       // Ejecutar el paso según su tipo
       switch (step.type) {
         case 'action':
@@ -256,20 +256,20 @@ export class WorkflowEngine {
     return stepExecution;
   }
 
-  private async executeActionStep(step: WorkflowStep): Promise<any> {
+  private async executeActionStep(step: WorkflowStep): Promise<any> {/
     // Implementación de ejecución de acciones
     console.log(`Ejecutando paso de acción: ${step.name}`);
     await new Promise(resolve => setTimeout(resolve, 50));
     return { executed: true, step: step.id };
   }
 
-  private async executeDecisionStep(step: WorkflowStep): Promise<any> {
+  private async executeDecisionStep(step: WorkflowStep): Promise<any> {/
     // Implementación de decisiones
     console.log(`Ejecutando paso de decisión: ${step.name}`);
     return { decision: 'proceed', confidence: 0.85 };
   }
 
-  private async executeConditionalStep(step: WorkflowStep): Promise<any> {
+  private async executeConditionalStep(step: WorkflowStep): Promise<any> {/
     // Implementación de condicionales
     console.log(`Ejecutando paso condicional: ${step.name}`);
     return { condition: true, branch: 'success' };
@@ -307,7 +307,7 @@ export class WorkflowEngine {
   }
 
   private updatePerformanceMetrics(workflowId: string, execution: WorkflowExecution): void {
-    const metrics = this.performanceMetrics.get(workflowId) || {
+    const metrics = this.performanceMetrics.get(workflowId) || {;
       totalExecutions: 0,
       successfulExecutions: 0,
       failedExecutions: 0,
@@ -323,12 +323,12 @@ export class WorkflowEngine {
       metrics.failedExecutions++;
     }
 
-    const executionTime = execution.endTime ?
+    const executionTime = execution.endTime ?;
       execution.endTime.getTime() - execution.startTime.getTime() : 0;
 
-    metrics.avgExecutionTime =
+    metrics.avgExecutionTime =/
       (metrics.avgExecutionTime * (metrics.totalExecutions - 1) + executionTime) / metrics.totalExecutions;
-
+/
     metrics.successRate = metrics.successfulExecutions / metrics.totalExecutions;
 
     this.performanceMetrics.set(workflowId, metrics);
@@ -339,26 +339,26 @@ export class WorkflowEngine {
       .filter(workflow => workflow.capabilities.includes(interaction.action));
   }
 
-  private async optimizeWorkflow(workflow: WorkflowDefinition, interaction: UserInteraction): Promise<void> {
-    // Implementación básica de optimización
-    // En una implementación real, esto ajustaría los pasos del workflow
+  private async optimizeWorkflow(workflow: WorkflowDefinition, interaction: UserInteraction): Promise<void> {/
+    // Implementación básica de optimización/
+    // En una implementación real, esto ajustaría los pasos del workflow/
     // basado en el rendimiento y feedback de las interacciones
     console.log(`Optimizando workflow ${workflow.id} basado en interacción ${interaction.action}`);
   }
 
-  private async optimizeForFrequency(frequencyData: Record<string, number>): Promise<void> {
+  private async optimizeForFrequency(frequencyData: Record<string, number>): Promise<void> {/
     // Optimizar workflows basados en frecuencia de acciones
     console.log('Optimizando workflows por frecuencia de acciones');
   }
 
-  private async optimizeForSequences(sequenceData: any[]): Promise<void> {
+  private async optimizeForSequences(sequenceData: any[]): Promise<void> {/
     // Optimizar workflows basados en secuencias de acciones
     console.log('Optimizando workflows por secuencias de acciones');
   }
 
-  private initializeDefaultWorkflows(): void {
+  private initializeDefaultWorkflows(): void {/
     // Workflow básico para procesamiento de pedidos
-    const orderProcessingWorkflow: WorkflowDefinition = {
+    const orderProcessingWorkflow: WorkflowDefinition = {;
       id: 'order-processing',
       name: 'Procesamiento de Pedidos',
       capabilities: ['process-order', 'validate-order', 'ship-order'],
@@ -412,4 +412,4 @@ interface WorkflowMetrics {
   failedExecutions: number;
   avgExecutionTime: number;
   successRate: number;
-}
+}/

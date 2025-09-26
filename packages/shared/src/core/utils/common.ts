@@ -1,7 +1,7 @@
 /**
- * Type assertion to ensure value is defined
+ * Type assertion to ensure value is defined/
  */
-export function assertDefined<T>(
+export function assertDefined<T>(;
   value: T | undefined | null,
   message = 'Value is undefined'
 ): asserts value is T {
@@ -9,11 +9,11 @@ export function assertDefined<T>(
     throw new Error(message);
   }
 }
-
+/
 /**
- * Type assertion to ensure value is truthy
+ * Type assertion to ensure value is truthy/
  */
-export function assertTrue(
+export function assertTrue(;
   value: unknown,
   message = 'Assertion failed'
 ): asserts value {
@@ -21,18 +21,18 @@ export function assertTrue(
     throw new Error(message);
   }
 }
-
+/
 /**
- * Delay execution for specified milliseconds
+ * Delay execution for specified milliseconds/
  */
-export function delay(ms: number): Promise<void> {
+export function delay(ms: number): Promise<void> {;
   return new Promise(resolve => setTimeout(resolve, ms));
 }
-
+/
 /**
- * Retry a function with exponential backoff
+ * Retry a function with exponential backoff/
  */
-export async function retry<T>(
+export async function retry<T>(;
   fn: () => Promise<T>,
   options: {
     maxAttempts?: number;
@@ -42,7 +42,7 @@ export async function retry<T>(
     shouldRetry?: (error: unknown) => boolean;
   } = {}
 ): Promise<T> {
-  const {
+  const {;
     maxAttempts = 3,
     initialDelay = 1000,
     maxDelay = 10000,
@@ -67,26 +67,26 @@ export async function retry<T>(
     }
   }
 }
-
+/
 /**
- * Wrap a promise with a timeout
+ * Wrap a promise with a timeout/
  */
-export function withTimeout<T>(
+export function withTimeout<T>(;
   promise: Promise<T>,
   timeoutMs: number,
   message = 'Operation timed out'
 ): Promise<T> {
-  const timeoutPromise = delay(timeoutMs).then(() => {
+  const timeoutPromise = delay(timeoutMs).then(() => {;
     throw new Error(message);
   });
 
   return Promise.race([promise, timeoutPromise]);
 }
-
+/
 /**
- * Memoize a function
+ * Memoize a function/
  */
-export function memoize<T extends (...args: any[]) => any>(
+export function memoize<T extends (...args: any[]) => any>(;
   fn: T,
   options: {
     maxSize?: number;
@@ -121,12 +121,12 @@ export function memoize<T extends (...args: any[]) => any>(
     return value;
   }) as T;
 }
-
+/
 /**
- * Chunk an array into smaller arrays
+ * Chunk an array into smaller arrays/
  */
-export function chunk<T>(array: T[], size: number): T[][] {
-  return array.reduce((chunks, item, index) => {
+export function chunk<T>(array: T[], size: number): T[][] {;
+  return array.reduce((chunks, item, index) => {/
     const chunkIndex = Math.floor(index / size);
 
     if (!chunks[chunkIndex]) {
@@ -137,18 +137,18 @@ export function chunk<T>(array: T[], size: number): T[][] {
     return chunks;
   }, [] as T[][]);
 }
-
+/
 /**
- * Debounce a function
+ * Debounce a function/
  */
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: any[]) => any>(;
   fn: T,
   wait: number
 ): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout | undefined;
 
   return (...args: Parameters<T>): void => {
-    const later = () => {
+    const later = () => {;
       clearTimeout(timeout);
       fn(...args);
     };
@@ -157,11 +157,11 @@ export function debounce<T extends (...args: any[]) => any>(
     timeout = setTimeout(later, wait);
   };
 }
-
+/
 /**
- * Throttle a function
+ * Throttle a function/
  */
-export function throttle<T extends (...args: any[]) => any>(
+export function throttle<T extends (...args: any[]) => any>(;
   fn: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -186,3 +186,4 @@ export function throttle<T extends (...args: any[]) => any>(
     }, wait);
   };
 }
+/

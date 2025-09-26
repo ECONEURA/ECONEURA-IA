@@ -1,5 +1,6 @@
-import { structuredLogger } from '../lib/structured-logger.js';
 import { getDatabaseService } from '@econeura/db';
+
+import { structuredLogger } from '../lib/structured-logger.js';
 export class AIModelManagementService {
     db;
     models = new Map();

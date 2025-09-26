@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { structuredLogger } from './structured-logger.js';
 
 export const PromptDefinitionSchema = z.object({

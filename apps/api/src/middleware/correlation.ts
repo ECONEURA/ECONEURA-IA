@@ -9,17 +9,11 @@ import {
   extractTraceId,
   extractSpanId,
   extractParentSpanId,
-  createCorrelationContext,
-  createCorrelationHeaders,
-  propagateCorrelationId,
   createChildSpan,
-  addCorrelationToLog,
   createLogContext,
-  getCorrelationIdFromRequest,
   setCorrelationIdOnResponse,
   addCorrelationToRequest,
   withCorrelationContext,
-  getCurrentCorrelationContext,
   CorrelationContext,
 } from '@econeura/shared/correlation';
 

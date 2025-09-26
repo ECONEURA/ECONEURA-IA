@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { memoryController } from '../controllers/memory.controller.js';
 const router = Router();
 router.post('/put', memoryController.putMemory.bind(memoryController));

@@ -8,6 +8,7 @@
 
 import { trace, context, Span, SpanKind, SpanStatusCode, Tracer, metrics, Meter } from '@opentelemetry/api';
 import { Request, Response, NextFunction } from 'express';
+
 import { structuredLogger } from '../lib/structured-logger.js';
 
 // Interfaces para observabilidad

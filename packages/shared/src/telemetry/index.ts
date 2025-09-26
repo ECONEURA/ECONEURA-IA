@@ -1,26 +1,26 @@
-// ============================================================================
-// TELEMETRY & OBSERVABILITY - CLIENT-SIDE INSTRUMENTATION
+// ============================================================================/
+// TELEMETRY & OBSERVABILITY - CLIENT-SIDE INSTRUMENTATION/
 // ============================================================================
 
 import { z } from 'zod';
-
+/
+// ============================================================================/
+// TELEMETRY SCHEMAS/
 // ============================================================================
-// TELEMETRY SCHEMAS
-// ============================================================================
 
-export const TelemetryConfigSchema = z.object({
+export const TelemetryConfigSchema = z.object({;
   enabled: z.boolean().default(true),
   endpoint: z.string().url().optional(),
   apiKey: z.string().optional(),
   sampleRate: z.number().min(0).max(1).default(1.0),
-  batchSize: z.number().min(1).max(1000).default(100),
+  batchSize: z.number().min(1).max(1000).default(100),/
   flushInterval: z.number().min(1000).default(5000), // ms
   maxRetries: z.number().min(0).max(10).default(3),
   privacyMode: z.boolean().default(true),
   debugMode: z.boolean().default(false)
 });
 
-export const TelemetryEventSchema = z.object({
+export const TelemetryEventSchema = z.object({;
   id: z.string().uuid(),
   type: z.enum(['page_view', 'user_action', 'performance', 'error', 'custom']),
   name: z.string().min(1),
@@ -38,7 +38,7 @@ export const TelemetryEventSchema = z.object({
   }).default({})
 });
 
-export const PerformanceMetricsSchema = z.object({
+export const PerformanceMetricsSchema = z.object({;
   pageLoadTime: z.number().optional(),
   domContentLoaded: z.number().optional(),
   firstContentfulPaint: z.number().optional(),
@@ -50,7 +50,7 @@ export const PerformanceMetricsSchema = z.object({
   renderTime: z.number().optional()
 });
 
-export const UserActionSchema = z.object({
+export const UserActionSchema = z.object({;
   action: z.string().min(1),
   element: z.string().optional(),
   page: z.string().optional(),
@@ -59,7 +59,7 @@ export const UserActionSchema = z.object({
   success: z.boolean().default(true)
 });
 
-export const ErrorEventSchema = z.object({
+export const ErrorEventSchema = z.object({;
   message: z.string().min(1),
   stack: z.string().optional(),
   filename: z.string().optional(),
@@ -69,9 +69,9 @@ export const ErrorEventSchema = z.object({
   context: z.record(z.any()).default({}),
   severity: z.enum(['low', 'medium', 'high', 'critical']).default('medium')
 });
-
-// ============================================================================
-// TYPES
+/
+// ============================================================================/
+// TYPES/
 // ============================================================================
 
 export type TelemetryConfig = z.infer<typeof TelemetryConfigSchema>;
@@ -79,12 +79,12 @@ export type TelemetryEvent = z.infer<typeof TelemetryEventSchema>;
 export type PerformanceMetrics = z.infer<typeof PerformanceMetricsSchema>;
 export type UserAction = z.infer<typeof UserActionSchema>;
 export type ErrorEvent = z.infer<typeof ErrorEventSchema>;
-
+/
+// ============================================================================/
+// TELEMETRY SERVICE/
 // ============================================================================
-// TELEMETRY SERVICE
-// ============================================================================
 
-export class TelemetryService {
+export class TelemetryService {;
   private config: TelemetryConfig;
   private events: TelemetryEvent[] = [];
   private sessionId: string;
@@ -103,9 +103,9 @@ export class TelemetryService {
       this.setupErrorHandlers();
     }
   }
-
-  // ============================================================================
-  // CORE METHODS
+/
+  // ============================================================================/
+  // CORE METHODS/
   // ============================================================================
 
   setUser(userId: string, organizationId?: string): void {
@@ -118,13 +118,13 @@ export class TelemetryService {
     name: string,
     properties: Record<string, any> = {},
     metrics: Record<string, number> = {},
-    tags: string[] = []
+    tags: string[] = []);
   ): void {
     if (!this.config.enabled || !this.shouldSample()) {
       return;
     }
 
-    const event: TelemetryEvent = {
+    const event: TelemetryEvent = {;
       id: this.generateId(),
       type,
       name,
@@ -165,7 +165,7 @@ export class TelemetryService {
   }
 
   trackError(error: Error | string, context: Record<string, any> = {}): void {
-    const errorEvent: ErrorEvent = {
+    const errorEvent: ErrorEvent = {;
       message: typeof error === 'string' ? error : error.message,
       stack: typeof error === 'object' ? error.stack : undefined,
       context,
@@ -183,16 +183,16 @@ export class TelemetryService {
   trackCustom(name: string, properties: Record<string, any> = {}, metrics: Record<string, number> = {}): void {
     this.trackEvent('custom', name, properties, metrics);
   }
-
-  // ============================================================================
-  // PERFORMANCE MONITORING
+/
+  // ============================================================================/
+  // PERFORMANCE MONITORING/
   // ============================================================================
 
   private setupPerformanceObserver(): void {
     if (typeof window === 'undefined' || !('PerformanceObserver' in window)) {
       return;
     }
-
+/
     // Page Load Performance
     window.addEventListener('load', () => {
       setTimeout(() => {
@@ -211,9 +211,9 @@ export class TelemetryService {
         }
       }, 1000);
     });
-
+/
     // Resource Performance
-    const resourceObserver = new PerformanceObserver((list) => {
+    const resourceObserver = new PerformanceObserver((list) => {;
       for (const entry of list.getEntries()) {
         if (entry.entryType === 'resource') {
           this.trackCustom('resource_load', {
@@ -231,7 +231,7 @@ export class TelemetryService {
 
     try {
       resourceObserver.observe({ entryTypes: ['resource'] });
-    } catch (e) {
+    } catch (e) {/
       // PerformanceObserver not supported
     }
   }
@@ -270,14 +270,14 @@ export class TelemetryService {
     if (url.includes('.woff') || url.includes('.ttf')) return 'font';
     return 'other';
   }
-
-  // ============================================================================
-  // ERROR HANDLING
+/
+  // ============================================================================/
+  // ERROR HANDLING/
   // ============================================================================
 
   private setupErrorHandlers(): void {
     if (typeof window === 'undefined') return;
-
+/
     // Global Error Handler
     window.addEventListener('error', (event) => {
       this.trackError(event.error || event.message, {
@@ -287,7 +287,7 @@ export class TelemetryService {
         type: 'javascript_error'
       });
     });
-
+/
     // Unhandled Promise Rejection
     window.addEventListener('unhandledrejection', (event) => {
       this.trackError(event.reason, {
@@ -295,7 +295,7 @@ export class TelemetryService {
         promise: event.promise
       });
     });
-
+/
     // Resource Loading Errors
     window.addEventListener('error', (event) => {
       if (event.target !== window) {
@@ -307,9 +307,9 @@ export class TelemetryService {
       }
     }, true);
   }
-
-  // ============================================================================
-  // PRIVACY & SANITIZATION
+/
+  // ============================================================================/
+  // PRIVACY & SANITIZATION/
   // ============================================================================
 
   private sanitizeProperties(properties: Record<string, any>): Record<string, any> {
@@ -334,9 +334,9 @@ export class TelemetryService {
 
   private isPII(key: string, value: any): boolean {
     const piiKeys = ['email', 'phone', 'ssn', 'credit_card', 'password', 'token'];
-    const piiPatterns = [
-      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, // Email
-      /^\d{3}-\d{2}-\d{4}$/, // SSN
+    const piiPatterns = [/;
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, // Email/
+      /^\d{3}-\d{2}-\d{4}$/, // SSN/
       /^\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}$/ // Credit card
     ];
 
@@ -351,7 +351,7 @@ export class TelemetryService {
 
   private anonymizeValue(value: any): string {
     if (typeof value === 'string') {
-      if (value.includes('@')) {
+      if (value.includes('@')) {/
         // Email anonymization
         const [local, domain] = value.split('@');
         return `${local.substring(0, 2)}***@${domain}`;
@@ -383,9 +383,9 @@ export class TelemetryService {
 
     return { pii, sensitive, anonymized };
   }
-
-  // ============================================================================
-  // BATCHING & FLUSHING
+/
+  // ============================================================================/
+  // BATCHING & FLUSHING/
   // ============================================================================
 
   private shouldSample(): boolean {
@@ -416,7 +416,7 @@ export class TelemetryService {
 
     try {
       await this.sendEvents(eventsToFlush);
-    } catch (error) {
+    } catch (error) {/
       // Re-add events to queue if send fails
       this.events.unshift(...eventsToFlush);
       console.warn('Failed to send telemetry events:', error);
@@ -427,15 +427,15 @@ export class TelemetryService {
 
   private async sendEvents(events: TelemetryEvent[]): Promise<void> {
     if (!this.config.endpoint) {
-      if (this.config.debugMode) {
+      if (this.config.debugMode) {/
         // Debug mode enabled but no endpoint configured
       }
       return;
     }
 
-    const response = await fetch(this.config.endpoint, {
+    const response = await fetch(this.config.endpoint, {;
       method: 'POST',
-      headers: {
+      headers: {/
         'Content-Type': 'application/json',
         ...(this.config.apiKey && { 'Authorization': `Bearer ${this.config.apiKey}` })
       },
@@ -450,9 +450,9 @@ export class TelemetryService {
       throw new Error(`Failed to send telemetry: ${response.status}`);
     }
   }
-
-  // ============================================================================
-  // UTILITIES
+/
+  // ============================================================================/
+  // UTILITIES/
   // ============================================================================
 
   private generateId(): string {
@@ -467,33 +467,33 @@ export class TelemetryService {
     return window.location.pathname;
   }
 
-  private getCurrentLineNumber(): number | undefined {
+  private getCurrentLineNumber(): number | undefined {/
     return undefined; // Not available in client-side
   }
 
-  private getCurrentColumnNumber(): number | undefined {
+  private getCurrentColumnNumber(): number | undefined {/
     return undefined; // Not available in client-side
   }
-
-  // ============================================================================
-  // CLEANUP
+/
+  // ============================================================================/
+  // CLEANUP/
   // ============================================================================
 
   destroy(): void {
     if (this.flushTimer) {
       clearInterval(this.flushTimer);
-    }
+    }/
     this.flush(); // Final flush
   }
 }
-
-// ============================================================================
-// GLOBAL INSTANCE
+/
+// ============================================================================/
+// GLOBAL INSTANCE/
 // ============================================================================
 
 let globalTelemetry: TelemetryService | null = null;
 
-export function initializeTelemetry(config: Partial<TelemetryConfig> = {}): TelemetryService {
+export function initializeTelemetry(config: Partial<TelemetryConfig> = {}): TelemetryService {;
   if (globalTelemetry) {
     return globalTelemetry;
   }
@@ -502,30 +502,31 @@ export function initializeTelemetry(config: Partial<TelemetryConfig> = {}): Tele
   return globalTelemetry;
 }
 
-export function getTelemetry(): TelemetryService | null {
+export function getTelemetry(): TelemetryService | null {;
   return globalTelemetry;
 }
-
+/
+// ============================================================================/
+// CONVENIENCE FUNCTIONS/
 // ============================================================================
-// CONVENIENCE FUNCTIONS
-// ============================================================================
 
-export function trackPageView(page: string, properties?: Record<string, any>): void {
+export function trackPageView(page: string, properties?: Record<string, any>): void {;
   getTelemetry()?.trackPageView(page, properties);
 }
 
-export function trackUserAction(action: string, element?: string, context?: Record<string, any>): void {
+export function trackUserAction(action: string, element?: string, context?: Record<string, any>): void {;
   getTelemetry()?.trackUserAction(action, element, context);
 }
 
-export function trackError(error: Error | string, context?: Record<string, any>): void {
+export function trackError(error: Error | string, context?: Record<string, any>): void {;
   getTelemetry()?.trackError(error, context);
 }
 
-export function trackCustom(name: string, properties?: Record<string, any>, metrics?: Record<string, number>): void {
+export function trackCustom(name: string, properties?: Record<string, any>, metrics?: Record<string, number>): void {;
   getTelemetry()?.trackCustom(name, properties, metrics);
 }
 
-export function setTelemetryUser(userId: string, organizationId?: string): void {
+export function setTelemetryUser(userId: string, organizationId?: string): void {;
   getTelemetry()?.setUser(userId, organizationId);
 }
+/

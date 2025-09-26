@@ -1,7 +1,6 @@
 import { InventoryKardex } from '../../../domain/entities/inventory-kardex.entity.js';
 import { InventoryKardexRepository } from '../../../domain/repositories/inventory-kardex.repository.js';
 import { BaseUseCase, BaseRequest, BaseResponse } from '../base.use-case.js';
-import { Money } from '../../../domain/value-objects/money.vo.js';
 
 // ============================================================================
 // UPDATE INVENTORY KARDEX USE CASE

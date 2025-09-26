@@ -1,12 +1,12 @@
 /**
  * Service Discovery for ECONEURA
  * 
- * Manages service registration, health checks, and inter-service communication
+ * Manages service registration, health checks, and inter-service communication/
  */
 
 import { EventEmitter } from 'events';
 
-export interface ServiceInfo {
+export interface ServiceInfo {;
   id: string;
   name: string;
   type: 'api' | 'workers' | 'web' | 'db';
@@ -18,7 +18,7 @@ export interface ServiceInfo {
   metadata: Record<string, any>;
 }
 
-export interface ServiceEndpoint {
+export interface ServiceEndpoint {;
   serviceId: string;
   endpoint: string;
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -26,7 +26,7 @@ export interface ServiceEndpoint {
   requiresAuth: boolean;
 }
 
-export class ServiceDiscovery extends EventEmitter {
+export class ServiceDiscovery extends EventEmitter {;
   private services: Map<string, ServiceInfo> = new Map();
   private endpoints: Map<string, ServiceEndpoint[]> = new Map();
   private healthCheckInterval: NodeJS.Timeout | null = null;
@@ -37,9 +37,9 @@ export class ServiceDiscovery extends EventEmitter {
     this.startHealthChecks();
     this.startHeartbeat();
   }
-
+/
   /**
-   * Register a service
+   * Register a service/
    */
   registerService(serviceInfo: ServiceInfo): void {
     this.services.set(serviceInfo.id, {
@@ -50,9 +50,9 @@ export class ServiceDiscovery extends EventEmitter {
     this.emit('serviceRegistered', serviceInfo);
     
   }
-
+/
   /**
-   * Unregister a service
+   * Unregister a service/
    */
   unregisterService(serviceId: string): void {
     const service = this.services.get(serviceId);
@@ -63,9 +63,9 @@ export class ServiceDiscovery extends EventEmitter {
       
     }
   }
-
+/
   /**
-   * Update service heartbeat
+   * Update service heartbeat/
    */
   updateHeartbeat(serviceId: string): void {
     const service = this.services.get(serviceId);
@@ -74,45 +74,45 @@ export class ServiceDiscovery extends EventEmitter {
       service.status = 'healthy';
     }
   }
-
+/
   /**
-   * Get service by ID
+   * Get service by ID/
    */
   getService(serviceId: string): ServiceInfo | undefined {
     return this.services.get(serviceId);
   }
-
+/
   /**
-   * Get all services of a type
+   * Get all services of a type/
    */
   getServicesByType(type: ServiceInfo['type']): ServiceInfo[] {
     return Array.from(this.services.values()).filter(service => service.type === type);
   }
-
+/
   /**
-   * Get healthy services of a type
+   * Get healthy services of a type/
    */
   getHealthyServicesByType(type: ServiceInfo['type']): ServiceInfo[] {
     return this.getServicesByType(type).filter(service => service.status === 'healthy');
   }
-
+/
   /**
-   * Register service endpoints
+   * Register service endpoints/
    */
   registerEndpoints(serviceId: string, endpoints: ServiceEndpoint[]): void {
     this.endpoints.set(serviceId, endpoints);
     this.emit('endpointsRegistered', { serviceId, endpoints });
   }
-
+/
   /**
-   * Get service endpoints
+   * Get service endpoints/
    */
   getServiceEndpoints(serviceId: string): ServiceEndpoint[] {
     return this.endpoints.get(serviceId) || [];
   }
-
+/
   /**
-   * Find endpoint by description
+   * Find endpoint by description/
    */
   findEndpointByDescription(description: string): ServiceEndpoint | undefined {
     for (const endpoints of this.endpoints.values()) {
@@ -121,9 +121,9 @@ export class ServiceDiscovery extends EventEmitter {
     }
     return undefined;
   }
-
+/
   /**
-   * Get service URL
+   * Get service URL/
    */
   getServiceUrl(serviceId: string, path: string = ''): string | null {
     const service = this.services.get(serviceId);
@@ -131,30 +131,30 @@ export class ServiceDiscovery extends EventEmitter {
       return null;
     }
 
-    const protocol = service.port === 443 ? 'https' : 'http';
+    const protocol = service.port === 443 ? 'https' : 'http';/;
     return `${protocol}://${service.host}:${service.port}${path}`;
   }
-
+/
   /**
-   * Start health checks
+   * Start health checks/
    */
   private startHealthChecks(): void {
     this.healthCheckInterval = setInterval(() => {
-      this.performHealthChecks();
+      this.performHealthChecks();/
     }, 30000); // Check every 30 seconds
   }
-
+/
   /**
-   * Start heartbeat
+   * Start heartbeat/
    */
   private startHeartbeat(): void {
     this.heartbeatInterval = setInterval(() => {
-      this.emitHeartbeat();
+      this.emitHeartbeat();/
     }, 10000); // Heartbeat every 10 seconds
   }
-
+/
   /**
-   * Perform health checks on all services
+   * Perform health checks on all services/
    */
   private async performHealthChecks(): Promise<void> {
     const services = Array.from(this.services.values());
@@ -178,16 +178,16 @@ export class ServiceDiscovery extends EventEmitter {
       }
     }
   }
-
+/
   /**
-   * Check if a service is healthy
+   * Check if a service is healthy/
    */
   private async checkServiceHealth(service: ServiceInfo): Promise<boolean> {
-    try {
+    try {/
       const url = this.getServiceUrl(service.id, '/health');
       if (!url) return false;
 
-      const response = await fetch(url, {
+      const response = await fetch(url, {;
         method: 'GET',
         timeout: 5000
       });
@@ -197,9 +197,9 @@ export class ServiceDiscovery extends EventEmitter {
       return false;
     }
   }
-
+/
   /**
-   * Emit heartbeat event
+   * Emit heartbeat event/
    */
   private emitHeartbeat(): void {
     this.emit('heartbeat', {
@@ -208,9 +208,9 @@ export class ServiceDiscovery extends EventEmitter {
       healthyServices: Array.from(this.services.values()).filter(s => s.status === 'healthy').length
     });
   }
-
+/
   /**
-   * Get service statistics
+   * Get service statistics/
    */
   getStats(): {
     totalServices: number;
@@ -222,7 +222,7 @@ export class ServiceDiscovery extends EventEmitter {
     const healthyServices = services.filter(s => s.status === 'healthy').length;
     const unhealthyServices = services.filter(s => s.status === 'unhealthy').length;
     
-    const servicesByType = services.reduce((acc, service) => {
+    const servicesByType = services.reduce((acc, service) => {;
       acc[service.type] = (acc[service.type] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
@@ -234,9 +234,9 @@ export class ServiceDiscovery extends EventEmitter {
       servicesByType
     };
   }
-
+/
   /**
-   * Cleanup
+   * Cleanup/
    */
   destroy(): void {
     if (this.healthCheckInterval) {
@@ -248,6 +248,7 @@ export class ServiceDiscovery extends EventEmitter {
     this.removeAllListeners();
   }
 }
-
+/
 // Singleton instance
 export const serviceDiscovery = new ServiceDiscovery();
+/

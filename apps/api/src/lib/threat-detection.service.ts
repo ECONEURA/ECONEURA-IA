@@ -14,8 +14,6 @@ import {
   ThreatResponseAction,
   SecurityIncident,
   IncidentAction,
-  IncidentTimelineEvent,
-  IncidentEvidence,
   CreateSecurityIncidentRequest,
   ThreatDetectionConfig
 } from './security-types.js';

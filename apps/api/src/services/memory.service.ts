@@ -1,5 +1,6 @@
-import { memoryRepo, MemoryPutRequest, MemoryQueryRequest } from '../db/memory.repo.js';
 import { z } from 'zod';
+
+import { memoryRepo, MemoryPutRequest, MemoryQueryRequest } from '../db/memory.repo.js';
 
 export class MemoryService {
   async putMemory(request: MemoryPutRequest, idempotencyKey?: string) {

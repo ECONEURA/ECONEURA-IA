@@ -1,5 +1,5 @@
 // packages/shared/src/ai/agents/types.ts
-export interface AgentContext {
+export interface AgentContext {;
   id: string;
   name: string;
   role: string;
@@ -10,16 +10,16 @@ export interface AgentContext {
   confidence: number;
 }
 
-export interface LearningEvent {
+export interface LearningEvent {;
   timestamp: Date;
   action: string;
-  result: 'success' | 'failure' | 'partial';
+  result: 'success' | 'failure' | 'partial';/
   feedback: number; // -1 to 1
   context: Record<string, any>;
   lessons: string[];
 }
 
-export interface AgentPerformance {
+export interface AgentPerformance {;
   totalActions: number;
   successRate: number;
   averageConfidence: number;
@@ -27,7 +27,7 @@ export interface AgentPerformance {
   adaptationRate: number;
 }
 
-export interface BusinessAction {
+export interface BusinessAction {;
   id: string;
   type: 'sales' | 'finance' | 'operations' | 'customer' | 'compliance' | 'audit' | 'regulatory';
   priority: 'low' | 'medium' | 'high' | 'critical';
@@ -36,7 +36,7 @@ export interface BusinessAction {
   requiresApproval: boolean;
 }
 
-export interface ExecutionResult {
+export interface ExecutionResult {;
   success: boolean;
   confidence: number;
   actions: string[];
@@ -45,7 +45,7 @@ export interface ExecutionResult {
   feedback?: string;
 }
 
-export interface Prediction {
+export interface Prediction {;
   type: string;
   confidence: number;
   value: any;
@@ -53,7 +53,7 @@ export interface Prediction {
   timeframe: Date;
 }
 
-export interface AgentMessage {
+export interface AgentMessage {;
   from: string;
   to: string;
   type: 'command' | 'response' | 'notification' | 'learning';
@@ -62,7 +62,7 @@ export interface AgentMessage {
   correlationId: string;
 }
 
-export interface WorkflowTemplate {
+export interface WorkflowTemplate {;
   id: string;
   name: string;
   description: string;
@@ -73,12 +73,12 @@ export interface WorkflowTemplate {
   usageCount: number;
 }
 
-export interface WorkflowTrigger {
+export interface WorkflowTrigger {;
   type: 'event' | 'schedule' | 'condition';
   config: Record<string, any>;
 }
 
-export interface WorkflowStep {
+export interface WorkflowStep {;
   id: string;
   agent: string;
   action: string;
@@ -87,7 +87,7 @@ export interface WorkflowStep {
   retryPolicy: RetryPolicy;
 }
 
-export interface WorkflowCondition {
+export interface WorkflowCondition {;
   type: 'and' | 'or' | 'not';
   conditions: WorkflowCondition[];
   field?: string;
@@ -95,22 +95,22 @@ export interface WorkflowCondition {
   value?: any;
 }
 
-export interface RetryPolicy {
+export interface RetryPolicy {;
   maxAttempts: number;
   backoff: 'linear' | 'exponential';
   delay: number;
 }
 
-export interface LearningModel {
+export interface LearningModel {;
   train(event: LearningEvent): Promise<void>;
   predict(action: BusinessAction): Promise<Prediction>;
   getConfidence(action: BusinessAction): Promise<number>;
   adapt(context: AgentContext): Promise<AgentContext>;
 }
 
-export interface WorkflowEngine {
+export interface WorkflowEngine {;
   createWorkflow(template: WorkflowTemplate): Promise<string>;
   executeWorkflow(workflowId: string, context: Record<string, any>): Promise<ExecutionResult>;
   optimizeWorkflow(workflowId: string, performance: AgentPerformance): Promise<WorkflowTemplate>;
   getWorkflowTemplates(): Promise<WorkflowTemplate[]>;
-}
+}/

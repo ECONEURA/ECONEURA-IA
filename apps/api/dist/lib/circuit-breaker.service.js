@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+
 import { prometheus } from '@econeura/shared/src/metrics/index.js';
 export class CircuitBreakerService extends EventEmitter {
     circuits = new Map();

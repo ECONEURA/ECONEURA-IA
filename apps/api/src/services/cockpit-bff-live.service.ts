@@ -6,10 +6,12 @@
  */
 
 import { EventEmitter } from 'events';
+
+import { z } from 'zod';
+
 import { sseManager } from '../lib/sse-manager.js';
 import { realTimeCollaborationSystem } from '../lib/real-time-collaboration.js';
 import { structuredLogger } from '../lib/structured-logger.js';
-import { z } from 'zod';
 
 // ============================================================================
 // SCHEMAS

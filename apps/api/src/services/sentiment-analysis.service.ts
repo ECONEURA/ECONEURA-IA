@@ -1,7 +1,7 @@
-import { structuredLogger } from '../lib/structured-logger.js';
 import { getDatabaseService } from '@econeura/db';
-import { eq, and, gte, desc } from 'drizzle-orm';
 import { auditLog } from '@econeura/db/schema';
+
+import { structuredLogger } from '../lib/structured-logger.js';
 
 // ============================================================================
 // ENHANCED SENTIMENT ANALYSIS SERVICE

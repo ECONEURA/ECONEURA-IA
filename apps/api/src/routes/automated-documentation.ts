@@ -1,10 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
+
 import AutomatedDocumentationService, { 
-  Documentation, 
-  APIDocumentation, 
-  ArchitectureDocumentation, 
-  Runbook, 
   DocumentationConfig 
 } from '../lib/automated-documentation.service.js';
 import { logger } from '../lib/logger.js';

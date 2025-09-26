@@ -1,4 +1,5 @@
 import axios from 'axios';
+
 import { structuredLogger } from './structured-logger.js';
 
 // Stripe Integration

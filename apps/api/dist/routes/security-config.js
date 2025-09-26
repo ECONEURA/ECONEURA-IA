@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { securityConfigService } from '../services/security-config.service.js';
 import { structuredLogger } from '../lib/structured-logger.js';
 const router = Router();

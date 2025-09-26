@@ -1,5 +1,6 @@
-import { logger } from './logger.js';
 import { prometheus } from '../middleware/observability.js';
+
+import { logger } from './logger.js';
 
 export interface RateLimitConfig {
   windowMs: number; // Time window in milliseconds

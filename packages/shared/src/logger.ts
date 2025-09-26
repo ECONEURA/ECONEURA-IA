@@ -1,11 +1,11 @@
-export enum LogLevel {
+export enum LogLevel {;
   DEBUG = 0,
   INFO = 1,
   WARN = 2,
   ERROR = 3
 }
 
-export interface LogEntry {
+export interface LogEntry {;
   timestamp: Date;
   level: LogLevel;
   message: string;
@@ -14,9 +14,9 @@ export interface LogEntry {
 }
 
 /**
- * Logger avanzado para ECONEURA-IA con capacidades de análisis y métricas
+ * Logger avanzado para ECONEURA-IA con capacidades de análisis y métricas/
  */
-export class Logger {
+export class Logger {;
   private source: string;
   private level: LogLevel;
   private logs: LogEntry[] = [];
@@ -41,7 +41,7 @@ export class Logger {
 
   error(message: string, error?: any, context?: Record<string, any>): void {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    const errorContext = {
+    const errorContext = {;
       ...context,
       error: errorMessage,
       stack: error instanceof Error ? error.stack : undefined
@@ -52,26 +52,26 @@ export class Logger {
   private log(level: LogLevel, message: string, context?: Record<string, any>): void {
     if (level < this.level) return;
 
-    const entry: LogEntry = {
+    const entry: LogEntry = {;
       timestamp: new Date(),
       level,
       message,
       context,
       source: this.source
     };
-
+/
     // Agregar a logs en memoria
     this.logs.push(entry);
-
+/
     // Mantener límite de logs
-    if (this.logs.length > this.maxLogs) {
+    if (this.logs.length > this.maxLogs) {/
       this.logs = this.logs.slice(-this.maxLogs / 2);
     }
-
+/
     // Output a consola con colores
     const coloredMessage = this.formatColoredMessage(entry);
     console.log(coloredMessage);
-
+/
     // Emitir evento para análisis en tiempo real
     this.emitLogEvent(entry);
   }
@@ -81,10 +81,10 @@ export class Logger {
     const levelStr = LogLevel[entry.level];
     const source = entry.source || 'UNKNOWN';
 
-    const colors = {
-      [LogLevel.DEBUG]: '\x1b[36m', // Cyan
-      [LogLevel.INFO]: '\x1b[32m',  // Green
-      [LogLevel.WARN]: '\x1b[33m',  // Yellow
+    const colors = {/;
+      [LogLevel.DEBUG]: '\x1b[36m', // Cyan/
+      [LogLevel.INFO]: '\x1b[32m',  // Green/
+      [LogLevel.WARN]: '\x1b[33m',  // Yellow/
       [LogLevel.ERROR]: '\x1b[31m'  // Red
     };
 
@@ -100,19 +100,19 @@ export class Logger {
     return message;
   }
 
-  private emitLogEvent(entry: LogEntry): void {
-    // Aquí se podría integrar con un sistema de eventos
+  private emitLogEvent(entry: LogEntry): void {/
+    // Aquí se podría integrar con un sistema de eventos/
     // Por ahora, solo mantenemos en memoria para análisis
   }
-
+/
   /**
-   * Obtiene logs filtrados por criterios
+   * Obtiene logs filtrados por criterios/
    */
   getLogs(options: {
     level?: LogLevel;
     source?: string;
     since?: Date;
-    limit?: number;
+    limit?: number;);
   } = {}): LogEntry[] {
     let filtered = this.logs;
 
@@ -134,16 +134,16 @@ export class Logger {
 
     return filtered;
   }
-
+/
   /**
-   * Obtiene métricas de logging
+   * Obtiene métricas de logging/
    */
   getMetrics(): Record<string, any> {
     const totalLogs = this.logs.length;
     const errorCount = this.logs.filter(log => log.level === LogLevel.ERROR).length;
     const warnCount = this.logs.filter(log => log.level === LogLevel.WARN).length;
 
-    const logsBySource = this.logs.reduce((acc, log) => {
+    const logsBySource = this.logs.reduce((acc, log) => {;
       acc[log.source || 'UNKNOWN'] = (acc[log.source || 'UNKNOWN'] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
@@ -151,15 +151,15 @@ export class Logger {
     return {
       totalLogs,
       errorCount,
-      warnCount,
+      warnCount,/
       errorRate: totalLogs > 0 ? errorCount / totalLogs : 0,
-      logsBySource,
+      logsBySource,/
       memoryUsage: this.logs.length * 1000 // Estimación aproximada
     };
   }
-
+/
   /**
-   * Limpia logs antiguos
+   * Limpia logs antiguos/
    */
   clearLogs(olderThan?: Date): void {
     if (olderThan) {
@@ -168,18 +168,19 @@ export class Logger {
       this.logs = [];
     }
   }
-
+/
   /**
-   * Configura el nivel de logging
+   * Configura el nivel de logging/
    */
   setLevel(level: LogLevel): void {
     this.level = level;
   }
-
+/
   /**
-   * Configura el límite máximo de logs
+   * Configura el límite máximo de logs/
    */
   setMaxLogs(max: number): void {
     this.maxLogs = max;
   }
 }
+/

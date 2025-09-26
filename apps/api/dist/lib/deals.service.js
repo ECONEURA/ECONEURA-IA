@@ -1,5 +1,6 @@
-import { logger } from './logger.js';
 import { CreateDealSchema, UpdateDealSchema, DealFilterSchema, MoveDealStageSchema } from '@econeura/shared/src/schemas/crm';
+
+import { logger } from './logger.js';
 export class DealsService {
     deals = new Map();
     nextId = 1;

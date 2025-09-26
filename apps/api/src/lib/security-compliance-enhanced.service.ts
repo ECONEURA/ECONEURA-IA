@@ -12,9 +12,11 @@
  * - Análisis de vulnerabilidades
  */
 
-import { structuredLogger } from './structured-logger.js';
-import { getDatabaseService } from '@econeura/db';
 import crypto from 'crypto';
+
+import { getDatabaseService } from '@econeura/db';
+
+import { structuredLogger } from './structured-logger.js';
 
 export interface SecurityEvent {
   id: string;

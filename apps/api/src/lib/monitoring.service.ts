@@ -2,7 +2,6 @@
 // Sistema completo de monitoreo, métricas y alertas para el sistema
 
 import { logger } from './logger.js';
-import { z } from 'zod';
 
 export interface MetricData {
   name: string;

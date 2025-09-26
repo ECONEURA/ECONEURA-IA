@@ -1,13 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
+
 import { UserApplicationService } from '../../application/services/user.application.service.js';
 import {
-  CreateUserRequest,
-  UpdateUserRequest,
-  DeleteUserRequest,
-  GetUserRequest,
-  SearchUsersRequest,
-  BulkUpdateUsersRequest,
-  BulkDeleteUsersRequest,
   UserResponse,
   UserListResponse,
   UserStatsResponse,

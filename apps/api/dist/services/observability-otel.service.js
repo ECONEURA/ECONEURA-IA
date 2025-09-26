@@ -1,4 +1,5 @@
 import { trace, context, SpanKind, SpanStatusCode, metrics } from '@opentelemetry/api';
+
 import { structuredLogger } from '../lib/structured-logger.js';
 class ObservabilityOTelService {
     static instance;

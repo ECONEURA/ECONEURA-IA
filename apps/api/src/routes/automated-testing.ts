@@ -1,9 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
+
 import AutomatedTestingService, { 
-  TestSuite, 
-  SecretRotation, 
-  SecurityChecklist, 
   AutomatedTestingConfig 
 } from '../lib/automated-testing.service.js';
 import { logger } from '../lib/logger.js';

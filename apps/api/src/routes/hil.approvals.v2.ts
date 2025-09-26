@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { requireAADRole } from '../middleware/aadRole.js';
 import type { Request, Response } from "express";
+
+import { requireAADRole } from '../middleware/aadRole.js';
 
 export const hilApprovalsRouterV2 = Router();
 

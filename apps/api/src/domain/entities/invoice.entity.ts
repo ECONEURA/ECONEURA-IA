@@ -1,6 +1,7 @@
-import { z } from 'zod';
-import { BaseEntity, BaseEntityProps } from './base.entity.js';
 import { Money } from '../value-objects/money.vo.js';
+
+import { BaseEntity, BaseEntityProps } from './base.entity.js';
+
 
 // ============================================================================
 // INVOICE ENTITY

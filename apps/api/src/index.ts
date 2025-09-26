@@ -1,18 +1,19 @@
 import express, { type Application } from "express";
 import cors, { type CorsOptions } from "cors";
+
 import { logger } from './lib/logger.js';
 import { metrics } from './lib/metrics.js';
 import { finopsHeaders } from './middleware/finops.js';
 import { finopsGuardDefault } from './middleware/finops.guard.js';
 import { tracing } from './lib/tracing.js';
 import { observabilityMiddleware, errorObservabilityMiddleware, healthCheckMiddleware } from './middleware/observability.js';
-import { rateLimitMiddleware, rateLimitByEndpoint, rateLimitByUser, rateLimitByApiKey } from './middleware/rate-limiting.js';
+import { rateLimitMiddleware, rateLimitByEndpoint } from './middleware/rate-limiting.js';
 import { alertSystem } from './lib/alerts.js';
 import { rateLimiter } from './lib/rate-limiting.js';
 import { CacheManager } from './lib/cache.js';
 import { finOpsSystem } from './lib/finops.js';
 import { rlsSystem } from './lib/rls.js';
-import { rlsMiddleware, rlsAccessControlMiddleware, rlsDataSanitizationMiddleware, rlsResponseValidationMiddleware, rlsCleanupMiddleware } from './middleware/rls.js';
+import { rlsMiddleware, rlsAccessControlMiddleware, rlsDataSanitizationMiddleware, rlsCleanupMiddleware } from './middleware/rls.js';
 import { apiGateway } from './lib/gateway.js';
 import { gatewayRoutingMiddleware, gatewayProxyMiddleware, gatewayMetricsMiddleware, gatewayCircuitBreakerMiddleware } from './middleware/gateway.js';
 import { eventSourcingSystem, createCommand, createQuery } from './lib/events.js';

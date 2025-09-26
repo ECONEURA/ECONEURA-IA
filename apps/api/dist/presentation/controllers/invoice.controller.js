@@ -1,7 +1,8 @@
 import { CreateInvoiceUseCase } from '../../application/use-cases/invoice/create-invoice.use-case.js';
 import { UpdateInvoiceUseCase } from '../../application/use-cases/invoice/update-invoice.use-case.js';
-import { BaseController } from './base.controller.js';
 import { CreateInvoiceRequestSchema, UpdateInvoiceRequestSchema, InvoiceIdParamSchema, InvoiceOrganizationIdParamSchema, InvoiceSearchQuerySchema, InvoiceBulkUpdateSchema, InvoiceBulkDeleteSchema, RecordPaymentRequestSchema, ApplyDiscountRequestSchema } from '../dto/invoice.dto.js';
+
+import { BaseController } from './base.controller.js';
 export class InvoiceController extends BaseController {
     invoiceRepository;
     createInvoiceUseCase;

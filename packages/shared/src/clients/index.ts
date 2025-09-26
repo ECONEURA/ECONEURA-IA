@@ -1,7 +1,7 @@
-// Export all client classes and types
+// Export all client classes and types/
 export { BaseClient, type BaseClientConfig, type ApiResponse, type PaginatedResponse } from './base-client.js';
 
-export { 
+export { ;
   ERPClient,
   type Product,
   type InventoryMovement,
@@ -17,10 +17,10 @@ export {
   type CreateCustomerInput,
   type UpdateCustomerInput,
   type CreateInvoiceInput,
-  type UpdateInvoiceInput
+  type UpdateInvoiceInput/
 } from './erp-client.js';
 
-export {
+export {;
   CRMClient,
   type Contact,
   type Company,
@@ -36,10 +36,10 @@ export {
   type CreateActivityInput,
   type UpdateActivityInput,
   type CreateLabelInput,
-  type UpdateLabelInput
+  type UpdateLabelInput/
 } from './crm-client.js';
 
-export {
+export {;
   FinanceClient,
   type Account,
   type Transaction,
@@ -56,11 +56,11 @@ export {
   type CreateTaxRateInput,
   type UpdateTaxRateInput,
   type CreatePaymentTermInput,
-  type UpdatePaymentTermInput
+  type UpdatePaymentTermInput/
 } from './finance-client.js';
-
+/
 // Main ECONEURA Client Factory
-export class ECONEURAClient {
+export class ECONEURAClient {;
   private baseURL: string;
   private apiKey?: string;
   private organizationId?: string;
@@ -68,7 +68,7 @@ export class ECONEURAClient {
   constructor(config: {
     baseURL: string;
     apiKey?: string;
-    organizationId?: string;
+    organizationId?: string;);
   }) {
     this.baseURL = config.baseURL;
     this.apiKey = config.apiKey;
@@ -107,6 +107,7 @@ export class ECONEURAClient {
     this.organizationId = organizationId;
   }
 }
-
+/
 // Default export for convenience
 export default ECONEURAClient;
+/

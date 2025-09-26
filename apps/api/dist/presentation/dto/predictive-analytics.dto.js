@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { UUIDSchema, OrganizationIdSchema, NameSchema, DescriptionSchema, NotesSchema, TagsSchema, CustomFieldsSchema, BaseSearchQuerySchema, IdParamSchema, OrganizationIdParamSchema, ListResponseSchema, BaseStatsSchema, BulkDeleteSchema, DateRangeSchema } from './base.dto.js';
 export const CreatePredictiveAnalyticsRequestSchema = z.object({
     organizationId: OrganizationIdSchema,

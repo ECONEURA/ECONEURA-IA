@@ -1,5 +1,6 @@
-import { logger } from './logger.js';
 import { z } from 'zod';
+
+import { logger } from './logger.js';
 export const SEPATransactionSchema = z.object({
     id: z.string().uuid().optional(),
     accountId: z.string().min(1),

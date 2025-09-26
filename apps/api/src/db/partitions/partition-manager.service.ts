@@ -5,8 +5,9 @@
  * mantenimiento y optimización de particiones.
  */
 
-import { structuredLogger } from '../../lib/structured-logger.js';
 import { metrics } from '@econeura/shared/src/metrics/index.js';
+
+import { structuredLogger } from '../../lib/structured-logger.js';
 
 export interface PartitionInfo {
   tableName: string;

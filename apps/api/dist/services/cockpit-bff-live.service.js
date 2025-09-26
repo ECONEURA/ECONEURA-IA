@@ -1,8 +1,10 @@
 import { EventEmitter } from 'events';
+
+import { z } from 'zod';
+
 import { sseManager } from '../lib/sse-manager.js';
 import { realTimeCollaborationSystem } from '../lib/real-time-collaboration.js';
 import { structuredLogger } from '../lib/structured-logger.js';
-import { z } from 'zod';
 const CockpitEventSchema = z.object({
     id: z.string(),
     type: z.enum(['agent_status', 'metrics_update', 'system_alert', 'user_action', 'department_update']),

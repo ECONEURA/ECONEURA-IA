@@ -6,11 +6,9 @@
 
 import { 
   OnCallSchedule, 
-  OnCallRotation, 
   OnCallShift, 
   OnCallOverride,
   OnCallParticipant,
-  RotationPattern,
   CreateOnCallScheduleRequest,
   UpdateOnCallScheduleRequest,
   OnCallStats

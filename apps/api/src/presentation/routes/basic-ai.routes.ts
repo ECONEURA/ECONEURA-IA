@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { basicAIController } from '../controllers/basic-ai.controller.js';
 import { jwtAuthMiddleware } from '../../middleware/auth.js';
 import { rateLimitMiddleware } from '../../middleware/rate-limit-org.js';

@@ -2,12 +2,10 @@
 import { 
   Budget, 
   BudgetAlert, 
-  BudgetNotification, 
-  NotificationCondition,
+  BudgetNotification,
   BudgetStatus 
 } from './finops-types.js';
 import { structuredLogger } from './structured-logger.js';
-import { ErrorHandler } from './error-handler.js';
 
 export class BudgetManagerService {
   private budgets: Budget[] = [];

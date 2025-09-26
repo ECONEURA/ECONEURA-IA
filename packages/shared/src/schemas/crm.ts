@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 // Company schemas
-export const CompanySchema = z.object({
+export const CompanySchema = z.object({;
   id: z.string().uuid().optional(),
   name: z.string().min(1),
   email: z.string().email().optional(),
@@ -25,9 +25,9 @@ export const CompanySchema = z.object({
 
 export const CreateCompanySchema = CompanySchema.omit({ id: true, createdAt: true, updatedAt: true });
 export const UpdateCompanySchema = CompanySchema.partial().omit({ id: true, orgId: true });
-
+/
 // Contact schemas
-export const ContactSchema = z.object({
+export const ContactSchema = z.object({;
   id: z.string().uuid().optional(),
   firstName: z.string().min(1),
   lastName: z.string().min(1),
@@ -46,9 +46,9 @@ export const ContactSchema = z.object({
 
 export const CreateContactSchema = ContactSchema.omit({ id: true, createdAt: true, updatedAt: true });
 export const UpdateContactSchema = ContactSchema.partial().omit({ id: true, orgId: true });
-
+/
 // Deal schemas
-export const DealSchema = z.object({
+export const DealSchema = z.object({;
   id: z.string().uuid().optional(),
   name: z.string().min(1),
   description: z.string().optional(),
@@ -69,9 +69,9 @@ export const DealSchema = z.object({
 
 export const CreateDealSchema = DealSchema.omit({ id: true, createdAt: true, updatedAt: true });
 export const UpdateDealSchema = DealSchema.partial().omit({ id: true, orgId: true });
-
+/
 // Deal filter schema
-export const DealFilterSchema = z.object({
+export const DealFilterSchema = z.object({;
   q: z.string().optional(),
   companyId: z.string().uuid().optional(),
   contactId: z.string().uuid().optional(),
@@ -84,16 +84,16 @@ export const DealFilterSchema = z.object({
   expectedCloseDateTo: z.string().datetime().optional(),
   tags: z.array(z.string()).optional()
 });
-
+/
 // Move deal stage schema
-export const MoveDealStageSchema = z.object({
+export const MoveDealStageSchema = z.object({;
   stage: z.enum(['lead', 'qualified', 'proposal', 'negotiation', 'closed_won', 'closed_lost']),
   reason: z.string().optional(),
   notes: z.string().optional()
 });
-
+/
 // Deal analytics schema
-export const DealAnalyticsSchema = z.object({
+export const DealAnalyticsSchema = z.object({;
   totalDeals: z.number(),
   totalValue: z.number(),
   averageDealSize: z.number(),
@@ -119,9 +119,9 @@ export const DealAnalyticsSchema = z.object({
     issues: z.array(z.string())
   })
 });
-
+/
 // Interaction schemas
-export const InteractionSchema = z.object({
+export const InteractionSchema = z.object({;
   id: z.string().uuid().optional(),
   type: z.enum(['email', 'call', 'meeting', 'note', 'task']),
   subject: z.string().min(1),
@@ -143,7 +143,7 @@ export const InteractionSchema = z.object({
 
 export const CreateInteractionSchema = InteractionSchema.omit({ id: true, createdAt: true, updatedAt: true });
 export const UpdateInteractionSchema = InteractionSchema.partial().omit({ id: true, orgId: true });
-
+/
 // Export types
 export type Company = z.infer<typeof CompanySchema>;
 export type CreateCompany = z.infer<typeof CreateCompanySchema>;
@@ -163,3 +163,4 @@ export type DealAnalytics = z.infer<typeof DealAnalyticsSchema>;
 export type Interaction = z.infer<typeof InteractionSchema>;
 export type CreateInteraction = z.infer<typeof CreateInteractionSchema>;
 export type UpdateInteraction = z.infer<typeof UpdateInteractionSchema>;
+/

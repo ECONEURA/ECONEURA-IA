@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'node:url';
+
 import { importAndReconcile } from '../src/services/sepa.js';
 
 async function run() {

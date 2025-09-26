@@ -1,8 +1,10 @@
 import { EventEmitter } from 'events';
-import { z } from 'zod';
-import { logger } from './logger.js';
 import crypto from 'crypto';
+
+import { z } from 'zod';
 import jwt from 'jsonwebtoken';
+
+import { logger } from './logger.js';
 export const UserSchema = z.object({
     email: z.string().email(),
     username: z.string().min(3).max(50),

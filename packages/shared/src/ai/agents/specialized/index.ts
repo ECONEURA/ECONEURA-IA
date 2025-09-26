@@ -1,18 +1,18 @@
-// packages/shared/src/ai/agents/specialized/index.ts
-export { SalesAgent } from './sales-agent';
-export { OperationsAgent } from './operations-agent';
+// packages/shared/src/ai/agents/specialized/index.ts/
+export { SalesAgent } from './sales-agent';/;
+export { OperationsAgent } from './operations-agent';/;
 export { ComplianceAgent } from './compliance-agent';
-
+/
 // Tipos de agentes especializados
 export type SpecializedAgentType = 'sales' | 'operations' | 'compliance';
-
-// Factory function para crear agentes especializados
-import { AgentContext } from '../types';
-import { SalesAgent } from './sales-agent';
-import { OperationsAgent } from './operations-agent';
+/
+// Factory function para crear agentes especializados/
+import { AgentContext } from '../types';/;
+import { SalesAgent } from './sales-agent';/;
+import { OperationsAgent } from './operations-agent';/;
 import { ComplianceAgent } from './compliance-agent';
 
-export function createSpecializedAgent(type: SpecializedAgentType, context: AgentContext) {
+export function createSpecializedAgent(type: SpecializedAgentType, context: AgentContext) {;
   switch (type) {
     case 'sales':
       return new SalesAgent(context);
@@ -24,9 +24,9 @@ export function createSpecializedAgent(type: SpecializedAgentType, context: Agen
       throw new Error(`Tipo de agente no soportado: ${type}`);
   }
 }
-
+/
 // Configuraciones por defecto para cada tipo de agente
-export const AGENT_CONFIGURATIONS = {
+export const AGENT_CONFIGURATIONS = {;
   sales: {
     capabilities: [
       'lead_scoring',
@@ -60,4 +60,4 @@ export const AGENT_CONFIGURATIONS = {
     specializationScore: 0.95,
     learningRate: 0.05
   }
-} as const;
+} as const;/

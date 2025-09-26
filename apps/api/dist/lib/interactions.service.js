@@ -1,5 +1,6 @@
-import { logger } from './logger.js';
 import { z } from 'zod';
+
+import { logger } from './logger.js';
 export const InteractionTypeSchema = z.enum(['email', 'call', 'meeting', 'note', 'task']);
 export const InteractionStatusSchema = z.enum(['pending', 'completed', 'cancelled']);
 export const InteractionPrioritySchema = z.enum(['low', 'medium', 'high', 'urgent']);

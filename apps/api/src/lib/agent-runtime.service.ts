@@ -1,12 +1,14 @@
-import { z } from 'zod';
 import { EventEmitter } from 'events';
-import { structuredLogger } from './structured-logger.js';
-import { aiAgentsRegistry, AgentExecutionRequest, AgentExecutionResult } from './ai-agents-registry.service.js';
+
+import { z } from 'zod';
 import { EnhancedAIRouter } from '@econeura/shared/src/ai/enhanced-router.js';
-import { db } from './database.js';
-import { agentRuns, agentTasks } from '@econeura/db/src/schema';
-import { eq, and, desc, count } from 'drizzle-orm';
+import { agentTasks } from '@econeura/db/src/schema';
+import { eq, and, desc } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
+
+import { db } from './database.js';
+import { structuredLogger } from './structured-logger.js';
+import { aiAgentsRegistry, AgentExecutionRequest } from './ai-agents-registry.service.js';
 
 // Agent Runtime Configuration
 export const AgentRuntimeConfigSchema = z.object({

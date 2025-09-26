@@ -1,4 +1,5 @@
 import { initializeMetrics, PredefinedMetrics, counter, gauge, histogram } from '@econeura/shared/metrics';
+
 import { structuredLogger } from '../lib/structured-logger.js';
 const metricsService = initializeMetrics({
     enabled: process.env.METRICS_ENABLED !== 'false',

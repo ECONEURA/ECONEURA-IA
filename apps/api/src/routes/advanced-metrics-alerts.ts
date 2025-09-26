@@ -1,11 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
+
 import AdvancedMetricsAlertsService, { 
-  Metric, 
-  AlertRule, 
-  Alert, 
-  SLA, 
-  MetricTrend, 
   MetricsAlertsConfig 
 } from '../lib/advanced-metrics-alerts.service.js';
 import { logger } from '../lib/logger.js';

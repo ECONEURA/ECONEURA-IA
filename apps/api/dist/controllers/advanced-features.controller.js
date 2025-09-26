@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { getDatabaseService } from '@econeura/db';
+
 import { structuredLogger } from '../lib/structured-logger.js';
 import { predictiveAI } from '../services/predictive-ai.service.js';
 import { metricsService } from '../services/metrics.service.js';
@@ -6,7 +8,6 @@ import { autoML } from '../services/automl.service.js';
 import { sentimentAnalysis } from '../services/sentiment-analysis.service.js';
 import { azureOpenAI } from '../services/azure-openai.service.js';
 import { webSearch } from '../services/web-search.service.js';
-import { getDatabaseService } from '@econeura/db';
 const predictDemandSchema = z.object({
     productId: z.string().uuid('Invalid product ID format'),
     days: z.number().min(1).max(365).default(30),

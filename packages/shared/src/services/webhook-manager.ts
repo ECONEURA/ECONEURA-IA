@@ -1,14 +1,14 @@
 /**
  * Webhook Manager for ECONEURA
  * 
- * Manages webhook subscriptions, delivery, retries, and security
+ * Manages webhook subscriptions, delivery, retries, and security/
  */
 
 import { EventEmitter } from 'events';
 import crypto from 'crypto';
 import axios, { AxiosInstance } from 'axios';
 
-export interface WebhookSubscription {
+export interface WebhookSubscription {;
   id: string;
   url: string;
   events: string[];
@@ -25,7 +25,7 @@ export interface WebhookSubscription {
   failureCount: number;
 }
 
-export interface WebhookEvent {
+export interface WebhookEvent {;
   id: string;
   type: string;
   data: any;
@@ -34,7 +34,7 @@ export interface WebhookEvent {
   version: string;
 }
 
-export interface WebhookDelivery {
+export interface WebhookDelivery {;
   id: string;
   subscriptionId: string;
   eventId: string;
@@ -49,7 +49,7 @@ export interface WebhookDelivery {
   responseTime?: number;
 }
 
-export class WebhookManager extends EventEmitter {
+export class WebhookManager extends EventEmitter {;
   private subscriptions: Map<string, WebhookSubscription> = new Map();
   private deliveries: Map<string, WebhookDelivery> = new Map();
   private axiosInstance: AxiosInstance;
@@ -59,20 +59,20 @@ export class WebhookManager extends EventEmitter {
     super();
     this.axiosInstance = axios.create({
       timeout: 10000,
-      headers: {
+      headers: {/
         'User-Agent': 'ECONEURA-WebhookManager/1.0.0'
       }
     });
 
     this.startRetryProcessor();
   }
-
+/
   /**
-   * Subscribe to webhook events
+   * Subscribe to webhook events/
    */
   subscribe(subscription: Omit<WebhookSubscription, 'id' | 'createdAt' | 'failureCount'>): string {
     const id = this.generateSubscriptionId();
-    const fullSubscription: WebhookSubscription = {
+    const fullSubscription: WebhookSubscription = {;
       ...subscription,
       id,
       createdAt: new Date(),
@@ -85,9 +85,9 @@ export class WebhookManager extends EventEmitter {
     
     return id;
   }
-
+/
   /**
-   * Unsubscribe from webhook events
+   * Unsubscribe from webhook events/
    */
   unsubscribe(subscriptionId: string): boolean {
     const subscription = this.subscriptions.get(subscriptionId);
@@ -99,9 +99,9 @@ export class WebhookManager extends EventEmitter {
     }
     return false;
   }
-
+/
   /**
-   * Update webhook subscription
+   * Update webhook subscription/
    */
   updateSubscription(subscriptionId: string, updates: Partial<WebhookSubscription>): boolean {
     const subscription = this.subscriptions.get(subscriptionId);
@@ -112,35 +112,35 @@ export class WebhookManager extends EventEmitter {
     }
     return false;
   }
-
+/
   /**
-   * Get webhook subscription
+   * Get webhook subscription/
    */
   getSubscription(subscriptionId: string): WebhookSubscription | undefined {
     return this.subscriptions.get(subscriptionId);
   }
-
+/
   /**
-   * Get all subscriptions for an event type
+   * Get all subscriptions for an event type/
    */
   getSubscriptionsForEvent(eventType: string): WebhookSubscription[] {
     return Array.from(this.subscriptions.values()).filter(
       sub => sub.active && sub.events.includes(eventType)
     );
   }
-
+/
   /**
-   * Emit webhook event
+   * Emit webhook event/
    */
   async emitEvent(event: Omit<WebhookEvent, 'id' | 'timestamp'>): Promise<void> {
-    const fullEvent: WebhookEvent = {
+    const fullEvent: WebhookEvent = {;
       ...event,
       id: this.generateEventId(),
       timestamp: new Date()
     };
 
     this.emit('eventEmitted', fullEvent);
-
+/
     // Find all subscriptions for this event type
     const subscriptions = this.getSubscriptionsForEvent(fullEvent.type);
     
@@ -148,19 +148,19 @@ export class WebhookManager extends EventEmitter {
       
       return;
     }
-
+/
     // Create delivery records for each subscription
     for (const subscription of subscriptions) {
       await this.createDelivery(subscription, fullEvent);
     }
   }
-
+/
   /**
-   * Create webhook delivery
+   * Create webhook delivery/
    */
   private async createDelivery(subscription: WebhookSubscription, event: WebhookEvent): Promise<void> {
     const deliveryId = this.generateDeliveryId();
-    const delivery: WebhookDelivery = {
+    const delivery: WebhookDelivery = {;
       id: deliveryId,
       subscriptionId: subscription.id,
       eventId: event.id,
@@ -172,13 +172,13 @@ export class WebhookManager extends EventEmitter {
 
     this.deliveries.set(deliveryId, delivery);
     this.emit('deliveryCreated', delivery);
-
+/
     // Attempt immediate delivery
     await this.deliverWebhook(delivery, event, subscription);
   }
-
+/
   /**
-   * Deliver webhook
+   * Deliver webhook/
    */
   private async deliverWebhook(
     delivery: WebhookDelivery,
@@ -190,7 +190,7 @@ export class WebhookManager extends EventEmitter {
     delivery.status = 'retrying';
 
     try {
-      const payload = {
+      const payload = {;
         id: event.id,
         type: event.type,
         data: event.data,
@@ -201,8 +201,8 @@ export class WebhookManager extends EventEmitter {
 
       const signature = this.generateSignature(JSON.stringify(payload), subscription.secret);
       
-      const response = await this.axiosInstance.post(subscription.url, payload, {
-        headers: {
+      const response = await this.axiosInstance.post(subscription.url, payload, {;
+        headers: {/
           'Content-Type': 'application/json',
           'X-Webhook-Signature': signature,
           'X-Webhook-Event': event.type,
@@ -210,7 +210,7 @@ export class WebhookManager extends EventEmitter {
           ...subscription.headers
         }
       });
-
+/
       // Success
       delivery.status = 'delivered';
       delivery.responseCode = response.status;
@@ -220,7 +220,7 @@ export class WebhookManager extends EventEmitter {
 
       this.emit('deliverySucceeded', { delivery, event, subscription });
 
-    } catch (error) {
+    } catch (error) {/
       // Failure
       delivery.lastError = error instanceof Error ? error.message : 'Unknown error';
       delivery.responseCode = (error as any)?.response?.status;
@@ -229,7 +229,7 @@ export class WebhookManager extends EventEmitter {
         delivery.status = 'failed';
         subscription.failureCount++;
         this.emit('deliveryFailed', { delivery, event, subscription });
-      } else {
+      } else {/
         // Schedule retry
         const delay = this.calculateRetryDelay(delivery.attempts, subscription.retryPolicy);
         delivery.nextRetryAt = new Date(Date.now() + delay);
@@ -237,27 +237,27 @@ export class WebhookManager extends EventEmitter {
       }
     }
   }
-
+/
   /**
-   * Calculate retry delay with exponential backoff
+   * Calculate retry delay with exponential backoff/
    */
   private calculateRetryDelay(attempt: number, retryPolicy: WebhookSubscription['retryPolicy']): number {
     const baseDelay = retryPolicy.retryDelay;
     const multiplier = retryPolicy.backoffMultiplier;
     return baseDelay * Math.pow(multiplier, attempt - 1);
   }
-
+/
   /**
-   * Generate webhook signature
+   * Generate webhook signature/
    */
   private generateSignature(payload: string, secret: string): string {
     const hmac = crypto.createHmac('sha256', secret);
     hmac.update(payload);
     return `sha256=${hmac.digest('hex')}`;
   }
-
+/
   /**
-   * Verify webhook signature
+   * Verify webhook signature/
    */
   verifySignature(payload: string, signature: string, secret: string): boolean {
     const expectedSignature = this.generateSignature(payload, secret);
@@ -266,22 +266,22 @@ export class WebhookManager extends EventEmitter {
       Buffer.from(expectedSignature)
     );
   }
-
+/
   /**
-   * Start retry processor
+   * Start retry processor/
    */
   private startRetryProcessor(): void {
     this.retryInterval = setInterval(() => {
-      this.processRetries();
+      this.processRetries();/
     }, 10000); // Check every 10 seconds
   }
-
+/
   /**
-   * Process pending retries
+   * Process pending retries/
    */
   private async processRetries(): Promise<void> {
     const now = new Date();
-    const pendingDeliveries = Array.from(this.deliveries.values()).filter(
+    const pendingDeliveries = Array.from(this.deliveries.values()).filter(;
       delivery => delivery.status === 'retrying' && 
                   delivery.nextRetryAt && 
                   delivery.nextRetryAt <= now
@@ -290,10 +290,10 @@ export class WebhookManager extends EventEmitter {
     for (const delivery of pendingDeliveries) {
       const subscription = this.subscriptions.get(delivery.subscriptionId);
       if (!subscription) continue;
-
-      // Find the original event (in a real implementation, you'd store this)
-      const event: WebhookEvent = {
-        id: delivery.eventId,
+/
+      // Find the original event (in a real implementation, you'd store this)';
+      const event: WebhookEvent = {;
+        id: delivery.eventId,/
         type: 'retry', // This would be the actual event type
         data: {},
         timestamp: new Date(),
@@ -304,9 +304,9 @@ export class WebhookManager extends EventEmitter {
       await this.deliverWebhook(delivery, event, subscription);
     }
   }
-
+/
   /**
-   * Get delivery statistics
+   * Get delivery statistics/
    */
   getStats(): {
     totalSubscriptions: number;
@@ -328,9 +328,9 @@ export class WebhookManager extends EventEmitter {
       deliveredDeliveries: deliveries.filter(d => d.status === 'delivered').length
     };
   }
-
+/
   /**
-   * Cleanup old deliveries
+   * Cleanup old deliveries/
    */
   cleanupOldDeliveries(olderThanDays: number = 7): void {
     const cutoffDate = new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000);
@@ -343,13 +343,13 @@ export class WebhookManager extends EventEmitter {
       }
     }
 
-    if (cleanedCount > 0) {
+    if (cleanedCount > 0) {/
       // Cleanup completed
     }
   }
-
+/
   /**
-   * Generate IDs
+   * Generate IDs/
    */
   private generateSubscriptionId(): string {
     return `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -362,9 +362,9 @@ export class WebhookManager extends EventEmitter {
   private generateDeliveryId(): string {
     return `del_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
-
+/
   /**
-   * Cleanup
+   * Cleanup/
    */
   destroy(): void {
     if (this.retryInterval) {
@@ -373,6 +373,7 @@ export class WebhookManager extends EventEmitter {
     this.removeAllListeners();
   }
 }
-
+/
 // Singleton instance
 export const webhookManager = new WebhookManager();
+/

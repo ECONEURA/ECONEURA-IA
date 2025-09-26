@@ -2,7 +2,6 @@
 
 // import { PrismaClient } from '@prisma/client'
 import { confirm } from '@inquirer/prompts'
-
 import { getPrisma } from '@econeura/db/client.lazy'
 const prisma = getPrisma();
 

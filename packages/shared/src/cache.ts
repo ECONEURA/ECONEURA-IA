@@ -1,13 +1,13 @@
 import { EventEmitter } from 'events';
 
-export interface CacheConfig {
+export interface CacheConfig {;
   ttl: number;
   maxSize: number;
   compression?: boolean;
   redisUrl?: string;
 }
 
-export interface CacheEntry<T = any> {
+export interface CacheEntry<T = any> {;
   data: T;
   timestamp: number;
   ttl: number;
@@ -15,7 +15,7 @@ export interface CacheEntry<T = any> {
   lastAccessed: number;
 }
 
-export interface CacheStats {
+export interface CacheStats {;
   hits: number;
   misses: number;
   sets: number;
@@ -27,9 +27,9 @@ export interface CacheStats {
 }
 
 /**
- * Advanced Cache Manager with Redis fallback and compression
+ * Advanced Cache Manager with Redis fallback and compression/
  */
-export class CacheManager extends EventEmitter {
+export class CacheManager extends EventEmitter {;
   private cache = new Map<string, CacheEntry>();
   private config: CacheConfig;
   private stats: CacheStats;
@@ -38,7 +38,7 @@ export class CacheManager extends EventEmitter {
   constructor(config: Partial<CacheConfig> = {}) {
     super();
 
-    this.config = {
+    this.config = {/
       ttl: config.ttl || 300000, // 5 minutes default
       maxSize: config.maxSize || 1000,
       compression: config.compression || false,
@@ -59,9 +59,9 @@ export class CacheManager extends EventEmitter {
 
     this.startCleanupInterval();
   }
-
+/
   /**
-   * Get value from cache
+   * Get value from cache/
    */
   async get<T = any>(key: string): Promise<T | null> {
     const entry = this.cache.get(key);
@@ -71,7 +71,7 @@ export class CacheManager extends EventEmitter {
       this.updateHitRate();
       return null;
     }
-
+/
     // Check if expired
     if (Date.now() - entry.timestamp > entry.ttl) {
       this.cache.delete(key);
@@ -81,7 +81,7 @@ export class CacheManager extends EventEmitter {
       this.emit('expired', key);
       return null;
     }
-
+/
     // Update access stats
     entry.hits++;
     entry.lastAccessed = Date.now();
@@ -92,23 +92,23 @@ export class CacheManager extends EventEmitter {
     this.emit('hit', key, entry.data);
     return entry.data;
   }
-
+/
   /**
-   * Set value in cache
+   * Set value in cache/
    */
   async set<T = any>(
     key: string,
     value: T,
     ttl?: number
   ): Promise<void> {
-    const entry: CacheEntry<T> = {
+    const entry: CacheEntry<T> = {;
       data: value,
       timestamp: Date.now(),
       ttl: ttl || this.config.ttl,
       hits: 0,
       lastAccessed: Date.now(),
     };
-
+/
     // Check size limits
     if (this.cache.size >= this.config.maxSize) {
       this.evictLRU();
@@ -120,9 +120,9 @@ export class CacheManager extends EventEmitter {
 
     this.emit('set', key, value);
   }
-
+/
   /**
-   * Delete value from cache
+   * Delete value from cache/
    */
   async delete(key: string): Promise<boolean> {
     const deleted = this.cache.delete(key);
@@ -133,9 +133,9 @@ export class CacheManager extends EventEmitter {
     }
     return deleted;
   }
-
+/
   /**
-   * Clear all cache entries
+   * Clear all cache entries/
    */
   async clear(): Promise<void> {
     this.cache.clear();
@@ -143,14 +143,14 @@ export class CacheManager extends EventEmitter {
     this.stats.size = 0;
     this.emit('clear');
   }
-
+/
   /**
-   * Check if key exists
+   * Check if key exists/
    */
   async has(key: string): Promise<boolean> {
     const entry = this.cache.get(key);
     if (!entry) return false;
-
+/
     // Check if expired
     if (Date.now() - entry.timestamp > entry.ttl) {
       this.cache.delete(key);
@@ -160,46 +160,46 @@ export class CacheManager extends EventEmitter {
 
     return true;
   }
-
+/
   /**
-   * Get cache statistics
+   * Get cache statistics/
    */
   getStats(): CacheStats {
     return { ...this.stats };
   }
-
+/
   /**
-   * Get all cache keys
+   * Get all cache keys/
    */
   getKeys(): string[] {
     return Array.from(this.cache.keys());
   }
-
+/
   /**
-   * Get cache entry metadata
+   * Get cache entry metadata/
    */
   getMetadata(key: string): CacheEntry | null {
     return this.cache.get(key) || null;
   }
-
+/
   /**
-   * Set multiple values
+   * Set multiple values/
    */
   async mset(entries: Record<string, any>, ttl?: number): Promise<void> {
     for (const [key, value] of Object.entries(entries)) {
       await this.set(key, value, ttl);
     }
   }
-
+/
   /**
-   * Get multiple values
+   * Get multiple values/
    */
   async mget<T = any>(keys: string[]): Promise<(T | null)[]> {
     return Promise.all(keys.map(key => this.get<T>(key)));
   }
-
+/
   /**
-   * Increment numeric value
+   * Increment numeric value/
    */
   async incr(key: string, amount: number = 1): Promise<number> {
     const current = await this.get<number>(key) || 0;
@@ -207,16 +207,16 @@ export class CacheManager extends EventEmitter {
     await this.set(key, newValue);
     return newValue;
   }
-
+/
   /**
-   * Decrement numeric value
+   * Decrement numeric value/
    */
   async decr(key: string, amount: number = 1): Promise<number> {
     return this.incr(key, -amount);
   }
-
+/
   /**
-   * Set expiration time for existing key
+   * Set expiration time for existing key/
    */
   async expire(key: string, ttl: number): Promise<boolean> {
     const entry = this.cache.get(key);
@@ -226,9 +226,9 @@ export class CacheManager extends EventEmitter {
     entry.timestamp = Date.now();
     return true;
   }
-
+/
   /**
-   * Get time to live for key
+   * Get time to live for key/
    */
   async ttl(key: string): Promise<number> {
     const entry = this.cache.get(key);
@@ -236,7 +236,7 @@ export class CacheManager extends EventEmitter {
 
     const elapsed = Date.now() - entry.timestamp;
     const remaining = entry.ttl - elapsed;
-
+/
     return remaining > 0 ? Math.ceil(remaining / 1000) : -1;
   }
 
@@ -258,11 +258,11 @@ export class CacheManager extends EventEmitter {
   }
 
   private updateHitRate(): void {
-    const total = this.stats.hits + this.stats.misses;
+    const total = this.stats.hits + this.stats.misses;/;
     this.stats.hitRate = total > 0 ? this.stats.hits / total : 0;
   }
 
-  private startCleanupInterval(): void {
+  private startCleanupInterval(): void {/
     // Clean up expired entries every minute
     this.cleanupInterval = setInterval(() => {
       const now = Date.now();
@@ -281,12 +281,12 @@ export class CacheManager extends EventEmitter {
 
       if (expiredKeys.length > 0) {
         this.stats.size = this.cache.size;
-      }
+      }/
     }, 60000); // 1 minute
   }
-
+/
   /**
-   * Stop cleanup interval (useful for testing)
+   * Stop cleanup interval (useful for testing)/
    */
   stopCleanup(): void {
     if (this.cleanupInterval) {
@@ -294,9 +294,9 @@ export class CacheManager extends EventEmitter {
       this.cleanupInterval = undefined;
     }
   }
-
+/
   /**
-   * Destroy cache manager
+   * Destroy cache manager/
    */
   destroy(): void {
     this.stopCleanup();
@@ -304,11 +304,12 @@ export class CacheManager extends EventEmitter {
     this.removeAllListeners();
   }
 }
-
+/
 // Default cache instance
-export const cacheManager = new CacheManager({
+export const cacheManager = new CacheManager({;
   ttl: parseInt(process.env.CACHE_TTL || '300000'),
   maxSize: parseInt(process.env.CACHE_MAX_SIZE || '1000'),
   compression: process.env.CACHE_COMPRESSION === 'true',
   redisUrl: process.env.REDIS_URL,
 });
+/

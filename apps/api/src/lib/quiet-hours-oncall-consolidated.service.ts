@@ -26,21 +26,17 @@ import {
   UpdateQuietHoursRequest,
   QuietHoursStats,
   OnCallSchedule, 
-  OnCallRotation, 
   OnCallShift, 
   OnCallOverride,
   OnCallParticipant,
-  RotationPattern,
   CreateOnCallScheduleRequest,
   UpdateOnCallScheduleRequest,
   OnCallStats,
   EscalationRule,
   EscalationEvent,
   EscalationCondition,
-  EscalationAction,
   EscalationTimeout,
   NotificationPreferences,
-  NotificationChannel,
   Notification,
   NotificationAnalytics,
   CreateEscalationRuleRequest,
@@ -48,7 +44,6 @@ import {
   TriggerEscalationRequest,
   SendNotificationRequest
 } from './quiet-hours-types.js';
-
 import { structuredLogger } from './structured-logger.js';
 
 export class QuietHoursOnCallConsolidatedService {

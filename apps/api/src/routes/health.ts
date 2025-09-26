@@ -1,6 +1,7 @@
 import { Router, type Router as ExpressRouter, type Request, type Response } from 'express';
 import { Redis } from 'ioredis';
 import { prisma } from '@econeura/db';
+
 import { metrics } from '../lib/metrics.js';
 import { logger } from '../lib/logger.js';
 import { AzureOpenAIService } from '../services/ai/azure-openai.service.js';

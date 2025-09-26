@@ -1,6 +1,8 @@
 import { z } from 'zod';
-import { BaseDTOs } from './base.dto.js';
+
 import { SearchResultType, SearchType } from '../../domain/entities/search-result.entity.js';
+
+import { BaseDTOs } from './base.dto.js';
 export const IntelligentSearchRequestSchema = z.object({
     query: z.string().min(1).max(500),
     filters: z.object({

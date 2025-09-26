@@ -11,7 +11,6 @@ import {
   EscalationAction, 
   EscalationTimeout,
   EscalationParticipant,
-  EscalationHistoryEntry,
   CreateEscalationRuleRequest,
   UpdateEscalationRuleRequest,
   TriggerEscalationRequest,

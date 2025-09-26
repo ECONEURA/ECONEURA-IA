@@ -1,6 +1,7 @@
-import { structuredLogger } from './structured-logger.js';
 import { getDatabaseService } from '@econeura/db';
 import { organizations, users } from '@econeura/db/schema';
+
+import { structuredLogger } from './structured-logger.js';
 export class ApiGatewayService {
     config;
     routes = new Map();

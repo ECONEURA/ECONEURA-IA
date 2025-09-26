@@ -1,4 +1,4 @@
-import { Deal, DealStage, DealPriority, DealSource, DealId, OrganizationId, ContactId, UserId, CompanyId } from '../../../domain/entities/deal.entity.js';
+import { Deal, DealStage, DealPriority, DealSource, OrganizationId, ContactId, UserId, CompanyId } from '../../../domain/entities/deal.entity.js';
 import { DealRepository } from '../../../domain/repositories/deal.repository.js';
 import { UserDomainService } from '../../../domain/services/user.domain.service.js';
 import { createValidationError, createNotFoundError, createConflictError } from '../../../shared/utils/error.utils.js';

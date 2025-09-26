@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
+
 import { performanceOptimizer } from '../lib/performance-optimizer.js';
 import { logger } from '../lib/logger.js';
+
 import { prometheus } from './observability.js';
 
 export interface OptimizedResponse extends Response {

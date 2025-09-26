@@ -1,10 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
+
 import ProjectCompletionDeploymentService, { 
-  DeploymentConfig, 
-  HealthCheck, 
-  ValidationResult, 
-  DeploymentResult, 
   ProjectCompletionConfig 
 } from '../lib/project-completion-deployment.service.js';
 import { logger } from '../lib/logger.js';

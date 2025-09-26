@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 // User schemas
-export const UserSchema = z.object({
+export const UserSchema = z.object({;
   id: z.string().uuid(),
   email: z.string().email(),
   firstName: z.string().min(1).max(100),
@@ -18,21 +18,21 @@ export const UserSchema = z.object({
   updatedAt: z.string().datetime(),
   deletedAt: z.string().datetime().nullable().optional(),
 });
-
+/
 // Organization schemas
-export const OrganizationSchema = z.object({
-  id: z.string().uuid(),
+export const OrganizationSchema = z.object({;
+  id: z.string().uuid(),/
   slug: z.string().min(3).max(50).regex(/^[a-z0-9-]+$/),
   name: z.string().min(1).max(200),
   description: z.string().max(500).optional(),
   logoUrl: z.string().url().optional(),
   website: z.string().url().optional(),
   email: z.string().email(),
-  phone: z.string().max(50).optional(),
+  phone: z.string().max(50).optional(),/
   timezone: z.string().default('Europe/Madrid'),
   locale: z.enum(['es-ES', 'en-US']).default('es-ES'),
   currency: z.string().length(3).default('EUR'),
-  
+  /
   // Billing info
   taxId: z.string().max(50).optional(),
   billingEmail: z.string().email().optional(),
@@ -44,11 +44,11 @@ export const OrganizationSchema = z.object({
     postalCode: z.string().max(20),
     country: z.string().max(100),
   }).optional(),
-  
+  /
   // Subscription info
   plan: z.enum(['trial', 'starter', 'professional', 'enterprise']).default('trial'),
   planExpiresAt: z.string().datetime().optional(),
-  maxUsers: z.number().int().min(1).default(5),
+  maxUsers: z.number().int().min(1).default(5),/
   maxStorage: z.number().int().min(0).default(10737418240), // 10GB in bytes
   
   status: z.enum(['active', 'inactive', 'suspended']).default('active'),
@@ -56,9 +56,9 @@ export const OrganizationSchema = z.object({
   updatedAt: z.string().datetime(),
   deletedAt: z.string().datetime().nullable().optional(),
 });
-
+/
 // UserOrganization schemas (many-to-many relationship)
-export const UserOrganizationSchema = z.object({
+export const UserOrganizationSchema = z.object({;
   id: z.string().uuid(),
   userId: z.string().uuid(),
   organizationId: z.string().uuid(),
@@ -72,42 +72,42 @@ export const UserOrganizationSchema = z.object({
   inviteToken: z.string().optional(),
   inviteExpiresAt: z.string().datetime().optional(),
 });
-
+/
 // Role schemas
-export const RoleSchema = z.object({
+export const RoleSchema = z.object({;
   id: z.string().uuid(),
   name: z.string().min(1).max(100),
   slug: z.string().min(1).max(100),
   description: z.string().max(500).optional(),
-  isSystem: z.boolean().default(false),
+  isSystem: z.boolean().default(false),/
   organizationId: z.string().uuid().nullable().optional(), // null for system roles
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });
-
+/
 // Permission schemas
-export const PermissionSchema = z.object({
+export const PermissionSchema = z.object({;
   id: z.string().uuid(),
-  name: z.string().min(1).max(100),
-  slug: z.string().min(1).max(100), // e.g., "crm:contacts:view"
-  resource: z.string().min(1).max(100), // e.g., "crm:contacts"
+  name: z.string().min(1).max(100),/
+  slug: z.string().min(1).max(100), // e.g., "crm:contacts:view"/
+  resource: z.string().min(1).max(100), // e.g., "crm:contacts"/
   action: z.string().min(1).max(50), // e.g., "view"
   description: z.string().max(500).optional(),
   createdAt: z.string().datetime(),
 });
-
+/
 // RolePermission schemas (many-to-many)
-export const RolePermissionSchema = z.object({
+export const RolePermissionSchema = z.object({;
   id: z.string().uuid(),
   roleId: z.string().uuid(),
   permissionId: z.string().uuid(),
-  scope: z.enum(['organization', 'own']).default('organization'),
+  scope: z.enum(['organization', 'own']).default('organization'),/
   conditions: z.record(z.unknown()).optional(), // JSON conditions for fine-grained control
   createdAt: z.string().datetime(),
 });
-
+/
 // Session schemas
-export const DeviceSessionSchema = z.object({
+export const DeviceSessionSchema = z.object({;
   id: z.string().uuid(),
   userId: z.string().uuid(),
   organizationId: z.string().uuid(),
@@ -134,9 +134,9 @@ export const DeviceSessionSchema = z.object({
   revokedAt: z.string().datetime().nullable().optional(),
   revokedReason: z.string().max(500).optional(),
 });
-
+/
 // Auth request/response schemas
-export const LoginRequestSchema = z.object({
+export const LoginRequestSchema = z.object({;
   email: z.string().email(),
   password: z.string().min(8).max(100),
   organizationSlug: z.string().min(3).max(50).optional(),
@@ -145,7 +145,7 @@ export const LoginRequestSchema = z.object({
   rememberMe: z.boolean().default(false),
 });
 
-export const LoginResponseSchema = z.object({
+export const LoginResponseSchema = z.object({;
   user: UserSchema,
   organization: OrganizationSchema,
   permissions: z.array(z.string()),
@@ -162,12 +162,12 @@ export const LoginResponseSchema = z.object({
   }),
 });
 
-export const RefreshTokenRequestSchema = z.object({
+export const RefreshTokenRequestSchema = z.object({;
   refreshToken: z.string(),
   deviceId: z.string().min(1).max(255).optional(),
 });
 
-export const RefreshTokenResponseSchema = z.object({
+export const RefreshTokenResponseSchema = z.object({;
   tokens: z.object({
     accessToken: z.string(),
     refreshToken: z.string(),
@@ -176,12 +176,12 @@ export const RefreshTokenResponseSchema = z.object({
   }),
 });
 
-export const LogoutRequestSchema = z.object({
+export const LogoutRequestSchema = z.object({;
   refreshToken: z.string().optional(),
   allDevices: z.boolean().default(false),
 });
 
-export const MeResponseSchema = z.object({
+export const MeResponseSchema = z.object({;
   user: UserSchema,
   organization: OrganizationSchema,
   role: RoleSchema,
@@ -195,7 +195,7 @@ export const MeResponseSchema = z.object({
   })),
 });
 
-export const SessionsResponseSchema = z.object({
+export const SessionsResponseSchema = z.object({;
   sessions: z.array(DeviceSessionSchema.omit({
     accessToken: true,
     refreshToken: true,
@@ -204,14 +204,14 @@ export const SessionsResponseSchema = z.object({
   })),
   total: z.number().int(),
 });
-
+/
 // Audit log schemas
-export const AuditLogSchema = z.object({
+export const AuditLogSchema = z.object({;
   id: z.string().uuid(),
   orgId: z.string().uuid(),
   userId: z.string().uuid(),
-  userEmail: z.string().email(),
-  action: z.string().max(100), // e.g., "invoice.approved", "user.login"
+  userEmail: z.string().email(),/
+  action: z.string().max(100), // e.g., "invoice.approved", "user.login"/
   resource: z.string().max(100), // e.g., "invoice", "user"
   resourceId: z.string().uuid().optional(),
   
@@ -232,7 +232,7 @@ export const AuditLogSchema = z.object({
   
   createdAt: z.string().datetime(),
 });
-
+/
 // Export types
 export type User = z.infer<typeof UserSchema>;
 export type Organization = z.infer<typeof OrganizationSchema>;
@@ -251,3 +251,4 @@ export type MeResponse = z.infer<typeof MeResponseSchema>;
 export type SessionsResponse = z.infer<typeof SessionsResponseSchema>;
 
 export type AuditLog = z.infer<typeof AuditLogSchema>;
+/

@@ -2,7 +2,6 @@
 import { structuredLogger } from './structured-logger.js';
 import { databasePool } from './database-pool.js';
 import { cacheManager } from './advanced-cache.js';
-import { healthMonitor } from './health-monitor.js';
 
 export interface ShutdownConfig {
   timeout: number; // Graceful shutdown timeout in milliseconds

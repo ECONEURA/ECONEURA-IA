@@ -1,6 +1,5 @@
 // Database Connection Pooling and Optimization for ECONEURA
 import { structuredLogger } from './structured-logger.js';
-import { ErrorHandler } from './error-handler.js';
 
 export interface PoolConfig {
   min: number;

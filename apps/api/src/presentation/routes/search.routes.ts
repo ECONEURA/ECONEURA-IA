@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { SearchController } from '../controllers/search.controller.js';
 import { IntelligentSearchUseCase } from '../../application/use-cases/search/intelligent-search.use-case.js';
 import { GetSuggestionsUseCase } from '../../application/use-cases/search/get-suggestions.use-case.js';

@@ -1,5 +1,5 @@
 // GDPR Erase Service for PR-43
-import { GDPRRequest, DataErase, LegalHold } from './gdpr-types.js';
+import { DataErase, LegalHold } from './gdpr-types.js';
 import { logger } from './logger.js';
 
 export class GDPREraseService {

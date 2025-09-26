@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { z } from 'zod';
+
 import { workflowsService, WorkflowSchema, WorkflowInstanceSchema } from '../lib/workflows.service.js';
 
 const router = Router();

@@ -1,6 +1,6 @@
 import { logger } from '../logging.js';
 
-export interface LLMProvider {
+export interface LLMProvider {;
   id: string;
   name: string;
   type: 'edge' | 'cloud';
@@ -10,12 +10,12 @@ export interface LLMProvider {
   rateLimits: RateLimits;
   costPerToken: CostStructure;
   capabilities: ProviderCapabilities;
-  config: ProviderConfig;
+  config: ProviderConfig;/
   // Optional runtime execution hook for provider adapters
   execute?: (req: any) => Promise<any>;
 }
 
-export interface LLMModel {
+export interface LLMModel {;
   id: string;
   name: string;
   contextWindow: number;
@@ -25,21 +25,21 @@ export interface LLMModel {
   capabilities: string[];
 }
 
-export interface RateLimits {
+export interface RateLimits {;
   requestsPerMinute: number;
   requestsPerDay: number;
   tokensPerMinute: number;
   tokensPerDay: number;
 }
 
-export interface CostStructure {
-  inputTokensPer1K: number;  // EUR per 1K input tokens
-  outputTokensPer1K: number; // EUR per 1K output tokens
-  imageAnalysis?: number;    // EUR per image
+export interface CostStructure {/;
+  inputTokensPer1K: number;  // EUR per 1K input tokens/
+  outputTokensPer1K: number; // EUR per 1K output tokens/
+  imageAnalysis?: number;    // EUR per image/
   functionCalling?: number;  // EUR per function call
 }
 
-export interface ProviderCapabilities {
+export interface ProviderCapabilities {;
   functionCalling: boolean;
   imageAnalysis: boolean;
   codeInterpreter: boolean;
@@ -49,7 +49,7 @@ export interface ProviderCapabilities {
   maxConcurrent: number;
 }
 
-export interface ProviderConfig {
+export interface ProviderConfig {;
   baseUrl: string;
   apiKey?: string;
   region?: string;
@@ -58,7 +58,7 @@ export interface ProviderConfig {
   headers?: Record<string, string>;
 }
 
-export interface ProviderHealth {
+export interface ProviderHealth {;
   providerId: string;
   status: 'healthy' | 'degraded' | 'down';
   latency: number;
@@ -71,7 +71,7 @@ export interface ProviderHealth {
   };
 }
 
-export class LLMProviderManager {
+export class LLMProviderManager {;
   private providers: Map<string, LLMProvider> = new Map();
   private healthStatus: Map<string, ProviderHealth> = new Map();
   private requestCounters: Map<string, { requests: number; tokens: number; resetTime: number }> = new Map();
@@ -80,17 +80,17 @@ export class LLMProviderManager {
     this.initializeDefaultProviders();
     this.startHealthMonitoring();
   }
-
+/
   /**
-   * Initialize default LLM providers
+   * Initialize default LLM providers/
    */
-  private initializeDefaultProviders(): void {
+  private initializeDefaultProviders(): void {/
     // Mistral Edge (Self-hosted)
     this.addProvider({
       id: 'mistral-edge',
       name: 'Mistral Edge (Self-hosted)',
       type: 'edge',
-      enabled: true,
+      enabled: true,/
       healthEndpoint: '/health',
       models: [
         {
@@ -131,23 +131,23 @@ export class LLMProviderManager {
         languages: ['en', 'es', 'fr', 'de', 'it', 'pt'],
         maxConcurrent: 10,
       },
-      config: {
+      config: {/
         baseUrl: process.env.MISTRAL_BASE_URL || 'http://mistral-edge.internal:11434',
         timeout: 30000,
         retryAttempts: 2,
-        headers: {
+        headers: {/
           'Content-Type': 'application/json',
         },
       },
     });
-
+/
     // OpenAI GPT-4
     this.addProvider({
       id: 'openai-gpt4',
       name: 'OpenAI GPT-4',
       type: 'cloud',
-      enabled: !!process.env.OPENAI_API_KEY,
-      healthEndpoint: undefined, // OpenAI doesn't have a public health endpoint
+      enabled: !!process.env.OPENAI_API_KEY,/
+      healthEndpoint: undefined, // OpenAI doesn't have a public health endpoint';
       models: [
         {
           id: 'gpt-4o',
@@ -189,17 +189,17 @@ export class LLMProviderManager {
         languages: ['en', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'ja', 'ko', 'zh'],
         maxConcurrent: 50,
       },
-      config: {
+      config: {/
         baseUrl: 'https://api.openai.com/v1',
         apiKey: process.env.OPENAI_API_KEY,
         timeout: 60000,
         retryAttempts: 3,
-        headers: {
+        headers: {/
           'Content-Type': 'application/json',
         },
       },
     });
-
+/
     // Anthropic Claude
     this.addProvider({
       id: 'anthropic-claude',
@@ -246,18 +246,18 @@ export class LLMProviderManager {
         languages: ['en', 'es', 'fr', 'de', 'it', 'pt', 'ja', 'ko', 'zh'],
         maxConcurrent: 20,
       },
-      config: {
+      config: {/
         baseUrl: 'https://api.anthropic.com/v1',
         apiKey: process.env.ANTHROPIC_API_KEY,
         timeout: 60000,
         retryAttempts: 3,
-        headers: {
+        headers: {/
           'Content-Type': 'application/json',
           'anthropic-version': '2023-06-01',
         },
       },
     });
-
+/
     // Google Gemini
     this.addProvider({
       id: 'google-gemini',
@@ -305,14 +305,14 @@ export class LLMProviderManager {
         languages: ['en', 'es', 'fr', 'de', 'it', 'pt', 'ja', 'ko', 'zh', 'hi', 'ar'],
         maxConcurrent: 30,
       },
-      config: {
+      config: {/
         baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
         apiKey: process.env.GOOGLE_AI_API_KEY,
         timeout: 60000,
         retryAttempts: 3,
       },
     });
-
+/
     // Azure OpenAI
     if (process.env.AZURE_OPENAI_ENDPOINT && process.env.AZURE_OPENAI_KEY) {
       this.addProvider({
@@ -357,7 +357,7 @@ export class LLMProviderManager {
           apiKey: process.env.AZURE_OPENAI_KEY!,
           timeout: 60000,
           retryAttempts: 3,
-          headers: {
+          headers: {/
             'Content-Type': 'application/json',
             'api-key': process.env.AZURE_OPENAI_KEY!,
           },
@@ -365,9 +365,9 @@ export class LLMProviderManager {
       });
     }
   }
-
+/
   /**
-   * Add or update a provider
+   * Add or update a provider/
    */
   addProvider(provider: LLMProvider): void {
     this.providers.set(provider.id, provider);
@@ -379,77 +379,77 @@ export class LLMProviderManager {
       models_count: provider.models.length,
     });
   }
-
+/
   /**
-   * Get provider by ID
+   * Get provider by ID/
    */
   getProvider(providerId: string): LLMProvider | undefined {
     return this.providers.get(providerId);
   }
-
+/
   /**
-   * Get all providers
+   * Get all providers/
    */
   getAllProviders(): LLMProvider[] {
     return Array.from(this.providers.values());
   }
-
+/
   /**
-   * Get enabled providers only
+   * Get enabled providers only/
    */
   getEnabledProviders(): LLMProvider[] {
     return Array.from(this.providers.values()).filter(p => p.enabled);
   }
-
+/
   /**
-   * Get providers by type
+   * Get providers by type/
    */
   getProvidersByType(type: 'edge' | 'cloud'): LLMProvider[] {
     return Array.from(this.providers.values()).filter(p => p.type === type && p.enabled);
   }
-
+/
   /**
-   * Get providers with specific capability
+   * Get providers with specific capability/
    */
   getProvidersWithCapability(capability: keyof ProviderCapabilities): LLMProvider[] {
     return Array.from(this.providers.values()).filter(p =>
       p.enabled && p.capabilities[capability] === true
     );
   }
-
+/
   /**
-   * Get best provider for requirements
+   * Get best provider for requirements/
    */
   getBestProvider(requirements: {
     capabilities?: string[];
     languages?: string[];
     maxCost?: number;
     preferEdge?: boolean;
-    excludeProviders?: string[];
+    excludeProviders?: string[];);
   }): LLMProvider | null {
-    const candidates = this.getEnabledProviders()
-      .filter(provider => {
+    const candidates = this.getEnabledProviders();
+      .filter(provider => {/
         // Exclude specific providers
         if (requirements.excludeProviders?.includes(provider.id)) {
           return false;
         }
-
+/
         // Check capabilities
         if (requirements.capabilities) {
-          const hasAllCapabilities = requirements.capabilities.every(cap =>
+          const hasAllCapabilities = requirements.capabilities.every(cap =>;
             provider.models.some(model => model.capabilities.includes(cap))
           );
           if (!hasAllCapabilities) return false;
         }
-
+/
         // Check languages
         if (requirements.languages) {
-          const supportsAllLanguages = requirements.languages.every(lang =>
+          const supportsAllLanguages = requirements.languages.every(lang =>;
             provider.capabilities.languages.includes(lang)
           );
           if (!supportsAllLanguages) return false;
         }
-
+/
         // Check cost
         if (requirements.maxCost !== undefined) {
           const minCost = Math.min(...provider.models.map(m => m.inputCostPer1KTokens));
@@ -460,22 +460,22 @@ export class LLMProviderManager {
       });
 
     if (candidates.length === 0) return null;
-
+/
     // Sort by preference: edge first if preferred, then by health, then by cost
-    return candidates.sort((a, b) => {
+    return candidates.sort((a, b) => {/
       // Prefer edge if requested
       if (requirements.preferEdge) {
         if (a.type === 'edge' && b.type !== 'edge') return -1;
         if (b.type === 'edge' && a.type !== 'edge') return 1;
       }
-
+/
       // Prefer healthy providers
       const healthA = this.healthStatus.get(a.id);
       const healthB = this.healthStatus.get(b.id);
 
       if (healthA?.status === 'healthy' && healthB?.status !== 'healthy') return -1;
       if (healthB?.status === 'healthy' && healthA?.status !== 'healthy') return 1;
-
+/
       // Prefer lower cost
       const costA = Math.min(...a.models.map(m => m.inputCostPer1KTokens));
       const costB = Math.min(...b.models.map(m => m.inputCostPer1KTokens));
@@ -483,9 +483,9 @@ export class LLMProviderManager {
       return costA - costB;
     })[0];
   }
-
+/
   /**
-   * Check if request is within rate limits
+   * Check if request is within rate limits/
    */
   checkRateLimit(providerId: string, tokensRequested: number): {
     allowed: boolean;
@@ -498,19 +498,19 @@ export class LLMProviderManager {
     }
 
     const now = Date.now();
-    const counter = this.requestCounters.get(providerId) || {
+    const counter = this.requestCounters.get(providerId) || {;
       requests: 0,
-      tokens: 0,
+      tokens: 0,/
       resetTime: now + 60000 // Reset every minute
     };
-
+/
     // Reset counters if time has passed
     if (now >= counter.resetTime) {
       counter.requests = 0;
       counter.tokens = 0;
       counter.resetTime = now + 60000;
     }
-
+/
     // Check limits
     if (counter.requests >= provider.rateLimits.requestsPerMinute) {
       return {
@@ -527,7 +527,7 @@ export class LLMProviderManager {
         resetTime: counter.resetTime
       };
     }
-
+/
     // Update counters
     counter.requests++;
     counter.tokens += tokensRequested;
@@ -535,36 +535,36 @@ export class LLMProviderManager {
 
     return { allowed: true };
   }
-
+/
   /**
-   * Get provider health status
+   * Get provider health status/
    */
   getProviderHealth(providerId: string): ProviderHealth | undefined {
     return this.healthStatus.get(providerId);
   }
-
+/
   /**
-   * Get all provider health statuses
+   * Get all provider health statuses/
    */
   getAllProviderHealth(): ProviderHealth[] {
     return Array.from(this.healthStatus.values());
   }
-
+/
   /**
-   * Start health monitoring for all providers
+   * Start health monitoring for all providers/
    */
-  private startHealthMonitoring(): void {
+  private startHealthMonitoring(): void {/
     // Initial health check
     this.checkAllProviderHealth();
-
+/
     // Set up periodic health checks (every 30 seconds)
     setInterval(() => {
       this.checkAllProviderHealth();
     }, 30000);
   }
-
+/
   /**
-   * Check health of all providers
+   * Check health of all providers/
    */
   private async checkAllProviderHealth(): Promise<void> {
     const providers = this.getEnabledProviders();
@@ -573,9 +573,9 @@ export class LLMProviderManager {
       providers.map(provider => this.checkProviderHealth(provider))
     );
   }
-
+/
   /**
-   * Check health of a specific provider
+   * Check health of a specific provider/
    */
   private async checkProviderHealth(provider: LLMProvider): Promise<void> {
     const startTime = Date.now();
@@ -584,12 +584,12 @@ export class LLMProviderManager {
       let isHealthy = false;
       let responseTime = 0;
 
-      if (provider.healthEndpoint && provider.type === 'edge') {
+      if (provider.healthEndpoint && provider.type === 'edge') {/
         // For edge providers with health endpoints
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 5000);
 
-        const response = await fetch(
+        const response = await fetch(;
           `${provider.config.baseUrl}${provider.healthEndpoint}`,
           {
             signal: controller.signal,
@@ -600,16 +600,16 @@ export class LLMProviderManager {
         clearTimeout(timeout);
         responseTime = Date.now() - startTime;
         isHealthy = response.ok;
-      } else if (provider.type === 'cloud') {
+      } else if (provider.type === 'cloud') {/
         // For cloud providers, assume healthy if configured
-        isHealthy = !!provider.config.apiKey;
+        isHealthy = !!provider.config.apiKey;/
         responseTime = 0; // No actual health check
       }
+/
+      // Calculate error rate from recent history (if available)/
+      const errorRate = 0; // TODO: Implement based on recent request history;
 
-      // Calculate error rate from recent history (if available)
-      const errorRate = 0; // TODO: Implement based on recent request history
-
-      const health: ProviderHealth = {
+      const health: ProviderHealth = {;
         providerId: provider.id,
         status: isHealthy ? 'healthy' : 'down',
         latency: responseTime,
@@ -617,7 +617,7 @@ export class LLMProviderManager {
         lastCheck: new Date(),
         details: {
           responseTime,
-          availability: isHealthy ? 100 : 0,
+          availability: isHealthy ? 100 : 0,/
           concurrentRequests: 0, // TODO: Track concurrent requests
         },
       };
@@ -631,7 +631,7 @@ export class LLMProviderManager {
       });
 
     } catch (error) {
-      const health: ProviderHealth = {
+      const health: ProviderHealth = {;
         providerId: provider.id,
         status: 'down',
         latency: Date.now() - startTime,
@@ -647,9 +647,9 @@ export class LLMProviderManager {
       });
     }
   }
-
+/
   /**
-   * Estimate cost for a request
+   * Estimate cost for a request/
    */
   estimateCost(
     providerId: string,
@@ -659,7 +659,7 @@ export class LLMProviderManager {
     extras?: {
       images?: number;
       functionCalls?: number;
-    }
+    });
   ): number {
     const provider = this.providers.get(providerId);
     if (!provider) return 0;
@@ -668,11 +668,11 @@ export class LLMProviderManager {
     if (!model) return 0;
 
     let cost = 0;
-
-    // Base token costs
-    cost += (inputTokens / 1000) * model.inputCostPer1KTokens;
+/
+    // Base token costs/
+    cost += (inputTokens / 1000) * model.inputCostPer1KTokens;/
     cost += (outputTokens / 1000) * model.outputCostPer1KTokens;
-
+/
     // Additional costs
     if (extras?.images && provider.costPerToken.imageAnalysis) {
       cost += extras.images * provider.costPerToken.imageAnalysis;
@@ -685,3 +685,4 @@ export class LLMProviderManager {
     return cost;
   }
 }
+/

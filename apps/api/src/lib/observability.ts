@@ -1,6 +1,7 @@
+import { Request, Response, NextFunction } from 'express';
+
 import { metrics } from './metrics.js';
 import { logger } from './logger.js';
-import { Request, Response, NextFunction } from 'express';
 
 export class ObservabilityService {
   constructor() {}

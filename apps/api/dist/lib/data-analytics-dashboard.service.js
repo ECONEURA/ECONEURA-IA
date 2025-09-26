@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { structuredLogger } from './structured-logger.js';
 const CreateDashboardSchema = z.object({
     name: z.string().min(1).max(100),

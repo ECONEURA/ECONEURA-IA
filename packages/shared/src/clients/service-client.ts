@@ -2,13 +2,13 @@
  * Service Client for ECONEURA
  * 
  * Handles communication between services with automatic service discovery,
- * load balancing, retry logic, and circuit breakers
+ * load balancing, retry logic, and circuit breakers/
  */
-
+/
 import { serviceDiscovery, ServiceInfo } from '../services/service-discovery.js';
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
-export interface ServiceClientConfig {
+export interface ServiceClientConfig {;
   serviceType: 'api' | 'workers' | 'web' | 'db';
   timeout?: number;
   retries?: number;
@@ -17,7 +17,7 @@ export interface ServiceClientConfig {
   loadBalancing?: 'round-robin' | 'random' | 'least-connections';
 }
 
-export interface ServiceRequest {
+export interface ServiceRequest {;
   endpoint: string;
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';
   data?: any;
@@ -25,7 +25,7 @@ export interface ServiceRequest {
   params?: Record<string, any>;
 }
 
-export interface ServiceResponse<T = any> {
+export interface ServiceResponse<T = any> {;
   success: boolean;
   data?: T;
   error?: string;
@@ -34,7 +34,7 @@ export interface ServiceResponse<T = any> {
   retries: number;
 }
 
-export class ServiceClient {
+export class ServiceClient {;
   private config: Required<ServiceClientConfig>;
   private axiosInstances: Map<string, AxiosInstance> = new Map();
   private roundRobinIndex: Map<string, number> = new Map();
@@ -51,9 +51,9 @@ export class ServiceClient {
       ...config
     };
   }
-
+/
   /**
-   * Make a request to a service
+   * Make a request to a service/
    */
   async request<T = any>(request: ServiceRequest): Promise<ServiceResponse<T>> {
     const startTime = Date.now();
@@ -66,7 +66,7 @@ export class ServiceClient {
         if (!service) {
           throw new Error(`No healthy ${this.config.serviceType} services available`);
         }
-
+/
         // Check circuit breaker
         if (this.isCircuitBreakerOpen(service.id)) {
           throw new Error(`Circuit breaker open for service ${service.id}`);
@@ -74,7 +74,7 @@ export class ServiceClient {
 
         const response = await this.makeRequest(service, request);
         const responseTime = Date.now() - startTime;
-
+/
         // Reset circuit breaker on success
         this.resetCircuitBreaker(service.id);
 
@@ -89,10 +89,10 @@ export class ServiceClient {
       } catch (error) {
         lastError = error as Error;
         retries++;
-
+/
         // Record failure for circuit breaker
-        if (error instanceof Error && error.message.includes('Circuit breaker')) {
-          // Don't retry circuit breaker failures
+        if (error instanceof Error && error.message.includes('Circuit breaker')) {/
+          // Don't retry circuit breaker failures';
           break;
         }
 
@@ -111,9 +111,9 @@ export class ServiceClient {
       retries
     };
   }
-
+/
   /**
-   * Select a service using load balancing strategy
+   * Select a service using load balancing strategy/
    */
   private selectService(): ServiceInfo | null {
     const healthyServices = serviceDiscovery.getHealthyServicesByType(this.config.serviceType);
@@ -133,9 +133,9 @@ export class ServiceClient {
         return healthyServices[0];
     }
   }
-
+/
   /**
-   * Round-robin selection
+   * Round-robin selection/
    */
   private selectRoundRobin(services: ServiceInfo[]): ServiceInfo {
     const key = this.config.serviceType;
@@ -144,17 +144,17 @@ export class ServiceClient {
     this.roundRobinIndex.set(key, currentIndex + 1);
     return selectedService;
   }
-
+/
   /**
-   * Random selection
+   * Random selection/
    */
   private selectRandom(services: ServiceInfo[]): ServiceInfo {
     const randomIndex = Math.floor(Math.random() * services.length);
     return services[randomIndex];
   }
-
+/
   /**
-   * Least connections selection
+   * Least connections selection/
    */
   private selectLeastConnections(services: ServiceInfo[]): ServiceInfo {
     return services.reduce((least, current) => {
@@ -163,9 +163,9 @@ export class ServiceClient {
       return currentConnections < leastConnections ? current : least;
     });
   }
-
+/
   /**
-   * Make HTTP request to service
+   * Make HTTP request to service/
    */
   private async makeRequest(service: ServiceInfo, request: ServiceRequest): Promise<AxiosResponse> {
     const axiosInstance = this.getAxiosInstance(service);
@@ -174,16 +174,16 @@ export class ServiceClient {
     if (!url) {
       throw new Error(`Cannot construct URL for service ${service.id}`);
     }
-
+/
     // Increment connection count
     this.incrementConnectionCount(service.id);
 
     try {
-      const config: AxiosRequestConfig = {
+      const config: AxiosRequestConfig = {;
         method: request.method,
         url,
         data: request.data,
-        headers: {
+        headers: {/
           'Content-Type': 'application/json',
           'X-Service-Client': 'econeura-service-client',
           'X-Request-ID': this.generateRequestId(),
@@ -196,25 +196,25 @@ export class ServiceClient {
       const response = await axiosInstance.request(config);
       return response;
 
-    } finally {
+    } finally {/
       // Decrement connection count
       this.decrementConnectionCount(service.id);
     }
   }
-
+/
   /**
-   * Get or create axios instance for service
+   * Get or create axios instance for service/
    */
   private getAxiosInstance(service: ServiceInfo): AxiosInstance {
     if (!this.axiosInstances.has(service.id)) {
-      const instance = axios.create({
+      const instance = axios.create({;
         baseURL: serviceDiscovery.getServiceUrl(service.id),
         timeout: this.config.timeout,
-        headers: {
+        headers: {/
           'User-Agent': 'ECONEURA-ServiceClient/1.0.0'
         }
       });
-
+/
       // Add request interceptor
       instance.interceptors.request.use(
         (config) => {
@@ -223,7 +223,7 @@ export class ServiceClient {
         },
         (error) => Promise.reject(error)
       );
-
+/
       // Add response interceptor
       instance.interceptors.response.use(
         (response) => {
@@ -243,17 +243,17 @@ export class ServiceClient {
 
     return this.axiosInstances.get(service.id)!;
   }
-
+/
   /**
-   * Circuit breaker logic
+   * Circuit breaker logic/
    */
   private isCircuitBreakerOpen(serviceId: string): boolean {
     const breaker = this.circuitBreakers.get(serviceId);
     if (!breaker) return false;
 
-    if (breaker.isOpen) {
+    if (breaker.isOpen) {/
       // Check if enough time has passed to try again
-      const timeSinceLastFailure = Date.now() - breaker.lastFailure.getTime();
+      const timeSinceLastFailure = Date.now() - breaker.lastFailure.getTime();/;
       if (timeSinceLastFailure > 60000) { // 1 minute
         breaker.isOpen = false;
         breaker.failures = 0;
@@ -262,12 +262,12 @@ export class ServiceClient {
 
     return breaker.isOpen;
   }
-
+/
   /**
-   * Record circuit breaker failure
+   * Record circuit breaker failure/
    */
   private recordFailure(serviceId: string): void {
-    const breaker = this.circuitBreakers.get(serviceId) || {
+    const breaker = this.circuitBreakers.get(serviceId) || {;
       failures: 0,
       lastFailure: new Date(),
       isOpen: false
@@ -282,9 +282,9 @@ export class ServiceClient {
 
     this.circuitBreakers.set(serviceId, breaker);
   }
-
+/
   /**
-   * Reset circuit breaker
+   * Reset circuit breaker/
    */
   private resetCircuitBreaker(serviceId: string): void {
     const breaker = this.circuitBreakers.get(serviceId);
@@ -293,9 +293,9 @@ export class ServiceClient {
       breaker.isOpen = false;
     }
   }
-
+/
   /**
-   * Connection count management
+   * Connection count management/
    */
   private incrementConnectionCount(serviceId: string): void {
     const count = this.connectionCounts.get(serviceId) || 0;
@@ -306,23 +306,23 @@ export class ServiceClient {
     const count = this.connectionCounts.get(serviceId) || 0;
     this.connectionCounts.set(serviceId, Math.max(0, count - 1));
   }
-
+/
   /**
-   * Generate request ID
+   * Generate request ID/
    */
   private generateRequestId(): string {
     return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
-
+/
   /**
-   * Delay utility
+   * Delay utility/
    */
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
-
+/
   /**
-   * Get service statistics
+   * Get service statistics/
    */
   getStats(): {
     serviceType: string;
@@ -340,8 +340,9 @@ export class ServiceClient {
     };
   }
 }
-
+/
 // Factory function for creating service clients
-export function createServiceClient(config: ServiceClientConfig): ServiceClient {
+export function createServiceClient(config: ServiceClientConfig): ServiceClient {;
   return new ServiceClient(config);
 }
+/

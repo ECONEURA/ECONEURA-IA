@@ -1,5 +1,5 @@
 import { structuredLogger } from './structured-logger.js';
-import { cacheManager, apiCache } from './advanced-cache.js';
+import { apiCache } from './advanced-cache.js';
 
 export interface AnalyticsEvent {
   id: string;

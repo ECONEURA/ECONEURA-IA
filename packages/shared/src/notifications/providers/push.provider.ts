@@ -1,15 +1,15 @@
-// ============================================================================
-// PUSH NOTIFICATION PROVIDER - FIREBASE, WEB PUSH, APNS
+// ============================================================================/
+// PUSH NOTIFICATION PROVIDER - FIREBASE, WEB PUSH, APNS/
 // ============================================================================
 
-import { z } from 'zod';
+import { z } from 'zod';/;
 import { logger } from '../../../utils/logger.js';
-
+/
+// ============================================================================/
+// SCHEMAS/
 // ============================================================================
-// SCHEMAS
-// ============================================================================
 
-const PushProviderConfigSchema = z.object({
+const PushProviderConfigSchema = z.object({;
   provider: z.enum(['firebase', 'web_push', 'apns']),
   serverKey: z.string().optional(),
   projectId: z.string().optional(),
@@ -23,7 +23,7 @@ const PushProviderConfigSchema = z.object({
   testMode: z.boolean().default(false)
 });
 
-const PushMessageSchema = z.object({
+const PushMessageSchema = z.object({;
   to: z.union([z.string(), z.array(z.string())]),
   title: z.string(),
   body: z.string(),
@@ -35,19 +35,19 @@ const PushMessageSchema = z.object({
   clickAction: z.string().optional(),
   tag: z.string().optional(),
   requireInteraction: z.boolean().default(false),
-  silent: z.boolean().default(false),
+  silent: z.boolean().default(false),/
   ttl: z.number().min(0).max(86400).optional(), // seconds
   priority: z.enum(['normal', 'high']).default('normal'),
   collapseKey: z.string().optional(),
   delayWhileIdle: z.boolean().default(false),
   dryRun: z.boolean().default(false)
 });
-
+/
+// ============================================================================/
+// INTERFACES/
 // ============================================================================
-// INTERFACES
-// ============================================================================
 
-export interface PushProviderConfig {
+export interface PushProviderConfig {;
   provider: 'firebase' | 'web_push' | 'apns';
   serverKey?: string;
   projectId?: string;
@@ -61,7 +61,7 @@ export interface PushProviderConfig {
   testMode?: boolean;
 }
 
-export interface PushMessage {
+export interface PushMessage {;
   to: string | string[];
   title: string;
   body: string;
@@ -81,7 +81,7 @@ export interface PushMessage {
   dryRun?: boolean;
 }
 
-export interface PushResult {
+export interface PushResult {;
   messageId: string;
   success: boolean;
   provider: string;
@@ -100,18 +100,18 @@ export interface PushResult {
   };
 }
 
-export interface IPushProvider {
+export interface IPushProvider {;
   send(message: PushMessage): Promise<PushResult>;
   sendBulk(messages: PushMessage[]): Promise<PushResult[]>;
   validateConfig(): Promise<boolean>;
   getQuota(): Promise<{ used: number; limit: number; resetAt: Date }>;
 }
-
+/
+// ============================================================================/
+// FIREBASE PROVIDER/
 // ============================================================================
-// FIREBASE PROVIDER
-// ============================================================================
 
-export class FirebaseProvider implements IPushProvider {
+export class FirebaseProvider implements IPushProvider {;
   private config: PushProviderConfig;
   private serverKey: string;
   private projectId: string;
@@ -145,9 +145,9 @@ export class FirebaseProvider implements IPushProvider {
       }
 
       const tokens = Array.isArray(message.to) ? message.to : [message.to];
-      
+      /
       // Simulate Firebase FCM API call
-      const fcmMessage = {
+      const fcmMessage = {;
         registration_ids: tokens,
         notification: {
           title: message.title,
@@ -170,7 +170,7 @@ export class FirebaseProvider implements IPushProvider {
         },
         apns: {
           headers: {
-            'apns-priority': message.priority === 'high' ? '10' : '5',
+            'apns-priority': message.priority === 'high' ? '10' : '5',/
             'apns-expiration': message.ttl ? Math.floor(Date.now() / 1000) + message.ttl : undefined
           },
           payload: {
@@ -187,7 +187,7 @@ export class FirebaseProvider implements IPushProvider {
           }
         }
       };
-
+/
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -199,9 +199,9 @@ export class FirebaseProvider implements IPushProvider {
         title: message.title,
         provider: 'firebase'
       });
-
+/
       // Simulate results
-      const results = tokens.map((token, index) => ({
+      const results = tokens.map((token, index) => ({;
         messageId: `${messageId}_${index}`,
         registrationId: token,
         error: Math.random() > 0.9 ? 'InvalidRegistration' : undefined
@@ -242,7 +242,7 @@ export class FirebaseProvider implements IPushProvider {
 
   async sendBulk(messages: PushMessage[]): Promise<PushResult[]> {
     const results: PushResult[] = [];
-    
+    /
     // Process in batches of 100
     const batchSize = 100;
     for (let i = 0; i < messages.length; i += batchSize) {
@@ -263,7 +263,7 @@ export class FirebaseProvider implements IPushProvider {
     }
   }
 
-  async getQuota(): Promise<{ used: number; limit: number; resetAt: Date }> {
+  async getQuota(): Promise<{ used: number; limit: number; resetAt: Date }> {/
     // Simulate quota check
     return {
       used: Math.floor(Math.random() * 1000),
@@ -272,12 +272,12 @@ export class FirebaseProvider implements IPushProvider {
     };
   }
 }
-
+/
+// ============================================================================/
+// WEB PUSH PROVIDER/
 // ============================================================================
-// WEB PUSH PROVIDER
-// ============================================================================
 
-export class WebPushProvider implements IPushProvider {
+export class WebPushProvider implements IPushProvider {;
   private config: PushProviderConfig;
   private vapidPublicKey: string;
   private vapidPrivateKey: string;
@@ -313,9 +313,9 @@ export class WebPushProvider implements IPushProvider {
       }
 
       const subscriptions = Array.isArray(message.to) ? message.to : [message.to];
-      
+      /
       // Simulate Web Push API call
-      const webPushMessage = {
+      const webPushMessage = {;
         title: message.title,
         body: message.body,
         icon: message.icon,
@@ -333,7 +333,7 @@ export class WebPushProvider implements IPushProvider {
         ttl: message.ttl || 86400,
         urgency: message.priority
       };
-
+/
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 80));
 
@@ -345,9 +345,9 @@ export class WebPushProvider implements IPushProvider {
         title: message.title,
         provider: 'web_push'
       });
-
+/
       // Simulate results
-      const results = subscriptions.map((subscription, index) => ({
+      const results = subscriptions.map((subscription, index) => ({;
         messageId: `${messageId}_${index}`,
         registrationId: subscription,
         error: Math.random() > 0.95 ? 'InvalidSubscription' : undefined
@@ -386,7 +386,7 @@ export class WebPushProvider implements IPushProvider {
 
   async sendBulk(messages: PushMessage[]): Promise<PushResult[]> {
     const results: PushResult[] = [];
-    
+    /
     // Process in batches of 50
     const batchSize = 50;
     for (let i = 0; i < messages.length; i += batchSize) {
@@ -407,8 +407,8 @@ export class WebPushProvider implements IPushProvider {
     }
   }
 
-  async getQuota(): Promise<{ used: number; limit: number; resetAt: Date }> {
-    // Web Push doesn't have quotas
+  async getQuota(): Promise<{ used: number; limit: number; resetAt: Date }> {/
+    // Web Push doesn't have quotas';
     return {
       used: 0,
       limit: Infinity,
@@ -416,12 +416,12 @@ export class WebPushProvider implements IPushProvider {
     };
   }
 }
-
+/
+// ============================================================================/
+// APNS PROVIDER/
 // ============================================================================
-// APNS PROVIDER
-// ============================================================================
 
-export class APNSProvider implements IPushProvider {
+export class APNSProvider implements IPushProvider {;
   private config: PushProviderConfig;
   private privateKey: string;
   private keyId: string;
@@ -459,9 +459,9 @@ export class APNSProvider implements IPushProvider {
       }
 
       const deviceTokens = Array.isArray(message.to) ? message.to : [message.to];
-      
+      /
       // Simulate APNS API call
-      const apnsMessage = {
+      const apnsMessage = {;
         aps: {
           alert: {
             title: message.title,
@@ -476,7 +476,7 @@ export class APNSProvider implements IPushProvider {
         },
         ...message.data
       };
-
+/
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 120));
 
@@ -488,9 +488,9 @@ export class APNSProvider implements IPushProvider {
         title: message.title,
         provider: 'apns'
       });
-
+/
       // Simulate results
-      const results = deviceTokens.map((token, index) => ({
+      const results = deviceTokens.map((token, index) => ({;
         messageId: `${messageId}_${index}`,
         registrationId: token,
         error: Math.random() > 0.95 ? 'BadDeviceToken' : undefined
@@ -529,7 +529,7 @@ export class APNSProvider implements IPushProvider {
 
   async sendBulk(messages: PushMessage[]): Promise<PushResult[]> {
     const results: PushResult[] = [];
-    
+    /
     // Process in batches of 20
     const batchSize = 20;
     for (let i = 0; i < messages.length; i += batchSize) {
@@ -550,7 +550,7 @@ export class APNSProvider implements IPushProvider {
     }
   }
 
-  async getQuota(): Promise<{ used: number; limit: number; resetAt: Date }> {
+  async getQuota(): Promise<{ used: number; limit: number; resetAt: Date }> {/
     // Simulate quota check
     return {
       used: Math.floor(Math.random() * 500),
@@ -559,12 +559,12 @@ export class APNSProvider implements IPushProvider {
     };
   }
 }
-
+/
+// ============================================================================/
+// PUSH PROVIDER FACTORY/
 // ============================================================================
-// PUSH PROVIDER FACTORY
-// ============================================================================
 
-export class PushProviderFactory {
+export class PushProviderFactory {;
   static create(config: PushProviderConfig): IPushProvider {
     switch (config.provider) {
       case 'firebase':
@@ -578,12 +578,13 @@ export class PushProviderFactory {
     }
   }
 }
-
+/
+// ============================================================================/
+// EXPORTS/
 // ============================================================================
-// EXPORTS
-// ============================================================================
 
-export {
+export {;
   PushProviderConfigSchema,
   PushMessageSchema
 };
+/

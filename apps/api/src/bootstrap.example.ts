@@ -8,7 +8,8 @@
  */
 
 import { apiLogger } from '@econeura/shared/logging/enhanced';
-import { env, serverConfig, dbConfig, redisConfig } from './config/env.js';
+
+import { env, serverConfig } from './config/env.js';
 
 /**
  * Example startup sequence with structured logging

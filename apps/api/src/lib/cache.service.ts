@@ -2,7 +2,6 @@
 // Sistema de caching avanzado para mejorar performance del sistema
 
 import { logger } from './logger.js';
-import { z } from 'zod';
 
 export interface CacheConfig {
   defaultTTL: number; // TTL por defecto en segundos

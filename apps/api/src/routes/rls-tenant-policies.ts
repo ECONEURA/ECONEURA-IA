@@ -6,7 +6,8 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { tenantRLSPoliciesService, TenantRLSPolicy, TenantRLSRule, TenantRLSContext } from '../services/rls-tenant-policies.service.js';
+
+import { tenantRLSPoliciesService } from '../services/rls-tenant-policies.service.js';
 import { structuredLogger } from '../lib/structured-logger.js';
 
 const router = Router();

@@ -1,27 +1,27 @@
-// packages/shared/src/ai/agents/index.ts
-// Core components
-export { AutonomousAgent } from './core/autonomous-agent';
-export { LearningEngine } from './learning/learning-engine';
+// packages/shared/src/ai/agents/index.ts/
+// Core components/
+export { AutonomousAgent } from './core/autonomous-agent';/;
+export { LearningEngine } from './learning/learning-engine';/;
 export { WorkflowEngine } from './orchestrator/workflow-engine';
-
-// Specialized agents
+/
+// Specialized agents/
 export * from './specialized';
-
-// Types
+/
+// Types/
 export * from './types';
-
-// Factory functions
-import { AgentContext, BusinessAction } from './types';
-import { createSpecializedAgent, AGENT_CONFIGURATIONS, SpecializedAgentType } from './specialized';
+/
+// Factory functions/
+import { AgentContext, BusinessAction } from './types';/;
+import { createSpecializedAgent, AGENT_CONFIGURATIONS, SpecializedAgentType } from './specialized';/;
 import { AutonomousAgent } from './core/autonomous-agent';
-
+/
 /**
- * Crea un agente autónomo con configuración optimizada para su especialización
+ * Crea un agente autónomo con configuración optimizada para su especialización/
  */
-export function createOptimizedAgent(type: SpecializedAgentType, baseContext: Partial<AgentContext>): AutonomousAgent {
+export function createOptimizedAgent(type: SpecializedAgentType, baseContext: Partial<AgentContext>): AutonomousAgent {;
   const config = AGENT_CONFIGURATIONS[type];
 
-  const context: AgentContext = {
+  const context: AgentContext = {;
     id: baseContext.id || `agent-${type}-${Date.now()}`,
     name: baseContext.name || `${type.charAt(0).toUpperCase() + type.slice(1)} Agent`,
     role: type,
@@ -40,16 +40,16 @@ export function createOptimizedAgent(type: SpecializedAgentType, baseContext: Pa
 
   return createSpecializedAgent(type, context);
 }
-
+/
 /**
  * Sistema de agentes para ECONEURA-IA
- * Proporciona una interfaz unificada para gestionar múltiples agentes especializados
+ * Proporciona una interfaz unificada para gestionar múltiples agentes especializados/
  */
-export class AgentSystem {
+export class AgentSystem {;
   private agents: Map<string, AutonomousAgent> = new Map();
-
+/
   /**
-   * Registra un nuevo agente en el sistema
+   * Registra un nuevo agente en el sistema/
    */
   registerAgent(type: SpecializedAgentType, context: Partial<AgentContext>): string {
     const agent = createOptimizedAgent(type, context);
@@ -57,16 +57,16 @@ export class AgentSystem {
     this.agents.set(agentId, agent);
     return agentId;
   }
-
+/
   /**
-   * Obtiene un agente por su ID
+   * Obtiene un agente por su ID/
    */
   getAgent(id: string): AutonomousAgent | undefined {
     return this.agents.get(id);
   }
-
+/
   /**
-   * Lista todos los agentes registrados
+   * Lista todos los agentes registrados/
    */
   listAgents(): Array<{ id: string; type: string; status: string }> {
     return Array.from(this.agents.entries()).map(([id, agent]) => ({
@@ -75,11 +75,11 @@ export class AgentSystem {
       status: agent.isAgentActive() ? 'active' : 'inactive'
     }));
   }
-
+/
   /**
-   * Ejecuta una acción usando el agente más apropiado
+   * Ejecuta una acción usando el agente más apropiado/
    */
-  async executeAction(action: BusinessAction): Promise<any> {
+  async executeAction(action: BusinessAction): Promise<any> {/
     // Encontrar el agente más apropiado para esta acción
     const suitableAgent = this.findSuitableAgent(action);
 
@@ -89,9 +89,9 @@ export class AgentSystem {
 
     return await suitableAgent.predictAndExecute(action);
   }
-
+/
   /**
-   * Encuentra el agente más apropiado para una acción
+   * Encuentra el agente más apropiado para una acción/
    */
   private findSuitableAgent(action: BusinessAction): AutonomousAgent | undefined {
     let bestAgent: AutonomousAgent | undefined;
@@ -100,17 +100,17 @@ export class AgentSystem {
     for (const agent of this.agents.values()) {
       const context = agent.getContext();
       const performance = context.performance;
-
+/
       // Calcular puntuación de adecuación
       let score = performance.specializationScore;
-
+/
       // Bonus por capacidades relevantes
       if (context.capabilities.some(cap => cap.includes(action.type))) {
         score += 0.2;
       }
-
+/
       // Bonus por experiencia reciente
-      const recentActions = context.learningHistory.filter(
+      const recentActions = context.learningHistory.filter(/;
         event => Date.now() - event.timestamp.getTime() < 30 * 24 * 60 * 60 * 1000 // Últimos 30 días
       );
       score += Math.min(recentActions.length * 0.05, 0.3);
@@ -123,9 +123,9 @@ export class AgentSystem {
 
     return bestAgent;
   }
-
+/
   /**
-   * Obtiene métricas del sistema de agentes
+   * Obtiene métricas del sistema de agentes/
    */
   getSystemMetrics(): {
     totalAgents: number;
@@ -136,12 +136,12 @@ export class AgentSystem {
     const agents = Array.from(this.agents.values());
     const activeAgents = agents.filter(agent => agent.isAgentActive());
 
-    const averagePerformance = agents.reduce((sum, agent) => {
-      return sum + agent.getContext().performance.successRate;
+    const averagePerformance = agents.reduce((sum, agent) => {;
+      return sum + agent.getContext().performance.successRate;/
     }, 0) / agents.length;
 
-    const specializationCoverage = new Set(
-      agents.flatMap(agent => agent.getContext().capabilities)
+    const specializationCoverage = new Set(;
+      agents.flatMap(agent => agent.getContext().capabilities)/
     ).size / Object.values(AGENT_CONFIGURATIONS).flatMap(config => config.capabilities).length;
 
     return {
@@ -152,6 +152,6 @@ export class AgentSystem {
     };
   }
 }
-
+/
 // Instancia global del sistema de agentes
-export const agentSystem = new AgentSystem();
+export const agentSystem = new AgentSystem();/;

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { tenantRLSPoliciesService } from '../services/rls-tenant-policies.service.js';
 import { structuredLogger } from '../lib/structured-logger.js';
 const router = Router();

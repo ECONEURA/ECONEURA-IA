@@ -7,7 +7,8 @@
 
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import { AdvancedCICDService, DeploymentStrategy, Environment } from '../services/advanced-cicd.service.js';
+
+import { AdvancedCICDService, Environment } from '../services/advanced-cicd.service.js';
 import { structuredLogger } from '../lib/structured-logger.js';
 
 const router = Router();

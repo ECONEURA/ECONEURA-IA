@@ -1,59 +1,34 @@
 #!/usr/bin/env node
-import { OpenAPIRegistry, OpenApiGeneratorV31 } from '@asteasolutions/zod-to-openapi';
-import { z } from 'zod';
 import * as fs from 'fs';
 import * as path from 'path';
+
+import { OpenAPIRegistry, OpenApiGeneratorV31 } from '@asteasolutions/zod-to-openapi';
+import { z } from 'zod';
 
 // Import all schemas from shared
 import {
   // CRM schemas
   CompanySchema,
   CreateCompanySchema,
-  UpdateCompanySchema,
   CompanyFilterSchema,
   ContactSchema,
   CreateContactSchema,
-  UpdateContactSchema,
   ContactFilterSchema,
   DealSchema,
-  CreateDealSchema,
-  UpdateDealSchema,
   DealFilterSchema,
   MoveDealStageSchema,
-  ActivitySchema,
-  CreateActivitySchema,
-  UpdateActivitySchema,
   
   // ERP schemas
   ProductSchema,
   CreateProductSchema,
-  UpdateProductSchema,
   ProductFilterSchema,
-  SupplierSchema,
-  CreateSupplierSchema,
-  UpdateSupplierSchema,
-  SupplierFilterSchema,
-  WarehouseSchema,
-  CreateWarehouseSchema,
-  UpdateWarehouseSchema,
   InventorySchema,
-  CreateInventorySchema,
-  UpdateInventorySchema,
   CreateInventoryAdjustmentSchema,
-  PurchaseOrderSchema,
-  CreatePurchaseOrderSchema,
   
   // Finance schemas
   InvoiceSchema,
   CreateInvoiceSchema,
-  UpdateInvoiceSchema,
   InvoiceFilterSchema,
-  PaymentSchema,
-  CreatePaymentSchema,
-  UpdatePaymentSchema,
-  ExpenseSchema,
-  CreateExpenseSchema,
-  UpdateExpenseSchema,
   FinancialSummarySchema,
   
   // Auth schemas
@@ -63,11 +38,6 @@ import {
   RefreshTokenResponseSchema,
   LogoutRequestSchema,
   MeResponseSchema,
-  SessionsResponseSchema,
-  
-  // Common schemas
-  PaginationRequestSchema,
-  PaginationResponseSchema,
   ProblemDetailsSchema,
   ValidationErrorSchema,
   HealthCheckResponseSchema,

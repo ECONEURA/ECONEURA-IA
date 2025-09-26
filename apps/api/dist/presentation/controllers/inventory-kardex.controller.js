@@ -1,8 +1,9 @@
 import { CreateInventoryKardexUseCase } from '../../application/use-cases/inventory-kardex/create-inventory-kardex.use-case.js';
 import { UpdateInventoryKardexUseCase } from '../../application/use-cases/inventory-kardex/update-inventory-kardex.use-case.js';
 import { RecordMovementUseCase } from '../../application/use-cases/inventory-kardex/record-movement.use-case.js';
-import { BaseController } from './base.controller.js';
 import { CreateInventoryKardexRequestSchema, UpdateInventoryKardexRequestSchema, RecordMovementRequestSchema, InventoryKardexIdParamSchema, InventoryKardexOrganizationIdParamSchema, InventoryKardexSearchQuerySchema, InventoryKardexBulkUpdateSchema, InventoryKardexBulkDeleteSchema, ReserveQuantityRequestSchema, ReleaseReservationRequestSchema } from '../dto/inventory-kardex.dto.js';
+
+import { BaseController } from './base.controller.js';
 export class InventoryKardexController extends BaseController {
     inventoryKardexRepository;
     createInventoryKardexUseCase;

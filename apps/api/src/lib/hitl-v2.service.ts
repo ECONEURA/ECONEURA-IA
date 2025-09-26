@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
+
 import { structuredLogger } from './structured-logger.js';
-import { apiCache } from './advanced-cache.js';
 
 export interface HITLTask {
   id: string;

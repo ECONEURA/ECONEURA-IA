@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { advancedSecurityFramework } from '../lib/advanced-security-framework.service.js';
 import { logger } from '@econeura/shared/logger';
+
+import { advancedSecurityFramework } from '../lib/advanced-security-framework.service.js';
 
 const router = Router();
 

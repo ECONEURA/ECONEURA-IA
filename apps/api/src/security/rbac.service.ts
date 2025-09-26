@@ -5,8 +5,9 @@
  * herencia de roles, políticas de acceso y auditoría de permisos.
  */
 
-import { structuredLogger } from '../lib/structured-logger.js';
 import { metrics } from '@econeura/shared/src/metrics/index.js';
+
+import { structuredLogger } from '../lib/structured-logger.js';
 
 export interface Role {
   id: string;

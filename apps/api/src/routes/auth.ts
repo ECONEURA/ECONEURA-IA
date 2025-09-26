@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { Request, Response } from 'express';
+
 import { structuredLogger } from '../lib/structured-logger.js';
 import { authService } from '../lib/auth.service.js';
 import type { LoginRequest } from '../lib/auth.service.js';

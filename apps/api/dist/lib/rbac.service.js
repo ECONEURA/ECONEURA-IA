@@ -1,7 +1,8 @@
-import { structuredLogger } from './structured-logger.js';
 import { getDatabaseService } from '@econeura/db';
 import { eq, and, inArray } from 'drizzle-orm';
 import { organizations, roles, permissions, rolePermissions, userRoles } from '@econeura/db/schema';
+
+import { structuredLogger } from './structured-logger.js';
 export class RBACService {
     config;
     db;

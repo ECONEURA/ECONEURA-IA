@@ -1,26 +1,26 @@
 import express, { type Express } from "express";
 import cors from "cors";
 import { structuredLogger } from './lib/structured-logger.js';
-
-// Import health modes
+/
+// Import health modes/
 import { healthModeManager } from './lib/health-modes.js';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3001;
-
+/
 // Basic middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
-
+/
 // CORS configuration
-app.use(cors({
+app.use(cors({/
   origin: ['http://localhost:3000', 'http://localhost:3001'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Org-ID', 'X-User-ID', 'X-Correlation-ID']
 }));
-
-// Basic health check endpoint (< 200ms, no external dependencies)
+/
+// Basic health check endpoint (< 200ms, no external dependencies)/
 app.get("/health", (req, res) => {
   const ts = new Date().toISOString();
   const version = process.env.npm_package_version || "1.0.0";
@@ -33,8 +33,8 @@ app.get("/health", (req, res) => {
     mode: currentMode
   });
 });
-
-// Enhanced Health check endpoints (PR-22)
+/
+// Enhanced Health check endpoints (PR-22)/
 app.get("/health/live", async (req, res) => {
   try {
     const result = await healthModeManager.getLivenessProbe();
@@ -51,7 +51,7 @@ app.get("/health/live", async (req, res) => {
     });
   }
 });
-
+/
 app.get("/health/ready", async (req, res) => {
   try {
     const result = await healthModeManager.getReadinessProbe();
@@ -68,22 +68,22 @@ app.get("/health/ready", async (req, res) => {
     });
   }
 });
-
-// Basic API info endpoint
+/
+// Basic API info endpoint/
 app.get("/", (req, res) => {
   res.json({
     name: "ECONEURA API",
     version: process.env.npm_package_version || "1.0.0",
     status: "running",
     timestamp: new Date().toISOString(),
-    endpoints: [
-      "GET /health - Basic health check",
-      "GET /health/live - Liveness probe", 
+    endpoints: [/
+      "GET /health - Basic health check",/
+      "GET /health/live - Liveness probe", /
       "GET /health/ready - Readiness probe"
     ]
   });
 });
-
+/
 // Basic error handler
 app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   structuredLogger.error('Unhandled error', error, {
@@ -98,7 +98,7 @@ app.use((error: Error, req: express.Request, res: express.Response, next: expres
     timestamp: new Date().toISOString()
   });
 });
-
+/
 // 404 handler
 app.use((req: express.Request, res: express.Response) => {
   res.status(404).json({
@@ -107,16 +107,16 @@ app.use((req: express.Request, res: express.Response) => {
     timestamp: new Date().toISOString()
   });
 });
-
+/
 // Start server
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, () => {;
   structuredLogger.info(`ECONEURA API Server running on port ${PORT}`, {
     port: PORT,
     environment: process.env.NODE_ENV || 'development',
     version: process.env.npm_package_version || '1.0.0'
   });
 });
-
+/
 // Graceful shutdown
 process.on('SIGTERM', () => {
   structuredLogger.info('SIGTERM received, shutting down gracefully');
@@ -135,3 +135,4 @@ process.on('SIGINT', () => {
 });
 
 export default app;
+/

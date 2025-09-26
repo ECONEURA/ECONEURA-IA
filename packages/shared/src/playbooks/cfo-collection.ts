@@ -1,8 +1,8 @@
-import { PlaybookDefinition, createPlaybookExecutor } from './dsl.js'
-import { createGraphClient } from '../graph/client.js'
-import { createEnhancedAIRouter } from '../ai/enhanced-router.js'
-import { logger } from '../logging/index.js'
-
+import { PlaybookDefinition, createPlaybookExecutor } from './dsl.js'/;
+import { createGraphClient } from '../graph/client.js'/;
+import { createEnhancedAIRouter } from '../ai/enhanced-router.js'/;
+import { logger } from '../logging/index.js';
+/
 /**
  * CFO Collection Playbook v1.0
  *
@@ -11,13 +11,13 @@ import { logger } from '../logging/index.js'
  * 2. Outlook draft for CFO approval
  * 3. Teams notification to finance team
  * 4. Planner task for follow-up
- * 5. Audit trail with HITL approval pending
+ * 5. Audit trail with HITL approval pending/
  */
-export const CFO_COLLECTION_PLAYBOOK: PlaybookDefinition = {
+export const CFO_COLLECTION_PLAYBOOK: PlaybookDefinition = {;
   id: 'cfo_collection_proactive_v1',
   name: 'CFO Collection Proactive',
   description: 'Automated debt collection workflow with HITL approval',
-  version: '1.0.0',
+  version: '1.0.0',/
   timeout: 300000, // 5 minutes
   maxRetries: 2,
   steps: [
@@ -49,7 +49,7 @@ export const CFO_COLLECTION_PLAYBOOK: PlaybookDefinition = {
       },
       compensation: {
         type: 'webhook_trigger',
-        config: {
+        config: {/
           url: '/api/webhooks/make/collection-fallback',
           method: 'POST',
           payload: {
@@ -92,7 +92,7 @@ export const CFO_COLLECTION_PLAYBOOK: PlaybookDefinition = {
       },
       compensation: {
         type: 'webhook_trigger',
-        config: {
+        config: {/
           url: '/api/webhooks/make/ai-fallback',
           method: 'POST',
           payload: {
@@ -114,16 +114,16 @@ export const CFO_COLLECTION_PLAYBOOK: PlaybookDefinition = {
         subject: 'Payment Reminder - Invoice {{detect_overdue.invoice_number}}',
         body: {
           contentType: 'html',
-          content: `
+          content: `/
             <p>Dear {{detect_overdue.contact_person}},</p>
-
+/
             <p>{{ai_generate_draft.content}}</p>
 
             <p>Best regards,<br>
-            Finance Team<br>
+            Finance Team<br>/
             {{company_name}}</p>
 
-            <hr>
+            <hr>/
             <small>This is an automated draft requiring CFO approval before sending.</small>
           `,
         },
@@ -252,7 +252,7 @@ export const CFO_COLLECTION_PLAYBOOK: PlaybookDefinition = {
       },
     },
   ],
-  variables: {
+  variables: {/
     // These will be set by the executor
     org_id: '',
     user_id: '',
@@ -265,11 +265,11 @@ export const CFO_COLLECTION_PLAYBOOK: PlaybookDefinition = {
     follow_up_date: '',
   },
 }
-
+/
 /**
- * CFO Collection Playbook Executor
+ * CFO Collection Playbook Executor/
  */
-export class CFOCollectionExecutor {
+export class CFOCollectionExecutor {;
   private graphClient: ReturnType<typeof createGraphClient>
   private aiRouter: ReturnType<typeof createEnhancedAIRouter>
 
@@ -277,9 +277,9 @@ export class CFOCollectionExecutor {
     this.graphClient = createGraphClient()
     this.aiRouter = createEnhancedAIRouter()
   }
-
+/
   /**
-   * Execute CFO collection playbook
+   * Execute CFO collection playbook/
    */
   async executeCollectionPlaybook(context: {
     orgId: string
@@ -297,7 +297,7 @@ export class CFOCollectionExecutor {
     approvalRequired: boolean
     approvalExpiry: string
   }> {
-    const reqLogger = logger.child({
+    const reqLogger = logger.child({;
       event_type: 'playbook_execution',
       org_id: context.orgId,
       actor: context.userId,
@@ -305,15 +305,15 @@ export class CFOCollectionExecutor {
     })
 
   reqLogger.info('Starting CFO collection playbook')
-
+/
     // Set up variables
-    const approvalExpiry = new Date()
+    const approvalExpiry = new Date()/;
     approvalExpiry.setHours(approvalExpiry.getHours() + 48) // 48 hours
 
-    const followUpDate = new Date()
+    const followUpDate = new Date()/;
     followUpDate.setDate(followUpDate.getDate() + 7) // 7 days
 
-    const playbookContext = {
+    const playbookContext = {;
       orgId: context.orgId,
       userId: context.userId,
       requestId: context.requestId,
@@ -329,10 +329,10 @@ export class CFOCollectionExecutor {
         follow_up_date: followUpDate.toISOString(),
       },
     }
-
+/
     // Create and execute playbook
-    const executor = createPlaybookExecutor(CFO_COLLECTION_PLAYBOOK, playbookContext)
-    const result = await executor.execute()
+    const executor = createPlaybookExecutor(CFO_COLLECTION_PLAYBOOK, playbookContext);
+    const result = await executor.execute();
 
     reqLogger.info('CFO collection playbook completed', {
       success: result.success,
@@ -348,15 +348,15 @@ export class CFOCollectionExecutor {
       approvalExpiry: approvalExpiry.toISOString(),
     }
   }
-
+/
   /**
-   * Get playbook status
+   * Get playbook status/
    */
   async getPlaybookStatus(playbookId: string): Promise<{
     status: 'pending' | 'approved' | 'rejected' | 'expired'
     approvalExpiry: string
     auditTrail: any[]
-  }> {
+  }> {/
     // TODO: Query database for playbook status
     return {
       status: 'pending',
@@ -364,14 +364,14 @@ export class CFOCollectionExecutor {
       auditTrail: [],
     }
   }
-
+/
   /**
-   * Approve playbook execution
+   * Approve playbook execution/
    */
   async approvePlaybook(playbookId: string, approverId: string): Promise<{
     success: boolean
     message: string
-  }> {
+  }> {/
     // TODO: Implement approval logic
     logger.info('Playbook approved', {
       playbook_id: playbookId,
@@ -383,14 +383,14 @@ export class CFOCollectionExecutor {
       message: 'Playbook approved successfully',
     }
   }
-
+/
   /**
-   * Reject playbook execution
+   * Reject playbook execution/
    */
   async rejectPlaybook(playbookId: string, rejectorId: string, reason: string): Promise<{
     success: boolean
     message: string
-  }> {
+  }> {/
     // TODO: Implement rejection logic
     logger.info('Playbook rejected', {
       playbook_id: playbookId,
@@ -404,8 +404,9 @@ export class CFOCollectionExecutor {
     }
   }
 }
-
+/
 // Factory function
-export function createCFOCollectionExecutor(): CFOCollectionExecutor {
+export function createCFOCollectionExecutor(): CFOCollectionExecutor {;
   return new CFOCollectionExecutor()
 }
+/

@@ -14,8 +14,8 @@
  */
 
 import { z } from 'zod';
+
 import { structuredLogger } from './structured-logger.js';
-import { analyticsConsolidated } from './analytics-consolidated.service.js';
 
 // ============================================================================
 // INTERFACES Y TIPOS

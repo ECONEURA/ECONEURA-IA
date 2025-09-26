@@ -8,6 +8,7 @@
 import { Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
+
 import { structuredLogger } from '../lib/structured-logger.js';
 
 // Configuración de CORS mejorada

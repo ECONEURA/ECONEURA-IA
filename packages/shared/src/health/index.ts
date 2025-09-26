@@ -1,17 +1,17 @@
 import { z } from 'zod';
 
-// ============================================================================
-// HEALTH CHECK SCHEMAS
+// ============================================================================/
+// HEALTH CHECK SCHEMAS/
 // ============================================================================
 
-export const ServiceHealthSchema = z.object({
+export const ServiceHealthSchema = z.object({;
   status: z.enum(['healthy', 'unhealthy', 'degraded']),
   responseTime: z.number(),
   lastCheck: z.string().datetime(),
   error: z.string().optional(),
 });
 
-export const HealthStatusSchema = z.object({
+export const HealthStatusSchema = z.object({;
   status: z.enum(['healthy', 'unhealthy', 'degraded']),
   timestamp: z.string().datetime(),
   version: z.string(),
@@ -35,7 +35,7 @@ export const HealthStatusSchema = z.object({
   }),
 });
 
-export const HealthCheckResponseSchema = z.object({
+export const HealthCheckResponseSchema = z.object({;
   status: z.enum(['healthy', 'degraded', 'unhealthy']),
   version: z.string(),
   timestamp: z.string().datetime(),
@@ -47,20 +47,20 @@ export const HealthCheckResponseSchema = z.object({
     metadata: z.record(z.unknown()).optional(),
   })),
 });
-
-// ============================================================================
-// TYPES
+/
+// ============================================================================/
+// TYPES/
 // ============================================================================
 
 export type ServiceHealth = z.infer<typeof ServiceHealthSchema>;
 export type HealthStatus = z.infer<typeof HealthStatusSchema>;
 export type HealthCheckResponse = z.infer<typeof HealthCheckResponseSchema>;
-
+/
+// ============================================================================/
+// HEALTH CHECK UTILITIES/
 // ============================================================================
-// HEALTH CHECK UTILITIES
-// ============================================================================
 
-export class HealthChecker {
+export class HealthChecker {;
   private services: Map<string, () => Promise<ServiceHealth>> = new Map();
 
   registerService(name: string, checkFn: () => Promise<ServiceHealth>): void {
@@ -120,14 +120,14 @@ export class HealthChecker {
     return 'healthy';
   }
 }
-
+/
+// ============================================================================/
+// COMMON HEALTH CHECKS/
 // ============================================================================
-// COMMON HEALTH CHECKS
-// ============================================================================
 
-export async function checkDatabase(): Promise<ServiceHealth> {
-  try {
-    // This would be implemented with actual database connection
+export async function checkDatabase(): Promise<ServiceHealth> {;
+  try {/
+    // This would be implemented with actual database connection/
     // For now, return a mock healthy status
     return {
       status: 'healthy',
@@ -144,9 +144,9 @@ export async function checkDatabase(): Promise<ServiceHealth> {
   }
 }
 
-export async function checkRedis(): Promise<ServiceHealth> {
-  try {
-    // This would be implemented with actual Redis connection
+export async function checkRedis(): Promise<ServiceHealth> {;
+  try {/
+    // This would be implemented with actual Redis connection/
     // For now, return a mock healthy status
     return {
       status: 'healthy',
@@ -163,9 +163,9 @@ export async function checkRedis(): Promise<ServiceHealth> {
   }
 }
 
-export async function checkAzureOpenAI(): Promise<ServiceHealth> {
-  try {
-    // This would be implemented with actual Azure OpenAI connection
+export async function checkAzureOpenAI(): Promise<ServiceHealth> {;
+  try {/
+    // This would be implemented with actual Azure OpenAI connection/
     // For now, return a mock healthy status
     return {
       status: 'healthy',
@@ -181,12 +181,12 @@ export async function checkAzureOpenAI(): Promise<ServiceHealth> {
     };
   }
 }
-
+/
+// ============================================================================/
+// SYSTEM METRICS/
 // ============================================================================
-// SYSTEM METRICS
-// ============================================================================
 
-export function getSystemMetrics() {
+export function getSystemMetrics() {;
   const memUsage = process.memoryUsage();
   const totalMem = memUsage.heapTotal + memUsage.external;
   const usedMem = memUsage.heapUsed;
@@ -194,25 +194,25 @@ export function getSystemMetrics() {
   return {
     memory: {
       used: usedMem,
-      total: totalMem,
+      total: totalMem,/
       percentage: Math.round((usedMem / totalMem) * 100),
     },
-    cpu: {
+    cpu: {/
       usage: process.cpuUsage().user / 1000000, // Convert to seconds
     },
-    requests: {
-      total: 0, // This would be tracked by the application
-      errors: 0, // This would be tracked by the application
+    requests: {/
+      total: 0, // This would be tracked by the application/
+      errors: 0, // This would be tracked by the application/
       errorRate: 0, // This would be calculated
     },
   };
 }
-
+/
+// ============================================================================/
+// HEALTH CHECK RESPONSE BUILDER/
 // ============================================================================
-// HEALTH CHECK RESPONSE BUILDER
-// ============================================================================
 
-export function buildHealthResponse(
+export function buildHealthResponse(;
   services: Record<string, ServiceHealth>,
   overallStatus: 'healthy' | 'unhealthy' | 'degraded',
   version: string = '1.0.0'
@@ -228,12 +228,12 @@ export function buildHealthResponse(
     metrics,
   };
 }
-
+/
+// ============================================================================/
+// EXPORTS/
 // ============================================================================
-// EXPORTS
-// ============================================================================
 
-export default {
+export default {;
   HealthChecker,
   checkDatabase,
   checkRedis,
@@ -244,3 +244,4 @@ export default {
   HealthStatusSchema,
   HealthCheckResponseSchema,
 };
+/

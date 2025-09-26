@@ -1,7 +1,7 @@
 import { TenantEntity } from './base.js';
-
+/
 // Product type definitions
-export interface Product extends TenantEntity {
+export interface Product extends TenantEntity {;
   name: string;
   sku: string;
   description?: string;
@@ -13,24 +13,24 @@ export interface Product extends TenantEntity {
   category: string;
   metadata: Record<string, unknown>;
 }
-
+/
 // Product categories
-export type ProductCategory = 
+export type ProductCategory = ;
   | 'hardware'
   | 'software'
   | 'service'
   | 'subscription'
   | 'other';
-
+/
 // Product status
-export type ProductStatus = 
+export type ProductStatus = ;
   | 'active'
   | 'inactive'
   | 'discontinued'
   | 'out_of_stock';
-
+/
 // Product pricing
-export interface ProductPricing {
+export interface ProductPricing {;
   basePrice: number;
   cost?: number;
   margin?: number;
@@ -50,3 +50,4 @@ export interface ProductPricing {
     type: string;
   };
 }
+/

@@ -1,7 +1,7 @@
-import { env } from '../env.js'
-
+import { env } from '../env.js';
+/
 // Temporary mock implementations for build
-export const tracer = {
+export const tracer = {;
   startSpan: (name: string) => ({
     setAttribute: (_k?: string, _v?: any) => {},
     setAttributes: (_attrs?: Record<string, any>) => {},
@@ -20,7 +20,7 @@ export const tracer = {
   }),
 }
 
-export const meter = {
+export const meter = {;
   createCounter: (name: string, options?: any) => ({
     add: (_value: number = 1, _labels?: Record<string, any>) => {},
   }),
@@ -42,9 +42,9 @@ export const meter = {
     }),
   }),
 }
-
+/
 // Mock metrics
-export const customMetrics = {
+export const customMetrics = {;
   aiRequestsTotal: { add: () => {} },
   aiCostEUR: { record: () => {} },
   aiLatencyMs: { record: () => {} },
@@ -63,9 +63,9 @@ export const customMetrics = {
   orgMonthlyCost: { record: () => {} },
   orgCostBudget: { add: () => {} },
 }
-
+/
 // Mock utility functions
-export function createSpan(name: string, attributes?: Record<string, any>) {
+export function createSpan(name: string, attributes?: Record<string, any>) {;
   return {
     setAttribute: (_k?: string, _v?: any) => {},
     setAttributes: (_attrs?: Record<string, any>) => {},
@@ -75,32 +75,33 @@ export function createSpan(name: string, attributes?: Record<string, any>) {
   }
 }
 
-export function createTracer(name?: string) {
+export function createTracer(name?: string) {;
   return {
     startSpan: (spanName: string) => createSpan(spanName)
   }
 }
 
-export function recordException(span: any, error: Error, attributes?: Record<string, any>) {}
-export function addEvent(span: any, name: string, attributes?: Record<string, any>) {}
-export function setAttributes(span: any, attributes: Record<string, any>) {}
-export function getCurrentSpan() { return null }
-export function getTraceId() { return 'mock-trace-id' }
-export function getSpanId() { return 'mock-span-id' }
-
+export function recordException(span: any, error: Error, attributes?: Record<string, any>) {};
+export function addEvent(span: any, name: string, attributes?: Record<string, any>) {};
+export function setAttributes(span: any, attributes: Record<string, any>) {};
+export function getCurrentSpan() { return null };
+export function getTraceId() { return 'mock-trace-id' };
+export function getSpanId() { return 'mock-span-id' };
+/
 // Mock metric recording functions
-export function recordAIRequest(provider: string, model: string, status: string, costEUR: number, latencyMs: number, tokensInput: number, tokensOutput: number, orgId?: string) {}
-export function recordHTTPRequest(method: string, route: string, statusCode: number, latencyMs: number, orgId?: string) {}
-export function recordWebhook(source: string, eventType: string, processingMs: number, hmacValid: boolean = true) {}
-export function recordFlowExecution(flowType: string, status: string, latencyMs: number, orgId?: string) {}
-export function recordDatabaseQuery(operation: string, table: string, latencyMs: number, orgId?: string) {}
-export function recordIdempotencyReplay(key: string, orgId?: string) {}
-export function recordIdempotencyConflict(key: string, orgId?: string) {}
-export function recordRateLimitExceeded(route: string, orgId?: string) {}
-export function recordOrgCost(orgId: string, costEUR: number, budgetEUR: number) {}
-
+export function recordAIRequest(provider: string, model: string, status: string, costEUR: number, latencyMs: number, tokensInput: number, tokensOutput: number, orgId?: string) {};
+export function recordHTTPRequest(method: string, route: string, statusCode: number, latencyMs: number, orgId?: string) {};
+export function recordWebhook(source: string, eventType: string, processingMs: number, hmacValid: boolean = true) {};
+export function recordFlowExecution(flowType: string, status: string, latencyMs: number, orgId?: string) {};
+export function recordDatabaseQuery(operation: string, table: string, latencyMs: number, orgId?: string) {};
+export function recordIdempotencyReplay(key: string, orgId?: string) {};
+export function recordIdempotencyConflict(key: string, orgId?: string) {};
+export function recordRateLimitExceeded(route: string, orgId?: string) {};
+export function recordOrgCost(orgId: string, costEUR: number, budgetEUR: number) {};
+/
 // Mock SDK
-export const sdk = {
+export const sdk = {;
   start: () => {},
   shutdown: () => Promise.resolve(),
 }
+/

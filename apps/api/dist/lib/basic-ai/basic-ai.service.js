@@ -1,10 +1,11 @@
+import { getDatabaseService } from '@econeura/db';
+
 import { structuredLogger } from '../structured-logger.js';
 import { sentimentAnalysis } from '../../services/sentiment-analysis.service.js';
 import { predictiveAI } from '../../services/predictive-ai.service.js';
 import { autoML } from '../../services/automl.service.js';
 import { azureOpenAI } from '../../services/azure-openai.service.js';
 import { webSearch } from '../../services/web-search.service.js';
-import { getDatabaseService } from '@econeura/db';
 export class BasicAIService {
     db;
     sessionCache = new Map();

@@ -1,7 +1,7 @@
 import { BaseEntity } from './base.js';
-
+/
 // Invoice types
-export interface Invoice extends BaseEntity {
+export interface Invoice extends BaseEntity {;
   number: string;
   customerId: string;
   date: Date;
@@ -13,14 +13,14 @@ export interface Invoice extends BaseEntity {
   items: InvoiceItem[];
 }
 
-export type InvoiceStatus = 
+export type InvoiceStatus = ;
   | 'draft'
   | 'pending'
   | 'paid'
   | 'overdue'
   | 'cancelled';
 
-export interface InvoiceItem {
+export interface InvoiceItem {;
   productId: string;
   quantity: number;
   unitPrice: number;
@@ -28,3 +28,4 @@ export interface InvoiceItem {
   tax: number;
   total: number;
 }
+/

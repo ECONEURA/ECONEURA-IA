@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { InteractionController } from '../controllers/interaction.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 import { authorize } from '../middleware/rbac.middleware.js';
@@ -20,7 +21,6 @@ import {
   SetCustomFieldSchema,
   RemoveCustomFieldSchema,
   InteractionIdParamSchema,
-  InteractionOrganizationIdParamSchema,
   InteractionContactIdParamSchema,
   InteractionCompanyIdParamSchema,
   InteractionUserIdParamSchema,

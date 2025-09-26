@@ -1,5 +1,4 @@
 // Advanced Caching Layer for ECONEURA
-import { structuredLogger } from './structured-logger.js';
 
 export interface CacheOptions {
   ttl?: number; // Time to live in seconds

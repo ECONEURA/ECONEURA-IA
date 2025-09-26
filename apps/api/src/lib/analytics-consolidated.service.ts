@@ -16,23 +16,18 @@
  * - Monitoreo en tiempo real
  */
 
+import { metrics } from '@econeura/shared/src/metrics/index.js';
+
 import {
   AnalyticsMetric,
   TrendAnalysis,
-  ForecastData,
-  SeasonalityData,
   AnomalyData,
-  AnalyticsQuery,
-  AnalyticsResult,
-  AnalyticsDataPoint,
   StatisticalAnalysis,
   CreateMetricRequest,
   UpdateMetricRequest,
   AnalyticsConfig
 } from './analytics-types.js';
-
 import { structuredLogger } from './structured-logger.js';
-import { metrics } from '@econeura/shared/src/metrics/index.js';
 
 // Interfaces de Performance (de PR-48)
 export interface PerformanceConfig {

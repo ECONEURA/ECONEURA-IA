@@ -22,6 +22,7 @@
 
 import { Router } from 'express';
 import { z } from 'zod';
+
 import { emailMarketingService } from '../services/email-marketing.service.js';
 import { structuredLogger } from '../lib/structured-logger.js';
 

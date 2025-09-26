@@ -1,5 +1,6 @@
-import { structuredLogger } from './structured-logger.js';
 import crypto from 'crypto';
+
+import { structuredLogger } from './structured-logger.js';
 
 // Security Manager Service - MEJORA 4
 // Sistema avanzado de seguridad con JWT, rate limiting, CSRF protection y sanitización

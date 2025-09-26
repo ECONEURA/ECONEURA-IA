@@ -1,5 +1,6 @@
-import { BaseRepository } from './base.repository.js';
 import { SearchResult, SearchQuery, SearchFilters, SearchSuggestion, SearchAnalytics } from '../entities/search-result.entity.js';
+
+import { BaseRepository } from './base.repository.js';
 
 /**
  * Search Repository Interface

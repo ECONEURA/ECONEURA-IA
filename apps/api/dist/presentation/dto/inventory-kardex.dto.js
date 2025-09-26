@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { UUIDSchema, OrganizationIdSchema, NotesSchema, TagsSchema, CustomFieldsSchema, BaseSearchQuerySchema, IdParamSchema, OrganizationIdParamSchema, ListResponseSchema, BaseStatsSchema, BulkDeleteSchema, MoneySchema } from './base.dto.js';
 export const CreateInventoryKardexRequestSchema = z.object({
     organizationId: OrganizationIdSchema,

@@ -1,5 +1,6 @@
-import { structuredLogger } from './structured-logger.js';
 import crypto from 'crypto';
+
+import { structuredLogger } from './structured-logger.js';
 class SecurityManagerService {
     config;
     securityEvents = [];

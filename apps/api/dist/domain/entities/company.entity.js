@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { Address } from '../value-objects/address.vo.js';
 import { Money } from '../value-objects/money.vo.js';
 export class Company {

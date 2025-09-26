@@ -6,6 +6,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+
 import { tenantRLSPoliciesService, TenantRLSContext } from '../services/rls-tenant-policies.service.js';
 import { structuredLogger } from '../lib/structured-logger.js';
 

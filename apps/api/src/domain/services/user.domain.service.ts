@@ -1,8 +1,6 @@
 import { User } from '../entities/user.entity.js';
-import { Organization } from '../entities/organization.entity.js';
 import { UserRepository } from '../repositories/user.repository.js';
 import { OrganizationRepository } from '../repositories/organization.repository.js';
-import { Email } from '../value-objects/email.vo.js';
 
 // ============================================================================
 // USER DOMAIN SERVICE

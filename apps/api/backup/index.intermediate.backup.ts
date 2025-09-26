@@ -1,11 +1,11 @@
 import express from "express";
 import cors from "cors";
+
 import { structuredLogger } from './lib/structured-logger.js';
 import { ErrorHandler } from './lib/error-handler.js';
 
 // Import health modes (PR-22)
 import { healthModeManager } from './lib/health-modes.js';
-import { healthMonitor } from './lib/health-monitor.js';
 import { cacheManager } from './lib/advanced-cache.js';
 
 // Import middlewares (PR-27, PR-28, PR-29)

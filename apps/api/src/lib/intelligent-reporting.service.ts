@@ -11,11 +11,8 @@ import {
   ReportData,
   ReportFilter,
   ReportSchedule,
-  VisualizationConfig,
   ReportGeneration,
-  CreateReportRequest,
-  AnalyticsMetric,
-  BusinessIntelligence
+  CreateReportRequest
 } from './analytics-types.js';
 
 export class IntelligentReportingService {

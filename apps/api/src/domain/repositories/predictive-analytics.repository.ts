@@ -1,5 +1,6 @@
 import { PredictiveAnalytics } from '../entities/predictive-analytics.entity.js';
-import { BaseRepository, BaseEntity, BaseFilters, BaseSearchOptions, PaginatedResult, BaseStats } from './base.repository.js';
+
+import { BaseRepository, BaseFilters, BaseSearchOptions, PaginatedResult, BaseStats } from './base.repository.js';
 
 // ============================================================================
 // PREDICTIVE ANALYTICS REPOSITORY INTERFACE

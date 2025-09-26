@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { BaseController } from './base.controller.js';
+
 import { IntelligentSearchUseCase } from '../../application/use-cases/search/intelligent-search.use-case.js';
 import { GetSuggestionsUseCase } from '../../application/use-cases/search/get-suggestions.use-case.js';
 import { IndexEntityUseCase } from '../../application/use-cases/search/index-entity.use-case.js';
@@ -11,6 +11,8 @@ import {
   GetSuggestionsResponseDTO,
   IndexEntityResponseDTO
 } from '../dto/search.dto.js';
+
+import { BaseController } from './base.controller.js';
 
 /**
  * Search Controller - Controlador para búsqueda inteligente

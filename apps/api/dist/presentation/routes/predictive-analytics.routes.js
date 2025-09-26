@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import { validateRequest, authenticate, authorize } from '../middleware/base.middleware.js';
 import { z } from 'zod';
+
+import { validateRequest, authenticate, authorize } from '../middleware/base.middleware.js';
 export const createPredictiveAnalyticsRoutes = (predictiveAnalyticsController) => {
     const router = Router();
     router.post('/', authenticate, authorize(['analytics:create']), validateRequest({

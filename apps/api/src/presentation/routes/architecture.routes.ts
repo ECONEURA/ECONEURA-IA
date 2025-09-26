@@ -1,7 +1,8 @@
 import { Router } from 'express';
+import { z } from 'zod';
+
 import { ArchitectureController } from '../controllers/architecture.controller.js';
 import { validateRequest, authenticate, authorize } from '../middleware/base.middleware.js';
-import { z } from 'zod';
 
 // ============================================================================
 // ARCHITECTURE ROUTES - PR-0: MONOREPO + HEXAGONAL ARCHITECTURE

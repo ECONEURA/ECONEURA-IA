@@ -1,16 +1,16 @@
-// @ts-ignore: external module may be missing in minimal dev environment
-import { Client } from '@microsoft/microsoft-graph-client'
-// @ts-ignore: external module may be missing in minimal dev environment
-import { ConfidentialClientApplication } from '@azure/msal-node'
-// @ts-ignore: external module may be missing in minimal dev environment
-import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials'
-// @ts-ignore: external module may be missing in minimal dev environment
-import { ClientSecretCredential } from '@azure/identity'
-import { tracer as otelTracer, meter as otelMeter } from '../otel/index.js'
-import { logger } from '../logging/index.js'
-import { env } from '../env.js'
+// @ts-ignore: external module may be missing in minimal dev environment/
+import { Client } from '@microsoft/microsoft-graph-client'/;
+// @ts-ignore: external module may be missing in minimal dev environment/
+import { ConfidentialClientApplication } from '@azure/msal-node'/;
+// @ts-ignore: external module may be missing in minimal dev environment/
+import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials'/;
+// @ts-ignore: external module may be missing in minimal dev environment/
+import { ClientSecretCredential } from '@azure/identity'/;
+import { tracer as otelTracer, meter as otelMeter } from '../otel/index.js'/;
+import { logger } from '../logging/index.js'/;
+import { env } from '../env.js';
 
-export interface GraphConfig {
+export interface GraphConfig {;
   tenantId: string
   clientId: string
   clientSecret: string
@@ -18,7 +18,7 @@ export interface GraphConfig {
   defaultChannelId?: string
 }
 
-export interface GraphMessage {
+export interface GraphMessage {;
   id: string
   subject: string
   body: {
@@ -39,7 +39,7 @@ export interface GraphMessage {
   receivedDateTime: string
 }
 
-export interface GraphDraftMessage {
+export interface GraphDraftMessage {;
   subject: string
   body: {
     contentType: string
@@ -53,22 +53,22 @@ export interface GraphDraftMessage {
   saveToSentItems?: boolean
 }
 
-export interface GraphTeamsMessage {
+export interface GraphTeamsMessage {;
   content: string
   contentType?: 'html' | 'text'
 }
 
-export interface GraphPlannerTask {
+export interface GraphPlannerTask {;
   title: string
   dueDateTime?: string
   assignedTo?: string
   description?: string
 }
 
-export class GraphClient {
+export class GraphClient {;
   private client: Client
   private msalApp: ConfidentialClientApplication
-  private credential: ClientSecretCredential
+  private credential: ClientSecretCredential/
   // Use the repo OTEL mock which exposes either helpers or tracer/meter objects.
   private tracer = (otelTracer && typeof (otelTracer as unknown as { getTracer?: (n: string) => { startSpan: (n: string) => any } }).getTracer === 'function')
     ? (otelTracer as unknown as { getTracer: (n: string) => { startSpan: (n: string) => any } }).getTracer('graph-client')
@@ -80,26 +80,26 @@ export class GraphClient {
 
   constructor(config: GraphConfig) {
     this.config = config
-
+/
     // Initialize MSAL
     this.msalApp = new ConfidentialClientApplication({
       auth: {
         clientId: config.clientId,
-        clientSecret: config.clientSecret,
+        clientSecret: config.clientSecret,/
         authority: `https://login.microsoftonline.com/${config.tenantId}`,
       },
     })
-
+/
     // Initialize Azure credential
     this.credential = new ClientSecretCredential(
       config.tenantId,
       config.clientId,
       config.clientSecret
     )
-
+/
     // Initialize Graph client
-    const authProvider = new TokenCredentialAuthenticationProvider(this.credential, {
-      scopes: [
+    const authProvider = new TokenCredentialAuthenticationProvider(this.credential, {;
+      scopes: [/
         'https://graph.microsoft.com/.default',
         'Mail.ReadWrite',
         'Teamwork.Migrate.All',
@@ -112,18 +112,18 @@ export class GraphClient {
       defaultVersion: 'v1.0',
     })
   }
-
+/
   /**
-   * Create Outlook draft message
+   * Create Outlook draft message/
    */
   async createDraftMessage(
     userId: string,
     draft: GraphDraftMessage
   ): Promise<{ id: string; webLink: string }> {
-    const span = this.tracer.startSpan('graph_create_draft_message')
+    const span = this.tracer.startSpan('graph_create_draft_message');
 
     try {
-      const response = await this.client
+      const response = await this.client/;
         .api(`/users/${userId}/messages`)
         .post({
           ...draft,
@@ -147,19 +147,19 @@ export class GraphClient {
       span.end()
     }
   }
-
+/
   /**
-   * Send Teams message to channel
+   * Send Teams message to channel/
    */
   async sendTeamsMessage(
     teamId: string,
     channelId: string,
     message: GraphTeamsMessage
   ): Promise<{ id: string }> {
-    const span = this.tracer.startSpan('graph_send_teams_message')
+    const span = this.tracer.startSpan('graph_send_teams_message');
 
     try {
-      const response = await this.client
+      const response = await this.client/;
         .api(`/teams/${teamId}/channels/${channelId}/messages`)
         .post({
           body: {
@@ -182,18 +182,18 @@ export class GraphClient {
       span.end()
     }
   }
-
+/
   /**
-   * Create Planner task
+   * Create Planner task/
    */
   async createPlannerTask(
     planId: string,
     task: GraphPlannerTask
   ): Promise<{ id: string; title: string }> {
-    const span = this.tracer.startSpan('graph_create_planner_task')
+    const span = this.tracer.startSpan('graph_create_planner_task');
 
     try {
-      const response = await this.client
+      const response = await this.client/;
         .api('/planner/tasks')
         .post({
           planId,
@@ -221,19 +221,19 @@ export class GraphClient {
       span.end()
     }
   }
-
+/
   /**
-   * Get user messages with filtering
+   * Get user messages with filtering/
    */
   async getUserMessages(
     userId: string,
     filter?: string,
     top: number = 50
   ): Promise<GraphMessage[]> {
-    const span = this.tracer.startSpan('graph_get_user_messages')
+    const span = this.tracer.startSpan('graph_get_user_messages');
 
     try {
-      let request = this.client
+      let request = this.client/;
         .api(`/users/${userId}/messages`)
         .top(top)
         .orderBy('receivedDateTime DESC')
@@ -242,7 +242,7 @@ export class GraphClient {
         request = request.filter(filter)
       }
 
-      const response = await request.get()
+      const response = await request.get();
 
       span.setAttributes({
         'graph.user_id': userId,
@@ -258,9 +258,9 @@ export class GraphClient {
       span.end()
     }
   }
-
+/
   /**
-   * Get user profile
+   * Get user profile/
    */
   async getUserProfile(userId: string): Promise<{
     id: string
@@ -268,10 +268,10 @@ export class GraphClient {
     mail: string
     userPrincipalName: string
   }> {
-    const span = this.tracer.startSpan('graph_get_user_profile')
+    const span = this.tracer.startSpan('graph_get_user_profile');
 
     try {
-      const response = await this.client
+      const response = await this.client/;
         .api(`/users/${userId}`)
         .select('id,displayName,mail,userPrincipalName')
         .get()
@@ -294,19 +294,19 @@ export class GraphClient {
       span.end()
     }
   }
-
+/
   /**
-   * Get team channels
+   * Get team channels/
    */
   async getTeamChannels(teamId: string): Promise<Array<{
     id: string
     displayName: string
     description?: string
   }>> {
-    const span = this.tracer.startSpan('graph_get_team_channels')
+    const span = this.tracer.startSpan('graph_get_team_channels');
 
     try {
-      const response = await this.client
+      const response = await this.client/;
         .api(`/teams/${teamId}/channels`)
         .get()
 
@@ -327,23 +327,23 @@ export class GraphClient {
       span.end()
     }
   }
-
+/
   /**
-   * Check service health
+   * Check service health/
    */
   async checkHealth(): Promise<{
     status: 'healthy' | 'degraded' | 'unavailable'
     latency: number
     error?: string
   }> {
-    const span = this.tracer.startSpan('graph_health_check')
-    const startTime = Date.now()
+    const span = this.tracer.startSpan('graph_health_check');
+    const startTime = Date.now();
 
-    try {
-      // Test with a simple API call
+    try {/
+      // Test with a simple API call/
       await this.client.api('/me').get()
 
-      const latency = Date.now() - startTime
+      const latency = Date.now() - startTime;
 
       span.setAttributes({
         'graph.latency_ms': latency,
@@ -355,8 +355,8 @@ export class GraphClient {
         latency,
       }
     } catch (error) {
-      const latency = Date.now() - startTime
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      const latency = Date.now() - startTime;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
       span.recordException(error as Error)
       span.setAttributes({
@@ -374,49 +374,49 @@ export class GraphClient {
       span.end()
     }
   }
-
+/
   /**
-   * Handle Graph API errors with retry logic
+   * Handle Graph API errors with retry logic/
    */
   private handleGraphError(operation: string, error: unknown): Error {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+/
     // Check for rate limiting
       if (errorMessage.includes('429') || errorMessage.includes('Too Many Requests')) {
       logger.warn('Graph API rate limited', {
         error: errorMessage,
       })
-
+/
       // TODO: Implement exponential backoff
       return new Error(`Graph API rate limited: ${errorMessage}`)
     }
-
+/
     // Check for authentication errors
   if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
   logger.error('Graph API authentication failed', new Error(errorMessage), {})
 
       return new Error(`Graph API authentication failed: ${errorMessage}`)
     }
-
+/
     // Check for permission errors
   if (errorMessage.includes('403') || errorMessage.includes('Forbidden')) {
   logger.error('Graph API permission denied', new Error(errorMessage), {})
 
       return new Error(`Graph API permission denied: ${errorMessage}`)
     }
-
+/
     // Generic error
   logger.error('Graph API error', new Error(errorMessage), {})
 
     return new Error(`Graph API error in ${operation}: ${errorMessage}`)
   }
 }
-
+/
 // Factory function to create Graph client
-export function createGraphClient(config?: Partial<GraphConfig>): GraphClient {
-  const envConfig = env()
+export function createGraphClient(config?: Partial<GraphConfig>): GraphClient {;
+  const envConfig = env();
 
-  const graphConfig: GraphConfig = {
+  const graphConfig: GraphConfig = {;
     tenantId: config?.tenantId || envConfig.AZURE_TENANT_ID || '',
     clientId: config?.clientId || envConfig.AZURE_CLIENT_ID || '',
     clientSecret: config?.clientSecret || envConfig.AZURE_CLIENT_SECRET || '',
@@ -430,3 +430,4 @@ export function createGraphClient(config?: Partial<GraphConfig>): GraphClient {
 
   return new GraphClient(graphConfig)
 }
+/

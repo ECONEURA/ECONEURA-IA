@@ -1,5 +1,6 @@
-import { BaseEntity } from './base.entity.js';
 import { Money } from '../value-objects/money.vo.js';
+
+import { BaseEntity } from './base.entity.js';
 export class InventoryKardex extends BaseEntity {
     props;
     constructor(props) {

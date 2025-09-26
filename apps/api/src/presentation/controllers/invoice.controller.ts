@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
+
 import { InvoiceRepository } from '../../domain/repositories/invoice.repository.js';
 import { CreateInvoiceUseCase } from '../../application/use-cases/invoice/create-invoice.use-case.js';
 import { UpdateInvoiceUseCase } from '../../application/use-cases/invoice/update-invoice.use-case.js';
-import { BaseController } from './base.controller.js';
 import {
   CreateInvoiceRequestSchema,
   UpdateInvoiceRequestSchema,
@@ -13,19 +13,12 @@ import {
   InvoiceBulkDeleteSchema,
   RecordPaymentRequestSchema,
   ApplyDiscountRequestSchema,
-  type CreateInvoiceRequest,
-  type UpdateInvoiceRequest,
-  type InvoiceIdParam,
-  type InvoiceOrganizationIdParam,
-  type InvoiceSearchQuery,
-  type InvoiceBulkUpdate,
-  type InvoiceBulkDelete,
   type InvoiceResponse,
   type InvoiceListResponse,
-  type InvoiceStatsResponse,
-  type RecordPaymentRequest,
-  type ApplyDiscountRequest
+  type InvoiceStatsResponse
 } from '../dto/invoice.dto.js';
+
+import { BaseController } from './base.controller.js';
 
 // ============================================================================
 // INVOICE CONTROLLER

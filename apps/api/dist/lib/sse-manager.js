@@ -1,5 +1,6 @@
-import { structuredLogger } from './structured-logger.js';
 import { randomUUID } from 'crypto';
+
+import { structuredLogger } from './structured-logger.js';
 class SSEManager {
     clients = new Map();
     clientsByOrg = new Map();

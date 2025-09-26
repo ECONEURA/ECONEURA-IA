@@ -1,5 +1,6 @@
 import { Express } from 'express';
 import swaggerUi from 'swagger-ui-express';
+
 import { version } from '../../package.json';
 
 const openApiSpec = {

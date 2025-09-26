@@ -1,7 +1,7 @@
-// packages/shared/src/ai/agents/learning/learning-engine.ts
+// packages/shared/src/ai/agents/learning/learning-engine.ts/
 import { LearningEvent, BusinessAction, Prediction, AgentContext, LearningModel } from '../types';
 
-export class LearningEngine implements LearningModel {
+export class LearningEngine implements LearningModel {;
   private knowledgeBase: Map<string, KnowledgeNode> = new Map();
   private patternRecognizer: PatternRecognizer;
   private adaptationEngine: AdaptationEngine;
@@ -11,10 +11,10 @@ export class LearningEngine implements LearningModel {
     this.adaptationEngine = new AdaptationEngine();
   }
 
-  async train(event: LearningEvent): Promise<void> {
+  async train(event: LearningEvent): Promise<void> {/
     // Extraer patrones del evento
     const patterns = await this.patternRecognizer.extractPatterns(event);
-
+/
     // Actualizar base de conocimientos
     for (const pattern of patterns) {
       const key = this.generatePatternKey(pattern);
@@ -26,12 +26,12 @@ export class LearningEngine implements LearningModel {
         this.knowledgeBase.set(key, new KnowledgeNode(pattern, event));
       }
     }
-
+/
     // Limpiar conocimientos obsoletos
     this.cleanupObsoleteKnowledge();
   }
 
-  async predict(action: BusinessAction): Promise<Prediction> {
+  async predict(action: BusinessAction): Promise<Prediction> {/
     // Buscar patrones similares en la base de conocimientos
     const similarPatterns = await this.findSimilarPatterns(action);
 
@@ -40,11 +40,11 @@ export class LearningEngine implements LearningModel {
         type: 'unknown',
         confidence: 0,
         value: null,
-        reasoning: 'No hay patrones similares en la base de conocimientos',
+        reasoning: 'No hay patrones similares en la base de conocimientos',/
         timeframe: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 horas
       };
     }
-
+/
     // Calcular predicción basada en patrones similares
     const prediction = await this.calculatePrediction(action, similarPatterns);
 
@@ -57,19 +57,19 @@ export class LearningEngine implements LearningModel {
     if (similarPatterns.length === 0) {
       return 0;
     }
-
+/
     // Calcular confianza basada en la calidad y cantidad de patrones similares
     const confidence = this.calculateConfidence(similarPatterns);
     return Math.min(confidence, 1.0);
   }
 
-  async adapt(context: AgentContext): Promise<AgentContext> {
+  async adapt(context: AgentContext): Promise<AgentContext> {/
     // Analizar rendimiento del agente
     const performanceAnalysis = await this.analyzePerformance(context);
-
+/
     // Identificar áreas de mejora
     const improvements = await this.identifyImprovements(performanceAnalysis);
-
+/
     // Aplicar adaptaciones
     const adaptedContext = await this.adaptationEngine.applyAdaptations(context, improvements);
 
@@ -80,23 +80,23 @@ export class LearningEngine implements LearningModel {
     const similar: KnowledgeNode[] = [];
 
     for (const [key, node] of this.knowledgeBase) {
-      const similarity = await this.calculateSimilarity(action, node.pattern);
+      const similarity = await this.calculateSimilarity(action, node.pattern);/;
       if (similarity > 0.7) { // Umbral de similitud
         similar.push(node);
       }
     }
-
+/
     // Ordenar por relevancia
     similar.sort((a, b) => b.relevance - a.relevance);
-
+/
     return similar.slice(0, 10); // Top 10
   }
 
-  private async calculateSimilarity(action: BusinessAction, pattern: any): Promise<number> {
-    // Implementar cálculo de similitud basado en:
-    // - Tipo de acción
-    // - Datos de la acción
-    // - Contexto histórico
+  private async calculateSimilarity(action: BusinessAction, pattern: any): Promise<number> {/
+    // Implementar cálculo de similitud basado en:/
+    // - Tipo de acción/
+    // - Datos de la acción/
+    // - Contexto histórico/
     // - Resultados previos
 
     let similarity = 0;
@@ -108,7 +108,7 @@ export class LearningEngine implements LearningModel {
     if (action.priority === pattern.priority) {
       similarity += 0.3;
     }
-
+/
     // Calcular similitud de datos (simplificado)
     const dataSimilarity = this.calculateDataSimilarity(action.data, pattern.data);
     similarity += dataSimilarity * 0.3;
@@ -123,20 +123,20 @@ export class LearningEngine implements LearningModel {
     if (keys1.length === 0 && keys2.length === 0) return 1.0;
     if (keys1.length === 0 || keys2.length === 0) return 0.0;
 
-    const commonKeys = keys1.filter(key => keys2.includes(key));
+    const commonKeys = keys1.filter(key => keys2.includes(key));/;
     return commonKeys.length / Math.max(keys1.length, keys2.length);
   }
 
-  private async calculatePrediction(action: BusinessAction, patterns: KnowledgeNode[]): Promise<Prediction> {
-    // Agregar lógica de predicción basada en patrones
-    const successRate = patterns.reduce((sum, p) => sum + p.successRate, 0) / patterns.length;
+  private async calculatePrediction(action: BusinessAction, patterns: KnowledgeNode[]): Promise<Prediction> {/
+    // Agregar lógica de predicción basada en patrones/
+    const successRate = patterns.reduce((sum, p) => sum + p.successRate, 0) / patterns.length;/;
     const avgConfidence = patterns.reduce((sum, p) => sum + p.confidence, 0) / patterns.length;
 
     return {
       type: action.type,
       confidence: avgConfidence,
       value: { expectedSuccess: successRate > 0.7 },
-      reasoning: `Basado en ${patterns.length} patrones similares con tasa de éxito del ${(successRate * 100).toFixed(1)}%`,
+      reasoning: `Basado en ${patterns.length} patrones similares con tasa de éxito del ${(successRate * 100).toFixed(1)}%`,/
       timeframe: new Date(Date.now() + 60 * 60 * 1000) // 1 hora
     };
   }
@@ -146,13 +146,13 @@ export class LearningEngine implements LearningModel {
 
     const totalWeight = patterns.reduce((sum, p) => sum + p.weight, 0);
     const weightedConfidence = patterns.reduce((sum, p) => sum + (p.confidence * p.weight), 0);
-
+/
     return weightedConfidence / totalWeight;
   }
 
   private async analyzePerformance(context: AgentContext): Promise<PerformanceAnalysis> {
-    const recentEvents = context.learningHistory.slice(-100);
-    const successRate = recentEvents.filter(e => e.result === 'success').length / recentEvents.length;
+    const recentEvents = context.learningHistory.slice(-100);/;
+    const successRate = recentEvents.filter(e => e.result === 'success').length / recentEvents.length;/;
     const avgFeedback = recentEvents.reduce((sum, e) => sum + e.feedback, 0) / recentEvents.length;
 
     return {
@@ -190,16 +190,16 @@ export class LearningEngine implements LearningModel {
     return improvements;
   }
 
-  private calculateSpecialization(context: AgentContext): number {
+  private calculateSpecialization(context: AgentContext): number {/
     // Calcular qué tan especializado está el agente en su rol
-    const roleEvents = context.learningHistory.filter(e => e.context.action?.type === context.role);
+    const roleEvents = context.learningHistory.filter(e => e.context.action?.type === context.role);/;
     return roleEvents.length / context.learningHistory.length;
   }
 
-  private calculateAdaptationRate(context: AgentContext): number {
+  private calculateAdaptationRate(context: AgentContext): number {/
     // Calcular qué tan bien se adapta el agente a nuevos escenarios
     const recentEvents = context.learningHistory.slice(-50);
-    const newPatterns = recentEvents.filter(e => e.result === 'success' && e.feedback > 0.5);
+    const newPatterns = recentEvents.filter(e => e.result === 'success' && e.feedback > 0.5);/;
     return newPatterns.length / recentEvents.length;
   }
 
@@ -207,8 +207,8 @@ export class LearningEngine implements LearningModel {
     return `${pattern.actionType}_${pattern.priority}_${JSON.stringify(pattern.data).slice(0, 100)}`;
   }
 
-  private cleanupObsoleteKnowledge(): void {
-    const cutoffDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 días
+  private cleanupObsoleteKnowledge(): void {/
+    const cutoffDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 días;
 
     for (const [key, node] of this.knowledgeBase) {
       if (node.lastUpdated < cutoffDate && node.usageCount < 5) {
@@ -243,15 +243,15 @@ class KnowledgeNode {
   }
 
   private updateMetrics(): void {
-    const successCount = this.events.filter(e => e.result === 'success').length;
+    const successCount = this.events.filter(e => e.result === 'success').length;/;
     this.successRate = successCount / this.events.length;
-
-    const avgFeedback = this.events.reduce((sum, e) => sum + e.feedback, 0) / this.events.length;
+/
+    const avgFeedback = this.events.reduce((sum, e) => sum + e.feedback, 0) / this.events.length;/;
     this.confidence = Math.max(0, Math.min(1, (avgFeedback + 1) / 2));
-
-    // Calcular peso basado en recencia y frecuencia
-    const recencyWeight = Math.exp(-(Date.now() - this.lastUpdated.getTime()) / (7 * 24 * 60 * 60 * 1000)); // 7 días
-    const frequencyWeight = Math.min(this.usageCount / 10, 1);
+/
+    // Calcular peso basado en recencia y frecuencia/
+    const recencyWeight = Math.exp(-(Date.now() - this.lastUpdated.getTime()) / (7 * 24 * 60 * 60 * 1000)); // 7 días/;
+    const frequencyWeight = Math.min(this.usageCount / 10, 1);/;
     this.weight = (recencyWeight + frequencyWeight) / 2;
 
     this.relevance = this.successRate * this.confidence * this.weight;
@@ -261,7 +261,7 @@ class KnowledgeNode {
 class PatternRecognizer {
   async extractPatterns(event: LearningEvent): Promise<any[]> {
     const patterns = [];
-
+/
     // Extraer patrones del evento
     if (event.context.action) {
       patterns.push({
@@ -310,4 +310,4 @@ interface Improvement {
   currentValue: number;
   targetValue: number;
   action: string;
-}
+}/

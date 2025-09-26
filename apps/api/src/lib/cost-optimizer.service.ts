@@ -1,12 +1,10 @@
 // Cost Optimizer Service for PR-45
 import { 
   OptimizationRecommendation, 
-  CostOptimization, 
-  OptimizationLog,
+  CostOptimization,
   ResourceUtilization 
 } from './finops-types.js';
 import { structuredLogger } from './structured-logger.js';
-import { ErrorHandler } from './error-handler.js';
 
 export class CostOptimizerService {
   private recommendations: OptimizationRecommendation[] = [];

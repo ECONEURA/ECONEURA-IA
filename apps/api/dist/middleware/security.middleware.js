@@ -1,8 +1,9 @@
-import { securityService } from '../lib/security.service.js';
-import { structuredLogger } from '../lib/structured-logger.js';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { body, validationResult } from 'express-validator';
+
+import { structuredLogger } from '../lib/structured-logger.js';
+import { securityService } from '../lib/security.service.js';
 export const securityHeadersMiddleware = helmet({
     contentSecurityPolicy: {
         directives: {

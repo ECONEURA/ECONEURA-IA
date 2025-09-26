@@ -1,6 +1,7 @@
-import { structuredLogger } from '../lib/structured-logger.js';
 import { getDatabaseService } from '@econeura/db';
 import { auditLog } from '@econeura/db/schema';
+
+import { structuredLogger } from '../lib/structured-logger.js';
 export class SentimentAnalysisService {
     historicalData = new Map();
     languageModels = new Map();

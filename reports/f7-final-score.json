@@ -16,9 +16,7 @@
   },
   "phase7Threshold": 85,
   "ready": false,
-  "suggestions": [
-    "Address security leaks (review Gitleaks report)"
-  ],
+  "suggestions": ["Address security leaks (review Gitleaks report)"],
   "analysis": {
     "coverage": "completed",
     "eslint": "completed",

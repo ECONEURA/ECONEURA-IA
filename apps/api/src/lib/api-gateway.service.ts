@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { structuredLogger } from './structured-logger.js';
 import { getDatabaseService } from '@econeura/db';
-import { eq, and } from 'drizzle-orm';
-import { organizations, users, apiKeys } from '@econeura/db/schema';
+import { organizations, users } from '@econeura/db/schema';
+
+import { structuredLogger } from './structured-logger.js';
 
 // ============================================================================
 // API GATEWAY SERVICE

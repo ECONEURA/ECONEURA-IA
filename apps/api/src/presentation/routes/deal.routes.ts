@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { DealController } from '../controllers/deal.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 import { authorize } from '../middleware/rbac.middleware.js';
@@ -26,7 +27,6 @@ import {
   SetCustomFieldSchema,
   RemoveCustomFieldSchema,
   DealIdParamSchema,
-  DealOrganizationIdParamSchema,
   DealContactIdParamSchema,
   DealCompanyIdParamSchema,
   DealUserIdParamSchema,

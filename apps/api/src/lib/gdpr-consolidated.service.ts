@@ -28,9 +28,7 @@ import {
   GDPRStats,
   AuditEntry
 } from './gdpr-types.js';
-
 import { structuredLogger } from './structured-logger.js';
-import { SEPATransaction } from './sepa-types.js';
 
 export class GDPRConsolidatedService {
   private gdprRequests: Map<string, GDPRRequest> = new Map();

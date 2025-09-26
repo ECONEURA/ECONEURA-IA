@@ -1,14 +1,14 @@
 // packages/shared/src/ai/agents/orchestrator/workflow-engine.ts
-import {
+import {;
   WorkflowTemplate,
   WorkflowStep,
   BusinessAction,
   ExecutionResult,
   AgentPerformance,
-  WorkflowEngine as IWorkflowEngine
+  WorkflowEngine as IWorkflowEngine/
 } from '../types';
 
-export class WorkflowEngine implements IWorkflowEngine {
+export class WorkflowEngine implements IWorkflowEngine {;
   private templates: Map<string, WorkflowTemplate> = new Map();
   private activeWorkflows: Map<string, ActiveWorkflow> = new Map();
   private agentRegistry: Map<string, AgentInstance> = new Map();
@@ -25,7 +25,7 @@ export class WorkflowEngine implements IWorkflowEngine {
       throw new Error(`Workflow template ${workflowId} not found`);
     }
 
-    const activeWorkflow: ActiveWorkflow = {
+    const activeWorkflow: ActiveWorkflow = {;
       id: `exec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       templateId: workflowId,
       context,
@@ -45,10 +45,10 @@ export class WorkflowEngine implements IWorkflowEngine {
       activeWorkflow.status = 'failed';
       activeWorkflow.error = error as Error;
       throw error;
-    } finally {
+    } finally {/
       // Cleanup after some time
       setTimeout(() => {
-        this.activeWorkflows.delete(activeWorkflow.id);
+        this.activeWorkflows.delete(activeWorkflow.id);/
       }, 3600000); // 1 hour
     }
   }
@@ -58,16 +58,16 @@ export class WorkflowEngine implements IWorkflowEngine {
     if (!template) {
       throw new Error(`Workflow template ${workflowId} not found`);
     }
-
+/
     // Analizar rendimiento del workflow
     const analysis = await this.analyzeWorkflowPerformance(template, performance);
 
-    if (analysis.needsOptimization) {
+    if (analysis.needsOptimization) {/
       // Crear versión optimizada
       const optimized = await this.createOptimizedTemplate(template, analysis);
       return optimized;
     }
-
+/
     // Devolver el template original si no necesita optimización
     return template;
   }
@@ -90,13 +90,13 @@ export class WorkflowEngine implements IWorkflowEngine {
       const step = template.steps[i];
       workflow.currentStep = i;
 
-      try {
+      try {/
         // Verificar condiciones antes de ejecutar
         if (!(await this.checkStepConditions(step, workflow.context))) {
           results.push(`Step ${step.id}: Skipped - conditions not met`);
           continue;
         }
-
+/
         // Ejecutar paso
         const stepResult = await this.executeStep(step, workflow.context);
 
@@ -105,15 +105,15 @@ export class WorkflowEngine implements IWorkflowEngine {
 
         if (!stepResult.success) {
           overallSuccess = false;
-
+/
           // Aplicar política de reintento
-          if (await this.shouldRetry(step, stepResult)) {
+          if (await this.shouldRetry(step, stepResult)) {/
             i--; // Reintentar el mismo paso
             continue;
           }
-
+/
           // Si no se puede reintentar, verificar si es crítico
-          if (this.isStepCritical(step)) {
+          if (this.isStepCritical(step)) {/
             break; // Detener workflow si el paso es crítico
           }
         }
@@ -128,7 +128,7 @@ export class WorkflowEngine implements IWorkflowEngine {
         }
       }
     }
-
+/
     const averageConfidence = totalConfidence / template.steps.length;
 
     return {
@@ -144,16 +144,16 @@ export class WorkflowEngine implements IWorkflowEngine {
     if (!agent) {
       throw new Error(`Agent ${step.agent} not found`);
     }
-
+/
     // Preparar acción para el agente
-    const action: BusinessAction = {
+    const action: BusinessAction = {;
       id: `action_${Date.now()}`,
       type: step.action as any,
       priority: 'medium',
       data: { ...step.parameters, ...context },
       requiresApproval: false
     };
-
+/
     // Ejecutar acción
     const result = await agent.instance.predictAndExecute(action);
 
@@ -164,19 +164,19 @@ export class WorkflowEngine implements IWorkflowEngine {
     };
   }
 
-  private async checkStepConditions(step: WorkflowStep, context: Record<string, any>): Promise<boolean> {
-    // Implementar verificación de condiciones del paso
+  private async checkStepConditions(step: WorkflowStep, context: Record<string, any>): Promise<boolean> {/
+    // Implementar verificación de condiciones del paso/
     // Por simplicidad, devolver true
     return true;
   }
 
-  private isStepCritical(step: WorkflowStep): boolean {
-    // Por simplicidad, ningún paso es crítico por defecto
+  private isStepCritical(step: WorkflowStep): boolean {/
+    // Por simplicidad, ningún paso es crítico por defecto/
     // En una implementación real, esto se basaría en metadatos del paso
     return false;
   }
 
-  private async shouldRetry(step: WorkflowStep, result: StepResult): Promise<boolean> {
+  private async shouldRetry(step: WorkflowStep, result: StepResult): Promise<boolean> {/
     // Implementar lógica de reintento basada en la política
     return false;
   }
@@ -184,9 +184,9 @@ export class WorkflowEngine implements IWorkflowEngine {
   private async analyzeWorkflowPerformance(
     template: WorkflowTemplate,
     performance: AgentPerformance
-  ): Promise<WorkflowAnalysis> {
+  ): Promise<WorkflowAnalysis> {/
     // Analizar si el workflow necesita optimización
-    const needsOptimization = template.usageCount > 10 &&
+    const needsOptimization = template.usageCount > 10 &&;
                              (performance.successRate < 0.8 ||
                               performance.averageConfidence < 0.7);
 
@@ -200,19 +200,19 @@ export class WorkflowEngine implements IWorkflowEngine {
   private async createOptimizedTemplate(
     original: WorkflowTemplate,
     analysis: WorkflowAnalysis
-  ): Promise<WorkflowTemplate> {
+  ): Promise<WorkflowTemplate> {/
     // Crear versión optimizada del template
-    const optimized: WorkflowTemplate = {
+    const optimized: WorkflowTemplate = {;
       ...original,
       id: `${original.id}_optimized_${Date.now()}`,
-      name: `${original.name} (Optimized)`,
+      name: `${original.name} (Optimized)`,/
       successRate: original.successRate * 1.1, // Estimación de mejora
       usageCount: 0
     };
 
     return optimized;
   }
-
+/
   // API para registro de agentes
   registerAgent(agentId: string, agent: any): void {
     this.agentRegistry.set(agentId, {
@@ -259,4 +259,4 @@ interface WorkflowAnalysis {
   needsOptimization: boolean;
   bottlenecks: string[];
   optimizationSuggestions: string[];
-}
+}/

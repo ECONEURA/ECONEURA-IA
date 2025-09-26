@@ -1,8 +1,10 @@
+import { randomUUID } from 'crypto';
+
 import { Router } from 'express';
+
 import { structuredLogger } from '../lib/structured-logger.js';
 import { healthModeManager } from '../lib/health-modes.js';
 import { sseManager } from '../lib/sse-manager.js';
-import { randomUUID } from 'crypto';
 
 const router = Router();
 

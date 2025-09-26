@@ -1,5 +1,5 @@
 // Minimal shared AI types used by router code
-export interface AIRequest {
+export interface AIRequest {;
 	org_id: string
 	prompt?: string
 	tokens_est?: number
@@ -9,9 +9,10 @@ export interface AIRequest {
 	sensitivity?: string
 }
 
-export interface AIResponse {
+export interface AIResponse {;
 	content: string
 	model: string
 	provider: string
 	tokens?: { input: number; output: number }
 }
+/

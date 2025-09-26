@@ -1,7 +1,8 @@
-import { Router } from 'express';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import { Router } from 'express';
 
 // Archivo de configuración de kill-switch (persistencia simple en disco)
 const KILL_PATH = process.env.FINOPS_KILL_PATH || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'config', 'finops.kill.json');

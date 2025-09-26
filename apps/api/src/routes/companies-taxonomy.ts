@@ -4,6 +4,7 @@
 
 import { Router } from 'express';
 import { z } from 'zod';
+
 import { companiesTaxonomyService } from '../lib/companies-taxonomy.service.js';
 import { structuredLogger } from '../lib/structured-logger.js';
 

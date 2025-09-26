@@ -1,7 +1,9 @@
 /// <reference path="./types/prisma-shim.d.ts" />
-import type { PrismaClient } from '@prisma/client';
-import { config } from './config.js';
 import { createRequire } from 'module';
+
+import type { PrismaClient } from '@prisma/client';
+
+import { config } from './config.js';
 const require = createRequire(import.meta.url);
 
 type PrismaNew = new (...args: any[]) => PrismaClient;

@@ -1,6 +1,7 @@
-import { Router, type Router as ExpressRouter } from 'express';
 import fs from 'fs';
 import path from 'path';
+
+import { Router, type Router as ExpressRouter } from 'express';
 
 const router: ExpressRouter = Router();
 

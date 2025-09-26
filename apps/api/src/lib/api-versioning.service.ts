@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { structuredLogger } from './structured-logger.js';
 import { getDatabaseService } from '@econeura/db';
-import { eq, and, gte, desc } from 'drizzle-orm';
-import { auditLog } from '@econeura/db/schema';
+
+import { structuredLogger } from './structured-logger.js';
 
 // ============================================================================
 // API VERSIONING SERVICE

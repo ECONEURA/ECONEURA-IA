@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import { validateRequest } from '../middleware/validation.middleware.js';
 import { z } from 'zod';
+
+import { validateRequest } from '../middleware/validation.middleware.js';
 export const createUserRoutes = (userController) => {
     const router = Router();
     router.post('/', validateRequest({

@@ -1,9 +1,10 @@
 // SEPA Service - PR-42: SEPA Integration
 // Servicio completo para gestión de transacciones SEPA
 
-import { logger } from './logger.js';
 import { z } from 'zod';
-import { SEPATransaction, MatchingRule, MatchingCondition, MatchingAction, ReconciliationResult, SEPAUploadResult } from './sepa-types.js';
+
+import { logger } from './logger.js';
+import { SEPATransaction, MatchingRule, MatchingCondition, ReconciliationResult } from './sepa-types.js';
 
 // Esquemas de validación
 export const SEPATransactionSchema = z.object({

@@ -1,5 +1,6 @@
-import { logger } from './logger.js';
 import { z } from 'zod';
+
+import { logger } from './logger.js';
 const mockKeyVault = {
     getSecret: async (name) => ({ value: `mock-secret-${name}` }),
     setSecret: async (name, value) => ({ name, value }),

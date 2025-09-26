@@ -1,15 +1,15 @@
-// ============================================================================
-// EMAIL PROVIDER - SENDGRID, AWS SES, SMTP
+// ============================================================================/
+// EMAIL PROVIDER - SENDGRID, AWS SES, SMTP/
 // ============================================================================
 
-import { z } from 'zod';
+import { z } from 'zod';/;
 import { logger } from '../../../utils/logger.js';
-
+/
+// ============================================================================/
+// SCHEMAS/
 // ============================================================================
-// SCHEMAS
-// ============================================================================
 
-const EmailProviderConfigSchema = z.object({
+const EmailProviderConfigSchema = z.object({;
   provider: z.enum(['sendgrid', 'aws_ses', 'smtp']),
   apiKey: z.string().optional(),
   secretKey: z.string().optional(),
@@ -24,7 +24,7 @@ const EmailProviderConfigSchema = z.object({
   testMode: z.boolean().default(false)
 });
 
-const EmailMessageSchema = z.object({
+const EmailMessageSchema = z.object({;
   to: z.array(z.string().email()),
   cc: z.array(z.string().email()).optional(),
   bcc: z.array(z.string().email()).optional(),
@@ -44,12 +44,12 @@ const EmailMessageSchema = z.object({
   trackOpens: z.boolean().default(true),
   trackClicks: z.boolean().default(true)
 });
-
+/
+// ============================================================================/
+// INTERFACES/
 // ============================================================================
-// INTERFACES
-// ============================================================================
 
-export interface EmailProviderConfig {
+export interface EmailProviderConfig {;
   provider: 'sendgrid' | 'aws_ses' | 'smtp';
   apiKey?: string;
   secretKey?: string;
@@ -64,7 +64,7 @@ export interface EmailProviderConfig {
   testMode?: boolean;
 }
 
-export interface EmailMessage {
+export interface EmailMessage {;
   to: string[];
   cc?: string[];
   bcc?: string[];
@@ -85,7 +85,7 @@ export interface EmailMessage {
   trackClicks?: boolean;
 }
 
-export interface EmailResult {
+export interface EmailResult {;
   messageId: string;
   success: boolean;
   provider: string;
@@ -94,18 +94,18 @@ export interface EmailResult {
   metadata?: Record<string, any>;
 }
 
-export interface IEmailProvider {
+export interface IEmailProvider {;
   send(message: EmailMessage): Promise<EmailResult>;
   sendBulk(messages: EmailMessage[]): Promise<EmailResult[]>;
   validateConfig(): Promise<boolean>;
   getQuota(): Promise<{ used: number; limit: number; resetAt: Date }>;
 }
-
+/
+// ============================================================================/
+// SENDGRID PROVIDER/
 // ============================================================================
-// SENDGRID PROVIDER
-// ============================================================================
 
-export class SendGridProvider implements IEmailProvider {
+export class SendGridProvider implements IEmailProvider {;
   private config: EmailProviderConfig;
   private apiKey: string;
 
@@ -135,9 +135,9 @@ export class SendGridProvider implements IEmailProvider {
           metadata: { testMode: true }
         };
       }
-
+/
       // Simulate SendGrid API call
-      const sendGridMessage = {
+      const sendGridMessage = {;
         personalizations: [{
           to: message.to.map(email => ({ email })),
           cc: message.cc?.map(email => ({ email })),
@@ -150,8 +150,8 @@ export class SendGridProvider implements IEmailProvider {
         },
         reply_to: message.replyTo ? { email: message.replyTo } : undefined,
         subject: message.subject,
-        content: [
-          ...(message.html ? [{ type: 'text/html', value: message.html }] : []),
+        content: [/
+          ...(message.html ? [{ type: 'text/html', value: message.html }] : []),/
           ...(message.text ? [{ type: 'text/plain', value: message.text }] : [])
         ],
         attachments: message.attachments?.map(att => ({
@@ -166,7 +166,7 @@ export class SendGridProvider implements IEmailProvider {
           click_tracking: { enable: message.trackClicks }
         }
       };
-
+/
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -206,7 +206,7 @@ export class SendGridProvider implements IEmailProvider {
 
   async sendBulk(messages: EmailMessage[]): Promise<EmailResult[]> {
     const results: EmailResult[] = [];
-    
+    /
     // Process in batches of 10
     const batchSize = 10;
     for (let i = 0; i < messages.length; i += batchSize) {
@@ -220,7 +220,7 @@ export class SendGridProvider implements IEmailProvider {
   }
 
   async validateConfig(): Promise<boolean> {
-    try {
+    try {/
       // Simulate API key validation
       return this.apiKey.length > 0;
     } catch (error) {
@@ -228,7 +228,7 @@ export class SendGridProvider implements IEmailProvider {
     }
   }
 
-  async getQuota(): Promise<{ used: number; limit: number; resetAt: Date }> {
+  async getQuota(): Promise<{ used: number; limit: number; resetAt: Date }> {/
     // Simulate quota check
     return {
       used: Math.floor(Math.random() * 1000),
@@ -237,12 +237,12 @@ export class SendGridProvider implements IEmailProvider {
     };
   }
 }
-
+/
+// ============================================================================/
+// AWS SES PROVIDER/
 // ============================================================================
-// AWS SES PROVIDER
-// ============================================================================
 
-export class AWSSESProvider implements IEmailProvider {
+export class AWSSESProvider implements IEmailProvider {;
   private config: EmailProviderConfig;
 
   constructor(config: EmailProviderConfig) {
@@ -266,9 +266,9 @@ export class AWSSESProvider implements IEmailProvider {
           metadata: { testMode: true }
         };
       }
-
+/
       // Simulate AWS SES API call
-      const sesMessage = {
+      const sesMessage = {;
         Source: `${this.config.fromName || ''} <${this.config.fromEmail}>`,
         Destination: {
           ToAddresses: message.to,
@@ -284,7 +284,7 @@ export class AWSSESProvider implements IEmailProvider {
         },
         ReplyToAddresses: message.replyTo ? [message.replyTo] : undefined
       };
-
+/
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 150));
 
@@ -324,7 +324,7 @@ export class AWSSESProvider implements IEmailProvider {
 
   async sendBulk(messages: EmailMessage[]): Promise<EmailResult[]> {
     const results: EmailResult[] = [];
-    
+    /
     // Process in batches of 50 (AWS SES limit)
     const batchSize = 50;
     for (let i = 0; i < messages.length; i += batchSize) {
@@ -345,7 +345,7 @@ export class AWSSESProvider implements IEmailProvider {
     }
   }
 
-  async getQuota(): Promise<{ used: number; limit: number; resetAt: Date }> {
+  async getQuota(): Promise<{ used: number; limit: number; resetAt: Date }> {/
     // Simulate quota check
     return {
       used: Math.floor(Math.random() * 200),
@@ -354,12 +354,12 @@ export class AWSSESProvider implements IEmailProvider {
     };
   }
 }
-
+/
+// ============================================================================/
+// SMTP PROVIDER/
 // ============================================================================
-// SMTP PROVIDER
-// ============================================================================
 
-export class SMTPProvider implements IEmailProvider {
+export class SMTPProvider implements IEmailProvider {;
   private config: EmailProviderConfig;
 
   constructor(config: EmailProviderConfig) {
@@ -383,9 +383,9 @@ export class SMTPProvider implements IEmailProvider {
           metadata: { testMode: true }
         };
       }
-
+/
       // Simulate SMTP connection and send
-      const smtpMessage = {
+      const smtpMessage = {;
         from: `${this.config.fromName || ''} <${this.config.fromEmail}>`,
         to: message.to.join(', '),
         cc: message.cc?.join(', '),
@@ -396,7 +396,7 @@ export class SMTPProvider implements IEmailProvider {
         attachments: message.attachments,
         headers: message.headers
       };
-
+/
       // Simulate SMTP delay
       await new Promise(resolve => setTimeout(resolve, 200));
 
@@ -436,7 +436,7 @@ export class SMTPProvider implements IEmailProvider {
 
   async sendBulk(messages: EmailMessage[]): Promise<EmailResult[]> {
     const results: EmailResult[] = [];
-    
+    /
     // Process sequentially for SMTP
     for (const message of messages) {
       const result = await this.send(message);
@@ -454,8 +454,8 @@ export class SMTPProvider implements IEmailProvider {
     }
   }
 
-  async getQuota(): Promise<{ used: number; limit: number; resetAt: Date }> {
-    // SMTP doesn't have quotas
+  async getQuota(): Promise<{ used: number; limit: number; resetAt: Date }> {/
+    // SMTP doesn't have quotas';
     return {
       used: 0,
       limit: Infinity,
@@ -463,12 +463,12 @@ export class SMTPProvider implements IEmailProvider {
     };
   }
 }
-
+/
+// ============================================================================/
+// EMAIL PROVIDER FACTORY/
 // ============================================================================
-// EMAIL PROVIDER FACTORY
-// ============================================================================
 
-export class EmailProviderFactory {
+export class EmailProviderFactory {;
   static create(config: EmailProviderConfig): IEmailProvider {
     switch (config.provider) {
       case 'sendgrid':
@@ -482,12 +482,13 @@ export class EmailProviderFactory {
     }
   }
 }
-
+/
+// ============================================================================/
+// EXPORTS/
 // ============================================================================
-// EXPORTS
-// ============================================================================
 
-export {
+export {;
   EmailProviderConfigSchema,
   EmailMessageSchema
 };
+/

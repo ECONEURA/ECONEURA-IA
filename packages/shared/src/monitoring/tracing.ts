@@ -1,20 +1,20 @@
-import { Tracer, SpanKind, SpanStatusCode, Span, trace, context, metrics } from '@opentelemetry/api';
-import { Resource } from '@opentelemetry/resources';
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
-// @ts-ignore: optional opentelemetry SDK may not be installed in dev env
-import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
-// @ts-ignore: optional opentelemetry SDK may not be installed in dev env
-import { SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { Tracer, SpanKind, SpanStatusCode, Span, trace, context, metrics } from '@opentelemetry/api';/;
+import { Resource } from '@opentelemetry/resources';/;
+import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';/;
+// @ts-ignore: optional opentelemetry SDK may not be installed in dev env/
+import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';/;
+// @ts-ignore: optional opentelemetry SDK may not be installed in dev env/
+import { SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';/;
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';/;
 import { envSchema } from '../core/config/env.js';
 
 const env = envSchema.parse(process.env);
-
+/
 /**
- * Initialize OpenTelemetry tracer
+ * Initialize OpenTelemetry tracer/
  */
-export function initTracer(): Tracer {
-  const provider = new NodeTracerProvider({
+export function initTracer(): Tracer {;
+  const provider = new NodeTracerProvider({;
     resource: new Resource({
       [SemanticResourceAttributes.SERVICE_NAME]: 'econeura',
       [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]: env.NODE_ENV,
@@ -22,7 +22,7 @@ export function initTracer(): Tracer {
   });
 
   if (env.OTEL_EXPORTER_OTLP_ENDPOINT) {
-    const exporter = new OTLPTraceExporter({
+    const exporter = new OTLPTraceExporter({;
       url: env.OTEL_EXPORTER_OTLP_ENDPOINT,
     });
     provider.addSpanProcessor(new SimpleSpanProcessor(exporter));
@@ -31,11 +31,11 @@ export function initTracer(): Tracer {
   provider.register();
   return trace.getTracer('econeura');
 }
-
+/
 /**
- * Create and manage spans for operations
+ * Create and manage spans for operations/
  */
-export class TracingManager {
+export class TracingManager {;
   private tracer: Tracer;
   private activeSpans: Map<string, Span>;
 
@@ -43,32 +43,32 @@ export class TracingManager {
     this.tracer = initTracer();
     this.activeSpans = new Map();
   }
-
+/
   /**
-   * Start a new span
+   * Start a new span/
    */
   startSpan(
     name: string,
     options: {
       kind?: SpanKind;
       attributes?: Record<string, string | number | boolean>;
-    } = {}
+    } = {});
   ): Span {
     const { kind = SpanKind.INTERNAL, attributes = {} } = options;
     const span = this.tracer.startSpan(name, { kind, attributes });
     this.activeSpans.set(name, span);
     return span;
   }
-
+/
   /**
-   * End an active span
+   * End an active span/
    */
   endSpan(
     name: string,
     options: {
       status?: SpanStatusCode;
       error?: Error;
-    } = {}
+    } = {});
   ): void {
     const span = this.activeSpans.get(name);
     if (!span) {
@@ -86,9 +86,9 @@ export class TracingManager {
     span.end();
     this.activeSpans.delete(name);
   }
-
+/
   /**
-   * Run a function within a new span
+   * Run a function within a new span/
    */
   async withSpan<T>(
     name: string,
@@ -111,27 +111,27 @@ export class TracingManager {
       this.endSpan(name);
     }
   }
-
+/
   /**
-   * Add an event to an active span
+   * Add an event to an active span/
    */
   addEvent(
     spanName: string,
     eventName: string,
-    attributes?: Record<string, string | number | boolean>
+    attributes?: Record<string, string | number | boolean>);
   ): void {
     const span = this.activeSpans.get(spanName);
     if (span) {
       span.addEvent(eventName, attributes);
     }
   }
-
+/
   /**
-   * Add attributes to an active span
+   * Add attributes to an active span/
    */
   setAttributes(
     spanName: string,
-    attributes: Record<string, string | number | boolean>
+    attributes: Record<string, string | number | boolean>);
   ): void {
     const span = this.activeSpans.get(spanName);
     if (span) {
@@ -141,3 +141,4 @@ export class TracingManager {
 }
 
 export const tracingManager = new TracingManager();
+/

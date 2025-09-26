@@ -1,6 +1,5 @@
 // Shim para resolver import runtime de 'routes/monitoring'
 // Intenta reexportar desde el módulo real si existe, sino exporta un router vacío.
-import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'node:url';
 

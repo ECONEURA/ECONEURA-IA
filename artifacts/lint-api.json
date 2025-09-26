@@ -1,0 +1,21 @@
+[
+  {
+    'filePath': 'apps/api/src/__tests__/integration/health.test.ts',
+    'messages': [{'ruleId': 'import/order', 'severity': 2, 'message': 'There should be at least one empty line between import groups'}],
+    'errorCount': 1,
+    'warningCount': 0,
+    'fatalErrorCount': 0
+  },
+  {
+    'filePath': 'apps/api/src/__tests__/setup/test-setup.ts',
+    'messages': [
+      {'ruleId': '@typescript-eslint/no-explicit-any', 'severity': 1, 'message': 'Unexpected any. Specify a different type.'},
+      {'ruleId': '@typescript-eslint/no-explicit-any', 'severity': 1, 'message': 'Unexpected any. Specify a different type.'},
+      {'ruleId': '@typescript-eslint/no-explicit-any', 'severity': 1, 'message': 'Unexpected any. Specify a different type.'},
+      {'ruleId': '@typescript-eslint/no-explicit-any', 'severity': 1, 'message': 'Unexpected any. Specify a different type.'}
+    ],
+    'errorCount': 0,
+    'warningCount': 4,
+    'fatalErrorCount': 0
+  }
+]

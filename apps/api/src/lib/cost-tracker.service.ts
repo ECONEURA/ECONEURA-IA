@@ -7,7 +7,6 @@ import {
   CostAnomaly 
 } from './finops-types.js';
 import { structuredLogger } from './structured-logger.js';
-import { ErrorHandler } from './error-handler.js';
 
 export class CostTrackerService {
   private costs: Cost[] = [];

@@ -1,12 +1,12 @@
 import pino, { Logger } from 'pino';
 import { LogContext, AILogData, FlowLogData, WebhookLogData } from './index.js';
-
+/
 /**
  * Enhanced Logger with Environment-aware Configuration
- * Builds upon existing logging infrastructure with improved startup integration
+ * Builds upon existing logging infrastructure with improved startup integration/
  */
 
-export interface EnhancedLogContext extends LogContext {
+export interface EnhancedLogContext extends LogContext {;
   service?: string;
   version?: string;
   environment?: string;
@@ -14,7 +14,7 @@ export interface EnhancedLogContext extends LogContext {
   component?: string;
 }
 
-export class EnhancedEcoNeuraLogger {
+export class EnhancedEcoNeuraLogger {;
   private logger: Logger;
   private service: string;
   private version: string;
@@ -53,7 +53,7 @@ export class EnhancedEcoNeuraLogger {
       serializers: {
         err: pino.stdSerializers.err,
         error: pino.stdSerializers.err,
-      },
+      },/
       // Enhanced transport for better development experience
       transport: this.environment === 'development' ? {
         target: 'pino-pretty',
@@ -65,7 +65,7 @@ export class EnhancedEcoNeuraLogger {
       } : undefined,
     });
   }
-
+/
   // Core logging methods with enhanced context
   info(msg: string, context?: EnhancedLogContext) {
     this.logger.info(this.enrichContext(context), msg);
@@ -85,7 +85,7 @@ export class EnhancedEcoNeuraLogger {
   debug(msg: string, context?: EnhancedLogContext) {
     this.logger.debug(this.enrichContext(context), msg);
   }
-
+/
   // Startup and lifecycle logging
   logStartup(msg: string, context: { phase: string; config?: any; duration_ms?: number }) {
     this.logger.info({
@@ -103,7 +103,7 @@ export class EnhancedEcoNeuraLogger {
       duration_ms: context.duration_ms,
     }, msg);
   }
-
+/
   // Database and connection logging
   logDatabaseConnection(msg: string, context: { status: 'connecting' | 'connected' | 'disconnected' | 'error'; latency_ms?: number }) {
     this.logger.info({
@@ -122,13 +122,13 @@ export class EnhancedEcoNeuraLogger {
       latency_ms: context.latency_ms,
     }, msg);
   }
-
+/
   // Queue and worker logging
   logQueueEvent(msg: string, context: { 
     queue_name: string;
     event: 'job_added' | 'job_completed' | 'job_failed' | 'queue_started' | 'queue_stopped';
     job_id?: string;
-    duration_ms?: number;
+    duration_ms?: number;);
   }) {
     this.logger.info({
       type: 'queue_event',
@@ -139,7 +139,7 @@ export class EnhancedEcoNeuraLogger {
       duration_ms: context.duration_ms,
     }, msg);
   }
-
+/
   // Environment validation logging
   logEnvValidation(msg: string, context: { status: 'success' | 'warning' | 'error'; missing_vars?: string[]; warnings?: string[] }) {
     this.logger.info({
@@ -150,13 +150,13 @@ export class EnhancedEcoNeuraLogger {
       warnings: context.warnings,
     }, msg);
   }
-
+/
   // Health check logging
   logHealthCheck(msg: string, context: {
     endpoint: string;
     status: 'healthy' | 'unhealthy' | 'degraded';
     latency_ms?: number;
-    dependencies?: Record<string, 'up' | 'down'>;
+    dependencies?: Record<string, 'up' | 'down'>;);
   }) {
     this.logger.info({
       type: 'health_check',
@@ -167,14 +167,14 @@ export class EnhancedEcoNeuraLogger {
       dependencies: context.dependencies,
     }, msg);
   }
-
+/
   // Create child logger with additional context
   child(context: EnhancedLogContext) {
     const childLogger = new EnhancedEcoNeuraLogger(this.service, this.version);
     childLogger.logger = this.logger.child(this.enrichContext(context));
     return childLogger;
   }
-
+/
   // Private helper methods
   private enrichContext(context?: EnhancedLogContext): EnhancedLogContext {
     return {
@@ -185,7 +185,7 @@ export class EnhancedEcoNeuraLogger {
     };
   }
 
-  private sanitizeConfig(config: any): any {
+  private sanitizeConfig(config: any): any {/
     // Remove sensitive configuration values for logging
     const sanitized = { ...config };
     const sensitiveKeys = ['password', 'secret', 'key', 'token', 'url'];
@@ -198,17 +198,18 @@ export class EnhancedEcoNeuraLogger {
     
     return sanitized;
   }
-
+/
   // Expose underlying logger for advanced usage
   get pinoLogger(): Logger {
     return this.logger;
   }
 }
-
+/
 // Export singleton instances for different services
 export const apiLogger = new EnhancedEcoNeuraLogger('api', process.env.npm_package_version || '1.0.0');
 export const workerLogger = new EnhancedEcoNeuraLogger('workers', process.env.npm_package_version || '1.0.0');
 export const webLogger = new EnhancedEcoNeuraLogger('web', process.env.npm_package_version || '1.0.0');
-
+/
 // Default export for backward compatibility
 export default EnhancedEcoNeuraLogger;
+/

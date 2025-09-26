@@ -1,6 +1,7 @@
-import { Router } from 'express';
 import fs from 'fs';
 import path from 'path';
+
+import { Router } from 'express';
 const router = Router();
 router.get('/v1/progress', (req, res) => {
     const p = path.join(process.cwd(), 'dist', 'progress.json');

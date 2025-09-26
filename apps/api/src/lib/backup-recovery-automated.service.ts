@@ -12,11 +12,12 @@
  * - Monitoreo y alertas
  */
 
-import { structuredLogger } from './structured-logger.js';
-import { getDatabaseService } from '@econeura/db';
 import crypto from 'crypto';
-import fs from 'fs/promises.js';
 import path from 'path';
+
+import { getDatabaseService } from '@econeura/db';
+
+import { structuredLogger } from './structured-logger.js';
 
 export interface BackupConfig {
   id: string;

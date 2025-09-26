@@ -5,8 +5,9 @@
  * thresholds dinámicos, y notificaciones multi-canal.
  */
 
-import { structuredLogger } from './structured-logger.js';
 import { metrics } from '@econeura/shared/src/metrics/index.js';
+
+import { structuredLogger } from './structured-logger.js';
 
 export enum AlertSeverity {
   INFO = 'info',

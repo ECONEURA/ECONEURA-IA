@@ -1,5 +1,6 @@
-import { logger } from './logger.js';
 import { prometheus } from '../middleware/observability.js';
+
+import { logger } from './logger.js';
 
 export interface CacheConfig {
   ttl: number; // Time to live in seconds

@@ -1,46 +1,46 @@
-// packages/shared/src/ai/agents/examples/usage-example.ts
-import { agentSystem, createOptimizedAgent } from '../index';
+// packages/shared/src/ai/agents/examples/usage-example.ts/
+import { agentSystem, createOptimizedAgent } from '../index';/;
 import { BusinessAction } from '../types';
-
+/
 /**
  * Ejemplo de uso del Sistema de Agentes IA de ECONEURA-IA
- * Demuestra cómo crear agentes especializados y ejecutar acciones de negocio
+ * Demuestra cómo crear agentes especializados y ejecutar acciones de negocio/
  */
-export async function demonstrateAgentSystem() {
+export async function demonstrateAgentSystem() {;
   console.log('🚀 Iniciando demostración del Sistema de Agentes IA');
-
+/
   // 1. Registrar agentes especializados
   console.log('\n📝 Registrando agentes especializados...');
 
-  const salesAgentId = agentSystem.registerAgent('sales', {
+  const salesAgentId = agentSystem.registerAgent('sales', {;
     name: 'Agente de Ventas Principal',
     confidence: 0.8
   });
 
-  const operationsAgentId = agentSystem.registerAgent('operations', {
+  const operationsAgentId = agentSystem.registerAgent('operations', {;
     name: 'Agente de Operaciones',
     confidence: 0.7
   });
 
-  const complianceAgentId = agentSystem.registerAgent('compliance', {
+  const complianceAgentId = agentSystem.registerAgent('compliance', {;
     name: 'Agente de Cumplimiento',
     confidence: 0.9
   });
 
   console.log(`✅ Agentes registrados: ${salesAgentId}, ${operationsAgentId}, ${complianceAgentId}`);
-
+/
   // 2. Listar agentes disponibles
   console.log('\n📋 Agentes disponibles:');
   const agents = agentSystem.listAgents();
   agents.forEach(agent => {
     console.log(`  - ${agent.type}: ${agent.status} (${agent.id})`);
   });
-
+/
   // 3. Ejecutar acciones de ejemplo
   console.log('\n⚡ Ejecutando acciones de ejemplo...');
-
+/
   // Acción de ventas
-  const salesAction: BusinessAction = {
+  const salesAction: BusinessAction = {;
     id: 'sales-001',
     type: 'sales',
     priority: 'high',
@@ -73,9 +73,9 @@ export async function demonstrateAgentSystem() {
   } catch (error) {
     console.error('Error en acción de ventas:', error);
   }
-
+/
   // Acción operativa
-  const operationsAction: BusinessAction = {
+  const operationsAction: BusinessAction = {;
     id: 'ops-001',
     type: 'operations',
     priority: 'medium',
@@ -112,9 +112,9 @@ export async function demonstrateAgentSystem() {
   } catch (error) {
     console.error('Error en acción operativa:', error);
   }
-
+/
   // Acción de cumplimiento
-  const complianceAction: BusinessAction = {
+  const complianceAction: BusinessAction = {;
     id: 'comp-001',
     type: 'compliance',
     priority: 'high',
@@ -152,7 +152,7 @@ export async function demonstrateAgentSystem() {
   } catch (error) {
     console.error('Error en acción de cumplimiento:', error);
   }
-
+/
   // 4. Obtener métricas del sistema
   console.log('\n📊 Métricas del sistema:');
   const metrics = agentSystem.getSystemMetrics();
@@ -165,24 +165,24 @@ export async function demonstrateAgentSystem() {
 
   console.log('\n✅ Demostración completada exitosamente!');
 }
-
+/
 /**
- * Ejemplo de uso directo de un agente individual
+ * Ejemplo de uso directo de un agente individual/
  */
-export async function demonstrateIndividualAgent() {
+export async function demonstrateIndividualAgent() {;
   console.log('\n🤖 Demostración de agente individual');
-
+/
   // Crear un agente de ventas directamente
-  const salesAgent = createOptimizedAgent('sales', {
+  const salesAgent = createOptimizedAgent('sales', {;
     name: 'Agente de Ventas Directo',
     confidence: 0.8
   });
-
+/
   // Inicializar el agente
   await salesAgent.initialize();
-
+/
   // Ejecutar una acción directamente
-  const action: BusinessAction = {
+  const action: BusinessAction = {;
     id: 'direct-001',
     type: 'sales',
     priority: 'high',
@@ -209,7 +209,7 @@ export async function demonstrateIndividualAgent() {
     confidence: `${(result.confidence * 100).toFixed(1)}%`,
     actions: result.actions
   });
-
+/
   // Obtener contexto del agente
   const context = salesAgent.getContext();
   console.log('Contexto del agente:', {
@@ -218,13 +218,13 @@ export async function demonstrateIndividualAgent() {
     capabilities: context.capabilities.length,
     performance: context.performance
   });
-
+/
   // Apagar el agente
   await salesAgent.shutdown();
 }
-
+/
 // Función principal para ejecutar todas las demostraciones
-export async function runAllDemonstrations() {
+export async function runAllDemonstrations() {;
   try {
     await demonstrateAgentSystem();
     await demonstrateIndividualAgent();
@@ -232,8 +232,8 @@ export async function runAllDemonstrations() {
     console.error('Error en las demostraciones:', error);
   }
 }
-
+/
 // Ejecutar si se llama directamente
 if (require.main === module) {
   runAllDemonstrations();
-}
+}/

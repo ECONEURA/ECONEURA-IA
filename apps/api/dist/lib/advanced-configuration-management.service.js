@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { logger } from './logger.js';
 export const AdvancedConfigSchema = z.object({
     id: z.string().uuid().optional(),

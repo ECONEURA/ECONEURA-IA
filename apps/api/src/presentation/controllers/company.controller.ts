@@ -1,15 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
+
 import { CompanyRepository } from '../../domain/repositories/company.repository.js';
 import { CreateCompanyUseCase } from '../../application/use-cases/company/create-company.use-case.js';
 import { UpdateCompanyUseCase } from '../../application/use-cases/company/update-company.use-case.js';
 import {
-  CreateCompanyRequest,
-  UpdateCompanyRequest,
-  DeleteCompanyRequest,
-  GetCompanyRequest,
-  SearchCompaniesRequest,
-  BulkUpdateCompaniesRequest,
-  BulkDeleteCompaniesRequest,
   CompanyResponse,
   CompanyListResponse,
   CompanyStatsResponse,

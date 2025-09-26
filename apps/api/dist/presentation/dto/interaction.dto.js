@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { UUIDSchema, NameSchema, DescriptionSchema, TagsSchema, CustomFieldsSchema } from '../../../shared/utils/validation.utils.js';
 export const InteractionTypeSchema = z.enum([
     'EMAIL',

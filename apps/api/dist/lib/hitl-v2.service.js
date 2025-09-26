@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+
 import { structuredLogger } from './structured-logger.js';
 export class HITLV2Service extends EventEmitter {
     tasks = new Map();

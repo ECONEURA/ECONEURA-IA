@@ -1,24 +1,24 @@
 /**
- * Convert bytes to human readable string
+ * Convert bytes to human readable string/
  */
-export function bytesToHuman(bytes: number): string {
+export function bytesToHuman(bytes: number): string {;
   const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
   let value = bytes;
   let unitIndex = 0;
 
-  while (value >= 1024 && unitIndex < units.length - 1) {
+  while (value >= 1024 && unitIndex < units.length - 1) {/
     value /= 1024;
     unitIndex++;
   }
 
   return `${value.toFixed(2)} ${units[unitIndex]}`;
 }
-
+/
 /**
- * Parse human readable bytes string to number
+ * Parse human readable bytes string to number/
  */
-export function parseBytes(str: string): number {
-  const units = {
+export function parseBytes(str: string): number {;
+  const units = {;
     b: 1,
     kb: 1024,
     mb: 1024 ** 2,
@@ -26,7 +26,7 @@ export function parseBytes(str: string): number {
     tb: 1024 ** 4,
     pb: 1024 ** 5
   };
-
+/
   const match = str.toLowerCase().match(/^(\d+(?:\.\d+)?)\s*([kmgtp]?b)$/);
   if (!match) {
     throw new Error('Invalid bytes string');
@@ -35,14 +35,14 @@ export function parseBytes(str: string): number {
   const [, value, unit] = match;
   return parseFloat(value) * units[unit as keyof typeof units];
 }
-
+/
 /**
- * Format duration in milliseconds to human readable string
+ * Format duration in milliseconds to human readable string/
  */
-export function formatDuration(ms: number): string {
-  const seconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
+export function formatDuration(ms: number): string {/;
+  const seconds = Math.floor(ms / 1000);/;
+  const minutes = Math.floor(seconds / 60);/;
+  const hours = Math.floor(minutes / 60);/;
   const days = Math.floor(hours / 24);
 
   if (days > 0) {
@@ -59,19 +59,19 @@ export function formatDuration(ms: number): string {
   }
   return `${ms}ms`;
 }
-
+/
 /**
- * Parse duration string to milliseconds
+ * Parse duration string to milliseconds/
  */
-export function parseDuration(str: string): number {
-  const units = {
+export function parseDuration(str: string): number {;
+  const units = {;
     ms: 1,
     s: 1000,
     m: 60 * 1000,
     h: 60 * 60 * 1000,
     d: 24 * 60 * 60 * 1000
   };
-
+/
   const regex = /(\d+(?:\.\d+)?)\s*([a-z]+)/gi;
   let total = 0;
   let match;
@@ -92,40 +92,40 @@ export function parseDuration(str: string): number {
   if (!found) throw new Error('Invalid duration string');
   return total;
 }
-
+/
 /**
- * Format a date to ISO string with timezone
+ * Format a date to ISO string with timezone/
  */
-export function formatDate(date: Date): string {
-  const offset = -date.getTimezoneOffset();
+export function formatDate(date: Date): string {;
+  const offset = -date.getTimezoneOffset();/;
   const offsetHours = Math.floor(Math.abs(offset) / 60);
   const offsetMinutes = Math.abs(offset) % 60;
   const offsetSign = offset >= 0 ? '+' : '-';
-
+/
   // Remove milliseconds to match test expectations (YYYY-MM-DDTHH:MM:SS±HH:MM)
   const isoNoMs = date.toISOString().split('.')[0] + 'Z';
 
-  return isoNoMs.replace(
+  return isoNoMs.replace(/
     /Z$/,
     `${offsetSign}${String(offsetHours).padStart(2, '0')}:${String(offsetMinutes).padStart(2, '0')}`
   );
 }
-
+/
 /**
- * Parse a date string with timezone
+ * Parse a date string with timezone/
  */
-export function parseDate(str: string): Date {
+export function parseDate(str: string): Date {;
   const date = new Date(str);
   if (isNaN(date.getTime())) {
     throw new Error('Invalid date string');
   }
   return date;
 }
-
+/
 /**
- * Format a number with thousand separators
+ * Format a number with thousand separators/
  */
-export function formatNumber(num: number): string {
+export function formatNumber(num: number): string {/;
   // Deterministic thousand separator for tests: use '.' as separator
   const parts = Math.trunc(Math.abs(num)).toString().split('');
   let result = '';
@@ -137,15 +137,15 @@ export function formatNumber(num: number): string {
   }
   return (num < 0 ? '-' : '') + result;
 }
-
+/
 /**
- * Format currency amount
+ * Format currency amount/
  */
-export function formatCurrency(
+export function formatCurrency(;
   amount: number,
   currency = 'EUR',
   locale = 'es-ES'
-): string {
+): string {/
   // For es-ES and EUR, produce deterministic '1.000,00 €' format
   if (locale === 'es-ES' && currency === 'EUR') {
     const abs = Math.abs(amount);
@@ -161,3 +161,4 @@ export function formatCurrency(
     currency
   }).format(amount);
 }
+/

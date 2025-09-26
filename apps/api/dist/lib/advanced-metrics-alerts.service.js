@@ -1,5 +1,6 @@
-import { logger } from './logger.js';
 import { z } from 'zod';
+
+import { logger } from './logger.js';
 const mockPrometheus = {
     register: {
         getSingleMetric: (name) => ({

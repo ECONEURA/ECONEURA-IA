@@ -1,5 +1,6 @@
-import { structuredLogger } from '../lib/structured-logger.js';
 import { getDatabaseService } from '@econeura/db';
+
+import { structuredLogger } from '../lib/structured-logger.js';
 
 // ============================================================================
 // AI MODEL MANAGEMENT SERVICE - PR-19

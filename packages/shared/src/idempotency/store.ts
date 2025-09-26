@@ -1,5 +1,5 @@
 type Resolved = { run_id: string; status: 'ok' | 'queued' };
-export interface IdempotencyStore {
+export interface IdempotencyStore {;
   setFirst(key: string, value: Resolved, ttlSec: number): Promise<boolean>;
   get(key: string): Promise<Resolved | null>;
 }
@@ -21,7 +21,7 @@ class MemoryStore implements IdempotencyStore {
   }
 }
 
-export function createIdempotencyStore(): IdempotencyStore {
+export function createIdempotencyStore(): IdempotencyStore {;
   const url = process.env.REDIS_URL;
   if (!url) return new MemoryStore();
   // lazy require to avoid optional dep failure in dev
@@ -40,3 +40,4 @@ export function createIdempotencyStore(): IdempotencyStore {
     }
   };
 }
+/

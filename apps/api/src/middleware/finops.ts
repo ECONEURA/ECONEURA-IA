@@ -1,5 +1,7 @@
 import crypto from 'node:crypto';
+
 import type { Request, Response, NextFunction } from 'express';
+
 import { estimateCostEUR } from '../finops/estimator.js';
 
 // Middleware mínimo de FinOps: añade headers requeridos por V3 en todas las rutas /v1

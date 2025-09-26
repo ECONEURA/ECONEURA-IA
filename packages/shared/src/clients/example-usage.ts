@@ -2,23 +2,23 @@
  * Example usage of ECONEURA SDK Clients
  * 
  * This file demonstrates how to use the ECONEURA SDK clients
- * for ERP, CRM, and Finance operations.
+ * for ERP, CRM, and Finance operations./
  */
-
+/
 import { ECONEURAClient } from './index.js';
-
+/
 // Initialize the ECONEURA client
-const client = new ECONEURAClient({
+const client = new ECONEURAClient({/;
   baseURL: 'http://localhost:3001',
   apiKey: 'your-api-key-here',
   organizationId: 'demo-org-1'
 });
-
+/
 // Example: ERP Operations
-export async function erpExamples() {
-  try {
+export async function erpExamples() {;
+  try {/
     // Create a new product
-    const product = await client.erp.createProduct({
+    const product = await client.erp.createProduct({;
       name: 'Laptop Dell XPS 13',
       sku: 'DELL-XPS13-001',
       description: 'High-performance laptop for business use',
@@ -30,13 +30,13 @@ export async function erpExamples() {
     });
 
     
-
+/
     // List all products
     const products = await client.erp.listProducts(1, 20);
     
-
+/
     // Create inventory movement
-    const movement = await client.erp.createInventoryMovement({
+    const movement = await client.erp.createInventoryMovement({;
       product_id: product.id,
       type: 'in',
       quantity: 10,
@@ -45,7 +45,7 @@ export async function erpExamples() {
     });
 
     
-
+/
     // Get inventory report
     const report = await client.erp.getInventoryReport();
     
@@ -54,15 +54,15 @@ export async function erpExamples() {
     console.error('ERP Error:', error);
   }
 }
-
+/
 // Example: CRM Operations
-export async function crmExamples() {
-  try {
+export async function crmExamples() {;
+  try {/
     // Create a new company
-    const company = await client.crm.createCompany({
+    const company = await client.crm.createCompany({;
       name: 'Acme Corporation',
       industry: 'Technology',
-      size: 'medium',
+      size: 'medium',/
       website: 'https://acme.com',
       email: 'info@acme.com',
       phone: '+34 123 456 789',
@@ -72,9 +72,9 @@ export async function crmExamples() {
     });
 
     
-
+/
     // Create a contact
-    const contact = await client.crm.createContact({
+    const contact = await client.crm.createContact({;
       first_name: 'Juan',
       last_name: 'Pérez',
       email: 'juan.perez@acme.com',
@@ -86,9 +86,9 @@ export async function crmExamples() {
     });
 
     
-
+/
     // Create a deal
-    const deal = await client.crm.createDeal({
+    const deal = await client.crm.createDeal({;
       title: 'Enterprise Software License',
       description: 'Annual license for 100 users',
       value: 50000,
@@ -103,7 +103,7 @@ export async function crmExamples() {
     });
 
     
-
+/
     // Get pipeline report
     const pipeline = await client.crm.getPipelineReport();
     
@@ -112,12 +112,12 @@ export async function crmExamples() {
     console.error('CRM Error:', error);
   }
 }
-
+/
 // Example: Finance Operations
-export async function financeExamples() {
-  try {
+export async function financeExamples() {;
+  try {/
     // Create an account
-    const account = await client.finance.createAccount({
+    const account = await client.finance.createAccount({;
       name: 'Cash Account',
       type: 'asset',
       code: '1000',
@@ -127,9 +127,9 @@ export async function financeExamples() {
     });
 
     
-
+/
     // Create a transaction
-    const transaction = await client.finance.createTransaction({
+    const transaction = await client.finance.createTransaction({;
       account_id: account.id,
       description: 'Initial deposit',
       amount: 10000,
@@ -139,9 +139,9 @@ export async function financeExamples() {
     });
 
     
-
+/
     // Create a budget
-    const budget = await client.finance.createBudget({
+    const budget = await client.finance.createBudget({;
       name: 'Marketing Budget 2024',
       account_id: account.id,
       period: 'yearly',
@@ -152,7 +152,7 @@ export async function financeExamples() {
     });
 
     
-
+/
     // Get financial summary
     const summary = await client.finance.getFinancialSummary();
     
@@ -161,32 +161,32 @@ export async function financeExamples() {
     console.error('Finance Error:', error);
   }
 }
-
+/
 // Example: Complete workflow
-export async function completeWorkflowExample() {
+export async function completeWorkflowExample() {;
   try {
     
-
+/
     // 1. Create a company and contact
     
-    const company = await client.crm.createCompany({
+    const company = await client.crm.createCompany({;
       name: 'TechStart Solutions',
       industry: 'Software',
       size: 'startup',
       email: 'hello@techstart.com'
     });
 
-    const contact = await client.crm.createContact({
+    const contact = await client.crm.createContact({;
       first_name: 'María',
       last_name: 'García',
       email: 'maria@techstart.com',
       company_id: company.id,
       position: 'CTO'
     });
-
+/
     // 2. Create a product
     
-    const product = await client.erp.createProduct({
+    const product = await client.erp.createProduct({;
       name: 'Cloud Storage Service',
       sku: 'CLOUD-STORAGE-001',
       price: 29.99,
@@ -194,10 +194,10 @@ export async function completeWorkflowExample() {
       stock: 1000,
       category: 'SaaS'
     });
-
+/
     // 3. Create a deal
     
-    const deal = await client.crm.createDeal({
+    const deal = await client.crm.createDeal({;
       title: 'Cloud Storage Annual License',
       value: 359.88,
       currency: 'EUR',
@@ -208,20 +208,20 @@ export async function completeWorkflowExample() {
       company_id: company.id,
       owner_id: 'user-123'
     });
-
+/
     // 4. Create financial account and transaction
     
-    const account = await client.finance.createAccount({
+    const account = await client.finance.createAccount({;
       name: 'Revenue Account',
       type: 'revenue',
       code: '4000',
       balance: 0,
       currency: 'EUR'
     });
-
+/
     // 5. Generate reports
     
-    const [pipeline, inventory, financial] = await Promise.all([
+    const [pipeline, inventory, financial] = await Promise.all([;
       client.crm.getPipelineReport(),
       client.erp.getInventoryReport(),
       client.finance.getFinancialSummary()
@@ -236,11 +236,12 @@ export async function completeWorkflowExample() {
     console.error('❌ Workflow Error:', error);
   }
 }
-
+/
 // Export all examples
-export const examples = {
+export const examples = {;
   erp: erpExamples,
   crm: crmExamples,
   finance: financeExamples,
   complete: completeWorkflowExample
 };
+/

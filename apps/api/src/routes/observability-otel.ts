@@ -6,6 +6,7 @@
  */
 
 import { Router, Request, Response } from 'express';
+
 import { observabilityOTelService } from '../services/observability-otel.service.js';
 import { structuredLogger } from '../lib/structured-logger.js';
 

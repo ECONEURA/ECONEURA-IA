@@ -1,5 +1,6 @@
-import { logger } from './logger.js';
 import { prometheus } from '../middleware/observability.js';
+
+import { logger } from './logger.js';
 export class DataValidator {
     schemas = new Map();
     stats;

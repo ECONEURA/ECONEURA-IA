@@ -1,7 +1,7 @@
 import { TenantEntity } from './base.js';
-
+/
 // User type definitions
-export interface User extends TenantEntity {
+export interface User extends TenantEntity {;
   email: string;
   name: string;
   role: UserRole;
@@ -12,26 +12,26 @@ export interface User extends TenantEntity {
   profile?: UserProfile;
 }
 
-export type UserRole = 
+export type UserRole = ;
   | 'owner'
   | 'admin'
   | 'manager'
   | 'user'
   | 'readonly';
 
-export type UserStatus = 
+export type UserStatus = ;
   | 'active'
   | 'inactive'
   | 'suspended'
   | 'pending';
 
-export interface Permission {
+export interface Permission {;
   resource: string;
   action: string;
   conditions?: Record<string, unknown>;
 }
 
-export interface UserPreferences {
+export interface UserPreferences {;
   language: string;
   theme: 'light' | 'dark' | 'system';
   timezone: string;
@@ -42,7 +42,7 @@ export interface UserPreferences {
   };
 }
 
-export interface UserProfile {
+export interface UserProfile {;
   avatar?: string;
   title?: string;
   department?: string;
@@ -55,3 +55,4 @@ export interface UserProfile {
     github?: string;
   };
 }
+/

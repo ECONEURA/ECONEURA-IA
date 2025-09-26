@@ -1,5 +1,6 @@
 import { DatabaseSchema } from '../entities/database-schema.entity.js';
-import { BaseRepository, BaseEntity, BaseFilters, BaseSearchOptions, PaginatedResult, BaseStats } from './base.repository.js';
+
+import { BaseRepository, BaseFilters, BaseSearchOptions, PaginatedResult, BaseStats } from './base.repository.js';
 
 // ============================================================================
 // DATABASE SCHEMA REPOSITORY INTERFACE - PR-1: DATABASE SCHEMA COMPLETO

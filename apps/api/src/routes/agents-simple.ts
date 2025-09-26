@@ -1,6 +1,8 @@
-import { Router } from 'express';
-import { structuredLogger } from '../lib/structured-logger.js';
 import { randomUUID } from 'crypto';
+
+import { Router } from 'express';
+
+import { structuredLogger } from '../lib/structured-logger.js';
 
 const router = Router();
 

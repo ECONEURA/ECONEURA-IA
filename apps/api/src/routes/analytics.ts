@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { analytics } from '../services/analytics.service.js';
 
 const router = Router();

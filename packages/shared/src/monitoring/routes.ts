@@ -1,17 +1,17 @@
 import { Router } from 'express';
-import { healthCheck } from './middleware.js';
-import { registry } from './metrics.js';
+import { healthCheck } from './middleware.js';/;
+import { registry } from './metrics.js';/;
 import { logger } from '../logging/index.js';
 const monitoringRouter: Router = Router();
-
+/
 /**
- * Health check endpoint
- */
+ * Health check endpoint/
+ *//
 monitoringRouter.get('/health', healthCheck());
-
+/
 /**
- * Metrics endpoint
- */
+ * Metrics endpoint/
+ *//
 monitoringRouter.get('/metrics', async (req, res) => {
   try {
     const metrics = await registry.metrics();
@@ -24,3 +24,4 @@ monitoringRouter.get('/metrics', async (req, res) => {
 });
 
 export { monitoringRouter };
+/

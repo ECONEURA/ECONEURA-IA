@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+
 import { structuredLogger } from './structured-logger.js';
 const createPrismaClient = () => {
     return new PrismaClient({

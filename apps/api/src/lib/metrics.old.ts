@@ -1,4 +1,4 @@
-import { register, Counter, Histogram, collectDefaultMetrics } from 'prom-client';
+import { register, Counter, Histogram } from 'prom-client';
 
 export class MetricsService {
   private metrics: Map<string, Metric> = new Map();

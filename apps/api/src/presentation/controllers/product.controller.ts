@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+
 import { ProductRepository } from '../../domain/repositories/product.repository.js';
 import { CreateProductUseCase } from '../../application/use-cases/product/create-product.use-case.js';
 import { UpdateProductUseCase } from '../../application/use-cases/product/update-product.use-case.js';
@@ -10,16 +11,6 @@ import {
   ProductSearchQuerySchema,
   ProductBulkUpdateSchema,
   ProductBulkDeleteSchema,
-  ProductResponseSchema,
-  ProductListResponseSchema,
-  ProductStatsResponseSchema,
-  type CreateProductRequest,
-  type UpdateProductRequest,
-  type ProductIdParam,
-  type ProductOrganizationIdParam,
-  type ProductSearchQuery,
-  type ProductBulkUpdate,
-  type ProductBulkDelete,
   type ProductResponse,
   type ProductListResponse,
   type ProductStatsResponse

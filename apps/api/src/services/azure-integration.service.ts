@@ -1,5 +1,6 @@
-import { structuredLogger } from '../lib/structured-logger.js';
 import { env } from '@econeura/shared/env';
+
+import { structuredLogger } from '../lib/structured-logger.js';
 
 // ============================================================================
 // AZURE OPENAI INTEGRATION SERVICE - PR-17

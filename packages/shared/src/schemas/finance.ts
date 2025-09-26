@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { TimestampSchema, UUIDSchema } from './base';
 
-export const InvoiceSchema = z.object({
+export const InvoiceSchema = z.object({;
   id: UUIDSchema,
   number: z.string().min(1).max(50),
   date: TimestampSchema,
@@ -18,7 +18,7 @@ export const InvoiceSchema = z.object({
   updated_at: TimestampSchema
 });
 
-export const PaymentSchema = z.object({
+export const PaymentSchema = z.object({;
   id: UUIDSchema,
   invoice_id: UUIDSchema,
   amount: z.number().positive(),
@@ -30,7 +30,7 @@ export const PaymentSchema = z.object({
   created_at: TimestampSchema
 });
 
-export const ExpenseSchema = z.object({
+export const ExpenseSchema = z.object({;
   id: UUIDSchema,
   date: TimestampSchema,
   category: z.string().max(100),
@@ -42,9 +42,9 @@ export const ExpenseSchema = z.object({
   created_at: TimestampSchema,
   updated_at: TimestampSchema
 });
-
+/
 // Input schemas
-export const CreateInvoiceSchema = InvoiceSchema.omit({
+export const CreateInvoiceSchema = InvoiceSchema.omit({;
   id: true,
   created_at: true,
   updated_at: true
@@ -52,15 +52,16 @@ export const CreateInvoiceSchema = InvoiceSchema.omit({
 
 export const UpdateInvoiceSchema = CreateInvoiceSchema.partial();
 
-export const CreatePaymentSchema = PaymentSchema.omit({
+export const CreatePaymentSchema = PaymentSchema.omit({;
   id: true,
   created_at: true
 });
 
-export const CreateExpenseSchema = ExpenseSchema.omit({
+export const CreateExpenseSchema = ExpenseSchema.omit({;
   id: true,
   created_at: true,
   updated_at: true
 });
 
 export const UpdateExpenseSchema = CreateExpenseSchema.partial();
+/

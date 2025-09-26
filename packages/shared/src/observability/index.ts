@@ -1,12 +1,12 @@
 import { z } from 'zod';
 
-// ============================================================================
-// OBSERVABILITY SCHEMAS
+// ============================================================================/
+// OBSERVABILITY SCHEMAS/
 // ============================================================================
 
 export const LogLevelSchema = z.enum(['debug', 'info', 'warn', 'error', 'fatal']);
 
-export const LogEntrySchema = z.object({
+export const LogEntrySchema = z.object({;
   level: LogLevelSchema,
   message: z.string(),
   timestamp: z.string().datetime(),
@@ -17,7 +17,7 @@ export const LogEntrySchema = z.object({
   metadata: z.record(z.unknown()).optional(),
 });
 
-export const MetricSchema = z.object({
+export const MetricSchema = z.object({;
   name: z.string(),
   value: z.number(),
   timestamp: z.string().datetime(),
@@ -25,7 +25,7 @@ export const MetricSchema = z.object({
   type: z.enum(['counter', 'gauge', 'histogram', 'summary']),
 });
 
-export const TraceSchema = z.object({
+export const TraceSchema = z.object({;
   traceId: z.string(),
   spanId: z.string(),
   parentSpanId: z.string().optional(),
@@ -40,7 +40,7 @@ export const TraceSchema = z.object({
   })).optional(),
 });
 
-export const AlertSchema = z.object({
+export const AlertSchema = z.object({;
   id: z.string(),
   name: z.string(),
   severity: z.enum(['low', 'medium', 'high', 'critical']),
@@ -50,9 +50,9 @@ export const AlertSchema = z.object({
   labels: z.record(z.string()).optional(),
   annotations: z.record(z.string()).optional(),
 });
-
-// ============================================================================
-// TYPES
+/
+// ============================================================================/
+// TYPES/
 // ============================================================================
 
 export type LogLevel = z.infer<typeof LogLevelSchema>;
@@ -60,12 +60,12 @@ export type LogEntry = z.infer<typeof LogEntrySchema>;
 export type Metric = z.infer<typeof MetricSchema>;
 export type Trace = z.infer<typeof TraceSchema>;
 export type Alert = z.infer<typeof AlertSchema>;
-
+/
+// ============================================================================/
+// LOGGER/
 // ============================================================================
-// LOGGER
-// ============================================================================
 
-export class StructuredLogger {
+export class StructuredLogger {;
   private service: string;
   private correlationId?: string;
   private requestId?: string;
@@ -82,7 +82,7 @@ export class StructuredLogger {
   }
 
   private log(level: LogLevel, message: string, metadata?: Record<string, unknown>): void {
-    const logEntry: LogEntry = {
+    const logEntry: LogEntry = {;
       level,
       message,
       timestamp: new Date().toISOString(),
@@ -92,7 +92,7 @@ export class StructuredLogger {
       userId: this.userId,
       metadata,
     };
-
+/
     // In production, this would send to a logging service
     
   }
@@ -117,12 +117,12 @@ export class StructuredLogger {
     this.log('fatal', message, metadata);
   }
 }
-
+/
+// ============================================================================/
+// METRICS/
 // ============================================================================
-// METRICS
-// ============================================================================
 
-export class MetricsCollector {
+export class MetricsCollector {;
   private metrics: Map<string, Metric[]> = new Map();
 
   recordCounter(name: string, value: number = 1, labels?: Record<string, string>): void {
@@ -142,7 +142,7 @@ export class MetricsCollector {
   }
 
   private recordMetric(name: string, value: number, type: Metric['type'], labels?: Record<string, string>): void {
-    const metric: Metric = {
+    const metric: Metric = {;
       name,
       value,
       timestamp: new Date().toISOString(),
@@ -176,19 +176,19 @@ export class MetricsCollector {
     }
   }
 }
-
+/
+// ============================================================================/
+// TRACING/
 // ============================================================================
-// TRACING
-// ============================================================================
 
-export class Tracer {
+export class Tracer {;
   private activeSpans: Map<string, Trace> = new Map();
 
   startSpan(operationName: string, parentSpanId?: string): string {
     const spanId = this.generateId();
     const traceId = parentSpanId ? this.getTraceId(parentSpanId) : this.generateId();
 
-    const span: Trace = {
+    const span: Trace = {;
       traceId,
       spanId,
       parentSpanId,
@@ -247,12 +247,12 @@ export class Tracer {
     return span?.traceId || this.generateId();
   }
 }
-
+/
+// ============================================================================/
+// ALERTS/
 // ============================================================================
-// ALERTS
-// ============================================================================
 
-export class AlertManager {
+export class AlertManager {;
   private alerts: Map<string, Alert> = new Map();
 
   createAlert(
@@ -261,9 +261,9 @@ export class AlertManager {
     severity: Alert['severity'],
     description: string,
     labels?: Record<string, string>,
-    annotations?: Record<string, string>
+    annotations?: Record<string, string>);
   ): Alert {
-    const alert: Alert = {
+    const alert: Alert = {;
       id,
       name,
       severity,
@@ -308,30 +308,30 @@ export class AlertManager {
     return this.alerts.get(id) || null;
   }
 }
-
+/
+// ============================================================================/
+// CORRELATION ID UTILITIES/
 // ============================================================================
-// CORRELATION ID UTILITIES
-// ============================================================================
 
-export function generateCorrelationId(): string {
+export function generateCorrelationId(): string {;
   return `corr_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
 }
 
-export function generateRequestId(): string {
+export function generateRequestId(): string {;
   return `req_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
 }
 
-export function generateTraceParent(): string {
+export function generateTraceParent(): string {;
   const traceId = Math.random().toString(16).substring(2, 34).padStart(32, '0');
   const spanId = Math.random().toString(16).substring(2, 18).padStart(16, '0');
   return `00-${traceId}-${spanId}-01`;
 }
-
+/
+// ============================================================================/
+// EXPORTS/
 // ============================================================================
-// EXPORTS
-// ============================================================================
 
-export default {
+export default {;
   StructuredLogger,
   MetricsCollector,
   Tracer,
@@ -345,3 +345,4 @@ export default {
   TraceSchema,
   AlertSchema,
 };
+/

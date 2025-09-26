@@ -1,16 +1,16 @@
-import type { CustomerPreferences, CustomerType, CustomerSegment, CustomerPriority } from '../models/customer.js';
-import type { OrganizationSettings, SubscriptionPlan } from '../models/org.js';
+import type { CustomerPreferences, CustomerType, CustomerSegment, CustomerPriority } from '../models/customer.js';/;
+import type { OrganizationSettings, SubscriptionPlan } from '../models/org.js';/;
 import type { Metadata, PaginationParams, FilterParams } from '../models/base.js';
-
+/
 /**
- * Base list request interface
+ * Base list request interface/
  */
-export interface ListRequestParams extends PaginationParams, FilterParams {}
-
+export interface ListRequestParams extends PaginationParams, FilterParams {};
+/
 /**
- * Organization Requests
+ * Organization Requests/
  */
-export interface CreateOrganizationRequest {
+export interface CreateOrganizationRequest {;
   name: string;
   slug: string;
   domain: string;
@@ -19,18 +19,18 @@ export interface CreateOrganizationRequest {
   metadata?: Metadata;
 }
 
-export interface UpdateOrganizationRequest {
+export interface UpdateOrganizationRequest {;
   name?: string;
   settings?: Partial<OrganizationSettings>;
   plan?: SubscriptionPlan;
   metadata?: Metadata;
   status?: 'active' | 'inactive' | 'suspended';
 }
-
+/
 /**
- * Customer Requests
+ * Customer Requests/
  */
-export interface CreateCustomerRequest {
+export interface CreateCustomerRequest {;
   type: CustomerType;
   segment: CustomerSegment;
   priority: CustomerPriority;
@@ -55,7 +55,7 @@ export interface CreateCustomerRequest {
   metadata?: Metadata;
 }
 
-export interface UpdateCustomerRequest {
+export interface UpdateCustomerRequest {;
   name?: string;
   type?: CustomerType;
   segment?: CustomerSegment;
@@ -65,23 +65,24 @@ export interface UpdateCustomerRequest {
   preferences?: Partial<CustomerPreferences>;
   metadata?: Metadata;
 }
-
+/
 /**
- * API Key Requests
+ * API Key Requests/
  */
-export interface CreateApiKeyRequest {
+export interface CreateApiKeyRequest {;
   name: string;
   expiresAt?: Date;
   scopes: string[];
 }
-
+/
 /**
- * Webhook Subscription Request
+ * Webhook Subscription Request/
  */
-export interface CreateWebhookSubscriptionRequest {
+export interface CreateWebhookSubscriptionRequest {;
   url: string;
   secret: string;
   events: string[];
   description?: string;
   metadata?: Metadata;
 }
+/

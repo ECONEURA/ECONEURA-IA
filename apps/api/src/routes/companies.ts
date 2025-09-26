@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { 
-  CompanySchema, 
   CreateCompanySchema, 
   UpdateCompanySchema, 
   CompanyFilterSchema 
 } from '@econeura/shared/src/schemas/crm';
 import { PaginationRequestSchema } from '@econeura/shared/src/schemas/common';
+
 import { db, setRLSContext } from '../lib/database.js';
 import { structuredLogger } from '../lib/structured-logger.js';
 

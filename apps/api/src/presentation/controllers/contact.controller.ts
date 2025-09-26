@@ -1,15 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
+
 import { ContactRepository } from '../../domain/repositories/contact.repository.js';
 import { CreateContactUseCase } from '../../application/use-cases/contact/create-contact.use-case.js';
 import { UpdateContactUseCase } from '../../application/use-cases/contact/update-contact.use-case.js';
 import {
-  CreateContactRequest,
-  UpdateContactRequest,
-  DeleteContactRequest,
-  GetContactRequest,
-  SearchContactsRequest,
-  BulkUpdateContactsRequest,
-  BulkDeleteContactsRequest,
   ContactResponse,
   ContactListResponse,
   ContactStatsResponse,

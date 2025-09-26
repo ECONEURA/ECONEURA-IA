@@ -1,7 +1,9 @@
-import { z } from "zod";
-import { logger } from './logger.js';
-import { WebSocket, WebSocketServer } from "ws";
 import { EventEmitter } from "events";
+
+import { z } from "zod";
+import { WebSocket, WebSocketServer } from "ws";
+
+import { logger } from './logger.js';
 
 // ============================================================================
 // TYPES AND INTERFACES

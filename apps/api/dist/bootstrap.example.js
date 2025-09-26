@@ -1,4 +1,5 @@
 import { apiLogger } from '@econeura/shared/logging/enhanced';
+
 import { env, serverConfig } from './config/env.js';
 export async function bootstrapApiService() {
     const startTime = Date.now();

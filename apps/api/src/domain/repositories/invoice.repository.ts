@@ -1,5 +1,6 @@
 import { Invoice } from '../entities/invoice.entity.js';
-import { BaseRepository, BaseEntity, BaseFilters, BaseSearchOptions, PaginatedResult, BaseStats } from './base.repository.js';
+
+import { BaseRepository, BaseFilters, BaseSearchOptions, PaginatedResult, BaseStats } from './base.repository.js';
 
 // ============================================================================
 // INVOICE REPOSITORY INTERFACE

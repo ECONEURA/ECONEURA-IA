@@ -1,7 +1,9 @@
-import { structuredLogger } from '../lib/structured-logger.js';
-import { metrics } from '@econeura/shared/src/metrics/index.js';
 import crypto from 'crypto';
+
+import { metrics } from '@econeura/shared/src/metrics/index.js';
 import jwt from 'jsonwebtoken';
+
+import { structuredLogger } from '../lib/structured-logger.js';
 export class SecurityManagerService {
     static instance;
     config;

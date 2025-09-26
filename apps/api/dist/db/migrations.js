@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+
 import { structuredLogger } from '../lib/structured-logger.js';
 const prisma = new PrismaClient();
 export class MigrationManager {

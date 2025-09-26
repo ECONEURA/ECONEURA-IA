@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { prometheus } from '@econeura/shared/src/metrics/index.js';
+
 
 export interface ShutdownConfig {
   timeout: number;

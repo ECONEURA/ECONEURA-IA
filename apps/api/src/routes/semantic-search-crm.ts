@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
+
 import { semanticSearchCRMService } from '../lib/semantic-search-crm.service.js';
 import { structuredLogger } from '../lib/structured-logger.js';
 

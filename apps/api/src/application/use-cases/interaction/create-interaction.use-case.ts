@@ -1,4 +1,4 @@
-import { Interaction, InteractionType, InteractionPriority, InteractionId, OrganizationId, ContactId, UserId, CompanyId } from '../../../domain/entities/interaction.entity.js';
+import { Interaction, InteractionType, InteractionPriority, OrganizationId, ContactId, UserId, CompanyId } from '../../../domain/entities/interaction.entity.js';
 import { InteractionRepository } from '../../../domain/repositories/interaction.repository.js';
 import { UserDomainService } from '../../../domain/services/user.domain.service.js';
 import { createValidationError, createNotFoundError, createConflictError } from '../../../shared/utils/error.utils.js';

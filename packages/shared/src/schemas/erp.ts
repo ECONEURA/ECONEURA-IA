@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { TimestampSchema, UUIDSchema } from './base';
 
-export const ProductSchema = z.object({
+export const ProductSchema = z.object({;
   id: UUIDSchema,
   name: z.string().min(2).max(200),
   sku: z.string().min(1).max(50),
@@ -15,7 +15,7 @@ export const ProductSchema = z.object({
   updated_at: TimestampSchema
 });
 
-export const InventoryMovementSchema = z.object({
+export const InventoryMovementSchema = z.object({;
   id: UUIDSchema,
   product_id: UUIDSchema,
   type: z.enum(['in', 'out']),
@@ -25,11 +25,11 @@ export const InventoryMovementSchema = z.object({
   created_at: TimestampSchema
 });
 
-export const SupplierSchema = z.object({
+export const SupplierSchema = z.object({;
   id: UUIDSchema,
-  name: z.string().min(2).max(200),
+  name: z.string().min(2).max(200),/
   vat_number: z.string().regex(/^[A-Z0-9][0-9]{7}[A-Z0-9]$/),
-  email: z.string().email(),
+  email: z.string().email(),/
   phone: z.string().regex(/^\+?[1-9]\d{1,14}$/),
   address: z.string().max(500).optional(),
   country: z.string().length(2).optional(),
@@ -37,9 +37,9 @@ export const SupplierSchema = z.object({
   created_at: TimestampSchema,
   updated_at: TimestampSchema
 });
-
+/
 // Input schemas
-export const CreateProductSchema = ProductSchema.omit({
+export const CreateProductSchema = ProductSchema.omit({;
   id: true,
   created_at: true,
   updated_at: true
@@ -47,15 +47,16 @@ export const CreateProductSchema = ProductSchema.omit({
 
 export const UpdateProductSchema = CreateProductSchema.partial();
 
-export const CreateInventoryMovementSchema = InventoryMovementSchema.omit({
+export const CreateInventoryMovementSchema = InventoryMovementSchema.omit({;
   id: true,
   created_at: true
 });
 
-export const CreateSupplierSchema = SupplierSchema.omit({
+export const CreateSupplierSchema = SupplierSchema.omit({;
   id: true,
   created_at: true,
   updated_at: true
 });
 
 export const UpdateSupplierSchema = CreateSupplierSchema.partial();
+/

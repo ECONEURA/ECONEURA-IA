@@ -1,5 +1,6 @@
-import { logger } from './logger.js';
 import { z } from 'zod';
+
+import { logger } from './logger.js';
 
 // Schemas de validación
 const CSPViolationSchema = z.object({

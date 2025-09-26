@@ -2,16 +2,16 @@ import { Gauge, Counter, Histogram, Registry } from 'prom-client';
 import { envSchema } from '../core/config/env.js';
 
 const env = envSchema.parse(process.env);
-
+/
 /**
- * Custom registry for Prometheus metrics
+ * Custom registry for Prometheus metrics/
  */
 export const registry = new Registry();
-
+/
 /**
- * HTTP request metrics
+ * HTTP request metrics/
  */
-export const httpMetrics = {
+export const httpMetrics = {;
   requestDuration: new Histogram({
     name: 'http_request_duration_seconds',
     help: 'HTTP request duration in seconds',
@@ -43,11 +43,11 @@ export const httpMetrics = {
     registers: [registry],
   }),
 };
-
+/
 /**
- * Database metrics
+ * Database metrics/
  */
-export const dbMetrics = {
+export const dbMetrics = {;
   queryDuration: new Histogram({
     name: 'db_query_duration_seconds',
     help: 'Database query duration in seconds',
@@ -70,11 +70,11 @@ export const dbMetrics = {
     registers: [registry],
   }),
 };
-
+/
 /**
- * Cache metrics
+ * Cache metrics/
  */
-export const cacheMetrics = {
+export const cacheMetrics = {;
   hitRatio: new Gauge({
     name: 'cache_hit_ratio',
     help: 'Cache hit ratio',
@@ -94,11 +94,11 @@ export const cacheMetrics = {
     registers: [registry],
   }),
 };
-
+/
 /**
- * AI metrics
+ * AI metrics/
  */
-export const aiMetrics = {
+export const aiMetrics = {;
   requestDuration: new Histogram({
     name: 'ai_request_duration_seconds',
     help: 'AI request duration in seconds',
@@ -128,11 +128,11 @@ export const aiMetrics = {
     registers: [registry],
   }),
 };
-
+/
 /**
- * System metrics
+ * System metrics/
  */
-export const systemMetrics = {
+export const systemMetrics = {;
   memory: new Gauge({
     name: 'process_memory_bytes',
     help: 'Process memory usage in bytes',
@@ -153,7 +153,7 @@ export const systemMetrics = {
     registers: [registry],
   }),
 };
-
+/
 // Collect default metrics
 if (env.ENABLE_METRICS) {
   registry.setDefaultLabels({
@@ -161,3 +161,4 @@ if (env.ENABLE_METRICS) {
     environment: env.NODE_ENV,
   });
 }
+/

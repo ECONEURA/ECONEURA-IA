@@ -1,12 +1,12 @@
-import { structuredLogger } from '../lib/structured-logger.js';
+import { structuredLogger } from '../lib/structured-logger.js';/;
 import { getDatabaseService } from '../lib/database.service.js';
 import { z } from 'zod';
-
+/
+// ============================================================================/
+// TYPES & SCHEMAS/
 // ============================================================================
-// TYPES & SCHEMAS
-// ============================================================================
 
-export const AIAnalyticsRequestSchema = z.object({
+export const AIAnalyticsRequestSchema = z.object({;
   sessionId: z.string().uuid(),
   userId: z.string().uuid(),
   organizationId: z.string().uuid(),
@@ -24,7 +24,7 @@ export const AIAnalyticsRequestSchema = z.object({
   metrics: z.array(z.string()).optional(),
 });
 
-export const AIAnalyticsResponseSchema = z.object({
+export const AIAnalyticsResponseSchema = z.object({;
   success: z.boolean(),
   data: z.object({
     analyticsType: z.string(),
@@ -57,14 +57,14 @@ export const AIAnalyticsResponseSchema = z.object({
 
 export type AIAnalyticsRequest = z.infer<typeof AIAnalyticsRequestSchema>;
 export type AIAnalyticsResponse = z.infer<typeof AIAnalyticsResponseSchema>;
-
+/
+// ============================================================================/
+// AI ANALYTICS SERVICE/
 // ============================================================================
-// AI ANALYTICS SERVICE
-// ============================================================================
 
-export class AIAnalyticsService {
+export class AIAnalyticsService {;
   private db: ReturnType<typeof getDatabaseService>;
-  private analyticsCache: Map<string, any> = new Map();
+  private analyticsCache: Map<string, any> = new Map();/
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
   constructor() {
@@ -78,10 +78,10 @@ export class AIAnalyticsService {
         service: 'ai-analytics',
         timestamp: new Date().toISOString(),
       });
-
-      // Initialize analytics tables if they don't exist
+/
+      // Initialize analytics tables if they don't exist';
       await this.initializeAnalyticsTables();
-      
+      /
       // Start background analytics processing
       this.startBackgroundProcessing();
 
@@ -100,8 +100,8 @@ export class AIAnalyticsService {
   }
 
   private async initializeAnalyticsTables(): Promise<void> {
-    try {
-      // Create analytics tables if they don't exist
+    try {/
+      // Create analytics tables if they don't exist';
       await this.db.query(`
         CREATE TABLE IF NOT EXISTS ai_analytics_usage (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -164,7 +164,7 @@ export class AIAnalyticsService {
           updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         );
       `);
-
+/
       // Create indexes for better performance
       await this.db.query(`
         CREATE INDEX IF NOT EXISTS idx_ai_analytics_usage_org_time 
@@ -194,7 +194,7 @@ export class AIAnalyticsService {
     }
   }
 
-  private startBackgroundProcessing(): void {
+  private startBackgroundProcessing(): void {/
     // Process analytics every 5 minutes
     setInterval(async () => {
       try {
@@ -206,7 +206,7 @@ export class AIAnalyticsService {
         });
       }
     }, 5 * 60 * 1000);
-
+/
     // Clean up old data every hour
     setInterval(async () => {
       try {
@@ -221,13 +221,13 @@ export class AIAnalyticsService {
   }
 
   private async processBackgroundAnalytics(): Promise<void> {
-    try {
+    try {/
       // Generate insights from recent data
       await this.generateInsights();
-      
+      /
       // Update trend calculations
       await this.updateTrends();
-      
+      /
       // Clean cache
       this.cleanupCache();
 
@@ -244,19 +244,19 @@ export class AIAnalyticsService {
   }
 
   private async cleanupOldData(): Promise<void> {
-    try {
+    try {/
       // Keep only last 90 days of usage data
       await this.db.query(`
         DELETE FROM ai_analytics_usage 
         WHERE created_at < NOW() - INTERVAL '90 days'
       `);
-
+/
       // Keep only last 30 days of performance data
       await this.db.query(`
         DELETE FROM ai_analytics_performance 
         WHERE timestamp < NOW() - INTERVAL '30 days'
       `);
-
+/
       // Clean expired insights
       await this.db.query(`
         DELETE FROM ai_analytics_insights 
@@ -283,9 +283,9 @@ export class AIAnalyticsService {
       }
     }
   }
-
-  // ============================================================================
-  // MAIN ANALYTICS METHODS
+/
+  // ============================================================================/
+  // MAIN ANALYTICS METHODS/
   // ============================================================================
 
   async generateAnalytics(request: AIAnalyticsRequest): Promise<AIAnalyticsResponse> {
@@ -298,7 +298,7 @@ export class AIAnalyticsService {
         organizationId: request.organizationId,
         timeRange: request.timeRange,
       });
-
+/
       // Check cache first
       const cacheKey = this.generateCacheKey(request);
       const cachedResult = this.getCachedResult(cacheKey);
@@ -335,7 +335,7 @@ export class AIAnalyticsService {
           throw new Error(`Unsupported analytics type: ${request.analyticsType}`);
       }
 
-      const response: AIAnalyticsResponse = {
+      const response: AIAnalyticsResponse = {;
         success: true,
         data: analyticsData,
         metadata: {
@@ -345,7 +345,7 @@ export class AIAnalyticsService {
           cacheHit: false,
         },
       };
-
+/
       // Cache the result
       this.setCachedResult(cacheKey, response);
 
@@ -384,16 +384,16 @@ export class AIAnalyticsService {
       };
     }
   }
-
-  // ============================================================================
-  // ANALYTICS TYPE IMPLEMENTATIONS
+/
+  // ============================================================================/
+  // ANALYTICS TYPE IMPLEMENTATIONS/
   // ============================================================================
 
   private async generateUsageAnalytics(request: AIAnalyticsRequest): Promise<any> {
     const { organizationId, timeRange, filters } = request;
-
+/
     // Build query with filters
-    let query = `
+    let query = `;
       SELECT 
         service_name,
         model_name,
@@ -426,11 +426,11 @@ export class AIAnalyticsService {
 
     const result = await this.db.query(query, params);
 
-    const metrics = {
+    const metrics = {;
       totalRequests: result.rows.reduce((sum, row) => sum + parseInt(row.request_count), 0),
       totalTokens: result.rows.reduce((sum, row) => sum + parseInt(row.total_tokens || 0), 0),
-      totalCost: result.rows.reduce((sum, row) => sum + parseFloat(row.total_cost || 0), 0),
-      avgResponseTime: result.rows.reduce((sum, row) => sum + parseFloat(row.avg_response_time || 0), 0) / result.rows.length,
+      totalCost: result.rows.reduce((sum, row) => sum + parseFloat(row.total_cost || 0), 0),/
+      avgResponseTime: result.rows.reduce((sum, row) => sum + parseFloat(row.avg_response_time || 0), 0) / result.rows.length,/
       successRate: result.rows.reduce((sum, row) => sum + parseInt(row.success_count), 0) / 
                    result.rows.reduce((sum, row) => sum + parseInt(row.request_count), 0) * 100,
       services: result.rows,
@@ -453,7 +453,7 @@ export class AIAnalyticsService {
   private async generatePerformanceAnalytics(request: AIAnalyticsRequest): Promise<any> {
     const { organizationId, timeRange, filters } = request;
 
-    let query = `
+    let query = `;
       SELECT 
         service_name,
         model_name,
@@ -479,7 +479,7 @@ export class AIAnalyticsService {
 
     const result = await this.db.query(query, params);
 
-    const metrics = {
+    const metrics = {;
       services: result.rows.reduce((acc, row) => {
         if (!acc[row.service_name]) {
           acc[row.service_name] = {};
@@ -513,7 +513,7 @@ export class AIAnalyticsService {
   private async generateInsightsAnalytics(request: AIAnalyticsRequest): Promise<any> {
     const { organizationId, timeRange } = request;
 
-    const query = `
+    const query = `;
       SELECT 
         insight_type,
         insight_title,
@@ -533,7 +533,7 @@ export class AIAnalyticsService {
 
     const result = await this.db.query(query, [organizationId, timeRange.start, timeRange.end]);
 
-    const insights = result.rows.map(row => ({
+    const insights = result.rows.map(row => ({;
       type: row.insight_type,
       title: row.insight_title,
       description: row.insight_description,
@@ -568,7 +568,7 @@ export class AIAnalyticsService {
   private async generateTrendsAnalytics(request: AIAnalyticsRequest): Promise<any> {
     const { organizationId, timeRange } = request;
 
-    const query = `
+    const query = `;
       SELECT 
         trend_name,
         trend_type,
@@ -584,7 +584,7 @@ export class AIAnalyticsService {
 
     const result = await this.db.query(query, [organizationId, timeRange.start, timeRange.end]);
 
-    const trends = result.rows.map(row => ({
+    const trends = result.rows.map(row => ({;
       name: row.trend_name,
       type: row.trend_type,
       data: row.trend_data,
@@ -616,9 +616,9 @@ export class AIAnalyticsService {
     };
   }
 
-  private async generatePredictionsAnalytics(request: AIAnalyticsRequest): Promise<any> {
+  private async generatePredictionsAnalytics(request: AIAnalyticsRequest): Promise<any> {/
     // Generate predictions based on historical data
-    const predictions = [
+    const predictions = [;
       {
         metric: 'request_volume',
         predictedValue: 1250,
@@ -646,7 +646,7 @@ export class AIAnalyticsService {
       analyticsType: 'predictions',
       timeRange: request.timeRange,
       metrics: {
-        totalPredictions: predictions.length,
+        totalPredictions: predictions.length,/
         avgConfidence: predictions.reduce((sum, p) => sum + p.confidence, 0) / predictions.length,
         highConfidencePredictions: predictions.filter(p => p.confidence > 0.8).length,
       },
@@ -657,9 +657,9 @@ export class AIAnalyticsService {
       dataPoints: predictions.length,
     };
   }
-
-  // ============================================================================
-  // INSIGHT GENERATION METHODS
+/
+  // ============================================================================/
+  // INSIGHT GENERATION METHODS/
   // ============================================================================
 
   private generateUsageInsights(metrics: any): string[] {
@@ -799,9 +799,9 @@ export class AIAnalyticsService {
 
     return recommendations;
   }
-
-  // ============================================================================
-  // CACHE METHODS
+/
+  // ============================================================================/
+  // CACHE METHODS/
   // ============================================================================
 
   private generateCacheKey(request: AIAnalyticsRequest): string {
@@ -822,15 +822,15 @@ export class AIAnalyticsService {
       timestamp: Date.now(),
     });
   }
-
-  // ============================================================================
-  // BACKGROUND PROCESSING METHODS
+/
+  // ============================================================================/
+  // BACKGROUND PROCESSING METHODS/
   // ============================================================================
 
   private async generateInsights(): Promise<void> {
-    try {
+    try {/
       // Get organizations with recent activity
-      const orgsResult = await this.db.query(`
+      const orgsResult = await this.db.query(`;
         SELECT DISTINCT organization_id 
         FROM ai_analytics_usage 
         WHERE created_at >= NOW() - INTERVAL '24 hours'
@@ -848,13 +848,13 @@ export class AIAnalyticsService {
   }
 
   private async generateOrganizationInsights(organizationId: string): Promise<void> {
-    try {
+    try {/
       // Generate usage insights
-      const usageResult = await this.db.query(`
+      const usageResult = await this.db.query(`;
         SELECT 
           service_name,
           COUNT(*) as request_count,
-          AVG(response_time_ms) as avg_response_time,
+          AVG(response_time_ms) as avg_response_time,/
           SUM(CASE WHEN success THEN 1 ELSE 0 END)::float / COUNT(*) as success_rate
         FROM ai_analytics_usage
         WHERE organization_id = $1
@@ -899,7 +899,7 @@ export class AIAnalyticsService {
         JSON.stringify(insight.data),
         insight.confidence,
         insight.impact,
-        insight.actionable,
+        insight.actionable,/
         new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
       ]);
     } catch (error) {
@@ -912,9 +912,9 @@ export class AIAnalyticsService {
   }
 
   private async updateTrends(): Promise<void> {
-    try {
+    try {/
       // Update usage trends
-      const orgsResult = await this.db.query(`
+      const orgsResult = await this.db.query(`;
         SELECT DISTINCT organization_id 
         FROM ai_analytics_usage 
         WHERE created_at >= NOW() - INTERVAL '30 days'
@@ -932,9 +932,9 @@ export class AIAnalyticsService {
   }
 
   private async updateOrganizationTrends(organizationId: string): Promise<void> {
-    try {
+    try {/
       // Calculate daily usage trends
-      const dailyUsage = await this.db.query(`
+      const dailyUsage = await this.db.query(`;
         SELECT 
           DATE(created_at) as date,
           COUNT(*) as request_count,
@@ -947,7 +947,7 @@ export class AIAnalyticsService {
       `, [organizationId]);
 
       if (dailyUsage.rows.length > 0) {
-        const trendData = {
+        const trendData = {;
           values: dailyUsage.rows.map(row => parseInt(row.request_count)),
           timestamps: dailyUsage.rows.map(row => row.date.toISOString()),
         };
@@ -974,9 +974,9 @@ export class AIAnalyticsService {
       });
     }
   }
-
-  // ============================================================================
-  // PUBLIC METHODS
+/
+  // ============================================================================/
+  // PUBLIC METHODS/
   // ============================================================================
 
   async recordUsage(data: {
@@ -1064,19 +1064,19 @@ export class AIAnalyticsService {
     lastCheck: Date;
   }> {
     try {
-      const services = {
+      const services = {;
         database: true,
         cache: true,
         backgroundProcessing: true,
       };
-
+/
       // Check database connection
       try {
         await this.db.query('SELECT 1');
       } catch (error) {
         services.database = false;
       }
-
+/
       // Check cache
       services.cache = this.analyticsCache.size >= 0;
 
@@ -1085,7 +1085,7 @@ export class AIAnalyticsService {
       
       let status: 'healthy' | 'degraded' | 'unhealthy';
       if (healthyServices === totalServices) {
-        status = 'healthy';
+        status = 'healthy';/
       } else if (healthyServices > totalServices / 2) {
         status = 'degraded';
       } else {
@@ -1117,3 +1117,4 @@ export class AIAnalyticsService {
 }
 
 export const aiAnalyticsService = new AIAnalyticsService();
+/

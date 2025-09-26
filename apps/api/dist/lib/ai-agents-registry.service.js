@@ -1,7 +1,8 @@
 import { z } from 'zod';
-import { structuredLogger } from './structured-logger.js';
 import { EnhancedAIRouter } from '@econeura/shared/src/ai/enhanced-router.js';
 import { aiRouterClient } from '@econeura/agents/ai-router.client';
+
+import { structuredLogger } from './structured-logger.js';
 export const AgentDefinitionSchema = z.object({
     id: z.string(),
     name: z.string(),

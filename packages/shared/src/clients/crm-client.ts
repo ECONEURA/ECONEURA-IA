@@ -1,7 +1,7 @@
 import { BaseClient, PaginatedResponse } from './base-client.js';
-
+/
 // CRM Types
-export interface Contact {
+export interface Contact {;
   id: string;
   first_name: string;
   last_name: string;
@@ -16,7 +16,7 @@ export interface Contact {
   updated_at: string;
 }
 
-export interface Company {
+export interface Company {;
   id: string;
   name: string;
   industry?: string;
@@ -33,7 +33,7 @@ export interface Company {
   updated_at: string;
 }
 
-export interface Deal {
+export interface Deal {;
   id: string;
   title: string;
   description?: string;
@@ -51,7 +51,7 @@ export interface Deal {
   updated_at: string;
 }
 
-export interface Activity {
+export interface Activity {;
   id: string;
   type: 'call' | 'email' | 'meeting' | 'task' | 'note';
   subject: string;
@@ -67,7 +67,7 @@ export interface Activity {
   updated_at: string;
 }
 
-export interface Label {
+export interface Label {;
   id: string;
   name: string;
   color: string;
@@ -75,9 +75,9 @@ export interface Label {
   created_at: string;
   updated_at: string;
 }
-
+/
 // Input Types
-export interface CreateContactInput {
+export interface CreateContactInput {;
   first_name: string;
   last_name: string;
   email: string;
@@ -89,7 +89,7 @@ export interface CreateContactInput {
   notes?: string;
 }
 
-export interface UpdateContactInput {
+export interface UpdateContactInput {;
   first_name?: string;
   last_name?: string;
   email?: string;
@@ -101,7 +101,7 @@ export interface UpdateContactInput {
   notes?: string;
 }
 
-export interface CreateCompanyInput {
+export interface CreateCompanyInput {;
   name: string;
   industry?: string;
   size?: 'startup' | 'small' | 'medium' | 'large' | 'enterprise';
@@ -115,7 +115,7 @@ export interface CreateCompanyInput {
   notes?: string;
 }
 
-export interface UpdateCompanyInput {
+export interface UpdateCompanyInput {;
   name?: string;
   industry?: string;
   size?: 'startup' | 'small' | 'medium' | 'large' | 'enterprise';
@@ -129,7 +129,7 @@ export interface UpdateCompanyInput {
   notes?: string;
 }
 
-export interface CreateDealInput {
+export interface CreateDealInput {;
   title: string;
   description?: string;
   value: number;
@@ -144,7 +144,7 @@ export interface CreateDealInput {
   notes?: string;
 }
 
-export interface UpdateDealInput {
+export interface UpdateDealInput {;
   title?: string;
   description?: string;
   value?: number;
@@ -159,7 +159,7 @@ export interface UpdateDealInput {
   notes?: string;
 }
 
-export interface CreateActivityInput {
+export interface CreateActivityInput {;
   type: 'call' | 'email' | 'meeting' | 'task' | 'note';
   subject: string;
   description?: string;
@@ -171,7 +171,7 @@ export interface CreateActivityInput {
   status: 'pending' | 'completed' | 'cancelled';
 }
 
-export interface UpdateActivityInput {
+export interface UpdateActivityInput {;
   type?: 'call' | 'email' | 'meeting' | 'task' | 'note';
   subject?: string;
   description?: string;
@@ -184,151 +184,151 @@ export interface UpdateActivityInput {
   status?: 'pending' | 'completed' | 'cancelled';
 }
 
-export interface CreateLabelInput {
+export interface CreateLabelInput {;
   name: string;
   color: string;
   type: 'contact' | 'company' | 'deal' | 'activity';
 }
 
-export interface UpdateLabelInput {
+export interface UpdateLabelInput {;
   name?: string;
   color?: string;
   type?: 'contact' | 'company' | 'deal' | 'activity';
 }
 
-export class CRMClient extends BaseClient {
+export class CRMClient extends BaseClient {/;
   // Contacts
-  async listContacts(page = 1, pageSize = 20): Promise<PaginatedResponse<Contact>> {
+  async listContacts(page = 1, pageSize = 20): Promise<PaginatedResponse<Contact>> {/
     return this.get('/v1/crm/contacts', { params: { page, pageSize } });
   }
 
-  async getContact(id: string): Promise<Contact> {
+  async getContact(id: string): Promise<Contact> {/
     return this.get(`/v1/crm/contacts/${id}`);
   }
 
-  async createContact(data: CreateContactInput): Promise<Contact> {
+  async createContact(data: CreateContactInput): Promise<Contact> {/
     return this.post('/v1/crm/contacts', data);
   }
 
-  async updateContact(id: string, data: UpdateContactInput): Promise<Contact> {
+  async updateContact(id: string, data: UpdateContactInput): Promise<Contact> {/
     return this.patch(`/v1/crm/contacts/${id}`, data);
   }
 
-  async deleteContact(id: string): Promise<void> {
+  async deleteContact(id: string): Promise<void> {/
     return this.delete(`/v1/crm/contacts/${id}`);
   }
 
-  async searchContacts(query: string): Promise<Contact[]> {
+  async searchContacts(query: string): Promise<Contact[]> {/
     return this.get('/v1/crm/contacts/search', { params: { q: query } });
   }
-
+/
   // Companies
-  async listCompanies(page = 1, pageSize = 20): Promise<PaginatedResponse<Company>> {
+  async listCompanies(page = 1, pageSize = 20): Promise<PaginatedResponse<Company>> {/
     return this.get('/v1/crm/companies', { params: { page, pageSize } });
   }
 
-  async getCompany(id: string): Promise<Company> {
+  async getCompany(id: string): Promise<Company> {/
     return this.get(`/v1/crm/companies/${id}`);
   }
 
-  async createCompany(data: CreateCompanyInput): Promise<Company> {
+  async createCompany(data: CreateCompanyInput): Promise<Company> {/
     return this.post('/v1/crm/companies', data);
   }
 
-  async updateCompany(id: string, data: UpdateCompanyInput): Promise<Company> {
+  async updateCompany(id: string, data: UpdateCompanyInput): Promise<Company> {/
     return this.patch(`/v1/crm/companies/${id}`, data);
   }
 
-  async deleteCompany(id: string): Promise<void> {
+  async deleteCompany(id: string): Promise<void> {/
     return this.delete(`/v1/crm/companies/${id}`);
   }
 
-  async searchCompanies(query: string): Promise<Company[]> {
+  async searchCompanies(query: string): Promise<Company[]> {/
     return this.get('/v1/crm/companies/search', { params: { q: query } });
   }
-
+/
   // Deals
-  async listDeals(page = 1, pageSize = 20): Promise<PaginatedResponse<Deal>> {
+  async listDeals(page = 1, pageSize = 20): Promise<PaginatedResponse<Deal>> {/
     return this.get('/v1/crm/deals', { params: { page, pageSize } });
   }
 
-  async getDeal(id: string): Promise<Deal> {
+  async getDeal(id: string): Promise<Deal> {/
     return this.get(`/v1/crm/deals/${id}`);
   }
 
-  async createDeal(data: CreateDealInput): Promise<Deal> {
+  async createDeal(data: CreateDealInput): Promise<Deal> {/
     return this.post('/v1/crm/deals', data);
   }
 
-  async updateDeal(id: string, data: UpdateDealInput): Promise<Deal> {
+  async updateDeal(id: string, data: UpdateDealInput): Promise<Deal> {/
     return this.patch(`/v1/crm/deals/${id}`, data);
   }
 
-  async deleteDeal(id: string): Promise<void> {
+  async deleteDeal(id: string): Promise<void> {/
     return this.delete(`/v1/crm/deals/${id}`);
   }
 
-  async getDealsByStage(stage: string): Promise<Deal[]> {
+  async getDealsByStage(stage: string): Promise<Deal[]> {/
     return this.get('/v1/crm/deals/by-stage', { params: { stage } });
   }
-
+/
   // Activities
-  async listActivities(page = 1, pageSize = 20): Promise<PaginatedResponse<Activity>> {
+  async listActivities(page = 1, pageSize = 20): Promise<PaginatedResponse<Activity>> {/
     return this.get('/v1/crm/activities', { params: { page, pageSize } });
   }
 
-  async getActivity(id: string): Promise<Activity> {
+  async getActivity(id: string): Promise<Activity> {/
     return this.get(`/v1/crm/activities/${id}`);
   }
 
-  async createActivity(data: CreateActivityInput): Promise<Activity> {
+  async createActivity(data: CreateActivityInput): Promise<Activity> {/
     return this.post('/v1/crm/activities', data);
   }
 
-  async updateActivity(id: string, data: UpdateActivityInput): Promise<Activity> {
+  async updateActivity(id: string, data: UpdateActivityInput): Promise<Activity> {/
     return this.patch(`/v1/crm/activities/${id}`, data);
   }
 
-  async deleteActivity(id: string): Promise<void> {
+  async deleteActivity(id: string): Promise<void> {/
     return this.delete(`/v1/crm/activities/${id}`);
   }
 
-  async getActivitiesByContact(contactId: string): Promise<Activity[]> {
+  async getActivitiesByContact(contactId: string): Promise<Activity[]> {/
     return this.get(`/v1/crm/activities/by-contact/${contactId}`);
   }
 
-  async getActivitiesByCompany(companyId: string): Promise<Activity[]> {
+  async getActivitiesByCompany(companyId: string): Promise<Activity[]> {/
     return this.get(`/v1/crm/activities/by-company/${companyId}`);
   }
-
+/
   // Labels
-  async listLabels(type?: string): Promise<Label[]> {
+  async listLabels(type?: string): Promise<Label[]> {/
     return this.get('/v1/crm/labels', { params: { type } });
   }
 
-  async getLabel(id: string): Promise<Label> {
+  async getLabel(id: string): Promise<Label> {/
     return this.get(`/v1/crm/labels/${id}`);
   }
 
-  async createLabel(data: CreateLabelInput): Promise<Label> {
+  async createLabel(data: CreateLabelInput): Promise<Label> {/
     return this.post('/v1/crm/labels', data);
   }
 
-  async updateLabel(id: string, data: UpdateLabelInput): Promise<Label> {
+  async updateLabel(id: string, data: UpdateLabelInput): Promise<Label> {/
     return this.patch(`/v1/crm/labels/${id}`, data);
   }
 
-  async deleteLabel(id: string): Promise<void> {
+  async deleteLabel(id: string): Promise<void> {/
     return this.delete(`/v1/crm/labels/${id}`);
   }
-
+/
   // Reports
   async getPipelineReport(): Promise<{
     total_deals: number;
     total_value: number;
     deals_by_stage: Array<{ stage: string; count: number; value: number }>;
     conversion_rate: number;
-  }> {
+  }> {/
     return this.get('/v1/crm/reports/pipeline');
   }
 
@@ -336,9 +336,10 @@ export class CRMClient extends BaseClient {
     total_activities: number;
     activities_by_type: Array<{ type: string; count: number }>;
     completion_rate: number;
-  }> {
+  }> {/
     return this.get('/v1/crm/reports/activities', { 
       params: { startDate, endDate } 
     });
   }
 }
+/

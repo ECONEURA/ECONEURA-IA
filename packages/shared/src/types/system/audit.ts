@@ -1,9 +1,9 @@
 import { TenantEntity } from '../models/base.js';
-
+/
 /**
- * Audit event types
+ * Audit event types/
  */
-export type AuditEventType = 
+export type AuditEventType = ;
   | 'user.login'
   | 'user.logout'
   | 'user.created'
@@ -16,21 +16,21 @@ export type AuditEventType =
   | 'settings.changed'
   | 'permission.granted'
   | 'permission.revoked';
-
+/
 /**
- * Audit event severity
+ * Audit event severity/
  */
 export type AuditSeverity = 'info' | 'warning' | 'error' | 'critical';
-
+/
 /**
- * Audit event outcome
+ * Audit event outcome/
  */
 export type AuditOutcome = 'success' | 'failure' | 'error' | 'denied';
-
+/
 /**
- * Audit context
+ * Audit context/
  */
-export interface AuditContext {
+export interface AuditContext {;
   ip?: string;
   userAgent?: string;
   location?: {
@@ -41,11 +41,11 @@ export interface AuditContext {
   session?: string;
   correlationId?: string;
 }
-
+/
 /**
- * Audit event interface
+ * Audit event interface/
  */
-export interface AuditEvent extends TenantEntity {
+export interface AuditEvent extends TenantEntity {;
   eventType: AuditEventType;
   severity: AuditSeverity;
   outcome: AuditOutcome;
@@ -63,3 +63,4 @@ export interface AuditEvent extends TenantEntity {
   metadata: Record<string, unknown>;
   description: string;
 }
+/

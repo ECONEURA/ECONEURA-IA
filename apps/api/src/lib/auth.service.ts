@@ -1,6 +1,8 @@
+import { randomBytes } from 'crypto';
+
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
-import { randomBytes } from 'crypto';
+
 import { structuredLogger } from './structured-logger.js';
 // MOCK: getDatabaseService
 function getDatabaseService() {

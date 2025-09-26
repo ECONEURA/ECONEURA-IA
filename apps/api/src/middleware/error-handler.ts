@@ -1,13 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { z } from 'zod';
 import {
   AppError,
-  ValidationError,
   AuthenticationError,
   AuthorizationError,
-  DatabaseError,
-  ExternalServiceError,
-  BusinessLogicError,
   ResourceNotFoundError,
   RateLimitError,
   generateTraceId,
@@ -19,7 +14,6 @@ import {
   mapDatabaseErrorToAppError,
   mapExternalServiceErrorToAppError,
   ERROR_CODES,
-  ERROR_STATUS_MAPPING,
   ErrorResponse,
 } from '@econeura/shared/errors';
 

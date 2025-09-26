@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { healthChecks } from '../services/health-checks.service.js';
 
 const router = Router();

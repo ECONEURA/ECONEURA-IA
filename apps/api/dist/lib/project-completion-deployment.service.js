@@ -1,5 +1,6 @@
-import { logger } from './logger.js';
 import { z } from 'zod';
+
+import { logger } from './logger.js';
 const mockAzureCLI = {
     login: () => Promise.resolve({ success: true }),
     deploy: (config) => Promise.resolve({ success: true, url: 'https://econeura.azurewebsites.net' }),

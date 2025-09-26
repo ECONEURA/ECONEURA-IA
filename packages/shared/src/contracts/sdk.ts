@@ -1,8 +1,8 @@
-// ============================================================================
-// ECONEURA API SDK - TYPESCRIPT CLIENT
+// ============================================================================/
+// ECONEURA API SDK - TYPESCRIPT CLIENT/
 // ============================================================================
 
-import { 
+import { ;
   BaseResponse,
   PaginatedResponse,
   LoginRequest,
@@ -31,14 +31,14 @@ import {
   AIResponse,
   Webhook,
   CreateWebhookRequest,
-  UpdateWebhookRequest
+  UpdateWebhookRequest/
 } from './index.js';
-
+/
+// ============================================================================/
+// SDK CONFIGURATION/
 // ============================================================================
-// SDK CONFIGURATION
-// ============================================================================
 
-export interface SDKConfig {
+export interface SDKConfig {;
   baseUrl: string;
   apiKey?: string;
   accessToken?: string;
@@ -47,19 +47,19 @@ export interface SDKConfig {
   retryDelay?: number;
 }
 
-export class SDKError extends Error {
+export class SDKError extends Error {;
   constructor(
     message: string,
     public status?: number,
-    public response?: any
+    public response?: any);
   ) {
     super(message);
     this.name = 'SDKError';
   }
 }
-
-// ============================================================================
-// HTTP CLIENT
+/
+// ============================================================================/
+// HTTP CLIENT/
 // ============================================================================
 
 class HttpClient {
@@ -74,9 +74,9 @@ class HttpClient {
       ...config
     };
 
-    this.defaultHeaders = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
+    this.defaultHeaders = {/
+      'Content-Type': 'application/json',/
+      'Accept': 'application/json',/
       'User-Agent': 'ECONEURA-SDK/1.0.0'
     };
 
@@ -103,7 +103,7 @@ class HttpClient {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
 
-        const response = await fetch(url, {
+        const response = await fetch(url, {;
           method,
           headers: this.defaultHeaders,
           body: data ? JSON.stringify(data) : undefined,
@@ -165,23 +165,23 @@ class HttpClient {
     this.defaultHeaders['X-API-Key'] = apiKey;
   }
 }
-
+/
+// ============================================================================/
+// ECONEURA SDK/
 // ============================================================================
-// ECONEURA SDK
-// ============================================================================
 
-export class ECONEURASDK {
+export class ECONEURASDK {;
   private http: HttpClient;
 
   constructor(config: SDKConfig) {
     this.http = new HttpClient(config);
   }
-
+/
+  // ============================================================================/
+  // AUTHENTICATION/
   // ============================================================================
-  // AUTHENTICATION
-  // ============================================================================
 
-  async login(credentials: LoginRequest): Promise<LoginResponse> {
+  async login(credentials: LoginRequest): Promise<LoginResponse> {/
     const response = await this.http.post<LoginResponse>('/auth/login', credentials);
     if (response.data?.accessToken) {
       this.http.setAccessToken(response.data.accessToken);
@@ -189,7 +189,7 @@ export class ECONEURASDK {
     return response;
   }
 
-  async refreshToken(request: RefreshTokenRequest): Promise<RefreshTokenResponse> {
+  async refreshToken(request: RefreshTokenRequest): Promise<RefreshTokenResponse> {/
     const response = await this.http.post<RefreshTokenResponse>('/auth/refresh', request);
     if (response.data?.accessToken) {
       this.http.setAccessToken(response.data.accessToken);
@@ -197,20 +197,20 @@ export class ECONEURASDK {
     return response;
   }
 
-  async logout(request?: LogoutRequest): Promise<BaseResponse> {
+  async logout(request?: LogoutRequest): Promise<BaseResponse> {/
     return this.http.post<BaseResponse>('/auth/logout', request);
   }
 
-  async getCurrentUser(): Promise<BaseResponse & { data: User }> {
+  async getCurrentUser(): Promise<BaseResponse & { data: User }> {/
     return this.http.get<BaseResponse & { data: User }>('/auth/me');
   }
 
-  async createApiKey(request: CreateApiKeyRequest): Promise<BaseResponse & { data: ApiKeyResponse }> {
+  async createApiKey(request: CreateApiKeyRequest): Promise<BaseResponse & { data: ApiKeyResponse }> {/
     return this.http.post<BaseResponse & { data: ApiKeyResponse }>('/auth/api-keys', request);
   }
-
-  // ============================================================================
-  // USERS
+/
+  // ============================================================================/
+  // USERS/
   // ============================================================================
 
   async listUsers(params?: {
@@ -223,28 +223,28 @@ export class ECONEURASDK {
     if (params?.limit) searchParams.set('limit', params.limit.toString());
     if (params?.search) searchParams.set('search', params.search);
 
-    const query = searchParams.toString();
+    const query = searchParams.toString();/;
     return this.http.get<PaginatedResponse<User>>(`/users${query ? `?${query}` : ''}`);
   }
 
-  async getUser(id: string): Promise<BaseResponse & { data: User }> {
+  async getUser(id: string): Promise<BaseResponse & { data: User }> {/
     return this.http.get<BaseResponse & { data: User }>(`/users/${id}`);
   }
 
-  async createUser(request: CreateUserRequest): Promise<BaseResponse & { data: User }> {
+  async createUser(request: CreateUserRequest): Promise<BaseResponse & { data: User }> {/
     return this.http.post<BaseResponse & { data: User }>('/users', request);
   }
 
-  async updateUser(id: string, request: UpdateUserRequest): Promise<BaseResponse & { data: User }> {
+  async updateUser(id: string, request: UpdateUserRequest): Promise<BaseResponse & { data: User }> {/
     return this.http.put<BaseResponse & { data: User }>(`/users/${id}`, request);
   }
 
-  async deleteUser(id: string): Promise<void> {
+  async deleteUser(id: string): Promise<void> {/
     await this.http.delete(`/users/${id}`);
   }
-
-  // ============================================================================
-  // CONTACTS (CRM)
+/
+  // ============================================================================/
+  // CONTACTS (CRM)/
   // ============================================================================
 
   async listContacts(params?: {
@@ -257,28 +257,28 @@ export class ECONEURASDK {
     if (params?.limit) searchParams.set('limit', params.limit.toString());
     if (params?.search) searchParams.set('search', params.search);
 
-    const query = searchParams.toString();
+    const query = searchParams.toString();/;
     return this.http.get<PaginatedResponse<Contact>>(`/contacts${query ? `?${query}` : ''}`);
   }
 
-  async getContact(id: string): Promise<BaseResponse & { data: Contact }> {
+  async getContact(id: string): Promise<BaseResponse & { data: Contact }> {/
     return this.http.get<BaseResponse & { data: Contact }>(`/contacts/${id}`);
   }
 
-  async createContact(request: CreateContactRequest): Promise<BaseResponse & { data: Contact }> {
+  async createContact(request: CreateContactRequest): Promise<BaseResponse & { data: Contact }> {/
     return this.http.post<BaseResponse & { data: Contact }>('/contacts', request);
   }
 
-  async updateContact(id: string, request: UpdateContactRequest): Promise<BaseResponse & { data: Contact }> {
+  async updateContact(id: string, request: UpdateContactRequest): Promise<BaseResponse & { data: Contact }> {/
     return this.http.put<BaseResponse & { data: Contact }>(`/contacts/${id}`, request);
   }
 
-  async deleteContact(id: string): Promise<void> {
+  async deleteContact(id: string): Promise<void> {/
     await this.http.delete(`/contacts/${id}`);
   }
-
-  // ============================================================================
-  // DEALS (CRM)
+/
+  // ============================================================================/
+  // DEALS (CRM)/
   // ============================================================================
 
   async listDeals(params?: {
@@ -291,28 +291,28 @@ export class ECONEURASDK {
     if (params?.limit) searchParams.set('limit', params.limit.toString());
     if (params?.stage) searchParams.set('stage', params.stage);
 
-    const query = searchParams.toString();
+    const query = searchParams.toString();/;
     return this.http.get<PaginatedResponse<Deal>>(`/deals${query ? `?${query}` : ''}`);
   }
 
-  async getDeal(id: string): Promise<BaseResponse & { data: Deal }> {
+  async getDeal(id: string): Promise<BaseResponse & { data: Deal }> {/
     return this.http.get<BaseResponse & { data: Deal }>(`/deals/${id}`);
   }
 
-  async createDeal(request: CreateDealRequest): Promise<BaseResponse & { data: Deal }> {
+  async createDeal(request: CreateDealRequest): Promise<BaseResponse & { data: Deal }> {/
     return this.http.post<BaseResponse & { data: Deal }>('/deals', request);
   }
 
-  async updateDeal(id: string, request: UpdateDealRequest): Promise<BaseResponse & { data: Deal }> {
+  async updateDeal(id: string, request: UpdateDealRequest): Promise<BaseResponse & { data: Deal }> {/
     return this.http.put<BaseResponse & { data: Deal }>(`/deals/${id}`, request);
   }
 
-  async deleteDeal(id: string): Promise<void> {
+  async deleteDeal(id: string): Promise<void> {/
     await this.http.delete(`/deals/${id}`);
   }
-
-  // ============================================================================
-  // PRODUCTS (ERP)
+/
+  // ============================================================================/
+  // PRODUCTS (ERP)/
   // ============================================================================
 
   async listProducts(params?: {
@@ -325,28 +325,28 @@ export class ECONEURASDK {
     if (params?.limit) searchParams.set('limit', params.limit.toString());
     if (params?.category) searchParams.set('category', params.category);
 
-    const query = searchParams.toString();
+    const query = searchParams.toString();/;
     return this.http.get<PaginatedResponse<Product>>(`/products${query ? `?${query}` : ''}`);
   }
 
-  async getProduct(id: string): Promise<BaseResponse & { data: Product }> {
+  async getProduct(id: string): Promise<BaseResponse & { data: Product }> {/
     return this.http.get<BaseResponse & { data: Product }>(`/products/${id}`);
   }
 
-  async createProduct(request: CreateProductRequest): Promise<BaseResponse & { data: Product }> {
+  async createProduct(request: CreateProductRequest): Promise<BaseResponse & { data: Product }> {/
     return this.http.post<BaseResponse & { data: Product }>('/products', request);
   }
 
-  async updateProduct(id: string, request: UpdateProductRequest): Promise<BaseResponse & { data: Product }> {
+  async updateProduct(id: string, request: UpdateProductRequest): Promise<BaseResponse & { data: Product }> {/
     return this.http.put<BaseResponse & { data: Product }>(`/products/${id}`, request);
   }
 
-  async deleteProduct(id: string): Promise<void> {
+  async deleteProduct(id: string): Promise<void> {/
     await this.http.delete(`/products/${id}`);
   }
-
-  // ============================================================================
-  // ORDERS (ERP)
+/
+  // ============================================================================/
+  // ORDERS (ERP)/
   // ============================================================================
 
   async listOrders(params?: {
@@ -359,36 +359,36 @@ export class ECONEURASDK {
     if (params?.limit) searchParams.set('limit', params.limit.toString());
     if (params?.status) searchParams.set('status', params.status);
 
-    const query = searchParams.toString();
+    const query = searchParams.toString();/;
     return this.http.get<PaginatedResponse<Order>>(`/orders${query ? `?${query}` : ''}`);
   }
 
-  async getOrder(id: string): Promise<BaseResponse & { data: Order }> {
+  async getOrder(id: string): Promise<BaseResponse & { data: Order }> {/
     return this.http.get<BaseResponse & { data: Order }>(`/orders/${id}`);
   }
 
-  async createOrder(request: CreateOrderRequest): Promise<BaseResponse & { data: Order }> {
+  async createOrder(request: CreateOrderRequest): Promise<BaseResponse & { data: Order }> {/
     return this.http.post<BaseResponse & { data: Order }>('/orders', request);
   }
 
-  async updateOrder(id: string, request: UpdateOrderRequest): Promise<BaseResponse & { data: Order }> {
+  async updateOrder(id: string, request: UpdateOrderRequest): Promise<BaseResponse & { data: Order }> {/
     return this.http.put<BaseResponse & { data: Order }>(`/orders/${id}`, request);
   }
 
-  async deleteOrder(id: string): Promise<void> {
+  async deleteOrder(id: string): Promise<void> {/
     await this.http.delete(`/orders/${id}`);
   }
-
+/
+  // ============================================================================/
+  // AI SERVICES/
   // ============================================================================
-  // AI SERVICES
-  // ============================================================================
 
-  async aiChat(request: AIRequest): Promise<BaseResponse & { data: AIResponse }> {
+  async aiChat(request: AIRequest): Promise<BaseResponse & { data: AIResponse }> {/
     return this.http.post<BaseResponse & { data: AIResponse }>('/ai/chat', request);
   }
-
-  // ============================================================================
-  // WEBHOOKS
+/
+  // ============================================================================/
+  // WEBHOOKS/
   // ============================================================================
 
   async listWebhooks(params?: {
@@ -399,40 +399,40 @@ export class ECONEURASDK {
     if (params?.page) searchParams.set('page', params.page.toString());
     if (params?.limit) searchParams.set('limit', params.limit.toString());
 
-    const query = searchParams.toString();
+    const query = searchParams.toString();/;
     return this.http.get<PaginatedResponse<Webhook>>(`/webhooks${query ? `?${query}` : ''}`);
   }
 
-  async getWebhook(id: string): Promise<BaseResponse & { data: Webhook }> {
+  async getWebhook(id: string): Promise<BaseResponse & { data: Webhook }> {/
     return this.http.get<BaseResponse & { data: Webhook }>(`/webhooks/${id}`);
   }
 
-  async createWebhook(request: CreateWebhookRequest): Promise<BaseResponse & { data: Webhook }> {
+  async createWebhook(request: CreateWebhookRequest): Promise<BaseResponse & { data: Webhook }> {/
     return this.http.post<BaseResponse & { data: Webhook }>('/webhooks', request);
   }
 
-  async updateWebhook(id: string, request: UpdateWebhookRequest): Promise<BaseResponse & { data: Webhook }> {
+  async updateWebhook(id: string, request: UpdateWebhookRequest): Promise<BaseResponse & { data: Webhook }> {/
     return this.http.put<BaseResponse & { data: Webhook }>(`/webhooks/${id}`, request);
   }
 
-  async deleteWebhook(id: string): Promise<void> {
+  async deleteWebhook(id: string): Promise<void> {/
     await this.http.delete(`/webhooks/${id}`);
   }
-
+/
+  // ============================================================================/
+  // SYSTEM/
   // ============================================================================
-  // SYSTEM
-  // ============================================================================
 
-  async healthCheck(): Promise<BaseResponse & { data: any }> {
+  async healthCheck(): Promise<BaseResponse & { data: any }> {/
     return this.http.get<BaseResponse & { data: any }>('/health');
   }
 
-  async getMetrics(): Promise<BaseResponse & { data: any }> {
+  async getMetrics(): Promise<BaseResponse & { data: any }> {/
     return this.http.get<BaseResponse & { data: any }>('/metrics');
   }
-
-  // ============================================================================
-  // UTILITIES
+/
+  // ============================================================================/
+  // UTILITIES/
   // ============================================================================
 
   setAccessToken(token: string): void {
@@ -443,17 +443,18 @@ export class ECONEURASDK {
     this.http.setApiKey(apiKey);
   }
 }
-
+/
+// ============================================================================/
+// FACTORY FUNCTION/
 // ============================================================================
-// FACTORY FUNCTION
-// ============================================================================
 
-export function createSDK(config: SDKConfig): ECONEURASDK {
+export function createSDK(config: SDKConfig): ECONEURASDK {;
   return new ECONEURASDK(config);
 }
-
-// ============================================================================
-// DEFAULT EXPORT
+/
+// ============================================================================/
+// DEFAULT EXPORT/
 // ============================================================================
 
 export default ECONEURASDK;
+/

@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+
 import { estimateCostEUR } from '../finops/estimator.js';
 export function finopsHeaders(defaultEstCost, defaultBudgetPct) {
     return (req, res, next) => {

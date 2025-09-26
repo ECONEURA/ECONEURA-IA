@@ -1,4 +1,5 @@
 import { OpenAIClient, AzureKeyCredential } from '@azure/openai';
+
 import { logger } from '../lib/logger.js';
 import { metrics } from '../lib/metrics.js';
 import { AppError } from '../lib/errors.js';

@@ -1,6 +1,7 @@
 // Input Validation and Sanitization Middleware
 import { Request, Response, NextFunction } from 'express';
-import { z, ZodSchema, ZodError } from 'zod';
+import { z, ZodSchema } from 'zod';
+
 import { ValidationError } from '../lib/error-handler.js';
 import { structuredLogger } from '../lib/structured-logger.js';
 

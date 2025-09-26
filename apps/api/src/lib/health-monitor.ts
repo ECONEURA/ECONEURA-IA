@@ -1,5 +1,4 @@
 // Advanced Health Monitoring System for ECONEURA
-import { structuredLogger } from './structured-logger.js';
 import { cacheManager } from './advanced-cache.js';
 
 export interface HealthCheck {

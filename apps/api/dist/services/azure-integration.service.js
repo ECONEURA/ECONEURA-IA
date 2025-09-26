@@ -1,5 +1,6 @@
-import { structuredLogger } from '../lib/structured-logger.js';
 import { env } from '@econeura/shared/env';
+
+import { structuredLogger } from '../lib/structured-logger.js';
 export class AzureIntegrationService {
     config;
     isInitialized = false;

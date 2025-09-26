@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { structuredLogger } from '../lib/structured-logger.js';
 const router = Router();
 const contactsStore = new Map();

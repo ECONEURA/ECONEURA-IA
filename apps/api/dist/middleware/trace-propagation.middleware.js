@@ -1,4 +1,5 @@
 import { SpanStatusCode } from '@opentelemetry/api';
+
 import { observabilityOTelService } from '../services/observability-otel.service.js';
 import { structuredLogger } from '../lib/structured-logger.js';
 export function tracePropagationMiddleware() {

@@ -1,14 +1,14 @@
 /**
- * Cliente base con métodos HTTP y manejo de errores
+ * Cliente base con métodos HTTP y manejo de errores/
  */
 
-export interface RequestOptions {
+export interface RequestOptions {;
   headers?: Record<string, string>;
   params?: Record<string, string | number>;
   body?: unknown;
 }
 
-export interface ErrorResponse {
+export interface ErrorResponse {;
   type: string;
   title: string;
   status: number;
@@ -17,7 +17,7 @@ export interface ErrorResponse {
   traceId?: string;
 }
 
-export class APIError extends Error {
+export class APIError extends Error {;
   readonly type: string;
   readonly status: number;
   readonly detail: string;
@@ -35,13 +35,13 @@ export class APIError extends Error {
   }
 }
 
-export class BaseClient {
+export class BaseClient {;
   protected baseURL: string;
   protected headers: Record<string, string>;
 
-  constructor(baseURL: string, headers: Record<string, string> = {}) {
+  constructor(baseURL: string, headers: Record<string, string> = {}) {/
     this.baseURL = baseURL.endsWith('/') ? baseURL.slice(0, -1) : baseURL;
-    this.headers = {
+    this.headers = {/
       'Content-Type': 'application/json',
       ...headers
     };
@@ -51,7 +51,7 @@ export class BaseClient {
     method: string,
     path: string,
     options: RequestOptions = {}
-  ): Promise<T> {
+  ): Promise<T> {/
     const url = new URL(path.startsWith('/') ? path.slice(1) : path, this.baseURL);
     
     if (options.params) {
@@ -60,7 +60,7 @@ export class BaseClient {
       });
     }
 
-    const response = await fetch(url.toString(), {
+    const response = await fetch(url.toString(), {;
       method,
       headers: {
         ...this.headers,
@@ -97,3 +97,4 @@ export class BaseClient {
     return this.request<T>('DELETE', path, options);
   }
 }
+/

@@ -1,8 +1,9 @@
 // Minimal system types for iterative typecheck.
 
-export type SystemInfo = {
+export type SystemInfo = {;
 	env: string
 	version?: string
 }
 
-export {}
+export {};
+/

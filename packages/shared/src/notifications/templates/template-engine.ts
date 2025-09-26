@@ -1,15 +1,15 @@
-// ============================================================================
-// TEMPLATE ENGINE - HANDLEBARS, MUSTACHE, MULTI-LANGUAGE
+// ============================================================================/
+// TEMPLATE ENGINE - HANDLEBARS, MUSTACHE, MULTI-LANGUAGE/
 // ============================================================================
 
-import { z } from 'zod';
+import { z } from 'zod';/;
 import { logger } from '../../../utils/logger.js';
-
+/
+// ============================================================================/
+// SCHEMAS/
 // ============================================================================
-// SCHEMAS
-// ============================================================================
 
-const TemplateEngineConfigSchema = z.object({
+const TemplateEngineConfigSchema = z.object({;
   engine: z.enum(['handlebars', 'mustache', 'simple']),
   defaultLanguage: z.string().default('es'),
   supportedLanguages: z.array(z.string()).default(['es', 'en', 'fr', 'de']),
@@ -19,7 +19,7 @@ const TemplateEngineConfigSchema = z.object({
   escapeHtml: z.boolean().default(true)
 });
 
-const TemplateSchema = z.object({
+const TemplateSchema = z.object({;
   id: z.string(),
   name: z.string(),
   description: z.string().optional(),
@@ -34,7 +34,7 @@ const TemplateSchema = z.object({
   updatedAt: z.date()
 });
 
-const TemplateRenderRequestSchema = z.object({
+const TemplateRenderRequestSchema = z.object({;
   templateId: z.string(),
   language: z.string().optional(),
   variables: z.record(z.any()),
@@ -45,12 +45,12 @@ const TemplateRenderRequestSchema = z.object({
     fallbackLanguage: z.string().optional()
   }).optional()
 });
-
+/
+// ============================================================================/
+// INTERFACES/
 // ============================================================================
-// INTERFACES
-// ============================================================================
 
-export interface TemplateEngineConfig {
+export interface TemplateEngineConfig {;
   engine: 'handlebars' | 'mustache' | 'simple';
   defaultLanguage: string;
   supportedLanguages: string[];
@@ -60,7 +60,7 @@ export interface TemplateEngineConfig {
   escapeHtml: boolean;
 }
 
-export interface Template {
+export interface Template {;
   id: string;
   name: string;
   description?: string;
@@ -75,7 +75,7 @@ export interface Template {
   updatedAt: Date;
 }
 
-export interface TemplateRenderRequest {
+export interface TemplateRenderRequest {;
   templateId: string;
   language?: string;
   variables: Record<string, any>;
@@ -87,7 +87,7 @@ export interface TemplateRenderRequest {
   };
 }
 
-export interface TemplateRenderResult {
+export interface TemplateRenderResult {;
   subject?: string;
   body: string;
   language: string;
@@ -101,19 +101,19 @@ export interface TemplateRenderResult {
   };
 }
 
-export interface ITemplateEngine {
+export interface ITemplateEngine {;
   render(request: TemplateRenderRequest): Promise<TemplateRenderResult>;
   validateTemplate(template: Template): Promise<{ valid: boolean; errors: string[] }>;
   getTemplate(templateId: string, language?: string): Promise<Template | null>;
   listTemplates(type?: string, language?: string): Promise<Template[]>;
   clearCache(): Promise<void>;
 }
-
+/
+// ============================================================================/
+// HANDLEBARS ENGINE/
 // ============================================================================
-// HANDLEBARS ENGINE
-// ============================================================================
 
-export class HandlebarsEngine implements ITemplateEngine {
+export class HandlebarsEngine implements ITemplateEngine {;
   private config: TemplateEngineConfig;
   private templates: Map<string, Template> = new Map();
   private compiledTemplates: Map<string, any> = new Map();
@@ -128,7 +128,7 @@ export class HandlebarsEngine implements ITemplateEngine {
     const startTime = Date.now();
     const cacheKey = this.generateCacheKey(request);
 
-    try {
+    try {/
       // Check cache first
       if (this.config.cacheEnabled && this.cache.has(cacheKey)) {
         const cached = this.cache.get(cacheKey)!;
@@ -146,13 +146,13 @@ export class HandlebarsEngine implements ITemplateEngine {
           }
         };
       }
-
+/
       // Get template
       const template = await this.getTemplate(request.templateId, request.language);
       if (!template) {
         throw new Error(`Template not found: ${request.templateId}`);
       }
-
+/
       // Compile template if not cached
       const compiledKey = `${template.id}_${template.language}_${template.version}`;
       let compiledTemplate = this.compiledTemplates.get(compiledKey);
@@ -161,9 +161,9 @@ export class HandlebarsEngine implements ITemplateEngine {
         compiledTemplate = this.compileHandlebarsTemplate(template);
         this.compiledTemplates.set(compiledKey, compiledTemplate);
       }
-
+/
       // Prepare context
-      const context = {
+      const context = {;
         ...request.variables,
         ...request.context,
         _meta: {
@@ -173,12 +173,12 @@ export class HandlebarsEngine implements ITemplateEngine {
           version: template.version
         }
       };
-
+/
       // Render template
       const renderedBody = compiledTemplate(context);
       const renderedSubject = template.subject ? this.compileHandlebarsTemplate({ ...template, body: template.subject })(context) : undefined;
 
-      const result: TemplateRenderResult = {
+      const result: TemplateRenderResult = {;
         subject: renderedSubject,
         body: renderedBody,
         language: template.language,
@@ -191,7 +191,7 @@ export class HandlebarsEngine implements ITemplateEngine {
           warnings: []
         }
       };
-
+/
       // Cache result
       if (this.config.cacheEnabled) {
         this.cache.set(cacheKey, result);
@@ -219,7 +219,7 @@ export class HandlebarsEngine implements ITemplateEngine {
   async validateTemplate(template: Template): Promise<{ valid: boolean; errors: string[] }> {
     const errors: string[] = [];
 
-    try {
+    try {/
       // Basic validation
       if (!template.name || !template.body) {
         errors.push('Template name and body are required');
@@ -228,14 +228,14 @@ export class HandlebarsEngine implements ITemplateEngine {
       if (!this.config.supportedLanguages.includes(template.language)) {
         errors.push(`Unsupported language: ${template.language}`);
       }
-
+/
       // Handlebars syntax validation
       try {
         this.compileHandlebarsTemplate(template);
       } catch (error) {
         errors.push(`Handlebars syntax error: ${(error as Error).message}`);
       }
-
+/
       // Variable validation
       const declaredVariables = template.variables || [];
       const usedVariables = this.extractHandlebarsVariables(template.body);
@@ -284,32 +284,32 @@ export class HandlebarsEngine implements ITemplateEngine {
     logger.info('Template cache cleared');
   }
 
-  private compileHandlebarsTemplate(template: Template): any {
+  private compileHandlebarsTemplate(template: Template): any {/
     // Simulate Handlebars compilation
-    const compiled = (context: any) => {
+    const compiled = (context: any) => {;
       let result = template.body;
-      
+      /
       // Replace variables
-      for (const [key, value] of Object.entries(context)) {
+      for (const [key, value] of Object.entries(context)) {/
         if (key.startsWith('_')) continue; // Skip meta variables
         
         const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
         result = result.replace(regex, String(value || ''));
       }
-
-      // Handle conditionals {{#if variable}}...{{/if}}
+/
+      // Handle conditionals {{#if variable}}...{{/if}}/
       result = result.replace(/\{\{#if\s+(\w+)\}\}(.*?)\{\{\/if\}\}/gs, (match, variable, content) => {
         return context[variable] ? content : '';
       });
-
-      // Handle loops {{#each array}}...{{/each}}
+/
+      // Handle loops {{#each array}}...{{/each}}/
       result = result.replace(/\{\{#each\s+(\w+)\}\}(.*?)\{\{\/each\}\}/gs, (match, variable, content) => {
         const array = context[variable];
         if (!Array.isArray(array)) return '';
         
         return array.map((item, index) => {
-          let itemContent = content;
-          itemContent = itemContent.replace(/\{\{@index\}\}/g, String(index));
+          let itemContent = content;/;
+          itemContent = itemContent.replace(/\{\{@index\}\}/g, String(index));/
           itemContent = itemContent.replace(/\{\{this\}\}/g, String(item));
           
           if (typeof item === 'object') {
@@ -331,29 +331,29 @@ export class HandlebarsEngine implements ITemplateEngine {
 
   private extractHandlebarsVariables(template: string): string[] {
     const variables = new Set<string>();
-    
-    // Extract simple variables {{variable}}
+    /
+    // Extract simple variables {{variable}}/
     const simpleMatches = template.match(/\{\{(\w+)\}\}/g);
     if (simpleMatches) {
-      simpleMatches.forEach(match => {
+      simpleMatches.forEach(match => {/
         const variable = match.replace(/\{\{|\}\}/g, '');
         variables.add(variable);
       });
     }
-
-    // Extract conditional variables {{#if variable}}
+/
+    // Extract conditional variables {{#if variable}}/
     const conditionalMatches = template.match(/\{\{#if\s+(\w+)\}\}/g);
     if (conditionalMatches) {
-      conditionalMatches.forEach(match => {
+      conditionalMatches.forEach(match => {/
         const variable = match.replace(/\{\{#if\s+|\}\}/g, '');
         variables.add(variable);
       });
     }
-
-    // Extract loop variables {{#each array}}
+/
+    // Extract loop variables {{#each array}}/
     const loopMatches = template.match(/\{\{#each\s+(\w+)\}\}/g);
     if (loopMatches) {
-      loopMatches.forEach(match => {
+      loopMatches.forEach(match => {/
         const variable = match.replace(/\{\{#each\s+|\}\}/g, '');
         variables.add(variable);
       });
@@ -377,7 +377,7 @@ export class HandlebarsEngine implements ITemplateEngine {
   }
 
   private initializeDefaultTemplates(): void {
-    const defaultTemplates: Omit<Template, 'id' | 'createdAt' | 'updatedAt'>[] = [
+    const defaultTemplates: Omit<Template, 'id' | 'createdAt' | 'updatedAt'>[] = [;
       {
         name: 'Welcome Email',
         description: 'Welcome email template',
@@ -437,7 +437,7 @@ export class HandlebarsEngine implements ITemplateEngine {
       const id = `template_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const now = new Date();
       
-      const newTemplate: Template = {
+      const newTemplate: Template = {;
         ...template,
         id,
         createdAt: now,
@@ -449,12 +449,12 @@ export class HandlebarsEngine implements ITemplateEngine {
     }
   }
 }
-
+/
+// ============================================================================/
+// MUSTACHE ENGINE/
 // ============================================================================
-// MUSTACHE ENGINE
-// ============================================================================
 
-export class MustacheEngine implements ITemplateEngine {
+export class MustacheEngine implements ITemplateEngine {;
   private config: TemplateEngineConfig;
   private templates: Map<string, Template> = new Map();
   private cache: Map<string, TemplateRenderResult> = new Map();
@@ -468,7 +468,7 @@ export class MustacheEngine implements ITemplateEngine {
     const startTime = Date.now();
     const cacheKey = this.generateCacheKey(request);
 
-    try {
+    try {/
       // Check cache first
       if (this.config.cacheEnabled && this.cache.has(cacheKey)) {
         const cached = this.cache.get(cacheKey)!;
@@ -481,24 +481,24 @@ export class MustacheEngine implements ITemplateEngine {
           }
         };
       }
-
+/
       // Get template
       const template = await this.getTemplate(request.templateId, request.language);
       if (!template) {
         throw new Error(`Template not found: ${request.templateId}`);
       }
-
+/
       // Prepare context
-      const context = {
+      const context = {;
         ...request.variables,
         ...request.context
       };
-
+/
       // Render template using Mustache syntax
       const renderedBody = this.renderMustacheTemplate(template.body, context);
       const renderedSubject = template.subject ? this.renderMustacheTemplate(template.subject, context) : undefined;
 
-      const result: TemplateRenderResult = {
+      const result: TemplateRenderResult = {;
         subject: renderedSubject,
         body: renderedBody,
         language: template.language,
@@ -511,7 +511,7 @@ export class MustacheEngine implements ITemplateEngine {
           warnings: []
         }
       };
-
+/
       // Cache result
       if (this.config.cacheEnabled) {
         this.cache.set(cacheKey, result);
@@ -532,7 +532,7 @@ export class MustacheEngine implements ITemplateEngine {
   async validateTemplate(template: Template): Promise<{ valid: boolean; errors: string[] }> {
     const errors: string[] = [];
 
-    try {
+    try {/
       // Basic validation
       if (!template.name || !template.body) {
         errors.push('Template name and body are required');
@@ -541,7 +541,7 @@ export class MustacheEngine implements ITemplateEngine {
       if (!this.config.supportedLanguages.includes(template.language)) {
         errors.push(`Unsupported language: ${template.language}`);
       }
-
+/
       // Mustache syntax validation
       try {
         this.renderMustacheTemplate(template.body, {});
@@ -589,31 +589,31 @@ export class MustacheEngine implements ITemplateEngine {
 
   private renderMustacheTemplate(template: string, context: any): string {
     let result = template;
-
+/
     // Replace simple variables {{variable}}
     for (const [key, value] of Object.entries(context)) {
       const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
       result = result.replace(regex, String(value || ''));
     }
-
-    // Handle conditionals {{#variable}}...{{/variable}}
+/
+    // Handle conditionals {{#variable}}...{{/variable}}/
     result = result.replace(/\{\{#(\w+)\}\}(.*?)\{\{\/\1\}\}/gs, (match, variable, content) => {
       return context[variable] ? content : '';
     });
-
-    // Handle inverted conditionals {{^variable}}...{{/variable}}
+/
+    // Handle inverted conditionals {{^variable}}...{{/variable}}/
     result = result.replace(/\{\{\^(\w+)\}\}(.*?)\{\{\/\1\}\}/gs, (match, variable, content) => {
       return !context[variable] ? content : '';
     });
-
-    // Handle loops {{#array}}...{{/array}}
+/
+    // Handle loops {{#array}}...{{/array}}/
     result = result.replace(/\{\{#(\w+)\}\}(.*?)\{\{\/\1\}\}/gs, (match, variable, content) => {
       const array = context[variable];
       if (!Array.isArray(array)) return '';
       
       return array.map((item, index) => {
-        let itemContent = content;
-        itemContent = itemContent.replace(/\{\{@index\}\}/g, String(index));
+        let itemContent = content;/;
+        itemContent = itemContent.replace(/\{\{@index\}\}/g, String(index));/
         itemContent = itemContent.replace(/\{\{\.\}\}/g, String(item));
         
         if (typeof item === 'object') {
@@ -644,9 +644,9 @@ export class MustacheEngine implements ITemplateEngine {
     }
   }
 
-  private initializeDefaultTemplates(): void {
+  private initializeDefaultTemplates(): void {/
     // Same as HandlebarsEngine but with Mustache syntax
-    const defaultTemplates: Omit<Template, 'id' | 'createdAt' | 'updatedAt'>[] = [
+    const defaultTemplates: Omit<Template, 'id' | 'createdAt' | 'updatedAt'>[] = [;
       {
         name: 'Welcome Email',
         description: 'Welcome email template',
@@ -664,7 +664,7 @@ export class MustacheEngine implements ITemplateEngine {
       const id = `template_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const now = new Date();
       
-      const newTemplate: Template = {
+      const newTemplate: Template = {;
         ...template,
         id,
         createdAt: now,
@@ -676,12 +676,12 @@ export class MustacheEngine implements ITemplateEngine {
     }
   }
 }
-
+/
+// ============================================================================/
+// TEMPLATE ENGINE FACTORY/
 // ============================================================================
-// TEMPLATE ENGINE FACTORY
-// ============================================================================
 
-export class TemplateEngineFactory {
+export class TemplateEngineFactory {;
   static create(config: TemplateEngineConfig): ITemplateEngine {
     switch (config.engine) {
       case 'handlebars':
@@ -693,13 +693,14 @@ export class TemplateEngineFactory {
     }
   }
 }
-
+/
+// ============================================================================/
+// EXPORTS/
 // ============================================================================
-// EXPORTS
-// ============================================================================
 
-export {
+export {;
   TemplateEngineConfigSchema,
   TemplateSchema,
   TemplateRenderRequestSchema
 };
+/

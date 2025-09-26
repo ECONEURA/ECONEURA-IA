@@ -1,5 +1,6 @@
-import { BaseController } from './base.controller.js';
 import { IntelligentSearchRequestDTO, GetSuggestionsRequestDTO, IndexEntityRequestDTO, IntelligentSearchResponseDTO, GetSuggestionsResponseDTO, IndexEntityResponseDTO } from '../dto/search.dto.js';
+
+import { BaseController } from './base.controller.js';
 export class SearchController extends BaseController {
     intelligentSearchUseCase;
     getSuggestionsUseCase;

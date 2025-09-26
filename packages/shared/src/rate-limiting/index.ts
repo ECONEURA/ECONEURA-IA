@@ -1,15 +1,15 @@
-// ============================================================================
-// RATE LIMITING - SLIDING WINDOW ALGORITHM
+// ============================================================================/
+// RATE LIMITING - SLIDING WINDOW ALGORITHM/
 // ============================================================================
 
 import { z } from 'zod';
-
+/
+// ============================================================================/
+// RATE LIMITING SCHEMAS/
 // ============================================================================
-// RATE LIMITING SCHEMAS
-// ============================================================================
 
-export const RateLimitConfigSchema = z.object({
-  windowMs: z.number().min(1000).default(60000), // 1 minute default
+export const RateLimitConfigSchema = z.object({/;
+  windowMs: z.number().min(1000).default(60000), // 1 minute default/
   maxRequests: z.number().min(1).default(100), // 100 requests per window
   keyGenerator: z.function().optional(),
   skipSuccessfulRequests: z.boolean().default(false),
@@ -21,7 +21,7 @@ export const RateLimitConfigSchema = z.object({
   onLimitReached: z.function().optional()
 });
 
-export const RateLimitRuleSchema = z.object({
+export const RateLimitRuleSchema = z.object({;
   id: z.string().min(1),
   name: z.string().min(1),
   windowMs: z.number().min(1000),
@@ -33,7 +33,7 @@ export const RateLimitRuleSchema = z.object({
   enabled: z.boolean().default(true)
 });
 
-export const RateLimitResultSchema = z.object({
+export const RateLimitResultSchema = z.object({;
   allowed: z.boolean(),
   remaining: z.number().min(0),
   resetTime: z.number(),
@@ -43,16 +43,16 @@ export const RateLimitResultSchema = z.object({
   key: z.string(),
   rule: z.string()
 });
-
-// ============================================================================
-// TYPES
+/
+// ============================================================================/
+// TYPES/
 // ============================================================================
 
 export type RateLimitConfig = z.infer<typeof RateLimitConfigSchema>;
 export type RateLimitRule = z.infer<typeof RateLimitRuleSchema>;
 export type RateLimitResult = z.infer<typeof RateLimitResultSchema>;
 
-export interface RateLimitRequest {
+export interface RateLimitRequest {;
   ip?: string;
   apiKey?: string;
   userId?: string;
@@ -63,26 +63,26 @@ export interface RateLimitRequest {
   path?: string;
 }
 
-export interface RateLimitStore {
+export interface RateLimitStore {;
   get(key: string): Promise<RateLimitEntry | null>;
   set(key: string, entry: RateLimitEntry, ttl: number): Promise<void>;
   delete(key: string): Promise<void>;
   clear(): Promise<void>;
 }
 
-export interface RateLimitEntry {
+export interface RateLimitEntry {;
   count: number;
   windowStart: number;
   windowEnd: number;
   firstRequest: number;
   lastRequest: number;
 }
-
+/
+// ============================================================================/
+// IN-MEMORY STORE/
 // ============================================================================
-// IN-MEMORY STORE
-// ============================================================================
 
-export class MemoryRateLimitStore implements RateLimitStore {
+export class MemoryRateLimitStore implements RateLimitStore {;
   private store = new Map<string, RateLimitEntry>();
   private timers = new Map<string, NodeJS.Timeout>();
 
@@ -92,15 +92,15 @@ export class MemoryRateLimitStore implements RateLimitStore {
 
   async set(key: string, entry: RateLimitEntry, ttl: number): Promise<void> {
     this.store.set(key, entry);
-    
+    /
     // Clear existing timer
     const existingTimer = this.timers.get(key);
     if (existingTimer) {
       clearTimeout(existingTimer);
     }
-
+/
     // Set new timer
-    const timer = setTimeout(() => {
+    const timer = setTimeout(() => {;
       this.store.delete(key);
       this.timers.delete(key);
     }, ttl);
@@ -125,17 +125,17 @@ export class MemoryRateLimitStore implements RateLimitStore {
 
   getStats(): { totalKeys: number; memoryUsage: number } {
     return {
-      totalKeys: this.store.size,
+      totalKeys: this.store.size,/
       memoryUsage: this.store.size * 100 // Rough estimate
     };
   }
 }
-
+/
+// ============================================================================/
+// RATE LIMITER/
 // ============================================================================
-// RATE LIMITER
-// ============================================================================
 
-export class RateLimiter {
+export class RateLimiter {;
   private config: RateLimitConfig;
   private store: RateLimitStore;
   private rules: Map<string, RateLimitRule> = new Map();
@@ -144,9 +144,9 @@ export class RateLimiter {
     this.config = RateLimitConfigSchema.parse(config);
     this.store = store || new MemoryRateLimitStore();
   }
-
-  // ============================================================================
-  // RULE MANAGEMENT
+/
+  // ============================================================================/
+  // RULE MANAGEMENT/
   // ============================================================================
 
   addRule(rule: RateLimitRule): void {
@@ -165,9 +165,9 @@ export class RateLimiter {
   getAllRules(): RateLimitRule[] {
     return Array.from(this.rules.values());
   }
-
-  // ============================================================================
-  // RATE LIMITING LOGIC
+/
+  // ============================================================================/
+  // RATE LIMITING LOGIC/
   // ============================================================================
 
   async checkLimit(
@@ -184,13 +184,13 @@ export class RateLimiter {
     const now = Date.now();
     const windowStart = this.calculateWindowStart(now, rule.windowMs);
     const windowEnd = windowStart + rule.windowMs;
-
+/
     // Get existing entry
     const existing = await this.store.get(key);
     
-    if (!existing || existing.windowStart !== windowStart) {
+    if (!existing || existing.windowStart !== windowStart) {/
       // New window or no existing entry
-      const newEntry: RateLimitEntry = {
+      const newEntry: RateLimitEntry = {;
         count: 1,
         windowStart,
         windowEnd,
@@ -211,11 +211,11 @@ export class RateLimiter {
         rule: rule.id
       };
     }
-
+/
     // Existing window
-    if (existing.count >= rule.maxRequests) {
+    if (existing.count >= rule.maxRequests) {/
       // Rate limit exceeded
-      const result = {
+      const result = {;
         allowed: false,
         remaining: 0,
         resetTime: windowEnd,
@@ -225,7 +225,7 @@ export class RateLimiter {
         key,
         rule: rule.id
       };
-
+/
       // Call onLimitReached callback
       if (this.config.onLimitReached) {
         this.config.onLimitReached(request, result);
@@ -233,9 +233,9 @@ export class RateLimiter {
 
       return result;
     }
-
+/
     // Increment counter
-    const updatedEntry: RateLimitEntry = {
+    const updatedEntry: RateLimitEntry = {;
       ...existing,
       count: existing.count + 1,
       lastRequest: now
@@ -254,9 +254,9 @@ export class RateLimiter {
       rule: rule.id
     };
   }
-
-  // ============================================================================
-  // KEY GENERATION
+/
+  // ============================================================================/
+  // KEY GENERATION/
   // ============================================================================
 
   private generateKey(request: RateLimitRequest, rule: RateLimitRule): string {
@@ -276,17 +276,17 @@ export class RateLimiter {
         return `default:${request.ip || 'unknown'}`;
     }
   }
-
+/
+  // ============================================================================/
+  // WINDOW CALCULATION/
   // ============================================================================
-  // WINDOW CALCULATION
-  // ============================================================================
 
-  private calculateWindowStart(now: number, windowMs: number): number {
+  private calculateWindowStart(now: number, windowMs: number): number {/
     return Math.floor(now / windowMs) * windowMs;
   }
-
-  // ============================================================================
-  // UTILITY METHODS
+/
+  // ============================================================================/
+  // UTILITY METHODS/
   // ============================================================================
 
   private getDefaultRule(): RateLimitRule {
@@ -321,9 +321,9 @@ export class RateLimiter {
       rule: rule?.id || 'default'
     };
   }
-
-  // ============================================================================
-  // ADMIN METHODS
+/
+  // ============================================================================/
+  // ADMIN METHODS/
   // ============================================================================
 
   async resetLimit(key: string): Promise<void> {
@@ -347,14 +347,14 @@ export class RateLimiter {
     };
   }
 }
-
-// ============================================================================
-// EXPRESS MIDDLEWARE
+/
+// ============================================================================/
+// EXPRESS MIDDLEWARE/
 // ============================================================================
 
 import { Request, Response, NextFunction } from 'express';
 
-export interface RateLimitRequestExtended extends Request {
+export interface RateLimitRequestExtended extends Request {;
   rateLimit?: RateLimitResult;
   user?: {
     id: string;
@@ -362,13 +362,13 @@ export interface RateLimitRequestExtended extends Request {
   };
 }
 
-export function createRateLimitMiddleware(
+export function createRateLimitMiddleware(;
   limiter: RateLimiter,
   ruleId?: string
 ) {
   return async (req: RateLimitRequest, res: Response, next: NextFunction) => {
     try {
-      const request: RateLimitRequest = {
+      const request: RateLimitRequest = {;
         ip: req.ip || req.connection.remoteAddress,
         apiKey: req.headers['x-api-key'] as string,
         userId: req.user?.id,
@@ -380,7 +380,7 @@ export function createRateLimitMiddleware(
 
       const result = await limiter.checkLimit(request, ruleId);
       req.rateLimit = result;
-
+/
       // Add rate limit headers
       if (limiter.config.standardHeaders) {
         res.set({
@@ -394,13 +394,13 @@ export function createRateLimitMiddleware(
       if (limiter.config.legacyHeaders) {
         res.set({
           'X-RateLimit-Limit': result.rule,
-          'X-RateLimit-Remaining': result.remaining.toString(),
+          'X-RateLimit-Remaining': result.remaining.toString(),/
           'X-RateLimit-Reset': Math.ceil(result.resetTime / 1000).toString()
         });
       }
 
       if (!result.allowed) {
-        const message = limiter.getRule(ruleId || 'default')?.message || 
+        const message = limiter.getRule(ruleId || 'default')?.message || ;
                        limiter.config.message;
         
         if (limiter.config.handler) {
@@ -408,7 +408,7 @@ export function createRateLimitMiddleware(
         } else {
           res.status(429).json({
             error: 'Rate limit exceeded',
-            message,
+            message,/
             retryAfter: Math.ceil((result.resetTime - Date.now()) / 1000),
             limit: result.rule,
             remaining: result.remaining,
@@ -420,81 +420,82 @@ export function createRateLimitMiddleware(
 
       next();
     } catch (error) {
-      console.error('Rate limiting error:', error);
+      console.error('Rate limiting error:', error);/
       next(); // Continue on error
     }
   };
 }
-
+/
+// ============================================================================/
+// PRESET CONFIGURATIONS/
 // ============================================================================
-// PRESET CONFIGURATIONS
-// ============================================================================
 
-export const RateLimitPresets = {
+export const RateLimitPresets = {/;
   // General API rate limiting
-  api: {
+  api: {/
     windowMs: 15 * 60 * 1000, // 15 minutes
     maxRequests: 1000,
     message: 'API rate limit exceeded'
   },
-
+/
   // Strict rate limiting for sensitive endpoints
-  strict: {
+  strict: {/
     windowMs: 15 * 60 * 1000, // 15 minutes
     maxRequests: 100,
     message: 'Rate limit exceeded for sensitive endpoint'
   },
-
+/
   // Login attempts
-  login: {
+  login: {/
     windowMs: 15 * 60 * 1000, // 15 minutes
     maxRequests: 5,
     message: 'Too many login attempts, please try again later'
   },
-
+/
   // Password reset
-  passwordReset: {
+  passwordReset: {/
     windowMs: 60 * 60 * 1000, // 1 hour
     maxRequests: 3,
     message: 'Too many password reset attempts'
   },
-
+/
   // File upload
-  upload: {
+  upload: {/
     windowMs: 60 * 60 * 1000, // 1 hour
     maxRequests: 10,
     message: 'File upload rate limit exceeded'
   },
-
+/
   // AI/ML endpoints
-  ai: {
+  ai: {/
     windowMs: 60 * 1000, // 1 minute
     maxRequests: 10,
     message: 'AI endpoint rate limit exceeded'
   }
 };
-
+/
+// ============================================================================/
+// FACTORY FUNCTIONS/
 // ============================================================================
-// FACTORY FUNCTIONS
-// ============================================================================
 
-export function createRateLimiter(
+export function createRateLimiter(;
   config: Partial<RateLimitConfig> = {},
   store?: RateLimitStore
 ): RateLimiter {
   return new RateLimiter(config, store);
 }
 
-export function createPresetRateLimiter(
+export function createPresetRateLimiter(;
   preset: keyof typeof RateLimitPresets,
   store?: RateLimitStore
 ): RateLimiter {
   const config = RateLimitPresets[preset];
   return new RateLimiter(config, store);
 }
-
-// ============================================================================
-// EXPORTS
+/
+// ============================================================================/
+// EXPORTS/
 // ============================================================================
 
 export default RateLimiter;
+/

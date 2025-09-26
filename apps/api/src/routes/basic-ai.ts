@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { basicAIService } from '../lib/basic-ai/basic-ai.service.js';
 
 const router = Router();

@@ -1,5 +1,6 @@
 import { Architecture } from '../entities/architecture.entity.js';
-import { BaseRepository, BaseEntity, BaseFilters, BaseSearchOptions, PaginatedResult, BaseStats } from './base.repository.js';
+
+import { BaseRepository, BaseFilters, BaseSearchOptions, PaginatedResult, BaseStats } from './base.repository.js';
 
 // ============================================================================
 // ARCHITECTURE REPOSITORY INTERFACE - PR-0: MONOREPO + HEXAGONAL ARCHITECTURE

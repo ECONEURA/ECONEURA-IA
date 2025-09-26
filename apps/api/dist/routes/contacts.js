@@ -2,9 +2,10 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { CreateContactSchema, UpdateContactSchema, ContactFilterSchema } from '@econeura/shared/src/schemas/crm';
 import { PaginationRequestSchema } from '@econeura/shared/src/schemas/common';
-import { db } from '../lib/database.js';
 import { contacts } from '@econeura/db/src/schema';
 import { eq, and, ilike, or, count } from 'drizzle-orm';
+
+import { db } from '../lib/database.js';
 import { structuredLogger } from '../lib/structured-logger.js';
 const router = Router();
 router.get('/', async (req, res) => {

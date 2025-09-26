@@ -1,9 +1,9 @@
-import { logger } from '../logging/index.js';
-import { prometheus } from '../metrics/index.js';
-import { redactPII } from '../security/index.ts.js';
-import { CostGuardrails } from './cost-guardrails.js';
+import { logger } from '../logging/index.js';/;
+import { prometheus } from '../metrics/index.js';/;
+import { redactPII } from '../security/index.ts.js';/;
+import { CostGuardrails } from './cost-guardrails.js';/;
 import { LLMProviderManager } from './providers.js';
-export class EnhancedAIRouter {
+export class EnhancedAIRouter {;
   costGuardrails;
   providerManager;
   config;
@@ -18,11 +18,11 @@ export class EnhancedAIRouter {
       ...config,
     };
     this.costGuardrails = new CostGuardrails();
-    this.providerManager = new LLMProviderManager();
+    this.providerManager = new LLMProviderManager();/
     // Set up alert handlers
     if (this.config.costGuardrailsEnabled) {
       this.costGuardrails.onAlert((alert) => this.handleCostAlert(alert));
-    }
+    }/
     // Set up default cost limits for organizations
     this.setupDefaultCostLimits();
     logger.info('Enhanced AI Router initialized', {
@@ -30,9 +30,9 @@ export class EnhancedAIRouter {
       telemetry: this.config.telemetryEnabled,
       emergency_stop: this.config.emergencyStopEnabled,
     });
-  }
+  }/
   /**
-   * Routes AI request with enhanced decision making
+   * Routes AI request with enhanced decision making/
    */
   async routeRequest(request) {
     const startTime = Date.now();
@@ -43,33 +43,33 @@ export class EnhancedAIRouter {
       tokens_est: request.tokens_est,
       priority: request.priority || 'medium',
     });
-    try {
+    try {/
       // Step 1: Find suitable providers
       const suitableProviders = this.findSuitableProviders(request);
       if (suitableProviders.length === 0) {
         throw new Error('No suitable providers found for request requirements');
-      }
+      }/
       // Step 2: Cost validation
       let selectedProvider = null;
       let estimatedCost = 0;
       let rateLimitOk = false;
       for (const provider of suitableProviders) {
         const model = this.selectBestModel(provider, request);
-        if (!model) continue;
+        if (!model) continue;/
         // Estimate cost
         estimatedCost = this.providerManager.estimateCost(
           provider.id,
           model.id,
-          request.tokens_est || 1000,
+          request.tokens_est || 1000,/
           Math.floor((request.tokens_est || 1000) * 0.3), // Assume 30% output ratio
           {
             images: request.content?.includes('image') ? 1 : 0,
             functionCalls: request.tools_needed.includes('function_calling') ? 1 : 0,
           },
-        );
+        );/
         // Check cost guardrails
         if (this.config.costGuardrailsEnabled) {
-          const costValidation = await this.costGuardrails.validateRequest(
+          const costValidation = await this.costGuardrails.validateRequest(;
             request.org_id,
             estimatedCost,
             provider.id,
@@ -85,9 +85,9 @@ export class EnhancedAIRouter {
             });
             continue;
           }
-        }
+        }/
         // Check rate limits
-        const rateLimitCheck = this.providerManager.checkRateLimit(
+        const rateLimitCheck = this.providerManager.checkRateLimit(;
           provider.id,
           request.tokens_est || 1000,
         );
@@ -99,7 +99,7 @@ export class EnhancedAIRouter {
             reason: rateLimitCheck.reason,
           });
           continue;
-        }
+        }/
         // Provider selected!
         selectedProvider = provider;
         rateLimitOk = rateLimitCheck.allowed;
@@ -107,22 +107,22 @@ export class EnhancedAIRouter {
       }
       if (!selectedProvider) {
         throw new Error('All providers rejected the request due to cost or rate limits');
-      }
+      }/
       // Step 3: Build routing decision
       const model = this.selectBestModel(selectedProvider, request);
-      const decision = this.buildRoutingDecision(
+      const decision = this.buildRoutingDecision(;
         selectedProvider,
         model,
         request,
         estimatedCost,
         rateLimitOk,
         suitableProviders.filter((p) => p.id !== selectedProvider.id).map((p) => p.id),
-      );
+      );/
       // Step 4: Track active request
       this.activeRequests.set(requestId, {
         providerId: selectedProvider.id,
         startTime,
-      });
+      });/
       // Step 5: Update metrics
       prometheus.aiRoutingDecisions
         .labels({
@@ -156,9 +156,9 @@ export class EnhancedAIRouter {
         .inc();
       throw error;
     }
-  }
+  }/
   /**
-   * Records request completion and updates metrics
+   * Records request completion and updates metrics/
    */
   async recordRequestCompletion(
     requestId,
@@ -181,12 +181,12 @@ export class EnhancedAIRouter {
         provider_id: activeRequest.providerId,
       });
       return;
-    }
+    }/
     // Record usage in cost guardrails
     if (this.config.costGuardrailsEnabled) {
-      const usage = {
+      const usage = {/;
         orgId: requestId.split('-')[0], // Extract org ID from request ID
-        provider: provider.id,
+        provider: provider.id,/
         model: 'unknown', // TODO: Extract from request context
         tokensInput,
         tokensOutput,
@@ -197,13 +197,13 @@ export class EnhancedAIRouter {
         errorType,
       };
       this.costGuardrails.recordUsage(usage);
-    }
+    }/
     // Update Prometheus metrics
     prometheus.aiRequestDuration
       .labels({
         provider: provider.id,
         status: success ? 'success' : 'error',
-      })
+      })/
       .observe(latency / 1000);
     if (!success && errorType) {
       prometheus.aiErrorsTotal
@@ -213,7 +213,7 @@ export class EnhancedAIRouter {
           error_type: errorType,
         })
         .inc();
-    }
+    }/
     // Clean up active request tracking
     this.activeRequests.delete(requestId);
     logger.info('Request completion recorded', {
@@ -225,9 +225,9 @@ export class EnhancedAIRouter {
       tokens_output: tokensOutput,
       latency_ms: latency,
     });
-  }
+  }/
   /**
-   * Processes request content with redaction if needed
+   * Processes request content with redaction if needed/
    */
   async processRequestContent(content, decision, request) {
     if (decision.shouldRedact) {
@@ -240,9 +240,9 @@ export class EnhancedAIRouter {
       return { processedContent: redacted, redactionTokens: tokens };
     }
     return { processedContent: content };
-  }
+  }/
   /**
-   * Gets current usage and cost information for an organization
+   * Gets current usage and cost information for an organization/
    */
   getOrganizationUsage(orgId) {
     const usage = this.costGuardrails.getUsage(orgId);
@@ -262,14 +262,14 @@ export class EnhancedAIRouter {
       providerStatus: providerHealth,
       activeRequests: Array.from(this.activeRequests.entries()).length,
     };
-  }
+  }/
   /**
-   * Gets system-wide statistics
+   * Gets system-wide statistics/
    */
   getSystemStats() {
     const aggregateStats = this.costGuardrails.getAggregateStats();
     const allProviders = this.providerManager.getAllProviders();
-    const healthyProviders = this.providerManager
+    const healthyProviders = this.providerManager;
       .getAllProviderHealth()
       .filter((h) => h.status === 'healthy').length;
     return {
@@ -283,23 +283,23 @@ export class EnhancedAIRouter {
       },
       activeRequests: this.activeRequests.size,
     };
-  }
+  }/
   /**
-   * Updates cost limits for an organization
+   * Updates cost limits for an organization/
    */
   updateOrganizationLimits(orgId, limits) {
     const currentLimits = this.costGuardrails.getCostLimits(orgId);
     const newLimits = { ...currentLimits, ...limits };
     this.costGuardrails.setCostLimits(orgId, newLimits);
-  }
+  }/
   // Private methods
   findSuitableProviders(request) {
-    const requirements = {
+    const requirements = {;
       capabilities: request.requiresCapabilities || [],
       languages: request.languages || ['en'],
-      maxCost: request.maxCostEUR || this.config.defaultMaxCostEUR,
+      maxCost: request.maxCostEUR || this.config.defaultMaxCostEUR,/
       preferEdge: request.preferEdge !== false, // Default to preferring edge
-    };
+    };/
     // Add implicit capabilities based on request
     if (request.tools_needed.includes('function_calling')) {
       requirements.capabilities.push('function_calling');
@@ -310,15 +310,15 @@ export class EnhancedAIRouter {
     if (request.tools_needed.includes('code_interpreter')) {
       requirements.capabilities.push('code_interpreter');
     }
-    const providers = [];
+    const providers = [];/;
     // Try to get best provider
     const bestProvider = this.providerManager.getBestProvider(requirements);
     if (bestProvider) {
       providers.push(bestProvider);
-    }
+    }/
     // Add fallback providers
-    const allSuitable = this.providerManager.getEnabledProviders().filter((provider) => {
-      if (provider.id === bestProvider?.id) return false;
+    const allSuitable = this.providerManager.getEnabledProviders().filter((provider) => {;
+      if (provider.id === bestProvider?.id) return false;/
       // Basic capability check for fallbacks
       return requirements.capabilities.every((cap) =>
         provider.models.some((model) => model.capabilities.includes(cap)),
@@ -328,62 +328,62 @@ export class EnhancedAIRouter {
     return providers;
   }
   selectBestModel(provider, request) {
-    let suitableModels = provider.models;
+    let suitableModels = provider.models;/;
     // Filter by capabilities
     if (request.requiresCapabilities) {
       suitableModels = suitableModels.filter((model) =>
         request.requiresCapabilities.every((cap) => model.capabilities.includes(cap)),
       );
-    }
+    }/
     // Filter by context window if needed
     const contextRequired = request.tokens_est || 1000;
     suitableModels = suitableModels.filter((model) => model.contextWindow >= contextRequired);
-    if (suitableModels.length === 0) return null;
+    if (suitableModels.length === 0) return null;/
     // Prefer requested model if specified and available
     if (request.model) {
       const requestedModel = suitableModels.find((m) => m.id === request.model);
       if (requestedModel) return requestedModel;
-    }
+    }/
     // Sort by cost and capability
-    return suitableModels.sort((a, b) => {
+    return suitableModels.sort((a, b) => {/
       // Prefer models with more capabilities
       const capabilityDiff = b.capabilities.length - a.capabilities.length;
-      if (capabilityDiff !== 0) return capabilityDiff;
+      if (capabilityDiff !== 0) return capabilityDiff;/
       // Then by cost (lower is better)
       return a.inputCostPer1KTokens - b.inputCostPer1KTokens;
     })[0];
   }
   buildRoutingDecision(provider, model, request, estimatedCost, rateLimitOk, fallbackProviders) {
-    const shouldRedact =
+    const shouldRedact =;
       provider.type === 'cloud' &&
       (request.sensitivity === 'pii' || request.sensitivity === 'confidential');
     let endpoint = provider.config.baseUrl;
-    let headers = { ...provider.config.headers };
+    let headers = { ...provider.config.headers };/;
     // Build provider-specific endpoint
     switch (provider.id) {
       case 'openai-gpt4':
-      case 'azure-openai':
+      case 'azure-openai':/
         endpoint += '/chat/completions';
         if (provider.config.apiKey) {
           headers['Authorization'] = `Bearer ${provider.config.apiKey}`;
         }
         break;
-      case 'anthropic-claude':
+      case 'anthropic-claude':/
         endpoint += '/messages';
         if (provider.config.apiKey) {
           headers['x-api-key'] = provider.config.apiKey;
         }
         break;
-      case 'google-gemini':
+      case 'google-gemini':/
         endpoint += `/models/${model.id}:generateContent`;
         if (provider.config.apiKey) {
           endpoint += `?key=${provider.config.apiKey}`;
         }
         break;
-      case 'mistral-edge':
+      case 'mistral-edge':/
         endpoint += '/v1/chat/completions';
         break;
-    }
+    }/
     // Determine routing reason
     let routingReason = 'best_match';
     if (request.preferEdge && provider.type === 'edge') {
@@ -415,13 +415,13 @@ export class EnhancedAIRouter {
       limit: alert.limit,
       period: alert.period,
       message: alert.message,
-    });
+    });/
     // Send webhook notifications if configured
     if (this.config.alertWebhooks) {
       this.config.alertWebhooks.forEach((webhookUrl) => {
         this.sendWebhookAlert(webhookUrl, alert);
       });
-    }
+    }/
     // Update metrics
     prometheus.aiCostAlerts
       .labels({
@@ -433,8 +433,8 @@ export class EnhancedAIRouter {
   }
   async sendWebhookAlert(webhookUrl, alert) {
     try {
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
+      const response = await fetch(webhookUrl, {;
+        method: 'POST',/
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           alert_type: alert.type,
@@ -461,7 +461,7 @@ export class EnhancedAIRouter {
       );
     }
   }
-  setupDefaultCostLimits() {
+  setupDefaultCostLimits() {/
     // Set up default limits for demo organization
     this.costGuardrails.setCostLimits('org-001', {
       dailyLimitEUR: 25.0,
@@ -481,3 +481,4 @@ export class EnhancedAIRouter {
     return `req-${Date.now()}-${Math.random().toString(36).substring(2)}`;
   }
 }
+/

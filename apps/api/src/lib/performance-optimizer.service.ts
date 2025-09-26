@@ -5,8 +5,9 @@
  * minificación, lazy loading, y optimización de consultas.
  */
 
-import { structuredLogger } from './structured-logger.js';
 import { metrics } from '@econeura/shared/src/metrics/index.js';
+
+import { structuredLogger } from './structured-logger.js';
 
 export enum CompressionType {
   GZIP = 'gzip',

@@ -1,19 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
-import { httpMetrics, systemMetrics } from './metrics.js';
-import { tracingManager } from './tracing.js';
+import { httpMetrics, systemMetrics } from './metrics.js';/;
+import { tracingManager } from './tracing.js';/;
 import { logger } from '../logging/index.js';
-
+/
 /**
- * HTTP request monitoring middleware
+ * HTTP request monitoring middleware/
  */
-export function monitorRequest() {
+export function monitorRequest() {;
   return (req: Request, res: Response, next: NextFunction): void => {
     const startTime = Date.now();
     const route = req.route?.path || 'unknown';
     const method = req.method;
-
+/
     // Start tracing span
-    const span = tracingManager.startSpan('http_request', {
+    const span = tracingManager.startSpan('http_request', {;
       attributes: {
         'http.method': method,
         'http.route': route,
@@ -21,13 +21,13 @@ export function monitorRequest() {
         'http.user_agent': req.get('user-agent') || 'unknown',
       },
     });
-
+/
     // Record request size
     const contentLength = parseInt(req.get('content-length') || '0', 10);
     httpMetrics.requestSizeBytes.observe({ method, route }, contentLength);
-
+/
     // Hook on finish to capture metrics and logs without overriding end
-    res.on?.('finish', () => {
+    res.on?.('finish', () => {/
       const duration = (Date.now() - startTime) / 1000;
       const statusCode = String(res.statusCode ?? 0);
 
@@ -53,25 +53,25 @@ export function monitorRequest() {
     next();
   };
 }
-
+/
 /**
- * Error monitoring middleware
+ * Error monitoring middleware/
  */
-export function monitorErrors() {
+export function monitorErrors() {;
   return (error: Error, req: Request, res: Response, next: NextFunction): void => {
     const route = req.route?.path || 'unknown';
     const method = req.method;
-
+/
     // Record error metrics
     httpMetrics.requestsTotal.inc({
       method,
       route,
       status_code: '500',
     });
-
+/
     // End tracing span with error
     tracingManager.endSpan('http_request', { error });
-
+/
     // Log error
     logger.error(`${method} ${route} failed`, error, {
       request: {
@@ -85,21 +85,21 @@ export function monitorErrors() {
     next(error);
   };
 }
-
+/
 /**
- * Health check middleware
+ * Health check middleware/
  */
-export function healthCheck() {
+export function healthCheck() {;
   return (req: Request, res: Response): void => {
     const memoryUsage = process.memoryUsage();
     const cpuUsage = process.cpuUsage();
     const uptime = process.uptime();
-
+/
     // Update system metrics
     Object.entries(memoryUsage).forEach(([type, bytes]) => {
       systemMetrics.memory.set({ type }, bytes as number);
     });
-
+/
     systemMetrics.cpuUsage.set((cpuUsage.user + cpuUsage.system) / 1000000);
 
     res.json({
@@ -111,3 +111,4 @@ export function healthCheck() {
     });
   };
 }
+/

@@ -1,8 +1,9 @@
 import rateLimit from 'express-rate-limit';
-import { structuredLogger } from '../lib/structured-logger.js';
 import { getDatabaseService } from '@econeura/db';
 import { eq } from 'drizzle-orm';
 import { organizations } from '@econeura/db/schema';
+
+import { structuredLogger } from '../lib/structured-logger.js';
 const orgRateLimits = new Map();
 const rateLimitMetrics = new Map();
 setInterval(() => {

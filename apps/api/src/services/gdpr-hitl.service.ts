@@ -10,15 +10,12 @@
  */
 
 import { EventEmitter } from 'events';
+
 import { gdprConsolidated } from '../lib/gdpr-consolidated.service.js';
-import { hitlV2Service, HITLTask, HITLComment } from '../lib/hitl-v2.service.js';
+import { hitlV2Service, HITLTask } from '../lib/hitl-v2.service.js';
 import { structuredLogger } from '../lib/structured-logger.js';
 import { 
-  GDPRRequest, 
-  DataExport, 
-  DataErase, 
-  LegalHold,
-  DataCategory 
+  GDPRRequest 
 } from '../lib/gdpr-types.js';
 
 export interface GDPRHITLRequest {

@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+
 import { CreateDealUseCase } from '../../application/use-cases/deal/create-deal.use-case.js';
 import { UpdateDealUseCase } from '../../application/use-cases/deal/update-deal.use-case.js';
 import { DealRepository } from '../../domain/repositories/deal.repository.js';
@@ -8,16 +9,13 @@ import {
   UpdateDealRequest,
   DealSearchQuery,
   DealFiltersQuery,
-  DealBulkUpdateRequest,
-  DealBulkDeleteRequest,
   DealResponse,
   DealListResponse,
   DealStatsResponse,
   DealPipelineResponse,
   DealSalesForecastResponse,
   DealConversionRatesResponse,
-  DealDashboardResponse,
-  DealSummaryResponse
+  DealDashboardResponse
 } from '../dto/deal.dto.js';
 
 // ============================================================================

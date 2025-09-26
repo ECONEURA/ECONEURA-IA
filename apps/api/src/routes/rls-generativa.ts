@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
+
 import { rlsGenerativaService } from '../lib/rls-generativa.service.js';
 import { structuredLogger } from '../lib/structured-logger.js';
 

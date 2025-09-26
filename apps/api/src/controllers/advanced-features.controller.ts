@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
+import { getDatabaseService } from '@econeura/db';
+
 import { structuredLogger } from '../lib/structured-logger.js';
 import { predictiveAI } from '../services/predictive-ai.service.js';
 import { metricsService } from '../services/metrics.service.js';
@@ -7,7 +9,6 @@ import { autoML } from '../services/automl.service.js';
 import { sentimentAnalysis } from '../services/sentiment-analysis.service.js';
 import { azureOpenAI } from '../services/azure-openai.service.js';
 import { webSearch } from '../services/web-search.service.js';
-import { getDatabaseService } from '@econeura/db';
 
 // ============================================================================
 // ENHANCED ADVANCED FEATURES CONTROLLER

@@ -1,11 +1,10 @@
 import { EventEmitter } from 'events';
-import { z } from 'zod';
-import { logger } from './logger.js';
-import { metrics } from './metrics.js';
-import { tracing } from './tracing.js';
-import { finOpsSystem } from './finops.js';
 import crypto from 'crypto';
+
+import { z } from 'zod';
 import jwt from 'jsonwebtoken';
+
+import { logger } from './logger.js';
 
 // ============================================================================
 // TYPES AND SCHEMAS

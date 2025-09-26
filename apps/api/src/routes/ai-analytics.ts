@@ -1,8 +1,9 @@
 import { Router } from 'express';
+import { z } from 'zod';
+
 import { aiAnalyticsService, AIAnalyticsRequestSchema } from '../services/ai-analytics.service.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { validate } from '../middleware/validation.js';
-import { z } from 'zod';
 
 const router = Router();
 

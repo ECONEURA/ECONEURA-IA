@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
+
 import { fiscalidadRegionalService } from '../lib/fiscalidad-regional.service.js';
 import { structuredLogger } from '../lib/structured-logger.js';
 const fiscalidadRegionalRouter = Router();

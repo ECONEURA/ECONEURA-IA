@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { authenticate } from '../middleware/auth.middleware.js';
 import { authorize } from '../middleware/rbac.middleware.js';
 import { validateRequest } from '../middleware/validation.middleware.js';
