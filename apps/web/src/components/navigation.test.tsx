@@ -488,7 +488,6 @@ describe('Navigation Component Accessibility', () => {
       fireEvent.click(dropdownButton);
       expect(dropdownButton.getAttribute('aria-expanded')).toBe('false');
       expect(within(container).queryByRole('menu')).toBe(null);
-ument();
     });
   });
 });
