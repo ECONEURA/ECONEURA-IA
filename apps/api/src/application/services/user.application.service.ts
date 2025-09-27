@@ -80,7 +80,7 @@ export class UserApplicationService {
   async getUserById(userId: string): Promise<User | null> {
     try {
       return await this.userRepository.findById(userId);
-    } catch (error) {
+    } catch (_error) {
       return null;
     }
   }
@@ -88,7 +88,7 @@ export class UserApplicationService {
   async getUserByEmail(email: string): Promise<User | null> {
     try {
       return await this.userRepository.findByEmail(email);
-    } catch (error) {
+    } catch (_error) {
       return null;
     }
   }
@@ -96,7 +96,7 @@ export class UserApplicationService {
   async getUsersByOrganization(organizationId: string): Promise<User[]> {
     try {
       return await this.userRepository.findByOrganizationId(organizationId);
-    } catch (error) {
+    } catch (_error) {
       return [];
     }
   }
@@ -129,7 +129,7 @@ export class UserApplicationService {
         hasNext: result.hasNext,
         hasPrevious: result.hasPrevious
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         users: [],
         total: 0,
@@ -199,7 +199,7 @@ export class UserApplicationService {
       }
 
       return stats;
-    } catch (error) {
+    } catch (_error) {
       return {
         total: 0,
         byRole: {},
@@ -268,7 +268,7 @@ export class UserApplicationService {
         success: allSuccessful,
         results
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
         results: [],
@@ -308,7 +308,7 @@ export class UserApplicationService {
         success: allSuccessful,
         results
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
         results: [],
@@ -347,7 +347,7 @@ export class UserApplicationService {
       user.recordLogin();
       await this.userRepository.update(user);
       return true;
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }
@@ -362,7 +362,7 @@ export class UserApplicationService {
       user.recordLogin(); // Using recordLogin as it updates the timestamp
       await this.userRepository.update(user);
       return true;
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }

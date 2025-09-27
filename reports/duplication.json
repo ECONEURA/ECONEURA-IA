@@ -15,7 +15,8 @@
       "tokens": 156,
       "fragment": "async function processEvent(event: Event): Promise<void> {\n  try {\n    // Validate event structure\n    if (!event.type || !event.data) {\n      throw new Error('Invalid event structure');\n    }\n    \n    // Process based on event type\n    switch (event.type) {\n      case 'user.created':\n        await handleUserCreated(event.data);\n        break;\n      case 'user.updated':\n        await handleUserUpdated(event.data);\n        break;\n      default:\n        console.warn(`Unknown event type: ${event.type}`);\n    }\n  } catch (error) {\n    console.error('Error processing event:', error);\n    throw error;\n  }\n}"
     }
-  ],
+  }
+],
   "statistics": {
     "detectionDate": "2025-09-23T11:54:30.000Z",
     "total": {

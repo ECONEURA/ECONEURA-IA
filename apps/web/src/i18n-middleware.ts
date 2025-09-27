@@ -1,3 +1,5 @@
-export function i18nMiddleware(_request: unknown) {
-  return { status: 200 };
+import { NextRequest, NextResponse } from 'next/server';
+
+export function i18nMiddleware(_request: NextRequest) {
+  return NextResponse.next();
 }

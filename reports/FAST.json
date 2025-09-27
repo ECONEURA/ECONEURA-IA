@@ -1,0 +1,97 @@
+{
+  "repo": "ci-generate-score-fix",
+  "pm": null,
+  "engines": null,
+  "scripts": [],
+  "workspaces": [
+    "\"apps/*\"",
+    "\"packages/*\"",
+    "\"functions/*\""
+  ],
+  "apps": [
+    {
+      "dir": "apps/api",
+      "name": "@econeura/api"
+    },
+    {
+      "dir": "apps/api-agents-make",
+      "name": "@econeura/api-agents-make"
+    },
+    {
+      "dir": "apps/api-neura-comet",
+      "name": "@econeura/api-neura-comet"
+    },
+    {
+      "dir": "apps/voice",
+      "name": null
+    },
+    {
+      "dir": "apps/web",
+      "name": "@econeura/web"
+    },
+    {
+      "dir": "apps/workers",
+      "name": "@econeura/workers"
+    }
+  ],
+  "packages": [
+    {
+      "dir": "packages/agents",
+      "name": "@econeura/agents"
+    },
+    {
+      "dir": "packages/config",
+      "name": "@econeura/config"
+    },
+    {
+      "dir": "packages/configs",
+      "name": null
+    },
+    {
+      "dir": "packages/db",
+      "name": "@econeura/db"
+    },
+    {
+      "dir": "packages/sdk",
+      "name": "@econeura/sdk"
+    },
+    {
+      "dir": "packages/shared",
+      "name": "@econeura/shared"
+    }
+  ],
+  "functions": [],
+  "workflows": {
+    "count": 21,
+    "no_deploy_flag_files": [
+      ".github\\workflows\\auto-fix-workflows.yml",
+      ".github\\workflows\\azure-deploy.yml",
+      ".github\\workflows\\ci-audit-generate.yml",
+      ".github\\workflows\\ci-basic.yml",
+      ".github\\workflows\\ci-extended.yml",
+      ".github\\workflows\\ci.yml",
+      ".github\\workflows\\codeql-analysis.yml",
+      ".github\\workflows\\coverage-analysis.yml",
+      ".github\\workflows\\dependency-monitor.yml",
+      ".github\\workflows\\diagnose-ci-failures.yml",
+      ".github\\workflows\\econeura-test.yml",
+      ".github\\workflows\\integration-tests-with-compose.yml",
+      ".github\\workflows\\k6-smoke.yml",
+      ".github\\workflows\\license-compliance.yml",
+      ".github\\workflows\\load-testing.yml",
+      ".github\\workflows\\mandatory-approval-gate.yml",
+      ".github\\workflows\\openapi-validation.yml",
+      ".github\\workflows\\scan-econeura.yml",
+      ".github\\workflows\\security-approval.yml",
+      ".github\\workflows\\staging-deploy.yml",
+      ".github\\workflows\\test-minimal.yml"
+    ],
+    "dangerous": [
+      ".github\\workflows\\staging-deploy.yml"
+    ]
+  },
+  "verdict": {
+    "GO_NO_GO": true,
+    "NO_DEPLOY_OK": false
+  }
+}

@@ -310,6 +310,216 @@ jobs:
           echo "⚠️  kubectl not available - skipping Kubernetes deployment"
         fi
 
+  health-checks:
+    name: Health Checks & Rollback Preparation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: deploy-applications
+    outputs:
+      health-status: ${{ steps.health-check.outputs.status }}
+      rollback-needed: ${{ steps.health-check.outputs.rollback }}
+    if: always() && !cancelled()
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Comprehensive health checks
+      id: health-check
+      run: |
+        echo "🏥 Running comprehensive health checks..."
+        
+        API_URL="${{ secrets.STAGING_API_URL }}"
+        WEB_URL="${{ secrets.STAGING_WEB_URL }}"
+        
+        mkdir -p artifacts/health-checks
+        
+        # Initialize health status
+        HEALTH_PASSED=true
+        ROLLBACK_NEEDED=false
+        
+        echo "📊 Health Check Results" >> $GITHUB_STEP_SUMMARY
+        echo "| Service | Status | Response Time | Details |" >> $GITHUB_STEP_SUMMARY
+        echo "|---------|--------|---------------|---------|" >> $GITHUB_STEP_SUMMARY
+        
+        # Check API health
+        echo "🔍 Checking API health..."
+        API_START=$(date +%s%3N)
+        if API_RESPONSE=$(curl -f -s -w "HTTPSTATUS:%{http_code};TIME:%{time_total}" "$API_URL/health" 2>/dev/null); then
+          API_HTTP_CODE=$(echo $API_RESPONSE | tr -d '\n' | sed -e 's/.*HTTPSTATUS://' | sed -e 's/;TIME.*//')
+          API_TIME=$(echo $API_RESPONSE | tr -d '\n' | sed -e 's/.*TIME://')
+          API_TIME_MS=$(echo "scale=0; $API_TIME * 1000" | bc 2>/dev/null || echo "0")
+          
+          if [ "$API_HTTP_CODE" = "200" ] && (( $(echo "$API_TIME < 2.0" | bc -l 2>/dev/null || echo "1") )); then
+            echo "| API | ✅ Healthy | ${API_TIME_MS}ms | OK |" >> $GITHUB_STEP_SUMMARY
+            echo "✅ API health check passed"
+          else
+            echo "| API | ⚠️ Slow/Degraded | ${API_TIME_MS}ms | Code: $API_HTTP_CODE |" >> $GITHUB_STEP_SUMMARY
+            HEALTH_PASSED=false
+            ROLLBACK_NEEDED=true
+            echo "⚠️ API health check failed or slow"
+          fi
+        else
+          echo "| API | ❌ Unhealthy | - | Connection failed |" >> $GITHUB_STEP_SUMMARY
+          HEALTH_PASSED=false
+          ROLLBACK_NEEDED=true
+          echo "❌ API health check failed"
+        fi
+        
+        # Check Web health
+        echo "🔍 Checking Web health..."
+        WEB_START=$(date +%s%3N)
+        if WEB_RESPONSE=$(curl -f -s -w "HTTPSTATUS:%{http_code};TIME:%{time_total}" "$WEB_URL" 2>/dev/null); then
+          WEB_HTTP_CODE=$(echo $WEB_RESPONSE | tr -d '\n' | sed -e 's/.*HTTPSTATUS://' | sed -e 's/;TIME.*//')
+          WEB_TIME=$(echo $WEB_RESPONSE | tr -d '\n' | sed -e 's/.*TIME://')
+          WEB_TIME_MS=$(echo "scale=0; $WEB_TIME * 1000" | bc 2>/dev/null || echo "0")
+          
+          if [ "$WEB_HTTP_CODE" = "200" ] && (( $(echo "$WEB_TIME < 3.0" | bc -l 2>/dev/null || echo "1") )); then
+            echo "| Web | ✅ Healthy | ${WEB_TIME_MS}ms | OK |" >> $GITHUB_STEP_SUMMARY
+            echo "✅ Web health check passed"
+          else
+            echo "| Web | ⚠️ Slow/Degraded | ${WEB_TIME_MS}ms | Code: $WEB_HTTP_CODE |" >> $GITHUB_STEP_SUMMARY
+            HEALTH_PASSED=false
+            ROLLBACK_NEEDED=true
+            echo "⚠️ Web health check failed or slow"
+          fi
+        else
+          echo "| Web | ❌ Unhealthy | - | Connection failed |" >> $GITHUB_STEP_SUMMARY
+          HEALTH_PASSED=false
+          ROLLBACK_NEEDED=true
+          echo "❌ Web health check failed"
+        fi
+        
+        # Additional checks (database connectivity, etc.)
+        echo "🔍 Checking database connectivity..."
+        if [ "$HEALTH_PASSED" = "true" ]; then
+          # Test database connection through API
+          if curl -f -s "$API_URL/health/db" > /dev/null 2>&1; then
+            echo "| Database | ✅ Connected | - | OK |" >> $GITHUB_STEP_SUMMARY
+            echo "✅ Database connectivity check passed"
+          else
+            echo "| Database | ⚠️ Connection Issue | - | Check required |" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ Database connectivity check failed"
+          fi
+        fi
+        
+        # Save health check results
+        cat > artifacts/health-checks/results.json << EOF
+        {
+          "timestamp": "$(date -Iseconds)",
+          "deployment_id": "${{ github.run_id }}",
+          "commit_sha": "${{ github.sha }}",
+          "health_passed": $HEALTH_PASSED,
+          "rollback_needed": $ROLLBACK_NEEDED,
+          "checks": {
+            "api": {
+              "url": "$API_URL",
+              "healthy": $([ "$API_HTTP_CODE" = "200" ] && echo true || echo false),
+              "response_time_ms": ${API_TIME_MS:-0},
+              "http_code": "${API_HTTP_CODE:-unknown}"
+            },
+            "web": {
+              "url": "$WEB_URL",
+              "healthy": $([ "$WEB_HTTP_CODE" = "200" ] && echo true || echo false),
+              "response_time_ms": ${WEB_TIME_MS:-0},
+              "http_code": "${WEB_HTTP_CODE:-unknown}"
+            }
+          }
+        }
+        EOF
+        
+        # Set outputs
+        echo "status=$HEALTH_PASSED" >> $GITHUB_OUTPUT
+        echo "rollback=$ROLLBACK_NEEDED" >> $GITHUB_OUTPUT
+        
+        if [ "$HEALTH_PASSED" = "false" ]; then
+          echo "❌ Health checks failed - preparing for rollback"
+          exit 1
+        else
+          echo "✅ All health checks passed"
+        fi
+
+    - name: Upload health check results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: staging-health-checks
+        path: artifacts/health-checks/
+
+  rollback-on-failure:
+    name: Rollback on Health Check Failure
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: health-checks
+    if: needs.health-checks.outputs.rollback-needed == 'true' && !cancelled()
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Get previous deployment info
+      id: get-previous
+      run: |
+        echo "🔄 Preparing rollback to previous stable version..."
+        
+        # Get previous successful deployment
+        PREVIOUS_SHA=$(curl -s "${{ secrets.STAGING_API_URL }}/health" | jq -r '.version // "unknown"' 2>/dev/null || echo "unknown")
+        
+        if [ "$PREVIOUS_SHA" != "unknown" ] && [ "$PREVIOUS_SHA" != "${{ github.sha }}" ]; then
+          echo "previous_sha=$PREVIOUS_SHA" >> $GITHUB_OUTPUT
+          echo "📋 Found previous stable version: $PREVIOUS_SHA"
+        else
+          echo "⚠️ No previous stable version found, attempting emergency rollback"
+          # Try to get from git history
+          PREVIOUS_SHA=$(git rev-list --tags --max-count=1 2>/dev/null || git rev-parse HEAD~1)
+          echo "previous_sha=$PREVIOUS_SHA" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Execute rollback
+      if: env.DEPLOY_ENABLED == 'true'
+      run: |
+        echo "🔄 Executing rollback to ${{ steps.get-previous.outputs.previous_sha }}..."
+        
+        # Rollback API deployment
+        kubectl set image deployment/econeura-api-staging api=${{ secrets.CONTAINER_REGISTRY }}/econeura-api:staging-${{ steps.get-previous.outputs.previous_sha }} -n staging
+        
+        # Rollback Web deployment
+        kubectl set image deployment/econeura-web-staging web=${{ secrets.CONTAINER_REGISTRY }}/econeura-web:staging-${{ steps.get-previous.outputs.previous_sha }} -n staging
+        
+        # Wait for rollback to complete
+        kubectl rollout status deployment/econeura-api-staging -n staging --timeout=300s
+        kubectl rollout status deployment/econeura-web-staging -n staging --timeout=300s
+        
+        echo "✅ Rollback completed successfully"
+
+    - name: Verify rollback health
+      run: |
+        echo "🔍 Verifying rollback health..."
+        
+        # Wait and check health after rollback
+        sleep 30
+        
+        if curl -f -s "${{ secrets.STAGING_API_URL }}/health" > /dev/null 2>&1 && curl -f -s "${{ secrets.STAGING_WEB_URL }}" > /dev/null 2>&1; then
+          echo "✅ Rollback successful - services are healthy"
+        else
+          echo "❌ Rollback failed - services still unhealthy"
+          exit 1
+        fi
+
+    - name: Notify rollback completion
+      if: always()
+      run: |
+        echo "## 🔄 Rollback Completed" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Deployment:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Rolled back to:** ${{ steps.get-previous.outputs.previous_sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Status:** ${{ job.status == 'success' && '✅ Successful' || '❌ Failed' }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+        echo "- Investigate root cause of deployment failure" >> $GITHUB_STEP_SUMMARY
+        echo "- Fix issues in codebase" >> $GITHUB_STEP_SUMMARY
+        echo "- Test fixes thoroughly before next deployment" >> $GITHUB_STEP_SUMMARY
+
   post-deployment-tests:
     name: Post-Deployment Tests
     runs-on: ubuntu-latest
@@ -472,29 +682,8 @@ jobs:
           await github.rest.issues.create({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            title: `🚨 Staging Deployment Failed - ${context.sha.substring(0, 7)}`,
-            body: `
-## Staging Deployment Failure
-
-**Commit:** ${context.sha}
-**Run:** ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}
-**Timestamp:** ${new Date().toISOString()}
-
-### Failed Stages:
-${needs.pre-deployment-validation.result !== 'success' ? '- Pre-deployment validation\n' : ''}
-${needs.deploy-infrastructure.result !== 'success' && needs.deploy-infrastructure.result !== 'skipped' ? '- Infrastructure deployment\n' : ''}
-${needs.deploy-applications.result !== 'success' ? '- Application deployment\n' : ''}
-${needs.post-deployment-tests.result !== 'success' ? '- Post-deployment tests\n' : ''}
-
-### Immediate Actions Required:
-- [ ] Review deployment logs
-- [ ] Check service health
-- [ ] Investigate test failures
-- [ ] Rollback if necessary
-- [ ] Fix issues and redeploy
-
-*This issue was automatically created by staging deployment workflow*
-            `,
+            title: '🚨 Staging Deployment Failed - ' + context.sha.substring(0, 7),
+            body: '## Staging Deployment Failure\\n\\n**Commit:** ' + context.sha + '\\n**Run:** ' + context.serverUrl + '/' + context.repo.owner + '/' + context.repo.repo + '/actions/runs/' + context.runId + '\\n\\nDeployment failed. Check the workflow logs for details.\\n\\n*This issue was automatically created by staging deployment workflow*',
             labels: ['deployment', 'staging', 'failure', 'urgent']
           });
 

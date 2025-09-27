@@ -1,0 +1,259 @@
+{
+  "meta": {
+    "repo": "ci-generate-score-fix",
+    "node": "v24.8.0",
+    "pm": null,
+    "engines": null,
+    "private": false,
+    "duration_ms": 648
+  },
+  "inventory": {
+    "workspaces": [],
+    "apps": [
+      {
+        "dir": "apps/api",
+        "name": "@econeura/api"
+      },
+      {
+        "dir": "apps/api-agents-make",
+        "name": "@econeura/api-agents-make"
+      },
+      {
+        "dir": "apps/api-neura-comet",
+        "name": "@econeura/api-neura-comet"
+      },
+      {
+        "dir": "apps/voice",
+        "name": null
+      },
+      {
+        "dir": "apps/web",
+        "name": "@econeura/web"
+      },
+      {
+        "dir": "apps/workers",
+        "name": "@econeura/workers"
+      }
+    ],
+    "packages": [
+      {
+        "dir": "packages/agents",
+        "name": "@econeura/agents"
+      },
+      {
+        "dir": "packages/config",
+        "name": "@econeura/config"
+      },
+      {
+        "dir": "packages/configs",
+        "name": null
+      },
+      {
+        "dir": "packages/db",
+        "name": "@econeura/db"
+      },
+      {
+        "dir": "packages/sdk",
+        "name": "@econeura/sdk"
+      },
+      {
+        "dir": "packages/shared",
+        "name": "@econeura/shared"
+      }
+    ],
+    "functions": []
+  },
+  "workflows": {
+    "count": 20,
+    "flags": [
+      ".github/workflows/auto-fix-workflows.yml",
+      ".github/workflows/azure-deploy.yml",
+      ".github/workflows/ci-audit-generate.yml",
+      ".github/workflows/ci-basic.yml",
+      ".github/workflows/ci-extended.yml",
+      ".github/workflows/ci.yml",
+      ".github/workflows/codeql-analysis.yml",
+      ".github/workflows/coverage-analysis.yml",
+      ".github/workflows/dependency-monitor.yml",
+      ".github/workflows/diagnose-ci-failures.yml",
+      ".github/workflows/econeura-test.yml",
+      ".github/workflows/integration-tests-with-compose.yml",
+      ".github/workflows/k6-smoke.yml",
+      ".github/workflows/license-compliance.yml",
+      ".github/workflows/load-testing.yml",
+      ".github/workflows/mandatory-approval-gate.yml",
+      ".github/workflows/openapi-validation.yml",
+      ".github/workflows/scan-econeura.yml",
+      ".github/workflows/security-approval.yml",
+      ".github/workflows/test-minimal.yml"
+    ],
+    "dangerous": [],
+    "strict_violations": [],
+    "STRICT": false
+  },
+  "tests": {
+    "count": 23,
+    "coverage_lines_pct": null
+  },
+  "endpoints": [
+    "tmp-f7-proxy.js",
+    "tests/performance/baseline.js",
+    "tests/performance/smoke.js",
+    "scripts/check-openapi-diff.mjs",
+    "scripts/route-linter.mjs",
+    "scripts/test-advanced-features.js",
+    "scripts/ci/check-integrations-health.mjs",
+    "packages/shared/src/services/service-discovery.ts",
+    "packages/shared/src/monitoring/routes.ts",
+    "packages/shared/src/contracts/openapi.ts",
+    "packages/shared/src/contracts/sdk.ts",
+    "packages/shared/src/backup/basic.ts",
+    "packages/shared/src/backup/intermediate.ts",
+    "packages/shared/src/ai/providers.js",
+    "packages/shared/src/ai/providers.ts",
+    "packages/shared/src/ai/router.ts",
+    "packages/agents/ai-router.client.ts",
+    "apps/workers/tests/load-test.js",
+    "apps/workers/tests/stress-test.js",
+    "apps/workers/src/index.ts",
+    "apps/workers/scripts/monitor.js",
+    "apps/web/src/pages/api/cockpit/bff.ts",
+    "apps/web/src/components/AdvancedCICD/AdvancedCICDDashboard.tsx",
+    "apps/api-neura-comet/src/server.ts",
+    "apps/api-agents-make/src/server.ts",
+    "apps/api/vitest.e2e.config.ts",
+    "apps/api/src/index.expanded.ts",
+    "apps/api/src/index.final.ts",
+    "apps/api/src/index.ts",
+    "apps/api/src/test-all-endpoints.ts",
+    "apps/api/src/__tests__/integration/health.test.ts",
+    "apps/api/src/services/advanced-cicd.service.ts",
+    "apps/api/src/routes/advanced-ai-features.ts",
+    "apps/api/src/routes/advanced-audit-compliance.ts",
+    "apps/api/src/routes/advanced-cicd.ts",
+    "apps/api/src/routes/advanced-deployment-automation.ts",
+    "apps/api/src/routes/advanced-error-management.ts",
+    "apps/api/src/routes/advanced-features.ts",
+    "apps/api/src/routes/advanced-metrics-alerts.ts",
+    "apps/api/src/routes/advanced-observability.ts",
+    "apps/api/src/routes/advanced-performance-monitoring.ts",
+    "apps/api/src/routes/advanced-security-framework.ts",
+    "apps/api/src/routes/advanced-security.ts",
+    "apps/api/src/routes/ai-analytics.ts",
+    "apps/api/src/routes/ai-chat-advanced.ts",
+    "apps/api/src/routes/ai-cost-optimization.ts",
+    "apps/api/src/routes/ai-cost-prediction.ts",
+    "apps/api/src/routes/ai-dashboard-consolidation.ts",
+    "apps/api/src/routes/ai-model-management.ts",
+    "apps/api/src/routes/ai-performance-optimization.ts",
+    "apps/api/src/routes/ai-security-compliance.ts",
+    "apps/api/src/routes/ai-training.ts",
+    "apps/api/src/routes/auth.ts",
+    "apps/api/src/routes/automated-documentation.ts",
+    "apps/api/src/routes/automated-testing.ts",
+    "apps/api/src/routes/azure-integration.ts",
+    "apps/api/src/routes/blue-green-deployment.ts",
+    "apps/api/src/routes/centralized-logging.ts",
+    "apps/api/src/routes/cockpit-bff-live.ts",
+    "apps/api/src/routes/cockpit-integration.ts",
+    "apps/api/src/routes/cockpit.ts",
+    "apps/api/src/routes/companies-taxonomy.ts",
+    "apps/api/src/routes/configuration.ts",
+    "apps/api/src/routes/connection-pool.ts",
+    "apps/api/src/routes/contacts-dedupe.ts",
+    "apps/api/src/routes/dlg-grooming.ts",
+    "apps/api/src/routes/external-integrations.ts",
+    "apps/api/src/routes/finops-admin.ts",
+    "apps/api/src/routes/fiscalidad-regional.ts",
+    "apps/api/src/routes/gdpr-compliance.ts",
+    "apps/api/src/routes/gdpr-hitl.ts",
+    "apps/api/src/routes/graph-wrappers.ts",
+    "apps/api/src/routes/health-checks.ts",
+    "apps/api/src/routes/hitl-ownership-sla.ts",
+    "apps/api/src/routes/hitl-v2.ts",
+    "apps/api/src/routes/index.ts",
+    "apps/api/src/routes/integrations.make.health.ts",
+    "apps/api/src/routes/interactions-sas-av.ts",
+    "apps/api/src/routes/inventory-kardex.ts",
+    "apps/api/src/routes/memory-management.ts",
+    "apps/api/src/routes/metrics.ts",
+    "apps/api/src/routes/monitoring.ts",
+    "apps/api/src/routes/next-ai-platform.ts",
+    "apps/api/src/routes/observability-otel.ts",
+    "apps/api/src/routes/performance-v2.ts",
+    "apps/api/src/routes/performance.ts",
+    "apps/api/src/routes/progress.ts",
+    "apps/api/src/routes/project-completion-deployment.ts",
+    "apps/api/src/routes/reportes-mensuales.ts",
+    "apps/api/src/routes/rls-generativa.ts",
+    "apps/api/src/routes/rls-tenant-policies.ts",
+    "apps/api/src/routes/security-config.ts",
+    "apps/api/src/routes/semantic-search-crm.ts",
+    "apps/api/src/routes/sepa-robust.ts",
+    "apps/api/src/routes/status.ts",
+    "apps/api/src/routes/stripe-receipts.ts",
+    "apps/api/src/routes/supplier-scorecard.ts",
+    "apps/api/src/routes/warmup.ts",
+    "apps/api/src/routes/workers-integration.ts",
+    "apps/api/src/routes/workflows.ts",
+    "apps/api/src/presentation/routes/agents.routes.ts",
+    "apps/api/src/presentation/routes/basic-ai.routes.ts",
+    "apps/api/src/presentation/controllers/agents.controller.ts",
+    "apps/api/src/presentation/controllers/basic-ai.controller.ts",
+    "apps/api/src/openapi/spec.ts",
+    "apps/api/src/middleware/chaos.ts",
+    "apps/api/src/middleware/error-handler.ts",
+    "apps/api/src/middleware/gateway.ts",
+    "apps/api/src/middleware/observability.ts",
+    "apps/api/src/middleware/rate-limiting.ts",
+    "apps/api/src/lib/advanced-deployment-automation.service.ts",
+    "apps/api/src/lib/advanced-monitoring-alerts.service.ts",
+    "apps/api/src/lib/api-gateway.service.ts",
+    "apps/api/src/lib/automated-documentation.service.ts",
+    "apps/api/src/lib/blue-green-deployment.service.ts",
+    "apps/api/src/lib/cache-warmup.service.ts",
+    "apps/api/src/lib/gateway.ts",
+    "apps/api/src/lib/project-completion-deployment.service.ts",
+    "apps/api/src/lib/swagger-config.ts",
+    "apps/api/src/lib/warmup-system.service.ts",
+    "apps/api/src/lib/workers-integration.service.ts",
+    "apps/api/src/lib/system-cockpit/system-health.service.ts",
+    "apps/api/src/infrastructure/observability/index.ts",
+    "apps/api/src/cockpit.api/src/app.js",
+    "apps/api/scripts/generate-openapi.ts",
+    "apps/api/scripts/openapi.ts",
+    "apps/api/backup/index.expanded.backup.ts",
+    "apps/api/backup/index.expanded.ts",
+    "apps/api/backup/index.full.ts",
+    "apps/api/backup/index.intermediate.backup.ts",
+    "apps/api/backup/index.mega.ts",
+    "apps/api/backup/index.minimal.ts",
+    "apps/api/backup/index.restored.backup.ts",
+    "apps/api/backup/index.working.backup.ts"
+  ],
+  "metrics": {
+    "coverage_lines_pct": null,
+    "eslint_errors": null,
+    "jscpd_dup_pct": null,
+    "jscpd_clones_gt100": null,
+    "npm_high": null,
+    "npm_critical": null,
+    "secret_leaks": null
+  },
+  "durations_ms": {
+    "tests": 1,
+    "eslint": 1,
+    "jscpd": 3,
+    "audit": 1
+  },
+  "verdict": {
+    "score": 0,
+    "GO": false,
+    "NO_DEPLOY_OK": true
+  },
+  "asks": [
+    "Añadir \"packageManager\":\"pnpm@8.15.5\"",
+    "Añadir \"engines\":{\"node\":\">=20\"}",
+    "Declarar workspaces en package.json o pnpm-workspace.yaml"
+  ]
+}

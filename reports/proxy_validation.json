@@ -1,8 +1,8 @@
 {
-  "api_routing": false,
-  "validation_timestamp": "2025-09-26T19:42:51Z",
-  "overall_status": false,
+  "proxy_running": true,
+  "api_routing": true,
+  "overall_status": true,
   "frontend_detection": true,
-  "proxy_healthy": false,
-  "proxy_running": false
+  "proxy_healthy": true,
+  "validation_timestamp": "2025-09-26T20:05:46Z"
 }

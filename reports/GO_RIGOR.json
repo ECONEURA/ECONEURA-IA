@@ -1,0 +1,29 @@
+{
+  "GO": false,
+  "score": 0,
+  "NO_DEPLOY_OK": true,
+  "pass": {
+    "coverage": false,
+    "eslint": false,
+    "duplicates": false,
+    "sec": false,
+    "no_deploy": true
+  },
+  "metrics": {
+    "coverage_lines_pct": null,
+    "eslint_errors": null,
+    "jscpd_dup_pct": null,
+    "jscpd_clones_gt100": null,
+    "npm_high": null,
+    "npm_critical": null,
+    "secret_leaks": 0
+  },
+  "durations_ms": {
+    "eslint": 1,
+    "tests": 2,
+    "jscpd": 1,
+    "audit": 1
+  },
+  "took_ms": 25,
+  "asks": []
+}

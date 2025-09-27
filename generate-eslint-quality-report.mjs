@@ -15,89 +15,11 @@ console.log('🔍 Verificando estado de ESLint en ECONEURA-IA...\n');
 
 // Ejecutar ESLint con formato JSON para análisis detallado
 try {
-  // Primero intentar con JSON pero con límite de archivos
-  let eslintOutput;
-  try {
-    eslintOutput = execSync('pnpm eslint apps/ --format json --max-warnings 0 --max-errors 1000', {
-      encoding: 'utf8',
-      cwd: process.cwd(),
-      stdio: 'pipe',
-      maxBuffer: 1024 * 1024 * 20 // 20MB buffer
-    });
-  } catch {
-    // Si falla JSON, intentar obtener estadísticas básicas
-    console.log('📊 Intentando análisis básico de ESLint...');
-    const basicOutput = execSync('pnpm eslint apps/ --max-warnings 0 2>&1', {
-      encoding: 'utf8',
-      cwd: process.cwd(),
-      stdio: 'pipe',
-      maxBuffer: 1024 * 1024 * 5 // 5MB buffer
-    });
-
-    // Obtener las últimas líneas usando PowerShell
-    const lines = basicOutput.trim().split('\n');
-    const lastLines = lines.slice(-5); // Últimas 5 líneas
-
-    // Buscar la línea con estadísticas
-    const statsLine = lastLines.find(line => line.includes('problems') && line.includes('errors'));
-
-    if (statsLine) {
-      // Buscar patrón como "✖ 8889 problems (6610 errors, 2279 warnings)"
-      const match = statsLine.match(/✖\s+(\d+)\s+problems?\s+\((\d+)\s+errors?,\s+(\d+)\s+warnings?\)/);
-
-      if (match) {
-        const totalIssues = parseInt(match[1]);
-        const totalErrors = parseInt(match[2]);
-        const totalWarnings = parseInt(match[3]);
-
-        // Crear reporte básico
-        const report = {
-          timestamp: new Date().toISOString(),
-          summary: {
-            totalFiles: 0, // No podemos determinar con esta aproximación
-            totalErrors: totalErrors,
-            totalWarnings: totalWarnings,
-            totalIssues: totalIssues,
-            qualityScore: Math.max(0, 100 - (totalIssues * 0.01)), // Aproximación
-            phase7Ready: totalErrors === 0
-          },
-          errorBreakdown: {},
-          filesWithIssues: 0,
-          topErrorTypes: [],
-          note: "Análisis básico - estadísticas aproximadas debido al gran volumen de errores"
-        };
-
-        // Guardar reporte
-        const reportsDir = path.join(process.cwd(), 'artifacts');
-        if (!fs.existsSync(reportsDir)) {
-          fs.mkdirSync(reportsDir, { recursive: true });
-        }
-
-        fs.writeFileSync(
-          path.join(reportsDir, 'eslint-quality-report.json'),
-          JSON.stringify(report, null, 2)
-        );
-
-        // Mostrar resultados
-        console.log('📊 REPORTE DE CALIDAD ESLINT (BÁSICO)');
-        console.log('='.repeat(50));
-        console.log(`❌ Errores totales: ${totalErrors}`);
-        console.log(`⚠️  Advertencias totales: ${totalWarnings}`);
-        console.log(`🔢 Total de problemas: ${totalIssues}`);
-        console.log(`📈 Score de calidad aproximado: ${report.summary.qualityScore.toFixed(2)}%`);
-        console.log(`🎯 Listo para Phase 7: ${report.summary.phase7Ready ? '✅ SÍ' : '❌ NO'}`);
-
-        console.log('\n📄 Reporte básico guardado en: artifacts/eslint-quality-report.json');
-        console.log('💡 Nota: Para análisis completo, considere arreglar errores primero para reducir el volumen.');
-
-        process.exit(report.summary.phase7Ready ? 0 : 1);
-      } else {
-        throw new Error('No se pudieron parsear las estadísticas de ESLint');
-      }
-    } else {
-      throw new Error('No se encontraron estadísticas en la salida de ESLint');
-    }
-  }
+  const eslintOutput = execSync('pnpm eslint --format json --max-warnings 0', {
+    encoding: 'utf8',
+    cwd: process.cwd(),
+    stdio: 'pipe'
+  });
 
   const results = JSON.parse(eslintOutput);
 
@@ -193,97 +115,22 @@ try {
   // Exit code basado en si está listo para Phase 7
   process.exit(report.summary.phase7Ready ? 0 : 1);
 
-} catch (jsonError) {
-  console.log('⚠️  JSON parsing falló, intentando análisis básico de ESLint...');
-  console.log('Detalle del error:', jsonError.message);
+} catch (error) {
+  console.error('❌ Error ejecutando ESLint:', error.message);
 
-    // Ejecutar ESLint sin formato JSON para obtener estadísticas básicas
-    let basicOutput = '';
-    try {
-      basicOutput = execSync('pnpm eslint apps/', {
-        encoding: 'utf8',
-        cwd: process.cwd(),
-        stdio: 'pipe',
-        maxBuffer: 50 * 1024 * 1024 // 50MB buffer
-      });
-    } catch (eslintError) {
-      // Capturar la salida incluso si ESLint falla
-      basicOutput = eslintError.stdout || eslintError.stderr || '';
-      if (!basicOutput && eslintError.message) {
-        // Si no hay stdout/stderr, intentar extraer de message
-        const match = eslintError.message.match(/Command failed: (.+)/);
-        if (match) {
-          basicOutput = match[1];
-        }
-      }
-    }
+  // Si ESLint falló completamente, intentar ejecutar sin formato JSON
+  try {
+    console.log('\n🔄 Intentando ejecución básica de ESLint...');
+    const basicOutput = execSync('pnpm eslint --max-warnings 0 2>&1', {
+      encoding: 'utf8',
+      cwd: process.cwd(),
+      stdio: 'pipe'
+    });
+    console.log('Resultado básico:');
+    console.log(basicOutput);
+  } catch (basicError) {
+    console.error('❌ ESLint falló completamente:', basicError.message);
+  }
 
-    // Procesar la salida capturada
-    // Obtener las últimas líneas de la salida
-    const lines = basicOutput.split('\n');
-    const lastLines = lines.slice(-10); // Últimas 10 líneas
-
-    // Buscar la línea con estadísticas
-    const statsLine = lastLines.find(line => line.includes('problems') && line.includes('errors'));
-
-    if (statsLine) {
-      // Buscar patrón como "✖ 8889 problems (6610 errors, 2279 warnings)"
-      const match = statsLine.match(/✖\s+(\d+)\s+problems?\s+\((\d+)\s+errors?,\s+(\d+)\s+warnings?\)/);
-
-      if (match) {
-        const totalIssues = parseInt(match[1]);
-        const totalErrors = parseInt(match[2]);
-        const totalWarnings = parseInt(match[3]);
-
-        // Crear reporte básico
-        const report = {
-          timestamp: new Date().toISOString(),
-          summary: {
-            totalFiles: 0, // No podemos determinar con esta aproximación
-            totalErrors: totalErrors,
-            totalWarnings: totalWarnings,
-            totalIssues: totalIssues,
-            qualityScore: Math.max(0, 100 - (totalIssues * 0.01)), // Aproximación
-            phase7Ready: totalErrors === 0
-          },
-          errorBreakdown: {},
-          filesWithIssues: 0,
-          topErrorTypes: [],
-          note: "Análisis básico - estadísticas aproximadas debido al gran volumen de errores"
-        };
-
-        // Guardar reporte
-        const reportsDir = path.join(process.cwd(), 'artifacts');
-        if (!fs.existsSync(reportsDir)) {
-          fs.mkdirSync(reportsDir, { recursive: true });
-        }
-
-        fs.writeFileSync(
-          path.join(reportsDir, 'eslint-quality-report.json'),
-          JSON.stringify(report, null, 2)
-        );
-
-        // Mostrar resultados
-        console.log('📊 REPORTE DE CALIDAD ESLINT (BÁSICO)');
-        console.log('='.repeat(50));
-        console.log(`❌ Errores totales: ${totalErrors}`);
-        console.log(`⚠️  Advertencias totales: ${totalWarnings}`);
-        console.log(`🔢 Total de problemas: ${totalIssues}`);
-        console.log(`📈 Score de calidad aproximado: ${report.summary.qualityScore.toFixed(2)}%`);
-        console.log(`🎯 Listo para Phase 7: ${report.summary.phase7Ready ? '✅ SÍ' : '❌ NO'}`);
-
-        console.log('\n📄 Reporte básico guardado en: artifacts/eslint-quality-report.json');
-        console.log('💡 Nota: Para análisis completo, considere arreglar errores primero para reducir el volumen.');
-
-        process.exit(report.summary.phase7Ready ? 0 : 1);
-      } else {
-        console.log('No se pudieron parsear las estadísticas. Salida completa:');
-        console.log(basicOutput);
-        throw new Error('No se pudieron parsear las estadísticas de ESLint');
-      }
-    } else {
-      console.log('No se encontraron estadísticas. Salida completa:');
-      console.log(basicOutput);
-      throw new Error('No se encontraron estadísticas en la salida de ESLint');
-    }
+  process.exit(1);
 }

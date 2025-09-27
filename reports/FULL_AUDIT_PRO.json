@@ -1,0 +1,927 @@
+{
+  "meta": {
+    "repo": "ci-generate-score-fix",
+    "git": {
+      "remote": "https://github.com/ECONEURA/ECONEURA-IA.git",
+      "branch": "hardening/f7-seal-final",
+      "commit": "bea1e2e"
+    },
+    "node": "v24.8.0",
+    "packageManager": null,
+    "engines": null,
+    "private": false,
+    "duration_ms": 755
+  },
+  "inventory": {
+    "workspaces": [],
+    "apps": [
+      {
+        "dir": "apps/api",
+        "name": "@econeura/api"
+      },
+      {
+        "dir": "apps/api-agents-make",
+        "name": "@econeura/api-agents-make"
+      },
+      {
+        "dir": "apps/api-neura-comet",
+        "name": "@econeura/api-neura-comet"
+      },
+      {
+        "dir": "apps/voice",
+        "name": null
+      },
+      {
+        "dir": "apps/web",
+        "name": "@econeura/web"
+      },
+      {
+        "dir": "apps/workers",
+        "name": "@econeura/workers"
+      }
+    ],
+    "packages": [
+      {
+        "dir": "packages/agents",
+        "name": "@econeura/agents"
+      },
+      {
+        "dir": "packages/config",
+        "name": "@econeura/config"
+      },
+      {
+        "dir": "packages/configs",
+        "name": null
+      },
+      {
+        "dir": "packages/db",
+        "name": "@econeura/db"
+      },
+      {
+        "dir": "packages/sdk",
+        "name": "@econeura/sdk"
+      },
+      {
+        "dir": "packages/shared",
+        "name": "@econeura/shared"
+      }
+    ],
+    "functions": []
+  },
+  "detectors": {
+    "hasTS": true,
+    "hasESLint": true,
+    "hasNext": false,
+    "hasVite": false,
+    "hasTailwind": false,
+    "hasDocker": false,
+    "hasLicenseFile": true
+  },
+  "test_coverage": {
+    "testsCount": 23,
+    "coverageLinesPct": null,
+    "coverageFile": null
+  },
+  "workflows": {
+    "count": 20,
+    "no_deploy_flag_files": [
+      ".github/workflows/auto-fix-workflows.yml",
+      ".github/workflows/azure-deploy.yml",
+      ".github/workflows/ci-audit-generate.yml",
+      ".github/workflows/ci-basic.yml",
+      ".github/workflows/ci-extended.yml",
+      ".github/workflows/ci.yml",
+      ".github/workflows/codeql-analysis.yml",
+      ".github/workflows/coverage-analysis.yml",
+      ".github/workflows/dependency-monitor.yml",
+      ".github/workflows/diagnose-ci-failures.yml",
+      ".github/workflows/econeura-test.yml",
+      ".github/workflows/integration-tests-with-compose.yml",
+      ".github/workflows/k6-smoke.yml",
+      ".github/workflows/license-compliance.yml",
+      ".github/workflows/load-testing.yml",
+      ".github/workflows/mandatory-approval-gate.yml",
+      ".github/workflows/openapi-validation.yml",
+      ".github/workflows/scan-econeura.yml",
+      ".github/workflows/security-approval.yml",
+      ".github/workflows/test-minimal.yml"
+    ],
+    "dangerous_files": [],
+    "strict_violations": []
+  },
+  "envVars": {
+    "process": [
+      "AAD_AUDIENCE",
+      "AAD_ISSUER",
+      "AAD_REQUIRED",
+      "ADMIN_KEY",
+      "AGENTS_TRIGGER_URL",
+      "AI_ROUTER_API_KEY",
+      "AI_ROUTER_BASE_URL",
+      "ALERT_EMAIL_RECIPIENTS",
+      "ALERT_SMS_RECIPIENTS",
+      "ALERT_WEBHOOK_TOKEN",
+      "ALERT_WEBHOOK_URL",
+      "ALLOWED_ORIGINS",
+      "ALPHA_VANTAGE_API_KEY",
+      "ANTHROPIC_API_KEY",
+      "API_BASE_URL",
+      "API_HMAC_SECRET",
+      "API_HOST",
+      "API_KEY",
+      "API_PORT",
+      "API_URL",
+      "APNS_BUNDLE_ID",
+      "APNS_KEY_ID",
+      "APNS_PRIVATE_KEY",
+      "APNS_TEAM_ID",
+      "APPLICATIONINSIGHTS_CONNECTION_STRING",
+      "AUTH_REQUIRED",
+      "AZURE_CLIENT_ID",
+      "AZURE_OPENAI_API_ENDPOINT",
+      "AZURE_OPENAI_API_KEY",
+      "AZURE_OPENAI_API_VERSION",
+      "AZURE_OPENAI_CHAT_DEPLOYMENT",
+      "AZURE_OPENAI_DEFAULT_MODEL",
+      "AZURE_OPENAI_ENDPOINT",
+      "AZURE_OPENAI_IMAGE_DEPLOYMENT",
+      "AZURE_OPENAI_KEY",
+      "AZURE_SPEECH_KEY",
+      "AZURE_SPEECH_REGION",
+      "AZURE_STORAGE_ACCOUNT",
+      "AZURE_STORAGE_KEY",
+      "BACKUP_ENCRYPTION_KEY",
+      "BASE_URL",
+      "BING_SEARCH_API_KEY",
+      "CACHE_COMPRESSION",
+      "CACHE_MAX_SIZE",
+      "CACHE_TTL",
+      "CHAOS_ENABLED",
+      "CHAOS_ERR_PROB",
+      "CHAOS_FAULT_RATE",
+      "CHAOS_LAT_MAX",
+      "CHAOS_LAT_MIN",
+      "CHAOS_LAT_PROB",
+      "CI",
+      "CI_BUILD_OK",
+      "CI_TESTS_OK",
+      "COMPRESSION_LEVEL",
+      "CORS_ALLOWED_ORIGINS",
+      "CSRF_SECRET",
+      "DATABASE_URL",
+      "DATA_ENCRYPTION_KEY",
+      "DB_CONNECTION_TIMEOUT",
+      "DB_HOST",
+      "DB_IDLE_TIMEOUT",
+      "DB_MAX_CONNECTIONS",
+      "DB_MIN_CONNECTIONS",
+      "DB_NAME",
+      "DB_PASSWORD",
+      "DB_PORT",
+      "DB_QUERY_TIMEOUT",
+      "DB_SSL",
+      "DB_USER",
+      "DEFAULT_ORG",
+      "DEPLOY_ENABLED",
+      "ECONEURA_API_KEY",
+      "ECONEURA_API_URL",
+      "ENABLE_CACHE",
+      "ENABLE_COMPRESSION",
+      "ENABLE_METRICS",
+      "FEDEX_API_KEY",
+      "FINOPS_CFG_PATH",
+      "FINOPS_KILL_PATH",
+      "FIREBASE_PROJECT_ID",
+      "FIREBASE_SERVER_KEY",
+      "GITHUB_ACTIONS",
+      "GITHUB_REPOSITORY",
+      "GITHUB_SHA",
+      "GITHUB_STEP_SUMMARY",
+      "GITHUB_TOKEN",
+      "GOOGLE_AI_API_KEY",
+      "GOOGLE_SEARCH_API_KEY",
+      "GOOGLE_SEARCH_CX",
+      "GRAPH_ACCESS_TOKEN",
+      "GRAPH_CHAOS_ENABLED",
+      "GRAPH_CHAOS_FAILURE_RATE",
+      "GRAPH_CHAOS_LATENCY_MAX",
+      "GRAPH_CHAOS_LATENCY_MIN",
+      "GRAPH_CHAOS_ROTATION_INTERVAL",
+      "GRAPH_CHAOS_SIMULATION_MODE",
+      "GRAPH_NOTIFICATION_URL",
+      "HEALTH_PATH",
+      "HOSTNAME",
+      "JWKS_URI",
+      "JWT_REFRESH_SECRET",
+      "JWT_SECRET",
+      "K6_BASE_URL",
+      "LOG_LEVEL",
+      "MAKE_API_KEY",
+      "MAKE_GATEWAY_BASE",
+      "MAKE_HMAC_SECRET",
+      "MAKE_SIGNING_SECRET",
+      "MAKE_TIMEOUT_MS",
+      "MAKE_TOKEN",
+      "MAKE_WEBHOOK_BASE",
+      "MAKE_WEBHOOK_HMAC_SECRET",
+      "MAKE_WEBHOOK_URL",
+      "MEM_PG_URL",
+      "METRICS_API_KEY",
+      "METRICS_ENABLED",
+      "METRICS_ENDPOINT",
+      "MISTRAL_BASE_URL",
+      "MOCK_EXTERNAL",
+      "MONITOR_INTERVAL",
+      "NEURA_AZURE_URL",
+      "NEURA_GATEWAY_BASE",
+      "NEURA_LOCAL_URL",
+      "NEURA_TIMEOUT_MS",
+      "NEURA_TOKEN",
+      "NEXT_PUBLIC_API_URL",
+      "NEXT_PUBLIC_WEB_URL",
+      "NODE_ENV",
+      "OPENAI_API_KEY",
+      "OPENWEATHER_API_KEY",
+      "PAGERDUTY_INTEGRATION_KEY",
+      "PAGERDUTY_SERVICE_KEY",
+      "PAYPAL_API_KEY",
+      "PORT",
+      "POSTGRES_URL",
+      "PPLX_API_KEY",
+      "RATE_LIMIT_DISABLED",
+      "RATE_LIMIT_MAX",
+      "RATE_LIMIT_MAX_REQUESTS",
+      "RATE_LIMIT_WINDOW_MS",
+      "REDIS_HOST",
+      "REDIS_PASSWORD",
+      "REDIS_PORT",
+      "REDIS_URL",
+      "REQUIRED_CHECKS",
+      "ROUTER_DEFAULT_PROVIDER",
+      "SECURITY_ENABLE_LOGGING",
+      "SECURITY_LOG_LEVEL",
+      "SECURITY_WEBHOOK_URL",
+      "SENDGRID_API_KEY",
+      "SESSION_SECRET",
+      "SLACK_ALERT_CHANNEL",
+      "SLACK_CHANNEL",
+      "SLACK_WEBHOOK_URL",
+      "SMTP_FROM",
+      "SMTP_HOST",
+      "SMTP_PASS",
+      "SMTP_PORT",
+      "SMTP_SECURE",
+      "SMTP_TO",
+      "SMTP_USER",
+      "STRIPE_API_KEY",
+      "STRIPE_SECRET_KEY",
+      "TEST_AGENT_WEBHOOK_KEY",
+      "TWILIO_ACCOUNT_SID",
+      "TWILIO_AUTH_TOKEN",
+      "TWILIO_PHONE_NUMBER",
+      "UPS_API_KEY",
+      "USE_LOCAL_MISTRAL",
+      "VAPID_PRIVATE_KEY",
+      "VAPID_PUBLIC_KEY",
+      "VAPID_SUBJECT",
+      "VONAGE_API_KEY",
+      "VONAGE_API_SECRET",
+      "WEBHOOK_SECRET",
+      "WEBSITE_HOSTNAME",
+      "WEBSITE_INSTANCE_ID",
+      "WEB_URL",
+      "WORKERS_URL"
+    ],
+    "vite": [],
+    "window": [],
+    "dotenv": [
+      "MAKE_GATEWAY_BASE",
+      "MAKE_TOKEN",
+      "NEURA_GATEWAY_BASE",
+      "NEURA_TOKEN",
+      "PORT"
+    ],
+    "client_secret_risk": [
+      "MAKE_TOKEN",
+      "NEURA_TOKEN"
+    ]
+  },
+  "secrets": {
+    "filesCount": 117,
+    "sampleFiles": [
+      ".gitleaks.toml",
+      "pnpm-lock.yaml",
+      "validacion_manual_ci.sh",
+      "tests/README.md",
+      "tests/econeura-test/critical/config.yml",
+      "scripts/clean-token-eliminator.ps1",
+      "scripts/eliminar-x-rojas.bat",
+      "scripts/github-red-eliminator-web.ps1",
+      "scripts/setup-azure-oidc.sh",
+      "scripts/token-red-eliminator.ps1",
+      "scripts/tune_thresholds.sh",
+      "scripts/ops/verify_no_secrets.mjs",
+      "scripts/maintenance/scan-secrets.sh",
+      "scripts/ci/activacion_final_segura.sh",
+      "scripts/ci/activacion_final_segura_ready.sh",
+      "reports/eslint.changed.json",
+      "reports/gitleaks.json",
+      "patches_20250920T154117Z-13586/0001-chore-sec-HMAC-approval-canary-stubs-FinOps-guard-20.patch",
+      "patches_20250920T153706Z-5110/0001-feat-section1-neuras-make-adapter-approval-artifact-.patch",
+      "packages/shared/src/types/api/requests.ts",
+      "packages/shared/src/telemetry/index.ts",
+      "packages/shared/src/services/webhook-manager.ts",
+      "packages/shared/src/security/hmac.ts",
+      "packages/shared/src/security/index.js",
+      "packages/shared/src/security/index.ts",
+      "packages/shared/src/schemas/auth.ts",
+      "packages/shared/src/schemas/common.ts",
+      "packages/shared/src/schemas/index.ts",
+      "packages/shared/src/rate-limiting/index.ts",
+      "packages/shared/src/notifications/providers/email.provider.ts",
+      "packages/shared/src/notifications/providers/push.provider.ts",
+      "packages/shared/src/notifications/providers/sms.provider.ts",
+      "packages/shared/src/monitoring/logger.ts",
+      "packages/shared/src/contracts/index.ts",
+      "packages/shared/src/contracts/openapi.ts",
+      "packages/shared/src/contracts/sdk.ts",
+      "packages/shared/src/clients/example-usage.ts",
+      "packages/shared/src/clients/index.ts",
+      "packages/shared/src/ai/providers.js",
+      "packages/shared/src/ai/providers.ts",
+      "packages/sdk/src/client.ts",
+      "packages/db/src/connection.ts",
+      "packages/db/src/database.ts",
+      "packages/db/src/schema/index.ts",
+      "packages/agents/ai-router.client.ts",
+      "packages/agents/memory.ts",
+      "ECONEURA/scripts/approve-tool.sh",
+      "ECONEURA/scripts/vault_lib.sh",
+      "ECONEURA/playbooks/invalidate-token.sh",
+      "ECONEURA/docs/SECURITY_SYSTEM.md"
+    ]
+  },
+  "metrics": {
+    "files": 2235,
+    "totalBytes": 124790967,
+    "byExt": {
+      ".ts": 829,
+      "other": 541,
+      ".json": 469,
+      ".tsx": 133,
+      ".js": 70,
+      ".md": 60,
+      ".cjs": 38,
+      ".mjs": 38,
+      ".yml": 36,
+      ".yaml": 19,
+      ".html": 1,
+      ".css": 1
+    },
+    "byDir": {
+      "apps": 858,
+      "audit": 523,
+      "scripts": 204,
+      "packages": 191,
+      "scenarios": 50,
+      "tests": 32,
+      "reports": 30,
+      ".github": 29,
+      "services": 28,
+      "ECONEURA": 28,
+      "docs": 24,
+      ".husky": 20,
+      "artifacts": 13,
+      "config": 5,
+      "patches_workflow_20250920T170858Z": 2,
+      ".devcontainer": 2,
+      ".artifacts": 2,
+      ".ai_patterns": 1,
+      ".ai_sessions": 1,
+      ".ai_terminal_favorites": 1,
+      ".ai_terminal_history": 1,
+      ".ai_terminal_learned": 1,
+      ".commitlintrc.js": 1,
+      ".cpdignore": 1,
+      ".editorconfig": 1,
+      ".env.example": 1,
+      ".env.f7.local": 1,
+      ".eslintrc.cjs": 1,
+      ".gitattributes": 1,
+      ".gitignore": 1,
+      ".gitignore.backup": 1,
+      ".gitleaks.toml": 1,
+      ".jscpd.json": 1,
+      ".lintstagedrc.js": 1,
+      ".lychee.toml": 1,
+      ".lycheeignore": 1,
+      ".npmrc": 1,
+      ".nvmrc": 1,
+      ".openapi.checksum": 1,
+      ".prettierignore": 1,
+      ".prettierrc": 1,
+      ".releaserc.json": 1,
+      ".secrets.baseline": 1,
+      ".size-limit.json": 1,
+      ".spectral.yml": 1,
+      ".vitest_mode": 1,
+      "add_mock.js": 1,
+      "aggressive-eslint-fix.cjs": 1,
+      "AI-TERMINAL-PRO-README.md": 1,
+      "AI-TERMINAL-README.md": 1,
+      "analizar-workflows.sh": 1,
+      "analysis_report.txt": 1,
+      "analyze.sh": 1,
+      "AZURE-DEPLOYMENT.md": 1,
+      "batch.sh": 1,
+      "bootstrap-security.sh": 1,
+      "bulk-eslint-fix.js": 1,
+      "changed_files.txt": 1,
+      "checklist_activacion_final.sh": 1,
+      "checklist_final_verificacion.sh": 1,
+      "ci-RADICAL-SOFT-MODE.md": 1,
+      "ci.sh": 1,
+      "complete_ci_setup.sh": 1,
+      "complete_ci_testing.sh": 1,
+      "debug_proxy.ps1": 1,
+      "dev-env.sh": 1,
+      "dev.sh": 1,
+      "diagnostico_workflow.sh": 1,
+      "docker-compose.dev.yml": 1,
+      "dry-run-executor.sh": 1,
+      "econeura-max-bootstrap.sh": 1,
+      "ejecucion_manual_workflows.sh": 1,
+      "ELIMINACION-RADICAL-COMPLETADA.md": 1,
+      "eslint.config.mjs": 1,
+      "eslint.f3.mjs": 1,
+      "evidence_script.js": 1,
+      "exa-boost.js": 1,
+      "f0_hotfix.js": 1,
+      "f1_fast_patch.js": 1,
+      "f1_patch.js": 1,
+      "f2_metrics.js": 1,
+      "f2_opt.sh": 1,
+      "f7-final-analysis.sh": 1,
+      "f7-final-pipeline.sh": 1,
+      "f7-seal-final-r2.sh": 1,
+      "f7-seal-final.ps1": 1,
+      "f7-seal-ultra.ps1": 1,
+      "f7-seal-ultra.sh": 1,
+      "favorites.sh": 1,
+      "final-aggressive-eslint-fix.cjs": 1,
+      "final-parsing-fix.cjs": 1,
+      "final-seal.ps1": 1,
+      "final-seal.sh": 1,
+      "fix-any-types.js": 1,
+      "fix-config-issues.cjs": 1,
+      "fix-corrupted-files.cjs": 1,
+      "fix-critical-parsing-errors-final.cjs": 1,
+      "fix-critical-parsing-errors.cjs": 1,
+      "fix-final-errors.cjs": 1,
+      "fix-final-issues.cjs": 1,
+      "fix-final-parsing-errors.cjs": 1,
+      "fix-import-issues.cjs": 1,
+      "fix-incomplete-syntax.cjs": 1,
+      "fix-parsing-errors-comprehensive.cjs": 1,
+      "fix-parsing-errors-targeted.cjs": 1,
+      "fix-parsing-errors.cjs": 1,
+      "fix-regex-errors.cjs": 1,
+      "fix-remaining-eslint.cjs": 1,
+      "fix-remaining-eslint.js": 1,
+      "fix-remaining-parsing-errors.cjs": 1,
+      "fix-request-params.js": 1,
+      "fix-semicolon-errors.cjs": 1,
+      "fix-specific-content-errors.cjs": 1,
+      "fix-specific-parsing-errors-final.cjs": 1,
+      "fix-specific-parsing-errors-targeted.cjs": 1,
+      "fix-specific-parsing-errors.cjs": 1,
+      "fix-syntax-errors.cjs": 1,
+      "fix-unused-vars.js": 1,
+      "GAP_F7.md": 1,
+      "generate-eslint-quality-report.cjs": 1,
+      "generate-eslint-quality-report.mjs": 1,
+      "generate-quality-report.sh": 1,
+      "generate-v11-report.js": 1,
+      "generate_metrics.cjs": 1,
+      "hardening-v7.sh": 1,
+      "history.sh": 1,
+      "hmac_canary_setup.sh": 1,
+      "install-improvements.sh": 1,
+      "INSTRUCCIONES-FINALES-RADICAL.md": 1,
+      "learn.sh": 1,
+      "LICENSE": 1,
+      "maintain.sh": 1,
+      "MANUAL-ELIMINACION-ROJA.md": 1,
+      "MEJORAS-CRITICAS-IMPLEMENTADAS.md": 1,
+      "MISION-COMPLETADA-CERO-CRUCES-ROJAS.md": 1,
+      "nodeploy_script.js": 1,
+      "nuclear-disable-all-comprehensive.cjs": 1,
+      "nuclear-disable-all.cjs": 1,
+      "nuclear-eslint-disable.cjs": 1,
+      "one_step_hard_action.sh": 1,
+      "package-lock.json": 1,
+      "package.json": 1,
+      "package.json.backup": 1,
+      "phase1_optimizations.sh": 1,
+      "phases-progress.json": 1,
+      "PHASES_PROGRESS.md": 1,
+      "pnpm-lock.yaml": 1,
+      "pnpm-workspace.yaml": 1,
+      "purge_secrets.js": 1,
+      "quality-v11-blade.sh": 1,
+      "quality-v14-turbogates.sh": 1,
+      "quick_test_workflows.sh": 1,
+      "README.dev.md": 1,
+      "README.md": 1,
+      "replace-corrupt-files.cjs": 1,
+      "restore-all-corrupt-files.cjs": 1,
+      "restore-critical-files.cjs": 1,
+      "resumen_ejecutivo_ci_cd.sh": 1,
+      "resumen_final_ci_cd_completo.sh": 1,
+      "REVIEW_OK": 1,
+      "REVIEW_OK_REQUIRED": 1,
+      "REVISION-EXHAUSTIVA-README.md": 1,
+      "revision-exhaustiva.sh": 1,
+      "scanner.js": 1,
+      "SCORECARD.md": 1,
+      "section1_setup.sh": 1,
+      "SECURITY_AUDIT_README.md": 1,
+      "setup.sh": 1,
+      "simple_proxy_test.ps1": 1,
+      "SOLUCION-GITHUB-ACTIONS-ERROR.md": 1,
+      "summary.js": 1,
+      "summary_script.js": 1,
+      "temp_evidence.js": 1,
+      "temp_fix.sh": 1,
+      "temp_pkg.js": 1,
+      "temp_script.sh": 1,
+      "temp_summary.js": 1,
+      "test.sh": 1,
+      "test_proxy_e2e.ps1": 1,
+      "test_pr_visibility.txt": 1,
+      "tmp-f7-proxy.cjs": 1,
+      "tmp-f7-proxy.js": 1,
+      "tsconfig.base.json": 1,
+      "tsconfig.json": 1,
+      "validacion_completa_ci.sh": 1,
+      "validacion_manual_ci.sh": 1,
+      "validate_approval.sh": 1,
+      "validate_proxy.ps1": 1,
+      "validate_proxy.sh": 1,
+      "validate_proxy_new.ps1": 1,
+      "verificacion-critica.sh": 1,
+      "vitest.config.ts": 1,
+      "vitest.f2.config.ts": 1,
+      "vitest.integration.config.ts": 1,
+      "vitest.performance.config.ts": 1,
+      "vitest.workspace.json": 1,
+      "vitest.workspace.ts": 1,
+      "test": 1,
+      "patches_workflow_20250920T170301Z": 1,
+      "patches_workflow_20250920T165722Z": 1,
+      "patches_approval": 1,
+      "patches_20250920T154117Z-13586": 1,
+      "patches_20250920T153706Z-5110": 1,
+      "monitoring": 1,
+      "mega-prompts": 1,
+      "ci_activation_manual_20250920T184924Z": 1,
+      ".ci_activation_no_verify_20250920T203942Z": 1,
+      ".ci_activation_no_verify_20250920T203508Z": 1,
+      ".ci_activation_no_interactive_20250920T204026Z": 1,
+      ".ci_activation_20250920T191421Z": 1,
+      ".ci_activation_20250920T191212Z": 1
+    }
+  },
+  "topLargest": [
+    {
+      "path": "reports/vitest.json",
+      "size": 29491098
+    },
+    {
+      "path": "reports/coverage.json",
+      "size": 26752370
+    },
+    {
+      "path": "reports/eslint.core.json",
+      "size": 17962141
+    },
+    {
+      "path": "artifacts/lint-core.json",
+      "size": 17268221
+    },
+    {
+      "path": "reports/eslint.json",
+      "size": 11877625
+    },
+    {
+      "path": "artifacts/duplication-report.json/jscpd-report.json",
+      "size": 3627903
+    },
+    {
+      "path": "reports/jscpd-report.json/jscpd-report.json",
+      "size": 1290130
+    },
+    {
+      "path": "apps/api/tsconfig.tsbuildinfo",
+      "size": 1110920
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "size": 620519
+    },
+    {
+      "path": "patches_20250920T154117Z-13586/0001-chore-sec-HMAC-approval-canary-stubs-FinOps-guard-20.patch",
+      "size": 577268
+    },
+    {
+      "path": "patches_20250920T153706Z-5110/0001-feat-section1-neuras-make-adapter-approval-artifact-.patch",
+      "size": 565174
+    },
+    {
+      "path": "artifacts/duplication-results.txt",
+      "size": 456848
+    },
+    {
+      "path": "reports/eslint.changed.json",
+      "size": 271332
+    },
+    {
+      "path": "apps/api/backup/index.full.ts",
+      "size": 203983
+    },
+    {
+      "path": "reports/gitleaks.json",
+      "size": 154690
+    },
+    {
+      "path": "artifacts/lint-web.json",
+      "size": 105602
+    },
+    {
+      "path": "packages/shared/tsconfig.tsbuildinfo",
+      "size": 95662
+    },
+    {
+      "path": "apps/api/src/index.ts",
+      "size": 93745
+    },
+    {
+      "path": "audit/evidence_20250920T153706Z-5110.tar.gz",
+      "size": 71877
+    },
+    {
+      "path": "audit/evidence_20250920T153628Z-1191.tar.gz",
+      "size": 71437
+    },
+    {
+      "path": "audit/evidence_20250920T151430Z-29169.tar.gz",
+      "size": 70288
+    },
+    {
+      "path": "apps/api/src/index.ts.backup.20250906_041712",
+      "size": 59887
+    },
+    {
+      "path": "packages/shared/openapi.json",
+      "size": 57760
+    },
+    {
+      "path": "packages/shared/src/contracts/openapi.ts",
+      "size": 43245
+    },
+    {
+      "path": "packages/shared/src/ai/features.service.ts",
+      "size": 42410
+    },
+    {
+      "path": "apps/web/src/components/CustomerSupport/CustomerSupportDashboard.tsx",
+      "size": 40793
+    },
+    {
+      "path": "apps/api/prisma/migrations/20250828_init/migration.sql",
+      "size": 40571
+    },
+    {
+      "path": "apps/api/src/presentation/controllers/contact.controller.ts",
+      "size": 39249
+    },
+    {
+      "path": "apps/api/src/presentation/controllers/deal.controller.ts",
+      "size": 38945
+    },
+    {
+      "path": "apps/api/src/lib/gdpr-consolidated.service.ts",
+      "size": 38544
+    },
+    {
+      "path": "apps/api/src/lib/ai-agents-registry.service.ts",
+      "size": 37637
+    },
+    {
+      "path": "apps/api/src/services/social-media-management.service.ts",
+      "size": 37514
+    },
+    {
+      "path": "apps/api/prisma/schema.prisma",
+      "size": 37488
+    },
+    {
+      "path": "apps/web/src/app/erp/suppliers/page.tsx",
+      "size": 36704
+    },
+    {
+      "path": "apps/api/src/domain/services/user.domain.service.test.ts",
+      "size": 36312
+    },
+    {
+      "path": "apps/api/src/lib/quiet-hours-oncall-consolidated.service.ts",
+      "size": 36223
+    },
+    {
+      "path": "apps/api/src/services/email-marketing.service.ts",
+      "size": 36179
+    },
+    {
+      "path": "packages/shared/src/ai/analytics.service.ts",
+      "size": 36089
+    },
+    {
+      "path": "apps/api/src/lib/automated-documentation.service.ts",
+      "size": 35615
+    },
+    {
+      "path": "apps/web/src/components/ai/AIAdvancedChat.tsx",
+      "size": 35024
+    },
+    {
+      "path": "apps/web/src/components/AdvancedCICD/AdvancedCICDDashboard.tsx",
+      "size": 34756
+    },
+    {
+      "path": "apps/api/src/lib/security-consolidated.service.ts",
+      "size": 34462
+    },
+    {
+      "path": "apps/api/src/services/content-management.service.ts",
+      "size": 34294
+    },
+    {
+      "path": "apps/api/src/services/ai-cost-prediction.service.ts",
+      "size": 34193
+    },
+    {
+      "path": "apps/api/src/lib/advanced-error-management.service.ts",
+      "size": 33949
+    },
+    {
+      "path": "apps/api/src/lib/advanced-security.ts",
+      "size": 33703
+    },
+    {
+      "path": "apps/web/src/app/erp/products/page.tsx",
+      "size": 33623
+    },
+    {
+      "path": "apps/api/src/lib/advanced-security-framework.service.ts",
+      "size": 33559
+    },
+    {
+      "path": "apps/api/src/services/ai-cost-optimization.service.ts",
+      "size": 33557
+    },
+    {
+      "path": "apps/api/src/lib/dlg-grooming.service.ts",
+      "size": 33485
+    },
+    {
+      "path": "apps/api/src/services/gdpr-hitl.service.ts",
+      "size": 33364
+    },
+    {
+      "path": "apps/api/src/services/customer-support.service.ts",
+      "size": 33023
+    },
+    {
+      "path": "apps/api/src/lib/advanced-deployment-automation.service.ts",
+      "size": 32969
+    },
+    {
+      "path": "apps/web/src/app/erp/inventory/page.tsx",
+      "size": 32937
+    },
+    {
+      "path": "apps/api/src/lib/supplier-scorecard.service.ts",
+      "size": 32932
+    },
+    {
+      "path": "apps/api/src/lib/project-completion-deployment.service.ts",
+      "size": 32666
+    },
+    {
+      "path": "apps/api/src/lib/finops-consolidated.service.ts",
+      "size": 32570
+    },
+    {
+      "path": "apps/api/src/routes/advanced-ai-features.ts",
+      "size": 32159
+    },
+    {
+      "path": "apps/api/src/lib/hitl-ownership-sla.service.ts",
+      "size": 31874
+    },
+    {
+      "path": "apps/api/src/lib/centralized-logging.service.ts",
+      "size": 31328
+    },
+    {
+      "path": "apps/api/src/services/rls-tenant-policies.service.ts",
+      "size": 31108
+    },
+    {
+      "path": "apps/api/src/services/ai-security-compliance.service.ts",
+      "size": 30984
+    },
+    {
+      "path": "apps/api/src/lib/interactions-sas-av.service.ts",
+      "size": 30875
+    },
+    {
+      "path": "apps/api/src/lib/notifications.ts",
+      "size": 30837
+    },
+    {
+      "path": "apps/api/src/domain/entities/contact.entity.ts",
+      "size": 30824
+    },
+    {
+      "path": "apps/api/src/lib/data-analytics-dashboard.service.ts",
+      "size": 30706
+    },
+    {
+      "path": "apps/api/src/presentation/controllers/interaction.controller.ts",
+      "size": 30457
+    },
+    {
+      "path": "apps/api/src/lib/inventory.ts",
+      "size": 30362
+    },
+    {
+      "path": "apps/api/src/services/ai-performance-optimization.service.ts",
+      "size": 30208
+    },
+    {
+      "path": "apps/api/src/docs/openapi.yaml",
+      "size": 29891
+    },
+    {
+      "path": "apps/api/src/lib/inventory-kardex.service.ts",
+      "size": 29650
+    },
+    {
+      "path": "apps/api/src/lib/backup-recovery.service.ts",
+      "size": 29539
+    },
+    {
+      "path": "apps/api/src/lib/rls-generativa.service.ts",
+      "size": 29400
+    },
+    {
+      "path": "apps/api/src/services/document-management.service.ts",
+      "size": 29327
+    },
+    {
+      "path": "apps/api/src/presentation/dto/database-schema.dto.ts",
+      "size": 29045
+    },
+    {
+      "path": "apps/api/src/lib/workflows.ts",
+      "size": 28912
+    },
+    {
+      "path": "apps/web/src/app/crm/deals/page.tsx",
+      "size": 28841
+    },
+    {
+      "path": "scripts/maintenance/scan-secrets.sh",
+      "size": 28800
+    },
+    {
+      "path": "apps/api/src/services/ai-model-management.service.ts",
+      "size": 28327
+    },
+    {
+      "path": "apps/api/src/lib/sepa.service.ts",
+      "size": 28237
+    }
+  ],
+  "verdict": {
+    "GO_NO_GO": true,
+    "NO_DEPLOY_OK": true,
+    "risksCount": 3,
+    "risks": [
+      "packageManager ausente",
+      "engines ausente",
+      "Posibles secretos en cliente/.env"
+    ]
+  }
+}

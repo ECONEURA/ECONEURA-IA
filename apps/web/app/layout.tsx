@@ -1,3 +1,9 @@
+import { PublicClientApplication } from '@azure/msal-browser';
+import { MsalProvider } from '@azure/msal-react';
+import { msalConfig } from '../lib/authConfig';
+
+const msalInstance = new PublicClientApplication(msalConfig);
+
 export default function RootLayout({
   children,
 }: {
@@ -5,7 +11,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body>
+        <MsalProvider instance={msalInstance}>
+          {children}
+        </MsalProvider>
+      </body>
     </html>
   );
 }

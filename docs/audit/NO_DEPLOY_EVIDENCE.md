@@ -1,202 +1,26 @@
-# NO_DEPLOY_EVIDENCE (F0R)
+# NO_DEPLOY_EVIDENCE
+flags(20):
+.github/workflows/auto-fix-workflows.yml
+.github/workflows/azure-deploy.yml
+.github/workflows/ci-audit-generate.yml
+.github/workflows/ci-basic.yml
+.github/workflows/ci-extended.yml
+.github/workflows/ci.yml
+.github/workflows/codeql-analysis.yml
+.github/workflows/coverage-analysis.yml
+.github/workflows/dependency-monitor.yml
+.github/workflows/diagnose-ci-failures.yml
+.github/workflows/econeura-test.yml
+.github/workflows/integration-tests-with-compose.yml
+.github/workflows/k6-smoke.yml
+.github/workflows/license-compliance.yml
+.github/workflows/load-testing.yml
+.github/workflows/mandatory-approval-gate.yml
+.github/workflows/openapi-validation.yml
+.github/workflows/scan-econeura.yml
+.github/workflows/security-approval.yml
+.github/workflows/test-minimal.yml
 
-## Peligros
-- analizar-workflows.sh:129 `if grep -E "(deploy|kubernetes|kubectl|helm|cloudsmith|gcloud|aws s3|aws ecr|docker push|buildx)" -ni "$file" >/dev/null 2>&1; then`
-- audit\evidence_20250920T151430Z-29169\az-cli-in-docker.sh:2 `# Ejecuta Azure CLI dentro de un contenedor Docker para evitar instalar az localmente.`
-- audit\evidence_20250920T151430Z-29169\az-cli-in-docker.sh:4 `#   bash scripts/az-cli-in-docker.sh -- az login --use-device-code`
-- audit\evidence_20250920T151430Z-29169\az-cli-in-docker.sh:6 `#   bash scripts/az-cli-in-docker.sh -- az ad sp create-for-rbac --name "sp-github-actions-ec" --role "Contributor" --scopes /subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RG> --sdk-auth > sp.json`
-- audit\evidence_20250920T151430Z-29169\az-cli-in-docker.sh:17 `echo "Ejemplo: bash scripts/az-cli-in-docker.sh -- az login --use-device-code"`
-- audit\evidence_20250920T151430Z-29169\az-cli-in-docker.sh:21 `# Construir el comando az a ejecutar dentro del contenedor`
-- audit\evidence_20250920T151430Z-29169\az-final-check.sh:9 `az account show >/dev/null 2>&1 || az login --use-device-code >/dev/null`
-- audit\evidence_20250920T151430Z-29169\az-final-check.sh:14 `WEB_FQDN="$(az webapp show -g "$RG" -n "$WEB" --query defaultHostName -o tsv)"`
-- audit\evidence_20250920T151430Z-29169\az-final-check.sh:17 `HP="$(az webapp show -g "$RG" -n "$API" --query siteConfig.healthCheckPath -o tsv)"; [ -z "${HP:-}" ] && HP="/health"`
-- audit\evidence_20250920T151430Z-29169\az-final-check.sh:26 `APP_URL="$(az webapp config appsettings list -g "$RG" -n "$WEB" --query "[?name=='NEXT_PUBLIC_API_URL'].value | [0]" -o tsv)"`
-- audit\evidence_20250920T151430Z-29169\az-final-check.sh:27 `FX="$(az webapp show -g "$RG" -n "$API" --query siteConfig.linuxFxVersion -o tsv)"`
-- audit\evidence_20250920T151430Z-29169\az-final-check.sh:28 `CORS_ALLOWED="$(az webapp cors show -g "$RG" -n "$API" --query allowedOrigins -o tsv | paste -sd',' -)"`
-- audit\evidence_20250920T151430Z-29169\az-final-check.sh:29 `RULES="$(az webapp config access-restriction show -g "$RG" -n "$API" --query "ipSecurityRestrictions[].ipAddress" -o tsv)"`
-- audit\evidence_20250920T151430Z-29169\az-final-check.sh:31 `SCM_SAME="$(az webapp config access-restriction show -g "$RG" -n "$API" --query "scmIpSecurityRestrictionsUseMain" -o tsv)"`
-- audit\evidence_20250920T151430Z-29169\create-sp-and-secrets.sh:19 `az account set --subscription "$SUBSCRIPTION_ID"`
-- audit\evidence_20250920T151430Z-29169\create-sp-and-secrets.sh:22 `SP_OUTPUT=$(az ad sp create-for-rbac --name "http://econeura-ci-$RANDOM" --role "Contributor" --scopes "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP" --sdk-auth)`
-- audit\evidence_20250920T151430Z-29169\deploy-azure.sh:11 `echo "[deploy] Uploading zip to Azure WebApp: $WEBAPP ..."`
-- audit\evidence_20250920T151430Z-29169\deploy-azure.sh:12 `az webapp deployment source config-zip --resource-group "$RG" --name "$WEBAPP" --src ../../tmp/deploy.zip`
-- audit\evidence_20250920T151430Z-29169\deploy-azure.sh:14 `HOST=$(az webapp show -g "$RG" -n "$WEBAPP" --query defaultHostName -o tsv)`
-- audit\evidence_20250920T151430Z-29169\deploy.sh:169 `if ! az account show &> /dev/null; then`
-- audit\evidence_20250920T151430Z-29169\deploy.sh:171 `az login`
-- audit\evidence_20250920T151430Z-29169\deploy.sh:176 `az account set --subscription "$SUBSCRIPTION_ID"`
-- audit\evidence_20250920T151430Z-29169\deploy.sh:179 `CURRENT_SUB=$(az account show --query id -o tsv)`
-- audit\evidence_20250920T151430Z-29169\deploy.sh:197 `local bicep_file="$PROJECT_ROOT/infrastructure/azure/bicep/main.bicep"`
-- audit\evidence_20250920T151430Z-29169\deploy.sh:198 `local params_file="$PROJECT_ROOT/infrastructure/azure/bicep/parameters.$ENVIRONMENT.json"`
-- audit\evidence_20250920T151430Z-29169\deploy.sh:201 `print_error "Bicep template not found: $bicep_file"`
-- audit\evidence_20250920T151430Z-29169\deploy.sh:213 `az group create \`
-- audit\evidence_20250920T151430Z-29169\deploy.sh:228 `az deployment group create \`
-- audit\evidence_20250920T151430Z-29169\deploy.sh:295 `db_host=$(az deployment group show \`
-- audit\evidence_20250920T151430Z-29169\deploy.sh:301 `key_vault_name=$(az deployment group show \`
-- audit\evidence_20250920T151430Z-29169\deploy.sh:316 `db_url=$(az keyvault secret show \`
-- audit\evidence_20250920T151430Z-29169\deploy.sh:354 `az webapp deployment source config-zip \`
-- audit\evidence_20250920T151430Z-29169\deploy.sh:372 `az webapp deployment source config-zip \`
-- audit\evidence_20250920T151430Z-29169\infra-test.sh:6 `az webapp show -g $RG -n econeura-api-dev --query "{name:name,host:defaultHostName,state:state}" -o json || true`
-- audit\evidence_20250920T151430Z-29169\infra-test.sh:7 `az webapp show -g $RG -n econeura-web-dev --query "{name:name,host:defaultHostName,state:state}" -o json || true`
-- audit\evidence_20250920T151430Z-29169\infra-test.sh:10 `az keyvault list -g $RG -o table || echo "No KeyVaults or insufficient permissions"`
-- audit\evidence_20250920T151430Z-29169\infra-test.sh:11 `az acr list -g $RG -o table || echo "No ACR or insufficient permissions"`
-- audit\evidence_20250920T151430Z-29169\optimize-consolidated-services.sh:485 `4. **Problemas de Docker**: Rebuild con `docker build -f Dockerfile.optimized .``
-- audit\evidence_20250920T151430Z-29169\setup-azure-oidc.sh:14 `az account show >/dev/null 2>&1 || { echo "No hay sesión activa. Ejecuta: az login --use-device-code y vuelve a ejecutar este script."; exit 1; }`
-- audit\evidence_20250920T151430Z-29169\setup-azure-oidc.sh:32 `az ad app create --display-name "$APP_NAME" --available-to-other-tenants false --query "{appId:appId,objectId:id}" -o json > "$TMP_JSON"`
-- audit\evidence_20250920T151430Z-29169\setup-azure-oidc.sh:54 `az ad app federated-credential create --id "$APP_OBJECT_ID" --parameters "{\"name\": \"github-actions-${REPO_OWNER}-${REPO_NAME}\", \"issuer\": \"https://token.actions.githubusercontent.com\", \"subject\": \"${SUBJECT}\", \"description\": \"Federated credential for GitHub Actions\" }"`
-- audit\evidence_20250920T151430Z-29169\setup-azure-oidc.sh:57 `az ad sp create --id "$CLIENT_ID" || true`
-- audit\evidence_20250920T151430Z-29169\setup-azure-oidc.sh:61 `az role assignment create --assignee "$CLIENT_ID" --role "Contributor" --scope "$SCOPE" || echo "Warning: role assignment fallo (posible que falten permisos)."`
-- audit\evidence_20250920T151430Z-29169\setup-azure-oidc.sh:63 `TENANT_ID=$(az account show --query tenantId -o tsv)`
-- audit\evidence_tmp_20250920T153628Z-1191\az-cli-in-docker.sh:2 `# Ejecuta Azure CLI dentro de un contenedor Docker para evitar instalar az localmente.`
-- audit\evidence_tmp_20250920T153628Z-1191\az-cli-in-docker.sh:4 `#   bash scripts/az-cli-in-docker.sh -- az login --use-device-code`
-- audit\evidence_tmp_20250920T153628Z-1191\az-cli-in-docker.sh:6 `#   bash scripts/az-cli-in-docker.sh -- az ad sp create-for-rbac --name "sp-github-actions-ec" --role "Contributor" --scopes /subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RG> --sdk-auth > sp.json`
-- audit\evidence_tmp_20250920T153628Z-1191\az-cli-in-docker.sh:17 `echo "Ejemplo: bash scripts/az-cli-in-docker.sh -- az login --use-device-code"`
-- audit\evidence_tmp_20250920T153628Z-1191\az-cli-in-docker.sh:21 `# Construir el comando az a ejecutar dentro del contenedor`
-- audit\evidence_tmp_20250920T153628Z-1191\az-final-check.sh:9 `az account show >/dev/null 2>&1 || az login --use-device-code >/dev/null`
-- audit\evidence_tmp_20250920T153628Z-1191\az-final-check.sh:14 `WEB_FQDN="$(az webapp show -g "$RG" -n "$WEB" --query defaultHostName -o tsv)"`
-- audit\evidence_tmp_20250920T153628Z-1191\az-final-check.sh:17 `HP="$(az webapp show -g "$RG" -n "$API" --query siteConfig.healthCheckPath -o tsv)"; [ -z "${HP:-}" ] && HP="/health"`
-- audit\evidence_tmp_20250920T153628Z-1191\az-final-check.sh:26 `APP_URL="$(az webapp config appsettings list -g "$RG" -n "$WEB" --query "[?name=='NEXT_PUBLIC_API_URL'].value | [0]" -o tsv)"`
-- audit\evidence_tmp_20250920T153628Z-1191\az-final-check.sh:27 `FX="$(az webapp show -g "$RG" -n "$API" --query siteConfig.linuxFxVersion -o tsv)"`
-- audit\evidence_tmp_20250920T153628Z-1191\az-final-check.sh:28 `CORS_ALLOWED="$(az webapp cors show -g "$RG" -n "$API" --query allowedOrigins -o tsv | paste -sd',' -)"`
-- audit\evidence_tmp_20250920T153628Z-1191\az-final-check.sh:29 `RULES="$(az webapp config access-restriction show -g "$RG" -n "$API" --query "ipSecurityRestrictions[].ipAddress" -o tsv)"`
-- audit\evidence_tmp_20250920T153628Z-1191\az-final-check.sh:31 `SCM_SAME="$(az webapp config access-restriction show -g "$RG" -n "$API" --query "<REDACTED>" -o tsv)"`
-- audit\evidence_tmp_20250920T153628Z-1191\create-sp-and-secrets.sh:19 `az account set --subscription "$SUBSCRIPTION_ID"`
-- audit\evidence_tmp_20250920T153628Z-1191\create-sp-and-secrets.sh:22 `SP_OUTPUT=$(az ad sp create-for-rbac --name "http://econeura-ci-$RANDOM" --role "Contributor" --scopes "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP" --sdk-auth)`
-- audit\evidence_tmp_20250920T153628Z-1191\deploy-azure.sh:11 `echo "[deploy] Uploading zip to Azure WebApp: $WEBAPP ..."`
-- audit\evidence_tmp_20250920T153628Z-1191\deploy-azure.sh:12 `az webapp deployment source config-zip --resource-group "$RG" --name "$WEBAPP" --src ../../tmp/deploy.zip`
-- audit\evidence_tmp_20250920T153628Z-1191\deploy-azure.sh:14 `HOST=$(az webapp show -g "$RG" -n "$WEBAPP" --query defaultHostName -o tsv)`
-- audit\evidence_tmp_20250920T153628Z-1191\deploy.sh:169 `if ! az account show &> /dev/null; then`
-- audit\evidence_tmp_20250920T153628Z-1191\deploy.sh:171 `az login`
-- audit\evidence_tmp_20250920T153628Z-1191\deploy.sh:176 `az account set --subscription "$SUBSCRIPTION_ID"`
-- audit\evidence_tmp_20250920T153628Z-1191\deploy.sh:179 `CURRENT_SUB=$(az account show --query id -o tsv)`
-- audit\evidence_tmp_20250920T153628Z-1191\deploy.sh:197 `local bicep_file="$PROJECT_ROOT/infrastructure/azure/bicep/main.bicep"`
-- audit\evidence_tmp_20250920T153628Z-1191\deploy.sh:198 `local params_file="$PROJECT_ROOT/infrastructure/azure/bicep/parameters.$ENVIRONMENT.json"`
-- audit\evidence_tmp_20250920T153628Z-1191\deploy.sh:201 `print_error "Bicep template not found: $bicep_file"`
-- audit\evidence_tmp_20250920T153628Z-1191\deploy.sh:213 `az group create \`
-- audit\evidence_tmp_20250920T153628Z-1191\deploy.sh:228 `az deployment group create \`
-- audit\evidence_tmp_20250920T153628Z-1191\deploy.sh:295 `db_host=$(az deployment group show \`
-- audit\evidence_tmp_20250920T153628Z-1191\deploy.sh:301 `key_vault_name=$(az deployment group show \`
-- audit\evidence_tmp_20250920T153628Z-1191\deploy.sh:316 `db_url=$(az keyvault secret show \`
-- audit\evidence_tmp_20250920T153628Z-1191\deploy.sh:354 `az webapp deployment source config-zip \`
-- audit\evidence_tmp_20250920T153628Z-1191\deploy.sh:372 `az webapp deployment source config-zip \`
-- audit\evidence_tmp_20250920T153628Z-1191\infra-test.sh:6 `az webapp show -g $RG -n econeura-api-dev --query "{name:name,host:defaultHostName,state:state}" -o json || true`
-- audit\evidence_tmp_20250920T153628Z-1191\infra-test.sh:7 `az webapp show -g $RG -n econeura-web-dev --query "{name:name,host:defaultHostName,state:state}" -o json || true`
-- audit\evidence_tmp_20250920T153628Z-1191\infra-test.sh:10 `az keyvault list -g $RG -o table || echo "No KeyVaults or insufficient permissions"`
-- audit\evidence_tmp_20250920T153628Z-1191\infra-test.sh:11 `az acr list -g $RG -o table || echo "No ACR or insufficient permissions"`
-- audit\evidence_tmp_20250920T153628Z-1191\optimize-consolidated-services.sh:485 `4. **Problemas de Docker**: Rebuild con `docker build -f Dockerfile.optimized .``
-- audit\evidence_tmp_20250920T153628Z-1191\setup-azure-oidc.sh:14 `az account show >/dev/null 2>&1 || { echo "No hay sesión activa. Ejecuta: az login --use-device-code y vuelve a ejecutar este script."; exit 1; }`
-- audit\evidence_tmp_20250920T153628Z-1191\setup-azure-oidc.sh:32 `az ad app create --display-name "$APP_NAME" --available-to-other-tenants false --query "{appId:appId,objectId:id}" -o json > "$TMP_JSON"`
-- audit\evidence_tmp_20250920T153628Z-1191\setup-azure-oidc.sh:54 `az ad app federated-credential create --id "$APP_OBJECT_ID" --parameters "{\"name\": \"github-actions-${REPO_OWNER}-${REPO_NAME}\", \"issuer\": \"https://token.actions.githubusercontent.com\", \"subject\": \"${SUBJECT}\", \"description\": \"Federated credential for GitHub Actions\" }"`
-- audit\evidence_tmp_20250920T153628Z-1191\setup-azure-oidc.sh:57 `az ad sp create --id "$CLIENT_ID" || true`
-- audit\evidence_tmp_20250920T153628Z-1191\setup-azure-oidc.sh:61 `az role assignment create --assignee "$CLIENT_ID" --role "Contributor" --scope "$SCOPE" || echo "Warning: role assignment fallo (posible que falten permisos)."`
-- audit\evidence_tmp_20250920T153628Z-1191\setup-azure-oidc.sh:63 `TENANT_ID=$(az account show --query tenantId -o tsv)`
-- complete_ci_setup.sh:84 `gh workflow run "Mandatory Approval Gate" --ref "refs/heads/$BRANCH" || true`
-- complete_ci_setup.sh:85 `gh workflow run "Optimized Audit Parallel" --ref "refs/heads/$BRANCH" || true`
-- complete_ci_setup.sh:86 `gh workflow run "Integration Tests with Compose" --ref "refs/heads/$BRANCH" || true`
-- complete_ci_setup.sh:89 `echo "Si decides hacer push más tarde, ejecuta: git push origin $BRANCH  && gh workflow run 'Mandatory Approval Gate' --ref HEAD"`
-- complete_ci_testing.sh:86 `gh workflow run --repo "$OWNER/$REPO" "Mandatory Approval Gate" --ref "refs/heads/$BRANCH" || true`
-- complete_ci_testing.sh:87 `gh workflow run --repo "$OWNER/$REPO" "Optimized Audit Parallel" --ref "refs/heads/$BRANCH" || true`
-- complete_ci_testing.sh:88 `gh workflow run --repo "$OWNER/$REPO" "Integration Tests with Compose" --ref "refs/heads/$BRANCH" || true`
-- evidence_script.js:4 `const danger = /\b(az\s|azd\s|bicep\b|terraform\s+(apply|plan)|kubectl\b|helm\b|docker\s+(build|push)|azure\s+(webapp|functions|containerapp)|gh\s+workflow\s+run)\b/i;`
-- hmac_canary_setup.sh:250 `echo "This script made NO remote changes, NO terraform apply, NO kubectl apply, NO git push."`
-- nodeploy_script.js:13 `// mata pasos con az/azd/terraform/kubectl/helm/docker push`
-- nodeploy_script.js:14 `s = s.replace(/^\s*-+\s*run:\s*(.*\b(az|azd|terraform|kubectl|helm|docker\s+push)\b.*)$/gmi, m => m.replace(/run:/, 'run: echo "[NO_DEPLOY] blocked" #'));`
-- one_step_hard_action.sh:4 `# Paste & run in repo root. Does NOT git push or terraform apply by default.`
-- one_step_hard_action.sh:9 `mkdir -p "$AUDIT" "$BASE/.github/workflows" "$BASE/infra/terraform" "$BASE/infra/helm" "$BASE/scripts"`
-- one_step_hard_action.sh:22 `for t in terraform helm kubectl docker; do`
-- one_step_hard_action.sh:97 `# ---- 6. Infra plan & helm dry-check (non-destructive) ----`
-- one_step_hard_action.sh:101 `(cd "$BASE/infra/terraform" && terraform plan -out=tfplan_${TRACE}.plan || true)`
-- one_step_hard_action.sh:107 `log "Helm check: try repo update and template (if helm present)"`
-- one_step_hard_action.sh:108 `if command -v helm >/dev/null 2>&1 && [ -d "$BASE/infra/helm" ]; then`
-- one_step_hard_action.sh:109 `helm repo update >/dev/null 2>&1 || true`
-- one_step_hard_action.sh:110 `for ch in "$BASE/infra/helm"/*; do`
-- one_step_hard_action.sh:112 `helm template --namespace staging "$(basename $ch)" "$ch" > "$AUDIT/helm_template_$(basename $ch)_${TRACE}.yaml" 2>/dev/null || true`
-- one_step_hard_action.sh:118 `log "Prepare observability manifests (helm templates only, no install) if helm present"`
-- one_step_hard_action.sh:119 `if command -v helm >/dev/null 2>&1; then`
-- one_step_hard_action.sh:120 `helm repo add prometheus-community https://prometheus-community.github.io/helm-charts >/dev/null 2>&1 || true`
-- one_step_hard_action.sh:121 `helm repo add grafana https://grafana.github.io/helm-charts >/dev/null 2>&1 || true`
-- one_step_hard_action.sh:122 `helm repo update >/dev/null 2>&1 || true`
-- one_step_hard_action.sh:123 `helm template prometheus prometheus-community/kube-prometheus-stack --namespace observability > "$AUDIT/prometheus_template_${TRACE}.yaml" 2>/dev/null || true`
-- one_step_hard_action.sh:124 `helm template grafana grafana/grafana --namespace observability > "$AUDIT/grafana_template_${TRACE}.yaml" 2>/dev/null || true`
-- one_step_hard_action.sh:133 `docker build -f "$svc/Dockerfile" -t "$img" --no-cache "$svc" >/dev/null 2>&1 || true`
-- one_step_hard_action.sh:246 `echo " 3) If infra changes approved: run terraform apply in infra/terraform (ONLY AFTER peer review)"`
-- quick_test_workflows.sh:33 `gh workflow run --repo "$OWNER/$REPO" "$wf" --ref "refs/heads/$BRANCH" || echo "No se pudo iniciar workflow $wf (ignorado)"`
-- scripts\auto_fix_workflows_shim.sh:10 `KEYWORDS="kubectl|helm|gcloud|aws s3|aws ecr|docker push|buildx|terraform apply|deploy"`
-- scripts\az-cli-in-docker.sh:2 `# Ejecuta Azure CLI dentro de un contenedor Docker para evitar instalar az localmente.`
-- scripts\az-cli-in-docker.sh:4 `#   bash scripts/az-cli-in-docker.sh -- az login --use-device-code`
-- scripts\az-cli-in-docker.sh:6 `#   bash scripts/az-cli-in-docker.sh -- az ad sp create-for-rbac --name "sp-github-actions-ec" --role "Contributor" --scopes /subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RG> --sdk-auth > sp.json`
-- scripts\az-cli-in-docker.sh:17 `echo "Ejemplo: bash scripts/az-cli-in-docker.sh -- az login --use-device-code"`
-- scripts\az-cli-in-docker.sh:21 `# Construir el comando az a ejecutar dentro del contenedor`
-- scripts\az-final-check.sh:9 `az account show >/dev/null 2>&1 || az login --use-device-code >/dev/null`
-- scripts\az-final-check.sh:14 `WEB_FQDN="$(az webapp show -g "$RG" -n "$WEB" --query defaultHostName -o tsv)"`
-- scripts\az-final-check.sh:17 `HP="$(az webapp show -g "$RG" -n "$API" --query siteConfig.healthCheckPath -o tsv)"; [ -z "${HP:-}" ] && HP="/health"`
-- scripts\az-final-check.sh:26 `APP_URL="$(az webapp config appsettings list -g "$RG" -n "$WEB" --query "[?name=='NEXT_PUBLIC_API_URL'].value | [0]" -o tsv)"`
-- scripts\az-final-check.sh:27 `FX="$(az webapp show -g "$RG" -n "$API" --query siteConfig.linuxFxVersion -o tsv)"`
-- scripts\az-final-check.sh:28 `CORS_ALLOWED="$(az webapp cors show -g "$RG" -n "$API" --query allowedOrigins -o tsv | paste -sd',' -)"`
-- scripts\az-final-check.sh:29 `RULES="$(az webapp config access-restriction show -g "$RG" -n "$API" --query "ipSecurityRestrictions[].ipAddress" -o tsv)"`
-- scripts\az-final-check.sh:31 `SCM_SAME="$(az webapp config access-restriction show -g "$RG" -n "$API" --query "scmIpSecurityRestrictionsUseMain" -o tsv)"`
-- scripts\ci\activacion_automatica_ci_cd.sh:46 `gh workflow run --repo "$OWNER/$REPO" "$wf" --ref "refs/heads/$BRANCH" || echo "WARN: cannot start $wf"`
-- scripts\ci\activacion_automatica_ci_cd_ready.sh:46 `gh workflow run --repo "$OWNER/$REPO" "$wf" --ref "refs/heads/$BRANCH" || echo "WARN: cannot start $wf"`
-- scripts\ci\activacion_directa_main.sh:82 `if gh workflow run --repo "$OWNER/$REPO" "$wf" --ref "refs/heads/$BRANCH" >/dev/null 2>&1; then`
-- scripts\ci\activacion_eficiente_manual.sh:84 `if gh workflow run --repo "$OWNER/$REPO" "$wf" --ref "refs/heads/$BRANCH" >/dev/null 2>&1; then`
-- scripts\ci\activacion_eficiente_un_paso.sh:78 `gh workflow run --repo "$OWNER/$REPO" "$wf" --ref "refs/heads/$BRANCH" >/dev/null 2>&1 || warn "Could not trigger $wf (it might be push-triggered)"`
-- scripts\ci\activacion_final_enterprise.sh:78 `gh workflow run --repo "$OWNER/$REPO" "$wf" --ref "refs/heads/$BRANCH" || warn "Could not trigger workflow: $wf"`
-- scripts\ci\activacion_final_secure.sh:49 `gh workflow run --repo "$OWNER/$REPO" "$wf" --ref "refs/heads/$BRANCH" || echo "WARN: no se pudo iniciar $wf"`
-- scripts\ci\activacion_final_secure_ready.sh:49 `gh workflow run --repo "$OWNER/$REPO" "$wf" --ref "refs/heads/$BRANCH" || echo "WARN: no se pudo iniciar $wf"`
-- scripts\ci\activacion_final_segura.sh:64 `gh workflow run --repo "$OWNER/$REPO" "$wf" --ref "refs/heads/$BRANCH" || echo "WARN: no se pudo iniciar $wf (ignorado)"`
-- scripts\ci\activacion_final_segura_ready.sh:64 `gh workflow run --repo "$OWNER/$REPO" "$wf" --ref "refs/heads/$BRANCH" || echo "WARN: no se pudo iniciar $wf (ignorado)"`
-- scripts\ci\activacion_hibrida_segura.sh:128 `if gh workflow run --repo "$OWNER/$REPO" "$wf" --ref "refs/heads/$BRANCH" 2>/dev/null; then`
-- scripts\ci\activacion_manual_secrets.sh:105 `if gh workflow run --repo "$OWNER/$REPO" "$wf" --ref "refs/heads/$BRANCH" 2>/dev/null; then`
-- scripts\ci\activacion_no_interactiva.sh:80 `if gh workflow run --repo "$OWNER/$REPO" "$wf" --ref "refs/heads/$BRANCH" >/dev/null 2>&1; then`
-- scripts\ci\activacion_segura_ephemeral.sh:56 `gh workflow run --repo "$OWNER/$REPO" "$wf" --ref "refs/heads/$BRANCH" || warn "Could not trigger workflow: $wf"`
-- scripts\ci\activacion_sin_verificacion.sh:81 `if gh workflow run --repo "$OWNER/$REPO" "$wf" --ref "refs/heads/$BRANCH" >/dev/null 2>&1; then`
-- scripts\ci\activacion_un_paso.sh:66 `gh workflow run --repo "$OWNER/$REPO" "$wf" --ref "refs/heads/$BRANCH" >/dev/null 2>&1 || warn "Could not trigger workflow: $wf"`
-- scripts\ci\activacion_un_paso_manual.sh:73 `if gh workflow run --repo "$OWNER/$REPO" "$wf" --ref "refs/heads/$BRANCH" >/dev/null 2>&1; then`
-- scripts\create-sp-and-secrets.sh:19 `az account set --subscription "$SUBSCRIPTION_ID"`
-- scripts\create-sp-and-secrets.sh:22 `SP_OUTPUT=$(az ad sp create-for-rbac --name "http://econeura-ci-$RANDOM" --role "Contributor" --scopes "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP" --sdk-auth)`
-- scripts\deploy-azure.sh:11 `echo "[deploy] Uploading zip to Azure WebApp: $WEBAPP ..."`
-- scripts\deploy-azure.sh:12 `az webapp deployment source config-zip --resource-group "$RG" --name "$WEBAPP" --src ../../tmp/deploy.zip`
-- scripts\deploy-azure.sh:14 `HOST=$(az webapp show -g "$RG" -n "$WEBAPP" --query defaultHostName -o tsv)`
-- scripts\deploy.sh:169 `if ! az account show &> /dev/null; then`
-- scripts\deploy.sh:171 `az login`
-- scripts\deploy.sh:176 `az account set --subscription "$SUBSCRIPTION_ID"`
-- scripts\deploy.sh:179 `CURRENT_SUB=$(az account show --query id -o tsv)`
-- scripts\deploy.sh:197 `local bicep_file="$PROJECT_ROOT/infrastructure/azure/bicep/main.bicep"`
-- scripts\deploy.sh:198 `local params_file="$PROJECT_ROOT/infrastructure/azure/bicep/parameters.$ENVIRONMENT.json"`
-- scripts\deploy.sh:201 `print_error "Bicep template not found: $bicep_file"`
-- scripts\deploy.sh:213 `az group create \`
-- scripts\deploy.sh:228 `az deployment group create \`
-- scripts\deploy.sh:295 `db_host=$(az deployment group show \`
-- scripts\deploy.sh:301 `key_vault_name=$(az deployment group show \`
-- scripts\deploy.sh:316 `db_url=$(az keyvault secret show \`
-- scripts\deploy.sh:354 `az webapp deployment source config-zip \`
-- scripts\deploy.sh:372 `az webapp deployment source config-zip \`
-- scripts\dev\ai-terminal-pro-backup.sh:292 `echo "  docker build -t nombre .    # Construir imagen"`
-- scripts\dev\ai-terminal-pro.sh:283 `echo "  docker build -t nombre .    # Construir imagen"`
-- scripts\dev\ai-terminal-simple.sh:239 `echo "  • kubectl get pods -A     # Ver todos los pods"`
-- scripts\dev\ai-terminal-simple.sh:240 `echo "  • kubectl logs -f         # Seguir logs"`
-- scripts\dev\ai-terminal-simple.sh:241 `echo "  • kubectl describe        # Detalles completos"`
-- scripts\dev\ai-terminal-simple.sh:499 `echo "  • Para contenedores: docker build, docker run"`
-- scripts\infra-test.sh:6 `az webapp show -g $RG -n econeura-api-dev --query "{name:name,host:defaultHostName,state:state}" -o json || true`
-- scripts\infra-test.sh:7 `az webapp show -g $RG -n econeura-web-dev --query "{name:name,host:defaultHostName,state:state}" -o json || true`
-- scripts\infra-test.sh:10 `az keyvault list -g $RG -o table || echo "No KeyVaults or insufficient permissions"`
-- scripts\infra-test.sh:11 `az acr list -g $RG -o table || echo "No ACR or insufficient permissions"`
-- scripts\optimize-consolidated-services.sh:485 `4. **Problemas de Docker**: Rebuild con `docker build -f Dockerfile.optimized .``
-- scripts\setup-azure-oidc.sh:14 `az account show >/dev/null 2>&1 || { echo "No hay sesión activa. Ejecuta: az login --use-device-code y vuelve a ejecutar este script."; exit 1; }`
-- scripts\setup-azure-oidc.sh:32 `az ad app create --display-name "$APP_NAME" --available-to-other-tenants false --query "{appId:appId,objectId:id}" -o json > "$TMP_JSON"`
-- scripts\setup-azure-oidc.sh:54 `az ad app federated-credential create --id "$APP_OBJECT_ID" --parameters "{\"name\": \"github-actions-${REPO_OWNER}-${REPO_NAME}\", \"issuer\": \"https://token.actions.githubusercontent.com\", \"subject\": \"${SUBJECT}\", \"description\": \"Federated credential for GitHub Actions\" }"`
-- scripts\setup-azure-oidc.sh:57 `az ad sp create --id "$CLIENT_ID" || true`
-- scripts\setup-azure-oidc.sh:61 `az role assignment create --assignee "$CLIENT_ID" --role "Contributor" --scope "$SCOPE" || echo "Warning: role assignment fallo (posible que falten permisos)."`
-- scripts\setup-azure-oidc.sh:63 `TENANT_ID=$(az account show --query tenantId -o tsv)`
-- scripts\vault\emergency_hmac_rotation.sh:75 `gh workflow run --repo "$OWNER/$REPO" "Mandatory Approval Gate" --ref "refs/heads/$BRANCH" || echo "Warn: failed to trigger Mandatory Approval Gate"`
-- scripts\vault\emergency_hmac_rotation.sh:76 `gh workflow run --repo "$OWNER/$REPO" "Optimized Audit Parallel" --ref "refs/heads/$BRANCH" || true`
-- scripts\vault\emergency_hmac_rotation.sh:77 `gh workflow run --repo "$OWNER/$REPO" "Integration Tests with Compose" --ref "refs/heads/$BRANCH" || true`
-- scripts\vault\emergency_hmac_rotation_ready.sh:75 `gh workflow run --repo "$OWNER/$REPO" "Mandatory Approval Gate" --ref "refs/heads/$BRANCH" || echo "Warn: failed to trigger Mandatory Approval Gate"`
-- scripts\vault\emergency_hmac_rotation_ready.sh:76 `gh workflow run --repo "$OWNER/$REPO" "Optimized Audit Parallel" --ref "refs/heads/$BRANCH" || true`
-- scripts\vault\emergency_hmac_rotation_ready.sh:77 `gh workflow run --repo "$OWNER/$REPO" "Integration Tests with Compose" --ref "refs/heads/$BRANCH" || true`
-- section1_setup.sh:19 `for opt in docker syft trivy snyk terraform helm gpg; do`
-- validacion_completa_ci.sh:31 `gh workflow run --repo "$OWNER/$REPO" "$wf" --ref "refs/heads/$BRANCH" || echo "Aviso: no se pudo iniciar workflow $wf (posible inexistencia o permiso)"`
+dangerous(0):
 
-## Sospechas de secreto en cliente
-- evidence_script.js:5 `const secrets = /\b(GW_KEY|LA_KEY|NEURA_GW_KEY|SharedKey\s+[A-Za-z0-9+/=]+|VITE_.*KEY)\b/;`
-- purge_secrets.js:32 `// eliminar lectura de GW_KEY/LA_KEY del objeto env`
-- purge_secrets.js:35 `// header Authorization con env.GW_KEY -> SIM o Bearer global`
-- purge_secrets.js:36 `s = s.replace(/Authorization['"]?:\s*`Bearer\s*\$\{[^}]*GW_KEY[^}]*\}`/g, 'Authorization: `Bearer ${ (window as any).__ECONEURA_BEARER || "SIMULATED" }`');`
+strict_violations(0):

@@ -1,28 +1,25 @@
 import express, { type Express } from "express";
 import cors from "cors";
-import { structuredLogger } from './lib/structured-logger.js';/;
+import { structuredLogger } from './lib/structured-logger.js';
 import { ErrorHandler } from './lib/error-handler.js';
-/
-// Import health modes (PR-22)/
-import { healthModeManager } from './lib/health-modes.js';/;
-import { healthMonitor } from './lib/health-monitor.js';/;
+import { healthModeManager } from './lib/health-modes.js';
+import { healthMonitor } from './lib/health-monitor.js';
 import { advancedCacheManager } from './lib/advanced-cache.js';
-/
-// Import middlewares (PR-27, PR-28, PR-29)/
-import { observabilityMiddleware } from './middleware/observability.js';/;
+import { observabilityMiddleware } from './middleware/observability.js';
 import { finOpsMiddleware } from './middleware/finops.js';
-/
-// Import routers for working PRs/
-import { analyticsRouter } from './routes/analytics.js';/;
-import { eventsRouter } from './routes/events.js';/;
+
+// Import routers for working PRs
+import { analyticsRouter } from './routes/analytics.js';
+import { eventsRouter } from './routes/events.js';
 import { cockpitRouter } from './routes/cockpit.js';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3001;
-/
+
 // Initialize error handler
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const errorHandler = new ErrorHandler();
-/
+
 // Basic security headers
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -32,32 +29,32 @@ app.use((req, res, next) => {
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   next();
 });
-/
+
 // CORS configuration (PR-28)
-app.use(cors({/
+app.use(cors({
   origin: ['http://localhost:3000', 'http://localhost:3001'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Org-ID', 'X-User-ID', 'X-Correlation-ID'],
   exposedHeaders: ['X-System-Mode', 'X-Est-Cost-EUR', 'X-Budget-Pct', 'X-Latency-ms', 'X-Route']
 }));
-/
+
 // Basic middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
-/
+
 // Apply observability middleware (PR-23)
 app.use(observabilityMiddleware);
-/
+
 // Apply FinOps middleware (PR-29)
 app.use(finOpsMiddleware);
-/
+
 // Simple rate limiting (PR-29)
 const rateLimitStore = new Map();
 app.use((req, res, next) => {
   const ip = req.ip || req.connection.remoteAddress || 'unknown';
-  const now = Date.now();/;
-  const windowMs = 15 * 60 * 1000; // 15 minutes;
+  const now = Date.now();
+  const windowMs = 15 * 60 * 1000; // 15 minutes
   const maxRequests = 100;
   
   if (!rateLimitStore.has(ip)) {
@@ -75,7 +72,7 @@ app.use((req, res, next) => {
   if (record.count >= maxRequests) {
     return res.status(429).json({
       error: 'Too Many Requests',
-      message: 'Rate limit exceeded',/
+      message: 'Rate limit exceeded',
       retryAfter: Math.ceil((record.resetTime - now) / 1000)
     });
   }
@@ -83,10 +80,10 @@ app.use((req, res, next) => {
   record.count++;
   next();
 });
-/
+
 // Basic validation middleware (PR-27)
-app.use((req, res, next) => {/
-  // Basic request validation/
+app.use((req, res, next) => {
+  // Basic request validation
   if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
     if (req.body && typeof req.body !== 'object') {
       return res.status(400).json({
@@ -97,8 +94,8 @@ app.use((req, res, next) => {/
   }
   next();
 });
-/
-// Basic health check endpoint (< 200ms, no external dependencies)/
+
+// Basic health check endpoint (< 200ms, no external dependencies)
 app.get("/health", (req, res) => {
   const ts = new Date().toISOString();
   const version = process.env.npm_package_version || "1.0.0";
@@ -111,8 +108,8 @@ app.get("/health", (req, res) => {
     mode: currentMode
   });
 });
-/
-// Enhanced Health check endpoints (PR-22)/
+
+// Enhanced Health check endpoints (PR-22)
 app.get("/health/live", async (req, res) => {
   try {
     const result = await healthModeManager.getLivenessProbe();
@@ -129,7 +126,7 @@ app.get("/health/live", async (req, res) => {
     });
   }
 });
-/
+
 app.get("/health/ready", async (req, res) => {
   try {
     const result = await healthModeManager.getReadinessProbe();
@@ -146,15 +143,15 @@ app.get("/health/ready", async (req, res) => {
     });
   }
 });
-/
-// System metrics endpoint/
+
+// System metrics endpoint
 app.get("/metrics", async (req, res) => {
   try {
     const cacheStats = advancedCacheManager.getAllStats();
     const systemHealth = healthMonitor.getSystemHealth();
-    /
+    
     // Generate Prometheus-style metrics
-    const metrics = `;
+    const metrics = `
 # HELP econeura_cache_hits_total Total number of cache hits
 # TYPE econeura_cache_hits_total counter
 econeura_cache_hits_total{cache="all"} ${Object.values(cacheStats).reduce((sum, stats) => sum + stats.hits, 0)}
@@ -175,7 +172,7 @@ econeura_system_memory_usage ${systemHealth.memory.percentage}
 # TYPE econeura_system_uptime_seconds counter
 econeura_system_uptime_seconds ${process.uptime()}
 `;
-    /
+    
     res.set('Content-Type', 'text/plain');
     res.send(metrics.trim());
   } catch (error) {
@@ -185,8 +182,8 @@ econeura_system_uptime_seconds ${process.uptime()}
     });
   }
 });
-/
-// Cache statistics endpoint/
+
+// Cache statistics endpoint
 app.get("/cache/stats", (req, res) => {
   try {
     const stats = advancedCacheManager.getAllStats();
@@ -203,15 +200,15 @@ app.get("/cache/stats", (req, res) => {
     });
   }
 });
-/
-// API info endpoint with comprehensive feature list/
+
+// API info endpoint with comprehensive feature list
 app.get("/", (req, res) => {
   res.json({
     name: "ECONEURA API",
     version: process.env.npm_package_version || "1.0.0",
     status: "running",
     timestamp: new Date().toISOString(),
-    features: [/
+    features: [
       "PR-22: Health modes (live/ready/degraded)",
       "PR-23: Observability coherente (logs + métricas + traces)",
       "PR-24: Analytics events with Zod validation", 
@@ -223,35 +220,36 @@ app.get("/", (req, res) => {
       "Cache: Advanced caching with statistics",
       "Metrics: Prometheus-compatible metrics endpoint"
     ],
-    endpoints: [/
-      "GET /health - Basic health check",/
-      "GET /health/live - Liveness probe (PR-22)", /
-      "GET /health/ready - Readiness probe (PR-22)",/
-      "GET /metrics - Prometheus metrics (PR-23)",/
-      "GET /cache/stats - Cache statistics",/
-      "POST /v1/analytics/events - Track analytics events (PR-24)",/
-      "GET /v1/analytics/events - Query analytics events (PR-24)",/
-      "GET /v1/analytics/metrics - Get aggregated metrics (PR-24)",/
-      "GET /v1/events - Server-Sent Events for real-time updates",/
-      "POST /v1/events/broadcast - Broadcast events to organization",/
-      "GET /v1/cockpit/overview - Operational overview dashboard",/
-      "GET /v1/cockpit/agents - Agent execution details",/
-      "GET /v1/cockpit/costs - Cost breakdown by org/playbook",/
+    endpoints: [
+      "GET /health - Basic health check",
+      "GET /health/live - Liveness probe (PR-22)", 
+      "GET /health/ready - Readiness probe (PR-22)",
+      "GET /metrics - Prometheus metrics (PR-23)",
+      "GET /cache/stats - Cache statistics",
+      "POST /v1/analytics/events - Track analytics events (PR-24)",
+      "GET /v1/analytics/events - Query analytics events (PR-24)",
+      "GET /v1/analytics/metrics - Get aggregated metrics (PR-24)",
+      "GET /v1/events - Server-Sent Events for real-time updates",
+      "POST /v1/events/broadcast - Broadcast events to organization",
+      "GET /v1/cockpit/overview - Operational overview dashboard",
+      "GET /v1/cockpit/agents - Agent execution details",
+      "GET /v1/cockpit/costs - Cost breakdown by org/playbook",
       "GET /v1/cockpit/system - System metrics and health"
     ]
   });
 });
-/
-// Mount Analytics routes (PR-24)/
+
+// Mount Analytics routes (PR-24)
 app.use('/v1/analytics', analyticsRouter);
-/
-// Mount Events (SSE) routes/
+
+// Mount Events (SSE) routes
 app.use('/v1/events', eventsRouter);
-/
-// Mount Cockpit routes/
+
+// Mount Cockpit routes
 app.use('/v1/cockpit', cockpitRouter);
-/
+
 // Basic error handling middleware
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   const errorId = `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   
@@ -271,27 +269,27 @@ app.use((error: Error, req: express.Request, res: express.Response, next: expres
     timestamp: new Date().toISOString()
   });
 });
-/
+
 // 404 handler
 app.use((req: express.Request, res: express.Response) => {
   res.status(404).json({
     error: 'Not found',
     message: `Route ${req.method} ${req.path} not found`,
     timestamp: new Date().toISOString(),
-    availableEndpoints: [/
-      'GET /health', 'GET /health/live', 'GET /health/ready', 'GET /metrics',/
+    availableEndpoints: [
+      'GET /health', 'GET /health/live', 'GET /health/ready', 'GET /metrics',
       'GET /v1/analytics/*', 'GET /v1/events', 'GET /v1/cockpit/*'
     ]
   });
 });
-/
+
 // Start server
-const server = app.listen(PORT, () => {;
+const server = app.listen(PORT, () => {
   structuredLogger.info(`ECONEURA API Server running on port ${PORT}`, {
     port: PORT,
     environment: process.env.NODE_ENV || 'development',
     version: process.env.npm_package_version || '1.0.0',
-    features: [/
+    features: [
       'PR-22: Health modes (live/ready/degraded)',
       'PR-23: Observability coherente (logs + métricas + traces)',
       'PR-24: Analytics events with Zod validation', 
@@ -305,7 +303,7 @@ const server = app.listen(PORT, () => {;
     ]
   });
 });
-/
+
 // Graceful shutdown
 process.on('SIGTERM', () => {
   structuredLogger.info('SIGTERM received, shutting down gracefully');
@@ -324,4 +322,3 @@ process.on('SIGINT', () => {
 });
 
 export default app;
-/

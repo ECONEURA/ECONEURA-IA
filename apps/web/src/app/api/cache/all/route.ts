@@ -1,1 +1,26 @@
-export {};
+import { NextRequest, NextResponse } from 'next/server';
+
+import { WebCacheManager } from '@/lib/cache';
+
+// Inicializar cache manager (singleton)
+const cacheManager = new WebCacheManager();
+
+export async function $1(_request: NextRequest) {
+  try {
+    await cacheManager.getAICache().clear();
+    await cacheManager.getSearchCache().clear();
+    
+    return NextResponse.json({
+      success: true,
+      data: {
+        message: 'All caches cleared successfully'
+      }
+    });
+  } catch (error) {
+    console.error('Failed to clear all caches:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}

@@ -1,0 +1,3 @@
+gw_patches=0
+login_wired=0
+client_env_GW_KEY_left=0
